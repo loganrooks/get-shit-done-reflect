@@ -66,6 +66,7 @@ Existing state management (.planning/ directory with STATE.md, ROADMAP.md, etc.)
 - **Compatibility**: Must work across Claude Code, OpenCode, and Gemini CLI runtimes
 - **Context**: Signal logging and knowledge base queries must not bloat agent context windows — lazy loading is critical
 - **Non-invasive**: Signal tracking must not slow down or interrupt normal workflow execution
+- **Fork maintenance**: This is a fork of GSD upstream — new features must be additive (new files, new commands) rather than modifying existing upstream files, to keep merging upstream changes easy
 
 ## Key Decisions
 
@@ -76,6 +77,7 @@ Existing state management (.planning/ directory with STATE.md, ROADMAP.md, etc.)
 | Implicit signal capture (not just explicit) | Users express frustration without invoking commands; system should notice | — Pending |
 | Spike as first-class workflow (/gsd:spike) | Experimentation needs structure to avoid derailing the main workflow | — Pending |
 | Knowledge base queried during research phase | Most natural integration point; researchers already search for context | — Pending |
+| Additive-only changes (no upstream file edits) | Fork maintenance — upstream merges must stay clean | — Pending |
 
 ---
 *Last updated: 2026-02-02 after initialization*
