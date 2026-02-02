@@ -28,6 +28,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **SGNL-07**: Cross-project signal pattern detection — identify recurring issues across different projects
 - [ ] **SGNL-08**: Signal capture via wrapper workflow (fork-friendly, no modification of upstream execute-phase)
 - [ ] **SGNL-09**: Per-phase signal cap (max 10 persistent signals per phase) to prevent noise
+- [ ] **SGNL-10**: `/gsd:signal` command for explicit manual signal logging with context from current conversation
 
 ### Spike Workflow
 
@@ -108,6 +109,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | SGNL-07 | Phase 4 | Pending |
 | SGNL-08 | Phase 2 | Pending |
 | SGNL-09 | Phase 2 | Pending |
+| SGNL-10 | Phase 2 | Pending |
 | SPKE-01 | Phase 3 | Pending |
 | SPKE-02 | Phase 3 | Pending |
 | SPKE-03 | Phase 3 | Pending |
@@ -130,8 +132,8 @@ Deferred to future release. Tracked but not in current roadmap.
 | SURF-05 | Phase 5 | Pending |
 
 **Coverage:**
-- v1 requirements: 32 total
-- Mapped to phases: 32
+- v1 requirements: 33 total
+- Mapped to phases: 33
 - Unmapped: 0 ✓
 
 ---
