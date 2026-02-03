@@ -5,32 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 1 complete, ready for Phase 2
+**Current focus:** Phase 2 in progress -- signal detection foundation complete
 
 ## Current Position
 
-Phase: 1 of 5 (Knowledge Store) — COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase complete, verified ✓
-Last activity: 2026-02-02 -- Phase 1 execution complete, verification passed
+Phase: 2 of 5 (Signal Collector)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-03 -- Completed 02-01-PLAN.md
 
-Progress: [███░░░░░░░░░░░] 3/14 (~21%)
+Progress: [████░░░░░░░░░░] 4/14 (~29%)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: 2.3min
-- Total execution time: 7min
+- Total execution time: 9min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Knowledge Store | 3/3 | 7min | 2.3min |
+| 2. Signal Collector | 1/3 | 2min | 2min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2min), 01-03 (1min), 01-02 (4min)
+- Last 5 plans: 01-01 (2min), 01-03 (1min), 01-02 (4min), 02-01 (2min)
 - Trend: steady
 
 *Updated after each plan completion*
@@ -53,6 +54,11 @@ Recent decisions affecting current work:
 - [01-03]: Templates include all optional fields for discoverability
 - [01-03]: Enum placeholders use pipe syntax {option1|option2}
 - [01-02]: Lesson index table uses Project+Category columns (matching spec, not plan draft's Category+Durability)
+- [02-01]: Trace signals logged but not persisted to KB
+- [02-01]: Dedup via related_signals cross-references (respects signal immutability)
+- [02-01]: Per-phase cap of 10 signals with archival replacement
+- [02-01]: Frustration detection scoped to manual /gsd:signal only (no conversation context post-execution)
+- [02-01]: Signal schema extended with optional fields: polarity, source, occurrence_count, related_signals
 
 ### Pending Todos
 
@@ -64,6 +70,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-02
-Stopped at: Phase 1 complete, verified, ready for Phase 2 planning
+Last session: 2026-02-03
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None
