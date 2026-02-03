@@ -5,37 +5,37 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 0 complete — deployment infrastructure ready; Phase 2 verification now unblocked
+**Current focus:** Phase 0 in progress — test infrastructure established, more plans remain
 
 ## Current Position
 
-Phase: 0 of 6 (Deployment Infrastructure) — COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase 0 complete
-Last activity: 2026-02-03 -- Completed 00-03-PLAN.md (CI/CD and dev scripts)
+Phase: 0 of 6 (Deployment Infrastructure)
+Plan: 1 of 4 in current phase
+Status: In progress
+Last activity: 2026-02-03 -- Completed 00-01-PLAN.md (test infrastructure foundation)
 
-Progress: [█████████░░░░░] 9/17 (~53%)
+Progress: [██████░░░░░░░░] 7/18 (~39%)
 
-**Unblocked:** Phase 2 (Signal Collector) can now be verified with test infrastructure from Phase 0
+**Next:** 00-02-PLAN.md (install script tests)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 1.6min
-- Total execution time: 14min
+- Total plans completed: 7
+- Average duration: 1.9min
+- Total execution time: 13min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 0. Deployment Infrastructure | 3/3 | 3min | 1.0min |
+| 0. Deployment Infrastructure | 1/4 | 3min | 3.0min |
 | 1. Knowledge Store | 3/3 | 7min | 2.3min |
-| 2. Signal Collector | 3/3 | 4min | 1.3min |
+| 2. Signal Collector | 3/3 | 3min | 1.0min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (1min), 02-03 (1min), 00-01 (1min), 00-02 (1min), 00-03 (1min)
-- Trend: fast and steady
+- Last 5 plans: 02-01 (1min), 02-02 (1min), 02-03 (1min), 00-01 (3min)
+- Trend: steady
 
 *Updated after each plan completion*
 
@@ -66,8 +66,10 @@ Recent decisions affecting current work:
 - [02-02]: Command delegates entirely to workflow (routing-layer pattern)
 - [02-03]: All manual signals persisted regardless of severity (user explicitly chose to record)
 - [02-03]: Frustration detection suggestive only -- user decides inclusion
-- [00-03]: Coverage only on PRs, conditional lint, version-tag verification, provenance attestation
-- [00-03]: Dev scripts use symlinks for instant hot reload
+- [00-01]: Install script works unchanged with fork name - reads package.json dynamically
+- [00-01]: Vitest over Jest (ESM-native, faster, simpler config)
+- [00-01]: 30s test timeout for file system operations
+- [00-01]: Global setup clears config env vars for test isolation
 
 ### Pending Todos
 
@@ -75,15 +77,14 @@ None yet.
 
 ### Blockers/Concerns
 
-None -- Phase 0 complete, Phase 2 verification now unblocked
+- Phase 2 verification blocked until Phase 0 completes (need install script tests, CI/CD)
 
 ### Roadmap Evolution
 
 - Phase 0 inserted before Phase 1: Deployment Infrastructure (CRITICAL) — npm packaging, install scripts, isolated test environments, CI/CD to enable proper verification of all subsequent phases
-- Phase 0 now COMPLETE: All 3 plans executed (npm packaging, test infrastructure, CI/CD)
 
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 00-03-PLAN.md (Phase 0 complete)
+Stopped at: Completed 00-01-PLAN.md (test infrastructure foundation)
 Resume file: None
