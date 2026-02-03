@@ -47,12 +47,12 @@ Plans:
   3. Signals have severity levels (critical/notable/trace) with only critical and notable persisted, and duplicates are collapsed into single entries with counts
   4. The `/gsd:signal` command allows manual signal logging with context from the current conversation
   5. Signal capture uses a wrapper workflow pattern (no modification of upstream execute-phase files)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 02-01: TBD
-- [ ] 02-02: TBD
-- [ ] 02-03: TBD
+- [ ] 02-01-PLAN.md — Signal detection reference and collector agent
+- [ ] 02-02-PLAN.md — Post-execution collect-signals command and workflow
+- [ ] 02-03-PLAN.md — Manual /gsd:signal command
 
 ### Phase 3: Spike Runner
 **Goal**: Users can translate design uncertainty into structured experiments with testable hypotheses, run isolated experiments, and produce decision records that persist in the knowledge base
