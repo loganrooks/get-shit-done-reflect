@@ -11,27 +11,27 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 Phase: 1 of 5 (Knowledge Store)
 Plan: 3 of 3 in current phase
-Status: In progress (2 of 3 plans complete)
-Last activity: 2026-02-02 -- Completed 01-03-PLAN.md
+Status: Phase complete (3 of 3 plans complete)
+Last activity: 2026-02-02 -- Completed 01-02-PLAN.md
 
-Progress: [██░░░░░░░░░░░░] 2/14 (~14%)
+Progress: [███░░░░░░░░░░░] 3/14 (~21%)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2
-- Average duration: 1.5min
-- Total execution time: 3min
+- Total plans completed: 3
+- Average duration: 2.3min
+- Total execution time: 7min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 1. Knowledge Store | 2/3 | 3min | 1.5min |
+| 1. Knowledge Store | 3/3 | 7min | 2.3min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2min), 01-03 (1min)
-- Trend: fast
+- Last 5 plans: 01-01 (2min), 01-03 (1min), 01-02 (4min)
+- Trend: steady
 
 *Updated after each plan completion*
 
@@ -52,6 +52,7 @@ Recent decisions affecting current work:
 - [01-01]: No lock files; unique IDs prevent write collisions
 - [01-03]: Templates include all optional fields for discoverability
 - [01-03]: Enum placeholders use pipe syntax {option1|option2}
+- [01-02]: Lesson index table uses Project+Category columns (matching spec, not plan draft's Category+Durability)
 
 ### Pending Todos
 
@@ -64,5 +65,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Completed 01-03-PLAN.md (knowledge base entry templates)
+Stopped at: Completed 01-02-PLAN.md (knowledge store operational scripts) -- Phase 1 complete
 Resume file: None
