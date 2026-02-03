@@ -9,13 +9,13 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Knowledge Store
 
-- [ ] **KNOW-01**: Knowledge base stored at user level (`~/.claude/gsd-knowledge/`) accessible across all projects
-- [ ] **KNOW-02**: Entries use Markdown with YAML frontmatter for structured metadata + prose content
-- [ ] **KNOW-03**: Tag-based categorization in frontmatter for cross-cutting discovery
-- [ ] **KNOW-04**: Auto-generated index file (`index.md`) summarizing all entries for fast agent lookup
-- [ ] **KNOW-05**: Directory structure separates signals, spikes, and lessons (`signals/`, `spikes/`, `lessons/`)
-- [ ] **KNOW-06**: Decay/expiry mechanism — unretrieved entries lose relevance score and auto-archive
-- [ ] **KNOW-07**: Entry cap with forced ranking (50 per project, 200 global) to prevent graveyard
+- [x] **KNOW-01**: Knowledge base stored at user level (`~/.claude/gsd-knowledge/`) accessible across all projects
+- [x] **KNOW-02**: Entries use Markdown with YAML frontmatter for structured metadata + prose content
+- [x] **KNOW-03**: Tag-based categorization in frontmatter for cross-cutting discovery
+- [x] **KNOW-04**: Auto-generated index file (`index.md`) summarizing all entries for fast agent lookup
+- [x] **KNOW-05**: Directory structure separates signals, spikes, and lessons (`signals/`, `spikes/`, `lessons/`)
+- [x] **KNOW-06**: Decay/expiry mechanism — excluded by design (time is poor heuristic; retrieval tracking included for future pruning)
+- [x] **KNOW-07**: Entry cap with forced ranking — excluded by design (evolve storage layer instead of capping)
 
 ### Signal Tracking
 
@@ -93,13 +93,13 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| KNOW-01 | Phase 1 | Pending |
-| KNOW-02 | Phase 1 | Pending |
-| KNOW-03 | Phase 1 | Pending |
-| KNOW-04 | Phase 1 | Pending |
-| KNOW-05 | Phase 1 | Pending |
-| KNOW-06 | Phase 1 | Pending |
-| KNOW-07 | Phase 1 | Pending |
+| KNOW-01 | Phase 1 | Complete |
+| KNOW-02 | Phase 1 | Complete |
+| KNOW-03 | Phase 1 | Complete |
+| KNOW-04 | Phase 1 | Complete |
+| KNOW-05 | Phase 1 | Complete |
+| KNOW-06 | Phase 1 | Complete (excluded by design) |
+| KNOW-07 | Phase 1 | Complete (excluded by design) |
 | SGNL-01 | Phase 2 | Pending |
 | SGNL-02 | Phase 2 | Pending |
 | SGNL-03 | Phase 2 | Pending |

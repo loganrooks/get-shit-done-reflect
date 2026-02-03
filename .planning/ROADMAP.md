@@ -12,7 +12,7 @@ GSD Reflect turns the GSD workflow engine into a self-improving system through f
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Knowledge Store** - File-based persistent knowledge base with directory structure, file formats, indexing, and lifecycle management
+- [x] **Phase 1: Knowledge Store** - File-based persistent knowledge base with directory structure, file formats, indexing, and lifecycle management
 - [ ] **Phase 2: Signal Collector** - Automatic detection and persistence of workflow deviations, struggles, and config mismatches
 - [ ] **Phase 3: Spike Runner** - Structured experimentation workflow for resolving design uncertainty with decision records
 - [ ] **Phase 4: Reflection Engine** - Pattern detection across signals and distillation into actionable lessons
@@ -33,9 +33,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Knowledge store reference specification
-- [ ] 01-02-PLAN.md — Directory initialization and index rebuild scripts
-- [ ] 01-03-PLAN.md — Entry templates for all three types
+- [x] 01-01-PLAN.md — Knowledge store reference specification
+- [x] 01-02-PLAN.md — Directory initialization and index rebuild scripts
+- [x] 01-03-PLAN.md — Entry templates for all three types
 
 ### Phase 2: Signal Collector
 **Goal**: The system automatically detects workflow deviations, debugging struggles, and config mismatches during execution and persists them as structured signal files in the knowledge base
@@ -109,7 +109,7 @@ Phases execute in numeric order. Phase 3 can be parallelized with Phase 2 (indep
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Knowledge Store | 0/3 | Not started | - |
+| 1. Knowledge Store | 3/3 | Complete | 2026-02-02 |
 | 2. Signal Collector | 0/3 | Not started | - |
 | 3. Spike Runner | 0/3 | Not started | - |
 | 4. Reflection Engine | 0/3 | Not started | - |
