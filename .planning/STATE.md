@@ -5,33 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 2 in progress -- command and workflow layer complete, manual signal command remaining
+**Current focus:** Phase 2 complete -- signal collector fully implemented
 
 ## Current Position
 
 Phase: 2 of 5 (Signal Collector)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-02-03 -- Completed 02-02-PLAN.md
+Plan: 3 of 3 in current phase
+Status: Phase complete
+Last activity: 2026-02-03 -- Completed 02-03-PLAN.md
 
-Progress: [█████░░░░░░░░░] 5/14 (~36%)
+Progress: [██████░░░░░░░░] 6/14 (~43%)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 2min
-- Total execution time: 10min
+- Total plans completed: 6
+- Average duration: 1.8min
+- Total execution time: 11min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Knowledge Store | 3/3 | 7min | 2.3min |
-| 2. Signal Collector | 2/3 | 3min | 1.5min |
+| 2. Signal Collector | 3/3 | 4min | 1.3min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2min), 01-03 (1min), 01-02 (4min), 02-01 (2min), 02-02 (1min)
+- Last 5 plans: 01-03 (1min), 01-02 (4min), 02-01 (2min), 02-02 (1min), 02-03 (1min)
 - Trend: steady
 
 *Updated after each plan completion*
@@ -61,6 +61,8 @@ Recent decisions affecting current work:
 - [02-01]: Signal schema extended with optional fields: polarity, source, occurrence_count, related_signals
 - [02-02]: Workflow inlines artifact content before agent spawn (@ syntax doesn't cross Task boundaries)
 - [02-02]: Command delegates entirely to workflow (routing-layer pattern)
+- [02-03]: All manual signals persisted regardless of severity (user explicitly chose to record)
+- [02-03]: Frustration detection suggestive only -- user decides inclusion
 
 ### Pending Todos
 
@@ -73,5 +75,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 02-02-PLAN.md
+Stopped at: Completed 02-03-PLAN.md (Phase 2 complete)
 Resume file: None
