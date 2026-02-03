@@ -2,23 +2,42 @@
 
 ## Overview
 
-GSD Reflect turns the GSD workflow engine into a self-improving system through five phases: establishing a persistent knowledge store, adding signal capture during execution, building a structured spike/experiment workflow, creating a reflection engine that distills signals into lessons, and surfacing accumulated knowledge during research phases. The critical path runs Phase 1 through 2 through 4 through 5, with Phase 3 (Spike Runner) parallelizable alongside Phase 2.
+GSD Reflect turns the GSD workflow engine into a self-improving system through six phases: deployment infrastructure for testing and distribution, establishing a persistent knowledge store, adding signal capture during execution, building a structured spike/experiment workflow, creating a reflection engine that distills signals into lessons, and surfacing accumulated knowledge during research phases. The critical path runs Phase 0 (required for verification) through Phase 1 through 2 through 4 through 5, with Phase 3 (Spike Runner) parallelizable alongside Phase 2.
 
 ## Phases
 
 **Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
+- Integer phases (0, 1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
 Decimal phases appear between their surrounding integers in numeric order.
 
+- [ ] **Phase 0: Deployment Infrastructure** (CRITICAL) - npm packaging, install scripts, isolated test environments, and CI/CD for proper verification
 - [x] **Phase 1: Knowledge Store** - File-based persistent knowledge base with directory structure, file formats, indexing, and lifecycle management
-- [ ] **Phase 2: Signal Collector** - Automatic detection and persistence of workflow deviations, struggles, and config mismatches
+- [~] **Phase 2: Signal Collector** - Automatic detection and persistence of workflow deviations, struggles, and config mismatches (PENDING VERIFICATION)
 - [ ] **Phase 3: Spike Runner** - Structured experimentation workflow for resolving design uncertainty with decision records
 - [ ] **Phase 4: Reflection Engine** - Pattern detection across signals and distillation into actionable lessons
 - [ ] **Phase 5: Knowledge Surfacing** - Automatic retrieval and presentation of relevant knowledge during research phases
 
 ## Phase Details
+
+### Phase 0: Deployment Infrastructure (CRITICAL)
+**Goal**: The fork is installable via `npx get-shit-done-reflect-cc`, testable in isolated environments, and verifiable through CI/CD — enabling proper E2E verification of all subsequent phases
+**Depends on**: Nothing (prerequisite for all verification)
+**Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03, DEPLOY-04
+**Success Criteria** (what must be TRUE):
+  1. Running `npx get-shit-done-reflect-cc` installs the fork's files to `~/.claude/` correctly, handling conflicts with upstream GSD
+  2. Isolated test environments (Docker or temp directory) can install fresh, run a mock project, trigger signal collection, and verify KB writes
+  3. CI pipeline runs tests on every PR and blocks merge on failure
+  4. npm publish workflow exists for releasing new versions
+  5. Local development workflow (`npm link` or equivalent) allows testing changes without reinstalling
+**Plans**: 4 plans
+
+Plans:
+- [ ] 00-01-PLAN.md — Test infrastructure foundation (package.json, Vitest, helpers)
+- [ ] 00-02-PLAN.md — Test fixtures and unit/integration tests
+- [ ] 00-03-PLAN.md — CI/CD workflows and dev setup scripts
+- [ ] 00-04-PLAN.md — Benchmark suite with tiered costs
 
 ### Phase 1: Knowledge Store
 **Goal**: A persistent, cross-project knowledge base exists at user level with defined file formats, directory structure, indexing, and lifecycle management that all subsequent components build on
@@ -105,12 +124,13 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order. Phase 3 can be parallelized with Phase 2 (independent writers to different KB sections).
+Phase 0 must complete first (enables verification). Then phases execute in numeric order. Phase 3 can be parallelized with Phase 2 (independent writers to different KB sections).
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
+| 0. Deployment Infrastructure | 0/4 | Planned | - |
 | 1. Knowledge Store | 3/3 | Complete | 2026-02-02 |
-| 2. Signal Collector | 0/3 | Not started | - |
+| 2. Signal Collector | 3/3 | Pending verification | - |
 | 3. Spike Runner | 0/3 | Not started | - |
 | 4. Reflection Engine | 0/3 | Not started | - |
 | 5. Knowledge Surfacing | 0/2 | Not started | - |
