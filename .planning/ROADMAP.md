@@ -30,12 +30,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. Auto-generated `index.md` accurately summarizes all entries for fast agent lookup without scanning individual files
   4. Entry cap enforcement prevents knowledge base from exceeding configured limits (50 per project, 200 global) with forced ranking
   5. Decay mechanism reduces relevance scores on unretrieved entries and auto-archives stale content
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 01-01: TBD
-- [ ] 01-02: TBD
-- [ ] 01-03: TBD
+- [ ] 01-01-PLAN.md — Knowledge store reference specification
+- [ ] 01-02-PLAN.md — Directory initialization and index rebuild scripts
+- [ ] 01-03-PLAN.md — Entry templates for all three types
 
 ### Phase 2: Signal Collector
 **Goal**: The system automatically detects workflow deviations, debugging struggles, and config mismatches during execution and persists them as structured signal files in the knowledge base
