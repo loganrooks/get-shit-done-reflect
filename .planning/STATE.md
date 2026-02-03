@@ -5,34 +5,37 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 2 complete -- signal collector fully implemented
+**Current focus:** Phase 0 complete — deployment infrastructure ready; Phase 2 verification now unblocked
 
 ## Current Position
 
-Phase: 2 of 5 (Signal Collector)
+Phase: 0 of 6 (Deployment Infrastructure) — COMPLETE
 Plan: 3 of 3 in current phase
-Status: Phase complete
-Last activity: 2026-02-03 -- Completed 02-03-PLAN.md
+Status: Phase 0 complete
+Last activity: 2026-02-03 -- Completed 00-03-PLAN.md (CI/CD and dev scripts)
 
-Progress: [██████░░░░░░░░] 6/14 (~43%)
+Progress: [█████████░░░░░] 9/17 (~53%)
+
+**Unblocked:** Phase 2 (Signal Collector) can now be verified with test infrastructure from Phase 0
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 1.8min
-- Total execution time: 11min
+- Total plans completed: 9
+- Average duration: 1.6min
+- Total execution time: 14min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
+| 0. Deployment Infrastructure | 3/3 | 3min | 1.0min |
 | 1. Knowledge Store | 3/3 | 7min | 2.3min |
 | 2. Signal Collector | 3/3 | 4min | 1.3min |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (1min), 01-02 (4min), 02-01 (2min), 02-02 (1min), 02-03 (1min)
-- Trend: steady
+- Last 5 plans: 02-02 (1min), 02-03 (1min), 00-01 (1min), 00-02 (1min), 00-03 (1min)
+- Trend: fast and steady
 
 *Updated after each plan completion*
 
@@ -63,6 +66,8 @@ Recent decisions affecting current work:
 - [02-02]: Command delegates entirely to workflow (routing-layer pattern)
 - [02-03]: All manual signals persisted regardless of severity (user explicitly chose to record)
 - [02-03]: Frustration detection suggestive only -- user decides inclusion
+- [00-03]: Coverage only on PRs, conditional lint, version-tag verification, provenance attestation
+- [00-03]: Dev scripts use symlinks for instant hot reload
 
 ### Pending Todos
 
@@ -70,10 +75,15 @@ None yet.
 
 ### Blockers/Concerns
 
-None yet.
+None -- Phase 0 complete, Phase 2 verification now unblocked
+
+### Roadmap Evolution
+
+- Phase 0 inserted before Phase 1: Deployment Infrastructure (CRITICAL) — npm packaging, install scripts, isolated test environments, CI/CD to enable proper verification of all subsequent phases
+- Phase 0 now COMPLETE: All 3 plans executed (npm packaging, test infrastructure, CI/CD)
 
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 02-03-PLAN.md (Phase 2 complete)
+Stopped at: Completed 00-03-PLAN.md (Phase 0 complete)
 Resume file: None
