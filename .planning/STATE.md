@@ -5,33 +5,33 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 2 in progress -- signal detection foundation complete
+**Current focus:** Phase 2 in progress -- command and workflow layer complete, manual signal command remaining
 
 ## Current Position
 
 Phase: 2 of 5 (Signal Collector)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-02-03 -- Completed 02-01-PLAN.md
+Last activity: 2026-02-03 -- Completed 02-02-PLAN.md
 
-Progress: [████░░░░░░░░░░] 4/14 (~29%)
+Progress: [█████░░░░░░░░░] 5/14 (~36%)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 2.3min
-- Total execution time: 9min
+- Total plans completed: 5
+- Average duration: 2min
+- Total execution time: 10min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Knowledge Store | 3/3 | 7min | 2.3min |
-| 2. Signal Collector | 1/3 | 2min | 2min |
+| 2. Signal Collector | 2/3 | 3min | 1.5min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (2min), 01-03 (1min), 01-02 (4min), 02-01 (2min)
+- Last 5 plans: 01-01 (2min), 01-03 (1min), 01-02 (4min), 02-01 (2min), 02-02 (1min)
 - Trend: steady
 
 *Updated after each plan completion*
@@ -59,6 +59,8 @@ Recent decisions affecting current work:
 - [02-01]: Per-phase cap of 10 signals with archival replacement
 - [02-01]: Frustration detection scoped to manual /gsd:signal only (no conversation context post-execution)
 - [02-01]: Signal schema extended with optional fields: polarity, source, occurrence_count, related_signals
+- [02-02]: Workflow inlines artifact content before agent spawn (@ syntax doesn't cross Task boundaries)
+- [02-02]: Command delegates entirely to workflow (routing-layer pattern)
 
 ### Pending Todos
 
@@ -71,5 +73,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 02-01-PLAN.md
+Stopped at: Completed 02-02-PLAN.md
 Resume file: None
