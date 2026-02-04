@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 0 verified complete — deployment infrastructure ready, Phase 2 can now be verified
+**Current focus:** Phase 2 verified complete — Signal Collector infrastructure ready
 
 ## Current Position
 
-Phase: 0 of 6 (Deployment Infrastructure)
-Plan: 4 of 4 in current phase
+Phase: 2 of 6 (Signal Collector)
+Plan: 3 of 3 in current phase
 Status: Phase verified complete
-Last activity: 2026-02-03 -- Phase 0 verified, goal achieved
+Last activity: 2026-02-03 -- Phase 2 verified, 8/8 tests passed
 
 Progress: [██████████░░░░] 10/18 (~56%)
 
-**Next:** Phase 2 verification (Signal Collector) - now that test infrastructure exists
+**Next:** Phase 3 (Spike Runner) - structured experimentation workflow
 
 ## Performance Metrics
 
@@ -82,7 +82,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- None - Phase 0 verified complete, Phase 2 verification can now proceed
+- None - Phases 0, 1, 2 verified complete
 
 ### Roadmap Evolution
 
@@ -91,5 +91,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Phase 0 verified complete - ready for Phase 2 verification
+Stopped at: Phase 2 verified complete - ready for Phase 3 planning
 Resume file: None
