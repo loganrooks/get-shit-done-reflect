@@ -14,3 +14,6 @@ hooks/dist/
 # Animation assets
 animation/
 *.gif
+
+# Benchmark results
+tests/benchmarks/results.json
