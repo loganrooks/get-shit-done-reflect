@@ -5,36 +5,36 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 0 in progress — test infrastructure and test suite established, CI/CD remains
+**Current focus:** Phase 0 complete — deployment infrastructure ready, Phase 1 can begin
 
 ## Current Position
 
 Phase: 0 of 6 (Deployment Infrastructure)
-Plan: 2 of 4 in current phase
-Status: In progress
-Last activity: 2026-02-03 -- Completed 00-02-PLAN.md (test fixtures and test suite)
+Plan: 4 of 4 in current phase
+Status: Phase complete
+Last activity: 2026-02-03 -- Completed 00-04-PLAN.md (benchmark suite)
 
-Progress: [███████░░░░░░░] 8/18 (~44%)
+Progress: [██████████░░░░] 10/18 (~56%)
 
-**Next:** 00-03-PLAN.md (CI/CD pipeline)
+**Next:** Phase 1 (Knowledge Store) - already complete, move to Phase 2 verification
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 1.9min
-- Total execution time: 16min
+- Total plans completed: 10
+- Average duration: 2.2min
+- Total execution time: 22min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 0. Deployment Infrastructure | 2/4 | 6min | 3.0min |
+| 0. Deployment Infrastructure | 4/4 | 12min | 3.0min |
 | 1. Knowledge Store | 3/3 | 7min | 2.3min |
 | 2. Signal Collector | 3/3 | 3min | 1.0min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (1min), 02-03 (1min), 00-01 (3min), 00-02 (3min)
+- Last 5 plans: 00-01 (3min), 00-02 (3min), 00-03 (3min), 00-04 (3min)
 - Trend: steady
 
 *Updated after each plan completion*
@@ -72,6 +72,9 @@ Recent decisions affecting current work:
 - [00-01]: Global setup clears config env vars for test isolation
 - [00-02]: E2E tests gated by RUN_REAL_AGENT_TESTS env var (skip by default)
 - [00-02]: Mock fixtures include deliberate deviation for signal detection testing
+- [00-04]: Three-tier benchmark system: quick (<1min), standard (5-10min), comprehensive (30+min)
+- [00-04]: Threshold-based pass/fail for benchmark metrics
+- [00-04]: Results stored in JSON with last 50 runs for trend analysis
 
 ### Pending Todos
 
@@ -79,7 +82,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- Phase 2 verification blocked until Phase 0 completes (need CI/CD setup)
+- None - Phase 0 complete, Phase 2 verification can proceed
 
 ### Roadmap Evolution
 
@@ -88,5 +91,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-03
-Stopped at: Completed 00-02-PLAN.md (test fixtures and test suite)
+Stopped at: Completed 00-04-PLAN.md (benchmark suite) - Phase 0 complete
 Resume file: None
