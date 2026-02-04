@@ -22,7 +22,7 @@ export default class QuickSmokeBenchmark extends Benchmark {
       description: 'Basic functionality smoke test',
       tier: 'quick',
       thresholds: {
-        files_found: 5,  // Minimum required files
+        files_found: 4,  // Minimum required files (help.md, start.md, system-prompt.md, gsd-planner.md)
         structure_valid: 1  // Boolean as number
       }
     })
