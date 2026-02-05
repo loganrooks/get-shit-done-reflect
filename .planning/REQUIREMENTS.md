@@ -19,28 +19,28 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Signal Tracking
 
-- [ ] **SGNL-01**: Detect workflow deviations by comparing PLAN.md expected behavior vs SUMMARY.md actual behavior
-- [ ] **SGNL-02**: Detect config mismatches (e.g., model_profile says quality but agent spawned with wrong model)
-- [ ] **SGNL-03**: Detect debugging struggles (excessive retries, repeated rewrites, long error-fix cycles)
-- [ ] **SGNL-04**: Signal files written with severity levels (critical/notable/trace), only critical+notable persisted
-- [ ] **SGNL-05**: Signal deduplication — repeated identical signals become one entry with count
-- [ ] **SGNL-06**: Implicit frustration detection — pattern match user messages for frustration signals without explicit invocation
+- [x] **SGNL-01**: Detect workflow deviations by comparing PLAN.md expected behavior vs SUMMARY.md actual behavior
+- [x] **SGNL-02**: Detect config mismatches (e.g., model_profile says quality but agent spawned with wrong model)
+- [x] **SGNL-03**: Detect debugging struggles (excessive retries, repeated rewrites, long error-fix cycles)
+- [x] **SGNL-04**: Signal files written with severity levels (critical/notable/trace), only critical+notable persisted
+- [x] **SGNL-05**: Signal deduplication — repeated identical signals become one entry with count
+- [x] **SGNL-06**: Implicit frustration detection — pattern match user messages for frustration signals without explicit invocation
 - [ ] **SGNL-07**: Cross-project signal pattern detection — identify recurring issues across different projects
-- [ ] **SGNL-08**: Signal capture via wrapper workflow (fork-friendly, no modification of upstream execute-phase)
-- [ ] **SGNL-09**: Per-phase signal cap (max 10 persistent signals per phase) to prevent noise
-- [ ] **SGNL-10**: `/gsd:signal` command for explicit manual signal logging with context from current conversation
+- [x] **SGNL-08**: Signal capture via wrapper workflow (fork-friendly, no modification of upstream execute-phase)
+- [x] **SGNL-09**: Per-phase signal cap (max 10 persistent signals per phase) to prevent noise
+- [x] **SGNL-10**: `/gsd:signal` command for explicit manual signal logging with context from current conversation
 
 ### Spike Workflow
 
-- [ ] **SPKE-01**: `/gsd:spike` command that translates design uncertainty into testable hypotheses
-- [ ] **SPKE-02**: Hypothesis definition with explicit success/failure criteria required before experimentation
-- [ ] **SPKE-03**: Structured experiment design with defined metrics and comparison criteria
-- [ ] **SPKE-04**: Isolated spike workspace (`.planning/spikes/{name}/`) that doesn't derail main workflow
-- [ ] **SPKE-05**: Decision record output (ADR-style: context, alternatives, experiment results, decision, consequences)
-- [ ] **SPKE-06**: Convergence constraints — timeboxes, max depth of 2, mandatory decision field
-- [ ] **SPKE-07**: Iterative spike narrowing — round N produces partial answer + refined question for round N+1
+- [x] **SPKE-01**: `/gsd:spike` command that translates design uncertainty into testable hypotheses
+- [x] **SPKE-02**: Hypothesis definition with explicit success/failure criteria required before experimentation
+- [x] **SPKE-03**: Structured experiment design with defined metrics and comparison criteria
+- [x] **SPKE-04**: Isolated spike workspace (`.planning/spikes/{name}/`) that doesn't derail main workflow
+- [x] **SPKE-05**: Decision record output (ADR-style: context, alternatives, experiment results, decision, consequences)
+- [x] **SPKE-06**: Convergence constraints — timeboxes, max depth of 2, mandatory decision field
+- [x] **SPKE-07**: Iterative spike narrowing — round N produces partial answer + refined question for round N+1
 - [ ] **SPKE-08**: Spike result reuse — query knowledge base before running new spike to check if similar question already answered
-- [ ] **SPKE-09**: Spike results stored in knowledge base for cross-project reuse
+- [x] **SPKE-09**: Spike results stored in knowledge base for cross-project reuse
 
 ### Reflection
 
@@ -100,25 +100,25 @@ Deferred to future release. Tracked but not in current roadmap.
 | KNOW-05 | Phase 1 | Complete |
 | KNOW-06 | Phase 1 | Complete (excluded by design) |
 | KNOW-07 | Phase 1 | Complete (excluded by design) |
-| SGNL-01 | Phase 2 | Pending |
-| SGNL-02 | Phase 2 | Pending |
-| SGNL-03 | Phase 2 | Pending |
-| SGNL-04 | Phase 2 | Pending |
-| SGNL-05 | Phase 2 | Pending |
-| SGNL-06 | Phase 2 | Pending |
+| SGNL-01 | Phase 2 | Complete |
+| SGNL-02 | Phase 2 | Complete |
+| SGNL-03 | Phase 2 | Complete |
+| SGNL-04 | Phase 2 | Complete |
+| SGNL-05 | Phase 2 | Complete |
+| SGNL-06 | Phase 2 | Complete |
 | SGNL-07 | Phase 4 | Pending |
-| SGNL-08 | Phase 2 | Pending |
-| SGNL-09 | Phase 2 | Pending |
-| SGNL-10 | Phase 2 | Pending |
-| SPKE-01 | Phase 3 | Pending |
-| SPKE-02 | Phase 3 | Pending |
-| SPKE-03 | Phase 3 | Pending |
-| SPKE-04 | Phase 3 | Pending |
-| SPKE-05 | Phase 3 | Pending |
-| SPKE-06 | Phase 3 | Pending |
-| SPKE-07 | Phase 3 | Pending |
+| SGNL-08 | Phase 2 | Complete |
+| SGNL-09 | Phase 2 | Complete |
+| SGNL-10 | Phase 2 | Complete |
+| SPKE-01 | Phase 3 | Complete |
+| SPKE-02 | Phase 3 | Complete |
+| SPKE-03 | Phase 3 | Complete |
+| SPKE-04 | Phase 3 | Complete |
+| SPKE-05 | Phase 3 | Complete |
+| SPKE-06 | Phase 3 | Complete |
+| SPKE-07 | Phase 3 | Complete |
 | SPKE-08 | Phase 5 | Pending |
-| SPKE-09 | Phase 3 | Pending |
+| SPKE-09 | Phase 3 | Complete |
 | RFLC-01 | Phase 4 | Pending |
 | RFLC-02 | Phase 4 | Pending |
 | RFLC-03 | Phase 4 | Pending |
@@ -138,4 +138,4 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-02 after roadmap creation*
+*Last updated: 2026-02-05 after Phase 3 completion*

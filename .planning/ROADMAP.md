@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 0: Deployment Infrastructure** (CRITICAL) - npm packaging, install scripts, isolated test environments, and CI/CD for proper verification
 - [x] **Phase 1: Knowledge Store** - File-based persistent knowledge base with directory structure, file formats, indexing, and lifecycle management
 - [x] **Phase 2: Signal Collector** - Automatic detection and persistence of workflow deviations, struggles, and config mismatches
-- [ ] **Phase 3: Spike Runner** - Structured experimentation workflow for resolving design uncertainty with decision records
+- [x] **Phase 3: Spike Runner** - Structured experimentation workflow for resolving design uncertainty with decision records
 - [ ] **Phase 4: Reflection Engine** - Pattern detection across signals and distillation into actionable lessons
 - [ ] **Phase 5: Knowledge Surfacing** - Automatic retrieval and presentation of relevant knowledge during research phases
 
@@ -85,10 +85,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Spike execution reference and spike runner agent
-- [ ] 03-02-PLAN.md — Spike templates (DESIGN.md and DECISION.md)
-- [ ] 03-03-PLAN.md — /gsd:spike command and run-spike workflow
-- [ ] 03-04-PLAN.md — Spike integration reference and template updates
+- [x] 03-01-PLAN.md — Spike execution reference and spike runner agent
+- [x] 03-02-PLAN.md — Spike templates (DESIGN.md and DECISION.md)
+- [x] 03-03-PLAN.md — /gsd:spike command and run-spike workflow
+- [x] 03-04-PLAN.md — Spike integration reference and template updates
 
 ### Phase 4: Reflection Engine
 **Goal**: The system can analyze accumulated signals, detect patterns, distill actionable lessons, and store them in the knowledge base to close the self-improvement loop
@@ -132,6 +132,6 @@ Phase 0 must complete first (enables verification). Then phases execute in numer
 | 0. Deployment Infrastructure | 4/4 | Complete | 2026-02-03 |
 | 1. Knowledge Store | 3/3 | Complete | 2026-02-02 |
 | 2. Signal Collector | 3/3 | Complete | 2026-02-03 |
-| 3. Spike Runner | 0/4 | Not started | - |
+| 3. Spike Runner | 4/4 | Complete | 2026-02-05 |
 | 4. Reflection Engine | 0/3 | Not started | - |
 | 5. Knowledge Surfacing | 0/2 | Not started | - |
