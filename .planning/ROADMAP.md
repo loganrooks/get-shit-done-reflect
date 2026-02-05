@@ -100,12 +100,11 @@ Plans:
   3. Signal patterns are distilled into actionable lesson entries in the knowledge base with category, confidence, and supporting evidence
   4. Cross-project signal patterns are detected -- recurring issues across different projects are identified and surfaced
   5. Optional reflection step can be triggered as part of milestone completion workflow
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 04-01: TBD
-- [ ] 04-02: TBD
-- [ ] 04-03: TBD
+- [ ] 04-01-PLAN.md — Reflection reference specification and reflector agent
+- [ ] 04-02-PLAN.md — Reflection workflow, command, and milestone integration
 
 ### Phase 5: Knowledge Surfacing
 **Goal**: Existing research workflows automatically consult accumulated knowledge (lessons, spike results) so the system never repeats mistakes or re-runs answered experiments
@@ -133,5 +132,5 @@ Phase 0 must complete first (enables verification). Then phases execute in numer
 | 1. Knowledge Store | 3/3 | Complete | 2026-02-02 |
 | 2. Signal Collector | 3/3 | Complete | 2026-02-03 |
 | 3. Spike Runner | 4/4 | Complete | 2026-02-05 |
-| 4. Reflection Engine | 0/3 | Not started | - |
+| 4. Reflection Engine | 0/2 | Not started | - |
 | 5. Knowledge Surfacing | 0/2 | Not started | - |
