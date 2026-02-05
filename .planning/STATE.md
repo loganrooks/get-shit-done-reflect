@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 2 verified complete — Signal Collector infrastructure ready
+**Current focus:** Phase 3 context gathered — Spike Runner design complete, ready for planning
 
 ## Current Position
 
-Phase: 2 of 6 (Signal Collector)
-Plan: 3 of 3 in current phase
-Status: Phase verified complete
-Last activity: 2026-02-03 -- Phase 2 verified, 8/8 tests passed
+Phase: 3 of 6 (Spike Runner)
+Plan: 0 of ? in current phase
+Status: Context gathered, ready for planning
+Last activity: 2026-02-04 -- Phase 3 discuss-phase complete, 03-CONTEXT.md written
 
 Progress: [██████████░░░░] 10/18 (~56%)
 
-**Next:** Phase 3 (Spike Runner) - structured experimentation workflow
+**Next:** /gsd:plan-phase 3 to create execution plans
 
 ## Performance Metrics
 
@@ -48,7 +48,7 @@ Recent decisions affecting current work:
 
 - [Roadmap]: 5-phase structure derived from requirements -- Knowledge Store, Signal Collector, Spike Runner, Reflection Engine, Knowledge Surfacing
 - [Roadmap]: Phase 3 (Spike Runner) parallelizable with Phase 2 (Signal Collector) -- independent writers to different KB sections
-- [Roadmap]: Fork maintenance constraint -- all changes must be additive (new files only, no upstream edits)
+- [Roadmap]: Fork maintenance constraint -- changes must be additive (new files OR additive sections to existing files, not logic changes)
 - [01-01]: Common base schema with type-specific extensions for all entry types
 - [01-01]: Lessons organized by category, not project; signals/spikes scoped by project
 - [01-01]: Signals and spikes immutable; lessons update-in-place
@@ -75,6 +75,15 @@ Recent decisions affecting current work:
 - [00-04]: Three-tier benchmark system: quick (<1min), standard (5-10min), comprehensive (30+min)
 - [00-04]: Threshold-based pass/fail for benchmark metrics
 - [00-04]: Results stored in JSON with last 50 runs for trend analysis
+- [03-CONTEXT]: Spikes produce findings, not decisions -- existing layers (CONTEXT.md, RESEARCH.md) make decisions
+- [03-CONTEXT]: One spike = one question; comparative questions are one spike with multiple experiments
+- [03-CONTEXT]: Open Questions flow: mark in PROJECT.md/CONTEXT.md → research verifies → spike if genuine gap
+- [03-CONTEXT]: Spike sensitivity (conservative/balanced/aggressive) orthogonal to autonomy (YOLO/interactive)
+- [03-CONTEXT]: Orchestrator updates RESEARCH.md after spike; planner reads RESEARCH.md as usual
+- [03-CONTEXT]: Spike naming: {3-digit-index}-{slug-from-question} for uniqueness + readability
+- [03-CONTEXT]: Max 2 iteration rounds per spike to prevent rabbit holes
+- [03-CONTEXT]: Hybrid spike design: agent drafts DESIGN.md, user confirms (or auto-approve in YOLO)
+- [03-CONTEXT]: All spikes at project level (.planning/spikes/) with metadata linking to originating phase
 
 ### Pending Todos
 
@@ -90,6 +99,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03
-Stopped at: Phase 2 verified complete - ready for Phase 3 planning
+Last session: 2026-02-04
+Stopped at: Phase 3 context gathered - ready for /gsd:plan-phase 3
 Resume file: None
