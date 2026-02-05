@@ -25,7 +25,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SGNL-04**: Signal files written with severity levels (critical/notable/trace), only critical+notable persisted
 - [x] **SGNL-05**: Signal deduplication — repeated identical signals become one entry with count
 - [x] **SGNL-06**: Implicit frustration detection — pattern match user messages for frustration signals without explicit invocation
-- [ ] **SGNL-07**: Cross-project signal pattern detection — identify recurring issues across different projects
+- [x] **SGNL-07**: Cross-project signal pattern detection — identify recurring issues across different projects
 - [x] **SGNL-08**: Signal capture via wrapper workflow (fork-friendly, no modification of upstream execute-phase)
 - [x] **SGNL-09**: Per-phase signal cap (max 10 persistent signals per phase) to prevent noise
 - [x] **SGNL-10**: `/gsd:signal` command for explicit manual signal logging with context from current conversation
@@ -44,12 +44,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Reflection
 
-- [ ] **RFLC-01**: Phase-end self-reflection comparing plan vs actual execution, identifying deviations
-- [ ] **RFLC-02**: Lesson distillation — convert accumulated signal patterns into actionable knowledge base lessons
-- [ ] **RFLC-03**: `/gsd:reflect` command for explicit reflection on accumulated signals
-- [ ] **RFLC-04**: Optional reflection step integrated into milestone completion workflow
-- [ ] **RFLC-05**: Workflow improvement suggestions based on recurring signal patterns
-- [ ] **RFLC-06**: Semantic drift detection — track whether agent output quality degrades over time
+- [x] **RFLC-01**: Phase-end self-reflection comparing plan vs actual execution, identifying deviations
+- [x] **RFLC-02**: Lesson distillation — convert accumulated signal patterns into actionable knowledge base lessons
+- [x] **RFLC-03**: `/gsd:reflect` command for explicit reflection on accumulated signals
+- [x] **RFLC-04**: Optional reflection step integrated into milestone completion workflow
+- [x] **RFLC-05**: Workflow improvement suggestions based on recurring signal patterns
+- [x] **RFLC-06**: Semantic drift detection — track whether agent output quality degrades over time
 
 ### Knowledge Surfacing
 
@@ -106,7 +106,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | SGNL-04 | Phase 2 | Complete |
 | SGNL-05 | Phase 2 | Complete |
 | SGNL-06 | Phase 2 | Complete |
-| SGNL-07 | Phase 4 | Pending |
+| SGNL-07 | Phase 4 | Complete |
 | SGNL-08 | Phase 2 | Complete |
 | SGNL-09 | Phase 2 | Complete |
 | SGNL-10 | Phase 2 | Complete |
@@ -119,12 +119,12 @@ Deferred to future release. Tracked but not in current roadmap.
 | SPKE-07 | Phase 3 | Complete |
 | SPKE-08 | Phase 5 | Pending |
 | SPKE-09 | Phase 3 | Complete |
-| RFLC-01 | Phase 4 | Pending |
-| RFLC-02 | Phase 4 | Pending |
-| RFLC-03 | Phase 4 | Pending |
-| RFLC-04 | Phase 4 | Pending |
-| RFLC-05 | Phase 4 | Pending |
-| RFLC-06 | Phase 4 | Pending |
+| RFLC-01 | Phase 4 | Complete |
+| RFLC-02 | Phase 4 | Complete |
+| RFLC-03 | Phase 4 | Complete |
+| RFLC-04 | Phase 4 | Complete |
+| RFLC-05 | Phase 4 | Complete |
+| RFLC-06 | Phase 4 | Complete |
 | SURF-01 | Phase 5 | Pending |
 | SURF-02 | Phase 5 | Pending |
 | SURF-03 | Phase 5 | Pending |
@@ -138,4 +138,4 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-05 after Phase 3 completion*
+*Last updated: 2026-02-05 after Phase 4 completion*
