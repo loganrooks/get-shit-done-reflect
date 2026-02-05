@@ -82,12 +82,13 @@ Plans:
   2. Spike execution produces a decision record (ADR-style) with mandatory decision field -- the output is a decision, not a report
   3. Iterative narrowing works: round N produces a partial answer and refined question for round N+1, with max depth of 2 enforced
   4. Completed spike results are automatically stored in the knowledge base for cross-project reuse
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 03-01: TBD
-- [ ] 03-02: TBD
-- [ ] 03-03: TBD
+- [ ] 03-01-PLAN.md — Spike execution reference and spike runner agent
+- [ ] 03-02-PLAN.md — Spike templates (DESIGN.md and DECISION.md)
+- [ ] 03-03-PLAN.md — /gsd:spike command and run-spike workflow
+- [ ] 03-04-PLAN.md — Spike integration reference and template updates
 
 ### Phase 4: Reflection Engine
 **Goal**: The system can analyze accumulated signals, detect patterns, distill actionable lessons, and store them in the knowledge base to close the self-improvement loop
@@ -131,6 +132,6 @@ Phase 0 must complete first (enables verification). Then phases execute in numer
 | 0. Deployment Infrastructure | 4/4 | Complete | 2026-02-03 |
 | 1. Knowledge Store | 3/3 | Complete | 2026-02-02 |
 | 2. Signal Collector | 3/3 | Complete | 2026-02-03 |
-| 3. Spike Runner | 0/3 | Not started | - |
+| 3. Spike Runner | 0/4 | Not started | - |
 | 4. Reflection Engine | 0/3 | Not started | - |
 | 5. Knowledge Surfacing | 0/2 | Not started | - |
