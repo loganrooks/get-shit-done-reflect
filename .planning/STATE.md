@@ -5,25 +5,25 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 3 in progress — Spike templates complete, agent and command next
+**Current focus:** Phase 3 in progress — Spike execution foundation and templates complete
 
 ## Current Position
 
 Phase: 3 of 6 (Spike Runner)
-Plan: 1 of 4 in current phase (03-02 complete)
+Plan: 2 of 4 in current phase (03-01, 03-02 complete)
 Status: In progress
-Last activity: 2026-02-04 -- Completed 03-02-PLAN.md (Spike Templates)
+Last activity: 2026-02-05 -- Completed 03-01-PLAN.md (Spike Execution Foundation)
 
-Progress: [███████████░░░] 11/18 (~61%)
+Progress: [████████████░░] 12/18 (~67%)
 
-**Next:** Execute 03-03-PLAN.md (Spike Runner Agent)
+**Next:** Execute 03-03-PLAN.md (Spike Command)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 2.2min
-- Total execution time: 24min
+- Total plans completed: 12
+- Average duration: 2.3min
+- Total execution time: 28min
 
 **By Phase:**
 
@@ -32,10 +32,10 @@ Progress: [███████████░░░] 11/18 (~61%)
 | 0. Deployment Infrastructure | 4/4 | 12min | 3.0min |
 | 1. Knowledge Store | 3/3 | 7min | 2.3min |
 | 2. Signal Collector | 3/3 | 3min | 1.0min |
-| 3. Spike Runner | 1/4 | 2min | 2.0min |
+| 3. Spike Runner | 2/4 | 6min | 3.0min |
 
 **Recent Trend:**
-- Last 5 plans: 00-04 (3min), 01-01 (3min), 01-02 (2min), 01-03 (2min), 03-02 (2min)
+- Last 5 plans: 01-02 (2min), 01-03 (2min), 03-02 (2min), 03-01 (4min)
 - Trend: steady
 
 *Updated after each plan completion*
@@ -88,6 +88,9 @@ Recent decisions affecting current work:
 - [03-02]: DESIGN.md includes Iteration Log for round tracking (max 2 rounds per spike)
 - [03-02]: DECISION.md has mandatory 'Chosen approach' field (cannot be TBD)
 - [03-02]: Confidence levels: HIGH (empirical), MEDIUM (inference), LOW (educated guess)
+- [03-01]: Design phase handled by orchestrator, not spike-runner agent
+- [03-01]: Spike sensitivity derives from depth by default (quick->conservative, standard->balanced, comprehensive->aggressive)
+- [03-01]: Agent references spike-execution.md and knowledge-store.md for workflow and KB schema
 
 ### Pending Todos
 
@@ -103,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-04
-Stopped at: Completed 03-02-PLAN.md (Spike Templates)
+Last session: 2026-02-05
+Stopped at: Completed 03-01-PLAN.md (Spike Execution Foundation)
 Resume file: None
