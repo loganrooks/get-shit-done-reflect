@@ -59,6 +59,7 @@ created: 2026-02-02T14:30:00Z
 updated: 2026-02-02T14:30:00Z
 durability: workaround | convention | principle
 status: active | archived
+# depends_on: ["prisma >= 4.0", "src/lib/auth.ts exists"]
 ---
 ```
 
@@ -83,6 +84,14 @@ status: active | archived
 | `last_retrieved` | ISO-8601 | Last time an agent read this entry |
 
 These fields support future pruning design. Agents should increment `retrieval_count` and update `last_retrieved` when reading an entry for decision-making. Do NOT use these fields for automated decisions yet.
+
+**Optional freshness fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `depends_on` | array | Conditions that could invalidate this entry. Each element is a human-readable string describing a dependency (e.g., `"prisma >= 4.0"`, `"src/lib/auth.ts exists"`, `"NOT monorepo"`). Agents read these and use judgment to assess whether the entry is still valid. |
+
+The `depends_on` field supports the knowledge surfacing system's freshness model. When agents retrieve an entry, they check `depends_on` conditions against the current codebase. If conditions no longer hold, the entry is surfaced with a staleness caveat. If `depends_on` is absent, agents fall back to temporal decay heuristics. See `get-shit-done/references/knowledge-surfacing.md` Section 4 for the full freshness checking specification.
 
 ## 4. Type-Specific Extensions
 
