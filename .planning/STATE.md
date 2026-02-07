@@ -5,25 +5,25 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 4 (Reflection Engine) complete - ready for Phase 5
+**Current focus:** Phase 5 (Knowledge Surfacing) -- reference spec complete, agent prompt sections next
 
 ## Current Position
 
-Phase: 4 of 6 (Reflection Engine)
-Plan: 2 of 2 in current phase (04-02 complete)
-Status: Phase complete
-Last activity: 2026-02-05 -- Completed 04-02-PLAN.md (reflection workflow and command)
+Phase: 5 of 6 (Knowledge Surfacing)
+Plan: 1 of 3 in current phase (05-01 complete)
+Status: In progress
+Last activity: 2026-02-07 -- Completed 05-01-PLAN.md (knowledge surfacing reference specification)
 
-Progress: [████████████████░] 16/18 (~89%)
+Progress: [█████████████████] 17/18 (~94%)
 
-**Next:** Execute Phase 5 (Knowledge Surfacing) or complete milestone
+**Next:** Execute 05-02-PLAN.md (researcher and planner agent sections)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
-- Average duration: 2.6min
-- Total execution time: 42min
+- Total plans completed: 17
+- Average duration: 2.7min
+- Total execution time: 46min
 
 **By Phase:**
 
@@ -34,10 +34,11 @@ Progress: [████████████████░] 16/18 (~89%)
 | 2. Signal Collector | 3/3 | 3min | 1.0min |
 | 3. Spike Runner | 4/4 | 10min | 2.5min |
 | 4. Reflection Engine | 2/2 | 10min | 5.0min |
+| 5. Knowledge Surfacing | 1/3 | 4min | 4.0min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (2min), 03-04 (2min), 04-01 (8min), 04-02 (2min)
-- Trend: steady (04-01 longer due to comprehensive reference doc)
+- Last 5 plans: 03-04 (2min), 04-01 (8min), 04-02 (2min), 05-01 (4min)
+- Trend: steady
 
 *Updated after each plan completion*
 
@@ -105,6 +106,10 @@ Recent decisions affecting current work:
 - [04-02]: Command follows thin routing layer pattern - delegates entirely to workflow
 - [04-02]: Milestone reflection is optional by default - documented integration not code modification
 - [04-02]: Fork-compliant: new files only, complete-milestone.md unchanged
+- [05-01]: Cross-project surfacing (SURF-04) satisfied by existing KB architecture -- query index.md without project filter
+- [05-01]: depends_on is a documentation field for agent judgment, not automated verification
+- [05-01]: Progressive disclosure uses simpler approach for v1 -- no interactive menu
+- [05-01]: knowledge_debug config at top level of config.json (not nested)
 
 ### Pending Todos
 
@@ -112,7 +117,7 @@ None yet.
 
 ### Blockers/Concerns
 
-- None - Phases 0, 1, 2, 3, 4 verified complete
+- None - Phases 0-4 verified complete, Phase 5 in progress
 
 ### Roadmap Evolution
 
@@ -120,6 +125,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-05
-Stopped at: Completed 04-02-PLAN.md - Phase 4 complete
+Last session: 2026-02-07
+Stopped at: Completed 05-01-PLAN.md - Knowledge surfacing reference specification
 Resume file: None
