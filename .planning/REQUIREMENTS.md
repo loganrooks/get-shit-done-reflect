@@ -39,7 +39,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **SPKE-05**: Decision record output (ADR-style: context, alternatives, experiment results, decision, consequences)
 - [x] **SPKE-06**: Convergence constraints — timeboxes, max depth of 2, mandatory decision field
 - [x] **SPKE-07**: Iterative spike narrowing — round N produces partial answer + refined question for round N+1
-- [ ] **SPKE-08**: Spike result reuse — query knowledge base before running new spike to check if similar question already answered
+- [x] **SPKE-08**: Spike result reuse — query knowledge base before running new spike to check if similar question already answered
 - [x] **SPKE-09**: Spike results stored in knowledge base for cross-project reuse
 
 ### Reflection
@@ -53,11 +53,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Knowledge Surfacing
 
-- [ ] **SURF-01**: Knowledge researcher agent spawned in parallel with existing researchers during research phases
-- [ ] **SURF-02**: KB query filters by relevance (tags, recency, project context) using index.md
-- [ ] **SURF-03**: Pull-based retrieval with strict token budget (max 2000 tokens knowledge per agent spawn)
-- [ ] **SURF-04**: Cross-project lesson surfacing — lessons from project A automatically available when relevant in project B
-- [ ] **SURF-05**: Spike result surfacing — previous experiment findings surfaced when similar design decisions arise
+- [x] **SURF-01**: Knowledge researcher agent spawned in parallel with existing researchers during research phases
+- [x] **SURF-02**: KB query filters by relevance (tags, recency, project context) using index.md
+- [x] **SURF-03**: Pull-based retrieval with strict token budget (max 2000 tokens knowledge per agent spawn)
+- [x] **SURF-04**: Cross-project lesson surfacing — lessons from project A automatically available when relevant in project B
+- [x] **SURF-05**: Spike result surfacing — previous experiment findings surfaced when similar design decisions arise
 
 ## v2 Requirements
 
@@ -117,7 +117,7 @@ Deferred to future release. Tracked but not in current roadmap.
 | SPKE-05 | Phase 3 | Complete |
 | SPKE-06 | Phase 3 | Complete |
 | SPKE-07 | Phase 3 | Complete |
-| SPKE-08 | Phase 5 | Pending |
+| SPKE-08 | Phase 5 | Complete |
 | SPKE-09 | Phase 3 | Complete |
 | RFLC-01 | Phase 4 | Complete |
 | RFLC-02 | Phase 4 | Complete |
@@ -125,11 +125,11 @@ Deferred to future release. Tracked but not in current roadmap.
 | RFLC-04 | Phase 4 | Complete |
 | RFLC-05 | Phase 4 | Complete |
 | RFLC-06 | Phase 4 | Complete |
-| SURF-01 | Phase 5 | Pending |
-| SURF-02 | Phase 5 | Pending |
-| SURF-03 | Phase 5 | Pending |
-| SURF-04 | Phase 5 | Pending |
-| SURF-05 | Phase 5 | Pending |
+| SURF-01 | Phase 5 | Complete |
+| SURF-02 | Phase 5 | Complete |
+| SURF-03 | Phase 5 | Complete |
+| SURF-04 | Phase 5 | Complete |
+| SURF-05 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 37 total
@@ -138,4 +138,4 @@ Deferred to future release. Tracked but not in current roadmap.
 
 ---
 *Requirements defined: 2026-02-02*
-*Last updated: 2026-02-05 after Phase 4 completion*
+*Last updated: 2026-02-07 after Phase 5 completion — ALL REQUIREMENTS COMPLETE*

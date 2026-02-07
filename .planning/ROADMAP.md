@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Signal Collector** - Automatic detection and persistence of workflow deviations, struggles, and config mismatches
 - [x] **Phase 3: Spike Runner** - Structured experimentation workflow for resolving design uncertainty with decision records
 - [x] **Phase 4: Reflection Engine** - Pattern detection across signals and distillation into actionable lessons
-- [ ] **Phase 5: Knowledge Surfacing** - Automatic retrieval and presentation of relevant knowledge during research phases
+- [x] **Phase 5: Knowledge Surfacing** - Automatic retrieval and presentation of relevant knowledge during research phases
 
 ## Phase Details
 
@@ -118,9 +118,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Knowledge surfacing reference specification and schema updates
-- [ ] 05-02-PLAN.md — Phase researcher and planner agent KB integration
-- [ ] 05-03-PLAN.md — Debugger and executor agent KB integration
+- [x] 05-01-PLAN.md — Knowledge surfacing reference specification and schema updates
+- [x] 05-02-PLAN.md — Phase researcher and planner agent KB integration
+- [x] 05-03-PLAN.md — Debugger and executor agent KB integration
 
 ## Progress
 
@@ -134,4 +134,4 @@ Phase 0 must complete first (enables verification). Then phases execute in numer
 | 2. Signal Collector | 3/3 | Complete | 2026-02-03 |
 | 3. Spike Runner | 4/4 | Complete | 2026-02-05 |
 | 4. Reflection Engine | 2/2 | Complete | 2026-02-05 |
-| 5. Knowledge Surfacing | 0/3 | Not started | - |
+| 5. Knowledge Surfacing | 3/3 | Complete | 2026-02-07 |
