@@ -115,11 +115,12 @@ Plans:
   2. KB queries filter by relevance using tags, recency, and project context via index.md, returning results within a strict 2000-token budget
   3. Lessons from project A are automatically surfaced when relevant context matches in project B
   4. Before running a new spike, the system checks if a similar question was already answered and surfaces the previous result
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 05-01: TBD
-- [ ] 05-02: TBD
+- [ ] 05-01-PLAN.md — Knowledge surfacing reference specification and schema updates
+- [ ] 05-02-PLAN.md — Phase researcher and planner agent KB integration
+- [ ] 05-03-PLAN.md — Debugger and executor agent KB integration
 
 ## Progress
 
@@ -133,4 +134,4 @@ Phase 0 must complete first (enables verification). Then phases execute in numer
 | 2. Signal Collector | 3/3 | Complete | 2026-02-03 |
 | 3. Spike Runner | 4/4 | Complete | 2026-02-05 |
 | 4. Reflection Engine | 2/2 | Complete | 2026-02-05 |
-| 5. Knowledge Surfacing | 0/2 | Not started | - |
+| 5. Knowledge Surfacing | 0/3 | Not started | - |
