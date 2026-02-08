@@ -29,6 +29,50 @@ jobs:
       - name: Run tests
         run: npm test
 
+      - name: Run infrastructure tests
+        run: npm run test:infra
+
+      - name: Verify install script
+        run: |
+          # Create isolated temp directory simulating fresh install
+          INSTALL_DIR=$(mktemp -d)
+
+          # Run install.js with --claude flag and HOME pointing to temp dir
+          # This tests the installer works without actually modifying the real home
+          HOME="$INSTALL_DIR" node bin/install.js --claude 2>&1 || true
+
+          # Verify expected directories were created
+          if [ -d "$INSTALL_DIR/.claude/commands/gsd" ]; then
+            echo "Install verification: PASS - commands/gsd directory created"
+          else
+            echo "Install verification: FAIL - commands/gsd directory not found"
+            ls -la "$INSTALL_DIR/.claude/" 2>/dev/null || echo "No .claude directory at all"
+            exit 1
+          fi
+
+          if [ -d "$INSTALL_DIR/.claude/get-shit-done" ]; then
+            echo "Install verification: PASS - get-shit-done directory created"
+          else
+            echo "Install verification: FAIL - get-shit-done directory not found"
+            exit 1
+          fi
+
+          # Check VERSION file was written
+          if [ -f "$INSTALL_DIR/.claude/get-shit-done/VERSION" ]; then
+            VERSION=$(cat "$INSTALL_DIR/.claude/get-shit-done/VERSION")
+            PKG_VERSION=$(node -p "require('./package.json').version")
+            echo "Install verification: PASS - VERSION file exists ($VERSION)"
+            if [ "$VERSION" = "$PKG_VERSION" ]; then
+              echo "Install verification: PASS - Version matches package.json"
+            else
+              echo "Install verification: WARN - Version mismatch ($VERSION vs $PKG_VERSION)"
+            fi
+          fi
+
+          # Cleanup
+          rm -rf "$INSTALL_DIR"
+          echo "Install verification: COMPLETE"
+
       - name: Run tests with coverage
         if: github.event_name == 'pull_request'
         run: npm run test:coverage
