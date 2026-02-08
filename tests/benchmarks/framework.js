@@ -241,15 +241,26 @@ export function compareRuns(baseline, current) {
       continue
     }
 
+    // Metrics where lower values are better (not higher)
+    const lowerIsBetter = new Set(['execution_time'])
+
     // Compare key metrics
     const metricsToCompare = ['signals_captured', 'kb_entries', 'execution_time']
     let improved = false
     let regressed = false
 
     for (const metric of metricsToCompare) {
-      if (result.metrics[metric] > base.metrics[metric]) {
+      const current = result.metrics[metric]
+      const baseline = base.metrics[metric]
+      if (current === baseline) continue
+
+      const isLowerBetter = lowerIsBetter.has(metric)
+      const isHigher = current > baseline
+
+      if (isHigher === !isLowerBetter) {
+        // Higher is good for normal metrics, lower is good for lowerIsBetter metrics
         improved = true
-      } else if (result.metrics[metric] < base.metrics[metric]) {
+      } else {
         regressed = true
       }
     }

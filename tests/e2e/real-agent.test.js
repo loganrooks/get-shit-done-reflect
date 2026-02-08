@@ -95,7 +95,7 @@ Create output file with specific content.
       ).then(() => true).catch(() => false)
 
       expect(planExists).toBe(true)
-    }, { timeout: 120000 }) // 2 minute timeout for agent execution
+    }, 120000) // 2 minute timeout for agent execution
 
     tmpdirTest('handles agent failure gracefully', async ({ tmpdir }) => {
       // Test that failed agent runs are properly handled and don't crash the test suite
