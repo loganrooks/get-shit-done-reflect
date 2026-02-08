@@ -5,29 +5,29 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 5 complete -- all agents have knowledge surfacing. All phases complete.
+**Current focus:** Deployment hardening continuation -- fork package fixes, tech debt resolution, CI hardening.
 
 ## Current Position
 
-Phase: 5 of 5 (Knowledge Surfacing)
-Plan: 3 of 3 in current phase (05-01, 05-02, 05-03 complete)
-Status: Phase complete -- ALL PHASES COMPLETE
-Last activity: 2026-02-07 -- Completed 05-03-PLAN.md (debugger and executor agent sections)
+Phase: 0 of 5 (Deployment Infrastructure -- continuation)
+Plan: 5 of 6 in current phase (00-01 through 00-05 complete)
+Status: In progress
+Last activity: 2026-02-08 -- Completed 00-05-PLAN.md (fork package fixes, tech debt, CI hardening)
 
-Progress: [███████████████████] 19/19 (100%)
+Progress: [████████████████████] 20/21 (95%)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 19
+- Total plans completed: 20
 - Average duration: 2.7min
-- Total execution time: 51min
+- Total execution time: 53min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 0. Deployment Infrastructure | 4/4 | 12min | 3.0min |
+| 0. Deployment Infrastructure | 5/6 | 14min | 2.8min |
 | 1. Knowledge Store | 3/3 | 7min | 2.3min |
 | 2. Signal Collector | 3/3 | 3min | 1.0min |
 | 3. Spike Runner | 4/4 | 10min | 2.5min |
@@ -35,8 +35,8 @@ Progress: [███████████████████] 19/19 (100
 | 5. Knowledge Surfacing | 3/3 | 9min | 3.0min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (2min), 05-01 (4min), 05-02 (3min), 05-03 (2min)
-- Trend: steady, fast finish
+- Last 5 plans: 05-01 (4min), 05-02 (3min), 05-03 (2min), 00-05 (2min)
+- Trend: steady, fast execution
 
 *Updated after each plan completion*
 
@@ -116,6 +116,8 @@ Recent decisions affecting current work:
 - [05-03]: Executor strictly gated on deviation Rules 1-3 with explicit Do-NOT-query list
 - [05-03]: Executor uses lessons only (spikes already in PLAN.md from upstream)
 - [05-03]: No separate Knowledge Applied section for executor (citations inline in deviation tracking)
+- [00-05]: Numeric timeout for tmpdirTest (test.extend passes through to Vitest test())
+- [00-05]: Subdirectory package.json for ESM scope (simpler than runtime flags)
 
 ### Pending Todos
 
@@ -123,7 +125,7 @@ None.
 
 ### Blockers/Concerns
 
-- None - All phases (0-5) complete. 19/19 plans executed.
+- 00-06 remaining: smoke test CI integration (requires Claude CLI auth)
 
 ### Roadmap Evolution
 
@@ -131,6 +133,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-07
-Stopped at: Completed 05-03-PLAN.md - Debugger and executor agent knowledge surfacing sections. ALL PLANS COMPLETE.
+Last session: 2026-02-08
+Stopped at: Completed 00-05-PLAN.md - Fork package fixes, tech debt resolution, CI hardening.
 Resume file: None
