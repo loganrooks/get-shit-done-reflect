@@ -12,7 +12,7 @@ GSD Reflect turns the GSD workflow engine into a self-improving system through s
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [x] **Phase 0: Deployment Infrastructure** (CRITICAL) - npm packaging, install scripts, isolated test environments, and CI/CD for proper verification
+- [ ] **Phase 0: Deployment Infrastructure** (CRITICAL) - npm packaging, install scripts, isolated test environments, and CI/CD for proper verification
 - [x] **Phase 1: Knowledge Store** - File-based persistent knowledge base with directory structure, file formats, indexing, and lifecycle management
 - [x] **Phase 2: Signal Collector** - Automatic detection and persistence of workflow deviations, struggles, and config mismatches
 - [x] **Phase 3: Spike Runner** - Structured experimentation workflow for resolving design uncertainty with decision records
@@ -31,13 +31,15 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. CI pipeline runs tests on every PR and blocks merge on failure
   4. npm publish workflow exists for releasing new versions
   5. Local development workflow (`npm link` or equivalent) allows testing changes without reinstalling
-**Plans**: 4 plans
+**Plans**: 6 plans
 
 Plans:
 - [x] 00-01-PLAN.md — Test infrastructure foundation (package.json, Vitest, helpers)
 - [x] 00-02-PLAN.md — Test fixtures and unit/integration tests
 - [x] 00-03-PLAN.md — CI/CD workflows and dev setup scripts
 - [x] 00-04-PLAN.md — Benchmark suite with tiered costs
+- [ ] 00-05-PLAN.md — Package name fixes, tech debt cleanup, and CI hardening
+- [ ] 00-06-PLAN.md — Release workflow improvements, smoke test CI, and branch protection
 
 ### Phase 1: Knowledge Store
 **Goal**: A persistent, cross-project knowledge base exists at user level with defined file formats, directory structure, indexing, and lifecycle management that all subsequent components build on
@@ -129,7 +131,7 @@ Phase 0 must complete first (enables verification). Then phases execute in numer
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 0. Deployment Infrastructure | 4/4 | Complete | 2026-02-03 |
+| 0. Deployment Infrastructure | 4/6 | In Progress | 2026-02-03 |
 | 1. Knowledge Store | 3/3 | Complete | 2026-02-02 |
 | 2. Signal Collector | 3/3 | Complete | 2026-02-03 |
 | 3. Spike Runner | 4/4 | Complete | 2026-02-05 |
