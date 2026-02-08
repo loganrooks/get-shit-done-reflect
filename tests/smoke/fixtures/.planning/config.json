@@ -1,0 +1,6 @@
+{
+  "mode": "yolo",
+  "depth": "quick",
+  "commit_docs": false,
+  "model_profile": "balanced"
+}
