@@ -7,7 +7,7 @@
 Built on top of [GSD](https://github.com/glittercowboy/get-shit-done) by TACHES.
 
 [![npm version](https://img.shields.io/npm/v/get-shit-done-reflect-cc?style=for-the-badge&logo=npm&logoColor=white&color=CB3837)](https://www.npmjs.com/package/get-shit-done-reflect-cc)
-[![GitHub stars](https://img.shields.io/github/stars/rookslog/get-shit-done-reflect?style=for-the-badge&logo=github&color=181717)](https://github.com/rookslog/get-shit-done-reflect)
+[![GitHub stars](https://img.shields.io/github/stars/loganrooks/get-shit-done-reflect?style=for-the-badge&logo=github&color=181717)](https://github.com/loganrooks/get-shit-done-reflect)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
 
 <br>
