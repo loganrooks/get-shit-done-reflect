@@ -31,6 +31,7 @@ This is the most leveraged moment in any project. Deep questioning here means be
 
 @~/.claude/get-shit-done/references/questioning.md
 @~/.claude/get-shit-done/references/ui-brand.md
+@~/.claude/get-shit-done/references/devops-detection.md
 @~/.claude/get-shit-done/templates/project.md
 @~/.claude/get-shit-done/templates/requirements.md
 
@@ -395,6 +396,85 @@ Default to "balanced" if not set.
 | gsd-roadmapper | opus | sonnet | sonnet |
 
 Store resolved models for use in Task calls below.
+
+## Phase 5.7: DevOps Context (Conditional)
+
+**Skip condition:** If greenfield (no existing code detected in Phase 1 setup) AND user did not mention deployment, CI, production, or release during Phase 3 questioning, skip to Phase 6.
+
+**If brownfield project OR DevOps signals detected:**
+
+Display stage banner:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► DEVOPS CONTEXT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**Step 1: Auto-detect existing DevOps configuration:**
+
+Run detection patterns from `devops-detection.md`:
+```bash
+# CI/CD detection
+DEVOPS_CI="none"
+[ -d ".github/workflows" ] && DEVOPS_CI="github-actions"
+[ -f ".gitlab-ci.yml" ] && DEVOPS_CI="gitlab-ci"
+[ -f ".circleci/config.yml" ] && DEVOPS_CI="circleci"
+[ -f "Jenkinsfile" ] && DEVOPS_CI="jenkins"
+
+# Deployment detection
+DEVOPS_DEPLOY="none"
+[ -f "vercel.json" ] || [ -d ".vercel" ] && DEVOPS_DEPLOY="vercel"
+[ -f "Dockerfile" ] && DEVOPS_DEPLOY="docker"
+[ -f "fly.toml" ] && DEVOPS_DEPLOY="fly-io"
+[ -f "netlify.toml" ] && DEVOPS_DEPLOY="netlify"
+
+# Commit convention detection
+CONVENTIONAL=$(git log --oneline -20 2>/dev/null | grep -cE "^[a-f0-9]+ (feat|fix|chore|docs|style|refactor|test|ci|build|perf)\(" || echo "0")
+TOTAL=$(git log --oneline -20 2>/dev/null | wc -l | tr -d ' ')
+DEVOPS_COMMITS="freeform"
+if [ "$TOTAL" -gt "0" ] && [ "$CONVENTIONAL" -gt "$((TOTAL / 2))" ]; then
+  DEVOPS_COMMITS="conventional"
+fi
+
+# Git hygiene
+HAS_GITIGNORE=$([ -f ".gitignore" ] && echo "true" || echo "false")
+HAS_ENV_TEMPLATE=$([ -f ".env.example" ] || [ -f ".env.template" ] && echo "true" || echo "false")
+```
+
+**Step 2: Report detections and ask about gaps:**
+
+Display what was detected:
+```
+Found:
+- CI/CD: {detected or "none detected"}
+- Deployment: {detected or "none detected"}
+- Commits: {conventional or freeform}
+```
+
+For each gap (where detection returned "none" or missing hygiene files), ask up to 3-5 adaptive questions using AskUserQuestion. Follow the question templates and project-type heuristics in `devops-detection.md`. Skip questions for items already detected.
+
+**Step 3: Store DevOps context in config.json:**
+
+Add the `devops` section to the project's `.planning/config.json` with detected values and user responses. The devops section structure is defined in `devops-detection.md`.
+
+```json
+{
+  "devops": {
+    "ci_provider": "{detected or user-selected}",
+    "deploy_target": "{detected or user-selected}",
+    "commit_convention": "{detected or user-selected}",
+    "environments": [],
+    "detected": {
+      "ci_files": [],
+      "deploy_files": [],
+      "gitignore": true,
+      "env_template": false
+    }
+  }
+}
+```
+
+**If no gaps found:** Report "DevOps context captured from existing configuration" and continue without questions.
 
 ## Phase 6: Research Decision
 

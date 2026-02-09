@@ -12,7 +12,8 @@ Configuration options for `.planning/` directory behavior.
   "branching_strategy": "none",
   "phase_branch_template": "gsd/phase-{phase}-{slug}",
   "milestone_branch_template": "gsd/{milestone}-{slug}"
-}
+},
+"knowledge_debug": false
 ```
 
 | Option | Default | Description |
@@ -22,6 +23,7 @@ Configuration options for `.planning/` directory behavior.
 | `git.branching_strategy` | `"none"` | Git branching approach: `"none"`, `"phase"`, or `"milestone"` |
 | `git.phase_branch_template` | `"gsd/phase-{phase}-{slug}"` | Branch template for phase strategy |
 | `git.milestone_branch_template` | `"gsd/{milestone}-{slug}"` | Branch template for milestone strategy |
+| `knowledge_debug` | `false` | When true, agents log all KB entries considered during knowledge surfacing |
 </config_schema>
 
 <commit_docs_behavior>
@@ -185,5 +187,30 @@ Squash merge is recommended — keeps main branch history clean while preserving
 | `milestone` | Release branches, staging environments, PR per version |
 
 </branching_strategy_behavior>
+
+<knowledge_surfacing_config>
+
+**Knowledge surfacing configuration:**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `knowledge_debug` | `false` | When true, agents log all KB entries considered during knowledge surfacing (not just applied entries). Useful for diagnosing why entries were or weren't surfaced. |
+
+**Checking the config:**
+
+```bash
+KNOWLEDGE_DEBUG=$(cat .planning/config.json 2>/dev/null | grep -o '"knowledge_debug"[[:space:]]*:[[:space:]]*[^,}]*' | grep -o 'true\|false' || echo "false")
+```
+
+**When `knowledge_debug: true`:**
+- Agents include a "## KB Debug Log" section listing all entries they read from index.md
+- Each entry shows: ID, tags, relevance assessment (why included or excluded), freshness status
+- This section is in addition to the standard "## Knowledge Applied" section
+
+**When `knowledge_debug: false` (default):**
+- Standard behavior: only "## Knowledge Applied" section with applied/dismissed entries
+- No debug logging overhead
+
+</knowledge_surfacing_config>
 
 </planning_config>

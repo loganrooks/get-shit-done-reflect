@@ -1,9 +1,9 @@
 {
-  "name": "get-shit-done-cc",
-  "version": "1.11.1",
-  "description": "A meta-prompting, context engineering and spec-driven development system for Claude Code, OpenCode and Gemini by TÂCHES.",
+  "name": "get-shit-done-reflect-cc",
+  "version": "1.12.0",
+  "description": "A self-improving AI coding system that learns from its mistakes. Built on GSD by TACHES.",
   "bin": {
-    "get-shit-done-cc": "bin/install.js"
+    "get-shit-done-reflect-cc": "bin/install.js"
   },
   "files": [
     "bin",
@@ -21,27 +21,41 @@
     "context-engineering",
     "spec-driven-development",
     "gemini",
-    "gemini-cli"
+    "gemini-cli",
+    "knowledge-base",
+    "signal-tracking",
+    "self-improving",
+    "reflection",
+    "gsd-reflect"
   ],
   "author": "TÂCHES",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/glittercowboy/get-shit-done.git"
+    "url": "git+https://github.com/rookslog/get-shit-done-reflect.git"
   },
-  "homepage": "https://github.com/glittercowboy/get-shit-done",
+  "homepage": "https://github.com/rookslog/get-shit-done-reflect",
   "bugs": {
-    "url": "https://github.com/glittercowboy/get-shit-done/issues"
+    "url": "https://github.com/rookslog/get-shit-done-reflect/issues"
   },
   "engines": {
     "node": ">=16.7.0"
   },
   "dependencies": {},
   "devDependencies": {
-    "esbuild": "^0.24.0"
+    "@vitest/coverage-v8": "^3.0.0",
+    "esbuild": "^0.24.0",
+    "vitest": "^3.0.0"
   },
   "scripts": {
     "build:hooks": "node scripts/build-hooks.js",
-    "prepublishOnly": "npm run build:hooks"
+    "prepublishOnly": "npm run build:hooks",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:infra": "vitest run tests/integration/kb-infrastructure.test.js tests/integration/wiring-validation.test.js",
+    "test:smoke": "bash tests/smoke/run-smoke.sh",
+    "test:smoke:quick": "SMOKE_TIER=quick bash tests/smoke/run-smoke.sh",
+    "test:smoke:full": "SMOKE_TIER=full bash tests/smoke/run-smoke.sh"
   }
 }

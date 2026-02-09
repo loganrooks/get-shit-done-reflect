@@ -1,0 +1,74 @@
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build hooks
+        run: npm run build:hooks
+
+      - name: Verify version matches release tag
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Version mismatch: package.json has $PKG_VERSION but tag is v$TAG_VERSION"
+            exit 1
+          fi
+          echo "Version verified: $PKG_VERSION"
+
+      - name: Extract release notes from CHANGELOG
+        id: release_notes
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Extracting release notes for version $VERSION"
+
+          # Extract content between this version header and the next version header
+          # CHANGELOG.md uses format: ## [X.Y.Z] - YYYY-MM-DD
+          NOTES=$(awk "/^## \\[$VERSION\\]/{found=1; next} /^## \\[/{if(found) exit} found{print}" CHANGELOG.md)
+
+          if [ -z "$NOTES" ]; then
+            echo "No changelog entry found for version $VERSION"
+            NOTES="No changelog entry found. See [CHANGELOG.md](https://github.com/rookslog/get-shit-done-reflect/blob/main/CHANGELOG.md) for details."
+          fi
+
+          # Write to file for multi-line handling
+          echo "$NOTES" > /tmp/release-notes.md
+          echo "notes_file=/tmp/release-notes.md" >> "$GITHUB_OUTPUT"
+
+      - name: Update release with changelog notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/v}
+          # Append changelog notes to existing release body
+          gh release edit "v$VERSION" --notes-file /tmp/release-notes.md 2>/dev/null || \
+            echo "Warning: Could not update release notes (release may not exist yet)"
+
+      - name: Run tests before publish
+        run: npm test
+
+      - name: Publish to npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
