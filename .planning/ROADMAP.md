@@ -18,6 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Spike Runner** - Structured experimentation workflow for resolving design uncertainty with decision records
 - [x] **Phase 4: Reflection Engine** - Pattern detection across signals and distillation into actionable lessons
 - [x] **Phase 5: Knowledge Surfacing** - Automatic retrieval and presentation of relevant knowledge during research phases
+- [ ] **Phase 6: Production Readiness & Workspace Health** - Version upgrade catch-up, health check command, codebase mapping integration, DevOps initialization, stale artifact cleanup, and fork-specific README
 
 ## Phase Details
 
@@ -124,6 +125,24 @@ Plans:
 - [x] 05-02-PLAN.md — Phase researcher and planner agent KB integration
 - [x] 05-03-PLAN.md — Debugger and executor agent KB integration
 
+### Phase 6: Production Readiness & Workspace Health
+**Goal**: The fork is production-ready for real-world use — workspaces can be validated and repaired, version upgrades are seamless, new projects capture DevOps context, and the fork has its own identity via README
+**Depends on**: Phase 5
+**Success Criteria** (what must be TRUE):
+  1. A `/gsd:health-check` command validates workspace state (KB integrity, config validity, stale artifacts) and reports actionable findings
+  2. Projects initialized under older versions can catch up to new features without re-initialization
+  3. `/gsd:new-project` captures DevOps context (branching strategy, CI/CD, deployment targets) during initialization
+  4. Codebase mapping surfaces DevOps gaps and feeds findings into health check or roadmap suggestions
+  5. Stale artifacts (orphaned .continue-here files, abandoned debug sessions, incomplete spikes) are detected and flagged
+  6. Fork-specific README.md documents GSD Reflect's identity, installation, and differentiation from upstream GSD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — Health check foundation (reference, workflow, command)
+- [ ] 06-02-PLAN.md — Version migration (reference, hook, command, config template)
+- [ ] 06-03-PLAN.md — DevOps initialization (reference, new-project addition, concerns template)
+- [ ] 06-04-PLAN.md — Fork identity (README, CHANGELOG, package.json, help.md)
+
 ## Progress
 
 **Execution Order:**
@@ -137,3 +156,4 @@ Phase 0 must complete first (enables verification). Then phases execute in numer
 | 3. Spike Runner | 4/4 | Complete | 2026-02-05 |
 | 4. Reflection Engine | 2/2 | Complete | 2026-02-05 |
 | 5. Knowledge Surfacing | 3/3 | Complete | 2026-02-07 |
+| 6. Production Readiness & Workspace Health | 0/4 | Planned | — |
