@@ -21,16 +21,17 @@ Output ONLY the reference content below. Do NOT add:
 
 ## Quick Start
 
-1. `/gsd:new-project` - Initialize project (includes research, requirements, roadmap)
-2. `/gsd:plan-phase 1` - Create detailed plan for first phase
-3. `/gsd:execute-phase 1` - Execute the phase
+1. `npx get-shit-done-reflect-cc` - Install GSD Reflect
+2. `/gsd:new-project` - Initialize project (includes research, requirements, roadmap)
+3. `/gsd:plan-phase 1` - Create detailed plan for first phase
+4. `/gsd:execute-phase 1` - Execute the phase
 
 ## Staying Updated
 
 GSD evolves fast. Update periodically:
 
 ```bash
-npx get-shit-done-cc@latest
+npx get-shit-done-reflect-cc@latest
 ```
 
 ## Core Workflow
@@ -345,6 +346,19 @@ Join the GSD Discord community.
 - Connect with other GSD users
 
 Usage: `/gsd:join-discord`
+
+### GSD Reflect
+
+GSD Reflect adds learning capabilities on top of GSD:
+
+| Command | What it does |
+|---------|--------------|
+| `/gsd:signal` | Manually log a signal from current conversation |
+| `/gsd:collect-signals <N>` | Analyze phase execution for deviations |
+| `/gsd:health-check` | Validate workspace state (KB, config, stale artifacts) |
+| `/gsd:upgrade-project` | Migrate project to current version with mini-onboarding |
+
+*Reflection (`/gsd:reflect`) runs as part of milestone completion. Knowledge surfacing happens automatically during research and planning.*
 
 ## Files & Structure
 

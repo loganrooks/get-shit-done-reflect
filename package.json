@@ -1,7 +1,7 @@
 {
   "name": "get-shit-done-reflect-cc",
   "version": "1.11.1",
-  "description": "A meta-prompting, context engineering and spec-driven development system for Claude Code, OpenCode and Gemini by TÂCHES.",
+  "description": "A self-improving AI coding system that learns from its mistakes. Built on GSD by TACHES.",
   "bin": {
     "get-shit-done-reflect-cc": "bin/install.js"
   },
@@ -21,7 +21,12 @@
     "context-engineering",
     "spec-driven-development",
     "gemini",
-    "gemini-cli"
+    "gemini-cli",
+    "knowledge-base",
+    "signal-tracking",
+    "self-improving",
+    "reflection",
+    "gsd-reflect"
   ],
   "author": "TÂCHES",
   "license": "MIT",
