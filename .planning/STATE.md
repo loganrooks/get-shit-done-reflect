@@ -5,29 +5,29 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Deployment hardening continuation -- fork package fixes, tech debt resolution, CI hardening.
+**Current focus:** All phases complete. Project v1 delivered.
 
 ## Current Position
 
-Phase: 0 of 5 (Deployment Infrastructure -- continuation)
-Plan: 5 of 6 in current phase (00-01 through 00-05 complete)
-Status: In progress
-Last activity: 2026-02-08 -- Completed 00-05-PLAN.md (fork package fixes, tech debt, CI hardening)
+Phase: 5 of 5 (ALL PHASES COMPLETE)
+Plan: 6 of 6 in phase 0 (00-01 through 00-06 complete)
+Status: COMPLETE
+Last activity: 2026-02-08 -- Completed 00-06-PLAN.md (release notes, smoke test workflow, branch protection)
 
-Progress: [████████████████████] 20/21 (95%)
+Progress: [█████████████████████] 21/21 (100%)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
+- Total plans completed: 21
 - Average duration: 2.7min
-- Total execution time: 53min
+- Total execution time: 56min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 0. Deployment Infrastructure | 5/6 | 14min | 2.8min |
+| 0. Deployment Infrastructure | 6/6 | 17min | 2.8min |
 | 1. Knowledge Store | 3/3 | 7min | 2.3min |
 | 2. Signal Collector | 3/3 | 3min | 1.0min |
 | 3. Spike Runner | 4/4 | 10min | 2.5min |
@@ -35,8 +35,9 @@ Progress: [████████████████████] 20/21 (
 | 5. Knowledge Surfacing | 3/3 | 9min | 3.0min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (4min), 05-02 (3min), 05-03 (2min), 00-05 (2min)
+- Last 5 plans: 05-03 (2min), 00-05 (2min), 00-06 (3min)
 - Trend: steady, fast execution
+- PROJECT COMPLETE: All 21 plans across 6 phases executed
 
 *Updated after each plan completion*
 
@@ -118,6 +119,10 @@ Recent decisions affecting current work:
 - [05-03]: No separate Knowledge Applied section for executor (citations inline in deviation tracking)
 - [00-05]: Numeric timeout for tmpdirTest (test.extend passes through to Vitest test())
 - [00-05]: Subdirectory package.json for ESM scope (simpler than runtime flags)
+- [00-06]: Branch protection: 0 required approvals (solo dev, PRs required but self-merge allowed)
+- [00-06]: Enforce admins enabled -- no bypassing protection rules
+- [00-06]: Smoke test workflow: Tier 1 always runs; Tier 2+3 gated on ANTHROPIC_API_KEY secret
+- [00-06]: Squash merge default with auto-delete head branches
 
 ### Pending Todos
 
@@ -125,7 +130,7 @@ None.
 
 ### Blockers/Concerns
 
-- 00-06 remaining: smoke test CI integration (requires Claude CLI auth)
+None -- all plans complete.
 
 ### Roadmap Evolution
 
@@ -134,5 +139,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-08
-Stopped at: Completed 00-05-PLAN.md - Fork package fixes, tech debt resolution, CI hardening.
+Stopped at: Completed 00-06-PLAN.md - Release notes, smoke test workflow, branch protection. ALL PLANS COMPLETE.
 Resume file: None
