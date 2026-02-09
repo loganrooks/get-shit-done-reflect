@@ -82,7 +82,7 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     # Only run if eslint config exists
-    if: hashFiles('.eslintrc*', 'eslint.config.*') != ''
+    if: ${{ hashFiles('.eslintrc*', 'eslint.config.*') != '' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v5
