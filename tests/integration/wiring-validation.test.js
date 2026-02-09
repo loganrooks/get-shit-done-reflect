@@ -187,7 +187,13 @@ describe('wiring validation', () => {
       }
 
       // "general-purpose" is built-in to Claude Code, not a file
-      const builtinTypes = new Set(['general-purpose', 'Explore', 'Plan'])
+      // Upstream GSD agents are installed at runtime via install.js, not shipped in repo
+      const builtinTypes = new Set([
+        'general-purpose', 'Explore', 'Plan',
+        'gsd-integration-checker', 'gsd-project-researcher',
+        'gsd-research-synthesizer', 'gsd-roadmapper',
+        'gsd-plan-checker', 'gsd-verifier', 'gsd-codebase-mapper'
+      ])
 
       const broken = []
       for (const agentType of allTypes) {
