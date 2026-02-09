@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Spike Runner** - Structured experimentation workflow for resolving design uncertainty with decision records
 - [x] **Phase 4: Reflection Engine** - Pattern detection across signals and distillation into actionable lessons
 - [x] **Phase 5: Knowledge Surfacing** - Automatic retrieval and presentation of relevant knowledge during research phases
-- [ ] **Phase 6: Production Readiness & Workspace Health** - Version upgrade catch-up, health check command, codebase mapping integration, DevOps initialization, stale artifact cleanup, and fork-specific README
+- [x] **Phase 6: Production Readiness & Workspace Health** - Version upgrade catch-up, health check command, codebase mapping integration, DevOps initialization, stale artifact cleanup, and fork-specific README
 
 ## Phase Details
 
@@ -138,10 +138,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Health check foundation (reference, workflow, command)
-- [ ] 06-02-PLAN.md — Version migration (reference, hook, command, config template)
-- [ ] 06-03-PLAN.md — DevOps initialization (reference, new-project addition, concerns template)
-- [ ] 06-04-PLAN.md — Fork identity (README, CHANGELOG, package.json, help.md)
+- [x] 06-01-PLAN.md — Health check foundation (reference, workflow, command)
+- [x] 06-02-PLAN.md — Version migration (reference, hook, command, config template)
+- [x] 06-03-PLAN.md — DevOps initialization (reference, new-project addition, concerns template)
+- [x] 06-04-PLAN.md — Fork identity (README, CHANGELOG, package.json, help.md)
 
 ## Progress
 
@@ -156,4 +156,4 @@ Phase 0 must complete first (enables verification). Then phases execute in numer
 | 3. Spike Runner | 4/4 | Complete | 2026-02-05 |
 | 4. Reflection Engine | 2/2 | Complete | 2026-02-05 |
 | 5. Knowledge Surfacing | 3/3 | Complete | 2026-02-07 |
-| 6. Production Readiness & Workspace Health | 0/4 | Planned | — |
+| 6. Production Readiness & Workspace Health | 4/4 | Complete | 2026-02-09 |
