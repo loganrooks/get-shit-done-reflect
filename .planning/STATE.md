@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** All phases complete. Project v1 delivered.
+**Current focus:** Phase 6 — Production readiness, workspace health, fork identity.
 
 ## Current Position
 
-Phase: 5 of 5 (ALL PHASES COMPLETE)
-Plan: 6 of 6 in phase 0 (00-01 through 00-06 complete)
-Status: COMPLETE
-Last activity: 2026-02-08 -- Completed 00-06-PLAN.md (release notes, smoke test workflow, branch protection)
+Phase: 6 of 6 - Production Readiness & Workspace Health
+Plan: 1 of 4
+Status: In progress
+Last activity: 2026-02-09 -- Completed 06-01-PLAN.md
 
-Progress: [█████████████████████] 21/21 (100%)
+Progress: [█████████████████████░░░░] 22/25
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
+- Total plans completed: 22
 - Average duration: 2.7min
-- Total execution time: 56min
+- Total execution time: 60min
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [█████████████████████] 21/2
 | 3. Spike Runner | 4/4 | 10min | 2.5min |
 | 4. Reflection Engine | 2/2 | 10min | 5.0min |
 | 5. Knowledge Surfacing | 3/3 | 9min | 3.0min |
+| 6. Production Readiness | 1/4 | 4min | 4.0min |
 
 **Recent Trend:**
-- Last 5 plans: 05-03 (2min), 00-05 (2min), 00-06 (3min)
-- Trend: steady, fast execution
-- PROJECT COMPLETE: All 21 plans across 6 phases executed
+- Last 5 plans: 05-03 (2min), 00-05 (2min), 00-06 (3min), 06-01 (4min)
+- Trend: steady execution
 
 *Updated after each plan completion*
 
@@ -123,6 +123,10 @@ Recent decisions affecting current work:
 - [00-06]: Enforce admins enabled -- no bypassing protection rules
 - [00-06]: Smoke test workflow: Tier 1 always runs; Tier 2+3 gated on ANTHROPIC_API_KEY secret
 - [00-06]: Squash merge default with auto-delete head branches
+- [06-01]: Health check output uses hybrid categorized checklist format (pass/warning/fail per category)
+- [06-01]: All checks purely mechanical -- no subjective quality assessment
+- [06-01]: Signal integration allows health findings to feed reflection engine
+- [06-01]: Repair rules: repairable issues auto-fix in YOLO, prompt in interactive; non-repairable issues report only
 
 ### Pending Todos
 
@@ -130,14 +134,15 @@ None.
 
 ### Blockers/Concerns
 
-None -- all plans complete.
+None.
 
 ### Roadmap Evolution
 
 - Phase 0 inserted before Phase 1: Deployment Infrastructure (CRITICAL) — npm packaging, install scripts, isolated test environments, CI/CD to enable proper verification of all subsequent phases
+- Phase 6 added: Production Readiness & Workspace Health — version upgrade catch-up, health check command (including stale artifact detection), codebase mapping integration, DevOps initialization questions, fork-specific README
 
 ## Session Continuity
 
-Last session: 2026-02-08
-Stopped at: Completed 00-06-PLAN.md - Release notes, smoke test workflow, branch protection. ALL PLANS COMPLETE.
+Last session: 2026-02-09
+Stopped at: Completed 06-01-PLAN.md
 Resume file: None
