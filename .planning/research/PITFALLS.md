@@ -1,233 +1,454 @@
-# Domain Pitfalls
+# Domain Pitfalls: Upstream Fork Sync
 
-**Domain:** Self-improving AI dev tooling (signal tracking, experiment workflows, knowledge base)
-**Researched:** 2026-02-02
-**Overall confidence:** HIGH (domain-specific analysis grounded in project constraints and verified research)
+**Domain:** Syncing a divergent fork (GSD Reflect) with upstream GSD (70 commits, v1.11.2 to v1.18.0)
+**Researched:** 2026-02-09
+**Overall confidence:** HIGH (grounded in actual git diff analysis of this codebase, not generic advice)
+
+---
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, system abandonment, or fundamental architecture problems.
+Mistakes that cause data loss, broken releases, or multi-day recovery efforts.
 
-### Pitfall 1: Context Window Poisoning from Signal/Knowledge Injection
+### Pitfall 1: The install.js Three-Way Merge Trap
 
-**What goes wrong:** Signals, knowledge base entries, and experiment results get injected into agent context windows, consuming token budget that should go to the actual task. Even well-intentioned "here are 5 relevant lessons" preambles degrade reasoning quality. Research on context rot (Hong et al., 2025) shows models exhibit sharp, unpredictable quality cliffs -- not gradual degradation -- as context fills.
+**What goes wrong:** `bin/install.js` has been modified by three independent change streams that all touch the same file:
+1. **Our fork:** Branding changes (banner text, package name `get-shit-done-reflect-cc`, help text)
+2. **Upstream memory add/revert:** af7a057 added MCP server registration, cc3c6ac reverted it -- but the revert also touched `install.js` (137 lines removed)
+3. **Upstream post-revert changes:** Local patch preservation (ca03a06, +145 lines), `--include` flag, JSONC parser (+61 lines), hex color validation fix, statusline path fix, `gsd-file-manifest.json` writing
 
-**Why it happens:** The intuition "more context = better results" is wrong for LLMs. GSD already has large agent specs (planner: 1386 lines, debugger: 1203 lines). Adding signal summaries, knowledge base results, and experiment conclusions on top pushes agents past their effective context window, which is far smaller than the advertised limit.
+A naive `git merge upstream/main` will produce a conflict in `install.js` where the merge resolution must correctly keep our branding, adopt upstream's patch-preservation and JSONC parser, and NOT reintroduce the memory system code that was added then reverted.
 
-**Consequences:** Agent reasoning quality drops silently. Plans get worse. Executors make more mistakes. The system appears to work but produces subtly degraded output. Worse: the degradation is invisible because there is no baseline comparison.
+**Why it happens:** Git's three-way merge sees the memory add and revert as a net-zero change from the fork point, but our fork diverged between those commits. The install.js diff from our fork point to upstream HEAD is 338 lines of changes across multiple functional areas mixed together.
 
 **Warning signs:**
-- Agents start ignoring instructions that are "in the middle" of their context
-- Plan quality drops after knowledge base grows past ~20 entries
-- Researchers produce shallower analysis despite having "more information"
-- Users notice agents "forgetting" rules from their spec files
+- `git merge upstream/main` produces a conflict marker spanning 100+ lines in install.js
+- After resolving, the install script crashes with "crypto is not defined" (upstream added `const crypto = require('crypto')` for manifest hashing)
+- After resolving, the banner still says "Get Shit Done" instead of "GSD Reflect"
+- After resolving, `npx get-shit-done-reflect-cc --help` shows upstream's package name
 
 **Prevention:**
-- Treat context budget as a zero-sum resource. Every token of signal/knowledge displaces a token of task reasoning.
-- Never auto-inject knowledge. Use pull-based retrieval: agent explicitly queries knowledge base when it decides it needs context, not push-based injection at spawn time.
-- Set hard token budgets for knowledge injection (e.g., max 2000 tokens of knowledge per agent spawn).
-- Summarize aggressively. A knowledge entry should be 2-3 sentences, not a full decision record.
-- Measure before/after: compare plan quality with and without knowledge injection during development.
+- Merge install.js manually in a dedicated step, NOT as part of a bulk merge
+- Use the semantic approach: read both versions, understand each functional section, reconstruct by hand
+- Test the merged install.js in isolation: `HOME=$(mktemp -d) node bin/install.js --claude 2>&1` -- verify banner, package name, directory creation, manifest writing
+- Specifically verify: (1) branding preserved, (2) crypto require present, (3) patch preservation functions present, (4) JSONC parser present, (5) NO gsd-memory references
 
-**Phase:** Must be addressed in the knowledge base design phase. Retrofitting lazy loading onto an eager-loading design is a rewrite.
+**Severity:** HIGH -- install.js is the user-facing entry point. A broken installer means nobody can install the fork.
+
+**Which phase should address it:** Must be the FIRST file resolved in the merge phase. Other files depend on install.js working correctly.
 
 ---
 
-### Pitfall 2: The Knowledge Base Graveyard
+### Pitfall 2: The Thin Orchestrator Architecture Mismatch
 
-**What goes wrong:** Knowledge base fills with entries that nobody reads, nobody trusts, and nobody maintains. Entries go stale within weeks. The system becomes a write-only log that consumes storage and attention without producing value. This is the single most common failure mode of knowledge management systems across all domains.
+**What goes wrong:** Upstream refactored ALL commands from fat self-contained specs to thin orchestrators that delegate to workflow files via `@~/.claude/get-shit-done/workflows/` references. This is the single largest architectural change (commit d44c7dc: 22,000+ tokens reduced across 15 commands, 22 workflows, 14 agents). Our fork's `commands/gsd/new-project.md` is still the fat version with 481 lines of inline logic PLUS our DevOps detection addition (+79 lines). Upstream's `new-project.md` is now 44 lines that just reference `workflows/new-project.md`.
 
-**Why it happens:** Three reinforcing dynamics:
-1. **Capture is easy, curation is hard.** Automated signal capture generates volume. Nobody is incentivized to prune, update, or validate entries.
-2. **Staleness destroys trust.** One wrong lesson surfaced at the wrong time ("use library X" when X has been deprecated) and users mentally mark the entire knowledge base as unreliable.
-3. **Quantity gaming.** If the system measures "number of lessons captured," it optimizes for volume over quality -- the exact anti-pattern documented across enterprise KM failures.
+If we merge upstream's thin `new-project.md` on top of our fat version, we lose our DevOps detection feature. If we keep our fat version, we're incompatible with the new gsd-tools CLI and all the workflow improvements upstream has made.
 
-**Consequences:** Users ignore knowledge base results. The feature becomes dead weight. Worse: stale knowledge actively misleads agents, causing them to make decisions based on outdated information.
+**Why it happens:** Our fork's "additive only" rule assumed upstream's file structure would remain stable. Instead, upstream moved the logic from `commands/` to `get-shit-done/workflows/`, fundamentally changing where code lives.
+
+**Consequences:**
+- Commands reference workflow files that don't exist (if we take upstream commands but miss workflow files)
+- Commands that call `gsd-tools.js init` fail because gsd-tools doesn't exist in our installation
+- Our DevOps detection feature silently disappears
+- Agent specs become incompatible with workflow specs (agents are 50-70% smaller upstream)
 
 **Warning signs:**
-- Knowledge base grows monotonically (entries added but never removed or updated)
-- Same lessons appear in slightly different phrasings (duplication without deduplication)
-- Users start skipping the "here's what the knowledge base says" section
-- Knowledge entries lack dates or version context
+- After merge, any `/gsd:` command fails with "workflow file not found"
+- Agent specs still reference old inline patterns while commands reference new workflow patterns
+- gsd-tools.js is present but not in the npm `files` array
+- Commands work but produce different output than expected (using old logic path)
 
 **Prevention:**
-- Every entry must have an expiry date or review trigger (e.g., "valid until library X releases v4" or "review after 90 days").
-- Implement decay: entries that are never retrieved lose relevance score and eventually auto-archive.
-- Quality over quantity: cap the active knowledge base at a fixed size (e.g., 50 entries per project, 200 global). Force ranking.
-- Attach provenance: every entry links to the signal or spike that produced it, so users can evaluate trustworthiness.
-- Make curation part of the workflow, not a separate chore. Phase completion should include "review/prune knowledge entries from this phase."
+- Adopt the thin orchestrator architecture wholesale -- this is not optional, it's the new foundation
+- Port our DevOps detection from `commands/gsd/new-project.md` into `get-shit-done/workflows/new-project.md` as an additional section
+- Verify every command/workflow/agent triple is internally consistent after merge
+- Run the wiring validation test (`tests/integration/wiring-validation.test.js`) after merge -- this test was specifically built to catch broken references
 
-**Phase:** Knowledge base architecture phase. The storage format must support expiry, scoring, and archival from day one.
+**Severity:** HIGH -- architectural mismatch means nothing works, not just one feature.
+
+**Which phase should address it:** Core merge phase, immediately after install.js. The architectural adoption must happen before porting any features.
 
 ---
 
-### Pitfall 3: Experiments That Never Converge (Permanent Spike Mode)
+### Pitfall 3: The Agent Spec Dual-Location Problem
 
-**What goes wrong:** Spike/experiment workflows become a way to defer decisions indefinitely. Teams run spike after spike without committing to a direction. The experiment framework enables procrastination disguised as rigor.
+**What goes wrong:** Our fork has agent specs in TWO locations:
+- `agents/gsd-executor.md` (784 lines, upstream-compatible path, installed by installer)
+- `.claude/agents/gsd-executor.md` (also 784 lines, local project path, only differs by 2 lines: `~/.claude/` to `./.claude/` path references)
 
-**Why it happens:** Spikes feel productive -- you're "gathering data." But without explicit convergence criteria defined upfront, there is always one more thing to test. The agile community has documented this extensively: spikes must be timeboxed and must produce a decision, not just more questions.
+Upstream's `agents/gsd-executor.md` is now 403 lines (48% smaller). It was rewritten to work with the thin orchestrator pattern, removing inline logic that moved to workflow files. Our fork's version at both locations is the OLD fat version plus our minor path modifications.
 
-**Consequences:** Main workflow stalls while experiments run. Context is consumed by experiment overhead instead of shipping. The spike workflow becomes the default mode instead of the exception.
+During merge, we need to update BOTH locations, but the `.claude/agents/` copies contain our fork's custom agents (reflector, signal-collector, spike-runner, knowledge-store) that upstream doesn't have. A careless merge might:
+- Overwrite our custom agents in `.claude/agents/`
+- Leave stale fat agent specs that reference patterns gsd-tools has replaced
+- Create inconsistency between the two locations
 
 **Warning signs:**
-- A spike produces "inconclusive" results and spawns another spike
-- More than 2 spikes in sequence on the same question
-- Spike results don't get integrated into the main workflow within the same phase
-- Spikes lack defined success/failure criteria before they start
+- Agents call `cat .planning/config.json | node -e "..."` instead of `node gsd-tools.js state load` (old pattern)
+- Agents have inline bash for operations that gsd-tools now handles
+- `.claude/agents/` has different versions than `agents/`
+- Our custom agents (reflector, signal-collector) reference patterns that no longer exist in the updated upstream agents
 
 **Prevention:**
-- Require convergence criteria at spike creation time: "This spike succeeds if X, fails if Y, and we decide by Z."
-- Hard timebox: spikes get a fixed context/time budget. When it expires, you decide with what you have.
-- Maximum spike depth of 2: if two rounds of experimentation haven't resolved uncertainty, escalate to human decision, don't run a third spike.
-- Spike results must produce a decision record, not a report. The output is "We chose A because B" not "Here are the tradeoffs."
+- Update `agents/` to match upstream's new versions FIRST
+- Then update `.claude/agents/` copies of upstream agents to match
+- Leave our fork-unique agents (reflector, signal-collector, spike-runner, knowledge-store) untouched for now
+- Verify our fork-unique agents don't reference upstream patterns that changed (they currently reference checkpoint.md which was rewritten)
+- Add a test that verifies `agents/` and `.claude/agents/` are in sync for shared files
 
-**Phase:** Spike workflow design phase. Convergence constraints must be structural (enforced by the workflow), not advisory.
+**Severity:** HIGH -- inconsistent agent specs cause silent failures where agents execute with wrong instructions.
+
+**Which phase should address it:** Must be addressed in the same phase as the thin orchestrator adoption, since agent changes are coupled to the workflow changes.
 
 ---
 
-### Pitfall 4: Fork Drift From Upstream GSD
+### Pitfall 4: package.json Identity Collision
 
-**What goes wrong:** "Additive only" changes gradually become entangled with upstream files. A new signal tracking hook needs to modify the executor agent. A knowledge base query needs to be wired into the researcher workflow. Each small modification seems harmless, but they compound into merge conflicts that make upstream syncing painful or impossible.
+**What goes wrong:** Our fork's `package.json` has extensive identity changes:
+- `name`: `get-shit-done-reflect-cc` (vs upstream's `get-shit-done-cc`)
+- `version`: `1.12.2` (vs upstream's `1.18.0`)
+- `description`: fork-specific
+- `bin`: `get-shit-done-reflect-cc` (vs `get-shit-done-cc`)
+- `keywords`: additional fork-specific keywords
+- `repository`, `bugs`, `homepage`: point to our fork's GitHub repo
+- `devDependencies`: we added vitest and @vitest/coverage-v8
 
-**Why it happens:** Fork drift is exponential, not linear. Each modification to an upstream file creates a potential conflict with every future upstream change to that file. The "additive only" constraint is easy to state but hard to maintain when building features that naturally want to integrate deeply with existing workflows.
+Upstream's `package.json` at v1.18.0 has version `1.18.0` and may have added new fields, changed the `files` array (to include `get-shit-done/bin/gsd-tools.js`), or updated dependencies.
 
-**Consequences:** Upstream improvements become inaccessible. Merges require manual conflict resolution that introduces bugs. Eventually the fork becomes a separate project that happens to share history with upstream.
+A git merge will conflict on nearly every field. The resolution must keep our identity but adopt upstream's structural changes (files array, any new dependencies, scripts).
 
 **Warning signs:**
-- Any PR that modifies a file in `commands/gsd/`, `get-shit-done/workflows/`, or `agents/gsd-*.md` (upstream files)
-- Merge conflicts increasing in frequency when pulling upstream
-- Developers saying "we should just change this one upstream file, it's simpler"
-- Extension points requiring patches to upstream code
+- After merge, `npm publish` publishes to the wrong package name
+- `gsd-tools.js` not included in published package (missing from `files` array)
+- Version number is wrong (either our old version or upstream's version)
+- `npm test` fails because test scripts changed
 
 **Prevention:**
-- Strict file ownership: maintain a manifest of upstream-owned files. CI or pre-commit check that these files are unmodified.
-- Extension architecture: new commands in a separate namespace (e.g., `commands/reflect/`), new agents with new names (e.g., `agents/reflect-*.md`), new workflows in a separate directory.
-- Hook points over modifications: if upstream needs to call reflect features, propose the hook point upstream rather than patching locally.
-- Sync weekly: the longer between syncs, the worse drift gets. Regular small merges beat infrequent large merges.
-- Tag changes that should go upstream with a marker (e.g., `#propose-upstream`) and actually submit them.
+- Resolve package.json entirely by hand, never accept either side wholesale
+- Checklist for package.json resolution:
+  1. Keep our `name`, `bin`, `description`, `repository`, `bugs`, `homepage`
+  2. Adopt upstream's `files` array additions (especially `get-shit-done/bin/`)
+  3. Keep our `devDependencies` (vitest), adopt any new upstream deps
+  4. Set version to our next version (e.g., `1.13.0`), NOT upstream's version
+  5. Keep our `keywords` superset
+- After resolution, run `npm pack --dry-run` to verify the correct files are included
+- Run `npm publish --dry-run` to verify package identity
 
-**Phase:** Must be established as a convention in the very first phase and enforced throughout all subsequent phases.
+**Severity:** HIGH -- wrong package identity means publishing to wrong npm package or breaking installs.
+
+**Which phase should address it:** Early in merge phase, since other changes (gsd-tools) depend on the files array being correct.
+
+---
+
+### Pitfall 5: The Memory System Ghost
+
+**What goes wrong:** Upstream added a full `gsd-memory/` directory (af7a057) then reverted it (cc3c6ac). Our fork was created AFTER the fork point (2347fca) which is before both the add and the revert. During merge, git's three-way merge sees:
+- Base (2347fca): no gsd-memory/
+- Ours (main): no gsd-memory/
+- Theirs (upstream/main): no gsd-memory/ (added then reverted)
+
+This should merge cleanly for the directory itself. But the REAL danger is in the files the memory system MODIFIED:
+- `agents/gsd-phase-researcher.md` -- memory system added 38 lines of "query memory before Context7" instructions
+- `agents/gsd-project-researcher.md` -- same 38-line addition
+- `commands/gsd/new-project.md` -- added 20 lines of "register project with memory"
+- `get-shit-done/workflows/complete-milestone.md` -- added 26 lines of "index milestone completion"
+- `get-shit-done/workflows/execute-phase.md` -- added 16 lines of "index after execution"
+
+The revert removed these additions, BUT then the thin orchestrator refactoring also rewrote these same files. The merge must handle the combined effect: memory add + memory revert + thin orchestrator rewrite.
+
+**Warning signs:**
+- After merge, agent specs contain references to `gsd_memory_search` or `gsd_memory_register`
+- Workflow files mention "index with memory" operations
+- install.js tries to configure MCP server for gsd-memory
+- References to `~/.gsd/projects.json` (memory's project registry)
+
+**Prevention:**
+- After merge, grep for `memory`, `gsd_memory`, `gsd-memory`, `projects.json` across the entire codebase
+- The result should be ZERO hits (except in our own knowledge base system which uses different naming)
+- Pay special attention to the five files listed above during conflict resolution
+- Our fork has its OWN knowledge system (`.claude/agents/knowledge-store.md`, `gsd-knowledge/`) which is architecturally different from upstream's reverted memory system -- do not confuse the two
+
+**Severity:** HIGH -- ghost references to a removed system cause runtime errors.
+
+**Which phase should address it:** Part of the core merge phase, specifically during conflict resolution of agent and workflow files.
 
 ---
 
 ## Moderate Pitfalls
 
-Mistakes that cause delays, technical debt, or feature underperformance.
+Mistakes that cause delays, broken features, or technical debt.
 
-### Pitfall 5: Signal Noise Drowning Out Signal
+### Pitfall 6: CI/CD Workflow Collision
 
-**What goes wrong:** The signal tracking system captures everything -- model mismatches, minor plan deviations, user hesitations, retry attempts -- and produces so many signals that meaningful patterns are invisible. Alert fatigue, the dominant problem in observability systems, manifests here as "signal fatigue."
+**What goes wrong:** Our fork has three GitHub Actions workflows:
+- `.github/workflows/ci.yml` -- runs tests on push/PR
+- `.github/workflows/publish.yml` -- OIDC npm Trusted Publishing on release
+- `.github/workflows/smoke-test.yml` -- install verification
 
-**Why it happens:** It's easier to log everything than to decide what matters. The system designers defer the filtering problem to "later" and implement broad capture first. But once signals accumulate, retroactive filtering is much harder than upfront curation.
+Upstream added three NEW GitHub files:
+- `.github/CODEOWNERS` -- requires @glittercowboy review (not our maintainer)
+- `.github/ISSUE_TEMPLATE/bug_report.yml` -- references upstream's package name
+- `.github/ISSUE_TEMPLATE/feature_request.yml` -- generic
+- `.github/workflows/auto-label-issues.yml` -- auto-labels issues
+
+Risks:
+1. CODEOWNERS with `@glittercowboy` will block our PRs if we adopt it
+2. Issue templates reference `get-shit-done-cc` package name
+3. Auto-label workflow may conflict with our own issue management
+4. Our OIDC publishing workflow is specifically configured for our npm package -- any interference breaks publishing
+
+**Warning signs:**
+- PRs blocked waiting for @glittercowboy review
+- Issue templates show wrong package name
+- npm publish fails because OIDC identity doesn't match
 
 **Prevention:**
-- Define signal severity levels at design time (critical / notable / trace). Only critical and notable signals are stored persistently. Trace signals are ephemeral.
-- Implement signal deduplication: "model mismatch" occurring 15 times in one session should be one signal with a count, not 15 entries.
-- Require each signal type to have a defined "so what": what action should this signal trigger? If no action, it's not a signal -- it's a log line.
-- Cap signal volume per session (e.g., max 10 persistent signals per phase execution). Force prioritization.
+- Do NOT adopt `.github/CODEOWNERS` -- skip or replace with our own maintainer
+- Update issue template to reference our package name if adopting
+- Keep our three workflows untouched; they are entirely fork-specific
+- Upstream's auto-label workflow is harmless to adopt but unnecessary
+- After merge, run: `gh workflow list` to verify no duplicate or broken workflows
 
-**Phase:** Signal tracking design phase. The taxonomy and severity model must precede the capture implementation.
+**Severity:** MEDIUM -- broken CI doesn't break the code but blocks releases.
+
+**Which phase should address it:** Post-merge validation phase. CI/CD can be fixed after code merge is stable.
 
 ---
 
-### Pitfall 6: Implicit Signal Capture Becoming Surveillance Theater
+### Pitfall 7: The gsd-tools.js Adoption Gap
 
-**What goes wrong:** The system tries to detect "user frustration" and "agent struggles" through heuristic pattern matching (e.g., user types "no, that's wrong" or agent retries 3 times). These heuristics produce false positives that clutter the signal stream and false negatives that miss real issues. Worse: users feel surveilled and lose trust.
+**What goes wrong:** Upstream's `get-shit-done/bin/gsd-tools.js` is a 1400+ line CLI utility that replaces inline bash patterns across 50+ files. It handles: config parsing, model resolution, phase lookup, git commits, summary verification, frontmatter CRUD, scaffolding, and more. Our fork has NONE of this.
 
-**Why it happens:** Implicit capture is appealing in theory ("the system notices problems without you telling it") but extraordinarily hard in practice. Natural language frustration detection is unreliable. Agent "struggle" patterns vary by task complexity.
+After merge, commands and workflows will call `node ~/.claude/get-shit-done/bin/gsd-tools.js <command>` but:
+1. gsd-tools.js may not be in the right location after installation
+2. Our fork's installer may not copy it correctly
+3. Commands that reference gsd-tools patterns we haven't tested will fail silently
+4. gsd-tools has its own test suite (`gsd-tools.test.js`, using node:test) that runs separately from our vitest suite
+
+**Warning signs:**
+- Commands fail with "gsd-tools.js not found" or "ENOENT"
+- Commands produce empty/undefined output where they should produce JSON
+- `gsd-tools.js state load` fails because `.planning/config.json` has fork-specific fields it doesn't expect
+- Test suite passes but gsd-tools tests were never run
 
 **Prevention:**
-- Start with explicit signals only. Ship implicit capture as a later enhancement, not a launch feature.
-- When adding implicit capture, require a false positive rate below 20% measured on real sessions before enabling by default.
-- Make implicit signals visible and dismissable: "I noticed X -- was this a real issue? [yes/no]" User feedback trains the detector.
-- Never capture signal content from user messages verbatim. Capture the pattern ("user corrected agent 3 times in task 5") not the content.
+- Verify gsd-tools.js is included in `package.json` `files` array
+- Verify installer copies gsd-tools.js to the correct location
+- Run gsd-tools.js test suite separately: `node --test get-shit-done/bin/gsd-tools.test.js`
+- Test critical gsd-tools commands against our fork's `.planning/config.json`:
+  - `state load` -- does it handle our `health_check` and `devops` config sections?
+  - `resolve-model` -- does it work with our `model_profile: "quality"` setting?
+  - `progress` -- does it render correctly with our project state?
+- Add gsd-tools test run to our CI workflow
 
-**Phase:** Defer to a later phase. Explicit signal capture is the MVP. Implicit detection is a research problem, not a v1 feature.
+**Severity:** MEDIUM -- gsd-tools is now load-bearing for all workflows. Failure here means workflows break.
+
+**Which phase should address it:** Must be validated immediately after the core merge, before testing any workflows.
 
 ---
 
-### Pitfall 7: Knowledge Base Query Latency Blocking Workflow
+### Pitfall 8: Test Suite Fragility During Merge
 
-**What goes wrong:** Knowledge base queries during research or planning phases add latency to every agent spawn. File-based search across a growing knowledge base (potentially hundreds of markdown files across `~/.claude/` or similar) becomes slow enough to noticeably delay workflow execution.
+**What goes wrong:** Our fork has 42 tests across 5 test files:
+- `tests/e2e/real-agent.test.js` (183 lines)
+- `tests/integration/kb-infrastructure.test.js` (336 lines)
+- `tests/integration/kb-write.test.js` (216 lines)
+- `tests/integration/wiring-validation.test.js` (314 lines)
+- `tests/unit/install.test.js` (129 lines)
 
-**Why it happens:** File-based knowledge bases without indexing require full-text search across all entries. As the knowledge base grows, search time grows linearly. With GSD's zero-dependency constraint, you can't reach for Elasticsearch or SQLite.
+The wiring validation test checks that agent specs, command files, and workflow files are internally consistent. After the thin orchestrator refactoring, this test will likely FAIL because:
+- It expects command files to contain inline logic (old pattern)
+- It may not know about new workflow files
+- It may flag upstream's new agent names/paths as "unwired"
+
+The KB tests reference knowledge store structures that are unchanged by the merge but may need path updates.
+
+The install test checks the installer output, which will change with upstream's new features.
+
+**Warning signs:**
+- `npm test` fails immediately after merge with 20+ test failures
+- Wiring validation reports "orphaned agent" or "missing workflow" for upstream's new files
+- Install test fails because banner text or directory structure changed
 
 **Prevention:**
-- Build a lightweight index file (JSON manifest with entry titles, tags, dates, and one-line summaries) that agents search first. Only fetch full entries for matches.
-- Scope queries by project and recency by default. "All knowledge everywhere" is rarely what you want.
-- Set a hard timeout on knowledge base queries (e.g., 500ms). If search takes longer, skip it and proceed. The workflow must never block on knowledge.
-- Consider pre-computing relevance at phase start rather than querying per-agent-spawn.
+- Accept that tests WILL break during merge -- this is expected, not a sign of bad merge
+- Fix tests in a specific order:
+  1. `install.test.js` first (installer is the foundation)
+  2. `wiring-validation.test.js` second (validates structural integrity)
+  3. KB tests last (least likely to be affected)
+- Update wiring validation test to recognize the thin orchestrator pattern (commands reference workflows, not inline logic)
+- Add upstream's `gsd-tools.test.js` to the test suite runner
+- Do NOT skip failing tests to "fix later" -- they are the primary merge correctness signal
 
-**Phase:** Knowledge base architecture phase. Index design is a structural decision.
+**Severity:** MEDIUM -- tests are the safety net. If we ignore them during merge, we ship broken code.
+
+**Which phase should address it:** Dedicated test-fixing phase after the core merge, before any feature porting.
 
 ---
 
-### Pitfall 8: Decision Records Without Decisions
+### Pitfall 9: Version Number Confusion
 
-**What goes wrong:** Spike workflows produce detailed experiment reports documenting what was tried and what happened, but fail to produce a clear, actionable decision. The report becomes another knowledge base entry that future agents must re-interpret.
+**What goes wrong:** Our fork is at v1.12.2. Upstream is at v1.18.0. After merge, what version are we?
+
+If we keep v1.12.2, users don't know we incorporated upstream changes. If we jump to v1.18.0, our version number collides with upstream's and implies parity we don't have. If we use v1.13.0, it's unclear how much has changed.
+
+**Warning signs:**
+- `gsd-check-update.js` compares versions against the wrong npm package
+- Users on v1.12.2 don't get prompted to update
+- CHANGELOG.md doesn't reflect what changed
+- npm version sort puts our package in the wrong position relative to upstream
 
 **Prevention:**
-- Spike output template must have a mandatory "Decision" field that is a single sentence: "Use X" or "Do not use Y because Z."
-- Separate the decision from the methodology. The decision is the primary artifact; the methodology is supporting evidence.
-- Decision records should be directly consumable by planners: structured enough that a planner agent can read the decision without parsing prose.
+- Use semantic versioning based on OUR fork's history, not upstream's:
+  - v1.13.0: if the merge is a clean adoption of upstream + our existing features
+  - v2.0.0: if the merge involves breaking changes to our fork's public API
+- Document in CHANGELOG.md: "Synced with upstream GSD v1.18.0" with a summary of what we adopted
+- Update `gsd-check-update.js` to check our npm package (`get-shit-done-reflect-cc`), not upstream's -- this is already done but verify after merge
+- Set `gsd_reflect_version` in `.planning/config.json` to match
 
-**Phase:** Spike workflow design phase. Output template enforces this.
+**Severity:** MEDIUM -- version confusion causes user confusion and broken update detection.
+
+**Which phase should address it:** Final phase, after all code changes are validated and tests pass.
+
+---
+
+### Pitfall 10: The "Additive Only" Constraint Is Dead
+
+**What goes wrong:** The fork was built on the assumption that we only ADD files, never modify upstream files. This assumption was already violated (12 files modified on both sides) and is now untenable because upstream's architecture moved code from the files we were trying to not modify.
+
+If we try to maintain "additive only" during the merge, we will:
+- Refuse to adopt the thin orchestrator pattern (our commands stay fat, upstream's workflow improvements are inaccessible)
+- Have two parallel architectures in one codebase (fat commands + thin workflows for any new upstream commands we adopt)
+- Be unable to sync again in the future because the divergence compounds
+
+**Warning signs:**
+- Team debates "should we really modify this upstream file?" on every conflict
+- Merge produces a hybrid codebase where some commands are thin and some are fat
+- Future upstream syncs become harder, not easier
+- Development velocity drops because every change requires checking "is this additive?"
+
+**Prevention:**
+- Formally retire the "additive only" constraint and replace it with a new strategy:
+  - **Upstream-tracked files:** We modify them, but track our modifications explicitly. Use upstream's new `gsd-file-manifest.json` and `reapply-patches` command to manage this.
+  - **Fork-unique files:** Our agents, knowledge base, CI/CD, etc. remain ours.
+  - **Sync contract:** We sync with upstream at each upstream minor version, accepting their architectural changes and porting our features onto their new structure.
+- Document which files we intentionally diverge from upstream and WHY
+- Upstream's own `reapply-patches` feature (ca03a06) was literally built for this use case -- leverage it
+
+**Severity:** MEDIUM -- clinging to "additive only" makes the merge harder and future syncs impossible.
+
+**Which phase should address it:** Must be decided BEFORE the merge begins. This is a strategic decision, not a merge decision.
 
 ---
 
 ## Minor Pitfalls
 
-Mistakes that cause friction but are recoverable.
+Mistakes that cause friction but are recoverable within hours.
 
-### Pitfall 9: Knowledge Base Location Fragmentation
+### Pitfall 11: Hook Changes Clobbering Our Fork's Customization
 
-**What goes wrong:** Per-user knowledge base (in `~/.claude/` or similar) and per-project signals (in `.planning/`) create two disconnected stores. Cross-referencing requires knowing which store to query. Agents query one but not the other.
+**What goes wrong:** Upstream made two changes to hook files:
+- `hooks/gsd-check-update.js`: added `detached: true` for Windows process detachment
+- `hooks/gsd-statusline.js`: added try-catch around file system operations for crash resilience
+
+Our fork modified `gsd-check-update.js` to check our npm package name instead of upstream's. A merge must keep our package name change AND adopt upstream's Windows fix.
 
 **Prevention:**
-- Define a clear hierarchy: project signals roll up into the global knowledge base at phase completion. During execution, agents query project signals first, global knowledge second.
-- Single query interface that abstracts the storage location. Agents shouldn't need to know where knowledge lives.
+- These are simple, non-overlapping changes. A three-way merge should handle them automatically.
+- Verify after merge: `grep 'get-shit-done-reflect-cc' hooks/gsd-check-update.js` returns a match
+- Verify after merge: `grep 'detached: true' hooks/gsd-check-update.js` returns a match
 
-**Phase:** Knowledge base architecture phase.
+**Severity:** LOW -- hooks are small files with clear, non-overlapping changes.
 
 ---
 
-### Pitfall 10: Signal Tracking Making Every Session a Performance Review
+### Pitfall 12: Upstream's Deleted Files Creating Confusion
 
-**What goes wrong:** Agents become aware they're being tracked and the tracking instructions compete with task instructions for attention. The signal tracking system prompt additions cause the agent to focus on meta-cognition ("am I struggling?") instead of the task.
+**What goes wrong:** Upstream deleted three files:
+- `CONTRIBUTING.md`
+- `GSD-STYLE.md`
+- `MAINTAINERS.md`
+
+Our fork never modified these files, so the merge should delete them cleanly. But if anyone on our team added content to these files locally (or if they're referenced from our README), the deletion creates broken links.
 
 **Prevention:**
-- Signal capture should happen at the orchestrator level, not inside individual agent specs. Agents execute; orchestrators observe.
-- Keep signal-related instructions out of agent context entirely. The executor agent should not contain "also log signals about your performance."
-- Post-hoc analysis: analyze agent output after execution for signal patterns, rather than asking agents to self-report during execution.
+- Verify our README.md and other docs don't link to these files
+- Accept the deletions -- they're upstream's decision and don't affect our fork's functionality
+- If we want contributing guidelines, create our own `CONTRIBUTING.md` with fork-specific content
 
-**Phase:** Signal tracking architecture phase. This is an architectural decision about where signal capture lives in the stack.
+**Severity:** LOW -- file deletions are harmless unless something references them.
+
+---
+
+### Pitfall 13: The Brave Search Integration Contamination
+
+**What goes wrong:** Upstream added Brave Search integration for researchers (commit 60ccba9). This modifies researcher agent specs to include web search capabilities via Brave API. Our fork's researcher agents (in `.claude/agents/`) may or may not want this feature. If we adopt it without configuration, agents will try to call Brave Search API and fail if no API key is configured.
+
+**Prevention:**
+- Review the Brave Search additions in `agents/gsd-phase-researcher.md` and `agents/gsd-project-researcher.md`
+- If we want the feature, ensure our config supports the Brave Search API key
+- If we don't want it, ensure our fork's researcher agents explicitly skip the Brave Search path
+- The feature should be gated on configuration, not always-on
+
+**Severity:** LOW -- Brave Search integration gracefully degrades if no API key is present.
 
 ---
 
 ## Phase-Specific Warnings
 
-| Phase Topic | Likely Pitfall | Mitigation |
-|-------------|---------------|------------|
-| Signal tracking design | Signal noise (P5), surveillance theater (P6), performance review effect (P10) | Define taxonomy and severity before building capture. Keep capture at orchestrator layer. Start explicit-only. |
-| Spike workflow design | Never-converging experiments (P3), decision-less reports (P8) | Structural convergence constraints: timeboxes, max depth, mandatory decision field. |
-| Knowledge base architecture | Context poisoning (P1), graveyard (P2), query latency (P7), fragmentation (P9) | Pull-based retrieval with token budgets. Expiry/decay from day one. Index file for search. Single query interface. |
-| Fork maintenance (all phases) | Fork drift (P4) | File ownership manifest. Separate namespaces. Weekly upstream sync. |
-| Integration / wiring phase | Context bloat from connecting everything (P1) | Measure context usage before and after integration. Hard token budgets per knowledge/signal injection. |
+| Phase/Step | Likely Pitfall | Mitigation | Severity |
+|------------|---------------|------------|----------|
+| Pre-merge strategy decision | P10: Additive-only constraint is dead | Formally retire it, adopt new sync strategy | MEDIUM |
+| install.js merge | P1: Three-way merge trap | Manual semantic merge, test in isolation | HIGH |
+| Architecture adoption | P2: Thin orchestrator mismatch | Adopt wholesale, port features onto new structure | HIGH |
+| Agent spec merge | P3: Dual-location problem | Update both locations, protect custom agents | HIGH |
+| Agent/workflow merge | P5: Memory system ghost | Grep for memory references, verify zero hits | HIGH |
+| package.json merge | P4: Identity collision | Hand-resolve, verify with npm pack --dry-run | HIGH |
+| gsd-tools adoption | P7: Adoption gap | Verify installation path, run gsd-tools tests | MEDIUM |
+| CI/CD merge | P6: Workflow collision | Skip CODEOWNERS, update templates, keep our workflows | MEDIUM |
+| Test fixing | P8: Test suite fragility | Fix in order: install -> wiring -> KB | MEDIUM |
+| Version/release | P9: Version confusion | Use our semver, document upstream sync in CHANGELOG | MEDIUM |
+| Hook merge | P11: Hook customization | Verify both our changes and upstream's are present | LOW |
+| File cleanup | P12: Deleted files | Accept deletions, check for broken references | LOW |
+| Feature adoption | P13: Brave Search | Gate on configuration, verify graceful degradation | LOW |
+
+## Merge Strategy Recommendation
+
+Based on this pitfall analysis, the safest merge approach is NOT a single `git merge upstream/main`. Instead:
+
+**Recommended approach: Staged semantic merge**
+
+1. **Create a sync branch** from `main`
+2. **Cherry-pick upstream structural changes first** (gsd-tools.js, workflow files) -- these are pure additions with no conflicts
+3. **Manually merge the 12 conflict files** one at a time, in dependency order:
+   - `package.json` (identity foundation)
+   - `bin/install.js` (installation foundation)
+   - `commands/gsd/new-project.md` and other commands (adopt thin orchestrators)
+   - Agent specs (adopt thin patterns)
+   - Hooks (simple non-overlapping changes)
+   - `CHANGELOG.md`, `README.md` (documentation, keep ours)
+4. **Port fork features** onto the new architecture (DevOps detection into workflow, etc.)
+5. **Fix tests** in order
+6. **Validate CI/CD** in a test release
+7. **Publish**
+
+**Why NOT a single `git merge`:** With 70 upstream commits, 88 changed files, and 12 conflicts, a single merge produces an overwhelming conflict resolution session. Missing one detail in one file (e.g., a memory ghost in an agent spec) creates subtle runtime bugs. The staged approach ensures each change is understood and verified.
+
+**Alternative considered: `git merge --no-commit upstream/main`** -- this would stage all non-conflicting changes and leave conflicts for manual resolution. This is faster but riskier because you can't verify intermediate states. Only use this if the team has high git merge experience and a comprehensive test suite to catch issues.
 
 ## Sources
 
-- [Context Rot: How Increasing Input Tokens Impacts LLM Performance (Chroma Research)](https://research.trychroma.com/context-rot)
-- [The Context Window Problem: Scaling Agents Beyond Token Limits (Factory.ai)](https://factory.ai/news/context-window-problem)
-- [Effective Context Engineering for AI Agents (Anthropic)](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
-- [Why Long System Prompts Hurt Context Windows (Medium)](https://medium.com/data-science-collective/why-long-system-prompts-hurt-context-windows-and-how-to-fix-it-7a3696e1cdf9)
-- [7 Deadly Sins That Will Turn Your KM System Into a Graveyard (Bloomfire)](https://bloomfire.com/blog/seven-deadly-sins-that-will-turn-your-knowledge-management-system-into-a-graveyard/)
-- [Why Knowledge Bases Fail: The Real KM Challenges (Artiquare)](https://www.artiquare.com/why-knowledge-bases-fail-real-km-challenges/)
-- [3 Reasons Why Knowledge Management Fails (IFS)](https://blog.ifs.com/3-reasons-why-knowledge-management-fails/)
-- [Spikes - Scaled Agile Framework (SAFe)](https://scaledagileframework.com/spikes/)
+- Direct git analysis of this repository (primary source for all codebase-specific findings)
+- [Best Practices for Keeping a Forked Repository Up to Date (GitHub Community)](https://github.com/orgs/community/discussions/153608)
 - [Stop Forking Around: Hidden Dangers of Fork Drift (Preset)](https://preset.io/blog/stop-forking-around-the-hidden-dangers-of-fork-drift-in-open-source-adoption/)
 - [Friend Zone: Strategies for Friendly Fork Management (GitHub Blog)](https://github.blog/developer-skills/github/friend-zone-strategies-friendly-fork-management/)
-- [LLM Context Management Guide (16x Engineer)](https://eval.16x.engineer/blog/llm-context-management-guide)
+- [Git Merge Strategy Options (Atlassian)](https://www.atlassian.com/git/tutorials/using-branches/merge-strategy)
+- [Git Tricks for Maintaining a Long-Lived Fork (die-antwort.eu)](https://die-antwort.eu/techblog/2016-08-git-tricks-for-maintaining-a-long-lived-fork/)
+- [Lessons Learned from Maintaining a Fork (DEV Community)](https://dev.to/bengreenberg/lessons-learned-from-maintaining-a-fork-48i8)
+- [npm Trusted Publishing with OIDC (GitHub Changelog)](https://github.blog/changelog/2025-07-31-npm-trusted-publishing-with-oidc-is-generally-available/)
+- [Soft Fork Strategy Handbook (Open Energy Transition)](https://open-energy-transition.github.io/handbook/docs/Engineering/SoftForkStrategy/)
 
 ---
 
-*Pitfalls research: 2026-02-02*
+*Pitfalls research for upstream sync: 2026-02-09*

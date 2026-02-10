@@ -1,105 +1,661 @@
-# Feature Landscape
+# Feature Landscape: Upstream Changes for Adoption
 
-**Domain:** Self-improving AI dev tooling (signal tracking, experiment workflows, persistent knowledge)
-**Researched:** 2026-02-02
-**Overall confidence:** MEDIUM — synthesized from industry trends, competitor patterns, and domain analysis; no single authoritative source covers this exact intersection
+**Domain:** Fork sync -- evaluating 70 upstream commits (v1.11.2 to v1.18.0) for adoption into GSD Reflect
+**Researched:** 2026-02-09
+**Overall confidence:** HIGH -- all analysis based on direct git diff examination of actual commit contents
+**Fork point:** `2347fca35ead5b4bf93b238afdf30a0f91947391` (v1.11.2)
 
-## Table Stakes
+## Executive Summary
 
-Features users expect. Missing = the system doesn't deliver on its promise of self-improvement.
+Upstream GSD underwent a massive architectural transformation since our fork point. The dominant change is the **gsd-tools CLI extraction** -- a 4,597-line Node.js utility that centralizes repetitive bash patterns from 50+ markdown files into deterministic code. This refactoring touched every agent, command, and workflow file in the system. Alongside this, there are 11 bug fixes, 6 new features, and several community-specific changes. Our fork's files overlap primarily in `bin/install.js`; the agent files in `.claude/agents/` are fork-local copies, not the canonical `agents/` directory that upstream modified.
 
-| Feature | Why Expected | Complexity | Dependencies | Notes |
-|---------|--------------|------------|--------------|-------|
-| **Signal capture on workflow deviation** | Core promise — if the system can't detect when things go wrong, it can't improve. Every observability system starts here. | Medium | None (foundational) | Must detect: model mismatch, plan deviation, repeated rewrites, excessive debugging cycles. Pattern: compare actual execution against expected workflow graph. |
-| **Signal persistence to file** | Signals that vanish on `/clear` are useless. File-based storage is the minimum bar for any learning system. | Low | Signal capture | Append-only log per project, structured Markdown or JSON. Must not bloat context — write-only during execution, read-only on demand. |
-| **Spike workflow with hypothesis definition** | Without a structured "what are we testing and why," spikes devolve into aimless exploration. Every experiment framework starts with hypothesis. | Medium | None (foundational) | Minimum: hypothesis statement, success criteria, time-box. Maps to Scrum spike concept but formalized for AI agent context. |
-| **Spike decision record output** | Spikes that don't produce a record are wasted work. ADR-style output is standard practice (adr-tools, UK Gov ADR framework). | Low | Spike workflow | Template: context, alternatives considered, experiment results, decision, consequences. Builds on established ADR patterns. |
-| **Knowledge base file storage** | The whole point — lessons must persist across sessions and projects. Without this, there's no memory. | Medium | Signal persistence, spike decision records | Location: `~/.gsd/knowledge/` or similar user-global path. Must be file-based per constraints. Structured for queryability without a database. |
-| **Knowledge base read during research** | If the KB exists but isn't consulted, it's dead weight. Research agents already search web/Context7 — KB query slots in naturally. | Medium | Knowledge base storage, existing research agent | Integration point: researcher agents query KB alongside WebSearch and Context7. Must not add latency to the happy path when KB is empty. |
-| **Phase-end self-reflection** | After each phase completes, the system should assess: what went well, what deviated, what took longer than expected. This is the minimum feedback loop. | Medium | Signal capture | Output: brief reflection appended to signals or KB. Pattern: compare phase plan vs actual execution. |
+---
 
-## Differentiators
+## Table Stakes: Must Adopt
 
-Features that set GSD Reflect apart. Not expected in any single tool today, but high-value.
+Bug fixes that affect correctness. Missing these means our fork has known defects.
 
-| Feature | Value Proposition | Complexity | Dependencies | Notes |
-|---------|-------------------|------------|--------------|-------|
-| **Implicit frustration detection** | No other CLI tool does this. Users say "ugh, try again" or "that's wrong" without invoking a command. Capturing this as a signal without explicit invocation is genuinely novel. | High | Signal capture framework | Requires pattern matching on user messages during execution. Risk: false positives. Must be low-overhead — heuristic, not ML. Confidence: LOW that this can be done well without being annoying. |
-| **Cross-project lesson surfacing** | Most tools are project-scoped. Surfacing "last time you used Prisma, you hit X" across projects is the killer feature for a personal dev tool. | High | Knowledge base with structured tagging | Requires: consistent tagging/indexing, relevance scoring, lazy loading to avoid context bloat. The MemOS research direction validates this as a frontier problem. |
-| **Spike result reuse / dedup** | Before running a new spike, check if a similar question was already answered. Saves hours of redundant experimentation. | Medium | Knowledge base, spike records with searchable metadata | Key challenge: similarity matching on spike hypotheses. Simple approach: keyword/tag matching. Advanced: semantic similarity (but adds dependency). |
-| **Iterative spike narrowing** | Multi-round experimentation where round N informs round N+1's hypothesis. Most experiment tools are single-shot. | Medium | Spike workflow | Pattern: spike produces partial answer + refined question, system supports chaining spikes with back-references. |
-| **Signal pattern detection across projects** | "You've hit this class of problem 3 times across different projects" — aggregate pattern recognition over accumulated signals. | High | Knowledge base with substantial signal history | Only valuable after sufficient data accumulates. Should be a later-phase feature. Cold start problem is real. |
-| **Proactive lesson surfacing** | KB doesn't just respond to queries — it pushes relevant lessons when it detects a similar context forming. Like "you're setting up a monorepo; last time you learned X." | High | Cross-project KB, context matching | This is the "self-improving" endgame. Requires matching current project context against KB entries. Risk: noise. Must have high precision or users will ignore it. |
-| **Workflow self-modification** | System detects recurring signal patterns and proposes workflow changes (e.g., "research phase consistently underestimates time for X — suggest adding a sub-phase"). | Very High | Signal pattern detection, deep workflow model knowledge | Frontier feature. High risk of being wrong. Recommend: suggest-only, never auto-modify. Defer to post-v1. |
-| **Semantic drift detection** | Track whether agent outputs are degrading over time — are research summaries getting shallower? Are spike designs getting less rigorous? | High | Signal history, baseline metrics | Inspired by AI observability platforms (Braintrust, Maxim AI). Adapted from production ML monitoring to dev-tool context. Novel in CLI tooling. |
+### 1. Executor Completion Verification (Prevents Hallucinated Success)
 
-## Anti-Features
+| Field | Value |
+|-------|-------|
+| **Commit** | `f380275` |
+| **Files** | `agents/gsd-executor.md`, `commands/gsd/execute-phase.md`, `get-shit-done/workflows/execute-phase.md`, `get-shit-done/workflows/execute-plan.md` |
+| **Priority** | CRITICAL |
+| **Applies to fork** | YES -- our fork uses the same executor pattern |
+| **Conflict risk** | LOW -- our `.claude/agents/gsd-executor.md` is a separate file from `agents/gsd-executor.md` |
 
-Features to explicitly NOT build. Common mistakes in this domain.
+**What it fixes:** After an executor writes SUMMARY.md, it now verifies its own claims -- checking that `key-files.created` entries actually exist on disk and that commit hashes referenced actually exist in git log. The orchestrator also spot-checks SUMMARY claims before trusting them. Without this, the system can report success when files were not actually created or commits were not made.
 
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| **Real-time metrics dashboard** | GSD is CLI-native and file-based. A web UI contradicts the architecture and adds massive complexity for marginal value. Observability tools like Datadog solve a different problem. | File-based signal logs + Markdown reports. If visualization needed, generate static Markdown tables. |
-| **Automated code patching from signals** | Signals should inform decisions, not auto-modify code. Auto-patching without human judgment is the #1 cause of agentic AI project failures (40%+ cancellation rate per industry data). | Signals produce recommendations. Humans/agents decide whether to act. |
-| **ML-based signal classification** | Adds model dependencies, training data requirements, and opacity. GSD's value is transparency and zero-dependency operation. | Heuristic rules + keyword matching. Simple and debuggable beats sophisticated and opaque. |
-| **Multi-user shared knowledge base** | Collaboration features explode complexity (conflict resolution, permissions, privacy). Per-user is the right scope for v1. | Per-user KB in `~/.gsd/knowledge/`. Cross-user sharing can be a future layer if needed. |
-| **Structured database for KB** | SQLite or similar breaks GSD's zero-dependency, file-based philosophy and makes the KB opaque to users. | Structured Markdown/JSON files with directory-based organization. Users can read/edit KB entries directly. |
-| **Continuous background monitoring** | Always-on processes watching for signals would add overhead, complexity, and runtime dependencies. | Check signals at natural workflow checkpoints (phase transitions, command completion). Event-driven, not polling. |
-| **Signal suppression / noise filtering UI** | Building a configuration UI for tuning signal sensitivity is premature optimization. | Start with conservative signal detection (high-confidence only). Add sensitivity knobs only after real usage reveals the need. |
-| **Integration with external observability platforms** | OpenTelemetry/Datadog integration sounds impressive but serves a different audience (ops teams, not individual devs using CLI tools). | Keep signals self-contained. If export is needed later, structured files are already portable. |
+**Why must-adopt:** This is the single most impactful correctness fix. Hallucinated success cascades -- downstream phases build on nonexistent foundations. This is not a theoretical risk; it was reported as issue #315 by a community contributor.
+
+**Adoption notes:** The self-check logic is additive (new `<self_check>` section in executor agent). Apply to both `agents/gsd-executor.md` AND our `.claude/agents/gsd-executor.md`.
+
+### 2. Context Fidelity Enforcement in Planning Pipeline
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `ecbc692` |
+| **Files** | `agents/gsd-phase-researcher.md`, `agents/gsd-planner.md`, `get-shit-done/templates/research.md` |
+| **Priority** | CRITICAL |
+| **Applies to fork** | YES -- we use the same research-to-plan pipeline |
+| **Conflict risk** | LOW -- additive changes to existing agent sections |
+
+**What it fixes:** User decisions from CONTEXT.md (locked decisions, deferred ideas, Claude's discretion areas) were available to the planner but not enforced. The planner could ignore locked decisions or plan deferred features. Three specific issues: #326, #216, #206.
+
+**Changes:**
+- Researcher: New `## User Constraints` section is FIRST in RESEARCH.md, copying CONTEXT.md decisions verbatim so the planner sees them even if it only skims
+- Planner: New `<context_fidelity>` section requiring agents to honor locked decisions before creating tasks, with self-check checklist
+- Template: `research.md` template gets `<user_constraints>` section
+
+**Why must-adopt:** Without this, user decisions are advisory rather than binding. Users specify "use library X" but the planner may choose library Y based on its own research. This undermines user trust in the system.
+
+### 3. Respect parallelization Config Setting
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `4267c6c` |
+| **Files** | `get-shit-done/workflows/execute-phase.md` |
+| **Priority** | HIGH |
+| **Applies to fork** | YES -- our config.json has `"parallelization": true` |
+| **Conflict risk** | LOW -- additive changes to workflow |
+
+**What it fixes:** The `parallelization` config setting in `config.json` was ignored. Agents always ran in parallel regardless of the setting. When set to `false`, plans within a wave should execute sequentially.
+
+**Why must-adopt:** Users who set `parallelization: false` (to avoid concurrent file modifications, test interference, etc.) get parallel execution anyway, causing hard-to-debug failures.
+
+### 4. Researcher Always Writes RESEARCH.md Regardless of commit_docs
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `161aa61` |
+| **Files** | `agents/gsd-phase-researcher.md` |
+| **Priority** | HIGH |
+| **Applies to fork** | YES |
+| **Conflict risk** | LOW |
+
+**What it fixes:** The researcher agent misinterpreted `commit_docs=false` as "skip file write" when it should only skip git commit operations. Research files were silently not written, causing downstream planner failures.
+
+**Why must-adopt:** With `commit_docs=false` (which some users use when .planning/ is gitignored), research results vanish. The planner then has nothing to work with.
+
+### 5. Respect commit_docs=false in All .planning Commit Paths
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `01c9115` |
+| **Files** | `agents/gsd-debugger.md`, `get-shit-done/bin/gsd-tools.js`, `get-shit-done/references/git-integration.md`, `get-shit-done/references/git-planning-commit.md`, `get-shit-done/references/planning-config.md`, `get-shit-done/workflows/execute-phase.md`, `get-shit-done/workflows/execute-plan.md` |
+| **Priority** | HIGH |
+| **Applies to fork** | YES -- our config has `commit_docs: true` but the fix also addresses context bloat from `--include` |
+| **Conflict risk** | MEDIUM -- touches many files, depends on gsd-tools.js existing |
+
+**What it fixes:** Two issues combined: (1) The `--include` flag from `fa81821` caused orchestrator context bloat by reading files into the orchestrator's context, consuming 50-60% before execution. Fix: pass file paths, let subagents read in their own context. (2) Two code paths (`execute-plan.md` codebase map step and `gsd-debugger.md` using `git add -A`) bypassed the `commit_docs` check.
+
+**Why must-adopt:** Context bloat is a real performance issue. The `git add -A` bypass could commit planning files that should be excluded.
+
+**Dependency:** Requires gsd-tools.js to be present for the `gsd-tools.js commit` routing.
+
+### 6. Auto-create config.json When Missing
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `4dff989` |
+| **Files** | `commands/gsd/set-profile.md`, `commands/gsd/settings.md` |
+| **Priority** | MEDIUM |
+| **Applies to fork** | YES |
+| **Conflict risk** | LOW |
+
+**What it fixes:** `set-profile` and `settings` commands hard-errored when `.planning/config.json` didn't exist, blocking users from changing model profile before running `new-project`.
+
+**Why must-adopt:** Hard crash on a reasonable user action. Creates config.json with balanced defaults when missing.
+
+### 7. Statusline Crash Handling
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `9d7ea9c` |
+| **Files** | `hooks/gsd-statusline.js`, `bin/install.js`, `commands/gsd/execute-phase.md` |
+| **Priority** | MEDIUM |
+| **Applies to fork** | YES |
+| **Conflict risk** | MEDIUM -- our install.js has branding changes |
+
+**What it fixes:** Three bugs: (1) statusline.js crashes on file system permission errors or race conditions during directory reading, (2) install.js accepts invalid hex color values, (3) execute-phase.md uses `git add -u` violating stated git rules.
+
+**Why must-adopt:** Statusline crash breaks the user's terminal experience silently. The git staging fix prevents accidental file inclusion.
+
+### 8. Statusline Reference Update During Install
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `074b2bc` |
+| **Files** | `bin/install.js` |
+| **Priority** | MEDIUM |
+| **Applies to fork** | YES |
+| **Conflict risk** | MEDIUM -- overlaps with our install.js branding changes |
+
+**What it fixes:** When updating GSD, the installer renames `statusline.js` to `gsd-statusline.js` but didn't update existing `settings.json` references. Users with old config see their status line disappear.
+
+### 9. Prevent API Keys from Being Committed via map-codebase
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `f53011c` |
+| **Files** | `agents/gsd-codebase-mapper.md`, `get-shit-done/workflows/map-codebase.md`, `README.md` |
+| **Priority** | MEDIUM (security) |
+| **Applies to fork** | YES |
+| **Conflict risk** | LOW |
+
+**What it fixes:** Defense-in-depth against API key leakage: (1) `<forbidden_files>` section in codebase mapper prohibiting reading .env/credentials, (2) `scan_for_secrets` step before commit with regex patterns, (3) Halts if secrets detected.
+
+**Why must-adopt:** Security fix. Our fork is more likely to have secrets (CI tokens, npm tokens) given our publishing setup.
+
+### 10. Persist Research Decision from new-milestone to Config
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `767bef6` |
+| **Files** | `get-shit-done/bin/gsd-tools.js`, `get-shit-done/workflows/new-milestone.md` |
+| **Priority** | MEDIUM |
+| **Applies to fork** | YES |
+| **Conflict risk** | LOW -- requires gsd-tools.js |
+
+**What it fixes:** When user selects "Skip research" during `/gsd:new-milestone`, the choice was not saved to config.json. Later, `/gsd:plan-phase` reads the default (`research: true`) and spawns researchers anyway, wasting tokens.
+
+**Dependency:** Requires `config-set` command in gsd-tools.js.
+
+### 11. Prevent Installer from Deleting opencode.json on Parse Errors
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `6cf4a4e` |
+| **Files** | `bin/install.js` |
+| **Priority** | MEDIUM |
+| **Applies to fork** | PARTIAL -- we may not use OpenCode, but the JSON parsing fix is good defensive coding |
+| **Conflict risk** | MEDIUM -- overlaps with our install.js |
+
+**What it fixes:** Installer used `JSON.parse()` which fails on JSONC (JSON with Comments). Parse failure would reset config to `{}` and overwrite user's file, causing data loss. Now adds `parseJsonc()` handler.
+
+---
+
+## Should Adopt: Valuable Features
+
+Improvements with clear value for our fork. Not bugs, but meaningfully improve the system.
+
+### 12. Executor Subagent Type Specification
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `4249506` |
+| **Files** | `get-shit-done/workflows/execute-phase.md` |
+| **Priority** | HIGH |
+| **Applies to fork** | YES |
+
+**What it fixes:** The workflow showed Task() prompt content but didn't specify `subagent_type="gsd-executor"`. This caused the orchestrator to spawn generic task agents instead of the specialized executor. This is functionally a bug, categorized here because it may or may not manifest depending on Claude Code version.
+
+### 13. classifyHandoffIfNeeded Bug Workaround
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `4072fd2` |
+| **Files** | `get-shit-done/workflows/execute-phase.md`, `get-shit-done/workflows/execute-plan.md`, `get-shit-done/workflows/quick.md` |
+| **Priority** | HIGH (if using Claude Code v2.1.27+) |
+| **Applies to fork** | YES |
+| **Conflict risk** | LOW -- additive spot-check logic |
+
+**What it does:** Claude Code v2.1.27+ has a bug where all Task tool agents report "failed" due to `classifyHandoffIfNeeded is not defined`. The actual work completes fine. This workaround adds spot-check fallback: when an agent reports this specific failure, verify artifacts on disk and treat as successful if spot-checks pass.
+
+**Why should-adopt:** Without this, every execution appears to fail on affected Claude Code versions, causing unnecessary user intervention. Tracked upstream as `anthropics/claude-code#24181`.
+
+### 14. Update Command Respects Local vs Global Install
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `8384575` |
+| **Files** | `commands/gsd/update.md` |
+| **Priority** | MEDIUM |
+| **Applies to fork** | YES -- but our update.md already has branding changes |
+| **Conflict risk** | MEDIUM -- our update.md uses `get-shit-done-reflect-cc` |
+
+**What it does:** The update command was hardcoded to `--global`, converting local installations to global during updates. Now detects install type and uses appropriate flag.
+
+### 15. Preserve Local Patches Across GSD Updates
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `ca03a06` |
+| **Files** | `bin/install.js`, `commands/gsd/reapply-patches.md`, `get-shit-done/workflows/update.md` |
+| **Priority** | MEDIUM |
+| **Applies to fork** | HIGHLY RELEVANT -- we are a fork that patches upstream files |
+| **Conflict risk** | MEDIUM -- touches install.js |
+
+**What it does:** When users modify GSD workflow files, those changes get wiped on every `/gsd:update`. This adds: (1) SHA256 manifest of installed files (`gsd-file-manifest.json`), (2) before update, detects user modifications and backs them up to `gsd-local-patches/`, (3) new `/gsd:reapply-patches` command for guided merge.
+
+**Why should-adopt:** This is directly relevant to our fork's use case. Our users' local modifications survive updates. Also useful for our own development -- understanding which upstream files users have modified.
+
+### 16. --auto Flag for Unattended Project Initialization
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `7f49083` |
+| **Files** | `commands/gsd/new-project.md`, `get-shit-done/workflows/new-project.md` |
+| **Priority** | LOW-MEDIUM |
+| **Applies to fork** | YES |
+
+**What it does:** Runs research, requirements, and roadmap automatically after config questions. Requires idea document via `@` reference. Auto-includes table stakes features.
+
+**Why should-adopt:** Useful for experienced users who don't want interactive prompting. Nice-to-have, not essential.
+
+### 17. --include Flag for Eliminating Redundant File Reads
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `fa81821` |
+| **Files** | `get-shit-done/bin/gsd-tools.js`, `get-shit-done/workflows/execute-phase.md`, `get-shit-done/workflows/execute-plan.md`, `get-shit-done/workflows/plan-phase.md`, `get-shit-done/workflows/progress.md` |
+| **Priority** | MEDIUM |
+| **Applies to fork** | YES |
+| **Note** | Partially reverted by `01c9115` which changed from content-inlining to path-passing |
+
+**What it does:** Init commands return all context a workflow needs in one call, replacing 6+ separate `cat` calls. Saves 5,000-10,000 tokens per plan-phase execution.
+
+**Important:** The initial implementation caused context bloat (inlined file contents in orchestrator). Commit `01c9115` fixed this by passing paths instead. Both commits should be adopted together.
+
+### 18. Brave Search Integration for Researchers
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `60ccba9` |
+| **Files** | `agents/gsd-phase-researcher.md`, `agents/gsd-project-researcher.md`, `get-shit-done/bin/gsd-tools.js` |
+| **Priority** | LOW |
+| **Applies to fork** | YES, if user has BRAVE_API_KEY |
+
+**What it does:** Adds Brave Search API as an alternative to built-in WebSearch. Detects API key from env var or `~/.gsd/brave_api_key`. Persists setting to config. Graceful degradation when unavailable.
+
+**Why should-adopt:** Provides better search results for technical queries. Low cost to adopt -- gracefully falls back to existing WebSearch.
+
+---
+
+## Evaluate: Architectural Changes Needing Deeper Analysis
+
+These changes are large or structural. They provide value but require careful integration planning.
+
+### 19. gsd-tools.js CLI (THE BIG ONE)
+
+| Field | Value |
+|-------|-------|
+| **Commits** | `01ae939`, `246d542`, `1b317de`, `6c53737`, `36f5bb3`, `6a2d1f1`, `767bef6`, `60ccba9` (8 commits) |
+| **Files** | `get-shit-done/bin/gsd-tools.js` (4,597 lines), `get-shit-done/bin/gsd-tools.test.js` (2,033 lines) |
+| **Priority** | ARCHITECTURAL DECISION -- everything else depends on this |
+| **Applies to fork** | YES -- this file did not exist at our fork point |
+| **Conflict risk** | NONE for the file itself (new), but HIGH for all downstream files that now reference it |
+
+**What it is:** A comprehensive Node.js CLI that replaces repetitive bash patterns across the entire GSD system. Contains:
+- State management: `state load`, `state get`, `state patch`, `state advance-plan`, `state update-progress`, `state record-metric`, `state add-decision`, `state record-session`
+- Init commands: `init execute-phase`, `init plan-phase`, `init new-project`, `init new-milestone`, `init quick`, etc. (10+ compound init commands)
+- Phase operations: `phases list`, `phase add`, `phase insert`, `phase remove`, `phase complete`, `phase next-decimal`
+- Roadmap operations: `roadmap get-phase`, `roadmap analyze`
+- Parsing: `phase-plan-index`, `state-snapshot`, `summary-extract`, `history-digest`
+- Templates: `template fill summary/plan/verification`
+- Verification: `verify plan-structure/phase-completeness/references/commits/artifacts/key-links`
+- Frontmatter: `frontmatter get/set/merge/validate`
+- Git: `commit` (with commit_docs check built in), `commit --amend`
+- Config: `config-set` (for nested config values)
+- Brave Search: `websearch` (with API key management)
+- Utilities: `resolve-model`, `find-phase`, `generate-slug`, `current-timestamp`, `list-todos`, `verify-path-exists`, `scaffold`, `progress`, `milestone complete`, `validate consistency`, `todo complete`
+
+**Why it matters:** This is the foundation of upstream's v1.12-v1.18 architecture. Almost every other change depends on it. Every agent, command, and workflow file now calls `gsd-tools.js` instead of inline bash.
+
+**Adoption strategy options:**
+1. **Full adoption** -- Take gsd-tools.js as-is, then layer our fork's additions on top. Cleanest long-term, largest short-term effort.
+2. **Selective adoption** -- Only take gsd-tools.js commands that bug fixes depend on (commit, config-set). Smaller effort, but creates drift.
+3. **Full adoption + fork extensions** -- Take it all, then add our fork's commands (signals, KB ops, reflection triggers) as new gsd-tools.js commands. Best of both worlds.
+
+**Recommendation:** Option 3. gsd-tools.js is the right architectural direction. Fighting it means every future upstream sync is painful. Our fork's additions (signals, KB, spikes, reflection) should become gsd-tools.js commands too.
+
+### 20. Thin Orchestrator Refactoring
+
+| Field | Value |
+|-------|-------|
+| **Commits** | `d44c7dc`, `d2623e0`, `8f26bfa` |
+| **Files** | 44 files changed (every agent, every command, most workflows) |
+| **Priority** | ARCHITECTURAL -- bundled with gsd-tools adoption |
+| **Conflict risk** | HIGH for overlapping files |
+
+**What it does:** Commands become thin orchestrators that delegate to workflows, which delegate to gsd-tools. Token savings: ~22k chars (75.6% reduction in affected sections). Pattern:
+
+```
+Command (thin: parse args, load config)
+  --> Workflow (orchestration logic, agent spawning)
+    --> gsd-tools.js (deterministic operations)
+```
+
+**Why evaluate:** This touches every file that both upstream and our fork modify. The architectural pattern is sound (deterministic operations should not burn LLM tokens), but the merge is the single largest piece of work in the sync.
+
+**Impact on fork files:**
+- `agents/gsd-executor.md` -- upstream heavily modified; our `.claude/agents/gsd-executor.md` is separate
+- `agents/gsd-debugger.md` -- same situation
+- `agents/gsd-phase-researcher.md` -- same
+- `agents/gsd-planner.md` -- same
+- `commands/gsd/help.md` -- our fork has branding additions; upstream completely restructured
+- `commands/gsd/update.md` -- our fork has package name changes; upstream restructured
+- `commands/gsd/new-project.md` -- our fork added content; upstream completely restructured
+- `bin/install.js` -- our fork has branding; upstream has major changes (patch preservation, JSONC parsing, etc.)
+
+### 21. Frontmatter CRUD, Verification Suite, Template Fill, State Progression
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `6a2d1f1` |
+| **Files** | `agents/gsd-executor.md`, `agents/gsd-plan-checker.md`, `agents/gsd-planner.md`, `agents/gsd-verifier.md`, `get-shit-done/bin/gsd-tools.js`, `get-shit-done/workflows/execute-plan.md`, `get-shit-done/workflows/verify-phase.md` |
+| **Priority** | MEDIUM-HIGH |
+
+**What it does:** Delegates deterministic document operations from AI agents to code: safe YAML frontmatter manipulation, structural verification checks, pre-filled document templates, automated STATE.md arithmetic. 1,037 new lines in gsd-tools.js.
+
+**Why evaluate:** These replace manual agent operations that were error-prone. Verification suite is particularly valuable -- agents previously burned context on structural checks. But this is deeply integrated with the gsd-tools architecture.
+
+### 22. Context-Optimizing Parsing Commands
+
+| Field | Value |
+|-------|-------|
+| **Commit** | `6c53737` |
+| **Files** | `get-shit-done/bin/gsd-tools.js`, workflows |
+| **Priority** | MEDIUM |
+
+**What it does:** Three new commands that return parsed structured data instead of raw file content: `phase-plan-index`, `state-snapshot`, `summary-extract`. Reduces context usage by returning only the fields agents actually need.
+
+---
+
+## Skip: Do Not Adopt
+
+Changes that are community-specific, already handled by our fork, or would conflict.
+
+### 23. GSD Memory System (Added then Reverted)
+
+| Field | Value |
+|-------|-------|
+| **Commits** | `af7a057` (added), `cc3c6ac` (reverted) |
+| **Why skip** | Net-zero change. Added then removed. Our fork has its own knowledge system that is more mature. |
+
+### 24. Community GitHub Infrastructure
+
+| Field | Value |
+|-------|-------|
+| **Commits** | `b85247a` (auto-label issues), `392742e` (SECURITY.md), `279f3bc` (feature request template), `a4626b5` (bug report template), `f7511db` (CODEOWNERS for @glittercowboy) |
+| **Why skip** | Upstream community management files. Our fork has its own GitHub infrastructure (.github/workflows/ci.yml, publish.yml, smoke-test.yml). The CODEOWNERS file specifically names the upstream maintainer. |
+
+**Exception:** SECURITY.md could be adopted with our fork's contact info if we want a security policy.
+
+### 25. README Badge Changes
+
+| Field | Value |
+|-------|-------|
+| **Commits** | `90f1f66`, `d80e4ef`, `19568d6`, `8d2651d` |
+| **Why skip** | Upstream-specific: Discord badges, X/Twitter badges, Dexscreener $GSD token badge, broken gemini link removal. Our fork has its own README. |
+
+### 26. Changelog/Version Bump Commits
+
+| Field | Value |
+|-------|-------|
+| **Commits** | `7c42763`, `75fb063`, `ddc736e`, `e92e64c`, `3e3f81e`, `64373a8`, `c9aea44`, `ecba990`, `1fbffcf`, `9ad7903`, `63d99df`, `ea0204b`, `2a4e0b1`, `06399ec`, `5a2f5fa`, `9adb09f`, `fac1217`, `cbb4aa1` |
+| **Why skip** | Version bumps and changelog entries for upstream releases. Our fork maintains its own versioning and changelog. |
+
+### 27. Removed Files (CONTRIBUTING.md, GSD-STYLE.md, MAINTAINERS.md, old planning files)
+
+| Field | Value |
+|-------|-------|
+| **Commits** | `3f5ab10`, `a52248c`, `56b487a` |
+| **Why skip** | Cleanup of files that either don't exist in our fork or are fork-specific. We have our own CONTRIBUTING.md if needed. |
+
+### 28. Windows-Specific Fixes
+
+| Field | Value |
+|-------|-------|
+| **Commits** | `1344bd8` (detached:true for SessionStart hook), `ced41d7` (HEREDOC to literal newlines), `1c6a35f` (normalize backslashes in gsd-tools paths), `dac502f` (Windows gsd-tools merge) |
+| **Why skip for now** | Our fork targets macOS/Linux (darwin platform per environment). These are good fixes that do no harm, but they are low priority for our users. |
+
+**Revisit if:** We receive Windows user reports or want to expand platform support.
+
+---
 
 ## Feature Dependencies
 
 ```
-Signal Capture (foundational)
-  --> Signal Persistence (requires capture)
-  --> Phase-End Self-Reflection (requires capture)
-        --> Signal Pattern Detection (requires accumulated signals)
-              --> Workflow Self-Modification (requires pattern detection) [DEFER]
+gsd-tools.js (FOUNDATION - everything below depends on this)
+  |
+  +--> Thin orchestrator refactoring (all commands/workflows restructured)
+  |      |
+  |      +--> --include flag optimization (uses init commands)
+  |      +--> commit_docs fix routing through gsd-tools.js commit
+  |      +--> Research decision persistence (uses config-set command)
+  |      +--> Brave Search integration (uses websearch command)
+  |
+  +--> Frontmatter CRUD / verification suite
+  +--> Context-optimizing parsing commands
+  +--> Deterministic workflow delegation
 
-Spike Workflow (foundational)
-  --> Spike Decision Records (requires workflow)
-  --> Iterative Spike Narrowing (requires workflow)
+Bug fixes (can be adopted independently):
+  executor completion verification (additive, no gsd-tools dependency)
+  context fidelity enforcement (additive, no gsd-tools dependency)
+  parallelization config respect (additive, no gsd-tools dependency)
+  researcher always writes RESEARCH.md (additive, no gsd-tools dependency)
+  auto-create config.json (additive, no gsd-tools dependency)
+  statusline crash handling (additive, no gsd-tools dependency)
+  API key prevention (additive, no gsd-tools dependency)
+  classifyHandoffIfNeeded workaround (additive, no gsd-tools dependency)
+  subagent_type specification (additive, no gsd-tools dependency)
 
-Knowledge Base Storage (foundational, requires signal persistence + spike records as data sources)
-  --> KB Read During Research (requires storage)
-  --> Cross-Project Lesson Surfacing (requires storage + tagging)
-        --> Proactive Lesson Surfacing (requires cross-project + context matching)
-  --> Spike Result Reuse (requires storage + spike records)
-
-Implicit Frustration Detection (independent, but feeds into signal capture)
-Semantic Drift Detection (independent, requires signal history)
+Bug fixes that DEPEND on gsd-tools.js:
+  commit_docs=false in all paths (routes through gsd-tools.js commit)
+  persist research decision (uses gsd-tools.js config-set)
 ```
 
-**Critical path:** Signal Capture --> Signal Persistence --> Knowledge Base Storage --> KB Read During Research
+---
 
-This is the minimum chain that delivers the core value proposition: "the system remembers and learns."
+## Overlap Analysis: Fork Files vs Upstream Changes
 
-## MVP Recommendation
+### Files Our Fork Modified (from fork point)
 
-For MVP, prioritize the table stakes in dependency order:
+| File | Our Changes | Upstream Changes | Conflict Risk |
+|------|-------------|-----------------|---------------|
+| `bin/install.js` | Branding (banner, package name, help text, version-check hook) | Patch preservation, JSONC parsing, hex validation, statusline reference, Windows path normalization | **HIGH** -- both modified extensively, different areas but same file |
+| `commands/gsd/help.md` | Added GSD Reflect commands section, package name | Complete restructuring to thin orchestrator | **HIGH** -- upstream rewrote the file |
+| `commands/gsd/update.md` | Package name changes (`get-shit-done-reflect-cc`) | Local vs global detection, thin orchestrator restructuring | **HIGH** -- both modified same sections |
+| `commands/gsd/new-project.md` | Minor additions | Complete restructuring to thin orchestrator | **MEDIUM** -- upstream rewrote, our changes are small |
+| `get-shit-done/references/planning-config.md` | Added fork-specific config fields | Updated for gsd-tools CLI patterns | **LOW** -- different sections |
+| `get-shit-done/templates/config.json` | Added health_check, devops sections | No upstream changes to this file | **NONE** |
+| `get-shit-done/templates/research.md` | No changes | Added user_constraints section | **NONE** -- clean upstream merge |
+| `hooks/gsd-check-update.js` | No changes from fork | Added `detached: true` for Windows | **NONE** |
 
-1. **Signal capture + persistence** — the data collection layer. Without signals, nothing downstream works.
-2. **Spike workflow + decision records** — structured experimentation. Independent of signals, can be built in parallel.
-3. **Knowledge base storage + research integration** — the persistence layer that makes signals and spike results durable and queryable.
-4. **Phase-end self-reflection** — closes the feedback loop. Simple to implement once signals exist.
+### Files Only Our Fork Has (no upstream equivalent)
 
-Defer to post-MVP:
-- **Implicit frustration detection**: High complexity, uncertain value. Start with explicit signals and add implicit detection after validating the architecture.
-- **Cross-project surfacing + proactive lessons**: Requires substantial KB content to be useful. Cold start problem means this delivers no value until the system has been used across multiple projects.
-- **Signal pattern detection + workflow self-modification**: Frontier features. Need accumulated data and proven architecture before attempting.
-- **Semantic drift detection**: Interesting but requires baseline definitions that don't exist yet.
+These are safe -- no conflict possible:
+- `.claude/agents/gsd-reflector.md`
+- `.claude/agents/gsd-signal-collector.md`
+- `.claude/agents/gsd-spike-runner.md`
+- `.claude/agents/knowledge-store.md`
+- `.claude/commands/gsd/reflect.md`
+- `.claude/commands/gsd/spike.md`
+- `commands/gsd/collect-signals.md`
+- `commands/gsd/health-check.md`
+- `commands/gsd/signal.md`
+- `commands/gsd/upgrade-project.md`
+- `get-shit-done/references/devops-detection.md`
+- `get-shit-done/references/health-check.md`
+- `get-shit-done/references/knowledge-surfacing.md`
+- `get-shit-done/references/milestone-reflection.md`
+- `get-shit-done/references/reflection-patterns.md`
+- `get-shit-done/references/signal-detection.md`
+- `get-shit-done/references/spike-execution.md`
+- `get-shit-done/references/spike-integration.md`
+- `get-shit-done/references/version-migration.md`
+- `get-shit-done/workflows/collect-signals.md`
+- `get-shit-done/workflows/health-check.md`
+- `get-shit-done/workflows/reflect.md`
+- `get-shit-done/workflows/run-spike.md`
+- `hooks/gsd-version-check.js`
+- All test files in `tests/`
+
+### Files Only Upstream Has (new since fork point)
+
+These can be adopted cleanly:
+- `get-shit-done/bin/gsd-tools.js` (NEW -- 4,597 lines)
+- `get-shit-done/bin/gsd-tools.test.js` (NEW -- 2,033 lines)
+- `commands/gsd/reapply-patches.md` (NEW)
+- `get-shit-done/workflows/add-phase.md` (NEW)
+- `get-shit-done/workflows/add-todo.md` (NEW)
+- `get-shit-done/workflows/audit-milestone.md` (NEW)
+- `get-shit-done/workflows/check-todos.md` (NEW)
+- `get-shit-done/workflows/help.md` (NEW)
+- `get-shit-done/workflows/insert-phase.md` (NEW)
+- `get-shit-done/workflows/new-milestone.md` (NEW)
+- `get-shit-done/workflows/new-project.md` (NEW)
+- `get-shit-done/workflows/pause-work.md` (NEW)
+- `get-shit-done/workflows/plan-milestone-gaps.md` (NEW)
+- `get-shit-done/workflows/plan-phase.md` (NEW)
+- `get-shit-done/workflows/progress.md` (NEW)
+- `get-shit-done/workflows/quick.md` (NEW)
+- `get-shit-done/workflows/remove-phase.md` (NEW)
+- `get-shit-done/workflows/research-phase.md` (NEW)
+- `get-shit-done/workflows/set-profile.md` (NEW)
+- `get-shit-done/workflows/settings.md` (NEW)
+- `get-shit-done/workflows/update.md` (NEW)
+- `get-shit-done/templates/summary-complex.md` (NEW)
+- `get-shit-done/templates/summary-minimal.md` (NEW)
+- `get-shit-done/templates/summary-standard.md` (NEW)
+- `get-shit-done/references/decimal-phase-calculation.md` (NEW)
+- `get-shit-done/references/git-planning-commit.md` (NEW)
+- `get-shit-done/references/model-profile-resolution.md` (NEW)
+- `get-shit-done/references/phase-argument-parsing.md` (NEW)
+- `SECURITY.md` (NEW)
+
+---
+
+## Recommended Adoption Order
+
+### Wave 1: Independent Bug Fixes (no gsd-tools dependency)
+
+Apply these cherry-picks or manual patches first. They are additive and have no dependencies:
+
+1. `f380275` -- Executor completion verification
+2. `ecbc692` -- Context fidelity enforcement in planning
+3. `4267c6c` -- Respect parallelization config
+4. `161aa61` -- Researcher always writes RESEARCH.md
+5. `4dff989` -- Auto-create config.json when missing
+6. `4072fd2` -- classifyHandoffIfNeeded workaround
+7. `4249506` -- Executor subagent_type specification
+8. `f53011c` -- API key prevention in map-codebase
+
+**Estimated effort:** MEDIUM -- these are surgical additions to existing files, but must be applied to our fork's file versions (not clean cherry-picks since upstream context differs).
+
+### Wave 2: gsd-tools.js Foundation
+
+Adopt the complete gsd-tools.js and its test suite:
+
+1. `01ae939` -- Initial gsd-tools.js CLI
+2. `246d542` -- Compound init commands
+3. `1b317de` -- Repetitive bash pattern extraction (phases, roadmap, phase next-decimal)
+4. `6c53737` -- Context-optimizing parsing commands
+5. `36f5bb3` -- Deterministic workflow delegation (phase add/insert/remove/complete, etc.)
+6. `6a2d1f1` -- Frontmatter CRUD, verification suite, template fill, state progression
+7. `767bef6` -- Config-set command + research decision persistence
+8. `60ccba9` -- Brave Search integration
+9. `01c9115` -- commit_docs fix routing through gsd-tools.js
+
+**Estimated effort:** LOW for the file itself (it's new, no conflicts), HIGH for wiring into existing files.
+
+### Wave 3: Thin Orchestrator Migration
+
+Apply the full command/workflow restructuring:
+
+1. `d2623e0` + `8f26bfa` -- Extract first batch of thin orchestrators
+2. `d44c7dc` -- Update all remaining commands/workflows/agents for gsd-tools integration
+
+**This is the hard part.** Our fork's modifications to `commands/gsd/help.md`, `commands/gsd/update.md`, `commands/gsd/new-project.md`, and `bin/install.js` must be reconciled with upstream's complete restructuring.
+
+**Estimated effort:** HIGH -- requires file-by-file merge for overlapping files.
+
+### Wave 4: Feature Additions
+
+After the architecture is aligned:
+
+1. `fa81821` + `01c9115` -- --include flag (with the context bloat fix)
+2. `7f49083` -- --auto flag for new-project
+3. `ca03a06` -- Preserve local patches across updates
+4. `9d7ea9c` -- Statusline crash handling + hex validation + git staging fix
+5. `074b2bc` -- Statusline reference update during install
+6. `6cf4a4e` -- JSONC parsing in installer
+7. `8384575` -- Local vs global install detection
+
+### Wave 5: Fork-Specific Rebranding
+
+After upstream alignment, reapply our fork-specific changes:
+
+1. Reinstall.js branding (banner, package name, help text)
+2. Re-add version-check hook registration
+3. Re-add GSD Reflect commands to help.md
+4. Re-add package name changes in update.md
+5. Verify all fork-only features (signals, KB, reflection, spikes) still work
+
+---
+
+## Commit-by-Commit Reference Table
+
+| Commit | Category | Priority | Description | Dependencies |
+|--------|----------|----------|-------------|--------------|
+| `f380275` | Must adopt | CRITICAL | Executor completion verification | None |
+| `ecbc692` | Must adopt | CRITICAL | Context fidelity in planning | None |
+| `4267c6c` | Must adopt | HIGH | Respect parallelization config | None |
+| `161aa61` | Must adopt | HIGH | Researcher always writes RESEARCH.md | None |
+| `01c9115` | Must adopt | HIGH | commit_docs=false in all paths | gsd-tools.js |
+| `4dff989` | Must adopt | MEDIUM | Auto-create config.json | None |
+| `9d7ea9c` | Must adopt | MEDIUM | Statusline crash handling | None |
+| `074b2bc` | Must adopt | MEDIUM | Statusline reference update | None |
+| `f53011c` | Must adopt | MEDIUM | API key prevention | None |
+| `767bef6` | Must adopt | MEDIUM | Persist research decision | gsd-tools.js |
+| `6cf4a4e` | Must adopt | MEDIUM | JSONC parsing in installer | None |
+| `4249506` | Should adopt | HIGH | Executor subagent_type | None |
+| `4072fd2` | Should adopt | HIGH | classifyHandoffIfNeeded workaround | None |
+| `8384575` | Should adopt | MEDIUM | Local vs global install | None |
+| `ca03a06` | Should adopt | MEDIUM | Preserve local patches | None |
+| `7f49083` | Should adopt | LOW-MED | --auto flag | gsd-tools.js |
+| `fa81821` | Should adopt | MEDIUM | --include flag | gsd-tools.js |
+| `60ccba9` | Should adopt | LOW | Brave Search integration | gsd-tools.js |
+| `01ae939` | Evaluate | ARCH | gsd-tools.js foundation | None (new file) |
+| `246d542` | Evaluate | ARCH | Compound init commands | gsd-tools.js |
+| `1b317de` | Evaluate | ARCH | Bash pattern extraction | gsd-tools.js |
+| `6c53737` | Evaluate | ARCH | Context-optimizing parsing | gsd-tools.js |
+| `36f5bb3` | Evaluate | ARCH | Deterministic delegation | gsd-tools.js |
+| `6a2d1f1` | Evaluate | ARCH | Frontmatter/verification/templates | gsd-tools.js |
+| `d44c7dc` | Evaluate | ARCH | Full thin orchestrator migration | gsd-tools.js + init commands |
+| `d2623e0` | Evaluate | ARCH | Thin orchestrators batch 1 | gsd-tools.js |
+| `8f26bfa` | Evaluate | ARCH | Thin orchestrators batch 2 | gsd-tools.js |
+| `af7a057` | Skip | - | GSD Memory (reverted) | - |
+| `cc3c6ac` | Skip | - | Revert GSD Memory | - |
+| `b85247a` | Skip | - | Auto-label issues | - |
+| `392742e` | Skip | - | SECURITY.md | - |
+| `279f3bc` | Skip | - | Feature request template | - |
+| `a4626b5` | Skip | - | Bug report template | - |
+| `f7511db` | Skip | - | CODEOWNERS | - |
+| `90f1f66` | Skip | - | Discord badge | - |
+| `d80e4ef` | Skip | - | X/Dexscreener badges | - |
+| `19568d6` | Skip | - | @latest in install commands | - |
+| `8d2651d` | Skip | - | Remove broken gemini link | - |
+| `3f5ab10` | Skip | - | Remove CONTRIBUTING/GSD-STYLE | - |
+| `a52248c` | Skip | - | Remove planning files | - |
+| `56b487a` | Skip | - | Tidy up old files | - |
+| `1344bd8` | Skip (for now) | - | Windows detached:true | - |
+| `ced41d7` | Skip (for now) | - | Windows HEREDOC fix | - |
+| `1c6a35f` | Skip (for now) | - | Windows backslash normalization | - |
+| Version bumps | Skip | - | 18 changelog/version commits | - |
+
+---
 
 ## Sources
 
-- [O'Reilly Signals for 2026](https://www.oreilly.com/radar/signals-for-2026/) — industry trend overview
-- [Braintrust AI Observability Guide 2026](https://www.braintrust.dev/articles/best-ai-observability-tools-2026) — observability platform patterns
-- [ADR Tooling](https://adr.github.io/adr-tooling/) — decision record tool ecosystem
-- [UK Gov ADR Framework 2025](https://technology.blog.gov.uk/2025/12/08/the-architecture-decision-record-adr-framework-making-better-technology-decisions-across-the-public-sector/) — ADR best practices at scale
-- [Galileo Self-Evaluation in AI](https://galileo.ai/blog/self-evaluation-ai-agents-performance-reasoning-reflection) — reflection patterns for agents
-- [DeepLearning.AI Reflection Pattern](https://www.deeplearning.ai/the-batch/agentic-design-patterns-part-2-reflection/) — foundational reflection design pattern
-- [MemOS Paper](https://statics.memtensor.com.cn/files/MemOS_0707.pdf) — memory-as-OS-resource for AI agents
-- [DEV.to: 2026 Year of Agentic Development](https://dev.to/mikulg/2026-the-year-of-agentic-development-4507) — persistent memory trends
-- [KM System Features 2026](https://context-clue.com/blog/top-10-knowledge-management-system-features-in-2026/) — knowledge management patterns
-- [Addy Osmani LLM Coding Workflow 2026](https://addyosmani.com/blog/ai-coding-workflow/) — experiment-driven dev workflows
-- [Kore.ai AI Observability](https://www.kore.ai/blog/what-is-ai-observability) — deviation detection patterns
+All analysis based on direct examination of:
+- `git log --oneline 2347fca..upstream/main` (70 commits)
+- `git diff --stat` for each significant commit
+- `git diff` (full diff) for all commits categorized as must-adopt or should-adopt
+- `git diff HEAD upstream/main --name-only` for overlap analysis
+- `git diff 2347fca..HEAD --name-only` for fork modification tracking
+- Commit messages and linked issue numbers for context
+
+Confidence: HIGH -- all findings are from direct code examination, not external sources.
