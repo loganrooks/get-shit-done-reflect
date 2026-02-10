@@ -48,11 +48,13 @@ Plans:
   3. `package.json` has fork identity (name: get-shit-done-reflect, correct repository/bin) with upstream's structural additions (files array including gsd-tools.js)
   4. Running `grep -r "gsd_memory\|gsd-memory\|projects\.json" --include="*.md" --include="*.js"` returns zero hits (no memory system ghost references remain, excluding our knowledge base)
   5. All 11 upstream bug fixes are present in the merged code (executor verification, context fidelity, parallelization, commit_docs, auto-create config, statusline crash, API key prevention, subagent_type, classifyHandoffIfNeeded)
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md -- Pre-flight checks & execute merge
+- [ ] 08-02-PLAN.md -- Resolve HIGH risk conflicts (install.js, package.json, new-project.md)
+- [ ] 08-03-PLAN.md -- Resolve MEDIUM + LOW risk conflicts
+- [ ] 08-04-PLAN.md -- Validate merge, ghost cleanup, categorized merge summary
 
 ### Phase 9: Architecture Adoption & Verification
 **Goal**: The gsd-tools CLI, thin orchestrator pattern, condensed agent specs, and all additive architecture pieces are verified to work with the fork's configuration and features
