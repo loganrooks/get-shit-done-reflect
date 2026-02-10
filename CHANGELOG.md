@@ -12,6 +12,7 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 - GitHub repository URLs corrected from `rookslog` to `loganrooks` in package.json, README, update command, and publish workflow
 - CI lint job removed (unused, caused workflow parse failures)
 - Wiring validation test allowlists upstream GSD agents installed at runtime
+- Publish workflow switched to npm Trusted Publishing (OIDC) — removes NPM_TOKEN dependency
 
 ## [1.12.0] - 2026-02-09
 
