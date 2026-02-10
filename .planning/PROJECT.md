@@ -2,7 +2,7 @@
 
 ## What This Is
 
-An enhancement to the GSD (Get Shit Done) workflow system that adds signal tracking, a spike/experiment workflow, and a persistent cross-project knowledge base. The goal is to turn GSD from a stateless workflow engine into a self-improving, adaptive system that learns from its own performance, remembers lessons across projects and sessions, and supports empirical design decisions through structured experimentation.
+A self-improving enhancement to the GSD (Get Shit Done) workflow system. Adds signal tracking (automatic detection of workflow deviations, config mismatches, debugging struggles), a structured spike/experiment workflow for resolving design uncertainty empirically, a persistent cross-project knowledge base, a reflection engine that distills signals into actionable lessons, and knowledge surfacing that automatically retrieves relevant lessons during research and planning. Includes production tooling: workspace health checks, version migration, and DevOps context capture.
 
 ## Core Value
 
@@ -19,24 +19,29 @@ The system never makes the same mistake twice — signals capture what went wron
 - ✓ Multi-runtime support (Claude Code, OpenCode, Gemini CLI) — existing
 - ✓ Checkpoint-based deviation handling — existing
 - ✓ Codebase mapping for brownfield projects — existing
+- ✓ Signal tracking: automatic detection of workflow deviations — v1.12
+- ✓ Signal tracking: implicit signal capture from user frustration — v1.12
+- ✓ Signal tracking: self-reflection on agent performance (debugging struggles, plan deviations) — v1.12
+- ✓ Signal tracking: informative trace logging that enables root cause diagnosis — v1.12
+- ✓ Spike workflow: translate design uncertainty into testable hypotheses — v1.12
+- ✓ Spike workflow: structured experimental design with defined metrics — v1.12
+- ✓ Spike workflow: iterative narrowing support (max 2 rounds) — v1.12
+- ✓ Spike workflow: produce ADR-style decision records — v1.12
+- ✓ Knowledge base: persistent store of signals, spike results, and distilled lessons — v1.12
+- ✓ Knowledge base: automatic querying during research phases — v1.12
+- ✓ Knowledge base: cross-project lesson surfacing — v1.12
+- ✓ Knowledge base: spike result reuse — v1.12
+- ✓ Self-improvement loop: system reflects on performance after phases — v1.12
+- ✓ Self-improvement loop: pattern detection across accumulated signals — v1.12
+- ✓ Self-improvement loop: workflow improvement suggestions from signal patterns — v1.12
+- ✓ Production: workspace health check command — v1.12
+- ✓ Production: version migration and upgrade-project command — v1.12
+- ✓ Production: DevOps context capture during project initialization — v1.12
+- ✓ Production: fork-specific README and CHANGELOG — v1.12
 
 ### Active
 
-- [ ] Signal tracking: automatic detection of workflow deviations (e.g., config says Opus but Sonnet spawned)
-- [ ] Signal tracking: implicit signal capture from user frustration without explicit invocation
-- [ ] Signal tracking: self-reflection on agent performance (debugging struggles, repeated rewrites, plan deviations)
-- [ ] Signal tracking: informative trace logging that enables root cause diagnosis
-- [ ] Spike workflow: translate design uncertainty into testable hypotheses
-- [ ] Spike workflow: structured experimental design with defined metrics and comparison criteria
-- [ ] Spike workflow: iterative narrowing support (multiple rounds of experimentation)
-- [ ] Spike workflow: produce decision records with methodology, data, and conclusions
-- [ ] Knowledge base: persistent store of signals, spike results, and distilled lessons
-- [ ] Knowledge base: automatic querying during research phases (alongside web search)
-- [ ] Knowledge base: cross-project lesson surfacing (lessons from project A available in project B)
-- [ ] Knowledge base: spike result reuse (don't repeat experiments when similar decisions arise)
-- [ ] Self-improvement loop: system actively reflects on its own performance after phases
-- [ ] Self-improvement loop: pattern detection across accumulated signals
-- [ ] Self-improvement loop: iterative improvement of GSD workflows based on signal patterns
+(None — next milestone requirements defined via `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -44,20 +49,18 @@ The system never makes the same mistake twice — signals capture what went wron
 - Real-time telemetry or metrics collection — this is reflection, not monitoring
 - Multi-user collaboration on shared knowledge base — start with per-user, consider later
 - Automated code fixes based on signals — signals inform humans/agents, don't auto-patch
+- ML-based signal classification — heuristic rules are sufficient and debuggable
+- Database for knowledge base — file-based with index is sufficient at expected scale
+- Continuous background monitoring — event-driven checkpoints instead
 
 ## Context
 
-GSD is a command orchestration system built entirely in Markdown and JavaScript. Commands are thin wrappers that delegate to workflow files, which spawn specialized agents for research, planning, execution, and verification. The system has no runtime dependencies — it's pure Node.js built-ins plus Markdown specifications consumed by AI runtimes.
-
-The current system is stateless across projects and sessions. Every `/clear` is amnesia. Every new project starts from zero. This means:
-- The same mistakes recur across projects (e.g., library-specific gotchas)
-- Design decisions aren't empirically grounded when web research fails (frontier work)
-- System issues (like model profile bugs) persist because there's no feedback loop
-- User frustration has no channel to become actionable improvement
-
-The codebase follows a layered architecture: Commands → Workflows → Templates/References → Agents, with a Runtime layer (Node.js) for installation and hooks.
-
-Existing state management (.planning/ directory with STATE.md, ROADMAP.md, etc.) provides the pattern for how new persistent artifacts should work.
+Shipped v1.12 with 74,137 LOC across Markdown, JavaScript, Shell, and JSON.
+Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts.
+Architecture: Commands → Workflows → Templates/References → Agents, with Runtime layer (Node.js) for installation and hooks.
+Knowledge base: `~/.claude/gsd-knowledge/` with `signals/`, `spikes/`, `lessons/` subdirectories and auto-generated `index.md`.
+Test suite: 42 tests (8 unit, 34 integration), CI/CD via GitHub Actions with branch protection.
+6 tech debt items accepted (no critical blockers): NPM_TOKEN config, gitignore friction, signal pipeline unexercised, command location inconsistency, milestone reflection unwired, knowledge surfacing unexercised in production.
 
 ## Constraints
 
@@ -72,12 +75,20 @@ Existing state management (.planning/ directory with STATE.md, ROADMAP.md, etc.)
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| File-based knowledge base (not database) | Matches GSD's zero-dependency, Markdown-native architecture | — Pending |
-| Per-user knowledge base location (~/.claude/ or similar) | Knowledge should travel with user across projects | — Pending |
-| Implicit signal capture (not just explicit) | Users express frustration without invoking commands; system should notice | — Pending |
-| Spike as first-class workflow (/gsd:spike) | Experimentation needs structure to avoid derailing the main workflow | — Pending |
-| Knowledge base queried during research phase | Most natural integration point; researchers already search for context | — Pending |
-| Additive-only changes (no upstream file edits) | Fork maintenance — upstream merges must stay clean | — Pending |
+| File-based knowledge base (not database) | Matches GSD's zero-dependency, Markdown-native architecture | ✓ Good — `~/.claude/gsd-knowledge/` with Markdown + YAML frontmatter |
+| Per-user knowledge base location (~/.claude/) | Knowledge should travel with user across projects | ✓ Good — cross-project surfacing works via unfiltered index queries |
+| Implicit signal capture (not just explicit) | Users express frustration without invoking commands; system should notice | ✓ Good — frustration detection via pattern matching in /gsd:signal |
+| Spike as first-class workflow (/gsd:spike) | Experimentation needs structure to avoid derailing the main workflow | ✓ Good — isolated workspace with ADR-style decision output |
+| Knowledge base queried during research phase | Most natural integration point; researchers already search for context | ✓ Good — all 4 agents (researcher, planner, debugger, executor) query KB |
+| Additive-only changes (no upstream file edits) | Fork maintenance — upstream merges must stay clean | ✓ Good — all changes are new files or additive sections |
+| Vitest over Jest | ESM-native, faster, simpler config | ✓ Good — 42 tests running cleanly |
+| Three-tier benchmark system | Different cost profiles for different validation depths | ✓ Good — quick/standard/comprehensive tiers |
+| Spikes produce findings, not decisions | Existing layers (CONTEXT.md, RESEARCH.md) make decisions | ✓ Good — clean separation of concerns |
+| Max 2 iteration rounds per spike | Prevents rabbit holes while allowing refinement | ✓ Good — convergence constraint |
+| Severity-weighted pattern detection for reflection | Critical signals surface faster than trace | ✓ Good — threshold-based with categorical confidence |
+| Pull-based KB retrieval with token budget | Prevents context bloat in agents | ✓ Good — ~500 tokens researcher/debugger, ~200 executor |
+| Health check purely mechanical | No subjective quality assessment | ✓ Good — actionable pass/warning/fail results |
+| Migrations always additive | Never remove or modify existing config fields | ✓ Good — backward compatible upgrades |
 
 ---
-*Last updated: 2026-02-02 after initialization*
+*Last updated: 2026-02-09 after v1.12 milestone*
