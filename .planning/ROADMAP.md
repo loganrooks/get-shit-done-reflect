@@ -32,10 +32,11 @@ This milestone synchronizes the fork with 70 upstream GSD commits (v1.11.2 to v1
   1. The "additive only" constraint is formally retired and a tracked-modifications strategy document exists explaining how fork divergences are managed going forward
   2. The upstream reapply-patches mechanism is understood and adopted as the fork's patch preservation approach
   3. A sync branch exists with the current fork state snapshotted (all tests passing) before any merge begins
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: TBD
+- [ ] 07-01-PLAN.md -- Fork strategy & divergence documentation
+- [ ] 07-02-PLAN.md -- Fix tests & create pre-merge snapshot
 
 ### Phase 8: Core Merge & Conflict Resolution
 **Goal**: All 70 upstream commits are merged into the fork with 12 conflict files correctly resolved, all bug fixes applied, and fork identity preserved
@@ -118,7 +119,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 7. Fork Strategy & Pre-Merge Setup | v1.13 | 0/TBD | Not started | - |
+| 7. Fork Strategy & Pre-Merge Setup | v1.13 | 0/2 | Planned | - |
 | 8. Core Merge & Conflict Resolution | v1.13 | 0/TBD | Not started | - |
 | 9. Architecture Adoption & Verification | v1.13 | 0/TBD | Not started | - |
 | 10. Upstream Feature Verification | v1.13 | 0/TBD | Not started | - |
