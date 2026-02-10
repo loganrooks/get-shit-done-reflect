@@ -122,7 +122,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 7. Fork Strategy & Pre-Merge Setup | v1.13 | 2/2 | Complete | 2026-02-10 |
-| 8. Core Merge & Conflict Resolution | v1.13 | 0/TBD | Not started | - |
+| 8. Core Merge & Conflict Resolution | v1.13 | 0/4 | Not started | - |
 | 9. Architecture Adoption & Verification | v1.13 | 0/TBD | Not started | - |
 | 10. Upstream Feature Verification | v1.13 | 0/TBD | Not started | - |
 | 11. Test Suite Repair & CI/CD Validation | v1.13 | 0/TBD | Not started | - |
