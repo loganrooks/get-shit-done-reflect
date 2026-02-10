@@ -66,7 +66,7 @@ Requirements for upstream sync milestone. Each maps to roadmap phases.
 ### Dogfooding (gsd-reflect Validation)
 
 - [ ] **DOG-01**: Run /gsd:collect-signals after each merge/integration phase
-- [ ] **DOG-02**: Knowledge base entries generated from merge experience (signals → lessons)
+- [ ] **DOG-02**: Knowledge base entries generated from merge experience (signals -> lessons)
 - [ ] **DOG-03**: Run /gsd:reflect at milestone end to distill learnings
 - [ ] **DOG-04**: Capture comparison: our file-based KB approach vs upstream's reverted MCP approach
 
@@ -99,54 +99,54 @@ Deferred to later milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FORK-01 | TBD | Pending |
-| FORK-02 | TBD | Pending |
-| FIX-01 | TBD | Pending |
-| FIX-02 | TBD | Pending |
-| FIX-03 | TBD | Pending |
-| FIX-04 | TBD | Pending |
-| FIX-05 | TBD | Pending |
-| FIX-06 | TBD | Pending |
-| FIX-07 | TBD | Pending |
-| FIX-08 | TBD | Pending |
-| FIX-09 | TBD | Pending |
-| FIX-10 | TBD | Pending |
-| FIX-11 | TBD | Pending |
-| ARCH-01 | TBD | Pending |
-| ARCH-02 | TBD | Pending |
-| ARCH-03 | TBD | Pending |
-| ARCH-04 | TBD | Pending |
-| ARCH-05 | TBD | Pending |
-| ARCH-06 | TBD | Pending |
-| ARCH-07 | TBD | Pending |
-| MERGE-01 | TBD | Pending |
-| MERGE-02 | TBD | Pending |
-| MERGE-03 | TBD | Pending |
-| MERGE-04 | TBD | Pending |
-| MERGE-05 | TBD | Pending |
-| MERGE-06 | TBD | Pending |
-| FEAT-01 | TBD | Pending |
-| FEAT-02 | TBD | Pending |
-| FEAT-03 | TBD | Pending |
-| FEAT-04 | TBD | Pending |
-| FEAT-05 | TBD | Pending |
-| FEAT-06 | TBD | Pending |
-| FEAT-07 | TBD | Pending |
-| TEST-01 | TBD | Pending |
-| TEST-02 | TBD | Pending |
-| TEST-03 | TBD | Pending |
-| TEST-04 | TBD | Pending |
-| TEST-05 | TBD | Pending |
-| DOG-01 | TBD | Pending |
-| DOG-02 | TBD | Pending |
-| DOG-03 | TBD | Pending |
-| DOG-04 | TBD | Pending |
+| FORK-01 | Phase 7 | Pending |
+| FORK-02 | Phase 7 | Pending |
+| FIX-01 | Phase 8 | Pending |
+| FIX-02 | Phase 8 | Pending |
+| FIX-03 | Phase 8 | Pending |
+| FIX-04 | Phase 8 | Pending |
+| FIX-05 | Phase 8 | Pending |
+| FIX-06 | Phase 8 | Pending |
+| FIX-07 | Phase 8 | Pending |
+| FIX-08 | Phase 8 | Pending |
+| FIX-09 | Phase 8 | Pending |
+| FIX-10 | Phase 8 | Pending |
+| FIX-11 | Phase 8 | Pending |
+| ARCH-01 | Phase 9 | Pending |
+| ARCH-02 | Phase 9 | Pending |
+| ARCH-03 | Phase 9 | Pending |
+| ARCH-04 | Phase 9 | Pending |
+| ARCH-05 | Phase 9 | Pending |
+| ARCH-06 | Phase 9 | Pending |
+| ARCH-07 | Phase 9 | Pending |
+| MERGE-01 | Phase 8 | Pending |
+| MERGE-02 | Phase 8 | Pending |
+| MERGE-03 | Phase 8 | Pending |
+| MERGE-04 | Phase 8 | Pending |
+| MERGE-05 | Phase 8 | Pending |
+| MERGE-06 | Phase 8 | Pending |
+| FEAT-01 | Phase 10 | Pending |
+| FEAT-02 | Phase 10 | Pending |
+| FEAT-03 | Phase 10 | Pending |
+| FEAT-04 | Phase 10 | Pending |
+| FEAT-05 | Phase 10 | Pending |
+| FEAT-06 | Phase 10 | Pending |
+| FEAT-07 | Phase 10 | Pending |
+| TEST-01 | Phase 11 | Pending |
+| TEST-02 | Phase 11 | Pending |
+| TEST-03 | Phase 11 | Pending |
+| TEST-04 | Phase 11 | Pending |
+| TEST-05 | Phase 11 | Pending |
+| DOG-01 | Phase 12 | Pending |
+| DOG-02 | Phase 12 | Pending |
+| DOG-03 | Phase 12 | Pending |
+| DOG-04 | Phase 12 | Pending |
 
 **Coverage:**
-- v1.13 requirements: 40 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 40
+- v1.13 requirements: 42 total
+- Mapped to phases: 42/42
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-09*
-*Last updated: 2026-02-09 after initial definition*
+*Last updated: 2026-02-09 after roadmap creation (all requirements mapped to phases)*
