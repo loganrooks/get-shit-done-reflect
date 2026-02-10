@@ -9,8 +9,8 @@ Requirements for upstream sync milestone. Each maps to roadmap phases.
 
 ### Fork Strategy
 
-- [ ] **FORK-01**: Formally retire "additive only" fork constraint and document new tracked-modifications strategy
-- [ ] **FORK-02**: Adopt upstream's reapply-patches feature for managing fork modifications across updates
+- [x] **FORK-01**: Formally retire "additive only" fork constraint and document new tracked-modifications strategy
+- [x] **FORK-02**: Adopt upstream's reapply-patches feature for managing fork modifications across updates
 
 ### Upstream Bug Fixes
 
@@ -99,8 +99,8 @@ Deferred to later milestones.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FORK-01 | Phase 7 | Pending |
-| FORK-02 | Phase 7 | Pending |
+| FORK-01 | Phase 7 | Complete |
+| FORK-02 | Phase 7 | Complete |
 | FIX-01 | Phase 8 | Pending |
 | FIX-02 | Phase 8 | Pending |
 | FIX-03 | Phase 8 | Pending |
@@ -149,4 +149,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-02-09*
-*Last updated: 2026-02-09 after roadmap creation (all requirements mapped to phases)*
+*Last updated: 2026-02-10 after Phase 7 completion (FORK-01, FORK-02 complete)*
