@@ -88,7 +88,7 @@ Test suite: 42 tests (8 unit, 34 integration), CI/CD via GitHub Actions with bra
 - **Compatibility**: Must work across Claude Code, OpenCode, and Gemini CLI runtimes
 - **Context**: Signal logging and knowledge base queries must not bloat agent context windows — lazy loading is critical
 - **Non-invasive**: Signal tracking must not slow down or interrupt normal workflow execution
-- **Fork maintenance**: This is a fork of GSD upstream — new features must be additive (new files, new commands) rather than modifying existing upstream files, to keep merging upstream changes easy
+- **Fork maintenance**: This is a fork of GSD upstream — divergences from upstream files are tracked in FORK-DIVERGENCES.md with explicit category, rationale, and merge stance. See FORK-STRATEGY.md for the full maintenance approach
 
 ## Key Decisions
 
@@ -99,7 +99,7 @@ Test suite: 42 tests (8 unit, 34 integration), CI/CD via GitHub Actions with bra
 | Implicit signal capture (not just explicit) | Users express frustration without invoking commands; system should notice | ✓ Good — frustration detection via pattern matching in /gsd:signal |
 | Spike as first-class workflow (/gsd:spike) | Experimentation needs structure to avoid derailing the main workflow | ✓ Good — isolated workspace with ADR-style decision output |
 | Knowledge base queried during research phase | Most natural integration point; researchers already search for context | ✓ Good — all 4 agents (researcher, planner, debugger, executor) query KB |
-| Additive-only changes (no upstream file edits) | Fork maintenance — upstream merges must stay clean | ✓ Good — all changes are new files or additive sections |
+| Tracked-modifications fork strategy (supersedes additive-only) | Additive-only kept merges clean but became impractical as fork needed branding, behavior changes, and deeper integration. Tracked-modifications explicitly records all divergences with merge stances. | Evolved v1.13 -- see FORK-STRATEGY.md and FORK-DIVERGENCES.md |
 | Vitest over Jest | ESM-native, faster, simpler config | ✓ Good — 42 tests running cleanly |
 | Three-tier benchmark system | Different cost profiles for different validation depths | ✓ Good — quick/standard/comprehensive tiers |
 | Spikes produce findings, not decisions | Existing layers (CONTEXT.md, RESEARCH.md) make decisions | ✓ Good — clean separation of concerns |
@@ -110,4 +110,4 @@ Test suite: 42 tests (8 unit, 34 integration), CI/CD via GitHub Actions with bra
 | Migrations always additive | Never remove or modify existing config fields | ✓ Good — backward compatible upgrades |
 
 ---
-*Last updated: 2026-02-09 after v1.13 milestone start*
+*Last updated: 2026-02-10 — retired additive-only constraint, adopted tracked-modifications strategy (Phase 7)*
