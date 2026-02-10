@@ -41,7 +41,18 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ### Active
 
-(None — next milestone requirements defined via `/gsd:new-milestone`)
+**Current Milestone: v1.13 Upstream Sync & Validation**
+
+**Goal:** Sync fork with upstream GSD (70 commits, v1.11.2→v1.18.0), selectively adopt bug fixes and evaluate architectural changes (gsd-tools), while exercising gsd-reflect's signal tracking and knowledge base in production to validate v1.12 features.
+
+**Target features:**
+- Evaluate and selectively adopt upstream bug fixes (executor completion verification, context fidelity, parallelization config, commit_docs respect, Windows compat)
+- Evaluate upstream gsd-tools CLI refactor (thin orchestrator pattern) for adoption or adaptation
+- Evaluate upstream feature additions (Brave Search, --auto flag, --include flag, frontmatter CRUD, patch preservation)
+- Resolve 12 overlapping files between fork and upstream
+- Exercise signal tracking, knowledge surfacing, and reflection on real work (validating v1.12 features)
+- Run /gsd:reflect to distill lessons from the sync experience
+- Address v1.12 tech debt: signal pipeline unexercised, knowledge surfacing unexercised in production
 
 ### Out of Scope
 
@@ -61,6 +72,14 @@ Architecture: Commands → Workflows → Templates/References → Agents, with R
 Knowledge base: `~/.claude/gsd-knowledge/` with `signals/`, `spikes/`, `lessons/` subdirectories and auto-generated `index.md`.
 Test suite: 42 tests (8 unit, 34 integration), CI/CD via GitHub Actions with branch protection.
 6 tech debt items accepted (no critical blockers): NPM_TOKEN config, gitignore friction, signal pipeline unexercised, command location inconsistency, milestone reflection unwired, knowledge surfacing unexercised in production.
+
+**Upstream divergence (v1.13 context):**
+- 70 upstream commits since fork point (2347fca)
+- Upstream now at v1.18.0; fork at v1.12.2
+- Major upstream change: gsd-tools CLI (4597 lines) extracting bash into Node.js + thin orchestrator pattern
+- Upstream tried GSD Memory (MCP server, TypeScript, QMD search) in v1.11.2, reverted in v1.11.3 ("writes but doesn't query", setup friction)
+- Our fork's file-based knowledge base shipped but is unvalidated in production
+- 12 files modified by both fork and upstream: .gitignore, install.js, CHANGELOG.md, help.md, new-project.md, update.md, planning-config.md, research.md template, hooks, package.json/lock
 
 ## Constraints
 
@@ -91,4 +110,4 @@ Test suite: 42 tests (8 unit, 34 integration), CI/CD via GitHub Actions with bra
 | Migrations always additive | Never remove or modify existing config fields | ✓ Good — backward compatible upgrades |
 
 ---
-*Last updated: 2026-02-09 after v1.12 milestone*
+*Last updated: 2026-02-09 after v1.13 milestone start*

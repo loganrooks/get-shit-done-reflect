@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Planning next milestone
+**Current focus:** v1.13 Upstream Sync & Validation — defining requirements
 
 ## Current Position
 
-Phase: Next milestone not yet started
-Plan: Not started
-Status: v1.12 milestone complete — ready for /gsd:new-milestone
-Last activity: 2026-02-09 -- Completed quick task 001: Update installer branding for GSD Reflect
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements for v1.13
+Last activity: 2026-02-09 — Milestone v1.13 started
 
-Progress: [█████████████████████████] v1.12 SHIPPED (7 phases, 25 plans)
+Progress: ░░░░░░░░░░ 0%
 
 ## Performance Metrics
 
@@ -58,10 +58,10 @@ None.
 
 ### Roadmap Evolution
 
-v1.12 complete. Next milestone roadmap will be created via /gsd:new-milestone.
+v1.12 complete. v1.13 milestone started — upstream sync & validation.
 
 ## Session Continuity
 
 Last session: 2026-02-09
-Stopped at: Completed quick task 001 (installer branding update)
+Stopped at: Defining v1.13 requirements
 Resume file: None
