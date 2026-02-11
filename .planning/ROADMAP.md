@@ -98,10 +98,12 @@ Plans:
   2. Running `node --test get-shit-done/bin/gsd-tools.test.js` passes all 63 upstream gsd-tools tests
   3. All three CI/CD workflows (ci.yml, publish.yml, smoke-test.yml) pass on a push to the sync branch, with correct OIDC identity and no CODEOWNERS blocking
   4. The wiring validation test correctly validates the thin orchestrator pattern (commands delegate to workflows) rather than the old inline-logic pattern
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 11-01: TBD
+- [ ] 11-01-PLAN.md -- Extend wiring validation for thin orchestrator delegation
+- [ ] 11-02-PLAN.md -- Fork-specific gsd-tools config tests
+- [ ] 11-03-PLAN.md -- CI workflow updates and full validation run
 
 ### Phase 12: Release & Dogfooding
 **Goal**: v1.13.0 is versioned and released, with gsd-reflect's signal tracking and knowledge base validated through production use during this milestone
@@ -129,5 +131,5 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | 8. Core Merge & Conflict Resolution | v1.13 | 4/4 | Complete | 2026-02-10 |
 | 9. Architecture Adoption & Verification | v1.13 | 3/3 | Complete | 2026-02-10 |
 | 10. Upstream Feature Verification | v1.13 | 3/3 | Complete | 2026-02-11 |
-| 11. Test Suite Repair & CI/CD Validation | v1.13 | 0/TBD | Not started | - |
+| 11. Test Suite Repair & CI/CD Validation | v1.13 | 0/3 | Not started | - |
 | 12. Release & Dogfooding | v1.13 | 0/TBD | Not started | - |
