@@ -327,13 +327,13 @@ Update GSD to latest version with changelog preview.
 
 Usage: `/gsd:update`
 
-**`/gsd:join-discord`**
-Join the GSD Discord community.
+**`/gsd:community`**
+Connect with the GSD Reflect community.
 
 - Get help, share what you're building, stay updated
-- Connect with other GSD users
+- Connect with other GSD Reflect users via GitHub Discussions
 
-Usage: `/gsd:join-discord`
+Usage: `/gsd:community`
 
 ### GSD Reflect
 
