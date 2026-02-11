@@ -311,12 +311,191 @@ describe('multi-runtime validation', () => {
   // VALID-03: Multi-runtime --all install (added in Task 2)
   // ---------------------------------------------------------------------------
 
-  // VALID-03 tests are added in Task 2
   describe('VALID-03: Multi-runtime --all install', () => {
-    tmpdirTest.todo('--all installs all 4 runtimes with correct file layouts')
-    tmpdirTest.todo('--all install: no cross-runtime path leakage')
-    tmpdirTest.todo('--all install: each runtime has format-correct command files')
-    tmpdirTest.todo('--all install: shared KB directory created with correct structure')
-    tmpdirTest.todo('--all install: VERSION files present in all runtimes')
+    tmpdirTest('--all installs all 4 runtimes with correct file layouts', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // Verify all 4 runtimes have correct file layouts
+      await verifyRuntimeLayout(tmpdir, 'claude')
+      await verifyRuntimeLayout(tmpdir, 'opencode', configHome)
+      await verifyRuntimeLayout(tmpdir, 'gemini')
+      await verifyRuntimeLayout(tmpdir, 'codex')
+    })
+
+    tmpdirTest('--all install: no cross-runtime path leakage', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // For each non-Claude runtime, verify no ~/.claude/ paths leaked
+      const opcodeDir = path.join(configHome, 'opencode')
+      await verifyNoLeakedPaths(opcodeDir, 'opencode')
+
+      const geminiDir = path.join(tmpdir, '.gemini')
+      await verifyNoLeakedPaths(geminiDir, 'gemini')
+
+      const codexDir = path.join(tmpdir, '.codex')
+      await verifyNoLeakedPaths(codexDir, 'codex')
+
+      // Verify each runtime's installed files reference the correct runtime-specific prefix
+      // OpenCode: should use ~/.config/opencode/
+      const opcodeGsd = path.join(opcodeDir, 'get-shit-done')
+      const opcodeFiles = await fs.readdir(opcodeGsd, { recursive: true })
+      const opcodeMdFiles = opcodeFiles.filter(f => f.endsWith('.md'))
+      for (const file of opcodeMdFiles) {
+        const filePath = path.join(opcodeGsd, file)
+        const stat = await fs.stat(filePath)
+        if (!stat.isFile()) continue
+        const content = await fs.readFile(filePath, 'utf8')
+        // If file references get-shit-done paths, they should use opencode path
+        if (content.includes('/get-shit-done/') && !content.includes('.gsd/knowledge')) {
+          expect(content).not.toContain('~/.claude/get-shit-done')
+        }
+      }
+
+      // Gemini: should use ~/.gemini/
+      const geminiGsd = path.join(geminiDir, 'get-shit-done')
+      const geminiFiles = await fs.readdir(geminiGsd, { recursive: true })
+      const geminiMdFiles = geminiFiles.filter(f => f.endsWith('.md'))
+      for (const file of geminiMdFiles) {
+        const filePath = path.join(geminiGsd, file)
+        const stat = await fs.stat(filePath)
+        if (!stat.isFile()) continue
+        const content = await fs.readFile(filePath, 'utf8')
+        if (content.includes('/get-shit-done/') && !content.includes('.gsd/knowledge')) {
+          expect(content).not.toContain('~/.claude/get-shit-done')
+        }
+      }
+
+      // Codex: should use ~/.codex/
+      const codexGsd = path.join(codexDir, 'get-shit-done')
+      const codexFiles = await fs.readdir(codexGsd, { recursive: true })
+      const codexMdFiles = codexFiles.filter(f => f.endsWith('.md'))
+      for (const file of codexMdFiles) {
+        const filePath = path.join(codexGsd, file)
+        const stat = await fs.stat(filePath)
+        if (!stat.isFile()) continue
+        const content = await fs.readFile(filePath, 'utf8')
+        if (content.includes('/get-shit-done/') && !content.includes('.gsd/knowledge')) {
+          expect(content).not.toContain('~/.claude/get-shit-done')
+        }
+      }
+    })
+
+    tmpdirTest('--all install: each runtime has format-correct command files', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // Claude: .md files in commands/gsd/
+      const claudeCommandsDir = path.join(tmpdir, '.claude', 'commands', 'gsd')
+      const claudeFiles = await fs.readdir(claudeCommandsDir)
+      const claudeMdFiles = claudeFiles.filter(f => f.endsWith('.md'))
+      expect(claudeMdFiles.length).toBeGreaterThanOrEqual(3)
+
+      // OpenCode: .md files matching gsd-*.md in command/ (flat)
+      const opcodeCommandDir = path.join(configHome, 'opencode', 'command')
+      const opcodeFiles = await fs.readdir(opcodeCommandDir)
+      const opcodeGsdFiles = opcodeFiles.filter(f => f.startsWith('gsd-') && f.endsWith('.md'))
+      expect(opcodeGsdFiles.length).toBeGreaterThanOrEqual(3)
+
+      // Gemini: .toml files in commands/gsd/
+      const geminiCommandsDir = path.join(tmpdir, '.gemini', 'commands', 'gsd')
+      const geminiFiles = await fs.readdir(geminiCommandsDir)
+      const geminiTomlFiles = geminiFiles.filter(f => f.endsWith('.toml'))
+      expect(geminiTomlFiles.length).toBeGreaterThanOrEqual(3)
+      // No .md files should be in Gemini commands
+      const geminiMdFiles = geminiFiles.filter(f => f.endsWith('.md'))
+      expect(geminiMdFiles.length).toBe(0)
+
+      // Codex: SKILL.md files in skills/gsd-*/
+      const codexSkillsDir = path.join(tmpdir, '.codex', 'skills')
+      const codexEntries = await fs.readdir(codexSkillsDir, { withFileTypes: true })
+      const codexSkillDirs = codexEntries.filter(e => e.isDirectory() && e.name.startsWith('gsd-'))
+      expect(codexSkillDirs.length).toBeGreaterThanOrEqual(3)
+
+      // Verify each Codex skill has a SKILL.md
+      for (const skillDir of codexSkillDirs) {
+        const skillMdPath = path.join(codexSkillsDir, skillDir.name, 'SKILL.md')
+        const exists = await fs.access(skillMdPath).then(() => true).catch(() => false)
+        expect(exists, `${skillDir.name}/SKILL.md should exist`).toBe(true)
+      }
+    })
+
+    tmpdirTest('--all install: shared KB directory created with correct structure', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // Verify ~/.gsd/knowledge/ directory exists with signals/, spikes/, lessons/
+      const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
+      await fileExists(path.join(kbDir, 'signals'))
+      await fileExists(path.join(kbDir, 'spikes'))
+      await fileExists(path.join(kbDir, 'lessons'))
+
+      // Verify Claude backward-compat symlink
+      const claudeSymlink = path.join(tmpdir, '.claude', 'gsd-knowledge')
+      const stat = await fs.lstat(claudeSymlink)
+      expect(stat.isSymbolicLink()).toBe(true)
+
+      const target = await fs.readlink(claudeSymlink)
+      expect(target).toBe(kbDir)
+    })
+
+    tmpdirTest('--all install: VERSION files present in all runtimes', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // Collect VERSION file contents from all 4 runtimes
+      const versionPaths = [
+        path.join(tmpdir, '.claude', 'get-shit-done', 'VERSION'),
+        path.join(configHome, 'opencode', 'get-shit-done', 'VERSION'),
+        path.join(tmpdir, '.gemini', 'get-shit-done', 'VERSION'),
+        path.join(tmpdir, '.codex', 'get-shit-done', 'VERSION'),
+      ]
+
+      const versions = []
+      for (const vp of versionPaths) {
+        const exists = await fs.access(vp).then(() => true).catch(() => false)
+        expect(exists, `VERSION file should exist: ${vp}`).toBe(true)
+        const version = (await fs.readFile(vp, 'utf8')).trim()
+        expect(version).toBeTruthy()
+        versions.push(version)
+      }
+
+      // All 4 runtimes should have the same version string
+      const [claude, opencode, gemini, codex] = versions
+      expect(opencode, 'OpenCode VERSION should match Claude').toBe(claude)
+      expect(gemini, 'Gemini VERSION should match Claude').toBe(claude)
+      expect(codex, 'Codex VERSION should match Claude').toBe(claude)
+    })
   })
 })
