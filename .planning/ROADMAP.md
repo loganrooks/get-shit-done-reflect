@@ -49,11 +49,11 @@ Plans:
   3. A symlink at `~/.claude/gsd-knowledge/` points to `~/.gsd/knowledge/`, so any tool referencing the old path still works
   4. Setting `GSD_HOME=/custom/path` causes the KB to reside at `/custom/path/knowledge/` instead of `~/.gsd/knowledge/`
   5. All 20+ workflow, reference, and agent files reference `~/.gsd/knowledge/` (no remaining `~/.claude/gsd-knowledge/` references in source)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 14-01: TBD
-- [ ] 14-02: TBD
+- [ ] 14-01-PLAN.md -- Update all source file KB path references to ~/.gsd/knowledge/ (KB-06)
+- [ ] 14-02-PLAN.md -- Add installer migration logic, symlink bridge, and GSD_HOME support (KB-01, KB-02, KB-03, KB-04, KB-05)
 
 #### Phase 15: Codex CLI Integration
 **Goal**: Users can install GSD into Codex CLI and use GSD commands (as Skills) to run projects, with graceful degradation for missing capabilities
@@ -111,7 +111,7 @@ Phases execute in numeric order: 13 -> 14 -> 15 -> 16 -> 17
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 13. Path Abstraction & Capability Matrix | 2/2 | ✓ Complete | 2026-02-11 |
-| 14. Knowledge Base Migration | 0/TBD | Not started | - |
+| 14. Knowledge Base Migration | 0/2 | Not started | - |
 | 15. Codex CLI Integration | 0/TBD | Not started | - |
 | 16. Cross-Runtime Handoff & Signal Enrichment | 0/TBD | Not started | - |
 | 17. Validation & Release | 0/TBD | Not started | - |
