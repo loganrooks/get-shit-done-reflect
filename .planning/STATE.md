@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-11)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 14 - Knowledge Base Migration
+**Current focus:** Phase 15 - Codex CLI Integration
 
 ## Current Position
 
-Phase: 14 of 17 (Knowledge Base Migration)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-02-11 -- Completed 14-02-PLAN.md (KB migration logic in installer)
+Phase: 15 of 17 (Codex CLI Integration)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-02-11 -- Completed 15-01-PLAN.md (Codex installer integration)
 
-Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [####......] 40%
+Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [########..] 83%
 
 ## Performance Metrics
 
@@ -29,8 +29,8 @@ Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [####.
 - Total execution time: ~70min
 
 **v1.14 In Progress:**
-- Plans completed: 4
-- Duration: 25min (6min + 8min + 8min + 3min)
+- Plans completed: 5
+- Duration: 31min (6min + 8min + 8min + 3min + 6min)
 
 ## Accumulated Context
 
@@ -41,7 +41,7 @@ v1.13 decisions archived in milestones/v1.13-ROADMAP.md.
 
 Recent decisions affecting current work:
 - Runtime-agnostic KB at ~/.gsd/knowledge/ (source files migrated in 14-01; installer migration in 14-02; COMPLETE)
-- OpenAI Codex CLI as 4th runtime (pending -- drives Phase 15)
+- OpenAI Codex CLI as 4th runtime: installer integration COMPLETE (15-01), testing pending (15-02)
 - Full continuity handoff across runtimes (pending -- drives Phase 16)
 - Two-pass path replacement: KB paths to ~/.gsd/knowledge/ (Pass 1), runtime-specific paths to target (Pass 2)
 - require.main guard added to install.js for testability
@@ -57,7 +57,7 @@ None.
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
-- Phase 15 may need research-phase for Codex Skills conversion and AGENTS.md consolidation (flagged by research)
+- Phase 15 research completed; Skills conversion and AGENTS.md generation implemented in 15-01
 
 ### Quick Tasks Completed
 
@@ -81,5 +81,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 roadmap created
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 14-02-PLAN.md (KB migration logic in installer). Phase 14 complete.
+Stopped at: Completed 15-01-PLAN.md (Codex installer integration). Plan 15-02 (testing) next.
 Resume file: None
