@@ -4,17 +4,17 @@
 
 See: .planning/PROJECT.md (updated 2026-02-11)
 
-**Core value:** The system never makes the same mistake twice — signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.14 Multi-Runtime Interop
+**Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
+**Current focus:** Phase 13 - Path Abstraction & Capability Matrix
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-11 — Milestone v1.14 started
+Phase: 13 of 17 (Path Abstraction & Capability Matrix)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-02-11 -- Roadmap created for v1.14
 
-Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped
+Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [..........] 0%
 
 ## Performance Metrics
 
@@ -35,6 +35,11 @@ Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped
 Full decision log in PROJECT.md Key Decisions table.
 v1.13 decisions archived in milestones/v1.13-ROADMAP.md.
 
+Recent decisions affecting current work:
+- Runtime-agnostic KB at ~/.gsd/knowledge/ (pending -- drives Phase 14)
+- OpenAI Codex CLI as 4th runtime (pending -- drives Phase 15)
+- Full continuity handoff across runtimes (pending -- drives Phase 16)
+
 ### Pending Todos
 
 None.
@@ -43,6 +48,7 @@ None.
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
+- Phase 15 may need research-phase for Codex Skills conversion and AGENTS.md consolidation (flagged by research)
 
 ### Quick Tasks Completed
 
@@ -52,7 +58,7 @@ None.
 
 ### Roadmap Evolution
 
-v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 started (defining requirements).
+v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 roadmap created (Phases 13-17).
 
 ### Key Artifacts
 
@@ -61,9 +67,10 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 started (defini
 - PR #3 -- sync/v1.13-upstream to main (https://github.com/loganrooks/get-shit-done-reflect/pull/3)
 - `.planning/FORK-STRATEGY.md` -- conflict resolution runbook + Merge Decision Log
 - `.planning/FORK-DIVERGENCES.md` -- per-file merge stances, post-merge risk recalibration
+- `.planning/research/SUMMARY.md` -- v1.14 multi-runtime interop research (HIGH confidence)
 
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: v1.14 milestone started. Defining requirements.
+Stopped at: v1.14 roadmap created. Ready to plan Phase 13.
 Resume file: None

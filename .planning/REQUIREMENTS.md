@@ -1,7 +1,7 @@
 # Requirements: GSD Reflect v1.14
 
 **Defined:** 2026-02-11
-**Core Value:** The system never makes the same mistake twice — signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
+**Core Value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
 
 ## v1.14 Requirements
 
@@ -88,41 +88,41 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ABST-01 | — | Pending |
-| ABST-02 | — | Pending |
-| ABST-03 | — | Pending |
-| ABST-04 | — | Pending |
-| KB-01 | — | Pending |
-| KB-02 | — | Pending |
-| KB-03 | — | Pending |
-| KB-04 | — | Pending |
-| KB-05 | — | Pending |
-| KB-06 | — | Pending |
-| CODEX-01 | — | Pending |
-| CODEX-02 | — | Pending |
-| CODEX-03 | — | Pending |
-| CODEX-04 | — | Pending |
-| CODEX-05 | — | Pending |
-| CODEX-06 | — | Pending |
-| CODEX-07 | — | Pending |
-| HAND-01 | — | Pending |
-| HAND-02 | — | Pending |
-| HAND-03 | — | Pending |
-| HAND-04 | — | Pending |
-| SIG-01 | — | Pending |
-| SIG-02 | — | Pending |
-| SIG-03 | — | Pending |
-| SIG-04 | — | Pending |
-| VALID-01 | — | Pending |
-| VALID-02 | — | Pending |
-| VALID-03 | — | Pending |
-| VALID-04 | — | Pending |
+| ABST-01 | Phase 13 | Pending |
+| ABST-02 | Phase 13 | Pending |
+| ABST-03 | Phase 13 | Pending |
+| ABST-04 | Phase 13 | Pending |
+| KB-01 | Phase 14 | Pending |
+| KB-02 | Phase 14 | Pending |
+| KB-03 | Phase 14 | Pending |
+| KB-04 | Phase 14 | Pending |
+| KB-05 | Phase 14 | Pending |
+| KB-06 | Phase 14 | Pending |
+| CODEX-01 | Phase 15 | Pending |
+| CODEX-02 | Phase 15 | Pending |
+| CODEX-03 | Phase 15 | Pending |
+| CODEX-04 | Phase 15 | Pending |
+| CODEX-05 | Phase 15 | Pending |
+| CODEX-06 | Phase 15 | Pending |
+| CODEX-07 | Phase 15 | Pending |
+| HAND-01 | Phase 16 | Pending |
+| HAND-02 | Phase 16 | Pending |
+| HAND-03 | Phase 16 | Pending |
+| HAND-04 | Phase 16 | Pending |
+| SIG-01 | Phase 16 | Pending |
+| SIG-02 | Phase 16 | Pending |
+| SIG-03 | Phase 16 | Pending |
+| SIG-04 | Phase 16 | Pending |
+| VALID-01 | Phase 17 | Pending |
+| VALID-02 | Phase 17 | Pending |
+| VALID-03 | Phase 17 | Pending |
+| VALID-04 | Phase 17 | Pending |
 
 **Coverage:**
 - v1.14 requirements: 29 total
-- Mapped to phases: 0
-- Unmapped: 29 ⚠️
+- Mapped to phases: 29
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-11*
-*Last updated: 2026-02-11 after initial definition*
+*Last updated: 2026-02-11 after roadmap creation*
