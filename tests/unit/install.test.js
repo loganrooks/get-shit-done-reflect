@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, getGsdHome, migrateKB, countKBEntries } = require('../../bin/install.js')
+const { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -742,6 +742,392 @@ describe('install script', () => {
         const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
         const exists = await fs.access(oldKBDir).then(() => true).catch(() => false)
         expect(exists).toBe(false)
+      })
+    })
+  })
+
+  describe('Codex CLI integration', () => {
+    describe('convertClaudeToCodexSkill() unit tests', () => {
+      it('strips disallowed frontmatter fields and keeps only name + description', () => {
+        const input = `---
+name: help
+description: Show all GSD commands
+allowed-tools:
+  - Read
+  - Bash
+argument-hint: <optional-filter>
+color: blue
+---
+
+Show all available GSD commands.`
+
+        const result = convertClaudeToCodexSkill(input, 'gsd-help')
+
+        // Should have name and description
+        expect(result).toContain('name: gsd-help')
+        expect(result).toContain('description: Show all GSD commands')
+
+        // Should NOT have disallowed fields
+        expect(result).not.toContain('allowed-tools:')
+        expect(result).not.toContain('argument-hint:')
+        expect(result).not.toContain('color:')
+        expect(result).not.toContain('- Read')
+        expect(result).not.toContain('- Bash')
+      })
+
+      it('replaces Claude tool names with Codex equivalents in body', () => {
+        const input = `---
+name: test
+description: test skill
+---
+
+Use the Read tool to read files. Use Bash to run commands.
+The Edit tool modifies files. Use Grep to search and Glob to find files.
+Use Write to create new files.`
+
+        const result = convertClaudeToCodexSkill(input, 'gsd-test')
+
+        expect(result).toContain('read_file tool')
+        expect(result).toContain('shell to run commands')
+        expect(result).toContain('apply_patch tool modifies')
+        expect(result).toContain('grep_files to search')
+        expect(result).toContain('list_dir to find')
+        expect(result).toContain('apply_patch to create')
+        expect(result).not.toMatch(/\bRead\b/)
+        expect(result).not.toMatch(/\bBash\b/)
+      })
+
+      it('replaces /gsd:command with $gsd-command for skill mention syntax', () => {
+        const input = `---
+name: help
+description: Help command
+---
+
+Run /gsd:plan-phase to plan. Use /gsd:execute-phase to execute.
+Also try /gsd:signal for insights.`
+
+        const result = convertClaudeToCodexSkill(input, 'gsd-help')
+
+        expect(result).toContain('$gsd-plan-phase')
+        expect(result).toContain('$gsd-execute-phase')
+        expect(result).toContain('$gsd-signal')
+        expect(result).not.toContain('/gsd:')
+      })
+
+      it('wraps content without frontmatter in minimal SKILL.md frontmatter', () => {
+        const input = 'This is a simple command body with no frontmatter.'
+
+        const result = convertClaudeToCodexSkill(input, 'gsd-simple')
+
+        expect(result).toContain('---')
+        expect(result).toContain('name: gsd-simple')
+        expect(result).toContain('description: GSD command: gsd-simple')
+        expect(result).toContain('This is a simple command body')
+      })
+
+      it('uses fallback description when description is empty', () => {
+        const input = `---
+name: empty
+description:
+---
+
+Body content.`
+
+        const result = convertClaudeToCodexSkill(input, 'gsd-empty')
+
+        expect(result).toContain('description: GSD command: gsd-empty')
+      })
+
+      it('strips angle brackets from description', () => {
+        const input = `---
+name: test
+description: <Run this command to do something>
+---
+
+Body.`
+
+        const result = convertClaudeToCodexSkill(input, 'gsd-test')
+
+        expect(result).not.toContain('<')
+        expect(result).not.toContain('>')
+        expect(result).toContain('description: Run this command to do something')
+      })
+
+      it('truncates description longer than 1024 chars', () => {
+        const longDesc = 'A'.repeat(2000)
+        const input = `---
+name: test
+description: ${longDesc}
+---
+
+Body.`
+
+        const result = convertClaudeToCodexSkill(input, 'gsd-test')
+
+        // Extract description from result
+        const descMatch = result.match(/description: (.+)/)
+        expect(descMatch).not.toBeNull()
+        expect(descMatch[1].length).toBeLessThanOrEqual(1024)
+      })
+
+      it('converts @~/.codex/ file references to explicit read instructions', () => {
+        const input = `---
+name: test
+description: test
+---
+
+Read @~/.codex/get-shit-done/workflows/signal.md for workflow details.`
+
+        const result = convertClaudeToCodexSkill(input, 'gsd-test')
+
+        expect(result).toContain('Read the file at `~/.codex/get-shit-done/workflows/signal.md`')
+        expect(result).not.toContain('@~/.codex/')
+      })
+
+      it('handles null tool mappings (WebFetch, Task, SlashCommand) by leaving them', () => {
+        const input = `---
+name: test
+description: test
+---
+
+Use WebFetch and Task and SlashCommand for these features.`
+
+        const result = convertClaudeToCodexSkill(input, 'gsd-test')
+
+        // Null-mapped tools should remain unchanged (not replaced)
+        expect(result).toContain('WebFetch')
+        expect(result).toContain('Task')
+        expect(result).toContain('SlashCommand')
+      })
+    })
+
+    describe('generateCodexAgentsMd() unit tests', () => {
+      tmpdirTest('creates new AGENTS.md with GSD markers when none exists', async ({ tmpdir }) => {
+        generateCodexAgentsMd(tmpdir, '~/.codex/')
+
+        const agentsMdPath = path.join(tmpdir, 'AGENTS.md')
+        const exists = await fs.access(agentsMdPath).then(() => true).catch(() => false)
+        expect(exists).toBe(true)
+
+        const content = await fs.readFile(agentsMdPath, 'utf8')
+        expect(content).toContain('<!-- GSD:BEGIN (get-shit-done-reflect-cc) -->')
+        expect(content).toContain('<!-- GSD:END (get-shit-done-reflect-cc) -->')
+        expect(content).toContain('$gsd-help')
+        expect(content).toContain('~/.gsd/knowledge')
+        expect(content).toContain('codex exec')
+        expect(content).toContain('No Task tool support')
+      })
+
+      tmpdirTest('appends GSD section to existing AGENTS.md without GSD section', async ({ tmpdir }) => {
+        const agentsMdPath = path.join(tmpdir, 'AGENTS.md')
+        await fs.writeFile(agentsMdPath, '# My Project\n\nExisting instructions.\n')
+
+        generateCodexAgentsMd(tmpdir, '~/.codex/')
+
+        const content = await fs.readFile(agentsMdPath, 'utf8')
+        expect(content).toContain('# My Project')
+        expect(content).toContain('Existing instructions.')
+        expect(content).toContain('<!-- GSD:BEGIN (get-shit-done-reflect-cc) -->')
+        expect(content).toContain('<!-- GSD:END (get-shit-done-reflect-cc) -->')
+      })
+
+      tmpdirTest('replaces existing GSD section idempotently', async ({ tmpdir }) => {
+        const agentsMdPath = path.join(tmpdir, 'AGENTS.md')
+        const initial = '# My Project\n\n<!-- GSD:BEGIN (get-shit-done-reflect-cc) -->\nOld content.\n<!-- GSD:END (get-shit-done-reflect-cc) -->\n\n# Other Section\n'
+        await fs.writeFile(agentsMdPath, initial)
+
+        generateCodexAgentsMd(tmpdir, '~/.codex/')
+
+        const content = await fs.readFile(agentsMdPath, 'utf8')
+        expect(content).toContain('# My Project')
+        expect(content).toContain('# Other Section')
+        expect(content).not.toContain('Old content.')
+        expect(content).toContain('$gsd-help')
+
+        // Verify exactly one GSD:BEGIN marker (idempotent)
+        const beginCount = (content.match(/GSD:BEGIN/g) || []).length
+        expect(beginCount).toBe(1)
+      })
+
+      tmpdirTest('content is under 4KB', async ({ tmpdir }) => {
+        generateCodexAgentsMd(tmpdir, '~/.codex/')
+
+        const content = await fs.readFile(path.join(tmpdir, 'AGENTS.md'), 'utf8')
+        expect(content.length).toBeLessThan(4096)
+      })
+
+      tmpdirTest('contains capability matrix reference with correct path prefix', async ({ tmpdir }) => {
+        generateCodexAgentsMd(tmpdir, '~/.codex/')
+
+        const content = await fs.readFile(path.join(tmpdir, 'AGENTS.md'), 'utf8')
+        expect(content).toContain('~/.codex/get-shit-done/references/capability-matrix.md')
+      })
+    })
+
+    describe('integration: --codex flag', () => {
+      const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+      tmpdirTest('--codex --global installs complete file layout', async ({ tmpdir }) => {
+        execSync(`node "${installScript}" --codex --global`, {
+          env: { ...process.env, HOME: tmpdir },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Verify skills/ contains gsd-*/SKILL.md directories
+        const skillsDir = path.join(tmpdir, '.codex', 'skills')
+        const skillsDirExists = await fs.access(skillsDir).then(() => true).catch(() => false)
+        expect(skillsDirExists).toBe(true)
+
+        const skillEntries = await fs.readdir(skillsDir)
+        const gsdSkills = skillEntries.filter(e => e.startsWith('gsd-'))
+        expect(gsdSkills.length).toBeGreaterThanOrEqual(3) // At least gsd-help, gsd-new-project, gsd-plan-phase
+
+        // Verify specific expected skills exist
+        expect(gsdSkills).toContain('gsd-help')
+        expect(gsdSkills).toContain('gsd-new-project')
+        expect(gsdSkills).toContain('gsd-plan-phase')
+
+        // Verify SKILL.md files have correct frontmatter
+        for (const skill of ['gsd-help', 'gsd-new-project', 'gsd-plan-phase']) {
+          const skillMd = await fs.readFile(path.join(skillsDir, skill, 'SKILL.md'), 'utf8')
+          expect(skillMd).toContain(`name: ${skill}`)
+          expect(skillMd).toContain('description:')
+          expect(skillMd).not.toContain('allowed-tools:')
+          expect(skillMd).not.toContain('color:')
+        }
+
+        // Verify paths in SKILL.md use ~/.codex/ not ~/.claude/
+        const helpSkill = await fs.readFile(path.join(skillsDir, 'gsd-help', 'SKILL.md'), 'utf8')
+        expect(helpSkill).not.toContain('~/.claude/')
+
+        // Verify get-shit-done reference docs exist
+        const gsdDir = path.join(tmpdir, '.codex', 'get-shit-done')
+        const gsdDirExists = await fs.access(gsdDir).then(() => true).catch(() => false)
+        expect(gsdDirExists).toBe(true)
+
+        // Verify AGENTS.md exists with GSD markers
+        const agentsMdPath = path.join(tmpdir, '.codex', 'AGENTS.md')
+        const agentsMd = await fs.readFile(agentsMdPath, 'utf8')
+        expect(agentsMd).toContain('<!-- GSD:BEGIN (get-shit-done-reflect-cc) -->')
+        expect(agentsMd).toContain('<!-- GSD:END (get-shit-done-reflect-cc) -->')
+
+        // Verify NO agents directory (agents skipped for Codex)
+        const agentsDir = path.join(tmpdir, '.codex', 'agents')
+        const agentsDirExists = await fs.access(agentsDir).then(() => true).catch(() => false)
+        expect(agentsDirExists).toBe(false)
+
+        // Verify NO hooks directory (hooks skipped for Codex)
+        const hooksDir = path.join(tmpdir, '.codex', 'hooks')
+        const hooksDirExists = await fs.access(hooksDir).then(() => true).catch(() => false)
+        expect(hooksDirExists).toBe(false)
+      })
+
+      tmpdirTest('--codex --global --uninstall removes GSD skills and AGENTS.md section', async ({ tmpdir }) => {
+        // First install
+        execSync(`node "${installScript}" --codex --global`, {
+          env: { ...process.env, HOME: tmpdir },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Verify install succeeded
+        const skillsDir = path.join(tmpdir, '.codex', 'skills')
+        const preUninstallSkills = await fs.readdir(skillsDir)
+        expect(preUninstallSkills.filter(e => e.startsWith('gsd-')).length).toBeGreaterThan(0)
+
+        // Uninstall
+        execSync(`node "${installScript}" --codex --global --uninstall`, {
+          env: { ...process.env, HOME: tmpdir },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Verify gsd-* skill directories removed
+        const postSkills = await fs.readdir(skillsDir)
+        const remainingGsd = postSkills.filter(e => e.startsWith('gsd-'))
+        expect(remainingGsd.length).toBe(0)
+
+        // Verify GSD section removed from AGENTS.md
+        const agentsMdPath = path.join(tmpdir, '.codex', 'AGENTS.md')
+        const agentsMdExists = await fs.access(agentsMdPath).then(() => true).catch(() => false)
+        // If AGENTS.md was entirely GSD content, it may be deleted
+        if (agentsMdExists) {
+          const content = await fs.readFile(agentsMdPath, 'utf8')
+          expect(content).not.toContain('<!-- GSD:BEGIN')
+        }
+      })
+
+      tmpdirTest('--all --global installs Codex alongside other runtimes', async ({ tmpdir }) => {
+        const configHome = path.join(tmpdir, '.config')
+
+        execSync(`node "${installScript}" --all --global`, {
+          env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 30000
+        })
+
+        // Verify Codex installed
+        const codexDir = path.join(tmpdir, '.codex')
+        const codexExists = await fs.access(codexDir).then(() => true).catch(() => false)
+        expect(codexExists).toBe(true)
+
+        const codexSkills = path.join(codexDir, 'skills')
+        const codexSkillsExists = await fs.access(codexSkills).then(() => true).catch(() => false)
+        expect(codexSkillsExists).toBe(true)
+
+        // Verify Claude installed
+        const claudeDir = path.join(tmpdir, '.claude', 'commands', 'gsd')
+        const claudeExists = await fs.access(claudeDir).then(() => true).catch(() => false)
+        expect(claudeExists).toBe(true)
+
+        // Verify OpenCode installed
+        const opcodeDir = path.join(configHome, 'opencode', 'command')
+        const opcodeExists = await fs.access(opcodeDir).then(() => true).catch(() => false)
+        expect(opcodeExists).toBe(true)
+
+        // Verify Gemini installed
+        const geminiDir = path.join(tmpdir, '.gemini', 'commands', 'gsd')
+        const geminiExists = await fs.access(geminiDir).then(() => true).catch(() => false)
+        expect(geminiExists).toBe(true)
+      })
+
+      tmpdirTest('Codex path replacement converts ~/.claude/ to ~/.codex/ in installed files', async ({ tmpdir }) => {
+        execSync(`node "${installScript}" --codex --global`, {
+          env: { ...process.env, HOME: tmpdir },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Read a get-shit-done reference doc that contains ~/.claude/ paths in source
+        const gsdDir = path.join(tmpdir, '.codex', 'get-shit-done')
+        const gsdFiles = await fs.readdir(gsdDir, { recursive: true })
+        const mdFiles = gsdFiles.filter(f => f.endsWith('.md'))
+
+        // At least some .md files should exist
+        expect(mdFiles.length).toBeGreaterThan(0)
+
+        // Check that none contain ~/.claude/ (should all be ~/.codex/)
+        for (const mdFile of mdFiles) {
+          const filePath = path.join(gsdDir, mdFile)
+          const stat = await fs.stat(filePath)
+          if (!stat.isFile()) continue
+          const content = await fs.readFile(filePath, 'utf8')
+          // Runtime-specific paths should use ~/.codex/, not ~/.claude/
+          if (content.includes('~/.claude/')) {
+            // Allow KB-related paths that are supposed to use ~/.gsd/
+            const lines = content.split('\n').filter(l => l.includes('~/.claude/'))
+            for (const line of lines) {
+              // Every line with ~/.claude/ is an error for Codex install
+              expect(line).not.toContain('~/.claude/')
+            }
+          }
+        }
       })
     })
   })
