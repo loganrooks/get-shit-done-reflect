@@ -18,7 +18,7 @@
 
 - [x] **Phase 13: Path Abstraction & Capability Matrix** - Separate runtime-specific from shared paths; declare per-runtime capabilities ✓ 2026-02-11
 - [x] **Phase 14: Knowledge Base Migration** - Move KB to runtime-agnostic ~/.gsd/knowledge/ with backward compatibility ✓ 2026-02-11
-- [ ] **Phase 15: Codex CLI Integration** - Install GSD commands as Codex Skills with AGENTS.md generation
+- [x] **Phase 15: Codex CLI Integration** - Install GSD commands as Codex Skills with AGENTS.md generation ✓ 2026-02-11
 - [ ] **Phase 16: Cross-Runtime Handoff & Signal Enrichment** - Pause/resume across runtimes; enrich signals with runtime provenance
 - [ ] **Phase 17: Validation & Release** - Verify all runtimes work end-to-end after all changes
 
@@ -68,8 +68,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 15-01-PLAN.md -- Codex adapter functions + installer integration (CODEX-01, CODEX-02, CODEX-03, CODEX-04, CODEX-05, CODEX-06, CODEX-07)
-- [ ] 15-02-PLAN.md -- Codex installation tests (unit + integration)
+- [x] 15-01-PLAN.md -- Codex adapter functions + installer integration (CODEX-01, CODEX-02, CODEX-03, CODEX-04, CODEX-05, CODEX-06, CODEX-07) ✓
+- [x] 15-02-PLAN.md -- Codex installation tests (unit + integration) ✓
 
 #### Phase 16: Cross-Runtime Handoff & Signal Enrichment
 **Goal**: Users can pause work in one runtime and resume in another with full state restoration, and signals capture runtime provenance for cross-runtime debugging
@@ -111,6 +111,6 @@ Phases execute in numeric order: 13 -> 14 -> 15 -> 16 -> 17
 |-------|---------------|--------|-----------|
 | 13. Path Abstraction & Capability Matrix | 2/2 | ✓ Complete | 2026-02-11 |
 | 14. Knowledge Base Migration | 2/2 | ✓ Complete | 2026-02-11 |
-| 15. Codex CLI Integration | 0/2 | Not started | - |
+| 15. Codex CLI Integration | 2/2 | ✓ Complete | 2026-02-11 |
 | 16. Cross-Runtime Handoff & Signal Enrichment | 0/TBD | Not started | - |
 | 17. Validation & Release | 0/TBD | Not started | - |
