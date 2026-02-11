@@ -95,7 +95,7 @@ Plans:
 **Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05
 **Success Criteria** (what must be TRUE):
   1. Running `npx vitest run` passes all fork tests (42+ tests) including updated wiring validation and install tests
-  2. Running `node --test get-shit-done/bin/gsd-tools.test.js` passes all 63 upstream gsd-tools tests
+  2. Running `node --test get-shit-done/bin/gsd-tools.test.js` passes all 75 upstream gsd-tools tests
   3. All three CI/CD workflows (ci.yml, publish.yml, smoke-test.yml) pass on a push to the sync branch, with correct OIDC identity and no CODEOWNERS blocking
   4. The wiring validation test correctly validates the thin orchestrator pattern (commands delegate to workflows) rather than the old inline-logic pattern
 **Plans**: 3 plans
