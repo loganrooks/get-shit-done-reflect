@@ -173,6 +173,113 @@ function expandTilde(filePath) {
 }
 
 /**
+ * Get the GSD home directory.
+ * Priority: GSD_HOME env var > ~/.gsd (default)
+ * @returns {string} Absolute path to GSD home directory
+ */
+function getGsdHome() {
+  if (process.env.GSD_HOME) {
+    const gsdHome = process.env.GSD_HOME;
+    if (gsdHome.startsWith('~/')) {
+      return path.join(os.homedir(), gsdHome.slice(2));
+    }
+    return gsdHome;
+  }
+  return path.join(os.homedir(), '.gsd');
+}
+
+/**
+ * Count .md files in KB subdirectories (signals/, spikes/, lessons/)
+ * @param {string} kbDir - Path to knowledge base directory
+ * @returns {number} Total count of .md files
+ */
+function countKBEntries(kbDir) {
+  let count = 0;
+  for (const subdir of ['signals', 'spikes', 'lessons']) {
+    const typeDir = path.join(kbDir, subdir);
+    if (!fs.existsSync(typeDir)) continue;
+    const entries = fs.readdirSync(typeDir, { recursive: true });
+    count += entries.filter(f => typeof f === 'string' && f.endsWith('.md')).length;
+  }
+  return count;
+}
+
+/**
+ * Migrate knowledge base to runtime-agnostic location.
+ *
+ * 1. Creates ~/.gsd/knowledge/{signals,spikes,lessons}
+ * 2. If old KB (~/.claude/gsd-knowledge/) exists and is NOT a symlink:
+ *    copies data, verifies entry count, creates backup, creates symlink
+ * 3. If old KB is already a symlink: skips (idempotent)
+ * 4. If old KB doesn't exist: optionally creates symlink for Claude runtime
+ *
+ * @param {string} gsdHome - GSD home directory (e.g., ~/.gsd)
+ * @param {string[]} [runtimes=[]] - Selected runtimes for symlink decision
+ */
+function migrateKB(gsdHome, runtimes) {
+  if (!runtimes) runtimes = [];
+  const newKBDir = path.join(gsdHome, 'knowledge');
+
+  // Step 1: Create new KB directory structure
+  fs.mkdirSync(path.join(newKBDir, 'signals'), { recursive: true });
+  fs.mkdirSync(path.join(newKBDir, 'spikes'), { recursive: true });
+  fs.mkdirSync(path.join(newKBDir, 'lessons'), { recursive: true });
+
+  const oldKBDir = path.join(os.homedir(), '.claude', 'gsd-knowledge');
+
+  // Step 2: Check if old KB exists
+  if (fs.existsSync(oldKBDir)) {
+    // Check if it's already a symlink (re-install after migration)
+    let isSymlink = false;
+    try {
+      isSymlink = fs.lstatSync(oldKBDir).isSymbolicLink();
+    } catch (e) {
+      // lstat failed, treat as not a symlink
+    }
+
+    if (isSymlink) {
+      // Already migrated - skip
+      console.log(`  ${green}✓${reset} Knowledge base already at: ${newKBDir}`);
+      return;
+    }
+
+    // First migration: copy old to new
+    const oldEntries = countKBEntries(oldKBDir);
+    if (oldEntries > 0) {
+      fs.cpSync(oldKBDir, newKBDir, { recursive: true });
+
+      // Verify zero data loss
+      const newEntries = countKBEntries(newKBDir);
+      if (newEntries < oldEntries) {
+        console.error(`  ${yellow}✗${reset} Migration verification failed: ${oldEntries} entries in source, ${newEntries} in destination`);
+        console.error(`    Both copies preserved. Manual intervention required.`);
+        return;
+      }
+    }
+
+    // Rename old to backup, create symlink
+    const backupDir = oldKBDir + '.migration-backup';
+    fs.renameSync(oldKBDir, backupDir);
+    fs.symlinkSync(newKBDir, oldKBDir);
+    console.log(`  ${green}✓${reset} Migrated knowledge base: ${oldEntries} entries`);
+    console.log(`    ${oldKBDir} -> ${newKBDir}`);
+    return;
+  }
+
+  // Step 3: Old KB doesn't exist - create symlink only for Claude runtime
+  if (runtimes.includes('claude')) {
+    // Ensure ~/.claude/ directory exists
+    fs.mkdirSync(path.join(os.homedir(), '.claude'), { recursive: true });
+    // Create symlink from old path to new path
+    if (!fs.existsSync(oldKBDir)) {
+      fs.symlinkSync(newKBDir, oldKBDir);
+    }
+  }
+
+  console.log(`  ${green}✓${reset} Created knowledge base at: ${newKBDir}`);
+}
+
+/**
  * Build a hook command path using forward slashes for cross-platform compatibility.
  * On Windows, $HOME is not expanded by cmd.exe/PowerShell, so we use the actual path.
  */
@@ -1731,6 +1838,10 @@ function promptLocation(runtimes) {
  * Install GSD for all selected runtimes
  */
 function installAllRuntimes(runtimes, isGlobal, isInteractive) {
+  // Resolve GSD home and migrate KB once before per-runtime loop
+  const gsdHome = getGsdHome();
+  migrateKB(gsdHome, runtimes);
+
   const results = [];
 
   for (const runtime of runtimes) {
@@ -1810,4 +1921,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent };
+module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries };
