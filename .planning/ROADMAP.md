@@ -4,7 +4,7 @@
 
 - <details><summary>v1.12 GSD Reflect (Phases 0-6) -- SHIPPED 2026-02-09</summary>See milestones/v1.12-ROADMAP.md</details>
 - <details><summary>v1.13 Upstream Sync & Validation (Phases 7-12) -- SHIPPED 2026-02-11</summary>See milestones/v1.13-ROADMAP.md</details>
-- **v1.14 Multi-Runtime Interop** - Phases 13-17 (in progress)
+- **v1.14 Multi-Runtime Interop** - Phases 13-17 (complete)
 
 ## v1.14 Multi-Runtime Interop
 
@@ -20,7 +20,7 @@
 - [x] **Phase 14: Knowledge Base Migration** - Move KB to runtime-agnostic ~/.gsd/knowledge/ with backward compatibility ✓ 2026-02-11
 - [x] **Phase 15: Codex CLI Integration** - Install GSD commands as Codex Skills with AGENTS.md generation ✓ 2026-02-11
 - [x] **Phase 16: Cross-Runtime Handoff & Signal Enrichment** - Pause/resume across runtimes; enrich signals with runtime provenance ✓ 2026-02-11
-- [ ] **Phase 17: Validation & Release** - Verify all runtimes work end-to-end after all changes
+- [x] **Phase 17: Validation & Release** - Verify all runtimes work end-to-end after all changes ✓ 2026-02-11
 
 ### Phase Details
 
@@ -99,8 +99,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 17-01-PLAN.md -- Per-runtime deep validation tests for OpenCode and Gemini + multi-runtime --all content verification (VALID-01, VALID-02, VALID-03)
-- [ ] 17-02-PLAN.md -- Cross-runtime KB accessibility tests + release readiness validation (VALID-04)
+- [x] 17-01-PLAN.md -- Per-runtime deep validation tests for OpenCode and Gemini + multi-runtime --all content verification (VALID-01, VALID-02, VALID-03) ✓
+- [x] 17-02-PLAN.md -- Cross-runtime KB accessibility tests + release readiness validation (VALID-04) ✓
 
 ### Progress
 
@@ -113,4 +113,4 @@ Phases execute in numeric order: 13 -> 14 -> 15 -> 16 -> 17
 | 14. Knowledge Base Migration | 2/2 | ✓ Complete | 2026-02-11 |
 | 15. Codex CLI Integration | 2/2 | ✓ Complete | 2026-02-11 |
 | 16. Cross-Runtime Handoff & Signal Enrichment | 2/2 | ✓ Complete | 2026-02-11 |
-| 17. Validation & Release | 0/2 | Not started | - |
+| 17. Validation & Release | 2/2 | ✓ Complete | 2026-02-11 |
