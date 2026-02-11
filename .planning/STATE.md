@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-11)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 17 - Validation & Release
+**Current focus:** Phase 17 - Validation & Release (COMPLETE)
 
 ## Current Position
 
 Phase: 17 of 17 (Validation & Release)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-11 -- Completed 17-01-PLAN.md (multi-runtime deep validation)
+Plan: 2 of 2 in current phase
+Status: Phase complete -- v1.14 milestone complete
+Last activity: 2026-02-11 -- Completed 17-02-PLAN.md (cross-runtime KB accessibility)
 
-Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [#########-] 90%
+Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [##########] 100%
 
 ## Performance Metrics
 
@@ -28,9 +28,9 @@ Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [#####
 - Average duration: ~4.4min
 - Total execution time: ~70min
 
-**v1.14 In Progress:**
-- Plans completed: 9
-- Duration: 43min (6min + 8min + 8min + 3min + 6min + 2min + 3min + 4min + 3min)
+**v1.14 Final:**
+- Plans completed: 10
+- Duration: 46min (6min + 8min + 8min + 3min + 6min + 2min + 3min + 4min + 3min + 3min)
 
 ## Accumulated Context
 
@@ -52,6 +52,8 @@ Recent decisions affecting current work:
 - Inform once then adapt silently strategy for degraded runtime behavior
 - Handoff files store semantic state only; command rendering is the resume workflow's responsibility
 - Runtime detected via installed path prefix (no new infrastructure needed)
+- Nested vitest meta-test impractical; release gate documented as code comment instead
+- All 4 VALID requirements validated: VALID-01 (OpenCode), VALID-02 (Gemini), VALID-03 (--all depth), VALID-04 (cross-runtime KB)
 
 ### Pending Todos
 
@@ -61,8 +63,7 @@ None.
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
-- Phase 15 complete; all 4 runtimes have installer integration and test coverage (64 tests total)
-- Phase 17 validation: 127 tests passing (13 new deep validation tests for VALID-01, VALID-02, VALID-03)
+- v1.14 release ready: 127 tests passing across 7 test files, all 4 runtimes validated
 
 ### Quick Tasks Completed
 
@@ -72,7 +73,7 @@ None.
 
 ### Roadmap Evolution
 
-v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 roadmap created (Phases 13-17).
+v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phases 13-17).
 
 ### Key Artifacts
 
@@ -86,5 +87,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 roadmap created
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 17-01-PLAN.md (multi-runtime deep validation). 17-02 next.
+Stopped at: Completed 17-02-PLAN.md (cross-runtime KB accessibility). Phase 17 complete. v1.14 milestone complete.
 Resume file: None
