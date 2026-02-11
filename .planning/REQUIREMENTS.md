@@ -14,17 +14,17 @@ Requirements for upstream sync milestone. Each maps to roadmap phases.
 
 ### Upstream Bug Fixes
 
-- [ ] **FIX-01**: Executor completion verification prevents hallucinated success (f380275)
-- [ ] **FIX-02**: Context fidelity enforcement in planning pipeline (ecbc692)
-- [ ] **FIX-03**: Respect parallelization config setting (4267c6c)
-- [ ] **FIX-04**: Researcher always writes RESEARCH.md regardless of commit_docs (161aa61)
-- [ ] **FIX-05**: commit_docs=false respected in all .planning commit paths (01c9115)
-- [ ] **FIX-06**: Auto-create config.json when missing (4dff989)
-- [ ] **FIX-07**: Statusline crash handling, color validation, git staging rules (9d7ea9c)
-- [ ] **FIX-08**: Update statusline.js reference during install (074b2bc)
-- [ ] **FIX-09**: Prevent API keys from being committed via map-codebase (f53011c)
-- [ ] **FIX-10**: Executor explicitly specifies subagent_type="gsd-executor" (4249506)
-- [ ] **FIX-11**: Workaround for Claude Code classifyHandoffIfNeeded bug (4072fd2)
+- [x] **FIX-01**: Executor completion verification prevents hallucinated success (f380275)
+- [x] **FIX-02**: Context fidelity enforcement in planning pipeline (ecbc692)
+- [x] **FIX-03**: Respect parallelization config setting (4267c6c)
+- [x] **FIX-04**: Researcher always writes RESEARCH.md regardless of commit_docs (161aa61)
+- [x] **FIX-05**: commit_docs=false respected in all .planning commit paths (01c9115)
+- [x] **FIX-06**: Auto-create config.json when missing (4dff989)
+- [x] **FIX-07**: Statusline crash handling, color validation, git staging rules (9d7ea9c)
+- [x] **FIX-08**: Update statusline.js reference during install (074b2bc)
+- [x] **FIX-09**: Prevent API keys from being committed via map-codebase (f53011c)
+- [x] **FIX-10**: Executor explicitly specifies subagent_type="gsd-executor" (4249506)
+- [x] **FIX-11**: Workaround for Claude Code classifyHandoffIfNeeded bug (4072fd2)
 
 ### Architecture Adoption
 
@@ -38,12 +38,12 @@ Requirements for upstream sync milestone. Each maps to roadmap phases.
 
 ### Merge & Integration
 
-- [ ] **MERGE-01**: Resolve 12 overlapping files between fork and upstream (per ARCHITECTURE.md resolution table)
-- [ ] **MERGE-02**: Preserve fork branding in install.js (banner, package name, help text, version-check hook)
-- [ ] **MERGE-03**: Migrate fork-specific command logic to workflow layer (DevOps detection, help content, package refs)
-- [ ] **MERGE-04**: Verify no memory system ghost references (grep for gsd_memory, gsd-memory, projects.json)
-- [ ] **MERGE-05**: Update package.json with correct fork identity + upstream file additions
-- [ ] **MERGE-06**: Regenerate package-lock.json after package.json merge
+- [x] **MERGE-01**: Resolve 8 overlapping files between fork and upstream (8 actual conflicts, 3 predicted auto-resolved)
+- [x] **MERGE-02**: Preserve fork branding in install.js (banner, package name, help text, version-check hook)
+- [x] **MERGE-03**: Migrate fork-specific command logic to workflow layer (DevOps detection, help content, package refs)
+- [x] **MERGE-04**: Verify no memory system ghost references (grep for gsd_memory, gsd-memory, projects.json)
+- [x] **MERGE-05**: Update package.json with correct fork identity + upstream file additions
+- [x] **MERGE-06**: Regenerate package-lock.json after package.json merge
 
 ### Upstream Features
 
@@ -101,17 +101,17 @@ Deferred to later milestones.
 |-------------|-------|--------|
 | FORK-01 | Phase 7 | Complete |
 | FORK-02 | Phase 7 | Complete |
-| FIX-01 | Phase 8 | Pending |
-| FIX-02 | Phase 8 | Pending |
-| FIX-03 | Phase 8 | Pending |
-| FIX-04 | Phase 8 | Pending |
-| FIX-05 | Phase 8 | Pending |
-| FIX-06 | Phase 8 | Pending |
-| FIX-07 | Phase 8 | Pending |
-| FIX-08 | Phase 8 | Pending |
-| FIX-09 | Phase 8 | Pending |
-| FIX-10 | Phase 8 | Pending |
-| FIX-11 | Phase 8 | Pending |
+| FIX-01 | Phase 8 | Complete |
+| FIX-02 | Phase 8 | Complete |
+| FIX-03 | Phase 8 | Complete |
+| FIX-04 | Phase 8 | Complete |
+| FIX-05 | Phase 8 | Complete |
+| FIX-06 | Phase 8 | Complete |
+| FIX-07 | Phase 8 | Complete |
+| FIX-08 | Phase 8 | Complete |
+| FIX-09 | Phase 8 | Complete |
+| FIX-10 | Phase 8 | Complete |
+| FIX-11 | Phase 8 | Complete |
 | ARCH-01 | Phase 9 | Pending |
 | ARCH-02 | Phase 9 | Pending |
 | ARCH-03 | Phase 9 | Pending |
@@ -119,12 +119,12 @@ Deferred to later milestones.
 | ARCH-05 | Phase 9 | Pending |
 | ARCH-06 | Phase 9 | Pending |
 | ARCH-07 | Phase 9 | Pending |
-| MERGE-01 | Phase 8 | Pending |
-| MERGE-02 | Phase 8 | Pending |
-| MERGE-03 | Phase 8 | Pending |
-| MERGE-04 | Phase 8 | Pending |
-| MERGE-05 | Phase 8 | Pending |
-| MERGE-06 | Phase 8 | Pending |
+| MERGE-01 | Phase 8 | Complete |
+| MERGE-02 | Phase 8 | Complete |
+| MERGE-03 | Phase 8 | Complete |
+| MERGE-04 | Phase 8 | Complete |
+| MERGE-05 | Phase 8 | Complete |
+| MERGE-06 | Phase 8 | Complete |
 | FEAT-01 | Phase 10 | Pending |
 | FEAT-02 | Phase 10 | Pending |
 | FEAT-03 | Phase 10 | Pending |
@@ -149,4 +149,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-02-09*
-*Last updated: 2026-02-10 after Phase 7 completion (FORK-01, FORK-02 complete)*
+*Last updated: 2026-02-10 after Phase 8 completion (FIX-01–11, MERGE-01–06 complete)*

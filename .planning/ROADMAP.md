@@ -16,7 +16,7 @@ This milestone synchronizes the fork with 70 upstream GSD commits (v1.11.2 to v1
 - Decimal phases (8.1, 8.2): Urgent insertions if needed (marked with INSERTED)
 
 - [x] **Phase 7: Fork Strategy & Pre-Merge Setup** - Retire additive-only constraint, adopt tracked-modifications strategy, prepare sync branch
-- [ ] **Phase 8: Core Merge & Conflict Resolution** - Execute git merge, resolve 12 conflict files, apply bug fixes, preserve fork identity
+- [x] **Phase 8: Core Merge & Conflict Resolution** - Execute git merge, resolve 8 conflict files, apply 11 bug fixes, preserve fork identity
 - [ ] **Phase 9: Architecture Adoption & Verification** - Verify gsd-tools.js, thin orchestrator, and all additive architecture pieces function with fork
 - [ ] **Phase 10: Upstream Feature Verification** - Verify adopted features work in fork context
 - [ ] **Phase 11: Test Suite Repair & CI/CD Validation** - Fix broken tests, integrate new test suites, validate CI/CD pipelines
@@ -51,10 +51,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 08-01-PLAN.md -- Pre-flight checks & execute merge
-- [ ] 08-02-PLAN.md -- Resolve HIGH risk conflicts (install.js, package.json, new-project.md)
-- [ ] 08-03-PLAN.md -- Resolve MEDIUM + LOW risk conflicts
-- [ ] 08-04-PLAN.md -- Validate merge, ghost cleanup, categorized merge summary
+- [x] 08-01-PLAN.md -- Pre-flight checks & execute merge
+- [x] 08-02-PLAN.md -- Resolve HIGH risk conflicts (package.json, new-project.md) + thin orchestrator adoption
+- [x] 08-03-PLAN.md -- Resolve remaining conflicts (.gitignore, README, CHANGELOG, package-lock)
+- [x] 08-04-PLAN.md -- Commit merge, validate, ghost cleanup, categorized merge summary
 
 ### Phase 9: Architecture Adoption & Verification
 **Goal**: The gsd-tools CLI, thin orchestrator pattern, condensed agent specs, and all additive architecture pieces are verified to work with the fork's configuration and features
@@ -122,7 +122,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 7. Fork Strategy & Pre-Merge Setup | v1.13 | 2/2 | Complete | 2026-02-10 |
-| 8. Core Merge & Conflict Resolution | v1.13 | 0/4 | Not started | - |
+| 8. Core Merge & Conflict Resolution | v1.13 | 4/4 | Complete | 2026-02-10 |
 | 9. Architecture Adoption & Verification | v1.13 | 0/TBD | Not started | - |
 | 10. Upstream Feature Verification | v1.13 | 0/TBD | Not started | - |
 | 11. Test Suite Repair & CI/CD Validation | v1.13 | 0/TBD | Not started | - |
