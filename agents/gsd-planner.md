@@ -362,7 +362,7 @@ Output: [Artifacts created]
 
 <execution_context>
 @~/.claude/get-shit-done/workflows/execute-plan.md
-@~/.claude/get-shit-done/templates/summary.md
+@~/.claude/get-shit-done/templates/summary-standard.md
 </execution_context>
 
 <context>

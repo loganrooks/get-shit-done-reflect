@@ -274,7 +274,7 @@ git commit -m "{type}({phase}-{plan}): {concise task description}
 <summary_creation>
 After all tasks complete, create `{phase}-{plan}-SUMMARY.md` at `.planning/phases/XX-name/`.
 
-**Use template:** @~/.claude/get-shit-done/templates/summary.md
+**Use template:** @~/.claude/get-shit-done/templates/summary-standard.md (or summary-minimal.md / summary-complex.md based on plan complexity)
 
 **Frontmatter:** phase, plan, subsystem, tags, dependency graph (requires/provides/affects), tech-stack (added/patterns), key-files (created/modified), decisions, metrics (duration, completed date).
 

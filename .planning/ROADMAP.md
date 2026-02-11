@@ -61,15 +61,15 @@ Plans:
 **Depends on**: Phase 8
 **Requirements**: ARCH-01, ARCH-02, ARCH-03, ARCH-04, ARCH-05, ARCH-06, ARCH-07
 **Success Criteria** (what must be TRUE):
-  1. Running `node get-shit-done/bin/gsd-tools.js --help` shows available commands and exits cleanly
-  2. Running `node get-shit-done/bin/gsd-tools.js config get .planning/config.json depth` correctly reads fork config including custom fields (health_check, devops, gsd_reflect_version)
-  3. Fork-specific command logic (DevOps detection, help content, package references) has been migrated from old command files to the workflow layer, verified by the commands delegating to workflows
-  4. The 19 new workflow files, 4 new reference files, and 3 new summary templates are present and syntactically valid
+  1. Running `node get-shit-done/bin/gsd-tools.js` with no arguments displays available commands and usage information
+  2. Running `node get-shit-done/bin/gsd-tools.js config-set` round-trips fork custom fields (health_check, devops, gsd_reflect_version) without data loss, and `state load` returns upstream config fields correctly
+  3. Fork-specific command logic (DevOps detection, help content, package references) has been migrated from old command files to the workflow layer. The 3 commands converted in Phase 8 (new-project, help, update) plus 3 converted in Phase 9 (signal, upgrade-project, join-discord) all delegate to workflows
+  4. 34 total workflow files (28 upstream-origin, 6 fork-only), 4 new reference files, and 3 new summary templates are present and verified
 **Plans**: 3 plans
 
 Plans:
-- [ ] 09-01-PLAN.md -- Comprehensive architecture audit & findings report
-- [ ] 09-02-PLAN.md -- Fork identity, templates & governance cleanup
+- [x] 09-01-PLAN.md -- Comprehensive architecture audit & findings report
+- [x] 09-02-PLAN.md -- Fork identity, templates & governance cleanup
 - [ ] 09-03-PLAN.md -- Thin orchestrator conversion for fork commands
 
 ### Phase 10: Upstream Feature Verification
@@ -125,7 +125,7 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 |-------|-----------|----------------|--------|-----------|
 | 7. Fork Strategy & Pre-Merge Setup | v1.13 | 2/2 | Complete | 2026-02-10 |
 | 8. Core Merge & Conflict Resolution | v1.13 | 4/4 | Complete | 2026-02-10 |
-| 9. Architecture Adoption & Verification | v1.13 | 0/TBD | Not started | - |
+| 9. Architecture Adoption & Verification | v1.13 | 2/3 | In progress | - |
 | 10. Upstream Feature Verification | v1.13 | 0/TBD | Not started | - |
 | 11. Test Suite Repair & CI/CD Validation | v1.13 | 0/TBD | Not started | - |
 | 12. Release & Dogfooding | v1.13 | 0/TBD | Not started | - |
