@@ -47,13 +47,13 @@ Requirements for upstream sync milestone. Each maps to roadmap phases.
 
 ### Upstream Features
 
-- [ ] **FEAT-01**: Preserve local patches across GSD updates (ca03a06) — reapply-patches command
-- [ ] **FEAT-02**: --auto flag for unattended project initialization (7f49083)
-- [ ] **FEAT-03**: --include flag for eliminating redundant file reads (fa81821 + 01c9115)
-- [ ] **FEAT-04**: Brave Search integration for researchers (60ccba9)
-- [ ] **FEAT-05**: Local vs global install detection in update command (8384575)
-- [ ] **FEAT-06**: JSONC parsing in installer to prevent opencode.json deletion (6cf4a4e)
-- [ ] **FEAT-07**: Persist research decision from new-milestone to config (767bef6)
+- [x] **FEAT-01**: Preserve local patches across GSD updates (ca03a06) — reapply-patches command
+- [x] **FEAT-02**: --auto flag for unattended project initialization (7f49083)
+- [x] **FEAT-03**: --include flag for eliminating redundant file reads (fa81821 + 01c9115)
+- [x] **FEAT-04**: Brave Search integration for researchers (60ccba9)
+- [x] **FEAT-05**: Local vs global install detection in update command (8384575)
+- [x] **FEAT-06**: JSONC parsing in installer to prevent opencode.json deletion (6cf4a4e)
+- [x] **FEAT-07**: Persist research decision from new-milestone to config (767bef6)
 
 ### Testing & Validation
 
@@ -125,13 +125,13 @@ Deferred to later milestones.
 | MERGE-04 | Phase 8 | Complete |
 | MERGE-05 | Phase 8 | Complete |
 | MERGE-06 | Phase 8 | Complete |
-| FEAT-01 | Phase 10 | Pending |
-| FEAT-02 | Phase 10 | Pending |
-| FEAT-03 | Phase 10 | Pending |
-| FEAT-04 | Phase 10 | Pending |
-| FEAT-05 | Phase 10 | Pending |
-| FEAT-06 | Phase 10 | Pending |
-| FEAT-07 | Phase 10 | Pending |
+| FEAT-01 | Phase 10 | Complete |
+| FEAT-02 | Phase 10 | Complete |
+| FEAT-03 | Phase 10 | Complete |
+| FEAT-04 | Phase 10 | Complete |
+| FEAT-05 | Phase 10 | Complete |
+| FEAT-06 | Phase 10 | Complete |
+| FEAT-07 | Phase 10 | Complete |
 | TEST-01 | Phase 11 | Pending |
 | TEST-02 | Phase 11 | Pending |
 | TEST-03 | Phase 11 | Pending |
@@ -149,4 +149,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-02-09*
-*Last updated: 2026-02-10 after Phase 9 completion (ARCH-01–07 complete)*
+*Last updated: 2026-02-11 after Phase 10 completion (FEAT-01–07 complete)*
