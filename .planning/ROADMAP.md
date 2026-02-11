@@ -96,11 +96,11 @@ Plans:
   2. Gemini CLI installation completes successfully and GSD commands work with the new path system
   3. `--all` multi-runtime install (4 runtimes) completes without errors and each runtime has correct format-converted files
   4. KB is accessible and writable from all 4 installed runtimes (create signal in one runtime, read it in another)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 17-01: TBD
-- [ ] 17-02: TBD
+- [ ] 17-01-PLAN.md -- Per-runtime deep validation tests for OpenCode and Gemini + multi-runtime --all content verification (VALID-01, VALID-02, VALID-03)
+- [ ] 17-02-PLAN.md -- Cross-runtime KB accessibility tests + release readiness validation (VALID-04)
 
 ### Progress
 
@@ -113,4 +113,4 @@ Phases execute in numeric order: 13 -> 14 -> 15 -> 16 -> 17
 | 14. Knowledge Base Migration | 2/2 | ✓ Complete | 2026-02-11 |
 | 15. Codex CLI Integration | 2/2 | ✓ Complete | 2026-02-11 |
 | 16. Cross-Runtime Handoff & Signal Enrichment | 2/2 | ✓ Complete | 2026-02-11 |
-| 17. Validation & Release | 0/TBD | Not started | - |
+| 17. Validation & Release | 0/2 | Not started | - |
