@@ -328,6 +328,18 @@ Create `.planning/config.json` with all settings:
     "research": true|false,
     "plan_check": true|false,
     "verifier": true|false
+  },
+  "gsd_reflect_version": "1.13.0",
+  "health_check": {
+    "frequency": "milestone-only",
+    "stale_threshold_days": 7,
+    "blocking_checks": false
+  },
+  "devops": {
+    "ci_provider": "none",
+    "deploy_target": "none",
+    "commit_convention": "freeform",
+    "environments": []
   }
 }
 ```
