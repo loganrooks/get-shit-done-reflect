@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 14 of 17 (Knowledge Base Migration)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-11 -- Completed 14-01-PLAN.md (KB path migration in source files)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-02-11 -- Completed 14-02-PLAN.md (KB migration logic in installer)
 
-Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [###.......] 30%
+Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [####......] 40%
 
 ## Performance Metrics
 
@@ -29,8 +29,8 @@ Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [###..
 - Total execution time: ~70min
 
 **v1.14 In Progress:**
-- Plans completed: 3
-- Duration: 22min (6min + 8min + 8min)
+- Plans completed: 4
+- Duration: 25min (6min + 8min + 8min + 3min)
 
 ## Accumulated Context
 
@@ -40,7 +40,7 @@ Full decision log in PROJECT.md Key Decisions table.
 v1.13 decisions archived in milestones/v1.13-ROADMAP.md.
 
 Recent decisions affecting current work:
-- Runtime-agnostic KB at ~/.gsd/knowledge/ (source files migrated in 14-01; installer migration in 14-02)
+- Runtime-agnostic KB at ~/.gsd/knowledge/ (source files migrated in 14-01; installer migration in 14-02; COMPLETE)
 - OpenAI Codex CLI as 4th runtime (pending -- drives Phase 15)
 - Full continuity handoff across runtimes (pending -- drives Phase 16)
 - Two-pass path replacement: KB paths to ~/.gsd/knowledge/ (Pass 1), runtime-specific paths to target (Pass 2)
@@ -81,5 +81,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 roadmap created
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 14-01-PLAN.md (KB path migration in source files). Phase 14 in progress.
+Stopped at: Completed 14-02-PLAN.md (KB migration logic in installer). Phase 14 complete.
 Resume file: None
