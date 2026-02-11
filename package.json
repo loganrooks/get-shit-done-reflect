@@ -56,6 +56,7 @@
     "test:infra": "vitest run tests/integration/kb-infrastructure.test.js tests/integration/wiring-validation.test.js",
     "test:smoke": "bash tests/smoke/run-smoke.sh",
     "test:smoke:quick": "SMOKE_TIER=quick bash tests/smoke/run-smoke.sh",
-    "test:smoke:full": "SMOKE_TIER=full bash tests/smoke/run-smoke.sh"
+    "test:smoke:full": "SMOKE_TIER=full bash tests/smoke/run-smoke.sh",
+    "test:upstream": "node --test get-shit-done/bin/gsd-tools.test.js"
   }
 }
