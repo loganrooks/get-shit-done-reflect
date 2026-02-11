@@ -17,7 +17,7 @@
 - Decimal phases (13.1, 13.2): Urgent insertions (marked with INSERTED)
 
 - [x] **Phase 13: Path Abstraction & Capability Matrix** - Separate runtime-specific from shared paths; declare per-runtime capabilities ✓ 2026-02-11
-- [ ] **Phase 14: Knowledge Base Migration** - Move KB to runtime-agnostic ~/.gsd/knowledge/ with backward compatibility
+- [x] **Phase 14: Knowledge Base Migration** - Move KB to runtime-agnostic ~/.gsd/knowledge/ with backward compatibility ✓ 2026-02-11
 - [ ] **Phase 15: Codex CLI Integration** - Install GSD commands as Codex Skills with AGENTS.md generation
 - [ ] **Phase 16: Cross-Runtime Handoff & Signal Enrichment** - Pause/resume across runtimes; enrich signals with runtime provenance
 - [ ] **Phase 17: Validation & Release** - Verify all runtimes work end-to-end after all changes
@@ -52,8 +52,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 14-01-PLAN.md -- Update all source file KB path references to ~/.gsd/knowledge/ (KB-06)
-- [ ] 14-02-PLAN.md -- Add installer migration logic, symlink bridge, and GSD_HOME support (KB-01, KB-02, KB-03, KB-04, KB-05)
+- [x] 14-01-PLAN.md -- Update all source file KB path references to ~/.gsd/knowledge/ (KB-06) ✓
+- [x] 14-02-PLAN.md -- Add installer migration logic, symlink bridge, and GSD_HOME support (KB-01, KB-02, KB-03, KB-04, KB-05) ✓
 
 #### Phase 15: Codex CLI Integration
 **Goal**: Users can install GSD into Codex CLI and use GSD commands (as Skills) to run projects, with graceful degradation for missing capabilities
@@ -111,7 +111,7 @@ Phases execute in numeric order: 13 -> 14 -> 15 -> 16 -> 17
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
 | 13. Path Abstraction & Capability Matrix | 2/2 | ✓ Complete | 2026-02-11 |
-| 14. Knowledge Base Migration | 0/2 | Not started | - |
+| 14. Knowledge Base Migration | 2/2 | ✓ Complete | 2026-02-11 |
 | 15. Codex CLI Integration | 0/TBD | Not started | - |
 | 16. Cross-Runtime Handoff & Signal Enrichment | 0/TBD | Not started | - |
 | 17. Validation & Release | 0/TBD | Not started | - |
