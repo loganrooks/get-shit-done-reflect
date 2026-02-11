@@ -4,10 +4,13 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import { execSync } from 'node:child_process'
 
-// Import replacePathsInContent for direct unit testing
+import fsSync from 'node:fs'
+import os from 'node:os'
+
+// Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent } = require('../../bin/install.js')
+const { replacePathsInContent, getGsdHome, migrateKB, countKBEntries } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -421,6 +424,324 @@ describe('install script', () => {
         // KB paths already at shared location pass through unchanged
         expect(content).toContain('~/.gsd/knowledge')
         expect(content).not.toContain('~/.claude/gsd-knowledge')
+      })
+    })
+  })
+
+  describe('KB migration', () => {
+    // Helper to set HOME for migration tests and restore after
+    function withMockHome(tmpdir, fn) {
+      const origHome = process.env.HOME
+      process.env.HOME = tmpdir
+      try {
+        return fn()
+      } finally {
+        process.env.HOME = origHome
+      }
+    }
+
+    describe('getGsdHome()', () => {
+      it('returns ~/.gsd by default when GSD_HOME not set', () => {
+        const origGsdHome = process.env.GSD_HOME
+        delete process.env.GSD_HOME
+        try {
+          const result = getGsdHome()
+          expect(result).toBe(path.join(os.homedir(), '.gsd'))
+        } finally {
+          if (origGsdHome !== undefined) {
+            process.env.GSD_HOME = origGsdHome
+          }
+        }
+      })
+
+      it('returns custom path when GSD_HOME is set', () => {
+        const origGsdHome = process.env.GSD_HOME
+        process.env.GSD_HOME = '/custom/gsd/path'
+        try {
+          const result = getGsdHome()
+          expect(result).toBe('/custom/gsd/path')
+        } finally {
+          if (origGsdHome !== undefined) {
+            process.env.GSD_HOME = origGsdHome
+          } else {
+            delete process.env.GSD_HOME
+          }
+        }
+      })
+
+      it('expands tilde in GSD_HOME value', () => {
+        const origGsdHome = process.env.GSD_HOME
+        process.env.GSD_HOME = '~/custom-gsd'
+        try {
+          const result = getGsdHome()
+          expect(result).toBe(path.join(os.homedir(), 'custom-gsd'))
+        } finally {
+          if (origGsdHome !== undefined) {
+            process.env.GSD_HOME = origGsdHome
+          } else {
+            delete process.env.GSD_HOME
+          }
+        }
+      })
+    })
+
+    describe('countKBEntries()', () => {
+      tmpdirTest('returns 0 for empty KB directory', async ({ tmpdir }) => {
+        const kbDir = path.join(tmpdir, 'knowledge')
+        fsSync.mkdirSync(path.join(kbDir, 'signals'), { recursive: true })
+        fsSync.mkdirSync(path.join(kbDir, 'spikes'), { recursive: true })
+        fsSync.mkdirSync(path.join(kbDir, 'lessons'), { recursive: true })
+
+        expect(countKBEntries(kbDir)).toBe(0)
+      })
+
+      tmpdirTest('counts .md files across subdirectories', async ({ tmpdir }) => {
+        const kbDir = path.join(tmpdir, 'knowledge')
+        fsSync.mkdirSync(path.join(kbDir, 'signals'), { recursive: true })
+        fsSync.mkdirSync(path.join(kbDir, 'spikes'), { recursive: true })
+        fsSync.mkdirSync(path.join(kbDir, 'lessons'), { recursive: true })
+
+        // Add some .md files
+        fsSync.writeFileSync(path.join(kbDir, 'signals', 'sig-001.md'), 'signal content')
+        fsSync.writeFileSync(path.join(kbDir, 'signals', 'sig-002.md'), 'signal content')
+        fsSync.writeFileSync(path.join(kbDir, 'spikes', 'spk-001.md'), 'spike content')
+        fsSync.writeFileSync(path.join(kbDir, 'lessons', 'les-001.md'), 'lesson content')
+
+        expect(countKBEntries(kbDir)).toBe(4)
+      })
+
+      tmpdirTest('ignores non-.md files', async ({ tmpdir }) => {
+        const kbDir = path.join(tmpdir, 'knowledge')
+        fsSync.mkdirSync(path.join(kbDir, 'signals'), { recursive: true })
+
+        fsSync.writeFileSync(path.join(kbDir, 'signals', 'sig-001.md'), 'signal')
+        fsSync.writeFileSync(path.join(kbDir, 'signals', 'index.json'), '{}')
+        fsSync.writeFileSync(path.join(kbDir, 'signals', 'notes.txt'), 'notes')
+
+        expect(countKBEntries(kbDir)).toBe(1)
+      })
+
+      tmpdirTest('handles missing subdirectories gracefully', async ({ tmpdir }) => {
+        const kbDir = path.join(tmpdir, 'knowledge')
+        // Only create signals, not spikes or lessons
+        fsSync.mkdirSync(path.join(kbDir, 'signals'), { recursive: true })
+        fsSync.writeFileSync(path.join(kbDir, 'signals', 'sig-001.md'), 'content')
+
+        expect(countKBEntries(kbDir)).toBe(1)
+      })
+    })
+
+    describe('migrateKB()', () => {
+      tmpdirTest('creates KB directory structure on fresh install (no old KB)', async ({ tmpdir }) => {
+        withMockHome(tmpdir, () => {
+          const gsdHome = path.join(tmpdir, '.gsd')
+          migrateKB(gsdHome, [])
+
+          expect(fsSync.existsSync(path.join(gsdHome, 'knowledge', 'signals'))).toBe(true)
+          expect(fsSync.existsSync(path.join(gsdHome, 'knowledge', 'spikes'))).toBe(true)
+          expect(fsSync.existsSync(path.join(gsdHome, 'knowledge', 'lessons'))).toBe(true)
+        })
+      })
+
+      tmpdirTest('does not create symlink when Claude not in runtimes (fresh install)', async ({ tmpdir }) => {
+        withMockHome(tmpdir, () => {
+          const gsdHome = path.join(tmpdir, '.gsd')
+          migrateKB(gsdHome, ['opencode'])
+
+          const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+          expect(fsSync.existsSync(oldKBDir)).toBe(false)
+        })
+      })
+
+      tmpdirTest('creates symlink when Claude is in runtimes (fresh install)', async ({ tmpdir }) => {
+        withMockHome(tmpdir, () => {
+          const gsdHome = path.join(tmpdir, '.gsd')
+          migrateKB(gsdHome, ['claude'])
+
+          const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+          expect(fsSync.existsSync(oldKBDir)).toBe(true)
+          expect(fsSync.lstatSync(oldKBDir).isSymbolicLink()).toBe(true)
+          expect(fsSync.readlinkSync(oldKBDir)).toBe(path.join(gsdHome, 'knowledge'))
+        })
+      })
+
+      tmpdirTest('migrates data from old KB with zero data loss', async ({ tmpdir }) => {
+        withMockHome(tmpdir, () => {
+          // Set up old KB with data
+          const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+          fsSync.mkdirSync(path.join(oldKBDir, 'signals'), { recursive: true })
+          fsSync.mkdirSync(path.join(oldKBDir, 'spikes'), { recursive: true })
+          fsSync.mkdirSync(path.join(oldKBDir, 'lessons'), { recursive: true })
+          fsSync.writeFileSync(path.join(oldKBDir, 'signals', 'sig-001.md'), 'signal 1')
+          fsSync.writeFileSync(path.join(oldKBDir, 'signals', 'sig-002.md'), 'signal 2')
+          fsSync.writeFileSync(path.join(oldKBDir, 'spikes', 'spk-001.md'), 'spike 1')
+          fsSync.writeFileSync(path.join(oldKBDir, 'lessons', 'les-001.md'), 'lesson 1')
+
+          const gsdHome = path.join(tmpdir, '.gsd')
+          migrateKB(gsdHome)
+
+          const newKBDir = path.join(gsdHome, 'knowledge')
+
+          // Verify all entries migrated
+          expect(countKBEntries(newKBDir)).toBe(4)
+
+          // Verify content preserved
+          expect(fsSync.readFileSync(path.join(newKBDir, 'signals', 'sig-001.md'), 'utf8')).toBe('signal 1')
+          expect(fsSync.readFileSync(path.join(newKBDir, 'spikes', 'spk-001.md'), 'utf8')).toBe('spike 1')
+          expect(fsSync.readFileSync(path.join(newKBDir, 'lessons', 'les-001.md'), 'utf8')).toBe('lesson 1')
+
+          // Verify old location is now a symlink
+          expect(fsSync.lstatSync(oldKBDir).isSymbolicLink()).toBe(true)
+          expect(fsSync.readlinkSync(oldKBDir)).toBe(newKBDir)
+
+          // Verify backup exists
+          const backupDir = oldKBDir + '.migration-backup'
+          expect(fsSync.existsSync(backupDir)).toBe(true)
+          expect(countKBEntries(backupDir)).toBe(4)
+        })
+      })
+
+      tmpdirTest('is idempotent on re-run (existing symlink)', async ({ tmpdir }) => {
+        withMockHome(tmpdir, () => {
+          const gsdHome = path.join(tmpdir, '.gsd')
+          const newKBDir = path.join(gsdHome, 'knowledge')
+          const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+
+          // Set up as if migration already happened
+          fsSync.mkdirSync(path.join(newKBDir, 'signals'), { recursive: true })
+          fsSync.mkdirSync(path.join(newKBDir, 'spikes'), { recursive: true })
+          fsSync.mkdirSync(path.join(newKBDir, 'lessons'), { recursive: true })
+          fsSync.writeFileSync(path.join(newKBDir, 'signals', 'sig-001.md'), 'existing signal')
+
+          // Create symlink (as if first migration ran)
+          fsSync.mkdirSync(path.join(tmpdir, '.claude'), { recursive: true })
+          fsSync.symlinkSync(newKBDir, oldKBDir)
+
+          // Run migration again -- should be idempotent
+          migrateKB(gsdHome)
+
+          // Symlink still exists, still points to same place
+          expect(fsSync.lstatSync(oldKBDir).isSymbolicLink()).toBe(true)
+          expect(fsSync.readlinkSync(oldKBDir)).toBe(newKBDir)
+
+          // Data unchanged
+          expect(countKBEntries(newKBDir)).toBe(1)
+          expect(fsSync.readFileSync(path.join(newKBDir, 'signals', 'sig-001.md'), 'utf8')).toBe('existing signal')
+
+          // No duplicate backup created
+          const backupDir = oldKBDir + '.migration-backup'
+          expect(fsSync.existsSync(backupDir)).toBe(false)
+        })
+      })
+
+      tmpdirTest('reading through symlink returns same content as new path', async ({ tmpdir }) => {
+        withMockHome(tmpdir, () => {
+          const gsdHome = path.join(tmpdir, '.gsd')
+          const newKBDir = path.join(gsdHome, 'knowledge')
+          const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+
+          // Set up old KB data
+          fsSync.mkdirSync(path.join(oldKBDir, 'signals'), { recursive: true })
+          fsSync.writeFileSync(path.join(oldKBDir, 'signals', 'sig-test.md'), 'test content via symlink')
+
+          migrateKB(gsdHome)
+
+          // Read via symlink (old path) and via new path
+          const viaSymlink = fsSync.readFileSync(path.join(oldKBDir, 'signals', 'sig-test.md'), 'utf8')
+          const viaNewPath = fsSync.readFileSync(path.join(newKBDir, 'signals', 'sig-test.md'), 'utf8')
+
+          expect(viaSymlink).toBe(viaNewPath)
+          expect(viaSymlink).toBe('test content via symlink')
+        })
+      })
+
+      tmpdirTest('symlink NOT created when only non-Claude runtimes selected', async ({ tmpdir }) => {
+        withMockHome(tmpdir, () => {
+          const gsdHome = path.join(tmpdir, '.gsd')
+          migrateKB(gsdHome, ['opencode', 'gemini'])
+
+          const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+          // Should not exist at all since no Claude runtime selected
+          expect(fsSync.existsSync(oldKBDir)).toBe(false)
+        })
+      })
+    })
+
+    describe('GSD_HOME override', () => {
+      tmpdirTest('uses custom GSD_HOME for KB location', async ({ tmpdir }) => {
+        const origGsdHome = process.env.GSD_HOME
+        const customGsdHome = path.join(tmpdir, 'custom-gsd')
+        process.env.GSD_HOME = customGsdHome
+
+        try {
+          withMockHome(tmpdir, () => {
+            const gsdHome = getGsdHome()
+            expect(gsdHome).toBe(customGsdHome)
+
+            migrateKB(gsdHome, [])
+
+            expect(fsSync.existsSync(path.join(customGsdHome, 'knowledge', 'signals'))).toBe(true)
+            expect(fsSync.existsSync(path.join(customGsdHome, 'knowledge', 'spikes'))).toBe(true)
+            expect(fsSync.existsSync(path.join(customGsdHome, 'knowledge', 'lessons'))).toBe(true)
+
+            // KB should NOT be at the default ~/.gsd/ location
+            expect(fsSync.existsSync(path.join(tmpdir, '.gsd', 'knowledge'))).toBe(false)
+          })
+        } finally {
+          if (origGsdHome !== undefined) {
+            process.env.GSD_HOME = origGsdHome
+          } else {
+            delete process.env.GSD_HOME
+          }
+        }
+      })
+    })
+
+    describe('integration: installer creates KB dirs', () => {
+      const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+      tmpdirTest('Claude global install creates KB directory structure', async ({ tmpdir }) => {
+        execSync(`node "${installScript}" --claude --global`, {
+          env: { ...process.env, HOME: tmpdir },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Verify KB directory created at ~/.gsd/knowledge/
+        const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
+        const signalsExist = await fs.access(path.join(kbDir, 'signals')).then(() => true).catch(() => false)
+        const spikesExist = await fs.access(path.join(kbDir, 'spikes')).then(() => true).catch(() => false)
+        const lessonsExist = await fs.access(path.join(kbDir, 'lessons')).then(() => true).catch(() => false)
+        expect(signalsExist).toBe(true)
+        expect(spikesExist).toBe(true)
+        expect(lessonsExist).toBe(true)
+
+        // Verify symlink created for Claude runtime
+        const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+        const stat = await fs.lstat(oldKBDir)
+        expect(stat.isSymbolicLink()).toBe(true)
+      })
+
+      tmpdirTest('OpenCode-only install creates KB dirs but no symlink at ~/.claude/', async ({ tmpdir }) => {
+        const configHome = path.join(tmpdir, '.config')
+
+        execSync(`node "${installScript}" --opencode --global`, {
+          env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Verify KB directory created
+        const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
+        const signalsExist = await fs.access(path.join(kbDir, 'signals')).then(() => true).catch(() => false)
+        expect(signalsExist).toBe(true)
+
+        // Verify NO symlink at ~/.claude/gsd-knowledge (only OpenCode selected)
+        const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+        const exists = await fs.access(oldKBDir).then(() => true).catch(() => false)
+        expect(exists).toBe(false)
       })
     })
   })
