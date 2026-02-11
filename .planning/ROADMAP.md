@@ -7,7 +7,7 @@ This milestone synchronizes the fork with 70 upstream GSD commits (v1.11.2 to v1
 ## Milestones
 
 - v1.12 GSD Reflect (Phases 0-6) — shipped 2026-02-09
-- v1.13 Upstream Sync & Validation (Phases 7-12) — in progress
+- v1.13 Upstream Sync & Validation (Phases 7-12) — complete 2026-02-11
 
 ## Phases
 
@@ -20,7 +20,7 @@ This milestone synchronizes the fork with 70 upstream GSD commits (v1.11.2 to v1
 - [x] **Phase 9: Architecture Adoption & Verification** - Verify gsd-tools.js, thin orchestrator, and all additive architecture pieces function with fork
 - [x] **Phase 10: Upstream Feature Verification** - Verify adopted features work in fork context
 - [x] **Phase 11: Test Suite Repair & CI/CD Validation** - Fix broken tests, integrate new test suites, validate CI/CD pipelines
-- [ ] **Phase 12: Release & Dogfooding** - Version, document, release, and run reflection to validate gsd-reflect features
+- [x] **Phase 12: Release & Dogfooding** - Version, document, release, and run reflection to validate gsd-reflect features
 
 ## Phase Details
 
@@ -118,9 +118,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 12-01-PLAN.md -- Signal collection from Phases 8-11 with user review gate
-- [ ] 12-02-PLAN.md -- Lesson generation, reflection, and KB comparison document
-- [ ] 12-03-PLAN.md -- Version bump, changelog, tag, and PR to main
+- [x] 12-01-PLAN.md -- Signal collection from Phases 8-11 with user review gate
+- [x] 12-02-PLAN.md -- Lesson generation, reflection, and KB comparison document
+- [x] 12-03-PLAN.md -- Version bump, changelog, tag, and PR to main
 
 ## Progress
 
@@ -134,4 +134,4 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | 9. Architecture Adoption & Verification | v1.13 | 3/3 | Complete | 2026-02-10 |
 | 10. Upstream Feature Verification | v1.13 | 3/3 | Complete | 2026-02-11 |
 | 11. Test Suite Repair & CI/CD Validation | v1.13 | 3/3 | Complete | 2026-02-11 |
-| 12. Release & Dogfooding | v1.13 | 0/3 | Not started | - |
+| 12. Release & Dogfooding | v1.13 | 3/3 | Complete | 2026-02-11 |

@@ -65,10 +65,10 @@ Requirements for upstream sync milestone. Each maps to roadmap phases.
 
 ### Dogfooding (gsd-reflect Validation)
 
-- [ ] **DOG-01**: Run /gsd:collect-signals after each merge/integration phase
-- [ ] **DOG-02**: Knowledge base entries generated from merge experience (signals -> lessons)
-- [ ] **DOG-03**: Run /gsd:reflect at milestone end to distill learnings
-- [ ] **DOG-04**: Capture comparison: our file-based KB approach vs upstream's reverted MCP approach
+- [x] **DOG-01**: Run /gsd:collect-signals after each merge/integration phase
+- [x] **DOG-02**: Knowledge base entries generated from merge experience (signals -> lessons)
+- [x] **DOG-03**: Run /gsd:reflect at milestone end to distill learnings
+- [x] **DOG-04**: Capture comparison: our file-based KB approach vs upstream's reverted MCP approach
 
 ## Future Requirements
 
@@ -137,10 +137,10 @@ Deferred to later milestones.
 | TEST-03 | Phase 11 | Complete |
 | TEST-04 | Phase 11 | Complete |
 | TEST-05 | Phase 11 | Complete |
-| DOG-01 | Phase 12 | Pending |
-| DOG-02 | Phase 12 | Pending |
-| DOG-03 | Phase 12 | Pending |
-| DOG-04 | Phase 12 | Pending |
+| DOG-01 | Phase 12 | Complete |
+| DOG-02 | Phase 12 | Complete |
+| DOG-03 | Phase 12 | Complete |
+| DOG-04 | Phase 12 | Complete |
 
 **Coverage:**
 - v1.13 requirements: 42 total
@@ -149,4 +149,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-02-09*
-*Last updated: 2026-02-11 after Phase 11 completion (TEST-01–05 complete)*
+*Last updated: 2026-02-11 after Phase 12 completion (DOG-01–04 complete, all 42 requirements satisfied)*
