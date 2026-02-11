@@ -65,10 +65,12 @@ Plans:
   2. Running `node get-shit-done/bin/gsd-tools.js config get .planning/config.json depth` correctly reads fork config including custom fields (health_check, devops, gsd_reflect_version)
   3. Fork-specific command logic (DevOps detection, help content, package references) has been migrated from old command files to the workflow layer, verified by the commands delegating to workflows
   4. The 19 new workflow files, 4 new reference files, and 3 new summary templates are present and syntactically valid
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 09-01: TBD
+- [ ] 09-01-PLAN.md -- Comprehensive architecture audit & findings report
+- [ ] 09-02-PLAN.md -- Fork identity, templates & governance cleanup
+- [ ] 09-03-PLAN.md -- Thin orchestrator conversion for fork commands
 
 ### Phase 10: Upstream Feature Verification
 **Goal**: All 7 adopted upstream features function correctly within the fork context
