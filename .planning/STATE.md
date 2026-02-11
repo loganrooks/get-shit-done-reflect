@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-10)
 
 **Core value:** The fork stays current with upstream GSD while validating that gsd-reflect's self-improvement features work in production.
-**Current focus:** Phase 10 — Upstream Feature Verification
+**Current focus:** Phase 11 — Test Suite Repair & CI/CD Validation
 
 ## Current Position
 
-Phase: 10 of 12 (Upstream Feature Verification)
-Plan: 3 of 3 complete
-Status: Phase complete
-Last activity: 2026-02-11 — Completed 10-03-PLAN.md
+Phase: 11 of 12 (Test Suite Repair & CI/CD Validation)
+Plan: 2 of 3 complete
+Status: In progress
+Last activity: 2026-02-11 — Completed 11-02-PLAN.md
 
-Progress: ████████████████████ 100% (Phase 10)
+Progress: ██████████████████░░ 92% (12 of 13 plans complete)
 
 ## Performance Metrics
 
@@ -36,7 +36,7 @@ Progress: ████████████████████ 100% (Pha
 | 8. Core Merge | 4/4 | ~18min | ~4.5min |
 | 9. Architecture | 3/3 | 25min | ~8.3min |
 | 10. Features | 3/3 | ~8min | ~2.7min |
-| 11. Testing | 0/TBD | - | - |
+| 11. Testing | 1/3 | 2min | 2min |
 | 12. Release | 0/TBD | - | - |
 
 ## Accumulated Context
@@ -71,6 +71,7 @@ Full decision log in PROJECT.md Key Decisions table.
 | milestone-only as health_check frequency default | 10-01 | Safe default that does not block workflows in --auto mode |
 | All none/freeform devops defaults for --auto | 10-01 | Conservative; interactive DevOps detection fills real values; upgrade-project handles migration |
 | No upstream parseJsonc tests; functional coverage in evidence | 10-02 | 8-case functional test in evidence doc covers BOM, comments, trailing commas, string preservation |
+| Omitted fork-tools.js from fork-specific file checks | 11-01 | File was recommended in Phase 9 but never created; substituted collect-signals.md |
 
 ### Pending Todos
 
@@ -78,7 +79,7 @@ None.
 
 ### Blockers/Concerns
 
-- None. Phase 10 complete. All 7 upstream features verified.
+- None. Phase 11 in progress.
 
 ### Quick Tasks Completed
 
@@ -102,5 +103,5 @@ v1.12 complete. v1.13 roadmap created -- 6 phases (7-12), 42 requirements, upstr
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Phase 10 complete. All 7 upstream features verified (3 plans). 117 tests passing. Ready for Phase 11 planning.
+Stopped at: Completed 11-01-PLAN.md. Wiring validation extended with thin orchestrator delegation tests. 49 vitest tests passing.
 Resume file: None

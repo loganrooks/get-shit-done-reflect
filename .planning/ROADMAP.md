@@ -101,7 +101,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 11-01-PLAN.md -- Extend wiring validation for thin orchestrator delegation
+- [x] 11-01-PLAN.md -- Extend wiring validation for thin orchestrator delegation
 - [ ] 11-02-PLAN.md -- Fork-specific gsd-tools config tests
 - [ ] 11-03-PLAN.md -- CI workflow updates and full validation run
 
