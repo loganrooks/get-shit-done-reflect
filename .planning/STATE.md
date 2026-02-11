@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-10)
 
 **Core value:** The fork stays current with upstream GSD while validating that gsd-reflect's self-improvement features work in production.
-**Current focus:** Phase 12 in progress — Signal collection complete, lesson generation next
+**Current focus:** Phase 12 in progress — Lessons generated, KB comparison complete, release prep next
 
 ## Current Position
 
 Phase: 12 of 12 (Release & Dogfooding)
-Plan: 1 of 3 complete
+Plan: 2 of 3 complete
 Status: In progress
-Last activity: 2026-02-11 — Completed 12-01-PLAN.md
+Last activity: 2026-02-11 — Completed 12-02-PLAN.md
 
-Progress: ██████████████████████░░ 88% (14 of 16 plans complete)
+Progress: ███████████████████████░ 94% (15 of 16 plans complete)
 
 ## Performance Metrics
 
@@ -24,9 +24,9 @@ Progress: ██████████████████████░�
 - Total execution time: 70min
 
 **v1.13:**
-- Total plans completed: 11
-- Average duration: ~5.1min
-- Total execution time: 56min
+- Total plans completed: 12
+- Average duration: ~5.0min
+- Total execution time: 60min
 
 **By Phase:**
 
@@ -37,7 +37,7 @@ Progress: ██████████████████████░�
 | 9. Architecture | 3/3 | 25min | ~8.3min |
 | 10. Features | 3/3 | ~8min | ~2.7min |
 | 11. Testing | 3/3 | 7min | ~2.3min |
-| 12. Release | 1/3 | ~5min | ~5min |
+| 12. Release | 2/3 | ~9min | ~4.5min |
 
 ## Accumulated Context
 
@@ -78,6 +78,8 @@ Full decision log in PROJECT.md Key Decisions table.
 | XDG_CONFIG_HOME override for --opencode test isolation | 11-03 | Controls opencode config output location, avoids writes to real ~/.config/opencode |
 | 11 signals sufficient; mix of auto (4) and manual (7) | 12-01 | Clean execution phases produce few automated signals; manual supplements capture strategic insights |
 | Deliberate tag clustering for small signal sets | 12-01 | Overlapping tags (merge:6, fork-maintenance:6) enable pattern detection with 10-15 signals |
+| 3 patterns from 11 signals using severity-weighted clustering | 12-02 | Notable severity treated as high threshold (2+); upstream sync lesson scoped global, others project-scoped |
+| Upstream sync lesson scoped as _global | 12-02 | References general git/merge principles applicable to any fork project |
 
 ### Pending Todos
 
@@ -105,9 +107,10 @@ v1.12 complete. v1.13 roadmap created -- 6 phases (7-12), 42 requirements, upstr
 - `.planning/FORK-DIVERGENCES.md` -- per-file merge stances, post-merge risk recalibration
 - `.planning/phases/08-core-merge/08-MERGE-REPORT.md` -- categorized merge summary for Phase 9+ planning
 - `.planning/phases/09-architecture-adoption/09-AUDIT-REPORT.md` -- 16 findings, fork surface area map, conversion assessments
+- `.planning/phases/12-release-dogfooding/KB-COMPARISON.md` -- file-based KB vs MCP Memory comparison with production data
 
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 12-01-PLAN.md. 11 signals collected and approved. Proceeding to lesson generation (12-02) and release (12-03).
+Stopped at: Completed 12-02-PLAN.md. 3 lessons distilled from 13 signals. KB-COMPARISON.md written. Proceeding to release prep (12-03).
 Resume file: None
