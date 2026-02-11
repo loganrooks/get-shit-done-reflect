@@ -102,7 +102,7 @@ Plans:
 
 Plans:
 - [x] 11-01-PLAN.md -- Extend wiring validation for thin orchestrator delegation
-- [ ] 11-02-PLAN.md -- Fork-specific gsd-tools config tests
+- [x] 11-02-PLAN.md -- Fork-specific gsd-tools config tests
 - [ ] 11-03-PLAN.md -- CI workflow updates and full validation run
 
 ### Phase 12: Release & Dogfooding
@@ -131,5 +131,5 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | 8. Core Merge & Conflict Resolution | v1.13 | 4/4 | Complete | 2026-02-10 |
 | 9. Architecture Adoption & Verification | v1.13 | 3/3 | Complete | 2026-02-10 |
 | 10. Upstream Feature Verification | v1.13 | 3/3 | Complete | 2026-02-11 |
-| 11. Test Suite Repair & CI/CD Validation | v1.13 | 0/3 | Not started | - |
+| 11. Test Suite Repair & CI/CD Validation | v1.13 | 2/3 | In progress | - |
 | 12. Release & Dogfooding | v1.13 | 0/TBD | Not started | - |

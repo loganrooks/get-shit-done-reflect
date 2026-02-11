@@ -36,7 +36,7 @@ Progress: ██████████████████░░ 92% (12 o
 | 8. Core Merge | 4/4 | ~18min | ~4.5min |
 | 9. Architecture | 3/3 | 25min | ~8.3min |
 | 10. Features | 3/3 | ~8min | ~2.7min |
-| 11. Testing | 1/3 | 2min | 2min |
+| 11. Testing | 2/3 | 4min | 2min |
 | 12. Release | 0/TBD | - | - |
 
 ## Accumulated Context
@@ -72,6 +72,8 @@ Full decision log in PROJECT.md Key Decisions table.
 | All none/freeform devops defaults for --auto | 10-01 | Conservative; interactive DevOps detection fills real values; upgrade-project handles migration |
 | No upstream parseJsonc tests; functional coverage in evidence | 10-02 | 8-case functional test in evidence doc covers BOM, comments, trailing commas, string preservation |
 | Omitted fork-tools.js from fork-specific file checks | 11-01 | File was recommended in Phase 9 but never created; substituted collect-signals.md |
+| Verify config via direct JSON read instead of config-get | 11-02 | No config-get command exists in gsd-tools.js; reading config.json directly is equivalent |
+| Test array preservation via sibling field mutation | 11-02 | config-set CLI only accepts single scalar values; testing that sibling writes preserve arrays |
 
 ### Pending Todos
 
@@ -103,5 +105,5 @@ v1.12 complete. v1.13 roadmap created -- 6 phases (7-12), 42 requirements, upstr
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 11-01-PLAN.md. Wiring validation extended with thin orchestrator delegation tests. 49 vitest tests passing.
+Stopped at: Completed 11-02-PLAN.md. Fork config field round-trip tests added. 82 total upstream+fork tests passing.
 Resume file: None
