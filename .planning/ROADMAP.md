@@ -82,10 +82,12 @@ Plans:
   3. The --include flag is recognized by commands and eliminates redundant file reads (FEAT-03)
   4. The update command correctly detects local vs global install and uses the appropriate update mechanism (FEAT-05)
   5. The research decision from new-milestone persists to config.json and is respected in subsequent workflows (FEAT-07)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 10-01: TBD
+- [ ] 10-01-PLAN.md -- Fix --auto fork config + verify config persistence (FEAT-02, FEAT-07)
+- [ ] 10-02-PLAN.md -- Verify install features: reapply-patches, update detection, JSONC (FEAT-01, FEAT-05, FEAT-06)
+- [ ] 10-03-PLAN.md -- Verify gsd-tools.js features + final branding sweep (FEAT-03, FEAT-04)
 
 ### Phase 11: Test Suite Repair & CI/CD Validation
 **Goal**: All test suites pass and CI/CD pipelines are fully functional after the architectural migration
