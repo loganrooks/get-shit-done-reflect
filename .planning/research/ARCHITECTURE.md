@@ -1,450 +1,631 @@
-# Architecture: Upstream Integration Strategy (v1.11.2 to v1.18.0)
+# Architecture Research: Multi-Runtime CLI Interop
 
-**Domain:** Fork synchronization -- merging 70 upstream commits across a diverged fork
-**Researched:** 2026-02-09
-**Overall confidence:** HIGH (direct analysis of both codebases via git diff)
+**Domain:** Multi-runtime CLI tool interoperability -- adding 4th runtime, shared KB, cross-runtime handoff
+**Researched:** 2026-02-11
+**Confidence:** HIGH (direct codebase analysis + official Codex CLI documentation)
 
 ## Executive Summary
 
-The upstream GSD codebase underwent a major architectural shift between v1.11.2 and v1.18.0: commands were hollowed out into thin orchestrators that delegate to workflow files, a new `gsd-tools.js` CLI (4597 lines) replaced inline bash patterns, and agent specs were condensed by ~60%. Meanwhile, the fork made targeted branding changes and added fork-specific features (signals, spikes, knowledge base) as additive-only files.
+GSD Reflect currently supports 3 runtimes (Claude Code, OpenCode, Gemini CLI) via a transformation pipeline in `bin/install.js` that converts Claude Code-native markdown commands, agent specs, and path references into runtime-specific formats at install time. The knowledge base lives at `~/.claude/gsd-knowledge/` with hardcoded paths in 20+ workflow and reference files. Adding Codex CLI as a 4th runtime, migrating KB to `~/.gsd/knowledge/`, and enabling cross-runtime handoff requires changes across 3 architectural boundaries: the installer, the KB path layer, and the state/handoff system.
 
-The core challenge: **the fork's "additive only" constraint held for fork-specific features but not for branding**. The fork also edited 12 files that upstream modified. However, the fork's edits to shared files are mostly shallow (branding swaps, package name changes), while upstream's edits are deep (architectural restructuring). This means the merge strategy should be: **accept upstream versions of most shared files, then selectively re-apply fork branding**.
+The core architectural insight: **the installer already does path replacement** (`~/.claude/` to runtime-specific paths) for commands and agents. The KB path problem is that KB paths were never routed through this transformation -- they are hardcoded in workflow and reference files that the installer copies but does not path-transform for KB. The fix is not to add more path replacement; it is to move KB to a runtime-agnostic location (`~/.gsd/knowledge/`) so no runtime-specific translation is needed.
 
-## The 12 Overlapping Files: Detailed Analysis
+## System Overview: Current Architecture
 
-### File-by-File Conflict Assessment
-
-#### 1. `.gitignore`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Added `tests/benchmarks/results.json` | Low -- test artifact exclusion |
-| Upstream | Replaced `tests/benchmarks/results.json` with `reports/` and `RAILROAD_ARCHITECTURE.md` | Low -- internal doc exclusion |
-
-**Conflict type:** Textual conflict (both modified same region)
-**Resolution:** Accept upstream. Fork's test benchmark exclusion is no longer relevant (upstream removed vitest test infrastructure; fork will adopt upstream's `node --test` approach).
-**Difficulty:** Trivial
-
----
-
-#### 2. `bin/install.js`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Branding: added "REFLECT" ASCII art, changed package name to `get-shit-done-reflect-cc`, added `gsd-version-check.js` hook | Medium -- branding + fork-specific hook |
-| Upstream | Added `crypto` import, JSONC parser, hex color validation, statusline path fix, `detached: true` for Windows, removed `gsd-version-check.js` from uninstall list | High -- bug fixes + new features |
-
-**Conflict type:** Moderate textual conflicts in banner region and hook lists
-**Resolution:** Accept upstream version, then re-apply fork branding overlay:
-1. Take upstream's `install.js` (gets JSONC parser, color validation, Windows fixes)
-2. Re-apply "REFLECT" ASCII art banner
-3. Re-apply package name change (`get-shit-done-reflect-cc`)
-4. Re-add `gsd-version-check.js` hook registration if fork still needs it
-**Difficulty:** Medium (requires careful manual merge)
-
----
-
-#### 3. `CHANGELOG.md`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Replaced full upstream changelog with fork-specific changelog (GSD Reflect v1.12.x entries, link to upstream changelog) | High -- entirely different content |
-| Upstream | Added entries for v1.12.0 through v1.18.0 (many new features, gsd-tools, verification suite, etc.) | High -- extensive additions |
-
-**Conflict type:** Complete divergence -- both sides replaced the entire file
-**Resolution:** Keep fork's CHANGELOG.md structure (fork-specific entries + link to upstream). Do NOT merge upstream's changelog content. The fork changelog documents what GSD Reflect changed; upstream changes are referenced by link.
-**Difficulty:** Easy (keep fork version entirely)
-
----
-
-#### 4. `commands/gsd/help.md`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Added "GSD Reflect" section with signal/collect-signals/health-check/upgrade-project commands; changed install command to `get-shit-done-reflect-cc` | Medium -- fork-specific command documentation |
-| Upstream | Completely replaced inline help content with thin orchestrator pattern (now delegates to `workflows/help.md`); only 21 lines remain | High -- architectural change |
-
-**Conflict type:** Fork added content to a file that upstream gutted
-**Resolution:** Accept upstream's thin orchestrator version. The help content now lives in `get-shit-done/workflows/help.md`. Fork-specific commands need to be added to that workflow file instead, or the fork maintains a separate help workflow that extends the upstream one.
-**Difficulty:** Medium (fork content must migrate to workflow layer)
-
----
-
-#### 5. `commands/gsd/new-project.md`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Added `devops-detection.md` reference and Phase 5.7 (DevOps Context detection) | Medium -- new conditional phase |
-| Upstream | Gutted to thin orchestrator (~30 lines); all logic moved to `workflows/new-project.md`; added `--auto` flag | High -- architectural change |
-
-**Conflict type:** Fork added content to a file that upstream gutted
-**Resolution:** Accept upstream's thin orchestrator version. Fork's DevOps Context phase must be added to the workflow layer (`get-shit-done/workflows/new-project.md`) rather than the command file. This is architecturally correct -- the fork was adding logic to the wrong layer.
-**Difficulty:** Medium (DevOps detection logic must migrate to workflow)
-
----
-
-#### 6. `commands/gsd/update.md`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Changed package name references to `get-shit-done-reflect-cc` in inline logic | Low -- branding only |
-| Upstream | Gutted to thin orchestrator (~37 lines); all logic moved to `workflows/update.md` | High -- architectural change |
-
-**Conflict type:** Fork edited inline logic that upstream removed entirely
-**Resolution:** Accept upstream's thin orchestrator version. The workflow (`get-shit-done/workflows/update.md`) references `get-shit-done-cc`; fork needs to override the package name in the workflow or use a configuration-based approach.
-**Difficulty:** Easy (accept upstream, apply package name in workflow)
-
----
-
-#### 7. `get-shit-done/references/planning-config.md`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Added `knowledge_debug` config option and `<knowledge_surfacing_config>` section | Medium -- fork-specific config documentation |
-| Upstream | Replaced bash config parsing with `gsd-tools.js` CLI calls; removed `knowledge_debug` | High -- architectural pattern change |
-
-**Conflict type:** Fork added a section that upstream doesn't know about; upstream changed the config retrieval pattern throughout
-**Resolution:** Accept upstream version (gets gsd-tools.js patterns). Re-append the `<knowledge_surfacing_config>` section. The fork's `knowledge_debug` config key is still valid for fork features -- it just needs to document retrieval via gsd-tools or direct JSON parsing.
-**Difficulty:** Easy (accept upstream, append fork section)
-
----
-
-#### 8. `get-shit-done/templates/research.md`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Added expanded Open Questions format with Spike integration sections (Resolved, Genuine Gaps, Resolved by Spike, Still Open, Legacy format) | Medium -- spike workflow integration |
-| Upstream | Added `<user_constraints>` section at top (locked decisions from CONTEXT.md); simplified Open Questions to basic format | Medium -- context fidelity improvement |
-
-**Conflict type:** Both sides modified the Open Questions section; upstream added a new section
-**Resolution:** Accept upstream version (gets user_constraints). Then re-add the fork's spike-related sections (Resolved by Spike, Genuine Gaps with Spike recommendation). The upstream's simpler Open Questions format should be the base, with spike sections appended as additional subsections.
-**Difficulty:** Medium (manual merge of both additions)
-
----
-
-#### 9. `hooks/gsd-check-update.js`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Changed npm package name to `get-shit-done-reflect-cc` | Low -- branding |
-| Upstream | Changed same line back to `get-shit-done-cc`; added `detached: true` for Windows | Low -- branding + Windows fix |
-
-**Conflict type:** Both modified the same line (package name)
-**Resolution:** Accept upstream version for the Windows fix (`detached: true`), then re-apply fork package name. Two-line change.
-**Difficulty:** Trivial
-
----
-
-#### 10. `package.json`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Changed name/description/bin/repository/homepage/bugs to fork values; added vitest + coverage deps; added test scripts (vitest, smoke) | High -- identity + test infrastructure |
-| Upstream | Changed version to 1.18.0; kept upstream identity; removed vitest, switched to `node --test`; added gsd-tools test | Medium -- version + test approach change |
-
-**Conflict type:** Both modified same fields with different values
-**Resolution:** Keep fork identity fields (name, description, bin, repository, homepage, bugs). Accept upstream's version bump approach (will set to fork version). Accept upstream's test approach (`node --test` for gsd-tools.test.js). Keep fork's vitest for fork-specific tests (KB infrastructure, smoke tests). Merge devDependencies from both.
-**Difficulty:** Medium (field-by-field merge)
-
----
-
-#### 11. `package-lock.json`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Reflects fork's package.json (vitest deps, fork name) | Generated file |
-| Upstream | Reflects upstream's package.json (no vitest, upstream name) | Generated file |
-
-**Conflict type:** Generated file, always conflicts
-**Resolution:** Regenerate after package.json merge. Run `npm install` with the merged package.json to produce a clean lock file.
-**Difficulty:** Trivial (regenerate)
-
----
-
-#### 12. `README.md`
-
-| Side | Change | Significance |
-|------|--------|-------------|
-| Fork | Complete rewrite: "GSD Reflect" branding, learning loop explanation, feature comparison table, fork-specific install commands | High -- entirely different document |
-| Upstream | Complete rewrite: New marketing copy, testimonials, $GSD token badge, Dexscreener link, Development Installation section, expanded permissions section | High -- entirely different document |
-
-**Conflict type:** Complete divergence -- both sides have entirely different content
-**Resolution:** Keep fork's README.md entirely. The fork README explains what GSD Reflect is, how it differs from upstream, and how to install it. Upstream's README is irrelevant to fork users.
-**Difficulty:** Easy (keep fork version entirely)
-
----
-
-## Upstream Architectural Changes: Impact Assessment
-
-### Change 1: Thin Orchestrator Pattern
-
-**What changed:** Commands (`.claude/commands/gsd/*.md`) were reduced from 200-1000+ lines to 20-40 lines. All logic moved to workflow files (`get-shit-done/workflows/*.md`).
-
-**Structure before (v1.11.2):**
 ```
-commands/gsd/execute-phase.md   (~300 lines, contains full logic)
-  references: get-shit-done/references/*.md
+                          INSTALLATION TIME
+                          (bin/install.js)
+                                |
+              +-----------------+------------------+
+              |                 |                  |
+              v                 v                  v
+        ~/.claude/        ~/.config/opencode/   ~/.gemini/
+        commands/gsd/     command/gsd-*.md      commands/gsd/
+        agents/gsd-*      (flat + tool map)     (TOML + tool map)
+        get-shit-done/    get-shit-done/        get-shit-done/
+        hooks/            (no hooks)            hooks/
+        settings.json     opencode.json         settings.json
+              |                                     |
+              +------ All reference ~/.claude/ ------+
+              |       paths in content files         |
+              |       (already transformed by        |
+              |        install.js per runtime)        |
+              v
+        ~/.claude/gsd-knowledge/   <-- NOT TRANSFORMED
+        signals/                        hardcoded in 20+ files
+        spikes/
+        lessons/
+        index.md
 ```
 
-**Structure after (v1.18.0):**
-```
-commands/gsd/execute-phase.md   (~30 lines, thin orchestrator)
-  delegates to: get-shit-done/workflows/execute-phase.md   (~200+ lines, full logic)
-  references: get-shit-done/references/ui-brand.md
-```
+### Current Path Transformation Pipeline
 
-**Impact on fork:**
-- The fork's approach of "commands route to fork-specific workflows" is now ALIGNED with upstream's architecture. Previously the fork was doing this as a workaround; now it's the standard pattern.
-- Fork-specific commands (`signal.md`, `collect-signals.md`, `health-check.md`, `upgrade-project.md`) already follow this pattern -- they are thin orchestrators pointing to fork workflows.
-- The fork's modifications to `help.md`, `new-project.md`, `update.md` were adding logic to command files. Upstream moved that logic to workflow files. The fork needs to follow suit.
+The installer (`bin/install.js` lines 655-698, `copyWithPathReplacement`) performs a regex replacement on all `.md` files:
 
-**Action required:**
-1. Accept upstream's thin command files
-2. Create fork-specific workflow files for any logic the fork added to commands
-3. Fork's DevOps detection (from new-project.md) moves to a workflow extension
-
-### Change 2: gsd-tools.js CLI
-
-**What changed:** A new Node.js CLI (`get-shit-done/bin/gsd-tools.js`, 4597 lines) centralizes deterministic operations that were previously done with inline bash:
-
-- State management (`state load`, `state update`, `state get`, `state patch`)
-- Phase operations (`phase add`, `phase insert`, `phase remove`, `phase complete`)
-- Roadmap operations (`roadmap get-phase`, `roadmap analyze`)
-- Milestone operations (`milestone complete`)
-- Validation (`validate consistency`)
-- Verification suite (`verify plan-structure`, `verify phase-completeness`, etc.)
-- Frontmatter CRUD (`frontmatter get/set/merge/validate`)
-- Template filling (`template fill summary/plan/verification`)
-- Compound init commands (`init execute-phase`, `init plan-phase`)
-- Progress reporting (`progress`)
-- Scaffolding (`scaffold context/uat/verification/phase-dir`)
-
-**Impact on fork:**
-- All upstream agent specs and workflows now call `gsd-tools.js` instead of using inline bash for config parsing, state updates, and git commits
-- The fork's agents that were modified from upstream (executor, planner, phase-researcher, debugger) need to adopt the gsd-tools patterns
-- The fork's own agents (signal-collector, spike-runner, reflector, knowledge-store) can optionally use gsd-tools for state management and commits
-- The `commit` command in gsd-tools handles `commit_docs` checking automatically, replacing manual bash conditionals
-
-**Action required:**
-1. Accept gsd-tools.js and its test file as new additions
-2. Update fork-specific agents to use gsd-tools where appropriate (state loading, commits)
-3. Verify gsd-tools doesn't conflict with fork's config.json extensions (`health_check`, `devops`, `gsd_reflect_version`, `knowledge_debug`)
-
-### Change 3: Agent Spec Condensation
-
-**What changed:** All agent specs were condensed by ~60% (net -2298 lines across 9 agents). Same behavior, fewer tokens. Key changes:
-
-| Agent | Before | After | Key Changes |
-|-------|--------|-------|-------------|
-| gsd-executor | 842 lines | ~350 lines | Uses `init execute-phase` for context loading; condensed deviation rules; same behavior |
-| gsd-planner | 1437 lines | ~700 lines | Added `<context_fidelity>` section for honoring CONTEXT.md decisions; condensed philosophy/task_breakdown; same methodology |
-| gsd-phase-researcher | 763 lines | ~350 lines | Condensed tool strategy and philosophy; added user constraints section; same research approach |
-| gsd-plan-checker | 744 lines | ~350 lines | Condensed verification dimensions; same 6-dimension check |
-| gsd-verifier | 990 lines | ~500 lines | Condensed verification flow; same goal-backward approach |
-| gsd-debugger | 1260 lines | ~1237 lines | Minor condensation |
-| gsd-project-researcher | 915 lines | ~450 lines | Condensed; same 4-mode research |
-| gsd-research-synthesizer | ~200 lines | ~176 lines | Minor condensation |
-| gsd-codebase-mapper | ~300 lines | ~270 lines | Minor condensation |
-
-**Impact on fork:**
-- The fork did NOT modify any agent specs from their v1.11.2 state (git diff confirms zero fork changes to `agents/`). This means the fork's agents are at the v1.11.2 baseline.
-- The fork DOES have agents in `.claude/agents/` (the installed copies): `gsd-debugger.md`, `gsd-executor.md`, `gsd-phase-researcher.md`, `gsd-planner.md`, `gsd-reflector.md`, `gsd-signal-collector.md`, `gsd-spike-runner.md`. These are marked as deleted in upstream diff because upstream doesn't have the `.claude/agents/` copies or the fork-specific agents.
-- The upstream agents now reference `gsd-tools.js init` commands for context loading. The fork agents at v1.11.2 still use inline bash. Accepting upstream's agent versions is safe because the fork didn't modify them.
-
-**Action required:**
-1. Accept all upstream agent spec changes (clean replacement, no conflicts)
-2. Fork-specific agents (reflector, signal-collector, spike-runner, knowledge-store) remain untouched -- they are additive
-3. The `.claude/agents/` installed copies are managed by the installer, not the repo. The repo copies in `agents/` are the source of truth.
-
-### Change 4: New Upstream Commands and Workflows
-
-**New commands in upstream (not in fork):**
-- `commands/gsd/reapply-patches.md` -- merges local patches back after update
-- `commands/gsd/new-project.md.bak` -- backup of old inline version
-
-**New workflows in upstream (not in fork):**
-- 19 new workflow files extracted from commands (add-phase, add-todo, audit-milestone, check-todos, help, insert-phase, new-milestone, new-project, pause-work, plan-milestone-gaps, plan-phase, progress, quick, remove-phase, research-phase, set-profile, settings, update)
-
-**New references in upstream:**
-- `decimal-phase-calculation.md`, `git-planning-commit.md`, `model-profile-resolution.md`, `phase-argument-parsing.md`
-
-**New templates in upstream:**
-- `summary-complex.md`, `summary-minimal.md`, `summary-standard.md`
-
-**Impact on fork:** All additive. No conflicts. These files are new in upstream and don't exist in fork. Accept all.
-
-### Change 5: Upstream Deleted Fork-Specific Files
-
-The diff shows upstream "deleting" many files that only exist in the fork:
-- `.claude/agents/gsd-reflector.md`, `gsd-signal-collector.md`, `gsd-spike-runner.md`, `knowledge-store.md`
-- `.claude/agents/kb-*` scripts and templates
-- `.claude/commands/gsd/reflect.md`, `spike.md`
-- `.github/workflows/` (CI/CD)
-- `.planning/` (project state -- fork's own project management)
-- `tests/` (fork's test infrastructure)
-- `get-shit-done/workflows/reflect.md`, `run-spike.md`
-
-These are NOT actually deleted by upstream -- they never existed there. They appear in the diff because the fork has them and upstream doesn't. A merge will preserve them.
-
-### Change 6: Upstream Deleted Files That Fork Also Has
-
-**Files upstream removed from its own history:**
-- `vitest.config.js` (replaced with node --test)
-- Various test files in `tests/` (fork has different test files)
-- `.planning/` artifacts from upstream's own development (fork has its own `.planning/`)
-
-These should not conflict. The fork's test infrastructure (vitest) and planning artifacts are independent.
-
-## Merge Strategy Recommendation
-
-### Approach: `git merge upstream/main` with Targeted Manual Resolution
-
-**Why merge (not rebase or cherry-pick):**
-
-1. **Rebase rejected:** 70 commits would need individual conflict resolution. The fork has 20+ commits. Rebase rewrites fork history and makes future merges harder.
-
-2. **Cherry-pick rejected:** 70 individual cherry-picks is impractical. Many upstream commits are interdependent (e.g., gsd-tools creation + agent updates that use it).
-
-3. **Merge preferred:** A single merge commit captures the sync point. Future syncs start from this merge base. Git can auto-resolve most conflicts (additive files on both sides). Only the 12 overlapping files need manual attention.
-
-**Pre-merge preparation (critical):**
-
-```bash
-# 1. Create a sync branch from fork main
-git checkout main
-git checkout -b sync/upstream-v1.18.0
-
-# 2. Attempt the merge
-git merge upstream/main --no-commit
-
-# 3. Resolve conflicts file by file (see resolution table below)
-
-# 4. Test the merged state
-
-# 5. Commit the merge
-git commit -m "merge: sync with upstream GSD v1.18.0 (70 commits)"
+```javascript
+const claudeDirRegex = /~\/\.claude\//g;
+content = content.replace(claudeDirRegex, pathPrefix);
 ```
 
-### Conflict Resolution Table
+This transforms `~/.claude/get-shit-done/workflows/foo.md` to the correct runtime-specific path. However, **KB paths (`~/.claude/gsd-knowledge/`) get caught in this same regex**, which means:
 
-| # | File | Strategy | Rationale |
-|---|------|----------|-----------|
-| 1 | `.gitignore` | Accept upstream | Fork's test exclusion no longer relevant |
-| 2 | `bin/install.js` | Accept upstream + re-apply branding | Gets JSONC parser, Windows fixes, color validation; re-add REFLECT banner and package name |
-| 3 | `CHANGELOG.md` | Keep fork version | Entirely different document purpose |
-| 4 | `commands/gsd/help.md` | Accept upstream | Thin orchestrator; fork help content migrates to workflow layer |
-| 5 | `commands/gsd/new-project.md` | Accept upstream | Thin orchestrator; DevOps detection migrates to workflow layer |
-| 6 | `commands/gsd/update.md` | Accept upstream + fork package name in workflow | Thin orchestrator; package name goes in workflow |
-| 7 | `get-shit-done/references/planning-config.md` | Accept upstream + append fork section | Gets gsd-tools patterns; re-add knowledge_surfacing_config |
-| 8 | `get-shit-done/templates/research.md` | Accept upstream + add spike sections | Gets user_constraints; re-add spike integration |
-| 9 | `hooks/gsd-check-update.js` | Accept upstream + fork package name | Gets Windows fix; one-line package name swap |
-| 10 | `package.json` | Manual field merge | Fork identity + upstream version approach + merged deps |
-| 11 | `package-lock.json` | Regenerate | Run `npm install` after package.json merge |
-| 12 | `README.md` | Keep fork version | Entirely different document |
+- **Claude Code install:** KB path stays `~/.claude/gsd-knowledge/` (correct)
+- **OpenCode install:** KB path becomes `~/.config/opencode/gsd-knowledge/` (wrong -- KB does not exist there)
+- **Gemini install:** KB path becomes `~/.gemini/gsd-knowledge/` (wrong -- KB does not exist there)
 
-### Post-Merge Fork Adaptations
+This is an existing bug: multi-runtime KB access was never properly addressed because KB was built assuming Claude Code as the only runtime.
 
-After the merge resolves the 12 conflicting files, the fork needs additional work to fully integrate with upstream's new architecture:
+## Recommended Architecture: Post-Migration
 
-**Phase A: Workflow Layer Migration**
+```
+                          INSTALLATION TIME
+                          (bin/install.js)
+                                |
+              +--------+--------+--------+--------+
+              |        |        |        |        |
+              v        v        v        v        v
+        ~/.claude/  ~/.config/  ~/.gemini/ ~/.codex/  ~/.gsd/
+        commands/   opencode/   commands/  skills/    knowledge/
+        agents/     command/    (TOML)     gsd/       signals/
+        get-shit-  get-shit-   agents/    SKILL.md    spikes/
+        done/      done/       get-shit-  AGENTS.md   lessons/
+        hooks/     (no hooks)  done/      (no hooks)  index.md
+        settings   opencode    settings                cache/
+        .json      .json       .json                   config.toml
+              |        |        |        |              |
+              +--------+--------+--------+--------------+
+                       All runtimes reference
+                       ~/.gsd/knowledge/ directly
+                       (no path transformation needed)
+```
 
-The fork added logic to command files that are now thin orchestrators. That logic must move:
+### Component Responsibilities
 
-1. **DevOps Context detection** (from `new-project.md`) --> Create `get-shit-done/workflows/new-project-reflect.md` or add to upstream's `new-project.md` workflow
-2. **Fork help content** (from `help.md`) --> Add GSD Reflect commands to `get-shit-done/workflows/help.md`
-3. **Update package name** --> Set in `get-shit-done/workflows/update.md`
+| Component | Responsibility | Changes for v1.14 |
+|-----------|----------------|-------------------|
+| `bin/install.js` | Multi-runtime installer: path replacement, format conversion, hook registration | Add Codex CLI runtime; add `~/.gsd/` directory creation; add KB migration logic |
+| `~/.gsd/knowledge/` | Runtime-agnostic knowledge base | NEW -- replaces `~/.claude/gsd-knowledge/` |
+| `~/.gsd/config.toml` | Cross-runtime GSD configuration | NEW -- stores active runtimes, KB location, migration state |
+| Workflow files (20+) | KB access paths | Change `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/` |
+| Reference files (5+) | KB documentation and patterns | Change KB path references |
+| `kb-rebuild-index.sh` | Index regeneration | Update KB path |
+| `.planning/` state files | Project state, continue-here, STATE.md | Already runtime-agnostic (no changes needed) |
+| `continue-here.md` template | Cross-session handoff | Add optional `runtime:` field for cross-runtime handoff |
 
-**Phase B: Agent Alignment**
+## Detailed Component Changes
 
-The fork's installed agent copies in `.claude/agents/` are at v1.11.2. After merge, the source agents in `agents/` will be at v1.18.0 (condensed, gsd-tools-aware). The installer will pick up the updated versions automatically on next install.
+### 1. New Component: `~/.gsd/` Directory
 
-Fork-specific agents (reflector, signal-collector, spike-runner) need no changes -- they are additive and don't conflict.
+**Purpose:** Runtime-agnostic GSD home directory for data that should be shared across all runtimes.
 
-**Phase C: gsd-tools Integration**
+```
+~/.gsd/
+  knowledge/           # Migrated from ~/.claude/gsd-knowledge/
+    signals/
+      {project}/
+        {date}-{slug}.md
+    spikes/
+      {project}/
+        {date}-{slug}.md
+    lessons/
+      {category}/
+        {name}.md
+    index.md           # Auto-generated index
+  cache/               # Shared cache (update checks, etc.)
+    gsd-update-check.json
+  config.toml          # Cross-runtime config (optional, future)
+```
 
-The fork's knowledge base operations could benefit from gsd-tools patterns:
-- Use `gsd-tools.js commit` instead of manual git add/commit in KB operations
-- Use `gsd-tools.js state load` for config retrieval in fork agents
-- But this is OPTIONAL -- fork agents can continue using their own patterns
+**Why `~/.gsd/` not `~/.config/gsd/`:**
+- Consistency with existing pattern (`~/.claude/`, `~/.gemini/`, `~/.codex/`)
+- Simpler than XDG for a tool that already uses dotfile directories
+- Short path reduces context token cost in agent prompts
+- Environment variable override: `GSD_HOME` (defaults to `~/.gsd`)
+
+**Creation:** The installer creates `~/.gsd/knowledge/` during any runtime installation. This is a shared resource, not runtime-specific.
+
+### 2. Modified Component: `bin/install.js`
+
+**Changes needed:**
+
+#### a. Add Codex CLI runtime support
+
+```javascript
+// New runtime detection and directory mapping
+function getDirName(runtime) {
+  if (runtime === 'opencode') return '.opencode';
+  if (runtime === 'gemini') return '.gemini';
+  if (runtime === 'codex') return '.codex';  // NEW
+  return '.claude';
+}
+
+function getGlobalDir(runtime, explicitDir = null) {
+  // ... existing code ...
+  if (runtime === 'codex') {
+    if (explicitDir) return expandTilde(explicitDir);
+    if (process.env.CODEX_HOME) return expandTilde(process.env.CODEX_HOME);
+    return path.join(os.homedir(), '.codex');
+  }
+  // ... existing code ...
+}
+```
+
+#### b. Codex CLI command format conversion
+
+Codex CLI uses a **skills** system, not markdown commands:
+
+| Aspect | Claude Code | OpenCode | Gemini | Codex CLI |
+|--------|-------------|----------|--------|-----------|
+| Command format | `commands/gsd/*.md` | `command/gsd-*.md` | `commands/gsd/*.toml` | `.agents/skills/gsd-*/SKILL.md` or `~/.codex/skills/gsd-*/SKILL.md` |
+| Command invocation | `/gsd:help` | `/gsd-help` | `/gsd:help` | `$gsd-help` or implicit |
+| Agent format | `agents/gsd-*.md` (YAML frontmatter) | Same (tool mapping) | Same (tool mapping) | Via AGENTS.md + skills |
+| Config format | `settings.json` | `opencode.json` | `settings.json` | `config.toml` (TOML) |
+| Instructions | Built into commands | Built into commands | Built into commands | `AGENTS.md` (layered) |
+| Tool names | `Read`, `Write`, `Bash`, `Grep`, `Glob` | lowercase equivalents | snake_case equivalents | Not specified (likely similar to Claude) |
+| Hook system | `settings.json` hooks.SessionStart | N/A | Same as Claude | N/A (no hook system found) |
+| Subagent spawning | Task tool | Skill tool | Agents (experimental) | Skills (implicit/explicit) |
+
+**Codex skill structure for GSD commands:**
+
+```
+~/.codex/skills/
+  gsd-new-project/
+    SKILL.md          # Frontmatter: name, description + instructions
+  gsd-plan-phase/
+    SKILL.md
+  gsd-execute-phase/
+    SKILL.md
+  ...
+```
+
+Or project-level (recommended for project-scoped commands):
+```
+.agents/skills/
+  gsd-new-project/
+    SKILL.md
+  ...
+```
+
+**SKILL.md format:**
+```markdown
+---
+name: gsd-new-project
+description: Initialize a new GSD project with research, requirements, and roadmap. Use when starting fresh project planning.
+---
+
+[Command instructions -- equivalent to command .md body content]
+```
+
+**Key difference:** Codex skills support implicit invocation (Codex auto-selects based on task description matching). This means GSD commands could be auto-triggered without explicit `/gsd:` invocation. The `description` field is critical for controlling when skills activate.
+
+#### c. New conversion function: `convertClaudeToCodexSkill()`
+
+```javascript
+function convertClaudeToCodexSkill(content, commandName) {
+  // Extract body (after frontmatter)
+  // Create SKILL.md with:
+  //   name: gsd-{commandName}
+  //   description: from existing YAML description field
+  // Body: command instructions with path replacement
+  // Tool names: likely no mapping needed (Codex uses similar names)
+  // Replace /gsd: references with $gsd- for skill invocation
+}
+```
+
+#### d. AGENTS.md generation for Codex
+
+Codex reads `AGENTS.md` for custom instructions (equivalent to Claude's system prompt). The installer should generate:
+
+- `~/.codex/AGENTS.md` -- global GSD instructions (equivalent to the get-shit-done reference docs)
+- `.agents/AGENTS.md` -- project-level instructions (generated on `/gsd:new-project`)
+
+This replaces the agent spec model. Instead of individual agent files with YAML frontmatter, Codex uses a single layered AGENTS.md. The GSD agent specs would need to be consolidated into AGENTS.md sections or converted to skills.
+
+#### e. KB migration logic
+
+```javascript
+function migrateKB() {
+  const oldKBDir = path.join(os.homedir(), '.claude', 'gsd-knowledge');
+  const newKBDir = path.join(os.homedir(), '.gsd', 'knowledge');
+
+  if (fs.existsSync(oldKBDir) && !fs.existsSync(newKBDir)) {
+    // Copy (not move) to preserve backward compatibility during transition
+    copyRecursive(oldKBDir, newKBDir);
+    // Write migration marker
+    fs.writeFileSync(
+      path.join(newKBDir, '.migrated-from'),
+      `Migrated from ${oldKBDir} on ${new Date().toISOString()}\n`
+    );
+    console.log('Migrated knowledge base to ~/.gsd/knowledge/');
+  }
+
+  // Create symlink at old location for backward compatibility
+  if (fs.existsSync(newKBDir) && !fs.existsSync(oldKBDir)) {
+    fs.symlinkSync(newKBDir, oldKBDir);
+    console.log('Created symlink ~/.claude/gsd-knowledge/ -> ~/.gsd/knowledge/');
+  }
+}
+```
+
+### 3. Modified Component: KB Path References (20+ files)
+
+**Scope of change:** Every file that references `~/.claude/gsd-knowledge/` must change to `~/.gsd/knowledge/`.
+
+**Files requiring path changes:**
+
+| Category | Files | Path Pattern |
+|----------|-------|-------------|
+| Workflows | `signal.md`, `collect-signals.md`, `reflect.md`, `health-check.md` | `~/.claude/gsd-knowledge/` -> `~/.gsd/knowledge/` |
+| References | `knowledge-surfacing.md`, `signal-detection.md`, `reflection-patterns.md`, `health-check.md`, `spike-execution.md` | Same |
+| Scripts | `kb-rebuild-index.sh` | `$HOME/.claude/gsd-knowledge` -> `$HOME/.gsd/knowledge` |
+| Tests | `kb-infrastructure.test.js`, `kb-write.test.js`, `run-smoke.sh`, `standard-signal.js` | Same |
+| Agent specs | `.claude/agents/knowledge-store.md` (installed copy) | Handled by installer path replacement |
+
+**Strategy:** Since these files are in the repo (source of truth), change them in the repo. The installer's existing `~/.claude/` path replacement will NOT affect `~/.gsd/` paths, which is exactly what we want -- KB paths should be the same across all runtimes.
+
+**Important consideration:** The installer currently does `content.replace(/~\/\.claude\//g, pathPrefix)`. This would NOT catch `~/.gsd/` paths, meaning KB paths will correctly pass through unchanged for all runtimes. This is the desired behavior.
+
+### 4. Modified Component: Continue-Here Template
+
+**Current template** (`get-shit-done/templates/continue-here.md`):
+
+```yaml
+---
+phase: XX-name
+task: 3
+total_tasks: 7
+status: in_progress
+last_updated: 2025-01-15T14:30:00Z
+---
+```
+
+**Proposed addition for cross-runtime handoff:**
+
+```yaml
+---
+phase: XX-name
+task: 3
+total_tasks: 7
+status: in_progress
+last_updated: 2025-01-15T14:30:00Z
+runtime: claude-code           # NEW: which runtime created this
+runtime_version: "1.0.23"      # NEW: runtime version for context
+---
+```
+
+The `runtime` field is informational, not functional. It tells the resuming agent "this handoff was created by Claude Code" so it can note any runtime-specific context. The `.planning/` state is already runtime-agnostic -- all state files are plain markdown with YAML frontmatter that any runtime can read.
+
+### 5. No Change Needed: `.planning/` State System
+
+The `.planning/` directory is already runtime-agnostic:
+
+- **STATE.md** -- Plain markdown, no runtime-specific paths
+- **ROADMAP.md** -- Plain markdown
+- **config.json** -- JSON with workflow settings, no runtime paths
+- **PLAN.md** -- Markdown task specs
+- **SUMMARY.md** -- Execution results
+- **continue-here.md** -- Session handoff (adding optional `runtime:` field)
+
+The `@~/.claude/get-shit-done/` references in commands/agents are NOT in `.planning/` files -- they are in the GSD system files that get path-transformed by the installer. The `.planning/` files contain only project state with no references to runtime-specific directories.
+
+**Validation:** Grepped all `.planning/` files and confirmed zero references to `~/.claude/get-shit-done/` in any STATE.md, ROADMAP.md, config.json, PLAN.md, or SUMMARY.md. The only `~/.claude/` references in `.planning/` are in historical phase research docs referencing `~/.claude/gsd-knowledge/` (the KB path), which is the separate migration concern.
+
+### 6. New Component: Runtime Detection Utility
+
+For cross-runtime handoff, the system needs to know which runtime is currently active. This enables:
+- Setting the `runtime:` field in continue-here.md
+- Displaying runtime context in resume-work
+- Conditionally adjusting behavior (e.g., Codex has no hook system)
+
+**Implementation:** Add a `detectRuntime()` function to `gsd-tools.js` or a new `gsd-reflect-tools.js`:
+
+```javascript
+function detectRuntime() {
+  // Check environment variables set by each runtime
+  if (process.env.CLAUDE_CODE_VERSION) return 'claude-code';
+  if (process.env.OPENCODE_VERSION) return 'opencode';
+  if (process.env.GEMINI_CLI_VERSION) return 'gemini';
+  if (process.env.CODEX_VERSION || process.env.CODEX_HOME) return 'codex';
+
+  // Fallback: check which config directory loaded the commands
+  // (This is determined by the path prefix the installer used)
+  return 'unknown';
+}
+```
+
+**Confidence:** LOW on the exact environment variables -- each runtime sets different env vars. This needs verification during implementation. The fallback approach of checking the path prefix is more reliable.
+
+## Architectural Patterns
+
+### Pattern 1: Runtime Adapter Pattern
+
+**What:** Each runtime has a transformation adapter in `install.js` that converts GSD's Claude Code-native format to the runtime's native format.
+
+**When to use:** Adding any new runtime.
+
+**Current adapters:**
+- Claude Code: identity (no transformation)
+- OpenCode: `convertClaudeToOpencodeFrontmatter()` -- flat naming, tool mapping, path swap
+- Gemini: `convertClaudeToGeminiToml()` + `convertClaudeToGeminiAgent()` -- TOML commands, tool mapping, strip color
+- Codex: NEW -- `convertClaudeToCodexSkill()` -- SKILL.md format, AGENTS.md generation
+
+**Trade-offs:**
+- Pro: Each runtime gets native-feeling commands
+- Pro: New runtimes can be added without changing core GSD files
+- Con: Claude Code is the "source of truth" format -- changes must propagate
+- Con: Transformation complexity grows with each runtime
+
+### Pattern 2: Shared Data Directory Pattern
+
+**What:** Data that should be accessible from any runtime lives in a runtime-agnostic directory (`~/.gsd/`).
+
+**When to use:** Any data that needs cross-runtime access (KB, cache, cross-runtime config).
+
+**Trade-offs:**
+- Pro: No path transformation needed for shared data
+- Pro: Data survives runtime uninstallation
+- Pro: Single source of truth for KB
+- Con: Adds another directory to manage
+- Con: Migration needed for existing users
+
+### Pattern 3: Progressive Migration Pattern
+
+**What:** Migrate data from old location to new location using copy + symlink, not move.
+
+**When to use:** Any path migration where backward compatibility matters.
+
+**Steps:**
+1. Copy data to new location
+2. Create symlink at old location pointing to new location
+3. Update all path references in source files
+4. After N versions, remove symlink support
+
+**Trade-offs:**
+- Pro: Zero downtime -- old paths still work via symlink
+- Pro: Users who don't update immediately are not broken
+- Con: Symlink management adds complexity
+- Con: Eventual cleanup needed
+
+## Data Flow
+
+### Installation Flow (Updated for 4 Runtimes)
+
+```
+npx get-shit-done-reflect-cc
+        |
+        v
+  [Runtime Selection]
+  1) Claude Code  2) OpenCode  3) Gemini  4) Codex CLI  5) All
+        |
+        +---> [Create ~/.gsd/knowledge/ if not exists]
+        +---> [Migrate ~/.claude/gsd-knowledge/ if exists]
+        |
+        +---> [Per-runtime install loop]
+              |
+              +---> Claude: copyWithPathReplacement(~/.claude/)
+              +---> OpenCode: copyFlattenedCommands(~/.config/opencode/)
+              +---> Gemini: copyWithPathReplacement(~/.gemini/) + TOML
+              +---> Codex: convertToSkills(~/.codex/skills/) + AGENTS.md
+              |
+              +---> [Hook registration per runtime]
+                    Claude: settings.json hooks
+                    Gemini: settings.json hooks
+                    OpenCode: N/A (no hooks)
+                    Codex: N/A (no hook system)
+```
+
+### KB Access Flow (Post-Migration)
+
+```
+Any Runtime (Claude/OpenCode/Gemini/Codex)
+        |
+        v
+  [Agent reads workflow/reference file]
+        |
+        v
+  [Path: ~/.gsd/knowledge/index.md]  <-- same for all runtimes
+        |
+        v
+  [Read index, select entries]
+        |
+        v
+  [Path: ~/.gsd/knowledge/lessons/{category}/{file}.md]
+        |
+        v
+  [Apply knowledge to current task]
+```
+
+### Cross-Runtime Handoff Flow
+
+```
+Runtime A (e.g., Claude Code)
+        |
+  /gsd:pause-work
+        |
+        v
+  [Write .planning/phases/XX/.continue-here.md]
+  [Write .planning/STATE.md update]
+  [Git commit as WIP]
+        |
+        v
+  [User switches to Runtime B (e.g., Codex CLI)]
+        |
+  /gsd:resume-work (or $gsd-resume-work in Codex)
+        |
+        v
+  [Read .planning/STATE.md]
+  [Read .continue-here.md]
+  [Note: "Handoff from claude-code"]
+  [Resume work normally]
+```
+
+**Key insight:** Cross-runtime handoff already works in principle because `.planning/` is runtime-agnostic and git-committed. The main gaps are:
+1. KB not accessible from non-Claude runtimes (fixed by `~/.gsd/` migration)
+2. No runtime metadata in handoff file (fixed by optional `runtime:` field)
+3. Codex CLI has no equivalent commands installed (fixed by skills conversion)
+
+## Anti-Patterns
+
+### Anti-Pattern 1: Runtime-Specific Paths in Shared Data
+
+**What people do:** Hardcode `~/.claude/` in files that are shared across runtimes.
+**Why it is wrong:** The path only works for Claude Code. Other runtimes get broken paths after the installer's regex replacement converts `~/.claude/` to `~/.config/opencode/` etc., pointing KB operations to non-existent directories.
+**Do this instead:** Use a runtime-agnostic path (`~/.gsd/`) for shared data that does not get caught by the installer's path replacement regex.
+
+### Anti-Pattern 2: Full Agent Spec Conversion to Skills
+
+**What people do:** Try to convert every GSD agent spec (with YAML frontmatter, tool restrictions, spawning logic) into a Codex skill 1:1.
+**Why it is wrong:** Codex skills have a different model. They do not have tool restrictions, they do not spawn subagents the same way (no Task tool equivalent), and they use implicit matching instead of explicit invocation.
+**Do this instead:** Convert GSD **commands** to Codex skills (they are the user-facing entry points). Use AGENTS.md for agent-level instructions. Accept that subagent spawning may work differently in Codex -- focus on the user-facing commands first.
+
+### Anti-Pattern 3: Move Instead of Copy for Migration
+
+**What people do:** Use `fs.renameSync` to move KB from old location to new location.
+**Why it is wrong:** Users who have not yet updated their GSD installation will have commands pointing to the old location. Moving breaks them immediately.
+**Do this instead:** Copy to new location, symlink old to new. Both paths work. Clean up symlink in a future version.
+
+## Integration Points
+
+### External Services
+
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| Codex CLI | Skills in `~/.codex/skills/gsd-*/SKILL.md` | New runtime; skills are Codex's command mechanism |
+| Codex CLI | AGENTS.md in `~/.codex/AGENTS.md` | Global instructions; equivalent to agent specs |
+| npm Registry | Update check via `gsd-check-update.js` | No change; Codex has no hook system so no auto-update check |
+
+### Internal Boundaries
+
+| Boundary | Communication | Changes for v1.14 |
+|----------|---------------|-------------------|
+| Installer <-> Runtime configs | File writes to runtime-specific directories | Add Codex runtime output |
+| Commands <-> KB | File reads/writes via paths in markdown | All paths change from `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/` |
+| Commands <-> `.planning/` | File reads/writes via relative paths | No change (already runtime-agnostic) |
+| Installer <-> `~/.gsd/` | Directory creation, KB migration | NEW boundary |
+| Handoff <-> Resume | `.continue-here.md` and `STATE.md` via git | Add optional `runtime:` metadata |
+
+## Codex CLI: Detailed Integration Assessment
+
+### What Works Natively
+
+- **File reading/writing:** Codex can read/write markdown files, including `.planning/` state
+- **Shell commands:** Codex can run bash commands (with sandbox policy approval)
+- **Git operations:** Codex can run git commands
+- **Web search:** Built-in web search capability
+- **MCP integration:** Can use MCP tools if configured
+
+### What Needs Adaptation
+
+| GSD Feature | Claude Code | Codex CLI Equivalent | Adaptation Needed |
+|-------------|-------------|---------------------|-------------------|
+| Slash commands | `/gsd:command` | `$gsd-command` (skill mention) | Convert commands to skills |
+| Agent specs | `agents/gsd-*.md` with YAML | `AGENTS.md` + skills | Consolidate or convert |
+| Task tool (subagent) | `Task(prompt, subagent_type)` | No direct equivalent | Skills can invoke other skills, but no isolated subagent context window |
+| Hooks (SessionStart) | `settings.json` hooks | None | Skip hooks for Codex; no auto-update check |
+| Tool restrictions | `allowed-tools:` in frontmatter | Not applicable | Codex does not restrict tools per-command |
+| `@` file references | `@~/.claude/get-shit-done/file.md` | No equivalent -- Codex reads files via shell | Convert `@` references to explicit read instructions |
+
+### Critical Limitation: No Subagent Spawning
+
+Codex CLI does not have a direct equivalent of Claude Code's `Task` tool for spawning isolated subagent instances with fresh context windows. This means:
+
+- **Plan execution with wave-based parallelism** will not work the same way
+- **Researcher/planner/executor chain** cannot spawn parallel agents
+- **Workaround:** Codex `exec` subcommand can run non-interactive tasks, and skills can invoke other skills, but the isolation model is different
+
+**Recommendation:** For v1.14, support Codex CLI for **individual command execution** (one command at a time) but do NOT promise full orchestrated workflow execution (multi-wave plan execution with parallel agents). This matches how most users would use a secondary runtime anyway -- for quick tasks, reviews, and resuming work, not for orchestrating an entire phase execution pipeline.
+
+### Codex CLI Specific Files to Generate
+
+| File | Location | Purpose |
+|------|----------|---------|
+| `SKILL.md` per command | `~/.codex/skills/gsd-{command}/SKILL.md` | User-facing commands |
+| `AGENTS.md` | `~/.codex/AGENTS.md` | Global GSD instructions and agent behaviors |
+| `get-shit-done/` | `~/.codex/get-shit-done/` | Reference docs, templates, workflows (same as other runtimes) |
 
 ## Suggested Build Order
 
-Given the dependencies and conflict complexity:
+Given dependencies between components, the recommended phase structure:
 
 ```
-Phase 1: Pre-merge preparation
-  - Document current fork state (snapshot)
-  - Verify all fork tests pass before merge
-  - Create sync branch
+Phase 1: KB Migration (Foundation)
+  - Create ~/.gsd/knowledge/ directory structure
+  - Add migration logic to installer (copy + symlink)
+  - Update all 20+ source files: ~/.claude/gsd-knowledge/ -> ~/.gsd/knowledge/
+  - Update kb-rebuild-index.sh
+  - Update tests
+  - Verify: KB operations work with new paths
+  Dependencies: None (can start immediately)
 
-Phase 2: Execute merge + resolve 12 conflicts
-  - Run git merge upstream/main --no-commit
-  - Resolve each file per the resolution table above
-  - Group by difficulty:
-    - Trivial (4 files): .gitignore, hooks/gsd-check-update.js, package-lock.json, CHANGELOG.md
-    - Easy (3 files): README.md, update.md, planning-config.md
-    - Medium (5 files): bin/install.js, help.md, new-project.md, research.md, package.json
+Phase 2: Cross-Runtime State Audit
+  - Verify .planning/ has no runtime-specific paths
+  - Add runtime: field to continue-here template
+  - Add runtime detection utility
+  - Update pause-work and resume-work workflows
+  - Verify: pause in one runtime, resume in another
+  Dependencies: Phase 1 (KB paths must be fixed first)
 
-Phase 3: Verify merge integrity
-  - Run fork tests (vitest)
-  - Run upstream tests (node --test gsd-tools.test.js)
-  - Manual smoke test: /gsd:help, /gsd:new-project flow
-  - Verify fork-specific commands still work
+Phase 3: Codex CLI Runtime Support
+  - Add 'codex' to installer runtime selection
+  - Implement convertClaudeToCodexSkill() conversion
+  - Generate AGENTS.md from agent specs
+  - Install get-shit-done/ reference docs to ~/.codex/
+  - Handle Codex-specific limitations (no hooks, no Task tool)
+  - Verify: basic commands work in Codex CLI
+  Dependencies: Phase 1 (KB paths), Phase 2 (state audit)
 
-Phase 4: Workflow layer migration
-  - Move DevOps detection to workflow layer
-  - Add fork commands to help workflow
-  - Update package references in update workflow
+Phase 4: Existing Runtime Audit
+  - Verify OpenCode installation still works correctly
+  - Verify Gemini CLI installation still works correctly
+  - Test multi-runtime install (--all flag with 4 runtimes)
+  - Verify KB accessible from all runtimes
+  Dependencies: Phase 1, Phase 3
 
-Phase 5: Validation + commit
-  - Full test suite
-  - Commit merge
+Phase 5: Integration Testing & Polish
+  - End-to-end: install all 4 runtimes, create project in Claude, resume in Codex
+  - KB operations from each runtime
+  - Update README, CHANGELOG
+  - Version bump
+  Dependencies: All previous phases
 ```
 
-**Estimated effort:** Phase 2 is the core work (~2-3 hours of careful manual merging). Phases 3-4 add ~1-2 hours of testing and adaptation.
+**Ordering rationale:**
+- KB migration is the foundation because it unblocks all cross-runtime KB access
+- State audit is second because it validates the handoff mechanism before adding a new runtime
+- Codex CLI is third because it builds on the fixed KB paths and validated state system
+- Existing runtime audit is fourth to catch any regressions from the changes
+- Integration testing is last as the verification phase
 
-## Impact on Fork-Specific Features
+## Scaling Considerations
 
-### Signal Tracking System
-**Impact:** LOW. Signal collector and related agents are entirely additive files. Upstream's changes don't touch any signal-related code. The upstream agent condensation doesn't affect signal integration because signals hook at the workflow layer (wrapper workflows), not at the agent layer.
-
-### Spike/Experiment Workflow
-**Impact:** LOW. Spike runner and related files are entirely additive. The research template change (upstream added user_constraints, simplified open questions) requires re-adding the spike-related sections to the template.
-
-### Knowledge Base
-**Impact:** LOW-MEDIUM. The knowledge store files (`.claude/agents/knowledge-store.md`, KB templates, scripts) are entirely fork-specific and won't conflict. However, the `planning-config.md` reference needs the `knowledge_surfacing_config` section re-appended after accepting upstream's version. And any fork agents that read config via bash patterns should eventually migrate to gsd-tools patterns.
-
-### Health Check / Upgrade Project
-**Impact:** LOW. These are fork-specific commands with their own workflow files. No upstream conflict.
-
-## Architectural Alignment Assessment
-
-The upstream's architectural evolution actually VALIDATES the fork's approach:
-
-1. **Thin orchestrator pattern:** The fork was already routing commands to fork-specific workflows. Upstream now mandates this pattern for ALL commands. The fork's approach was ahead of upstream.
-
-2. **Additive files:** The fork's constraint of "no upstream file edits" is now easier to maintain because upstream's thin orchestrators have less content to conflict with.
-
-3. **gsd-tools centralization:** The fork's knowledge store operations (file writes, index management) could eventually use gsd-tools patterns, but this is not urgent.
-
-4. **Workflow layer as extension point:** Upstream's architecture now has a clear extension point (workflow files) where the fork can add reflect-specific logic without touching command files.
-
-The net result: **this merge makes future syncs easier, not harder**. The thin orchestrator pattern means fewer lines in command files to conflict on, and the workflow layer provides a natural extension point.
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| 2-3 runtimes | Current approach works -- installer handles per-runtime transformation |
+| 4-5 runtimes | Current approach still works but conversion functions multiply. Consider extracting runtime adapters to separate modules. |
+| 6+ runtimes | Installer becomes unwieldy. Consider a plugin architecture where each runtime provides its own adapter module. Not needed for v1.14. |
 
 ## Risk Assessment
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| Silent behavioral regression after merge | Medium | High | Run both test suites; manual smoke test critical flows |
-| gsd-tools.js incompatible with fork config extensions | Low | Medium | Fork config keys (`health_check`, `devops`, `knowledge_debug`) are ignored by gsd-tools, not rejected |
-| Installer behavior change breaks fork install | Medium | High | Test `node bin/install.js` with fork branding after merge |
-| Fork agents reference old bash patterns that upstream removed | Low | Low | Fork agents are self-contained; they don't reference upstream workflow internals |
-| package-lock.json merge creates broken dependency tree | Low | Medium | Always regenerate lock file after package.json merge |
+| Codex skill format changes before v1.14 ships | Medium | Medium | Skills API is documented and stable per official docs; pin to current format |
+| KB migration breaks existing installations | Low | High | Copy + symlink approach preserves both paths; never destructive |
+| Path replacement regex breaks with new `~/.gsd/` paths | Low | Medium | `~/.gsd/` is never caught by `~/.claude/` regex -- verified by regex analysis |
+| Codex subagent limitation blocks core workflows | Medium | High | Scope Codex support to individual commands, not full orchestration |
+| OpenCode/Gemini regressions from installer changes | Low | Medium | Run existing test suite + manual smoke test after changes |
+| AGENTS.md size exceeds Codex 32KiB limit | Medium | Medium | Keep global AGENTS.md to essentials; use skills for detailed instructions |
 
 ## Sources
 
-- HIGH confidence: Direct git diff analysis of all 12 overlapping files (both fork and upstream sides)
-- HIGH confidence: Upstream agent diffs showing condensation patterns
-- HIGH confidence: Upstream command/workflow restructuring verified via git ls-tree and git show
-- HIGH confidence: Fork change analysis verified via git diff from fork-point to main
-- HIGH confidence: gsd-tools.js command inventory from file header comments
+- HIGH confidence: Direct codebase analysis of `bin/install.js` (1765 lines), all workflow/reference files with KB paths
+- HIGH confidence: Codex CLI official documentation at [developers.openai.com/codex/cli](https://developers.openai.com/codex/cli/)
+- HIGH confidence: Codex CLI config reference at [developers.openai.com/codex/config-reference](https://developers.openai.com/codex/config-reference/)
+- HIGH confidence: Codex CLI skills documentation at [developers.openai.com/codex/skills](https://developers.openai.com/codex/skills)
+- HIGH confidence: Codex AGENTS.md documentation at [developers.openai.com/codex/guides/agents-md](https://developers.openai.com/codex/guides/agents-md/)
+- HIGH confidence: Codex CLI slash commands at [developers.openai.com/codex/cli/slash-commands](https://developers.openai.com/codex/cli/slash-commands/)
+- MEDIUM confidence: Runtime detection via environment variables (needs verification during implementation)
+- LOW confidence: Exact Codex tool name mapping (not documented; likely similar to Claude Code)
+
+---
+*Architecture research for: Multi-Runtime CLI Interop (v1.14)*
+*Researched: 2026-02-11*
