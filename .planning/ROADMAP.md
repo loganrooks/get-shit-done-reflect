@@ -81,11 +81,11 @@ Plans:
   3. Resume workflow detects which runtime it is running in and renders runtime-appropriate command instructions
   4. STATE.md and all `.planning/` files contain zero runtime-specific hardcoded paths or commands
   5. Signal entries include `runtime:` and `model:` fields, and capability gap events are automatically logged as signals
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 16-01: TBD
-- [ ] 16-02: TBD
+- [ ] 16-01-PLAN.md -- Runtime-agnostic pause/resume handoff (HAND-01, HAND-02, HAND-03, HAND-04)
+- [ ] 16-02-PLAN.md -- Signal enrichment with runtime provenance and capability-gap type (SIG-01, SIG-02, SIG-03, SIG-04)
 
 #### Phase 17: Validation & Release
 **Goal**: All 4 runtimes work correctly after the full set of v1.14 changes, with end-to-end cross-runtime workflow verified
@@ -112,5 +112,5 @@ Phases execute in numeric order: 13 -> 14 -> 15 -> 16 -> 17
 | 13. Path Abstraction & Capability Matrix | 2/2 | ✓ Complete | 2026-02-11 |
 | 14. Knowledge Base Migration | 2/2 | ✓ Complete | 2026-02-11 |
 | 15. Codex CLI Integration | 2/2 | ✓ Complete | 2026-02-11 |
-| 16. Cross-Runtime Handoff & Signal Enrichment | 0/TBD | Not started | - |
+| 16. Cross-Runtime Handoff & Signal Enrichment | 0/2 | Not started | - |
 | 17. Validation & Release | 0/TBD | Not started | - |
