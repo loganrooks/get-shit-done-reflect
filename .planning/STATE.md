@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-10)
 
 **Core value:** The fork stays current with upstream GSD while validating that gsd-reflect's self-improvement features work in production.
-**Current focus:** Phase 10 — Upstream Feature Verification (pending planning)
+**Current focus:** Phase 10 — Upstream Feature Verification
 
 ## Current Position
 
-Phase: 9 of 12 (Architecture Adoption & Verification)
-Plan: 3 of 3 complete
-Status: Phase complete — verified (4/4 must-haves passed)
-Last activity: 2026-02-10 — Phase 9 verified and closed
+Phase: 10 of 12 (Upstream Feature Verification)
+Plan: 1 of 3 complete
+Status: In progress
+Last activity: 2026-02-11 — Completed 10-01-PLAN.md
 
-Progress: ██████████ 100% (Phase 9)
+Progress: █████████░░░░░░░░░░░ 33% (Phase 10)
 
 ## Performance Metrics
 
@@ -35,7 +35,7 @@ Progress: ██████████ 100% (Phase 9)
 | 7. Fork Strategy | 2/2 | 10min | 5min |
 | 8. Core Merge | 4/4 | ~18min | ~4.5min |
 | 9. Architecture | 3/3 | 25min | ~8.3min |
-| 10. Features | 0/TBD | - | - |
+| 10. Features | 1/3 | ~3min | ~3min |
 | 11. Testing | 0/TBD | - | - |
 | 12. Release | 0/TBD | - | - |
 
@@ -67,6 +67,9 @@ Full decision log in PROJECT.md Key Decisions table.
 | summary-standard.md as default template reference | 09-02 | Executor uses gsd-tools template select at runtime; standard is the safe default for @-references |
 | Replaced join-discord with community command | 09-03 | Command already had fork content but name referenced Discord; renamed to gsd:community pointing to GitHub Discussions |
 | Inline acceptable for trivial commands | 09-03 | community.md (18 lines, static output) stays inline; creating a workflow for URL display adds no value |
+| Version 1.13.0 as gsd_reflect_version default | 10-01 | Current milestone release version; used in --auto init config template |
+| milestone-only as health_check frequency default | 10-01 | Safe default that does not block workflows in --auto mode |
+| All none/freeform devops defaults for --auto | 10-01 | Conservative; interactive DevOps detection fills real values; upgrade-project handles migration |
 
 ### Pending Todos
 
@@ -74,7 +77,7 @@ None.
 
 ### Blockers/Concerns
 
-- None. Phase 9 complete. All 16 audit findings addressed across Plans 02 and 03.
+- None. Phase 10 in progress -- Plans 02 and 03 remain.
 
 ### Quick Tasks Completed
 
@@ -97,6 +100,6 @@ v1.12 complete. v1.13 roadmap created -- 6 phases (7-12), 42 requirements, upstr
 
 ## Session Continuity
 
-Last session: 2026-02-10
-Stopped at: Phase 9 complete and verified. 3 plans executed (audit, identity/templates, command conversion). 117 tests passing. Ready for Phase 10 planning.
+Last session: 2026-02-11
+Stopped at: Completed 10-01-PLAN.md (auto init fork config + config-set verification). 117 tests passing. Phase 10 plans 02 and 03 remain.
 Resume file: None
