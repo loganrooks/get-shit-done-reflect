@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 13 of 17 (Path Abstraction & Capability Matrix)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-11 -- Roadmap created for v1.14
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-02-11 -- Completed 13-01-PLAN.md (two-pass path replacement)
 
-Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [..........] 0%
+Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [#.........] 10%
 
 ## Performance Metrics
 
@@ -28,6 +28,10 @@ Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [.....
 - Average duration: ~4.4min
 - Total execution time: ~70min
 
+**v1.14 In Progress:**
+- Plans completed: 1
+- Duration: 6min
+
 ## Accumulated Context
 
 ### Decisions
@@ -39,6 +43,8 @@ Recent decisions affecting current work:
 - Runtime-agnostic KB at ~/.gsd/knowledge/ (pending -- drives Phase 14)
 - OpenAI Codex CLI as 4th runtime (pending -- drives Phase 15)
 - Full continuity handoff across runtimes (pending -- drives Phase 16)
+- Two-pass path replacement: KB paths to ~/.gsd/knowledge/ (Pass 1), runtime-specific paths to target (Pass 2)
+- require.main guard added to install.js for testability
 
 ### Pending Todos
 
@@ -72,5 +78,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 roadmap created
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: v1.14 roadmap created. Ready to plan Phase 13.
+Stopped at: Completed 13-01-PLAN.md (two-pass path replacement)
 Resume file: None
