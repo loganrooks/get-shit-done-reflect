@@ -171,9 +171,15 @@ Populated during each upstream sync. Records the actual merge decision made for 
 
 | File | Decision | Rationale | Sync Version |
 |------|----------|-----------|--------------|
-| _example: bin/install.js_ | _Hybrid: kept fork banner, adopted upstream manifest functions_ | _Both sides added significant code; combined for full functionality_ | _v1.13_ |
-
-This table is populated during Phase 8 execution. Each entry captures what was decided and why, creating an audit trail for future syncs.
+| `bin/install.js` | Auto-merged (no conflict) | Fork branding and upstream additions (patch persistence, JSONC, bug fixes) in non-overlapping regions; git 3-way merge handled correctly | v1.13 |
+| `package.json` | Hybrid: fork identity + upstream structural | Fork name/repo/description/bin sacred; upstream files[], esbuild, test:upstream adopted | v1.13 |
+| `commands/gsd/new-project.md` | Adopt upstream thin stub + fork novelty in workflow | Upstream's mature thin orchestrator pattern adopted; fork DevOps Context (Step 5.7) ported to workflows/new-project.md | v1.13 |
+| `commands/gsd/help.md` | Adopt upstream thin stub + fork novelty in workflow | GSD Reflect section (6 commands) added to workflows/help.md | v1.13 |
+| `commands/gsd/update.md` | Adopt upstream thin stub + fork branding in workflow | Fork branding (package name, GitHub URL) updated in workflows/update.md | v1.13 |
+| `.gitignore` | Combined both sides | Fork benchmark exclusion + upstream reports/ and RAILROAD_ARCHITECTURE.md; purely additive | v1.13 |
+| `README.md` | Fork wins | Fork's complete README preserved; content updates deferred to Phase 12 | v1.13 |
+| `CHANGELOG.md` | Fork wins | Fork's changelog preserved; upstream entries not needed (different product) | v1.13 |
+| `package-lock.json` | Regenerated via npm install | Accept ours to clear conflict; npm install regenerated fresh lockfile matching resolved package.json | v1.13 |
 
 ## Review Gate
 
@@ -186,4 +192,4 @@ For the v1.13 sync, this review step is hardcoded in the Phase 8 plan as a check
 If upstream fundamentally changes direction -- switching to a different language, adopting an incompatible architecture, or abandoning the Markdown-native approach that makes GSD work -- the fork should evaluate whether continued tracking is worthwhile. The options at that point are: (1) adapt to the new upstream architecture if it's better, (2) freeze at the last compatible upstream version and evolve independently, or (3) contribute patches upstream to influence the direction. The tracked-modifications manifest makes this evaluation concrete: if the divergence count grows unboundedly with each sync, the fork is effectively independent regardless of what we call it.
 
 ---
-*Living document. Updated per sync cycle. Last updated: 2026-02-10.*
+*Living document. Updated per sync cycle. Last updated: 2026-02-10 (v1.18.0 merge decision log populated).*

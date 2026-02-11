@@ -7,7 +7,7 @@
 | Modified upstream files | 17 |
 | Added fork-only files | 166 |
 | Fork point | `2347fca` (upstream v1.11.1) |
-| Last sync | N/A (first sync pending) |
+| Last sync | 2026-02-10 (v1.18.0 via merge commit f97291a) |
 | Fork version | v1.12.2 |
 | Upstream version | v1.18.0 |
 
@@ -23,12 +23,12 @@ Files related to fork branding, naming, and package identity.
 
 | File | What Changed | Why | Merge Stance | Conflict Risk |
 |------|-------------|-----|--------------|---------------|
-| `README.md` | Complete rewrite for GSD Reflect branding, feature descriptions, learning loop documentation | Fork identity | Fork wins | LOW |
-| `CHANGELOG.md` | Fork-specific changelog replacing upstream history | Fork identity | Fork wins | LOW |
-| `package.json` | Name (`get-shit-done-reflect-cc`), repo URLs, description, npm scripts, devDependencies (vitest) | Fork identity + extensions | Hybrid merge | HIGH |
-| `package-lock.json` | Generated from fork's package.json | N/A (generated file) | Regenerate | N/A |
-| `bin/install.js` | REFLECT ASCII banner, package name refs, help text, version-check hook registration, uninstall hook list | Fork branding + fork features | Hybrid merge | HIGH |
-| `hooks/gsd-check-update.js` | npm package name changed to `get-shit-done-reflect-cc` | Fork identity | Fork wins | LOW |
+| `README.md` | Complete rewrite for GSD Reflect branding, feature descriptions, learning loop documentation | Fork identity | Fork wins | LOW (confirmed: fork-wins, no issues) |
+| `CHANGELOG.md` | Fork-specific changelog replacing upstream history | Fork identity | Fork wins | LOW (confirmed: fork-wins, no issues) |
+| `package.json` | Name (`get-shit-done-reflect-cc`), repo URLs, description, npm scripts, devDependencies (vitest) | Fork identity + extensions | Hybrid merge | MEDIUM (was HIGH; hybrid merge straightforward in practice) |
+| `package-lock.json` | Generated from fork's package.json | N/A (generated file) | Regenerate | N/A (regenerate always works) |
+| `bin/install.js` | REFLECT ASCII banner, package name refs, help text, version-check hook registration, uninstall hook list | Fork branding + fork features | Hybrid merge | LOW (was HIGH; auto-resolved -- non-overlapping regions) |
+| `hooks/gsd-check-update.js` | npm package name changed to `get-shit-done-reflect-cc` | Fork identity | Fork wins | LOW (confirmed: auto-resolved) |
 
 ### Commands (3 files)
 
@@ -36,9 +36,9 @@ Modifications to GSD command specification files.
 
 | File | What Changed | Why | Merge Stance | Conflict Risk |
 |------|-------------|-----|--------------|---------------|
-| `commands/gsd/help.md` | Package name refs, install command, GSD Reflect section with reflect-specific commands | Fork branding + fork features | Hybrid merge | MEDIUM |
-| `commands/gsd/new-project.md` | Added Phase 5.7 DevOps Context section, devops-detection.md reference | Fork feature addition | Hybrid merge | HIGH |
-| `commands/gsd/update.md` | Package name refs (5 occurrences), changelog URL | Fork branding | Hybrid merge | MEDIUM |
+| `commands/gsd/help.md` | Thin orchestrator stub (upstream pattern adopted); fork GSD Reflect section in workflows/help.md | Fork branding + fork features | Adopt upstream stub + fork novelty in workflow | LOW (thin orchestrator adoption resolved cleanly) |
+| `commands/gsd/new-project.md` | Thin orchestrator stub (upstream pattern adopted); fork DevOps Context in workflows/new-project.md | Fork feature addition | Adopt upstream stub + fork novelty in workflow | LOW (thin orchestrator adoption resolved cleanly) |
+| `commands/gsd/update.md` | Thin orchestrator stub (upstream pattern adopted); fork branding in workflows/update.md | Fork branding | Adopt upstream stub + fork branding in workflow | LOW (thin orchestrator adoption resolved cleanly) |
 
 ### Templates & References (5 files)
 
@@ -46,11 +46,11 @@ Changes to template files and reference documentation.
 
 | File | What Changed | Why | Merge Stance | Conflict Risk |
 |------|-------------|-----|--------------|---------------|
-| `get-shit-done/references/planning-config.md` | Added `knowledge_debug` config, `knowledge_surfacing_config` section | Fork feature config | Hybrid merge | MEDIUM |
+| `get-shit-done/references/planning-config.md` | Added `knowledge_debug` config, `knowledge_surfacing_config` section | Fork feature config | Hybrid merge | LOW (was MEDIUM; auto-resolved -- non-overlapping sections) |
 | `get-shit-done/templates/config.json` | Added `gsd_reflect_version`, `health_check`, `devops` sections | Fork feature config | Hybrid merge | MEDIUM |
 | `get-shit-done/templates/context.md` | Added `open_questions` section | Fork enhancement | Case-by-case | LOW |
 | `get-shit-done/templates/project.md` | Added `open_questions` section | Fork enhancement | Case-by-case | LOW |
-| `get-shit-done/templates/research.md` | Enhanced `open_questions` with resolved/gaps/spike/still-open structure | Fork enhancement | Case-by-case | LOW |
+| `get-shit-done/templates/research.md` | Enhanced `open_questions` with resolved/gaps/spike/still-open structure | Fork enhancement | Case-by-case | LOW (confirmed: auto-resolved) |
 
 ### Build & Config (3 files)
 
@@ -60,7 +60,7 @@ Build scripts, tooling, and project configuration.
 |------|-------------|-----|--------------|---------------|
 | `get-shit-done/templates/codebase/concerns.md` | Added DevOps Gaps section to template and example | Fork addition | Case-by-case | LOW |
 | `scripts/build-hooks.js` | Added `gsd-version-check.js` to `HOOKS_TO_COPY` array | Fork addition | Case-by-case | LOW |
-| `.gitignore` | Added benchmark results exclusion | Fork addition | Case-by-case | LOW |
+| `.gitignore` | Added benchmark results exclusion + upstream reports/ and RAILROAD_ARCHITECTURE.md | Fork addition | Combine both sides | LOW (confirmed: trivial additive merge) |
 
 ## Fork-Only Additions
 
@@ -78,19 +78,24 @@ No detailed listing needed -- git tracks these files and they merge cleanly (no 
 
 ## Conflict Risk Summary
 
+Updated after v1.18.0 sync (2026-02-10). Risk levels reflect actual merge experience.
+
 | Risk Level | Count | Files |
 |------------|-------|-------|
-| **HIGH** | 3 | `bin/install.js`, `package.json`, `commands/gsd/new-project.md` |
-| **MEDIUM** | 4 | `commands/gsd/help.md`, `commands/gsd/update.md`, `get-shit-done/templates/config.json`, `get-shit-done/references/planning-config.md` |
-| **LOW** | 9 | `README.md`, `CHANGELOG.md`, `hooks/gsd-check-update.js`, `get-shit-done/templates/context.md`, `get-shit-done/templates/project.md`, `get-shit-done/templates/research.md`, `get-shit-done/templates/codebase/concerns.md`, `scripts/build-hooks.js`, `.gitignore` |
-| **N/A** | 1 | `package-lock.json` (regenerated) |
+| **MEDIUM** | 1 | `package.json` (hybrid merge required but straightforward) |
+| **LOW** | 15 | All others -- auto-resolved, fork-wins, combine, or regenerate |
+| **N/A** | 1 | `package-lock.json` (always regenerated) |
 
-**HIGH risk** means both fork and upstream made significant changes to the same file. These require careful manual resolution during merge.
+**Post-merge insight:** Pre-merge predictions overestimated risk. Of 3 files predicted HIGH, only package.json required manual hybrid work. install.js auto-resolved (non-overlapping regions), and the 3 command files adopted upstream's thin orchestrator cleanly. For future syncs, conflict risk correlates with whether fork and upstream modify the *same lines*, not just the same file.
 
-**MEDIUM risk** means both sides made additive changes that are likely compatible but need verification during merge.
+**Previous predictions vs actuals (v1.18.0 sync):**
 
-**LOW risk** means the fork change is dominant (fork wins) or the upstream has minimal overlap with the fork's modification.
+| Predicted | Actual Conflicts | Auto-Resolved |
+|-----------|-----------------|---------------|
+| 11 conflicts | 8 conflicts | 3 predicted conflicts auto-resolved |
+| 3 HIGH risk | 1 required manual hybrid merge | 2 auto-resolved |
+| 4 MEDIUM risk | 2 adopted thin orchestrator | 2 auto-resolved |
 
 ---
 *Manifest source: `git diff --diff-filter=M --name-only upstream/main...HEAD`*
-*Last updated: 2026-02-10*
+*Last updated: 2026-02-10 (post v1.18.0 merge -- risk levels updated from actual experience)*
