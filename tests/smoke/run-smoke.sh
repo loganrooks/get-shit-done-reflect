@@ -28,7 +28,7 @@ KEEP_WORK_DIR="${KEEP_WORK_DIR:-false}"
 
 # Unique project name for KB isolation
 RUN_ID="smoke-$$-$(date +%s)"
-KB_DIR="$HOME/.claude/gsd-knowledge"
+KB_DIR="$HOME/.gsd/knowledge"
 
 # Source verify helpers
 source "$SCRIPT_DIR/verify-kb.sh"
@@ -257,7 +257,7 @@ test_manual_signal() {
   run_claude \
     "Log a manual signal to the knowledge base. Create the signal file directly.
 
-Create the directory ~/.claude/gsd-knowledge/signals/$RUN_ID/ if it doesn't exist.
+Create the directory ~/.gsd/knowledge/signals/$RUN_ID/ if it doesn't exist.
 Then create a signal file there named '$(date +%Y-%m-%d)-api-timeout-config.md' with this content:
 
 ---
@@ -326,7 +326,7 @@ For 01-02, detect these signals:
 2. File scope deviation: PLAN says files_modified: [api.js, config.json] but SUMMARY also created logger.js
 3. Struggle: 3 auto-fixes and significant debugging time noted in Issues Encountered
 
-For each signal detected, create a .md file in ~/.claude/gsd-knowledge/signals/$RUN_ID/
+For each signal detected, create a .md file in ~/.gsd/knowledge/signals/$RUN_ID/
 using this frontmatter format:
 ---
 id: sig-$(date +%Y-%m-%d)-{slug}
@@ -383,12 +383,12 @@ test_reflection() {
   run_claude \
     "You are a reflector agent. Analyze the signals in the knowledge base for project '$RUN_ID'.
 
-1. Read the KB index at ~/.claude/gsd-knowledge/index.md
-2. Read all signal files in ~/.claude/gsd-knowledge/signals/$RUN_ID/
+1. Read the KB index at ~/.gsd/knowledge/index.md
+2. Read all signal files in ~/.gsd/knowledge/signals/$RUN_ID/
 3. Look for patterns across signals (e.g., multiple deviations in same plan, recurring struggle)
 4. If you find a pattern with 2+ supporting signals, create a lesson entry
 
-Create lessons in ~/.claude/gsd-knowledge/lessons/$RUN_ID/ using this format:
+Create lessons in ~/.gsd/knowledge/lessons/$RUN_ID/ using this format:
 ---
 id: les-$(date +%Y-%m-%d)-{slug}
 type: lesson
@@ -446,7 +446,7 @@ Hypothesis: Reducing timeout from 30s to 10s will still pass all tests.
 1. Create a spike workspace at $WORK_DIR/spikes/api-timeout/ with a DESIGN.md
 2. The spike result: confirmed (the hypothesis holds - 10s is sufficient)
 3. Create a DECISION.md in the spike workspace
-4. Persist the spike to KB at ~/.claude/gsd-knowledge/spikes/$RUN_ID/ with this format:
+4. Persist the spike to KB at ~/.gsd/knowledge/spikes/$RUN_ID/ with this format:
 
 ---
 id: spk-$(date +%Y-%m-%d)-api-timeout-reduction
@@ -501,7 +501,7 @@ test_kb_surfacing() {
   run_claude \
     "Plan phase 2 for this project. Read .planning/ROADMAP.md and .planning/PROJECT.md.
 The phase is 'Input Validation' - add input validation to the fibonacci function.
-Before planning, check the knowledge base at ~/.claude/gsd-knowledge/index.md
+Before planning, check the knowledge base at ~/.gsd/knowledge/index.md
 for any relevant signals or lessons from project '$RUN_ID'.
 Read any relevant KB entries and cite them.
 Create the plan at .planning/phases/02-validation/02-01-PLAN.md.

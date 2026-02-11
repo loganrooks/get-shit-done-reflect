@@ -100,7 +100,7 @@ describe('kb-create-dirs.sh', () => {
   tmpdirTest('creates signals/, spikes/, lessons/ directories', async ({ tmpdir }) => {
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     const entries = await fs.readdir(kbDir)
     expect(entries).toContain('signals')
     expect(entries).toContain('spikes')
@@ -111,7 +111,7 @@ describe('kb-create-dirs.sh', () => {
     runKbScript(KB_CREATE_DIRS, tmpdir)
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     const entries = await fs.readdir(kbDir)
     expect(entries).toContain('signals')
     expect(entries).toContain('spikes')
@@ -132,7 +132,7 @@ describe('kb-rebuild-index.sh', () => {
     runKbScript(KB_REBUILD_INDEX, tmpdir)
 
     const index = await fs.readFile(
-      path.join(tmpdir, '.claude', 'gsd-knowledge', 'index.md'),
+      path.join(tmpdir, '.gsd', 'knowledge', 'index.md'),
       'utf8'
     )
     expect(index).toContain('# Knowledge Store Index')
@@ -143,7 +143,7 @@ describe('kb-rebuild-index.sh', () => {
   })
 
   tmpdirTest('single signal entry appears in Signals table', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'test-deviation.md', {
@@ -161,7 +161,7 @@ describe('kb-rebuild-index.sh', () => {
   })
 
   tmpdirTest('multiple entry types all indexed correctly', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'multi-sig.md')
@@ -178,7 +178,7 @@ describe('kb-rebuild-index.sh', () => {
   })
 
   tmpdirTest('archived entries filtered out', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'active-signal.md', {
@@ -199,7 +199,7 @@ describe('kb-rebuild-index.sh', () => {
   })
 
   tmpdirTest('date descending sort order', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'older.md', {
@@ -220,7 +220,7 @@ describe('kb-rebuild-index.sh', () => {
   })
 
   tmpdirTest('entries without status field treated as active', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     // Write signal without status field
@@ -254,7 +254,7 @@ Signal without explicit status field.
   })
 
   tmpdirTest('tags extraction handles [tag1, tag2] array format', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'tagged.md', {
@@ -270,7 +270,7 @@ Signal without explicit status field.
   })
 
   tmpdirTest('spike outcome column populated', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSpike(kbDir, 'outcome-test.md', {
@@ -286,7 +286,7 @@ Signal without explicit status field.
   })
 
   tmpdirTest('lesson category column populated', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeLesson(kbDir, 'category-test.md', {
@@ -302,7 +302,7 @@ Signal without explicit status field.
   })
 
   tmpdirTest('atomic write leaves no .tmp file behind', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'atomic-test.md')
@@ -315,7 +315,7 @@ Signal without explicit status field.
   })
 
   tmpdirTest('per-type section counts accurate in headers', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'sig-1.md', { id: 'sig-2026-01-15-one' })

@@ -72,7 +72,7 @@ Task completed with modifications.
     )
 
     // Create mock KB structure
-    this.kbDir = path.join(workDir, 'gsd-knowledge')
+    this.kbDir = path.join(workDir, '.gsd', 'knowledge')
     await fs.mkdir(path.join(this.kbDir, 'signals', 'test-project'), { recursive: true })
 
     this.projectDir = path.join(workDir, 'project')
