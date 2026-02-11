@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-10)
 
 **Core value:** The fork stays current with upstream GSD while validating that gsd-reflect's self-improvement features work in production.
-**Current focus:** Phase 8 — Core Merge & Conflict Resolution
+**Current focus:** Phase 9 — Architecture Adoption & Verification
 
 ## Current Position
 
-Phase: 8 of 12 (Core Merge & Conflict Resolution)
-Plan: 4 of 4 complete
-Status: Phase complete -- merge committed, validated, documented
-Last activity: 2026-02-10 — Completed 08-04 (merge commit, validation, merge report)
+Phase: 9 of 12 (Architecture Adoption & Verification)
+Plan: 1 of 3 complete
+Status: In progress -- audit complete, fix plans pending
+Last activity: 2026-02-10 — Completed 09-01 (architecture audit report)
 
-Progress: ██████████ 100% (Phase 8)
+Progress: █░░░░░░░░░ 33% (Phase 9)
 
 ## Performance Metrics
 
@@ -24,9 +24,9 @@ Progress: ██████████ 100% (Phase 8)
 - Total execution time: 70min
 
 **v1.13:**
-- Total plans completed: 6
-- Average duration: 4min
-- Total execution time: 28min
+- Total plans completed: 7
+- Average duration: ~4.5min
+- Total execution time: 38min
 
 **By Phase:**
 
@@ -34,7 +34,7 @@ Progress: ██████████ 100% (Phase 8)
 |-------|-------|-------|----------|
 | 7. Fork Strategy | 2/2 | 10min | 5min |
 | 8. Core Merge | 4/4 | ~18min | ~4.5min |
-| 9. Architecture | 0/TBD | - | - |
+| 9. Architecture | 1/3 | 10min | 10min |
 | 10. Features | 0/TBD | - | - |
 | 11. Testing | 0/TBD | - | - |
 | 12. Release | 0/TBD | - | - |
@@ -59,6 +59,9 @@ Full decision log in PROJECT.md Key Decisions table.
 | Adopt upstream gsd-tools.js for commits/init | 08-02 | Replaces manual bash detection and raw git add/commit; cleaner, more maintainable, handles commit_docs config flag automatically |
 | Fork-wins for README.md and CHANGELOG.md | 08-03 | Content updates deferred to Phase 12 (Release); Phase 8 just preserves fork versions |
 | Conflict risk levels recalibrated | 08-04 | Pre-merge HIGH predictions (install.js, commands) turned out LOW; actual risk correlates with same-line edits not same-file edits |
+| Do not modify gsd-tools.js for fork config | 09-01 | loadConfig() drops fork fields, but modifying creates merge conflicts; fork uses direct JSON reads instead |
+| Separate fork-tools.js over modifying gsd-tools.js | 09-01 | 4,597-line upstream file; any change creates merge friction; separate file has zero conflict risk |
+| Upstream inline commands are not fork issues | 09-01 | debug.md, research-phase.md, reapply-patches.md are upstream patterns; fork benefits when upstream converts them |
 
 ### Pending Todos
 
@@ -66,7 +69,7 @@ None.
 
 ### Blockers/Concerns
 
-- None. Phase 8 complete. Merge committed and validated on sync/v1.13-upstream. Ready for merge to main when user decides.
+- None. Audit complete. 16 findings cataloged with clear fix paths for Plans 02 and 03.
 
 ### Quick Tasks Completed
 
@@ -85,9 +88,10 @@ v1.12 complete. v1.13 roadmap created -- 6 phases (7-12), 42 requirements, upstr
 - `.planning/FORK-STRATEGY.md` -- conflict resolution runbook + Merge Decision Log (9 entries)
 - `.planning/FORK-DIVERGENCES.md` -- per-file merge stances, post-merge risk recalibration
 - `.planning/phases/08-core-merge/08-MERGE-REPORT.md` -- categorized merge summary for Phase 9+ planning
+- `.planning/phases/09-architecture-adoption/09-AUDIT-REPORT.md` -- 16 findings, fork surface area map, conversion assessments
 
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Phase 8 complete. All 4 plans executed. Merge committed (f97291a), validated (42 fork + 75 upstream tests pass), documented (08-MERGE-REPORT.md). sync/v1.13-upstream ready for merge to main.
+Stopped at: Completed 09-01-PLAN.md (architecture audit). Audit report produced with 16 findings. Plans 02 and 03 ready to execute.
 Resume file: None
