@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-10)
 
 **Core value:** The fork stays current with upstream GSD while validating that gsd-reflect's self-improvement features work in production.
-**Current focus:** Phase 11 complete — Ready for Phase 12 (Release Preparation)
+**Current focus:** Phase 12 in progress — Signal collection complete, lesson generation next
 
 ## Current Position
 
-Phase: 11 of 12 (Test Suite Repair & CI/CD Validation)
-Plan: 3 of 3 complete
-Status: Phase complete
-Last activity: 2026-02-11 — Completed 11-03-PLAN.md
+Phase: 12 of 12 (Release & Dogfooding)
+Plan: 1 of 3 complete
+Status: In progress
+Last activity: 2026-02-11 — Completed 12-01-PLAN.md
 
-Progress: █████████████████████ 100% (13 of 13 plans complete)
+Progress: ██████████████████████░░ 88% (14 of 16 plans complete)
 
 ## Performance Metrics
 
@@ -37,7 +37,7 @@ Progress: █████████████████████ 100% (
 | 9. Architecture | 3/3 | 25min | ~8.3min |
 | 10. Features | 3/3 | ~8min | ~2.7min |
 | 11. Testing | 3/3 | 7min | ~2.3min |
-| 12. Release | 0/TBD | - | - |
+| 12. Release | 1/3 | ~5min | ~5min |
 
 ## Accumulated Context
 
@@ -76,6 +76,8 @@ Full decision log in PROJECT.md Key Decisions table.
 | Test array preservation via sibling field mutation | 11-02 | config-set CLI only accepts single scalar values; testing that sibling writes preserve arrays |
 | Subprocess install tests use --global to bypass prompts | 11-03 | Passing --global alongside runtime flags makes tests deterministic without TTY stdin |
 | XDG_CONFIG_HOME override for --opencode test isolation | 11-03 | Controls opencode config output location, avoids writes to real ~/.config/opencode |
+| 11 signals sufficient; mix of auto (4) and manual (7) | 12-01 | Clean execution phases produce few automated signals; manual supplements capture strategic insights |
+| Deliberate tag clustering for small signal sets | 12-01 | Overlapping tags (merge:6, fork-maintenance:6) enable pattern detection with 10-15 signals |
 
 ### Pending Todos
 
@@ -83,7 +85,7 @@ None.
 
 ### Blockers/Concerns
 
-- None. Phase 11 complete. Ready for Phase 12.
+- None. Phase 12 in progress.
 
 ### Quick Tasks Completed
 
@@ -107,5 +109,5 @@ v1.12 complete. v1.13 roadmap created -- 6 phases (7-12), 42 requirements, upstr
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 11-03-PLAN.md. CI/CD pipelines updated, install flag tests added. 135 total tests passing (53 vitest + 75 upstream + 7 fork). Phase 11 complete.
+Stopped at: Completed 12-01-PLAN.md. 11 signals collected and approved. Proceeding to lesson generation (12-02) and release (12-03).
 Resume file: None
