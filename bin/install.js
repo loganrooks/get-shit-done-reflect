@@ -452,8 +452,8 @@ function convertClaudeToOpencodeFrontmatter(content) {
   convertedContent = convertedContent.replace(/\bTodoWrite\b/g, 'todowrite');
   // Replace /gsd:command with /gsd-command for opencode (flat command structure)
   convertedContent = convertedContent.replace(/\/gsd:/g, '/gsd-');
-  // Replace ~/.claude with ~/.config/opencode (OpenCode's correct config location)
-  convertedContent = convertedContent.replace(/~\/\.claude\b/g, '~/.config/opencode');
+  // Path replacement is handled by replacePathsInContent() at the call site.
+  // Do NOT do path replacement here to avoid double-replacement.
 
   // Check if content has frontmatter
   if (!convertedContent.startsWith('---')) {
@@ -590,6 +590,38 @@ function convertClaudeToGeminiToml(content) {
 }
 
 /**
+ * Replace path references in file content using a two-pass approach.
+ *
+ * Pass 1 (Shared paths): Replace ~/.claude/gsd-knowledge with ~/.gsd/knowledge
+ * and $HOME/.claude/gsd-knowledge with $HOME/.gsd/knowledge. These are shared
+ * across all runtimes and must NOT be transformed to runtime-specific locations.
+ *
+ * Pass 2 (Runtime-specific paths): Replace remaining ~/.claude/ references with
+ * runtimePathPrefix, and $HOME/.claude/ with the $HOME equivalent. A negative
+ * lookahead for gsd-knowledge is included as a safety guard.
+ *
+ * @param {string} content - File content to process
+ * @param {string} runtimePathPrefix - Target runtime path (e.g., "~/.config/opencode/")
+ * @returns {string} Content with paths replaced
+ */
+function replacePathsInContent(content, runtimePathPrefix) {
+  // Pass 1: Replace shared KB paths (tilde and $HOME variants)
+  let result = content.replace(/~\/\.claude\/gsd-knowledge/g, '~/.gsd/knowledge');
+  result = result.replace(/\$HOME\/\.claude\/gsd-knowledge/g, '$HOME/.gsd/knowledge');
+
+  // Pass 2: Replace remaining runtime-specific paths
+  // Negative lookahead for gsd-knowledge as a safety guard (Pass 1 already handled them)
+  result = result.replace(/~\/\.claude\/(?!gsd-knowledge)/g, runtimePathPrefix);
+
+  // Handle $HOME/.claude/ variant for runtime-specific paths
+  // Extract the path part after ~/ for $HOME substitution
+  const runtimeSuffix = runtimePathPrefix.replace(/^~\//, '');
+  result = result.replace(/\$HOME\/\.claude\/(?!gsd-knowledge)/g, '$HOME/' + runtimeSuffix);
+
+  return result;
+}
+
+/**
  * Copy commands to a flat structure for OpenCode
  * OpenCode expects: command/gsd-help.md (invoked as /gsd-help)
  * Source structure: commands/gsd/help.md
@@ -632,9 +664,9 @@ function copyFlattenedCommands(srcDir, destDir, prefix, pathPrefix, runtime) {
       const destPath = path.join(destDir, destName);
 
       let content = fs.readFileSync(srcPath, 'utf8');
-      const claudeDirRegex = /~\/\.claude\//g;
+      content = replacePathsInContent(content, pathPrefix);
+      // Handle ~/.opencode/ -> target path migration (unrelated to two-pass KB/runtime split)
       const opencodeDirRegex = /~\/\.opencode\//g;
-      content = content.replace(claudeDirRegex, pathPrefix);
       content = content.replace(opencodeDirRegex, pathPrefix);
       content = processAttribution(content, getCommitAttribution(runtime));
       content = convertClaudeToOpencodeFrontmatter(content);
@@ -671,10 +703,9 @@ function copyWithPathReplacement(srcDir, destDir, pathPrefix, runtime) {
     if (entry.isDirectory()) {
       copyWithPathReplacement(srcPath, destPath, pathPrefix, runtime);
     } else if (entry.name.endsWith('.md')) {
-      // Always replace ~/.claude/ as it is the source of truth in the repo
+      // Replace paths using centralized two-pass function
       let content = fs.readFileSync(srcPath, 'utf8');
-      const claudeDirRegex = /~\/\.claude\//g;
-      content = content.replace(claudeDirRegex, pathPrefix);
+      content = replacePathsInContent(content, pathPrefix);
       content = processAttribution(content, getCommitAttribution(runtime));
 
       // Convert frontmatter for opencode compatibility
@@ -1370,9 +1401,8 @@ function install(isGlobal, runtime = 'claude') {
     for (const entry of agentEntries) {
       if (entry.isFile() && entry.name.endsWith('.md')) {
         let content = fs.readFileSync(path.join(agentsSrc, entry.name), 'utf8');
-        // Always replace ~/.claude/ as it is the source of truth in the repo
-        const dirRegex = /~\/\.claude\//g;
-        content = content.replace(dirRegex, pathPrefix);
+        // Replace paths using centralized two-pass function
+        content = replacePathsInContent(content, pathPrefix);
         content = processAttribution(content, getCommitAttribution(runtime));
         // Convert frontmatter for runtime compatibility
         if (isOpencode) {
@@ -1762,3 +1792,6 @@ if (hasGlobal && hasLocal) {
     });
   }
 }
+
+// Export for testing
+module.exports = { replacePathsInContent };
