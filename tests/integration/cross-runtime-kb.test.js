@@ -343,5 +343,37 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     // The release gate is validated by running `npx vitest run` at the top level and
     // confirming zero failures across the full suite. This is documented rather than
     // automated as a meta-test to avoid nested test runner complications.
+
+    // =========================================================================
+    // v1.14 Release Readiness -- Phase 17 Validation Coverage
+    // =========================================================================
+    //
+    // VALID-01: OpenCode install correctness
+    //   Covered by: tests/integration/multi-runtime.test.js (17-01)
+    //   - OpenCode file layout, path transformation, frontmatter conversion
+    //
+    // VALID-02: Gemini install correctness
+    //   Covered by: tests/integration/multi-runtime.test.js (17-01)
+    //   - Gemini TOML commands, settings.json, path transformation
+    //
+    // VALID-03: Multi-runtime --all install depth
+    //   Covered by: tests/integration/multi-runtime.test.js (17-01)
+    //   - All 4 runtimes install correctly with --all --global
+    //   - No leaked Claude paths in non-Claude runtimes
+    //   - KB paths reference ~/.gsd/knowledge/ across all runtimes
+    //
+    // VALID-04: Cross-runtime KB accessibility
+    //   Covered by: tests/integration/cross-runtime-kb.test.js (this file, 17-02)
+    //   - Shared KB created at ~/.gsd/knowledge/ by --all install
+    //   - Signals writable and readable at shared path
+    //   - Claude symlink provides transparent backward-compat access
+    //   - Old-format signals (no runtime/model) are readable
+    //   - New-format signals (with runtime/model) are readable
+    //   - Multi-runtime signals coexist in shared KB
+    //   - Installed workflow files reference correct KB path
+    //   - VERSION consistency across all 4 runtimes
+    //
+    // Release gate: `npx vitest run` must show 0 failures, 100+ tests passing.
+    // =========================================================================
   })
 })
