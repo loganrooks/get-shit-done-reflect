@@ -152,12 +152,14 @@ const explicitConfigDir = parseConfigDirArg();
 const hasHelp = args.includes('--help') || args.includes('-h');
 const forceStatusline = args.includes('--force-statusline');
 
-console.log(banner);
+// Only print banner and show help when run directly (not when required as a module)
+if (require.main === module) {
+  console.log(banner);
 
-// Show help if requested
-if (hasHelp) {
-  console.log(`  ${yellow}Usage:${reset} npx get-shit-done-reflect-cc [options]\n\n  ${yellow}Options:${reset}\n    ${cyan}-g, --global${reset}              Install globally (to config directory)\n    ${cyan}-l, --local${reset}               Install locally (to current directory)\n    ${cyan}--claude${reset}                  Install for Claude Code only\n    ${cyan}--opencode${reset}                Install for OpenCode only\n    ${cyan}--gemini${reset}                  Install for Gemini only\n    ${cyan}--all${reset}                     Install for all runtimes\n    ${cyan}-u, --uninstall${reset}           Uninstall GSD (remove all GSD files)\n    ${cyan}-c, --config-dir <path>${reset}   Specify custom config directory\n    ${cyan}-h, --help${reset}                Show this help message\n    ${cyan}--force-statusline${reset}        Replace existing statusline config\n\n  ${yellow}Examples:${reset}\n    ${dim}# Interactive install (prompts for runtime and location)${reset}\n    npx get-shit-done-reflect-cc\n\n    ${dim}# Install for Claude Code globally${reset}\n    npx get-shit-done-reflect-cc --claude --global\n\n    ${dim}# Install for Gemini globally${reset}\n    npx get-shit-done-reflect-cc --gemini --global\n\n    ${dim}# Install for all runtimes globally${reset}\n    npx get-shit-done-reflect-cc --all --global\n\n    ${dim}# Install to custom config directory${reset}\n    npx get-shit-done-reflect-cc --claude --global --config-dir ~/.claude-bc\n\n    ${dim}# Install to current project only${reset}\n    npx get-shit-done-reflect-cc --claude --local\n\n    ${dim}# Uninstall GSD from Claude Code globally${reset}\n    npx get-shit-done-reflect-cc --claude --global --uninstall\n\n  ${yellow}Notes:${reset}\n    The --config-dir option is useful when you have multiple configurations.\n    It takes priority over CLAUDE_CONFIG_DIR / GEMINI_CONFIG_DIR environment variables.\n`);
-  process.exit(0);
+  if (hasHelp) {
+    console.log(`  ${yellow}Usage:${reset} npx get-shit-done-reflect-cc [options]\n\n  ${yellow}Options:${reset}\n    ${cyan}-g, --global${reset}              Install globally (to config directory)\n    ${cyan}-l, --local${reset}               Install locally (to current directory)\n    ${cyan}--claude${reset}                  Install for Claude Code only\n    ${cyan}--opencode${reset}                Install for OpenCode only\n    ${cyan}--gemini${reset}                  Install for Gemini only\n    ${cyan}--all${reset}                     Install for all runtimes\n    ${cyan}-u, --uninstall${reset}           Uninstall GSD (remove all GSD files)\n    ${cyan}-c, --config-dir <path>${reset}   Specify custom config directory\n    ${cyan}-h, --help${reset}                Show this help message\n    ${cyan}--force-statusline${reset}        Replace existing statusline config\n\n  ${yellow}Examples:${reset}\n    ${dim}# Interactive install (prompts for runtime and location)${reset}\n    npx get-shit-done-reflect-cc\n\n    ${dim}# Install for Claude Code globally${reset}\n    npx get-shit-done-reflect-cc --claude --global\n\n    ${dim}# Install for Gemini globally${reset}\n    npx get-shit-done-reflect-cc --gemini --global\n\n    ${dim}# Install for all runtimes globally${reset}\n    npx get-shit-done-reflect-cc --all --global\n\n    ${dim}# Install to custom config directory${reset}\n    npx get-shit-done-reflect-cc --claude --global --config-dir ~/.claude-bc\n\n    ${dim}# Install to current project only${reset}\n    npx get-shit-done-reflect-cc --claude --local\n\n    ${dim}# Uninstall GSD from Claude Code globally${reset}\n    npx get-shit-done-reflect-cc --claude --global --uninstall\n\n  ${yellow}Notes:${reset}\n    The --config-dir option is useful when you have multiple configurations.\n    It takes priority over CLAUDE_CONFIG_DIR / GEMINI_CONFIG_DIR environment variables.\n`);
+    process.exit(0);
+  }
 }
 
 /**
@@ -614,8 +616,19 @@ function replacePathsInContent(content, runtimePathPrefix) {
   result = result.replace(/~\/\.claude\/(?!gsd-knowledge)/g, runtimePathPrefix);
 
   // Handle $HOME/.claude/ variant for runtime-specific paths
-  // Extract the path part after ~/ for $HOME substitution
-  const runtimeSuffix = runtimePathPrefix.replace(/^~\//, '');
+  // Derive the HOME-relative path suffix for $HOME substitution
+  let runtimeSuffix;
+  if (runtimePathPrefix.startsWith('~/')) {
+    // Tilde prefix: strip ~/ to get relative-to-home path
+    runtimeSuffix = runtimePathPrefix.slice(2);
+  } else if (runtimePathPrefix.startsWith(os.homedir())) {
+    // Absolute prefix: strip home directory to get relative-to-home path
+    runtimeSuffix = runtimePathPrefix.slice(os.homedir().length + 1);
+  } else {
+    // Relative or other prefix (e.g., local install ./.claude/)
+    // $HOME patterns are unlikely in local installs, but handle gracefully
+    runtimeSuffix = runtimePathPrefix;
+  }
   result = result.replace(/\$HOME\/\.claude\/(?!gsd-knowledge)/g, '$HOME/' + runtimeSuffix);
 
   return result;
@@ -1756,7 +1769,8 @@ function installAllRuntimes(runtimes, isGlobal, isInteractive) {
   }
 }
 
-// Main logic
+// Main logic -- only execute when run directly
+if (require.main === module) {
 if (hasGlobal && hasLocal) {
   console.error(`  ${yellow}Cannot specify both --global and --local${reset}`);
   process.exit(1);
@@ -1792,6 +1806,8 @@ if (hasGlobal && hasLocal) {
     });
   }
 }
+
+} // end require.main === module
 
 // Export for testing
 module.exports = { replacePathsInContent };

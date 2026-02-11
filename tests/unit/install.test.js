@@ -4,6 +4,11 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import { execSync } from 'node:child_process'
 
+// Import replacePathsInContent for direct unit testing
+import { createRequire } from 'node:module'
+const require = createRequire(import.meta.url)
+const { replacePathsInContent } = require('../../bin/install.js')
+
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
 
@@ -219,6 +224,188 @@ describe('install script', () => {
       const claudeDir = path.join(tmpdir, '.claude', 'commands', 'gsd')
       const exists = await fs.access(claudeDir).then(() => true).catch(() => false)
       expect(exists).toBe(true)
+    })
+  })
+
+  describe('two-pass path replacement', () => {
+    // Unit tests for replacePathsInContent() function
+
+    describe('replacePathsInContent unit tests', () => {
+      it('replaces KB tilde paths with shared location', () => {
+        const input = 'Read the index at ~/.claude/gsd-knowledge/signals/'
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toBe('Read the index at ~/.gsd/knowledge/signals/')
+      })
+
+      it('replaces KB $HOME paths with shared location', () => {
+        const input = 'KB_DIR="$HOME/.claude/gsd-knowledge"'
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toBe('KB_DIR="$HOME/.gsd/knowledge"')
+      })
+
+      it('replaces runtime-specific tilde paths with runtime prefix', () => {
+        const input = 'Reference: ~/.claude/get-shit-done/workflows/signal.md'
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toBe('Reference: ~/.config/opencode/get-shit-done/workflows/signal.md')
+      })
+
+      it('replaces runtime-specific $HOME paths with runtime prefix', () => {
+        const input = 'TEMPLATE="$HOME/.claude/get-shit-done/templates/config.json"'
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toBe('TEMPLATE="$HOME/.config/opencode/get-shit-done/templates/config.json"')
+      })
+
+      it('handles mixed KB and runtime-specific paths in same content', () => {
+        const input = [
+          'KB at ~/.claude/gsd-knowledge/index.md',
+          'Workflow at ~/.claude/get-shit-done/workflows/signal.md',
+          'Also $HOME/.claude/gsd-knowledge/signals/',
+          'And $HOME/.claude/get-shit-done/VERSION'
+        ].join('\n')
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toContain('~/.gsd/knowledge/index.md')
+        expect(result).toContain('~/.config/opencode/get-shit-done/workflows/signal.md')
+        expect(result).toContain('$HOME/.gsd/knowledge/signals/')
+        expect(result).toContain('$HOME/.config/opencode/get-shit-done/VERSION')
+        // Must NOT have these incorrect transformations
+        expect(result).not.toContain('~/.config/opencode/gsd-knowledge')
+        expect(result).not.toContain('$HOME/.config/opencode/gsd-knowledge')
+      })
+
+      it('handles Gemini runtime paths', () => {
+        const input = 'Reference: ~/.claude/get-shit-done/workflows/signal.md and ~/.claude/gsd-knowledge/index.md'
+        const result = replacePathsInContent(input, '~/.gemini/')
+        expect(result).toContain('~/.gemini/get-shit-done/workflows/signal.md')
+        expect(result).toContain('~/.gsd/knowledge/index.md')
+        expect(result).not.toContain('~/.gemini/gsd-knowledge')
+      })
+
+      it('leaves Claude runtime-specific paths unchanged for Claude runtime', () => {
+        const input = [
+          'Reference: ~/.claude/get-shit-done/workflows/signal.md',
+          'KB at ~/.claude/gsd-knowledge/index.md'
+        ].join('\n')
+        const result = replacePathsInContent(input, '~/.claude/')
+        // Runtime-specific paths remain ~/.claude/ (identity transform)
+        expect(result).toContain('~/.claude/get-shit-done/workflows/signal.md')
+        // KB paths still transform to shared location even for Claude
+        expect(result).toContain('~/.gsd/knowledge/index.md')
+        expect(result).not.toContain('~/.claude/gsd-knowledge')
+      })
+
+      it('handles absolute path prefix for global installs', () => {
+        const input = [
+          'Reference: ~/.claude/get-shit-done/test.md',
+          'KB: ~/.claude/gsd-knowledge/index.md',
+          'Shell: $HOME/.claude/get-shit-done/VERSION'
+        ].join('\n')
+        const homeDir = require('os').homedir()
+        const absPrefix = homeDir + '/.config/opencode/'
+        const result = replacePathsInContent(input, absPrefix)
+        expect(result).toContain(absPrefix + 'get-shit-done/test.md')
+        expect(result).toContain('~/.gsd/knowledge/index.md')
+        expect(result).toContain('$HOME/.config/opencode/get-shit-done/VERSION')
+      })
+
+      it('handles KB path without trailing slash', () => {
+        // Matches pattern like: ~/.claude/gsd-knowledge (no trailing slash)
+        const input = 'KB_DIR="~/.claude/gsd-knowledge"'
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toBe('KB_DIR="~/.gsd/knowledge"')
+      })
+
+      it('handles @ file include syntax', () => {
+        // The @ prefix is not part of the matched pattern, so it works naturally
+        const input = '@~/.claude/get-shit-done/workflows/signal.md'
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toBe('@~/.config/opencode/get-shit-done/workflows/signal.md')
+      })
+    })
+
+    // Integration tests: full installer run
+    describe('integration: full installer', () => {
+      const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+      tmpdirTest('OpenCode install protects KB paths from runtime transformation', async ({ tmpdir }) => {
+        const configHome = path.join(tmpdir, '.config')
+
+        execSync(`node "${installScript}" --opencode --global`, {
+          env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Read signal.md which contains both KB and runtime paths
+        const signalWorkflow = path.join(configHome, 'opencode', 'get-shit-done', 'workflows', 'signal.md')
+        const content = await fs.readFile(signalWorkflow, 'utf8')
+
+        // KB paths should be transformed to shared location
+        expect(content).toContain('~/.gsd/knowledge')
+        // KB paths must NOT be transformed to OpenCode-specific paths
+        expect(content).not.toContain('~/.config/opencode/gsd-knowledge')
+        // Source KB paths should not remain
+        expect(content).not.toContain('~/.claude/gsd-knowledge')
+      })
+
+      tmpdirTest('OpenCode install handles $HOME variant correctly', async ({ tmpdir }) => {
+        const configHome = path.join(tmpdir, '.config')
+
+        execSync(`node "${installScript}" --opencode --global`, {
+          env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Read reflect.md which has $HOME/.claude/gsd-knowledge
+        const reflectWorkflow = path.join(configHome, 'opencode', 'get-shit-done', 'workflows', 'reflect.md')
+        const content = await fs.readFile(reflectWorkflow, 'utf8')
+
+        // $HOME/.claude/gsd-knowledge should become $HOME/.gsd/knowledge
+        expect(content).toContain('$HOME/.gsd/knowledge')
+        // Must NOT be transformed to OpenCode-specific path
+        expect(content).not.toContain('$HOME/.config/opencode/gsd-knowledge')
+        // Source path should not remain
+        expect(content).not.toContain('$HOME/.claude/gsd-knowledge')
+      })
+
+      tmpdirTest('OpenCode install transforms runtime-specific $HOME paths', async ({ tmpdir }) => {
+        const configHome = path.join(tmpdir, '.config')
+
+        execSync(`node "${installScript}" --opencode --global`, {
+          env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Read health-check.md which has $HOME/.claude/get-shit-done/ (runtime-specific)
+        const healthCheck = path.join(configHome, 'opencode', 'get-shit-done', 'references', 'health-check.md')
+        const content = await fs.readFile(healthCheck, 'utf8')
+
+        // $HOME/.claude/get-shit-done should be transformed to runtime path
+        expect(content).not.toContain('$HOME/.claude/get-shit-done')
+        // $HOME/.claude/gsd-knowledge should become shared
+        expect(content).toContain('$HOME/.gsd/knowledge')
+      })
+
+      tmpdirTest('Claude install transforms KB paths to shared location', async ({ tmpdir }) => {
+        execSync(`node "${installScript}" --claude --global`, {
+          env: { ...process.env, HOME: tmpdir },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Read signal.md from Claude install
+        const signalWorkflow = path.join(tmpdir, '.claude', 'get-shit-done', 'workflows', 'signal.md')
+        const content = await fs.readFile(signalWorkflow, 'utf8')
+
+        // Even for Claude, KB paths should be transformed to shared location
+        expect(content).toContain('~/.gsd/knowledge')
+        expect(content).not.toContain('~/.claude/gsd-knowledge')
+      })
     })
   })
 })
