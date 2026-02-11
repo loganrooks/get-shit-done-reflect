@@ -57,6 +57,7 @@
     "test:smoke": "bash tests/smoke/run-smoke.sh",
     "test:smoke:quick": "SMOKE_TIER=quick bash tests/smoke/run-smoke.sh",
     "test:smoke:full": "SMOKE_TIER=full bash tests/smoke/run-smoke.sh",
-    "test:upstream": "node --test get-shit-done/bin/gsd-tools.test.js"
+    "test:upstream": "node --test get-shit-done/bin/gsd-tools.test.js",
+    "test:upstream:fork": "node --test get-shit-done/bin/gsd-tools-fork.test.js"
   }
 }
