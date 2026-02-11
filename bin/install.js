@@ -423,6 +423,23 @@ const claudeToGeminiTools = {
   AskUserQuestion: 'ask_user',
 };
 
+// Tool name mapping from Claude Code to Codex CLI
+// Codex CLI uses snake_case built-in tool names (codex-rs)
+const claudeToCodexTools = {
+  Read: 'read_file',
+  Write: 'apply_patch',
+  Edit: 'apply_patch',
+  Bash: 'shell',
+  Glob: 'list_dir',
+  Grep: 'grep_files',
+  WebSearch: 'web_search',
+  WebFetch: null,
+  AskUserQuestion: 'request_user_input',
+  Task: null,
+  TodoWrite: 'update_plan',
+  SlashCommand: null,
+};
+
 /**
  * Convert a Claude Code tool name to OpenCode format
  * - Applies special mappings (AskUserQuestion -> question, etc.)
@@ -696,6 +713,212 @@ function convertClaudeToGeminiToml(content) {
   toml += `prompt = ${JSON.stringify(body)}\n`;
   
   return toml;
+}
+
+/**
+ * Convert a Claude Code command markdown into Codex SKILL.md format.
+ * - Replaces tool name references in body text using word-boundary regex
+ * - Replaces /gsd:command-name with $gsd-command-name for Codex skill mention syntax
+ * - Converts @~/.codex/ file references to explicit read instructions
+ * - Parses frontmatter: keeps only name (rewritten) and description (truncated to 1024 chars)
+ * - Drops allowed-tools, argument-hint, color fields
+ * @param {string} content - Markdown file content with YAML frontmatter
+ * @param {string} commandName - The skill name (e.g., 'gsd-help')
+ * @returns {string} - SKILL.md content
+ */
+function convertClaudeToCodexSkill(content, commandName) {
+  // Step 1: Replace tool name references in body text
+  let converted = content;
+  for (const [claudeTool, codexTool] of Object.entries(claudeToCodexTools)) {
+    if (codexTool === null) continue;
+    converted = converted.replace(new RegExp(`\\b${claudeTool}\\b`, 'g'), codexTool);
+  }
+
+  // Step 2: Replace /gsd:command with $gsd-command for Codex skill mention
+  converted = converted.replace(/\/gsd:([a-z0-9-]+)/g, '\\$gsd-$1');
+
+  // Step 3: Convert @~/.codex/ file references to explicit read instructions
+  // (After path replacement has already changed ~/.claude/ to ~/.codex/)
+  converted = converted.replace(/@(~\/\.codex\/[^\s]+)/g, 'Read the file at `$1`');
+
+  // Step 4: Parse frontmatter and rebuild as SKILL.md format
+  if (!converted.startsWith('---')) {
+    return `---\nname: ${commandName}\ndescription: GSD command: ${commandName}\n---\n\n${converted}`;
+  }
+
+  const endIndex = converted.indexOf('---', 3);
+  if (endIndex === -1) return converted;
+
+  const frontmatter = converted.substring(3, endIndex).trim();
+  const body = converted.substring(endIndex + 3);
+
+  // Parse frontmatter fields
+  let description = '';
+  const lines = frontmatter.split('\n');
+  let inArrayField = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith('description:')) {
+      description = trimmed.substring(12).trim();
+      inArrayField = false;
+      continue;
+    }
+
+    // Skip fields not in SKILL.md schema
+    if (trimmed.startsWith('name:') ||
+        trimmed.startsWith('allowed-tools:') ||
+        trimmed.startsWith('argument-hint:') ||
+        trimmed.startsWith('color:')) {
+      inArrayField = trimmed.startsWith('allowed-tools:');
+      continue;
+    }
+
+    // Skip array items from allowed-tools
+    if (inArrayField && trimmed.startsWith('- ')) {
+      continue;
+    } else if (inArrayField && !trimmed.startsWith('-')) {
+      inArrayField = false;
+    }
+  }
+
+  // Truncate description to 1024 chars, remove angle brackets
+  description = description.replace(/[<>]/g, '').substring(0, 1024);
+  if (!description) {
+    description = `GSD command: ${commandName}`;
+  }
+
+  return `---\nname: ${commandName}\ndescription: ${description}\n---${body}`;
+}
+
+/**
+ * Copy GSD commands as Codex Skill directories.
+ * Each command becomes a directory with a SKILL.md file inside.
+ * Source: commands/gsd/help.md -> skills/gsd-help/SKILL.md
+ * Source: commands/gsd/debug/start.md -> skills/gsd-debug-start/SKILL.md
+ * @param {string} srcDir - Source directory (e.g., commands/gsd/)
+ * @param {string} destDir - Destination directory (e.g., skills/)
+ * @param {string} prefix - Prefix for skill names (e.g., 'gsd')
+ * @param {string} pathPrefix - Path prefix for file references
+ */
+function copyCodexSkills(srcDir, destDir, prefix, pathPrefix) {
+  if (!fs.existsSync(srcDir)) return;
+
+  // Clean existing GSD skills before copying new ones
+  if (fs.existsSync(destDir)) {
+    for (const entry of fs.readdirSync(destDir, { withFileTypes: true })) {
+      if (entry.isDirectory() && entry.name.startsWith(`${prefix}-`)) {
+        fs.rmSync(path.join(destDir, entry.name), { recursive: true });
+      }
+    }
+  } else {
+    fs.mkdirSync(destDir, { recursive: true });
+  }
+
+  const entries = fs.readdirSync(srcDir, { withFileTypes: true });
+
+  for (const entry of entries) {
+    const srcPath = path.join(srcDir, entry.name);
+
+    if (entry.isDirectory()) {
+      // Recurse: commands/gsd/debug/start.md -> skills/gsd-debug-start/SKILL.md
+      copyCodexSkills(srcPath, destDir, `${prefix}-${entry.name}`, pathPrefix);
+    } else if (entry.name.endsWith('.md')) {
+      const baseName = entry.name.replace('.md', '');
+      const skillName = `${prefix}-${baseName}`;
+      const skillDir = path.join(destDir, skillName);
+
+      fs.mkdirSync(skillDir, { recursive: true });
+
+      let content = fs.readFileSync(srcPath, 'utf8');
+      content = replacePathsInContent(content, pathPrefix);
+      content = processAttribution(content, getCommitAttribution('codex'));
+      content = convertClaudeToCodexSkill(content, skillName);
+
+      fs.writeFileSync(path.join(skillDir, 'SKILL.md'), content);
+    }
+  }
+}
+
+/**
+ * Generate ~/.codex/AGENTS.md with GSD workflow instructions.
+ * Uses marker comments for idempotent section replacement.
+ * Content is kept under 4KB to leave room for project-level AGENTS.md.
+ * @param {string} targetDir - Codex config directory (e.g., ~/.codex)
+ * @param {string} pathPrefix - Path prefix for file references
+ */
+function generateCodexAgentsMd(targetDir, pathPrefix) {
+  const agentsMdPath = path.join(targetDir, 'AGENTS.md');
+  const GSD_BEGIN = '<!-- GSD:BEGIN (get-shit-done-reflect-cc) -->';
+  const GSD_END = '<!-- GSD:END (get-shit-done-reflect-cc) -->';
+
+  const gsdSection = `${GSD_BEGIN}
+# GSD Workflow System
+
+GSD (Get Shit Done) is installed as Codex skills for structured project planning and execution.
+
+## Available Commands
+
+Use \`/skills\` or type \`$gsd-\` to discover GSD commands:
+
+| Command | Purpose |
+|---------|---------|
+| \`$gsd-help\` | Show all commands and usage |
+| \`$gsd-new-project\` | Initialize a new project |
+| \`$gsd-plan-phase\` | Plan a project phase |
+| \`$gsd-execute-phase\` | Execute a planned phase |
+| \`$gsd-resume-work\` | Resume from last session |
+| \`$gsd-pause-work\` | Save state for later |
+| \`$gsd-progress\` | Show project progress |
+| \`$gsd-signal\` | Record a signal (insight, mistake, etc.) |
+
+## Workflow Conventions
+
+- All project state lives in \`.planning/\` (git-committed, runtime-agnostic)
+- Follow existing ROADMAP.md phases in order
+- Verify each task before marking complete
+- Use atomic git commits per completed task
+- Read \`~/.gsd/knowledge/index.md\` before starting work for relevant lessons
+
+## Runtime Capabilities
+
+This runtime operates with limited capabilities compared to Claude Code:
+- **No Task tool support** -- Codex cannot spawn sub-agents, so all execution is sequential within a single context
+- **No hooks support** -- pre-commit hooks and other lifecycle hooks are unavailable in Codex
+- **No tool restrictions** -- Codex does not support allowed-tools filtering, so all tools are always available to skills
+
+For full runtime comparison, read the file at \`${pathPrefix}get-shit-done/references/capability-matrix.md\`.
+
+## Non-interactive Usage (codex exec)
+
+For scripted or CI environments, use \`codex exec\` to run GSD skills non-interactively:
+
+\`\`\`
+codex exec "Run $gsd-progress to show current project status"
+codex exec "Run $gsd-execute-phase 3"
+\`\`\`
+
+This bypasses the interactive prompt and executes directly.
+${GSD_END}`;
+
+  if (fs.existsSync(agentsMdPath)) {
+    let existing = fs.readFileSync(agentsMdPath, 'utf8');
+    const beginIdx = existing.indexOf(GSD_BEGIN);
+    const endIdx = existing.indexOf(GSD_END);
+
+    if (beginIdx !== -1 && endIdx !== -1) {
+      // Replace existing GSD section
+      existing = existing.substring(0, beginIdx) + gsdSection +
+                 existing.substring(endIdx + GSD_END.length);
+    } else {
+      // Append GSD section
+      existing = existing.trimEnd() + '\n\n' + gsdSection + '\n';
+    }
+    fs.writeFileSync(agentsMdPath, existing);
+  } else {
+    fs.writeFileSync(agentsMdPath, gsdSection + '\n');
+  }
 }
 
 /**
@@ -1921,4 +2144,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries };
+module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd };
