@@ -59,6 +59,14 @@ Scan the current conversation and project state for context:
    ("still not working", "keeps failing"). Would you like to include
    frustration context in this signal? (y/n)
    ```
+
+4. **Runtime detection**: Examine the path prefix in this workflow file.
+   - ~/.claude/ paths -> runtime: claude-code
+   - ~/.config/opencode/ paths -> runtime: opencode
+   - ~/.gemini/ paths -> runtime: gemini-cli
+   - ~/.codex/ paths -> runtime: codex-cli
+5. **Model detection**: Use self-knowledge of current model name (e.g.,
+   claude-opus-4-6). If uncertain, use "unknown" or omit.
 </step>
 
 <step name="fill_missing">
@@ -103,6 +111,7 @@ Display the signal preview for confirmation:
 **Type:** {type}
 **Polarity:** {polarity}
 **Phase:** {phase} | **Plan:** {plan}
+**Runtime:** {runtime} | **Model:** {model}
 **Source:** manual
 
 Save this signal? (y/n)
@@ -169,13 +178,15 @@ updated: {ISO-8601-now}
 durability: {workaround|convention|principle}
 status: active
 severity: {critical|notable}
-signal_type: {deviation|struggle|config-mismatch|custom}
+signal_type: {deviation|struggle|config-mismatch|capability-gap|custom}
 phase: {phase-number}
 plan: {plan-number}
 polarity: {positive|negative|neutral}
 source: manual
 occurrence_count: {count}
 related_signals: [{ids}]
+runtime: {detected-runtime}
+model: {detected-model}
 ---
 ```
 
@@ -242,4 +253,5 @@ Index rebuilt.
 - **Git behavior follows commit_planning_docs setting** from .planning/config.json.
 - **All manual signals are persisted** regardless of severity level, since the user explicitly chose to record them (per signal-detection.md Section 6 manual override rule).
 - **Source field is always `manual`** for signals created via this command (distinguishes from `auto` signals created by gsd-signal-collector).
+- **Runtime/model fields are best-effort:** The LLM detects runtime from path prefix and model from self-knowledge. If either is uncertain, the field is omitted rather than guessed incorrectly.
 </design_notes>

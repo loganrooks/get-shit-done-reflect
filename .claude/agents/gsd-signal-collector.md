@@ -53,6 +53,24 @@ You receive a phase number as input. From this you derive:
 
 ## Step 3: Detect Signals
 
+### 3.0 Runtime and Model Detection
+
+Before detecting signals, determine the runtime and model context:
+
+**Runtime detection:** Examine the path prefix in this agent spec file.
+- ~/.claude/ paths -> runtime: claude-code
+- ~/.config/opencode/ paths -> runtime: opencode
+- ~/.gemini/ paths -> runtime: gemini-cli
+- ~/.codex/ paths -> runtime: codex-cli
+
+**Model detection:** Use self-knowledge of the current model name.
+The executing model knows its own identifier (e.g., claude-opus-4-6,
+claude-sonnet-4-20250514). Record this as the model value.
+
+Store both values for inclusion in all signals created during this run.
+If runtime cannot be determined, omit the field. If model cannot be
+determined, omit the field.
+
 For each plan that has both a PLAN.md and SUMMARY.md, apply detection rules from signal-detection.md:
 
 ### 3a. Deviation Detection (SGNL-01)
@@ -83,6 +101,8 @@ For each candidate signal detected in Step 3:
 3. Set `source: auto`
 4. Set `signal_type` based on detection source (deviation, struggle, config-mismatch)
 5. Determine appropriate tags from the seeded taxonomy and signal content
+6. Set `runtime` from step 3.0 detection (omit if unknown)
+7. Set `model` from step 3.0 detection (omit if unknown)
 
 ## Step 5: Filter Trace Signals
 
@@ -119,9 +139,10 @@ For each signal that passes filtering, dedup, and cap checks:
 4. Fill all base schema fields (id, type, project, tags, created, updated, durability, status)
 5. Fill signal extension fields (severity, signal_type, phase, plan)
 6. Fill Phase 2 extension fields (polarity, source, occurrence_count, related_signals)
-7. Write body sections (What Happened, Context, Potential Cause)
-8. Ensure parent directory exists: `mkdir -p ~/.gsd/knowledge/signals/{project}/`
-9. Write the file
+7. Fill runtime provenance fields: runtime (from step 3.0 detection), model (from step 3.0 detection). Omit either field if unknown.
+8. Write body sections (What Happened, Context, Potential Cause)
+9. Ensure parent directory exists: `mkdir -p ~/.gsd/knowledge/signals/{project}/`
+10. Write the file
 
 ## Step 9: Rebuild Index
 
