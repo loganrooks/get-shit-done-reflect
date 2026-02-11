@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 13 of 17 (Path Abstraction & Capability Matrix)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-02-11 -- Completed 13-01-PLAN.md (two-pass path replacement)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-02-11 -- Completed 13-02-PLAN.md (capability matrix & feature detection)
 
-Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [#.........] 10%
+Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [##........] 20%
 
 ## Performance Metrics
 
@@ -29,8 +29,8 @@ Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [#....
 - Total execution time: ~70min
 
 **v1.14 In Progress:**
-- Plans completed: 1
-- Duration: 6min
+- Plans completed: 2
+- Duration: 14min (6min + 8min)
 
 ## Accumulated Context
 
@@ -45,6 +45,9 @@ Recent decisions affecting current work:
 - Full continuity handoff across runtimes (pending -- drives Phase 16)
 - Two-pass path replacement: KB paths to ~/.gsd/knowledge/ (Pass 1), runtime-specific paths to target (Pass 2)
 - require.main guard added to install.js for testability
+- Static capability matrix as reference doc (not config file) at get-shit-done/references/capability-matrix.md
+- Feature detection via has_capability() prose pattern in orchestrators only (agent specs stay clean)
+- Inform once then adapt silently strategy for degraded runtime behavior
 
 ### Pending Todos
 
@@ -78,5 +81,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 roadmap created
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 13-01-PLAN.md (two-pass path replacement)
+Stopped at: Completed 13-02-PLAN.md (capability matrix & feature detection). Phase 13 complete.
 Resume file: None
