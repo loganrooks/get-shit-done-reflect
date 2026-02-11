@@ -311,4 +311,111 @@ describe('wiring validation', () => {
       expect(content).toMatch(/spike/)
     })
   })
+
+  describe('thin orchestrator delegation', () => {
+    it('every command with execution_context references an existing workflow', async () => {
+      const commandFiles = await readMdFiles('commands/gsd')
+      const broken = []
+
+      for (const file of commandFiles) {
+        // Extract execution_context sections
+        const execContextMatch = file.content.match(
+          /<execution_context>([\s\S]*?)<\/execution_context>/
+        )
+        if (!execContextMatch) continue
+
+        // Find workflow @-references within execution_context
+        const workflowRefPattern = /@~\/\.claude\/get-shit-done\/workflows\/[^\s)>"]+\.md/g
+        const workflowRefs = execContextMatch[1].match(workflowRefPattern)
+        if (!workflowRefs) continue
+
+        for (const ref of workflowRefs) {
+          const workflowPath = refToRepoPath(ref.replace(/^@/, ''))
+          const exists = await pathExists(workflowPath)
+          if (!exists) {
+            broken.push({ command: file.name, workflow: workflowPath })
+          }
+        }
+      }
+
+      if (broken.length > 0) {
+        const details = broken
+          .map(b => `  ${b.command} -> ${b.workflow}`)
+          .join('\n')
+        expect.fail(`Commands reference non-existent workflows:\n${details}`)
+      }
+    })
+
+    it('commands with execution_context have workflow @-references', async () => {
+      const commandFiles = await readMdFiles('commands/gsd')
+      const missingDelegation = []
+
+      for (const file of commandFiles) {
+        const hasExecutionContext = file.content.includes('<execution_context>')
+        if (!hasExecutionContext) continue
+
+        const hasWorkflowRef = file.content.includes('get-shit-done/workflows/')
+        if (!hasWorkflowRef) {
+          missingDelegation.push(file.name)
+        }
+      }
+
+      if (missingDelegation.length > 0) {
+        expect.fail(
+          `Commands with execution_context but no workflow reference:\n  ${missingDelegation.join('\n  ')}`
+        )
+      }
+    })
+
+    it('workflow files referenced by commands exist in workflows directory', async () => {
+      const commandFiles = await readMdFiles('commands/gsd')
+      const referencedWorkflows = new Set()
+
+      for (const file of commandFiles) {
+        // Find all workflow filename references in the command
+        const workflowRefPattern = /get-shit-done\/workflows\/([^\s)>"]+\.md)/g
+        let match
+        while ((match = workflowRefPattern.exec(file.content)) !== null) {
+          referencedWorkflows.add(match[1])
+        }
+      }
+
+      const broken = []
+      for (const workflowName of referencedWorkflows) {
+        const workflowPath = `get-shit-done/workflows/${workflowName}`
+        const exists = await pathExists(workflowPath)
+        if (!exists) {
+          broken.push(workflowName)
+        }
+      }
+
+      if (broken.length > 0) {
+        expect.fail(
+          `Workflow files referenced by commands but missing from workflows directory:\n  ${broken.join('\n  ')}`
+        )
+      }
+    })
+  })
+
+  describe('fork-specific files', () => {
+    it('KB signal template exists', async () => {
+      const exists = await pathExists('.claude/agents/kb-templates/signal.md')
+      expect(exists).toBe(true)
+    })
+
+    it('knowledge-surfacing reference exists', async () => {
+      const exists = await pathExists('get-shit-done/references/knowledge-surfacing.md')
+      expect(exists).toBe(true)
+    })
+
+    it('community command exists', async () => {
+      const exists = await pathExists('commands/gsd/community.md')
+      expect(exists).toBe(true)
+    })
+
+    it('collect-signals command exists', async () => {
+      const exists = await pathExists('commands/gsd/collect-signals.md')
+      expect(exists).toBe(true)
+    })
+  })
 })

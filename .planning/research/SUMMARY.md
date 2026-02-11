@@ -1,324 +1,264 @@
 # Project Research Summary
 
-**Project:** GSD Self-Improving Extensions (Signals, Spikes, Knowledge Base)
-**Domain:** Self-improving AI development tooling
-**Researched:** 2026-02-02
-**Confidence:** HIGH
+**Project:** v1.13 Upstream Sync & Validation
+**Domain:** Fork synchronization — syncing GSD Reflect with 70 upstream commits (v1.11.2 to v1.18.0)
+**Researched:** 2026-02-09
+**Confidence:** HIGH (direct git diff analysis of both codebases)
 
 ## Executive Summary
 
-This project extends the Get-Shit-Done (GSD) AI workflow orchestrator with self-improvement capabilities through signal tracking, structured experimentation, and persistent knowledge management. The approach is grounded in zero-dependency, file-based storage using Node.js built-ins exclusively, maintaining compatibility with GSD's upstream fork strategy.
+Upstream GSD underwent a massive architectural transformation between v1.11.2 and v1.18.0. The dominant change is the extraction of repetitive bash patterns into `gsd-tools.js`, a 4,597-line zero-dependency Node.js CLI. This refactoring touched every agent, command, and workflow file in the system. Commands were hollowed out from 200-1000+ lines to 20-40 lines, delegating all logic to workflow files. Agent specs were condensed by 60% while maintaining identical behavior. Alongside this, upstream fixed 11 critical bugs, added 6 valuable features, and improved verification infrastructure.
 
-The recommended architecture uses JSONL for append-only structured event logging, Markdown with YAML frontmatter for human/AI-readable content (experiments, lessons, summaries), and a passive file-based knowledge store at `~/.claude/gsd-knowledge/`. This leverages established patterns from static site generators, observability systems, and knowledge management platforms while respecting the zero-dependency constraint. The critical path is: Signal Capture → Signal Persistence → Knowledge Base Storage → Knowledge Surfacing during research phases.
+**Our fork's challenge:** We made targeted branding changes and added fork-specific features (signals, spikes, knowledge base, reflection) as additive-only files. The fork overlaps with upstream in 12 files, primarily `bin/install.js`, package identity files, and a few commands. The research reveals that the "additive only" constraint held for fork features but not for branding, and the constraint itself is now untenable given upstream's architectural shift. The recommended approach is to **adopt upstream's architecture wholesale, then port fork features onto the new structure**. This is not a traditional merge — it's an architectural migration with branding preservation.
 
-The primary risk is context window poisoning — injecting signals and knowledge into agent contexts degrades reasoning quality through documented "context rot" effects. Mitigation requires pull-based (lazy) retrieval with strict token budgets, aggressive summarization, and treating context as a zero-sum resource. Secondary risks include knowledge base staleness (the "graveyard" anti-pattern) and fork drift from upstream GSD. Both are addressable through structural design choices: expiry/decay mechanisms for knowledge entries and strict file ownership conventions for fork maintenance.
+**Critical risks and mitigation:** The biggest risks are (1) install.js three-way merge trap — upstream made extensive changes while we added branding, (2) thin orchestrator architecture mismatch — upstream moved logic from commands to workflows, potentially losing our DevOps detection feature, and (3) agent spec dual-location problem — we have agents in both `agents/` and `.claude/agents/` that must stay synchronized. All three are mitigated by a staged semantic merge approach: accept upstream's structural changes first, then selectively re-apply fork branding and port fork features to the workflow layer.
 
 ## Key Findings
 
-### Recommended Stack
+### Recommended Stack (from STACK.md)
 
-GSD's zero-dependency constraint (Node.js built-ins only, no SQLite, no external services) narrows the technology choices decisively. Research validates that file-based patterns with JSONL for structured data and Markdown for human/AI content cover all requirements without dependencies.
+Upstream introduced `gsd-tools.js`, a 4,597-line Node.js CLI that replaces 30-50% of context budget previously spent on bash snippets for config parsing, state management, phase discovery, and git operations. It contains 63 commands across 10 categories: state management (12 functions), compound init commands (12 functions), phase operations (8 functions), roadmap operations, frontmatter CRUD, verification suite, templates, config management, and utilities.
 
 **Core technologies:**
-- **JSONL files** (via `fs.appendFileSync`): Append-only structured event logging for signals and experiment raw data — corruption-resistant (bad line doesn't break file), streamable, zero parsing of existing content, industry standard for structured logging (Pino, Bunyan, fluentd all use JSONL)
-- **Markdown + YAML frontmatter**: Experiment definitions, decision records, and knowledge entries — AI runtimes consume Markdown natively, frontmatter provides structured metadata for programmatic access, prose body enables rich context (same pattern as Hugo, Astro, Obsidian, mdbase-spec)
-- **Tag-based indexing via frontmatter**: Cross-project discovery through grep-able tags (`grep -r "tags:.*node" kb/`) — zero-dependency search, multi-valued categorization, sufficient at expected scale (tens to low hundreds of entries)
-- **Generated index files**: Disposable Markdown/JSON manifests with entry summaries — avoids agents scanning every file, reduces context window pressure, regenerated on demand
+- **gsd-tools.js CLI** (Node.js, CommonJS): Centralized deterministic operations — zero dependencies, 2,033-line test suite with node:test, fully preserves zero-dependency philosophy
+- **Thin orchestrator pattern**: Commands (20-40 lines) delegate to workflows (200+ lines) which delegate to gsd-tools for deterministic operations — reduces context consumption by 75.6%
+- **Compound init commands**: Single `init <workflow>` call returns all context a workflow needs in JSON, replacing 6+ file reads — saves 5,000-10,000 tokens per execution
+- **Frontmatter CRUD suite**: Tested YAML frontmatter parsing replacing fragile inline regex — highly relevant for our signal collection and knowledge base
 
-**What NOT to use (and why):**
-- SQLite: Native binary dependency, breaks zero-dep constraint, overkill for volume (hundreds not millions of entries), poor git diffing
-- Vector search/embeddings: ML model dependencies, unnecessary for expected scale, tag+title grep is sufficient
-- JSON arrays for append-only data: Must read+parse+modify+rewrite entire file, corruption of any character breaks entire file
-- Custom query languages: Maintenance burden for marginal benefit, `grep` + `JSON.parse()` covers all queries
+**Adoption recommendation:** ADOPT fully. gsd-tools is additive (new file), maintains zero-dependency philosophy, and provides infrastructure our fork features can extend. Rejecting it means maintaining divergent patterns that make every future sync exponentially harder. The thin orchestrator pattern is the right architectural direction.
 
-### Expected Features
+### Expected Features (from FEATURES.md)
 
-Research synthesized from industry trends, competitor patterns, and domain analysis. Confidence is MEDIUM — no single authoritative source for this exact intersection.
+The 70 upstream commits break down into: 11 must-adopt bug fixes, 7 should-adopt features, 8 architectural changes requiring evaluation, and the rest are skip (community-specific, changelog, Windows-specific, or reverted changes).
 
-**Must have (table stakes):**
-- Signal capture on workflow deviation (model mismatch, plan deviation, repeated rewrites, debugging cycles)
-- Signal persistence to file (signals must survive `/clear` to enable learning)
-- Spike workflow with hypothesis definition (structured experimentation, not aimless exploration)
-- Spike decision record output (ADR-style: context, alternatives, results, decision, consequences)
-- Knowledge base file storage (lessons persist across sessions and projects in `~/.claude/gsd-knowledge/`)
-- Knowledge base read during research (KB query alongside web/Context7 search)
-- Phase-end self-reflection (compare plan vs actual execution, detect deviations)
+**Must adopt (critical bug fixes):**
+- **Executor completion verification** (f380275): Prevents hallucinated success — executors now verify key files exist and commits are real before reporting success
+- **Context fidelity enforcement** (ecbc692): Planner now honors locked decisions from CONTEXT.md — user decisions are binding, not advisory
+- **Respect parallelization config** (4267c6c): Fixes ignored `parallelization: false` setting
+- **Researcher always writes RESEARCH.md** (161aa61): Fixes silent file loss when `commit_docs=false`
+- **commit_docs=false in all paths** (01c9115): Fixes two bypasses that committed planning files when they shouldn't
+- **Auto-create config.json** (4dff989): Prevents hard crash when config missing
+- **Statusline crash handling** (9d7ea9c): Prevents terminal corruption on file system errors
+- **API key prevention** (f53011c): Defense-in-depth against committing secrets
+- **Persist research decision** (767bef6): Saves "skip research" choice to config
+- **JSONC parsing in installer** (6cf4a4e): Prevents data loss on parse errors
+- **Statusline reference update** (074b2bc): Preserves statusline across updates
 
-**Should have (differentiators):**
-- Cross-project lesson surfacing (surface "last time you used Prisma, you hit X" across projects)
-- Spike result reuse/dedup (before running new spike, check if similar question already answered)
-- Iterative spike narrowing (multi-round experimentation where round N informs round N+1)
-- Signal pattern detection across projects (aggregate pattern recognition over accumulated signals)
+**Should adopt (valuable features):**
+- **Preserve local patches** (ca03a06): SHA256 manifest + backup system — directly relevant to our fork use case
+- **classifyHandoffIfNeeded workaround** (4072fd2): Handles Claude Code v2.1.27+ bug where agents falsely report failure
+- **--include flag optimization** (fa81821 + 01c9115): Eliminates redundant file reads, saves 5k-10k tokens per execution
+- **Brave Search integration** (60ccba9): Optional, graceful degradation
+- **Update respects install type** (8384575): Preserves local vs global install
+- **--auto flag** (7f49083): Unattended project initialization
 
-**Defer (anti-features or post-v1):**
-- Implicit frustration detection (HIGH complexity, uncertain value, risk of false positives)
-- Workflow self-modification (frontier feature, high risk of being wrong)
-- Real-time metrics dashboard (contradicts CLI-native and file-based architecture)
-- ML-based signal classification (adds model dependencies and opacity)
-- Continuous background monitoring (adds overhead, complexity; use event-driven checkpoints instead)
+**Architectural changes (evaluate):**
+- **gsd-tools.js CLI** (8 commits): Foundation of v1.12-v1.18 architecture
+- **Thin orchestrator refactoring** (d44c7dc + 2 others): 44 files changed, 22k chars (75.6%) reduced
+- **Frontmatter CRUD/verification suite** (6a2d1f1): 1,037 new lines in gsd-tools
+- **Context-optimizing parsing** (6c53737): state-snapshot, phase-plan-index, summary-extract
 
-**Critical path for MVP:** Signal Capture → Signal Persistence → Knowledge Base Storage → KB Read During Research. This is the minimum chain that delivers "the system remembers and learns."
+**Skip (not applicable to fork):**
+- GSD Memory system (added then reverted)
+- Community GitHub infrastructure (CODEOWNERS, issue templates, auto-label)
+- README badge changes (Discord, X, $GSD token)
+- Changelog/version bump commits (18 commits)
+- Windows-specific fixes (4 commits) — low priority for our macOS/Linux users
+- Removed files (CONTRIBUTING.md, GSD-STYLE.md, etc.)
 
-### Architecture Approach
+### Architecture Approach (from ARCHITECTURE.md)
 
-Component-based architecture with strict boundaries and one-way data flow: Capture → Store → Distill → Surface. Direction is left-to-right only; no component writes upstream.
+The fork has 12 overlapping files with upstream. The overlap analysis reveals:
+- **High conflict (5 files):** bin/install.js, commands/gsd/help.md, commands/gsd/new-project.md, commands/gsd/update.md, package.json
+- **Medium conflict (3 files):** get-shit-done/references/planning-config.md, get-shit-done/templates/research.md, hooks/gsd-check-update.js
+- **Low conflict (4 files):** .gitignore, package-lock.json (regenerate), CHANGELOG.md (keep ours), README.md (keep ours)
 
-**Major components:**
+**Major architectural changes from upstream:**
+1. **Thin orchestrator pattern**: Commands reduced from 200-1000+ lines to 20-40 lines, all logic moved to workflow layer
+2. **gsd-tools.js CLI**: 63 commands replace inline bash across 50+ files
+3. **Agent spec condensation**: 60% reduction (net -2,298 lines across 9 agents) while maintaining identical behavior
+4. **19 new workflow files**: Extracted from commands (add-phase, check-todos, help, new-project, plan-phase, etc.)
+5. **Memory system ghost**: Added (af7a057) then reverted (cc3c6ac) — must ensure no ghost references remain
 
-1. **Signal Collector** — Captures workflow events (deviations, frustration, struggles, config mismatches) during execution without interrupting flow. Writes structured Markdown signal files to Knowledge Store. Integration: wrapper workflow around existing `execute-phase.md` adds signal capture hooks before/after execution. Fork-friendly: new workflow file delegates to upstream workflow, no modifications to upstream.
+**Merge strategy recommendation:** `git merge upstream/main` with targeted manual resolution. Not rebase (70 commits too many), not cherry-pick (interdependent commits). A single merge commit captures the sync point for future merges.
 
-2. **Spike Runner** — Manages isolated experiment lifecycle in `.planning/spikes/{name}/` workspace. Translates design uncertainty into testable hypotheses, runs experiments, produces decision records stored in Knowledge Store. Completely independent of main workflow execution (user pauses work, runs spike, resumes with decision). New command `/gsd:spike` + new workflow + new agent — fully additive.
+**Conflict resolution approach:**
+- `.gitignore`, `CHANGELOG.md`, `README.md`: Keep fork versions entirely
+- `bin/install.js`: Accept upstream + re-apply branding (gets JSONC parser, patch preservation, Windows fixes)
+- Commands (help, new-project, update): Accept upstream thin orchestrators, migrate fork logic to workflow layer
+- `package.json`: Manual field merge (fork identity + upstream structure + merged deps)
+- `package-lock.json`: Regenerate after package.json merge
+- Hooks, planning-config, research template: Accept upstream + append/re-apply fork sections
 
-3. **Knowledge Store** — Passive file-based store at `~/.claude/gsd-knowledge/` with directory structure: `signals/{project}/{date}/`, `spikes/{project}/`, `lessons/{category}/`, `index.md` (auto-generated). No logic — just agreed-upon file format (Markdown + YAML frontmatter). All components read/write here. Project-specific signals also copied to `.planning/signals/` for project context, but canonical store is user-level.
+**Post-merge adaptations:**
+- **Phase A: Workflow layer migration** — DevOps detection from new-project.md moves to workflows/new-project.md
+- **Phase B: Agent alignment** — Upstream agents now condensed and gsd-tools-aware, installed copies will update automatically
+- **Phase C: gsd-tools integration** — Fork features can optionally use gsd-tools for state/config/commits
 
-4. **Reflection Engine** — Periodic analysis process (explicit `/gsd:reflect` invocation or at milestone completion) that reads accumulated signals, detects patterns, distills lessons, writes to Knowledge Store. Does NOT run during normal execution to avoid context bloat. New command + workflow + agent.
+### Critical Pitfalls (from PITFALLS.md)
 
-**Key architectural patterns:**
-- **Wrapper workflows (fork-friendly extension):** New workflow files wrap and extend existing ones rather than editing upstream files. Example: `execute-phase-reflect.md` wraps `execute-phase.md` and adds signal capture before/after.
-- **Parallel research agents (knowledge surfacing):** Add `gsd-knowledge-researcher` as parallel agent alongside existing `gsd-project-researcher` and `gsd-phase-researcher` during research phases, rather than modifying existing researchers.
-- **Passive capture, deferred analysis:** Signal capture is cheap (just file writes during execution); analysis is expensive (runs separately during reflection). Keeps execution fast, avoids context bloat.
+1. **The install.js three-way merge trap** — Three independent change streams (our branding, memory add/revert, post-revert changes) all touch install.js. Naive merge loses branding or introduces ghost code. Prevention: Manual semantic merge, test in isolation before proceeding.
 
-**Build order:** Phase 1: Knowledge Store (foundation for all others) → Phase 2: Signal Collector (first writer) → Phase 3: Spike Runner (parallel with Phase 2, independent) → Phase 4: Reflection Engine (first reader+writer, needs signals to analyze) → Phase 5: Knowledge Surfacing (integration, needs lessons to surface).
+2. **Thin orchestrator architecture mismatch** — Upstream moved logic from commands to workflows. Taking upstream commands without workflows breaks everything. Taking our commands without upstream workflows loses improvements. Prevention: Adopt architecture wholesale, port features onto new structure.
 
-### Critical Pitfalls
+3. **Agent spec dual-location problem** — We have agents in both `agents/` (source) and `.claude/agents/` (installed copies). Upstream condensed agents by 60%. Must update both locations consistently without clobbering our custom agents (reflector, signal-collector, spike-runner, knowledge-store). Prevention: Update `agents/` first, then `.claude/agents/` copies, leave fork-unique agents untouched.
 
-Research confidence: HIGH (domain-specific analysis grounded in project constraints and verified sources).
+4. **package.json identity collision** — Both sides modified every field. Must keep our identity (name, bin, repository) but adopt upstream's structural changes (files array for gsd-tools.js). Prevention: Hand-resolve field by field, verify with `npm pack --dry-run`.
 
-1. **Context Window Poisoning** — Signals and knowledge injected into agent contexts displace task reasoning tokens. Research on context rot (Hong et al., 2025) shows models exhibit sharp quality cliffs, not gradual degradation, as context fills. GSD agents already have large specs (planner: 1386 lines). Prevention: pull-based retrieval (agents query when needed, not push at spawn), hard token budgets (max 2000 tokens knowledge per agent), aggressive summarization (2-3 sentences, not full records), measure before/after quality.
+5. **Memory system ghost** — Upstream added gsd-memory/ (38 lines in researcher agents, 20 in new-project, 26 in complete-milestone, 16 in execute-phase) then reverted it. Three-way merge may reintroduce ghost references. Prevention: Grep for `memory`, `gsd_memory`, `gsd-memory`, `projects.json` after merge — must be zero hits except our own KB system.
 
-2. **Knowledge Base Graveyard** — Entries accumulate but nobody reads/trusts them. Staleness destroys trust (one wrong lesson → entire KB mentally marked unreliable). Prevention: expiry dates or review triggers on every entry, decay (unretreived entries lose relevance score and auto-archive), quality over quantity (cap at 50 entries per project, 200 global, force ranking), curation as part of workflow (phase completion includes KB review/prune).
+6. **gsd-tools.js adoption gap** — Commands/workflows call gsd-tools but it may not be installed correctly, may not handle our fork config fields, or tests may never run. Prevention: Verify files array, run `node --test gsd-tools.test.js`, test against our config.json.
 
-3. **Experiments That Never Converge** — Spikes defer decisions indefinitely ("one more thing to test"). Prevention: require convergence criteria at spike creation ("succeeds if X, fails if Y, decide by Z"), hard timeboxes, max spike depth of 2 (escalate to human if two rounds don't resolve), spike output must be decision ("chose A because B") not report ("here are tradeoffs").
+7. **Test suite fragility** — Our wiring-validation.test.js expects old pattern (inline command logic), will fail after thin orchestrator adoption. Prevention: Fix tests in order (install.test.js → wiring-validation.test.js → KB tests), don't skip failing tests.
 
-4. **Fork Drift From Upstream GSD** — "Additive only" constraint erodes through small modifications that compound into merge conflicts. Prevention: strict file ownership manifest (CI checks upstream files unmodified), extension architecture (new namespaces like `commands/reflect/`, new agent names like `agents/reflect-*.md`), sync weekly (small merges beat large merges), tag changes for upstream proposal.
-
-5. **Signal Noise** — Capturing everything drowns out meaningful patterns (alert fatigue for observability systems). Prevention: define severity levels at design time (critical/notable/trace, only store critical+notable), signal deduplication (15 instances of same signal → one entry with count), require "so what" for each signal type (what action should it trigger?), cap volume per session (max 10 persistent signals per phase).
+8. **Version number confusion** — Fork at v1.12.2, upstream at v1.18.0. What version are we after merge? Prevention: Use semantic versioning based on our fork history (v1.13.0), document "Synced with upstream v1.18.0" in CHANGELOG.
 
 ## Implications for Roadmap
 
-Based on combined research, dependencies, and pitfall avoidance, suggested phase structure:
+Based on research, this is not a traditional feature development roadmap. This is an **architectural migration with feature preservation**. The research reveals 5 distinct work streams that have dependencies on each other.
 
-### Phase 1: Knowledge Store Foundation
-**Rationale:** Every other component depends on the Knowledge Store's file format and directory structure. This is pure design — no integration complexity, can be fully specified before implementation begins. Establishes the foundation that all subsequent phases build on.
-
+### Phase 1: Pre-Merge Preparation & Strategy
+**Rationale:** The "additive only" constraint is dead (PITFALLS.md P10). Before touching code, we need strategic decisions and a clean snapshot.
 **Delivers:**
-- Directory structure at `~/.claude/gsd-knowledge/` (signals/, spikes/, lessons/, index.md)
-- File format specifications (Markdown + YAML frontmatter schemas for signals, spikes, lessons)
-- Index generation logic (scan entries, extract frontmatter, write disposable index.md)
-- Zero-dependency primitives documentation (how to use Node.js built-ins for all operations)
+- Decision on new fork maintenance strategy (use upstream's reapply-patches system)
+- Snapshot of current fork state (all tests passing, documentation of what we've modified)
+- Sync branch created
+- Validation plan defined
+**Addresses:** Risk of clinging to an unworkable constraint
+**Avoids:** P10 (additive-only constraint confusion), sets up for P1-P5 mitigation
 
-**Addresses features:**
-- Knowledge base file storage (table stakes)
-- Lays groundwork for signal persistence and spike storage
-
-**Avoids pitfalls:**
-- Context window poisoning (design pull-based retrieval from start)
-- Knowledge base graveyard (build in expiry/decay/scoring from day one)
-- Query latency (index file design prevents full-scan searches)
-
-**Research flag:** LOW — this is internal design based on established patterns (frontmatter-based content, static site generator indexes). Skip `/gsd:research-phase`.
-
----
-
-### Phase 2: Signal Capture and Persistence
-**Rationale:** Signals are the primary data source for reflection and learning. This phase establishes the data collection layer. Must come after Knowledge Store (depends on file formats) but before Reflection Engine (which needs signals to analyze). Can be built in parallel with Spike Runner since they write to different parts of the Knowledge Store.
-
+### Phase 2: Core Merge & Conflict Resolution
+**Rationale:** The 12 overlapping files must be resolved correctly or everything downstream breaks. install.js must be first (foundation), then package.json (identity), then architecture (commands/agents).
 **Delivers:**
-- Signal taxonomy and severity levels (critical/notable/trace)
-- Signal file template (Markdown + frontmatter)
-- Wrapper workflow (`execute-phase-reflect.md`) that adds signal capture hooks around existing `execute-phase.md`
-- Signal collector agent (`gsd-signal-collector.md`) that detects deviations by comparing PLAN.md vs SUMMARY.md
-- Deduplication logic (count repeated signals instead of duplicating entries)
+- install.js merged (branding preserved, upstream features adopted) — addresses P1
+- package.json merged (fork identity + upstream structure) — addresses P4
+- CHANGELOG.md, README.md preserved (fork versions)
+- Commands converted to thin orchestrators — addresses P2
+- Agent specs updated (both locations) — addresses P3
+- All memory ghost references purged — addresses P5
+**Uses:** Manual semantic merge approach from ARCHITECTURE.md conflict resolution table
+**Avoids:** P1 (install.js trap), P2 (architecture mismatch), P3 (dual-location), P4 (identity collision), P5 (memory ghost)
+**Research flag:** HIGH — This is the most complex phase, requires deep understanding of both codebases
 
-**Addresses features:**
-- Signal capture on workflow deviation (table stakes)
-- Signal persistence to file (table stakes)
-
-**Avoids pitfalls:**
-- Signal noise (severity levels and deduplication from start)
-- Fork drift (wrapper workflow pattern, no upstream file edits)
-- Performance review effect (capture at orchestrator level, not in agent specs)
-
-**Research flag:** LOW — deviation detection is comparing Markdown files, frustration patterns are heuristic matching, struggle signals are self-reported by executors. Standard file I/O patterns. Skip `/gsd:research-phase`.
-
----
-
-### Phase 3: Spike Workflow (Parallel with Phase 2)
-**Rationale:** Spike workflow is independent of signal tracking — writes to different part of Knowledge Store, different user invocation pattern. Can be built in parallel with Phase 2 for velocity. Delivers structured experimentation capability early, which is valuable even before reflection/learning are implemented.
-
+### Phase 3: gsd-tools Integration & Validation
+**Rationale:** gsd-tools.js is the foundation of the new architecture. Must verify it works with our fork config before proceeding.
 **Delivers:**
-- Spike command (`/gsd:spike`) and workflow (`spike.md`)
-- Spike runner agent (`gsd-spike-runner.md`)
-- Spike workspace structure (`.planning/spikes/{name}/` with HYPOTHESIS.md, EXPERIMENT.md, DECISION.md)
-- Decision record template with mandatory decision field (prevents decision-less reports)
-- Convergence constraints: timeboxes, max depth 2, success/failure criteria required upfront
+- gsd-tools.js and test suite adopted
+- Files array updated in package.json
+- gsd-tools tested against fork config.json (health_check, devops, gsd_reflect_version fields)
+- Test suite passing: `node --test gsd-tools.test.js`
+**Implements:** STACK.md adoption recommendation (gsd-tools CLI)
+**Avoids:** P6 (gsd-tools adoption gap)
+**Research flag:** MEDIUM — Test-driven validation, straightforward once merge is clean
 
-**Addresses features:**
-- Spike workflow with hypothesis definition (table stakes)
-- Spike decision record output (table stakes)
-- Iterative spike narrowing (differentiator)
-
-**Avoids pitfalls:**
-- Experiments that never converge (structural constraints in workflow)
-- Decision records without decisions (mandatory decision field in template)
-- Fork drift (new command/workflow/agent, no upstream edits)
-
-**Research flag:** MEDIUM — hypothesis formation and experiment design may need structured templates/prompts research. Consider `/gsd:research-phase` for "how do other AI dev tools structure experiment workflows?" (OpenDevin, Codium, etc.)
-
----
-
-### Phase 4: Reflection Engine
-**Rationale:** Depends on signals existing to analyze (Phase 2 must complete). This is where captured signals become actionable lessons. Pattern detection and lesson distillation close the self-improvement loop. Must come before knowledge surfacing because surfacing needs lessons to exist.
-
+### Phase 4: Fork Feature Migration to Workflow Layer
+**Rationale:** Our fork features (DevOps detection, help content, package name references) were in command files. Upstream moved logic to workflow layer. Must port our features.
 **Delivers:**
-- Reflection command (`/gsd:reflect`) and workflow (`reflect.md`)
-- Reflector agent (`gsd-reflector.md`) that reads signals, clusters them, detects patterns, distills lessons
-- Lesson file template (Markdown + frontmatter with category, confidence, evidence)
-- Decay/expiry mechanism (unretreived entries lose relevance score)
-- Integration hook: optional reflection step in `complete-milestone` workflow
+- DevOps detection migrated from commands/gsd/new-project.md to workflows/new-project-reflect.md or extended upstream workflow
+- Fork help content added to workflows/help.md
+- Package name references updated in workflows/update.md
+- Fork-specific workflow files verified (collect-signals, reflect, run-spike) — unchanged, already follow thin pattern
+**Addresses:** Feature preservation after architectural migration
+**Avoids:** P2 (losing features due to architecture mismatch)
 
-**Addresses features:**
-- Phase-end self-reflection (table stakes)
-- Signal pattern detection across projects (differentiator)
-
-**Avoids pitfalls:**
-- Knowledge base graveyard (decay and expiry built into lesson format)
-- Context window poisoning (reflection runs separately from execution, doesn't bloat agent contexts)
-
-**Research flag:** MEDIUM-HIGH — pattern detection over signals is a clustering/analysis problem. Consider `/gsd:research-phase` for "what are lightweight pattern detection approaches for structured logs?" (time series anomaly detection, clustering algorithms that work without ML dependencies).
-
----
-
-### Phase 5: Knowledge Surfacing
-**Rationale:** The payoff phase where existing workflows get smarter by consulting accumulated knowledge. Depends on Knowledge Store (Phase 1), lessons existing (Phase 4), and spike results existing (Phase 3). This is where the system closes the loop: captured signals → distilled lessons → surfaced during research → better decisions.
-
+### Phase 5: Test Suite Repair & CI/CD Validation
+**Rationale:** Tests will break after the architectural migration. They are the primary merge correctness signal. Must fix in dependency order.
 **Delivers:**
-- Knowledge researcher agent (`gsd-knowledge-researcher.md`) spawned in parallel with existing project/phase researchers
-- Query interface that searches Knowledge Store index.md, filters by relevance (tags, recency, project context)
-- Integration into research workflows: KB query runs alongside web/Context7 search
-- Pull-based retrieval with token budget enforcement (max 2000 tokens knowledge per agent spawn)
-- Lazy loading: agents explicitly request knowledge when needed, not auto-injected at spawn
+- install.test.js updated (new banner, new directory structure)
+- wiring-validation.test.js updated (recognize thin orchestrator pattern)
+- KB tests verified (unchanged, still passing)
+- gsd-tools tests integrated into CI workflow
+- CI/CD workflows validated (.github/workflows/ci.yml, publish.yml, smoke-test.yml)
+- CODEOWNERS skipped (upstream's @glittercowboy not our maintainer)
+- Issue templates updated or skipped
+**Avoids:** P7 (test suite fragility), P8 (CI/CD workflow collision)
+**Research flag:** LOW — Test-driven, clear pass/fail criteria
 
-**Addresses features:**
-- Knowledge base read during research (table stakes)
-- Cross-project lesson surfacing (differentiator)
-- Spike result reuse/dedup (differentiator)
+### Phase 6: Version, Documentation, Release
+**Rationale:** After all code and tests are validated, set version and document what changed.
+**Delivers:**
+- Version set to 1.13.0 (semantic versioning for our fork)
+- CHANGELOG.md updated: "Synced with upstream GSD v1.18.0" with adoption summary
+- gsd_reflect_version in config.json updated to 1.13.0
+- Release notes documenting: (1) Upstream sync, (2) Bug fixes adopted, (3) Breaking changes (if any), (4) Fork features preserved
+**Avoids:** P9 (version confusion)
 
-**Avoids pitfalls:**
-- Context window poisoning (pull-based retrieval, strict token budgets, aggressive summarization)
-- Query latency (index.md provides fast lookup without scanning all files)
-
-**Research flag:** LOW — parallel agent spawning is standard GSD pattern, frontmatter searching is grep-based, token counting is string length. Skip `/gsd:research-phase`.
-
----
+### Phase 7: Dogfooding — Signal Tracking & KB Building
+**Rationale:** This sync milestone is perfect for dogfooding our fork's features (signals, knowledge base, reflection). Capture learnings for validation.
+**Delivers:**
+- Signal collection during each phase (architecture decisions, merge conflicts resolved, patterns learned)
+- Knowledge base entries for: (1) Upstream sync process, (2) gsd-tools CLI usage, (3) Thin orchestrator pattern, (4) Fork maintenance strategy
+- Health check validation after merge (infrastructure integrity)
+- Reflection at milestone completion (process retrospective)
+**Uses:** Fork-specific features (collect-signals, signal, health-check, reflect)
+**Implements:** Validates that our fork features still work after architecture migration
 
 ### Phase Ordering Rationale
 
-**Critical path:** Phase 1 → Phase 2 → Phase 4 → Phase 5. Phase 3 (Spike Runner) is off the critical path and can parallelize with Phase 2 for delivery velocity.
-
-**Why this order:**
-- **Foundation-first:** Knowledge Store (Phase 1) is pure design with zero integration complexity. Establishes formats all other phases depend on. Building this first prevents rework.
-- **Data collection before analysis:** Signals (Phase 2) must be captured before Reflection Engine (Phase 4) can analyze them. No signals → no patterns → no lessons.
-- **Parallel value streams:** Signal tracking (Phases 2→4) and spike workflow (Phase 3) are independent features that write to different parts of the Knowledge Store. Parallelizing Phase 2 and Phase 3 delivers structured experimentation capability earlier.
-- **Integration last:** Knowledge Surfacing (Phase 5) integrates with existing research workflows. Doing this last means the feature is fully functional (KB populated with lessons and spike results) before we wire it into the main workflow. Reduces risk of surfacing empty/stale knowledge.
-- **Pitfall avoidance baked into order:** Context window poisoning (P1) is mitigated by establishing pull-based retrieval in Phase 1 design and enforcing it in Phase 5 integration. Fork drift (P4) is mitigated by using wrapper workflows and parallel agents throughout (no upstream file edits in any phase).
-
-**Dependency visualization:**
-```
-Phase 1: Knowledge Store
-  ├── Phase 2: Signal Collector (depends on file formats)
-  │     └── Phase 4: Reflection Engine (depends on signals existing)
-  │           └── Phase 5: Knowledge Surfacing (depends on lessons existing)
-  │
-  └── Phase 3: Spike Runner (depends on file formats, parallel with Phase 2)
-        └── Phase 5: Knowledge Surfacing (also depends on spike results)
-```
+- **Phase 1 before 2:** Strategic decisions must be made before touching code, otherwise mid-merge confusion
+- **Phase 2 before 3:** Core merge must complete before validating gsd-tools, since gsd-tools is part of the merge
+- **Phase 3 before 4:** gsd-tools must work before porting fork features that might use it
+- **Phase 4 before 5:** Fork features must be migrated before testing, since tests validate feature presence
+- **Phase 5 before 6:** All tests must pass before versioning/release
+- **Phase 7 parallel:** Signal tracking happens throughout Phases 2-6, synthesis at the end
 
 ### Research Flags
 
 **Phases needing deeper research during planning:**
-- **Phase 3 (Spike Workflow):** MEDIUM priority — hypothesis formation and experiment design may benefit from structured templates research. Query: "how do AI dev tools structure experiment workflows?" Sources: OpenDevin docs, Codium experiment features, Addy Osmani's workflow patterns.
-- **Phase 4 (Reflection Engine):** MEDIUM-HIGH priority — pattern detection over signals is a clustering/analysis problem without ML dependencies. Query: "lightweight pattern detection for structured logs" Sources: time series anomaly detection algorithms, simple clustering (k-means with cosine similarity, no lib dependency).
+- **Phase 2 (Core Merge):** Complex, high-stakes. Needs detailed plan for each of the 12 conflict files. Consider sub-phasing: 2.1 install.js, 2.2 package.json, 2.3 commands, 2.4 agents, 2.5 validation.
+- **Phase 4 (Feature Migration):** Depends on upstream's workflow structure which we haven't fully analyzed. May need research-phase to understand workflow extension patterns.
 
-**Phases with standard patterns (skip research-phase):**
-- **Phase 1 (Knowledge Store):** Standard file-based patterns (frontmatter content, static site generator indexes, directory structures). All design, no novel integration.
-- **Phase 2 (Signal Collector):** Markdown diff comparison, heuristic pattern matching, file I/O. Well-understood primitives.
-- **Phase 5 (Knowledge Surfacing):** Parallel agent spawning (existing GSD pattern), grep-based search, token counting. Standard integration.
+**Phases with standard patterns (skip research):**
+- **Phase 1 (Preparation):** Snapshot and strategy — standard git workflow
+- **Phase 3 (gsd-tools Integration):** Test-driven validation — clear acceptance criteria
+- **Phase 5 (Test Repair):** Test-driven — clear pass/fail
+- **Phase 6 (Version/Docs):** Administrative — no technical complexity
+- **Phase 7 (Dogfooding):** Uses existing fork features — known patterns
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Zero-dependency constraint narrows choices decisively. JSONL and Markdown+frontmatter are established patterns with clear rationale. Sources include JSONL industry docs, mdbase-spec, LogTape zero-dep logging. |
-| Features | MEDIUM | Synthesized from industry trends and competitor analysis, but no single authoritative source for this exact intersection. Table stakes are well-validated (observability and experiment patterns). Differentiators are novel to CLI tooling domain. |
-| Architecture | HIGH | Internal design based on existing GSD codebase analysis. Component boundaries, wrapper workflow pattern, and fork-friendly extension strategy are all grounded in GSD's existing structure. |
-| Pitfalls | HIGH | Context rot research (Chroma, Factory.ai, Anthropic) validates context window poisoning as critical risk. Knowledge management failure modes (Bloomfire, Artiquare) are well-documented. Fork drift patterns (Preset, GitHub) are established. |
+| Stack | HIGH | Direct source analysis of gsd-tools.js (4,597 lines), test suite (2,033 lines), and all usage across 50+ files. Zero-dependency philosophy verified. |
+| Features | HIGH | All 70 commits examined via `git diff`. Bug fixes categorized by severity, features by adoption priority. Overlap analysis confirmed with git diff on 12 files. |
+| Architecture | HIGH | Detailed git diff analysis of both codebases. Conflict resolution strategy grounded in actual file contents. Thin orchestrator pattern verified across all command/workflow pairs. |
+| Pitfalls | HIGH | All pitfalls grounded in actual codebase analysis (git diffs showing three-way merge issues, memory add/revert tracked through commits, dual-location confirmed via ls). Community sources provide context but not the primary findings. |
 
 **Overall confidence:** HIGH
 
-Confidence is high because:
-1. The technology stack is constrained and validated (zero-dep requirement eliminates most choices)
-2. The architecture leverages GSD's existing patterns (wrapper workflows, parallel agents)
-3. The pitfalls are grounded in industry research (context rot, KM failures, fork drift)
-
-The one area of medium confidence (features) doesn't impact implementation decisions — it affects product prioritization, which will be validated through usage.
+The research is grounded in direct git analysis of this repository and upstream. Every finding is traceable to specific commits, files, and line numbers. The only uncertainty is execution risk (merge conflicts are complex), not analysis risk.
 
 ### Gaps to Address
 
-**Gap 1: Cross-runtime knowledge store path**
-- **Issue:** `~/.claude/gsd-knowledge/` works for Claude Code, but OpenCode or Gemini CLI may use different user config directories.
-- **Handling:** Add configurable path in GSD config. Default to `~/.claude/` for Claude Code. Document override for other runtimes. Low risk — configuration option handles it.
+- **Upstream workflow extension patterns:** We haven't fully analyzed how to extend upstream's workflow files without modifying them. Phase 4 planning may need research-phase to understand best practices for workflow composition.
 
-**Gap 2: Signal volume management over time**
-- **Issue:** Thousands of signal files could accumulate over months. Need pruning/archival strategy.
-- **Handling:** Part of Reflection Engine design (Phase 4). After signals are processed into lessons, archive them (move to `signals/archive/{year}/`). Configurable retention period (default: 90 days unarchived). Medium priority — implement in Phase 4.
+- **gsd-tools extensibility:** The research confirms gsd-tools can be extended (add new commands) but doesn't detail the best approach (modify gsd-tools.js vs. create gsd-reflect-tools.js). Decision needed during Phase 3 planning.
 
-**Gap 3: Implicit frustration detection feasibility**
-- **Issue:** Pattern matching for user frustration ("no, that's wrong", agent retries 3 times) may have unacceptable false positive rate.
-- **Handling:** Defer to post-MVP. Start with explicit signals only (signal capture requires explicit deviation detection, not sentiment analysis). If demanded later, run a spike (Phase 3) to validate detection accuracy before implementing. Low risk — explicitly deferred to v2+.
+- **Installer behavior changes:** Upstream's installer now writes `gsd-file-manifest.json`, backs up patches, handles JSONC. We need to verify these features don't conflict with our fork's installation needs. Validation during Phase 3.
 
-**Gap 4: Index generation performance at scale**
-- **Issue:** Generating index.md from hundreds of entries on every write may cause noticeable latency.
-- **Handling:** Phase 1 design decision. Start with full regeneration (simple). Add lazy regeneration trigger (only regenerate if index is >1 hour old) if performance becomes issue. Can profile during Phase 5 integration when KB is populated. Low risk — optimization can be added later without changing file formats.
+- **Windows fixes relevance:** Skipped 4 Windows-specific commits as low priority for our macOS/Linux users. If we expand platform support later, revisit: 1344bd8 (detached:true), ced41d7 (HEREDOC), 1c6a35f (backslashes), dac502f (gsd-tools merge).
 
 ## Sources
 
 ### Primary (HIGH confidence)
-
-**Stack research:**
-- [JSONL for Log Processing](https://jsonl.help/use-cases/log-processing/) — JSONL append-only patterns
-- [mdbase Specification](https://mdbase.dev/spec.html) — Frontmatter+filesystem pattern validation
-- [LogTape Documentation](https://logtape.org/manual/struct) — Zero-dependency structured logging patterns
-- GSD codebase analysis (commands, workflows, agents, templates)
-
-**Architecture research:**
-- GSD PROJECT.md, execute-phase.md, agent specifications
-- `~/.claude/` directory convention (Claude Code user config location)
-
-**Pitfalls research:**
-- [Context Rot: How Increasing Input Tokens Impacts LLM Performance](https://research.trychroma.com/context-rot) — Context window poisoning evidence
-- [The Context Window Problem: Scaling Agents Beyond Token Limits](https://factory.ai/news/context-window-problem) — Context management strategies
-- [Effective Context Engineering for AI Agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) — Pull-based retrieval patterns
-- [7 Deadly Sins That Will Turn Your KM System Into a Graveyard](https://bloomfire.com/blog/seven-deadly-sins-that-will-turn-your-knowledge-management-system-into-a-graveyard/) — Knowledge base failure modes
-- [Spikes - Scaled Agile Framework](https://scaledagileframework.com/spikes/) — Experiment convergence patterns
-- [Stop Forking Around: Hidden Dangers of Fork Drift](https://preset.io/blog/stop-forking-around-the-hidden-dangers-of-fork-drift-in-open-source-adoption/) — Fork maintenance strategies
+- Direct git diff analysis: `git log --oneline 2347fca..upstream/main` (70 commits)
+- `git show upstream/main:get-shit-done/bin/gsd-tools.js` — Full 4,597-line source
+- `git show upstream/main:get-shit-done/bin/gsd-tools.test.js` — Full 2,033-line test suite
+- `git diff --stat` and `git diff` for all must-adopt and should-adopt commits
+- `git diff HEAD upstream/main --name-only` for overlap analysis
+- `git diff 2347fca..HEAD --name-only` for fork modification tracking
+- Commit messages and linked issue numbers for bug fix context
 
 ### Secondary (MEDIUM confidence)
-
-**Feature research:**
-- [O'Reilly Signals for 2026](https://www.oreilly.com/radar/signals-for-2026/) — Industry trends
-- [Braintrust AI Observability Guide 2026](https://www.braintrust.dev/articles/best-ai-observability-tools-2026) — Observability patterns
-- [ADR Tooling](https://adr.github.io/adr-tooling/) — Decision record ecosystem
-- [UK Gov ADR Framework 2025](https://technology.blog.gov.uk/2025/12/08/the-architecture-decision-record-adr-framework-making-better-technology-decisions-across-the-public-sector/) — ADR best practices
-- [DeepLearning.AI Reflection Pattern](https://www.deeplearning.ai/the-batch/agentic-design-patterns-part-2-reflection/) — Reflection patterns for agents
-- [MemOS Paper](https://statics.memtensor.com.cn/files/MemOS_0707.pdf) — Memory-as-OS-resource concept
-- [Addy Osmani LLM Coding Workflow 2026](https://addyosmani.com/blog/ai-coding-workflow/) — Experiment-driven workflows
-
-### Tertiary (LOW confidence, supporting context)
-
-- [MarkdownDB](https://markdowndb.com/) — Markdown-to-queryable-index approach (validates pattern, uses SQLite internally)
-- [JSONL vs JSON: When to Use JSON Lines](https://superjson.ai/blog/2025-09-07-jsonl-vs-json-data-processing/) — Format comparison
+- Best Practices for Keeping a Forked Repository Up to Date (GitHub Community)
+- Stop Forking Around: Hidden Dangers of Fork Drift (Preset)
+- Friend Zone: Strategies for Friendly Fork Management (GitHub Blog)
+- Git Merge Strategy Options (Atlassian)
+- Git Tricks for Maintaining a Long-Lived Fork (die-antwort.eu)
+- Lessons Learned from Maintaining a Fork (DEV Community)
+- npm Trusted Publishing with OIDC (GitHub Changelog)
+- Soft Fork Strategy Handbook (Open Energy Transition)
 
 ---
-*Research completed: 2026-02-02*
+*Research completed: 2026-02-09*
 *Ready for roadmap: yes*

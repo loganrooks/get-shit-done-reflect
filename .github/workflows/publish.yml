@@ -70,5 +70,11 @@ jobs:
       - name: Run tests before publish
         run: npm test
 
+      - name: Run upstream tests before publish
+        run: npm run test:upstream
+
+      - name: Run fork tests before publish
+        run: npm run test:upstream:fork
+
       - name: Publish to npm
         run: npm publish --provenance --access public

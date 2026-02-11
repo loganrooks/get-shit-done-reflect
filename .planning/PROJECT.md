@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A self-improving enhancement to the GSD (Get Shit Done) workflow system. Adds signal tracking (automatic detection of workflow deviations, config mismatches, debugging struggles), a structured spike/experiment workflow for resolving design uncertainty empirically, a persistent cross-project knowledge base, a reflection engine that distills signals into actionable lessons, and knowledge surfacing that automatically retrieves relevant lessons during research and planning. Includes production tooling: workspace health checks, version migration, and DevOps context capture.
+A self-improving enhancement to the GSD (Get Shit Done) workflow system. Adds signal tracking (automatic detection of workflow deviations, config mismatches, debugging struggles), a structured spike/experiment workflow for resolving design uncertainty empirically, a persistent cross-project knowledge base, a reflection engine that distills signals into actionable lessons, and knowledge surfacing that automatically retrieves relevant lessons during research and planning. Now synchronized with upstream GSD v1.18.0 including the gsd-tools CLI, thin orchestrator architecture, and 11 bug fixes. Includes production tooling: workspace health checks, version migration, and DevOps context capture.
 
 ## Core Value
 
@@ -38,10 +38,17 @@ The system never makes the same mistake twice — signals capture what went wron
 - ✓ Production: version migration and upgrade-project command — v1.12
 - ✓ Production: DevOps context capture during project initialization — v1.12
 - ✓ Production: fork-specific README and CHANGELOG — v1.12
+- ✓ Fork strategy: tracked-modifications with documented divergences — v1.13
+- ✓ Upstream sync: 70 commits merged (v1.11.2→v1.18.0) with 8 conflicts resolved — v1.13
+- ✓ Architecture: gsd-tools CLI adopted with thin orchestrator pattern across 29 commands — v1.13
+- ✓ Bug fixes: 11 upstream fixes applied (executor verification, context fidelity, parallelization, commit_docs, etc.) — v1.13
+- ✓ Features: 7 upstream features adopted (--auto, --include, Brave Search, reapply-patches, JSONC, update detection, config persistence) — v1.13
+- ✓ Testing: 135 tests passing (53 fork vitest + 75 upstream gsd-tools + 7 fork gsd-tools) — v1.13
+- ✓ Dogfooding: knowledge base validated in production (13 signals, 3 lessons, KB comparison) — v1.13
 
 ### Active
 
-(None — next milestone requirements defined via `/gsd:new-milestone`)
+(No active milestone — use `/gsd:new-milestone` to start next)
 
 ### Out of Scope
 
@@ -52,15 +59,21 @@ The system never makes the same mistake twice — signals capture what went wron
 - ML-based signal classification — heuristic rules are sufficient and debuggable
 - Database for knowledge base — file-based with index is sufficient at expected scale
 - Continuous background monitoring — event-driven checkpoints instead
+- Modifying gsd-tools.js directly — upstream file, fork extensions go in separate gsd-reflect-tools.js
 
 ## Context
 
-Shipped v1.12 with 74,137 LOC across Markdown, JavaScript, Shell, and JSON.
-Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts.
-Architecture: Commands → Workflows → Templates/References → Agents, with Runtime layer (Node.js) for installation and hooks.
-Knowledge base: `~/.claude/gsd-knowledge/` with `signals/`, `spikes/`, `lessons/` subdirectories and auto-generated `index.md`.
-Test suite: 42 tests (8 unit, 34 integration), CI/CD via GitHub Actions with branch protection.
-6 tech debt items accepted (no critical blockers): NPM_TOKEN config, gitignore friction, signal pipeline unexercised, command location inconsistency, milestone reflection unwired, knowledge surfacing unexercised in production.
+Shipped v1.13 synchronized with upstream GSD v1.18.0.
+Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, gsd-tools.js CLI (4,597 lines).
+Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents, with Runtime layer (Node.js) for installation and hooks.
+Knowledge base: `~/.claude/gsd-knowledge/` with `signals/`, `spikes/`, `lessons/` subdirectories and auto-generated `index.md`. Validated in production during v1.13: 13 signals collected, 3 lessons distilled.
+Test suite: 135 tests (53 fork vitest + 75 upstream gsd-tools + 7 fork gsd-tools), CI/CD via GitHub Actions with branch protection.
+2 tech debt items remaining (no critical blockers): NPM_TOKEN config, gitignore friction. 4 items resolved by v1.13 (signal pipeline, command location, milestone reflection, knowledge surfacing).
+
+**Fork status (post v1.13 sync):**
+- Fork at v1.13.0, upstream at v1.18.0 (fully synchronized)
+- Tracked-modifications strategy with FORK-DIVERGENCES.md documenting per-file merge stances
+- Upstream's reverted GSD Memory vs fork's file-based KB: fork approach validated in production (see KB-COMPARISON.md)
 
 ## Constraints
 
@@ -69,7 +82,7 @@ Test suite: 42 tests (8 unit, 34 integration), CI/CD via GitHub Actions with bra
 - **Compatibility**: Must work across Claude Code, OpenCode, and Gemini CLI runtimes
 - **Context**: Signal logging and knowledge base queries must not bloat agent context windows — lazy loading is critical
 - **Non-invasive**: Signal tracking must not slow down or interrupt normal workflow execution
-- **Fork maintenance**: This is a fork of GSD upstream — new features must be additive (new files, new commands) rather than modifying existing upstream files, to keep merging upstream changes easy
+- **Fork maintenance**: This is a fork of GSD upstream — divergences from upstream files are tracked in FORK-DIVERGENCES.md with explicit category, rationale, and merge stance. See FORK-STRATEGY.md for the full maintenance approach
 
 ## Key Decisions
 
@@ -80,7 +93,7 @@ Test suite: 42 tests (8 unit, 34 integration), CI/CD via GitHub Actions with bra
 | Implicit signal capture (not just explicit) | Users express frustration without invoking commands; system should notice | ✓ Good — frustration detection via pattern matching in /gsd:signal |
 | Spike as first-class workflow (/gsd:spike) | Experimentation needs structure to avoid derailing the main workflow | ✓ Good — isolated workspace with ADR-style decision output |
 | Knowledge base queried during research phase | Most natural integration point; researchers already search for context | ✓ Good — all 4 agents (researcher, planner, debugger, executor) query KB |
-| Additive-only changes (no upstream file edits) | Fork maintenance — upstream merges must stay clean | ✓ Good — all changes are new files or additive sections |
+| Tracked-modifications fork strategy (supersedes additive-only) | Additive-only kept merges clean but became impractical as fork needed branding, behavior changes, and deeper integration. Tracked-modifications explicitly records all divergences with merge stances. | Evolved v1.13 -- see FORK-STRATEGY.md and FORK-DIVERGENCES.md |
 | Vitest over Jest | ESM-native, faster, simpler config | ✓ Good — 42 tests running cleanly |
 | Three-tier benchmark system | Different cost profiles for different validation depths | ✓ Good — quick/standard/comprehensive tiers |
 | Spikes produce findings, not decisions | Existing layers (CONTEXT.md, RESEARCH.md) make decisions | ✓ Good — clean separation of concerns |
@@ -89,6 +102,13 @@ Test suite: 42 tests (8 unit, 34 integration), CI/CD via GitHub Actions with bra
 | Pull-based KB retrieval with token budget | Prevents context bloat in agents | ✓ Good — ~500 tokens researcher/debugger, ~200 executor |
 | Health check purely mechanical | No subjective quality assessment | ✓ Good — actionable pass/warning/fail results |
 | Migrations always additive | Never remove or modify existing config fields | ✓ Good — backward compatible upgrades |
+| Tracked-modifications fork strategy | Additive-only became impractical; explicit divergence tracking with merge stances | ✓ Good — FORK-STRATEGY.md + FORK-DIVERGENCES.md govern all merges |
+| Traditional merge over rebase for sync | 145 fork commits + 17 modified files makes rebase painful | ✓ Good — single merge commit f97291a |
+| Adopt gsd-tools.js as-is (no fork modifications) | 4,597-line upstream file; any change creates merge conflicts | ✓ Good — fork uses separate gsd-reflect-tools.js (future) |
+| Thin orchestrator pattern for all commands | Upstream architecture: commands delegate to workflows | ✓ Good — 29 commands converted, cleaner separation |
+| Separate fork-tools.js over modifying gsd-tools.js | Zero merge conflict risk for fork-specific CLI operations | — Pending — recommended but not yet created |
+| GitHub Discussions as fork community link | No fork Discord; GitHub Discussions is built-in and zero-setup | ✓ Good — replaced join-discord with community command |
+| File-based KB over upstream's reverted MCP Memory | Production data confirms: file-based approach has lower friction, works cross-project | ✓ Good — KB-COMPARISON.md documents evidence |
 
 ---
-*Last updated: 2026-02-09 after v1.12 milestone*
+*Last updated: 2026-02-11 after v1.13 milestone*

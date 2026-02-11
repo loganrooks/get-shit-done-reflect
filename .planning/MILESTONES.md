@@ -1,5 +1,34 @@
 # Project Milestones: GSD Reflect
 
+## v1.13 Upstream Sync & Validation (Shipped: 2026-02-11)
+
+**Delivered:** Synchronized fork with 70 upstream GSD commits (v1.11.2→v1.18.0), adopting gsd-tools CLI architecture, 11 bug fixes, and 7 features while validating gsd-reflect's knowledge base in production.
+
+**Phases completed:** 7-12 (18 plans total)
+
+**Key accomplishments:**
+
+- Retired additive-only fork constraint; adopted tracked-modifications strategy with FORK-STRATEGY.md and FORK-DIVERGENCES.md as governance docs
+- Merged 70 upstream commits resolving 8 conflicts, with categorized merge report and 9-entry Merge Decision Log
+- Adopted gsd-tools CLI and thin orchestrator pattern across all 29 fork-applicable commands
+- Verified all 7 upstream features and 11 bug fixes working in fork context with zero branding leaks
+- 135 tests passing (53 fork vitest + 75 upstream gsd-tools + 7 fork gsd-tools) with updated CI/CD pipelines
+- Validated gsd-reflect knowledge base in production: 13 signals collected, 3 lessons distilled, KB comparison document
+
+**Stats:**
+
+- 156 files created/modified
+- ~18,050 lines added (Markdown, JavaScript, JSON, YAML)
+- 6 phases, 18 plans, 42 requirements (all satisfied)
+- 2 days from start to ship (2026-02-10 → 2026-02-11)
+- 103 fork commits + 70 upstream merged
+
+**Git range:** `feat(07-01)` → `docs(12)`
+
+**What's next:** Next milestone TBD — candidates include fork-specific gsd-reflect-tools.js CLI, Windows compatibility, context bar investigation
+
+---
+
 ## v1.12 GSD Reflect (Shipped: 2026-02-09)
 
 **Delivered:** A self-improving GSD workflow system with signal tracking, structured experimentation, persistent cross-project knowledge base, and production-ready workspace health tooling.

@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { tmpdirTest, createMockHome } from '../helpers/tmpdir.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
+import { execSync } from 'node:child_process'
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -124,6 +125,100 @@ describe('install script', () => {
 
       const version = await fs.readFile(versionPath, 'utf8')
       expect(version).toBe('1.0.0-test')
+    })
+  })
+
+  describe('merged installer flags', () => {
+    const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+    tmpdirTest('--claude flag installs to .claude directory', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      // Verify commands/gsd directory exists and contains .md files
+      const commandsDir = path.join(tmpdir, '.claude', 'commands', 'gsd')
+      const commandsExist = await fs.access(commandsDir).then(() => true).catch(() => false)
+      expect(commandsExist).toBe(true)
+
+      const commandFiles = await fs.readdir(commandsDir)
+      const mdFiles = commandFiles.filter(f => f.endsWith('.md'))
+      expect(mdFiles.length).toBeGreaterThan(0)
+
+      // Verify get-shit-done directory exists
+      const gsdDir = path.join(tmpdir, '.claude', 'get-shit-done')
+      const gsdExist = await fs.access(gsdDir).then(() => true).catch(() => false)
+      expect(gsdExist).toBe(true)
+
+      // Verify VERSION file was written
+      const versionPath = path.join(gsdDir, 'VERSION')
+      const version = await fs.readFile(versionPath, 'utf8')
+      expect(version).toBeTruthy()
+    })
+
+    tmpdirTest('--opencode flag installs to opencode config directory', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --opencode --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      // Verify opencode command directory with flattened gsd-*.md files
+      const commandDir = path.join(configHome, 'opencode', 'command')
+      const commandExist = await fs.access(commandDir).then(() => true).catch(() => false)
+      expect(commandExist).toBe(true)
+
+      const commandFiles = await fs.readdir(commandDir)
+      const gsdFiles = commandFiles.filter(f => f.startsWith('gsd-') && f.endsWith('.md'))
+      expect(gsdFiles.length).toBeGreaterThan(0)
+
+      // Verify get-shit-done directory exists
+      const gsdDir = path.join(configHome, 'opencode', 'get-shit-done')
+      const gsdExist = await fs.access(gsdDir).then(() => true).catch(() => false)
+      expect(gsdExist).toBe(true)
+    })
+
+    tmpdirTest('--claude --opencode installs to both directories', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --claude --opencode --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      // Verify Claude directory populated
+      const claudeCommandsDir = path.join(tmpdir, '.claude', 'commands', 'gsd')
+      const claudeExist = await fs.access(claudeCommandsDir).then(() => true).catch(() => false)
+      expect(claudeExist).toBe(true)
+
+      // Verify OpenCode directory populated
+      const opcodeCommandDir = path.join(configHome, 'opencode', 'command')
+      const opcodeExist = await fs.access(opcodeCommandDir).then(() => true).catch(() => false)
+      expect(opcodeExist).toBe(true)
+    })
+
+    tmpdirTest('no flags with non-TTY stdin defaults to claude global install', async ({ tmpdir }) => {
+      // When stdin is not a TTY (subprocess with piped stdio),
+      // the installer defaults to Claude Code global install
+      execSync(`node "${installScript}"`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      // Should default to Claude global install
+      const claudeDir = path.join(tmpdir, '.claude', 'commands', 'gsd')
+      const exists = await fs.access(claudeDir).then(() => true).catch(() => false)
+      expect(exists).toBe(true)
     })
   })
 })

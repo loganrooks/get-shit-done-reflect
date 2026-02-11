@@ -32,6 +32,12 @@ jobs:
       - name: Run infrastructure tests
         run: npm run test:infra
 
+      - name: Run upstream gsd-tools tests
+        run: npm run test:upstream
+
+      - name: Run fork gsd-tools tests
+        run: npm run test:upstream:fork
+
       - name: Verify install script
         run: |
           # Create isolated temp directory simulating fresh install

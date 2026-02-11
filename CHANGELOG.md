@@ -6,6 +6,33 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-02-11
+
+### Added
+- Synced with upstream GSD v1.18.0 (70 commits merged from v1.11.2)
+- Adopted upstream features: --auto mode, --include flag, reapply-patches, JSONC config parsing, update detection (global vs local), parallel research, new-milestone config persistence
+- Adopted thin orchestrator pattern (commands delegate to workflow files)
+- Adopted gsd-tools.js CLI for commits, config, state management
+- Signal tracking validated through production use (13 signals collected, 3 lessons generated from v1.13 milestone)
+- KB comparison document: file-based knowledge base vs upstream's reverted MCP Memory approach
+
+### Changed
+- 6 commands converted to thin orchestrator pattern (new-project, help, update, signal, upgrade-project, community)
+- Fork divergences now tracked explicitly in FORK-DIVERGENCES.md with per-file merge stances
+- Config template updated with v1.13.0 version default
+- CI/CD workflows updated with upstream and fork test steps
+
+### Fixed
+- Adopted 11 upstream bug fixes including:
+  - Executor verification improvements (prevent false completions)
+  - Context fidelity enforcement (accurate file references)
+  - API key prevention in committed code
+  - Commit docs config flag support
+  - Auto-create config directory on first run
+  - Statusline crash prevention
+  - Subagent type configuration
+- Test suite repaired after architectural migration (135 total tests: 53 vitest + 75 upstream + 7 fork)
+
 ## [1.12.2] - 2026-02-10
 
 ### Fixed
