@@ -33,11 +33,11 @@
   2. A runtime capability matrix artifact exists that declares per-runtime tool availability (Task tool, hooks, tool permissions) for all 4 runtimes
   3. Agent specs and workflows use feature detection patterns (`has_capability(...)`) rather than runtime name checks
   4. Each runtime has documented degraded behavior (what runs sequentially instead of parallel, what features are unavailable)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 13-01: TBD
-- [ ] 13-02: TBD
+- [ ] 13-01-PLAN.md -- Two-pass installer path replacement (ABST-01)
+- [ ] 13-02-PLAN.md -- Capability matrix & feature detection in workflows (ABST-02, ABST-03, ABST-04)
 
 #### Phase 14: Knowledge Base Migration
 **Goal**: The knowledge base lives at a runtime-agnostic location accessible to all runtimes, with zero data loss and backward compatibility for existing installations
@@ -110,7 +110,7 @@ Phases execute in numeric order: 13 -> 14 -> 15 -> 16 -> 17
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 13. Path Abstraction & Capability Matrix | 0/TBD | Not started | - |
+| 13. Path Abstraction & Capability Matrix | 0/2 | Planned | - |
 | 14. Knowledge Base Migration | 0/TBD | Not started | - |
 | 15. Codex CLI Integration | 0/TBD | Not started | - |
 | 16. Cross-Runtime Handoff & Signal Enrichment | 0/TBD | Not started | - |
