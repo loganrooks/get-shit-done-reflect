@@ -115,10 +115,12 @@ Plans:
   3. Running `/gsd:reflect` produces a reflection report distilling the v1.13 experience with actionable insights (DOG-03)
   4. A documented comparison exists between our file-based knowledge base approach and upstream's reverted MCP-based GSD Memory approach, grounded in actual production use (DOG-04)
   5. Version is set to 1.13.0 in package.json, config.json (gsd_reflect_version), and CHANGELOG.md documents the sync with upstream v1.18.0
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 12-01: TBD
+- [ ] 12-01-PLAN.md -- Signal collection from Phases 8-11 with user review gate
+- [ ] 12-02-PLAN.md -- Lesson generation, reflection, and KB comparison document
+- [ ] 12-03-PLAN.md -- Version bump, changelog, tag, and PR to main
 
 ## Progress
 
@@ -132,4 +134,4 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | 9. Architecture Adoption & Verification | v1.13 | 3/3 | Complete | 2026-02-10 |
 | 10. Upstream Feature Verification | v1.13 | 3/3 | Complete | 2026-02-11 |
 | 11. Test Suite Repair & CI/CD Validation | v1.13 | 3/3 | Complete | 2026-02-11 |
-| 12. Release & Dogfooding | v1.13 | 0/TBD | Not started | - |
+| 12. Release & Dogfooding | v1.13 | 0/3 | Not started | - |
