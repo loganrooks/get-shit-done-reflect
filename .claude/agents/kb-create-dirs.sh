@@ -2,7 +2,7 @@
 # kb-create-dirs.sh -- Initialize the GSD knowledge store directory structure.
 # Idempotent: safe to run multiple times.
 
-KB_DIR="$HOME/.claude/gsd-knowledge"
+KB_DIR="${GSD_HOME:-$HOME/.gsd}/knowledge"
 
 mkdir -p "$KB_DIR/signals"
 mkdir -p "$KB_DIR/spikes"

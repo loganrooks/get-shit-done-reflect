@@ -116,7 +116,7 @@ Wait for user confirmation. If rejected, allow edits or cancel.
 
 Before writing, check for related existing signals per signal-detection.md Section 9 (SGNL-05):
 
-1. Read the knowledge store index at `~/.claude/gsd-knowledge/index.md` (if it exists).
+1. Read the knowledge store index at `~/.gsd/knowledge/index.md` (if it exists).
 2. For each existing active signal, check:
    - Same `signal_type`
    - Same `project`
@@ -150,7 +150,7 @@ Trace signals are never persisted and do not count toward cap.
 
 Generate the signal entry using the kb-templates/signal.md template.
 
-**File location:** `~/.claude/gsd-knowledge/signals/{project}/`
+**File location:** `~/.gsd/knowledge/signals/{project}/`
 
 **Filename:** `{YYYY-MM-DD}-{slug}.md` where slug is derived from the description (kebab-case, max 50 chars).
 
@@ -196,7 +196,7 @@ Run the knowledge base index rebuild script:
 bash ~/.claude/agents/kb-rebuild-index.sh
 ```
 
-This regenerates `~/.claude/gsd-knowledge/index.md` from all entry files.
+This regenerates `~/.gsd/knowledge/index.md` from all entry files.
 </step>
 
 <step name="git_commit">
@@ -215,7 +215,7 @@ git check-ignore -q .planning 2>/dev/null && COMMIT_DOCS=false
 
 **If commit_docs is true:**
 ```bash
-git add -f ~/.claude/gsd-knowledge/signals/{project}/{filename}
+git add -f ~/.gsd/knowledge/signals/{project}/{filename}
 git commit -m "docs(signal): {slug}"
 ```
 
@@ -229,7 +229,7 @@ Display confirmation:
 
 ```
 Signal created: {id}
-File: ~/.claude/gsd-knowledge/signals/{project}/{filename}
+File: ~/.gsd/knowledge/signals/{project}/{filename}
 Index rebuilt.
 ```
 </step>

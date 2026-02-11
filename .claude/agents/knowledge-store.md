@@ -8,7 +8,7 @@ version: 1.0.0
 
 ## 1. Overview
 
-The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.claude/gsd-knowledge/`. It stores signals (workflow deviations and struggles), spikes (structured experiments and decisions), and lessons (distilled wisdom from patterns).
+The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.gsd/knowledge/`. It stores signals (workflow deviations and struggles), spikes (structured experiments and decisions), and lessons (distilled wisdom from patterns).
 
 **Consumers:** GSD-internal agents only. No external tool integration required.
 
@@ -22,7 +22,7 @@ The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.cla
 ## 2. Directory Structure
 
 ```
-~/.claude/gsd-knowledge/
+~/.gsd/knowledge/
 ├── signals/
 │   └── {project-name}/
 │       └── {YYYY-MM-DD}-{slug}.md
@@ -238,7 +238,7 @@ Initial tags organized by concern. Agents may create new tags freely; these prov
 
 ## 9. Index Format
 
-The index at `~/.claude/gsd-knowledge/index.md` is auto-generated and never hand-edited.
+The index at `~/.gsd/knowledge/index.md` is auto-generated and never hand-edited.
 
 ```markdown
 # Knowledge Store Index

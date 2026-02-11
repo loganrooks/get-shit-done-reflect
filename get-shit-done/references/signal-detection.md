@@ -15,7 +15,7 @@ Defines detection rules, severity classification, polarity assignment, deduplica
 - VERIFICATION.md -- gap analysis against must_haves
 - `.planning/config.json` -- model_profile and workflow settings
 
-**Output:** Signal entries written to `~/.claude/gsd-knowledge/signals/{project}/` using the Phase 1 signal template.
+**Output:** Signal entries written to `~/.gsd/knowledge/signals/{project}/` using the Phase 1 signal template.
 
 ## 2. Deviation Detection (SGNL-01)
 
@@ -165,7 +165,7 @@ Before writing a new signal, check for related existing signals to avoid redunda
 
 **Deduplication process:**
 
-1. Read existing signals for the project from `~/.claude/gsd-knowledge/index.md`
+1. Read existing signals for the project from `~/.gsd/knowledge/index.md`
 2. For each existing active signal, check match criteria:
    - Same `signal_type` (deviation, struggle, config-mismatch, custom)
    - Same `project`

@@ -813,8 +813,8 @@ ONLY query the knowledge base when you are about to apply a deviation auto-fix u
 1. You encounter an issue requiring auto-fix (Rule 1, 2, or 3 triggers)
 2. **BEFORE** applying your fix, check KB for similar past issues:
    ```bash
-   grep -i "{error-keyword}" ~/.claude/gsd-knowledge/index.md
-   grep -i "{technology}" ~/.claude/gsd-knowledge/index.md
+   grep -i "{error-keyword}" ~/.gsd/knowledge/index.md
+   grep -i "{technology}" ~/.gsd/knowledge/index.md
    ```
 3. If a matching lesson exists, read the full entry
 4. Apply knowledge to your fix (may avoid a previously-failed approach or suggest a proven solution)

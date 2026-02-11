@@ -226,7 +226,7 @@ Create spike entry in the Knowledge Base.
    - Use project name from context
    - Or derive from current directory name (kebab-case)
 
-2. **Create KB entry** at `~/.claude/gsd-knowledge/spikes/{project}/{spike-slug}.md`:
+2. **Create KB entry** at `~/.gsd/knowledge/spikes/{project}/{spike-slug}.md`:
 
 ```yaml
 ---

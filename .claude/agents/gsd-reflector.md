@@ -39,7 +39,7 @@ You receive these inputs from the spawning workflow:
 
 **Derived:**
 - Project name: from current working directory (kebab-case)
-- KB path: `~/.claude/gsd-knowledge/`
+- KB path: `~/.gsd/knowledge/`
 - Config: `.planning/config.json` for mode (yolo/interactive)
 </inputs>
 
@@ -53,7 +53,7 @@ You receive these inputs from the spawning workflow:
 
 ## Step 2: Load Signals
 
-1. Read `~/.claude/gsd-knowledge/index.md`
+1. Read `~/.gsd/knowledge/index.md`
 2. Filter signal rows based on scope:
    - If `scope: project`: Filter to signals where project matches current project name
    - If `scope: all`: Include all signals (cross-project)
@@ -144,7 +144,7 @@ For each pattern that meets distillation criteria from reflection-patterns.md:
 5. **If writing lesson:**
    - Generate lesson ID: `les-{YYYY-MM-DD}-{slug}`
    - Use kb-templates/lesson.md as template
-   - Write to `~/.claude/gsd-knowledge/lessons/{category}/`
+   - Write to `~/.gsd/knowledge/lessons/{category}/`
 
 6. **Rebuild index:**
    ```bash

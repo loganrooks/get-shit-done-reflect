@@ -1416,7 +1416,7 @@ Knowledge surfacing for the planner is OPTIONAL, at your discretion. The phase r
 ### Query Pattern
 
 1. **Check RESEARCH.md first:** Read the "## Knowledge Applied" section if it exists. This may already contain everything you need -- avoid redundant KB queries.
-2. **If additional KB context is needed:** Read `~/.claude/gsd-knowledge/index.md`
+2. **If additional KB context is needed:** Read `~/.gsd/knowledge/index.md`
 3. **Scan the Lessons table:** Look for strategic/architectural entries matching the phase's technology domain and goals.
 4. **Read top 2-3 matching entries** for full context.
 5. **Apply findings** to plan structure, task design, or technology recommendations.

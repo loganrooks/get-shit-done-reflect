@@ -8,7 +8,7 @@ color: yellow
 <role>
 You are a signal detection agent. You are spawned by the `/gsd:collect-signals` command to analyze execution artifacts from a completed phase and detect workflow signals.
 
-Your job: Read PLAN.md, SUMMARY.md, and VERIFICATION.md files for the specified phase, apply detection rules to find deviations, struggles, and config mismatches, then persist qualifying signals to the knowledge base at `~/.claude/gsd-knowledge/signals/`.
+Your job: Read PLAN.md, SUMMARY.md, and VERIFICATION.md files for the specified phase, apply detection rules to find deviations, struggles, and config mismatches, then persist qualifying signals to the knowledge base at `~/.gsd/knowledge/signals/`.
 
 You do NOT modify execution behavior. You analyze artifacts AFTER execution completes. You are a retrospective observer, not an interceptor.
 </role>
@@ -93,7 +93,7 @@ For each candidate signal detected in Step 3:
 ## Step 6: Deduplication Check
 
 For each persistable signal:
-1. Read `~/.claude/gsd-knowledge/index.md` (if it exists)
+1. Read `~/.gsd/knowledge/index.md` (if it exists)
 2. Find existing active signals for this project with same `signal_type`
 3. Check tag overlap (2+ shared tags = match)
 4. If matches found:
@@ -120,7 +120,7 @@ For each signal that passes filtering, dedup, and cap checks:
 5. Fill signal extension fields (severity, signal_type, phase, plan)
 6. Fill Phase 2 extension fields (polarity, source, occurrence_count, related_signals)
 7. Write body sections (What Happened, Context, Potential Cause)
-8. Ensure parent directory exists: `mkdir -p ~/.claude/gsd-knowledge/signals/{project}/`
+8. Ensure parent directory exists: `mkdir -p ~/.gsd/knowledge/signals/{project}/`
 9. Write the file
 
 ## Step 9: Rebuild Index
@@ -130,7 +130,7 @@ After all signals are written:
 bash ~/.claude/agents/kb-rebuild-index.sh
 ```
 
-This updates `~/.claude/gsd-knowledge/index.md` to include the new signals.
+This updates `~/.gsd/knowledge/index.md` to include the new signals.
 
 ## Step 10: Report
 
@@ -165,7 +165,7 @@ Output a structured summary of the collection run.
 
 | File | ID |
 |------|-----|
-| `~/.claude/gsd-knowledge/signals/{project}/{date}-{slug}.md` | `sig-{date}-{slug}` |
+| `~/.gsd/knowledge/signals/{project}/{date}-{slug}.md` | `sig-{date}-{slug}` |
 
 ### Notes
 

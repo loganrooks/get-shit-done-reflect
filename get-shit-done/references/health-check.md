@@ -30,11 +30,11 @@ Defines check definitions, thresholds, output format, repair rules, and signal i
 
 ### 2.1 KB Integrity (Default Tier)
 
-Validates the knowledge base at `~/.claude/gsd-knowledge/` is structurally sound.
+Validates the knowledge base at `~/.gsd/knowledge/` is structurally sound.
 
 | # | Check | Pass Condition | Fail Severity |
 |---|-------|----------------|---------------|
-| KB-01 | Index file exists | `~/.claude/gsd-knowledge/index.md` exists | FAIL |
+| KB-01 | Index file exists | `~/.gsd/knowledge/index.md` exists | FAIL |
 | KB-02 | Index is parseable | Index contains `## Signals`, `## Spikes`, `## Lessons` table headers | FAIL |
 | KB-03 | Signal count matches | Index entries match filesystem files (non-archived) | WARNING |
 | KB-04 | Spike count matches | Index entries match filesystem files (non-archived) | WARNING |
@@ -44,7 +44,7 @@ Validates the knowledge base at `~/.claude/gsd-knowledge/` is structurally sound
 **Shell patterns for KB checks:**
 
 ```bash
-KB_DIR="$HOME/.claude/gsd-knowledge"
+KB_DIR="$HOME/.gsd/knowledge"
 INDEX="$KB_DIR/index.md"
 
 # KB-01: Index exists
@@ -93,7 +93,7 @@ done < <(find "$KB_DIR" -name '*.md' ! -name 'index.md' -print 2>/dev/null | shu
 [ "$errors" -eq 0 ] && echo "PASS: No frontmatter errors in sampled files" || echo "WARNING: $errors files with frontmatter issues"
 ```
 
-**Edge case:** If `~/.claude/gsd-knowledge/` directory does not exist at all, KB-01 through KB-06 all FAIL. Report as "KB not initialized" and suggest user runs initialization.
+**Edge case:** If `~/.gsd/knowledge/` directory does not exist at all, KB-01 through KB-06 all FAIL. Report as "KB not initialized" and suggest user runs initialization.
 
 ### 2.2 Config Validity (Default Tier)
 
