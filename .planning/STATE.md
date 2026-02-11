@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-11)
 
 **Core value:** The system never makes the same mistake twice — signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Planning next milestone
+**Current focus:** v1.14 Multi-Runtime Interop
 
 ## Current Position
 
-Phase: 13+ (not started)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-02-11 — v1.13 milestone archived
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-11 — Milestone v1.14 started
 
 Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped
 
@@ -52,7 +52,7 @@ None.
 
 ### Roadmap Evolution
 
-v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). Next milestone TBD.
+v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 started (defining requirements).
 
 ### Key Artifacts
 
@@ -65,5 +65,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). Next milestone TBD.
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: v1.13 milestone archived. Ready for next milestone.
+Stopped at: v1.14 milestone started. Defining requirements.
 Resume file: None

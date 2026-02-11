@@ -48,7 +48,17 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ### Active
 
-(No active milestone — use `/gsd:new-milestone` to start next)
+## Current Milestone: v1.14 Multi-Runtime Interop
+
+**Goal:** Make GSD a truly runtime-agnostic system where users can seamlessly switch between Claude Code, OpenAI Codex CLI, and other supported runtimes mid-work, with shared project state and knowledge base.
+
+**Target features:**
+- Audit & validate existing runtime installations (OpenCode, Gemini CLI)
+- Add OpenAI Codex CLI as a new supported runtime
+- Migrate KB to runtime-agnostic `~/.gsd/knowledge/`
+- Ensure `.planning/` state has no runtime-specific hardcoded paths
+- Cross-runtime handoff (pause in one runtime, resume in another)
+- Streamlined multi-runtime installation & update process
 
 ### Out of Scope
 
@@ -79,7 +89,7 @@ Test suite: 135 tests (53 fork vitest + 75 upstream gsd-tools + 7 fork gsd-tools
 
 - **Architecture**: Must follow existing GSD patterns (Markdown commands, XML workflows, agent specs) — no new runtime dependencies
 - **Storage**: Knowledge base must be file-based (no databases) to maintain GSD's zero-dependency philosophy
-- **Compatibility**: Must work across Claude Code, OpenCode, and Gemini CLI runtimes
+- **Compatibility**: Must work across Claude Code, OpenCode, Gemini CLI, and OpenAI Codex CLI runtimes
 - **Context**: Signal logging and knowledge base queries must not bloat agent context windows — lazy loading is critical
 - **Non-invasive**: Signal tracking must not slow down or interrupt normal workflow execution
 - **Fork maintenance**: This is a fork of GSD upstream — divergences from upstream files are tracked in FORK-DIVERGENCES.md with explicit category, rationale, and merge stance. See FORK-STRATEGY.md for the full maintenance approach
@@ -110,5 +120,9 @@ Test suite: 135 tests (53 fork vitest + 75 upstream gsd-tools + 7 fork gsd-tools
 | GitHub Discussions as fork community link | No fork Discord; GitHub Discussions is built-in and zero-setup | ✓ Good — replaced join-discord with community command |
 | File-based KB over upstream's reverted MCP Memory | Production data confirms: file-based approach has lower friction, works cross-project | ✓ Good — KB-COMPARISON.md documents evidence |
 
+| Runtime-agnostic KB at ~/.gsd/knowledge/ | ~/.claude/gsd-knowledge/ ties KB to one runtime; shared location enables cross-runtime interop | — Pending |
+| OpenAI Codex CLI as 4th runtime | User's primary secondary runtime alongside Claude Code | — Pending |
+| Full continuity handoff across runtimes | /gsd:pause-work and /gsd:resume-work should work cross-runtime | — Pending |
+
 ---
-*Last updated: 2026-02-11 after v1.13 milestone*
+*Last updated: 2026-02-11 after v1.14 milestone started*
