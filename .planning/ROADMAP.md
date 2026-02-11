@@ -16,7 +16,7 @@
 - Integer phases (13, 14, 15...): Planned milestone work
 - Decimal phases (13.1, 13.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 13: Path Abstraction & Capability Matrix** - Separate runtime-specific from shared paths; declare per-runtime capabilities
+- [x] **Phase 13: Path Abstraction & Capability Matrix** - Separate runtime-specific from shared paths; declare per-runtime capabilities ✓ 2026-02-11
 - [ ] **Phase 14: Knowledge Base Migration** - Move KB to runtime-agnostic ~/.gsd/knowledge/ with backward compatibility
 - [ ] **Phase 15: Codex CLI Integration** - Install GSD commands as Codex Skills with AGENTS.md generation
 - [ ] **Phase 16: Cross-Runtime Handoff & Signal Enrichment** - Pause/resume across runtimes; enrich signals with runtime provenance
@@ -36,8 +36,8 @@
 **Plans**: 2 plans
 
 Plans:
-- [ ] 13-01-PLAN.md -- Two-pass installer path replacement (ABST-01)
-- [ ] 13-02-PLAN.md -- Capability matrix & feature detection in workflows (ABST-02, ABST-03, ABST-04)
+- [x] 13-01-PLAN.md -- Two-pass installer path replacement (ABST-01) ✓
+- [x] 13-02-PLAN.md -- Capability matrix & feature detection in workflows (ABST-02, ABST-03, ABST-04) ✓
 
 #### Phase 14: Knowledge Base Migration
 **Goal**: The knowledge base lives at a runtime-agnostic location accessible to all runtimes, with zero data loss and backward compatibility for existing installations
@@ -110,7 +110,7 @@ Phases execute in numeric order: 13 -> 14 -> 15 -> 16 -> 17
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 13. Path Abstraction & Capability Matrix | 0/2 | Planned | - |
+| 13. Path Abstraction & Capability Matrix | 2/2 | ✓ Complete | 2026-02-11 |
 | 14. Knowledge Base Migration | 0/TBD | Not started | - |
 | 15. Codex CLI Integration | 0/TBD | Not started | - |
 | 16. Cross-Runtime Handoff & Signal Enrichment | 0/TBD | Not started | - |
