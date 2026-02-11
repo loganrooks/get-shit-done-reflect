@@ -30,6 +30,22 @@ Parse JSON for: `state_exists`, `roadmap_exists`, `project_exists`, `planning_ex
 **If `planning_exists` is false:** This is a new project - route to /gsd:new-project
 </step>
 
+<step name="detect_runtime">
+Detect which runtime this workflow is executing in by examining the path prefix
+used in this file. The installer replaces ~/.claude/ with the target runtime's
+path prefix during installation.
+
+Runtime detection from path prefix:
+- ~/.claude/ paths -> Claude Code (command prefix: /gsd:)
+- ~/.config/opencode/ paths -> OpenCode (command prefix: /gsd-)
+- ~/.gemini/ paths -> Gemini CLI (command prefix: /gsd:)
+- ~/.codex/ paths -> Codex CLI (command prefix: $gsd-)
+
+Store the detected command prefix for use when rendering command suggestions.
+For example, if this file contains ~/.codex/ paths, the command prefix is $gsd-
+and "plan-phase 3" renders as "$gsd-plan-phase 3".
+</step>
+
 <step name="load_state">
 
 Read and parse STATE.md, then PROJECT.md:
@@ -81,7 +97,14 @@ fi
 
 - This is a mid-plan resumption point
 - Read the file for specific resumption context
+- If <next_action> contains /gsd: or $gsd- command syntax (old format),
+  display it as-is -- it may not match the current runtime but provides
+  useful context. New-format files have semantic-only next_action.
 - Flag: "Found mid-plan checkpoint"
+
+**Note:** The .continue-here.md file contains semantic state only (no command
+syntax). When presenting resumption options, render commands using the detected
+runtime prefix from detect_runtime step.
 
 **If PLAN without SUMMARY exists:**
 
@@ -172,6 +195,13 @@ Based on project state, determine the most logical next action:
 </step>
 
 <step name="offer_options">
+**Command rendering:** When presenting command suggestions below, use the
+command prefix detected in the detect_runtime step. All /gsd: references
+in the examples below are SOURCE-format placeholders -- the installer
+transforms them to the correct prefix for the installed runtime. When
+displaying commands to the user (especially from .continue-here.md semantic
+state), construct the command using the detected prefix.
+
 Present contextual options based on project state:
 
 ```
@@ -205,6 +235,10 @@ Wait for user selection.
 </step>
 
 <step name="route_to_workflow">
+**Note:** The command references below (e.g., /gsd:execute-phase) are in source
+format. When this file is installed to a runtime, the installer transforms them
+to the correct syntax. No additional runtime adaptation needed in this step.
+
 Based on user selection, route to appropriate workflow:
 
 - **Execute plan** → Show command for user to run after clearing:
