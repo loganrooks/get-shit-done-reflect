@@ -28,13 +28,13 @@ Requirements for upstream sync milestone. Each maps to roadmap phases.
 
 ### Architecture Adoption
 
-- [ ] **ARCH-01**: Adopt gsd-tools.js CLI (4,597 lines) as foundation for deterministic operations
-- [ ] **ARCH-02**: Adopt thin orchestrator pattern — commands delegate to workflows, workflows use gsd-tools
-- [ ] **ARCH-03**: Accept upstream agent spec condensation (60% reduction across 9 agents)
-- [ ] **ARCH-04**: Accept all new upstream workflow files (19 files) as extracted workflow layer
-- [ ] **ARCH-05**: Accept new reference files (decimal-phase-calculation, git-planning-commit, model-profile-resolution, phase-argument-parsing)
-- [ ] **ARCH-06**: Accept new summary templates (minimal, standard, complex)
-- [ ] **ARCH-07**: Verify gsd-tools.js works with fork's config.json extensions (health_check, devops, gsd_reflect_version)
+- [x] **ARCH-01**: Adopt gsd-tools.js CLI (4,597 lines) as foundation for deterministic operations
+- [x] **ARCH-02**: Adopt thin orchestrator pattern — commands delegate to workflows, workflows use gsd-tools
+- [x] **ARCH-03**: Accept upstream agent spec condensation (60% reduction across 9 agents)
+- [x] **ARCH-04**: Accept all new upstream workflow files (19 files) as extracted workflow layer
+- [x] **ARCH-05**: Accept new reference files (decimal-phase-calculation, git-planning-commit, model-profile-resolution, phase-argument-parsing)
+- [x] **ARCH-06**: Accept new summary templates (minimal, standard, complex)
+- [x] **ARCH-07**: Verify gsd-tools.js works with fork's config.json extensions (health_check, devops, gsd_reflect_version)
 
 ### Merge & Integration
 
@@ -112,13 +112,13 @@ Deferred to later milestones.
 | FIX-09 | Phase 8 | Complete |
 | FIX-10 | Phase 8 | Complete |
 | FIX-11 | Phase 8 | Complete |
-| ARCH-01 | Phase 9 | Pending |
-| ARCH-02 | Phase 9 | Pending |
-| ARCH-03 | Phase 9 | Pending |
-| ARCH-04 | Phase 9 | Pending |
-| ARCH-05 | Phase 9 | Pending |
-| ARCH-06 | Phase 9 | Pending |
-| ARCH-07 | Phase 9 | Pending |
+| ARCH-01 | Phase 9 | Complete |
+| ARCH-02 | Phase 9 | Complete |
+| ARCH-03 | Phase 9 | Complete |
+| ARCH-04 | Phase 9 | Complete |
+| ARCH-05 | Phase 9 | Complete |
+| ARCH-06 | Phase 9 | Complete |
+| ARCH-07 | Phase 9 | Complete |
 | MERGE-01 | Phase 8 | Complete |
 | MERGE-02 | Phase 8 | Complete |
 | MERGE-03 | Phase 8 | Complete |
@@ -149,4 +149,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-02-09*
-*Last updated: 2026-02-10 after Phase 8 completion (FIX-01–11, MERGE-01–06 complete)*
+*Last updated: 2026-02-10 after Phase 9 completion (ARCH-01–07 complete)*
