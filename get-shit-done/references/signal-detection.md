@@ -120,6 +120,7 @@ Automatic severity classification based on detection source and impact.
 | Task order changed with no impact | trace |
 | Minor file differences (extra helper files created) | trace |
 | Single auto-fix | trace |
+| Capability gap (known runtime limitation) | trace |
 
 **Persistence rules:**
 - **critical** -- always persisted to KB
@@ -156,8 +157,12 @@ These optional fields extend the Phase 1 signal schema defined in `knowledge-sto
 | `source` | enum: auto, manual | auto | Whether the signal was detected automatically or created manually via `/gsd:signal` |
 | `occurrence_count` | integer | 1 | How many times this signal pattern has been observed (starts at 1) |
 | `related_signals` | array of signal IDs | [] | IDs of existing signals that match this signal's pattern (for dedup cross-references) |
+| `runtime` | enum: claude-code, opencode, gemini-cli, codex-cli | (omitted) | Runtime that generated this signal. Inferred from workflow file path prefix. Optional -- omit if unknown. |
+| `model` | string | (omitted) | LLM model identifier. Self-reported by the executing model. Optional -- omit if unknown. |
 
 **Compatibility:** These fields are added to signal frontmatter alongside the Phase 1 base schema and signal extension fields. Agents that do not recognize these fields can safely ignore them. The Phase 1 index rebuild script processes all frontmatter fields without filtering.
+
+**Runtime/model field note:** These fields are optional. Existing signals without runtime/model fields remain valid. Agents that do not recognize these fields can safely ignore them.
 
 ## 9. Deduplication Rules (SGNL-05)
 
@@ -222,8 +227,32 @@ Prevents signal noise from overwhelming the knowledge base.
 - Modifying executor agent instructions would violate the fork constraint (additive-only)
 - All automatic detection is retrospective, reading artifacts after execution completes
 
+## 12. Capability Gap Detection (SGNL-07)
+
+Detects when a runtime lacks a required capability and degrades gracefully.
+
+**Detection source:** `execute-phase.md` capability_check blocks, specifically the Else branches.
+
+**Signal properties:**
+- `signal_type: capability-gap`
+- `severity: trace` (known limitations, not errors -- logged in collection report only, NOT persisted to KB)
+- `polarity: neutral` (expected behavior, not positive or negative)
+- `runtime:` set to the detected runtime
+
+**Detection points:**
+
+| Capability | Detection Location | Description |
+|------------|-------------------|-------------|
+| `task_tool` | execute-phase.md capability_check "parallel_execution" Else | Parallel wave execution unavailable, degraded to sequential |
+| `hooks` | execute-phase.md capability_check "hooks_support" Else | Hook-based update checks unavailable |
+
+**Escalation:** If a capability gap causes an actual execution failure (not just degradation), the resulting signal should be elevated to `notable` or `critical` severity based on impact. Trace is only for expected, handled degradation.
+
+**Important:** Capability gap signals are trace-severity by design. They are NOT persisted to the KB to avoid flooding with repetitive "no task_tool in Codex" entries. They appear in signal collection reports only. If cross-runtime analytics become important in a future milestone, the severity can be re-evaluated.
+
 ---
 
-*Reference version: 1.0.0*
+*Reference version: 1.1.0*
 *Created: 2026-02-03*
-*Phase: 02-signal-collector*
+*Updated: 2026-02-11*
+*Phase: 02-signal-collector, 16-cross-runtime-handoff-signal-enrichment*

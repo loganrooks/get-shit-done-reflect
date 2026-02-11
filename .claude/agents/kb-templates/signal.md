@@ -7,10 +7,12 @@ created: {YYYY-MM-DDTHH:MM:SSZ}
 updated: {YYYY-MM-DDTHH:MM:SSZ}
 durability: {workaround|convention|principle}
 status: active
-severity: {critical|high|medium|low}
-signal_type: {deviation|struggle|config-mismatch|custom}
+severity: {critical|notable}
+signal_type: {deviation|struggle|config-mismatch|capability-gap|custom}
 phase: {phase-number}
 plan: {plan-number}
+runtime: {claude-code|opencode|gemini-cli|codex-cli}
+model: {model-identifier}
 ---
 
 ## What Happened

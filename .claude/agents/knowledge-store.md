@@ -101,10 +101,12 @@ Added to frontmatter alongside common base fields:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `severity` | enum | yes | `critical`, `high`, `medium`, or `low` |
-| `signal_type` | enum | yes | `deviation`, `struggle`, `config-mismatch`, or `custom` |
+| `severity` | enum | yes | `critical` or `notable` |
+| `signal_type` | enum | yes | `deviation`, `struggle`, `config-mismatch`, `capability-gap`, or `custom` |
 | `phase` | number | no | Phase number where signal was captured |
 | `plan` | number | no | Plan number where signal was captured |
+| `runtime` | enum | no | Runtime that generated this signal: `claude-code`, `opencode`, `gemini-cli`, or `codex-cli` |
+| `model` | string | no | LLM model identifier (e.g., `claude-opus-4-6`, `o3`) |
 
 ### Spike Extensions
 
