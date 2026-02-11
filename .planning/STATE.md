@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-10)
+See: .planning/PROJECT.md (updated 2026-02-11)
 
-**Core value:** The fork stays current with upstream GSD while validating that gsd-reflect's self-improvement features work in production.
-**Current focus:** v1.13 milestone complete -- v1.13.0 release prepared, PR #3 open to main
+**Core value:** The system never makes the same mistake twice — signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 12 of 12 (Release & Dogfooding)
-Plan: 3 of 3 complete
-Status: Complete
-Last activity: 2026-02-11 — Completed 12-03-PLAN.md
+Phase: 13+ (not started)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-02-11 — v1.13 milestone archived
 
-Progress: ████████████████████████ 100% (16 of 16 plans complete)
+Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped
 
 ## Performance Metrics
 
@@ -23,64 +23,17 @@ Progress: ███████████████████████�
 - Average duration: 2.8min
 - Total execution time: 70min
 
-**v1.13:**
-- Total plans completed: 16
+**v1.13 Final:**
+- Total plans completed: 18
 - Average duration: ~4.4min
 - Total execution time: ~70min
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 7. Fork Strategy | 2/2 | 10min | 5min |
-| 8. Core Merge | 4/4 | ~18min | ~4.5min |
-| 9. Architecture | 3/3 | 25min | ~8.3min |
-| 10. Features | 3/3 | ~8min | ~2.7min |
-| 11. Testing | 3/3 | 7min | ~2.3min |
-| 12. Release | 3/3 | ~13min | ~4.3min |
 
 ## Accumulated Context
 
 ### Decisions
 
 Full decision log in PROJECT.md Key Decisions table.
-
-| Decision | Phase | Rationale |
-|----------|-------|-----------|
-| Tracked-modifications replaces additive-only | 07-01 | Fork has 17 modified upstream files; explicit tracking with merge stances gives Phase 8 a principled basis for conflict resolution |
-| Traditional merge over rebase | 07-01 | 145 fork commits + 17 modified files makes rebase painful; merge handles it in one operation |
-| Four divergence categories (identity/commands/templates/build) | 07-01 | Matches how merge decisions actually differ; identity=fork-wins, commands=hybrid, templates=case-by-case |
-| Conflict risk assessment (3 HIGH, 4 MEDIUM, 9 LOW) | 07-01 | Based on whether upstream also changed the same file significantly |
-| Restore fork files, not update tests | 07-02 | Working tree deletions were from upstream update mechanism, not intentional removals |
-| Quick-tier smoke tests for pre-merge validation | 07-02 | Validates full workflow chain with minimal API cost |
-| install.js auto-resolve accepted | 08-01 | Git auto-merged install.js correctly -- fork branding + upstream additions in non-overlapping regions; verified no conflict markers, all fork/upstream elements present |
-| 8 actual conflicts vs 11 predicted | 08-01 | Git auto-resolved 3 predicted conflicts (install.js, planning-config.md, research.md) + 1 fork-wins file (gsd-check-update.js); reduces Plans 08-02 and 08-03 scope |
-| Adopt thin orchestrator pattern for 3 commands | 08-02 | Upstream moved new-project.md, help.md, update.md to thin stubs + workflow files; adopting now gives us --auto mode, gsd-tools.js, while fork novelty (DevOps Context, Reflect section, branding) preserved in workflow files |
-| Adopt upstream gsd-tools.js for commits/init | 08-02 | Replaces manual bash detection and raw git add/commit; cleaner, more maintainable, handles commit_docs config flag automatically |
-| Fork-wins for README.md and CHANGELOG.md | 08-03 | Content updates deferred to Phase 12 (Release); Phase 8 just preserves fork versions |
-| Conflict risk levels recalibrated | 08-04 | Pre-merge HIGH predictions (install.js, commands) turned out LOW; actual risk correlates with same-line edits not same-file edits |
-| Do not modify gsd-tools.js for fork config | 09-01 | loadConfig() drops fork fields, but modifying creates merge conflicts; fork uses direct JSON reads instead |
-| Separate fork-tools.js over modifying gsd-tools.js | 09-01 | 4,597-line upstream file; any change creates merge friction; separate file has zero conflict risk |
-| Upstream inline commands are not fork issues | 09-01 | debug.md, research-phase.md, reapply-patches.md are upstream patterns; fork benefits when upstream converts them |
-| GitHub Discussions as fork community link | 09-02 | No fork Discord exists; GitHub Discussions is built-in and zero-setup |
-| GitHub Security Advisories for vulnerability reports | 09-02 | More reliable for fork maintainers than email; built into GitHub |
-| summary-standard.md as default template reference | 09-02 | Executor uses gsd-tools template select at runtime; standard is the safe default for @-references |
-| Replaced join-discord with community command | 09-03 | Command already had fork content but name referenced Discord; renamed to gsd:community pointing to GitHub Discussions |
-| Inline acceptable for trivial commands | 09-03 | community.md (18 lines, static output) stays inline; creating a workflow for URL display adds no value |
-| Version 1.13.0 as gsd_reflect_version default | 10-01 | Current milestone release version; used in --auto init config template |
-| milestone-only as health_check frequency default | 10-01 | Safe default that does not block workflows in --auto mode |
-| All none/freeform devops defaults for --auto | 10-01 | Conservative; interactive DevOps detection fills real values; upgrade-project handles migration |
-| No upstream parseJsonc tests; functional coverage in evidence | 10-02 | 8-case functional test in evidence doc covers BOM, comments, trailing commas, string preservation |
-| Omitted fork-tools.js from fork-specific file checks | 11-01 | File was recommended in Phase 9 but never created; substituted collect-signals.md |
-| Verify config via direct JSON read instead of config-get | 11-02 | No config-get command exists in gsd-tools.js; reading config.json directly is equivalent |
-| Test array preservation via sibling field mutation | 11-02 | config-set CLI only accepts single scalar values; testing that sibling writes preserve arrays |
-| Subprocess install tests use --global to bypass prompts | 11-03 | Passing --global alongside runtime flags makes tests deterministic without TTY stdin |
-| XDG_CONFIG_HOME override for --opencode test isolation | 11-03 | Controls opencode config output location, avoids writes to real ~/.config/opencode |
-| 11 signals sufficient; mix of auto (4) and manual (7) | 12-01 | Clean execution phases produce few automated signals; manual supplements capture strategic insights |
-| Deliberate tag clustering for small signal sets | 12-01 | Overlapping tags (merge:6, fork-maintenance:6) enable pattern detection with 10-15 signals |
-| 3 patterns from 11 signals using severity-weighted clustering | 12-02 | Notable severity treated as high threshold (2+); upstream sync lesson scoped global, others project-scoped |
-| Upstream sync lesson scoped as _global | 12-02 | References general git/merge principles applicable to any fork project |
-| Replaced upstream v1.13.0 tag with fork release tag | 12-03 | Upstream tag from merged history pointed to wrong commit; recreated on fork release commit |
+v1.13 decisions archived in milestones/v1.13-ROADMAP.md.
 
 ### Pending Todos
 
@@ -88,7 +41,8 @@ None.
 
 ### Blockers/Concerns
 
-- None. v1.13 milestone complete.
+- NPM_TOKEN config (pre-existing from v1.12, not blocking)
+- Gitignore friction (pre-existing from v1.12, not blocking)
 
 ### Quick Tasks Completed
 
@@ -98,22 +52,18 @@ None.
 
 ### Roadmap Evolution
 
-v1.12 complete. v1.13 roadmap created -- 6 phases (7-12), 42 requirements, upstream sync & validation.
+v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). Next milestone TBD.
 
 ### Key Artifacts
 
 - Tag `v1.12.2-pre-sync` -- immutable rollback point on main
-- Branch `sync/v1.13-upstream` -- merge committed (f97291a), validated, ready for main
-- `.planning/FORK-STRATEGY.md` -- conflict resolution runbook + Merge Decision Log (9 entries)
-- `.planning/FORK-DIVERGENCES.md` -- per-file merge stances, post-merge risk recalibration
-- `.planning/phases/08-core-merge/08-MERGE-REPORT.md` -- categorized merge summary for Phase 9+ planning
-- `.planning/phases/09-architecture-adoption/09-AUDIT-REPORT.md` -- 16 findings, fork surface area map, conversion assessments
-- `.planning/phases/12-release-dogfooding/KB-COMPARISON.md` -- file-based KB vs MCP Memory comparison with production data
 - Tag `v1.13.0` -- annotated release tag on commit d6a250b
 - PR #3 -- sync/v1.13-upstream to main (https://github.com/loganrooks/get-shit-done-reflect/pull/3)
+- `.planning/FORK-STRATEGY.md` -- conflict resolution runbook + Merge Decision Log
+- `.planning/FORK-DIVERGENCES.md` -- per-file merge stances, post-merge risk recalibration
 
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 12-03-PLAN.md. v1.13.0 release prepared: version bumped, changelog written, tag created, PR #3 opened. v1.13 milestone complete (16/16 plans).
+Stopped at: v1.13 milestone archived. Ready for next milestone.
 Resume file: None
