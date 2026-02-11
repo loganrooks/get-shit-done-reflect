@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-11)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 16 - Continuity Handoff
+**Current focus:** Phase 17 - Validation & Release
 
 ## Current Position
 
-Phase: 16 of 17 (Cross-Runtime Handoff & Signal Enrichment)
-Plan: 2 of 2 in current phase
-Status: Phase complete
-Last activity: 2026-02-11 -- Completed 16-02-PLAN.md (signal enrichment)
+Phase: 17 of 17 (Validation & Release)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-02-11 -- Completed 17-01-PLAN.md (multi-runtime deep validation)
 
-Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [##########] 97%
+Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [#########-] 90%
 
 ## Performance Metrics
 
@@ -29,8 +29,8 @@ Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [#####
 - Total execution time: ~70min
 
 **v1.14 In Progress:**
-- Plans completed: 8
-- Duration: 40min (6min + 8min + 8min + 3min + 6min + 2min + 3min + 4min)
+- Plans completed: 9
+- Duration: 43min (6min + 8min + 8min + 3min + 6min + 2min + 3min + 4min + 3min)
 
 ## Accumulated Context
 
@@ -62,6 +62,7 @@ None.
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
 - Phase 15 complete; all 4 runtimes have installer integration and test coverage (64 tests total)
+- Phase 17 validation: 127 tests passing (13 new deep validation tests for VALID-01, VALID-02, VALID-03)
 
 ### Quick Tasks Completed
 
@@ -85,5 +86,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 roadmap created
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 16-02-PLAN.md (signal enrichment). Phase 16 complete. Phase 17 next.
+Stopped at: Completed 17-01-PLAN.md (multi-runtime deep validation). 17-02 next.
 Resume file: None
