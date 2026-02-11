@@ -57,11 +57,11 @@ Requirements for upstream sync milestone. Each maps to roadmap phases.
 
 ### Testing & Validation
 
-- [ ] **TEST-01**: Fork's existing test suite passes after merge (42 tests, vitest)
-- [ ] **TEST-02**: Upstream's gsd-tools test suite passes (63 tests, node:test)
-- [ ] **TEST-03**: Update wiring validation test for thin orchestrator pattern
-- [ ] **TEST-04**: Update install test for merged installer behavior
-- [ ] **TEST-05**: CI/CD workflows intact — no CODEOWNERS blocking, correct OIDC identity, all three fork workflows functional
+- [x] **TEST-01**: Fork's existing test suite passes after merge (42 tests, vitest)
+- [x] **TEST-02**: Upstream's gsd-tools test suite passes (63 tests, node:test)
+- [x] **TEST-03**: Update wiring validation test for thin orchestrator pattern
+- [x] **TEST-04**: Update install test for merged installer behavior
+- [x] **TEST-05**: CI/CD workflows intact — no CODEOWNERS blocking, correct OIDC identity, all three fork workflows functional
 
 ### Dogfooding (gsd-reflect Validation)
 
@@ -132,11 +132,11 @@ Deferred to later milestones.
 | FEAT-05 | Phase 10 | Complete |
 | FEAT-06 | Phase 10 | Complete |
 | FEAT-07 | Phase 10 | Complete |
-| TEST-01 | Phase 11 | Pending |
-| TEST-02 | Phase 11 | Pending |
-| TEST-03 | Phase 11 | Pending |
-| TEST-04 | Phase 11 | Pending |
-| TEST-05 | Phase 11 | Pending |
+| TEST-01 | Phase 11 | Complete |
+| TEST-02 | Phase 11 | Complete |
+| TEST-03 | Phase 11 | Complete |
+| TEST-04 | Phase 11 | Complete |
+| TEST-05 | Phase 11 | Complete |
 | DOG-01 | Phase 12 | Pending |
 | DOG-02 | Phase 12 | Pending |
 | DOG-03 | Phase 12 | Pending |
@@ -149,4 +149,4 @@ Deferred to later milestones.
 
 ---
 *Requirements defined: 2026-02-09*
-*Last updated: 2026-02-11 after Phase 10 completion (FEAT-01–07 complete)*
+*Last updated: 2026-02-11 after Phase 11 completion (TEST-01–05 complete)*

@@ -19,7 +19,7 @@ This milestone synchronizes the fork with 70 upstream GSD commits (v1.11.2 to v1
 - [x] **Phase 8: Core Merge & Conflict Resolution** - Execute git merge, resolve 8 conflict files, apply 11 bug fixes, preserve fork identity
 - [x] **Phase 9: Architecture Adoption & Verification** - Verify gsd-tools.js, thin orchestrator, and all additive architecture pieces function with fork
 - [x] **Phase 10: Upstream Feature Verification** - Verify adopted features work in fork context
-- [ ] **Phase 11: Test Suite Repair & CI/CD Validation** - Fix broken tests, integrate new test suites, validate CI/CD pipelines
+- [x] **Phase 11: Test Suite Repair & CI/CD Validation** - Fix broken tests, integrate new test suites, validate CI/CD pipelines
 - [ ] **Phase 12: Release & Dogfooding** - Version, document, release, and run reflection to validate gsd-reflect features
 
 ## Phase Details
@@ -103,7 +103,7 @@ Plans:
 Plans:
 - [x] 11-01-PLAN.md -- Extend wiring validation for thin orchestrator delegation
 - [x] 11-02-PLAN.md -- Fork-specific gsd-tools config tests
-- [ ] 11-03-PLAN.md -- CI workflow updates and full validation run
+- [x] 11-03-PLAN.md -- CI workflow updates and full validation run
 
 ### Phase 12: Release & Dogfooding
 **Goal**: v1.13.0 is versioned and released, with gsd-reflect's signal tracking and knowledge base validated through production use during this milestone
@@ -131,5 +131,5 @@ Phases execute in numeric order: 7 -> 8 -> 9 -> 10 -> 11 -> 12
 | 8. Core Merge & Conflict Resolution | v1.13 | 4/4 | Complete | 2026-02-10 |
 | 9. Architecture Adoption & Verification | v1.13 | 3/3 | Complete | 2026-02-10 |
 | 10. Upstream Feature Verification | v1.13 | 3/3 | Complete | 2026-02-11 |
-| 11. Test Suite Repair & CI/CD Validation | v1.13 | 2/3 | In progress | - |
+| 11. Test Suite Repair & CI/CD Validation | v1.13 | 3/3 | Complete | 2026-02-11 |
 | 12. Release & Dogfooding | v1.13 | 0/TBD | Not started | - |
