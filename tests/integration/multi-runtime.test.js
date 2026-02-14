@@ -321,6 +321,33 @@ describe('multi-runtime validation', () => {
       // MCP tool reference should be preserved, not stripped
       expect(content).toContain('mcp__context7')
     })
+
+    tmpdirTest('Gemini: agent body text uses Gemini-native tool names after install', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --gemini --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      // Read the installed planner agent (body references Read, Write, Bash, Glob, Grep)
+      const plannerAgent = path.join(tmpdir, '.gemini', 'agents', 'gsd-planner.md')
+      const content = await fs.readFile(plannerAgent, 'utf8')
+
+      // Separate frontmatter from body for body-only assertions
+      const parts = content.split('---')
+      const body = parts.slice(2).join('---')
+
+      // Body text should contain Gemini-native tool names
+      expect(body).toContain('read_file')
+      // Body text should NOT contain Claude tool names (word-boundary match)
+      expect(body).not.toMatch(/\bRead\b/)
+      expect(body).not.toMatch(/\bBash\b/)
+      // MCP references should still be preserved in body if present
+      if (body.includes('mcp__')) {
+        expect(body).toMatch(/mcp__\w+__/)
+      }
+    })
   })
 
   // ---------------------------------------------------------------------------

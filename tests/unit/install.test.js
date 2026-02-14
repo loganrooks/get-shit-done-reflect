@@ -1188,6 +1188,102 @@ Agent body content.`
     })
   })
 
+  describe('Gemini agent body text tool name replacement', () => {
+    it('replaces Claude tool names with Gemini names in body text', () => {
+      const input = `---
+tools: Read, Write, Bash
+---
+
+Use the Read tool to read files.
+Use Write to create new files.
+Run Bash to execute commands.
+Use Grep for searching and Glob for finding files.`
+
+      const result = convertClaudeToGeminiAgent(input)
+
+      // Body text should use Gemini tool names
+      expect(result).toContain('read_file tool to read files')
+      expect(result).toContain('Use write_file to create')
+      expect(result).toContain('Run run_shell_command to execute')
+      expect(result).toContain('Use search_file_content for searching')
+      expect(result).toContain('glob for finding files')
+      // Claude tool names should not remain in body
+      expect(result).not.toMatch(/\bRead\b/)
+      expect(result).not.toMatch(/\bWrite\b/)
+      expect(result).not.toMatch(/\bBash\b/)
+    })
+
+    it('preserves MCP tool references in body text while replacing Claude names', () => {
+      const input = `---
+tools: Read
+---
+
+Use mcp__context7__resolve-library-id to find libraries.
+Also use the Read tool to read files.`
+
+      const result = convertClaudeToGeminiAgent(input)
+
+      // MCP reference should be unchanged
+      expect(result).toContain('mcp__context7__resolve-library-id')
+      // Claude tool name should be replaced
+      expect(result).toContain('read_file tool')
+      expect(result).not.toMatch(/\bRead\b/)
+    })
+
+    it('replaces all mapped tools in body text', () => {
+      const input = `---
+tools: Read, Write, Edit, Bash, Glob, Grep
+---
+
+Read files. Write files. Edit content. Bash commands.
+Glob patterns. Grep search. WebSearch queries. WebFetch pages.
+TodoWrite tasks. AskUserQuestion prompts.`
+
+      const result = convertClaudeToGeminiAgent(input)
+
+      expect(result).toContain('read_file')
+      expect(result).toContain('write_file')
+      expect(result).toContain('replace')
+      expect(result).toContain('run_shell_command')
+      expect(result).toContain('glob')
+      expect(result).toContain('search_file_content')
+      expect(result).toContain('google_web_search')
+      expect(result).toContain('web_fetch')
+      expect(result).toContain('write_todos')
+      expect(result).toContain('ask_user')
+      // No Claude tool names should remain
+      expect(result).not.toMatch(/\bRead\b/)
+      expect(result).not.toMatch(/\bWrite\b/)
+      expect(result).not.toMatch(/\bEdit\b/)
+      expect(result).not.toMatch(/\bBash\b/)
+      expect(result).not.toMatch(/\bGrep\b/)
+      expect(result).not.toMatch(/\bWebSearch\b/)
+      expect(result).not.toMatch(/\bWebFetch\b/)
+      expect(result).not.toMatch(/\bTodoWrite\b/)
+      expect(result).not.toMatch(/\bAskUserQuestion\b/)
+    })
+
+    it('converts both frontmatter and body text tool names', () => {
+      const input = `---
+tools: Read, Write, Bash
+---
+
+Use Read to read files. Run Bash for commands. Use Write to create files.`
+
+      const result = convertClaudeToGeminiAgent(input)
+
+      // Frontmatter should have Gemini tool names as YAML array
+      expect(result).toContain('tools:')
+      expect(result).toContain('  - read_file')
+      expect(result).toContain('  - write_file')
+      expect(result).toContain('  - run_shell_command')
+      // Body should also have Gemini tool names
+      expect(result).toContain('Use read_file to read files')
+      expect(result).toContain('Run run_shell_command for commands')
+      expect(result).toContain('Use write_file to create files')
+    })
+  })
+
   describe('Codex CLI MCP body text preservation', () => {
     it('Codex skill conversion preserves MCP tool references in body text', () => {
       const input = `---
