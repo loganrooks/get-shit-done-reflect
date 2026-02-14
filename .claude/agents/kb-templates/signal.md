@@ -13,6 +13,7 @@ phase: {phase-number}
 plan: {plan-number}
 runtime: {claude-code|opencode|gemini-cli|codex-cli}
 model: {model-identifier}
+gsd_version: {version-string}
 ---
 
 ## What Happened

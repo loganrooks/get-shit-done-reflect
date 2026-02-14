@@ -10,6 +10,9 @@ status: active
 category: {architecture|workflow|tooling|testing|debugging|performance|other}
 evidence_count: {number}
 evidence: [{entry-id-1}, {entry-id-2}]
+runtime: {claude-code|opencode|gemini-cli|codex-cli}
+model: {model-identifier}
+gsd_version: {version-string}
 ---
 
 ## Lesson
