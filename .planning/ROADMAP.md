@@ -130,7 +130,11 @@ Plans:
   2. KB migration includes pre-migration backup and a recovery mechanism for data loss scenarios
   3. KB signal/spike/lesson entries include a `gsd_version` field
   4. Spike and lesson templates include provenance fields (runtime, model, gsd_version)
-**Plans**: TBD (created during /gsd:plan-phase 19)
+**Plans**: 2 plans
+
+Plans:
+- [ ] 19-01-PLAN.md -- Relocate KB scripts to ~/.gsd/bin/ with installer integration and path reference updates
+- [ ] 19-02-PLAN.md -- Pre-migration backup, gsd_version provenance, and runtime/model fields for spike/lesson templates
 
 #### Phase 20: Runtime Portability
 **Goal**: Agent spec content works in all runtimes, and the installer generates correct runtime-specific configurations for Gemini tool_permissions and Codex MCP
@@ -172,6 +176,6 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19 �
 | 16. Cross-Runtime Handoff & Signal Enrichment | 2/2 | ✓ Complete | 2026-02-11 |
 | 17. Validation & Release | 2/2 | ✓ Complete | 2026-02-11 |
 | 18. Capability Matrix & Installer Corrections | 2/2 | ✓ Complete | 2026-02-14 |
-| 19. KB Infrastructure & Data Safety | 0/? | Pending | — |
+| 19. KB Infrastructure & Data Safety | 0/2 | Planned | — |
 | 20. Runtime Portability | 0/? | Pending | — |
 | 21. Workflow Refinements | 0/? | Pending | — |
