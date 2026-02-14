@@ -8,10 +8,15 @@
 
 | Capability | Claude Code | OpenCode | Gemini CLI | Codex CLI | Impact When Missing |
 |------------|:-----------:|:--------:|:----------:|:---------:|---------------------|
-| task_tool  |      Y      |    Y     |     Y      |     N     | Sequential execution |
+| task_tool  |      Y      |    Y     |   Y [1]    |     N     | Sequential execution |
 | hooks      |      Y      |    N     |     Y      |     N     | Skip hook features   |
-| tool_permissions | Y     |    Y     |     N      |     N     | All tools available  |
-| mcp_servers|      Y      |    Y     |     N      |     N     | Skip MCP features    |
+| tool_permissions | Y     |    Y     |   Y [2]    |     N     | All tools available  |
+| mcp_servers|      Y      |    Y     |   Y [3]    |   Y [4]   | Skip MCP features    |
+
+> [1] Experimental, sequential only. Parallel subagent execution not yet available.
+> [2] Via tools.core (allowlist), tools.exclude (denylist), and per-sub-agent restrictions.
+> [3] STDIO, SSE, and Streamable HTTP transports. OAuth support.
+> [4] STDIO and Streamable HTTP transports. OAuth support.
 
 ## Format Reference
 
