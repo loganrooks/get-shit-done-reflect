@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 19 of 21 — KB Infrastructure & Data Safety
-Plan: 0 of ? — Not yet planned
-Status: Phase 18 verified and complete. Ready to plan Phase 19.
-Last activity: 2026-02-14 -- Phase 18 verified (10/10 must-haves, 132 tests passing)
+Plan: 1 of 1 — Complete
+Status: Phase 19 plan 01 complete. KB scripts installable to ~/.gsd/bin/.
+Last activity: 2026-02-14 -- Completed 19-01-PLAN.md (2 tasks, 19 tests passing)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (2) = 55 plans shipped | v1.14 gap closure: [███░░░░░░░] 25% (Phase 18 done)
+Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (3) = 56 plans shipped | v1.14 gap closure: [█████░░░░░] 50% (Phases 18-19 done)
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Recent decisions affecting current work:
 - MCP tools preserved as-is in Gemini agent conversion (not mapped to Gemini built-in names)
 - Capability matrix corrected: Gemini Y for mcp_servers/tool_permissions/task_tool[annotated], Codex Y for mcp_servers
 - All 4 runtimes now support MCP servers; mcp_servers degraded section retained as informational
+- KB scripts copied (not symlinked) to ~/.gsd/bin/ via installKBScripts() for runtime-agnostic access
 
 ### Pending Todos
 
@@ -76,7 +77,7 @@ None.
 
 ### Roadmap Evolution
 
-v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complete (Phases 13-17). v1.14 gap Phase 18 complete.
+v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complete (Phases 13-17). v1.14 gap Phases 18-19 complete.
 
 ### Key Artifacts
 
@@ -90,5 +91,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complet
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Phase 18 verified and complete. Ready to plan Phase 19 (KB Infrastructure & Data Safety).
+Stopped at: Completed 19-01-PLAN.md. Phase 19 complete. Ready for Phase 20 (Runtime Portability).
 Resume file: N/A
