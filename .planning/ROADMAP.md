@@ -144,7 +144,11 @@ Plans:
   1. Agent spec content (tool restrictions, execution context) is accessible and functional in non-Claude runtimes
   2. Gemini CLI installer maps GSD `allowed-tools` frontmatter to Gemini's `tools.core`/`tools.exclude` format
   3. Codex CLI installer generates TOML-format MCP server configuration when MCP references are present
-**Plans**: TBD (created during /gsd:plan-phase 20)
+**Plans**: 2 plans
+
+Plans:
+- [ ] 20-01-PLAN.md -- Gemini agent body text tool name replacement (Gap 7, Gap 8)
+- [ ] 20-02-PLAN.md -- Codex MCP config.toml generator with install/uninstall integration (Gap 9)
 
 #### Phase 21: Workflow Refinements
 **Goal**: Signal workflow is lean, spike workflow has proper feasibility gates, reducing context bloat and preventing premature spiking
@@ -177,5 +181,5 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19 �
 | 17. Validation & Release | 2/2 | ✓ Complete | 2026-02-11 |
 | 18. Capability Matrix & Installer Corrections | 2/2 | ✓ Complete | 2026-02-14 |
 | 19. KB Infrastructure & Data Safety | 2/2 | ✓ Complete | 2026-02-14 |
-| 20. Runtime Portability | 0/? | Pending | — |
+| 20. Runtime Portability | 0/2 | Pending | — |
 | 21. Workflow Refinements | 0/? | Pending | — |
