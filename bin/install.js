@@ -988,6 +988,51 @@ ${GSD_END}`;
   }
 }
 
+// Known MCP servers used by GSD
+const gsdMcpServers = {
+  context7: {
+    command: 'npx',
+    args: ['-y', '@upstash/context7-mcp']
+  }
+};
+
+/**
+ * Generate MCP server configuration for Codex CLI config.toml.
+ * Uses marker-based section management (# GSD:BEGIN / # GSD:END) for idempotent updates.
+ * Creates config.toml if it doesn't exist, merges with existing if it does.
+ * @param {string} targetDir - Codex config directory (e.g., ~/.codex)
+ */
+function generateCodexMcpConfig(targetDir) {
+  const configPath = path.join(targetDir, 'config.toml');
+  const GSD_BEGIN = '# GSD:BEGIN (get-shit-done-reflect-cc)';
+  const GSD_END = '# GSD:END (get-shit-done-reflect-cc)';
+
+  // Build TOML section for all known MCP servers
+  const serverEntries = Object.entries(gsdMcpServers).map(([name, server]) => {
+    const argsStr = server.args.map(a => JSON.stringify(a)).join(', ');
+    return `[mcp_servers.${name}]\ncommand = ${JSON.stringify(server.command)}\nargs = [${argsStr}]`;
+  }).join('\n\n');
+
+  const tomlSection = `${GSD_BEGIN}\n${serverEntries}\n${GSD_END}`;
+
+  if (fs.existsSync(configPath)) {
+    let existing = fs.readFileSync(configPath, 'utf8');
+    const beginIdx = existing.indexOf(GSD_BEGIN);
+    const endIdx = existing.indexOf(GSD_END);
+
+    if (beginIdx !== -1 && endIdx !== -1) {
+      // Replace existing GSD section
+      existing = existing.substring(0, beginIdx) + tomlSection + existing.substring(endIdx + GSD_END.length);
+    } else {
+      // Append GSD section
+      existing = existing.trimEnd() + '\n\n' + tomlSection + '\n';
+    }
+    fs.writeFileSync(configPath, existing);
+  } else {
+    fs.writeFileSync(configPath, tomlSection + '\n');
+  }
+}
+
 /**
  * Replace path references in file content using a two-pass approach.
  *
@@ -1330,6 +1375,29 @@ function uninstall(isGlobal, runtime = 'claude') {
           fs.writeFileSync(agentsMdPath, content + '\n');
         }
         console.log(`  ${green}✓${reset} Removed GSD section from AGENTS.md`);
+        removedCount++;
+      }
+    }
+  }
+
+  // 3c. Remove GSD section from config.toml (Codex only)
+  if (isCodex) {
+    const configTomlPath = path.join(targetDir, 'config.toml');
+    if (fs.existsSync(configTomlPath)) {
+      let content = fs.readFileSync(configTomlPath, 'utf8');
+      const GSD_BEGIN = '# GSD:BEGIN (get-shit-done-reflect-cc)';
+      const GSD_END = '# GSD:END (get-shit-done-reflect-cc)';
+      const beginIdx = content.indexOf(GSD_BEGIN);
+      const endIdx = content.indexOf(GSD_END);
+      if (beginIdx !== -1 && endIdx !== -1) {
+        content = content.substring(0, beginIdx) + content.substring(endIdx + GSD_END.length);
+        content = content.trim();
+        if (content.length === 0) {
+          fs.unlinkSync(configTomlPath);
+        } else {
+          fs.writeFileSync(configTomlPath, content + '\n');
+        }
+        console.log(`  ${green}✓${reset} Removed GSD section from config.toml`);
         removedCount++;
       }
     }
@@ -1891,6 +1959,8 @@ function install(isGlobal, runtime = 'claude') {
   if (isCodex) {
     generateCodexAgentsMd(targetDir, pathPrefix);
     console.log(`  ${green}+${reset} Generated AGENTS.md`);
+    generateCodexMcpConfig(targetDir);
+    console.log(`  ${green}+${reset} Generated MCP config in config.toml`);
   }
 
   // Copy CHANGELOG.md
@@ -2298,4 +2368,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, installKBScripts, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, convertClaudeToGeminiAgent };
+module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, installKBScripts, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent };
