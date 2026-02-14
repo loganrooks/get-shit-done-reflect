@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-11)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 17 - Validation & Release (COMPLETE)
+**Current focus:** Post-v1.14 gap analysis — capability matrix research complete, ready for milestone gap planning
 
 ## Current Position
 
-Phase: 17 of 17 (Validation & Release)
-Plan: 2 of 2 in current phase
-Status: Phase complete -- v1.14 milestone complete
-Last activity: 2026-02-11 -- Completed 17-02-PLAN.md (cross-runtime KB accessibility)
+Phase: Post-v1.14 (gap analysis)
+Plan: N/A — between milestones
+Status: Research complete — ready for /gsd:plan-milestone-gaps
+Last activity: 2026-02-14 -- Capability matrix research completed (4 of 8 cells stale), 2 spike workflow signals captured
 
 Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [##########] 100%
 
@@ -86,6 +86,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-02-11
-Stopped at: Completed 17-02-PLAN.md (cross-runtime KB accessibility). Phase 17 complete. v1.14 milestone complete.
-Resume file: None
+Last session: 2026-02-14
+Stopped at: Capability matrix research complete. 4 stale cells found (Codex+Gemini MCP, Gemini tool_permissions). 2 spike workflow signals captured. 17-item combined gap list ready for milestone gap planning.
+Resume file: .planning/phases/17-validation-release/.continue-here.md
