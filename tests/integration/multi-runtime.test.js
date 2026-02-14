@@ -305,6 +305,22 @@ describe('multi-runtime validation', () => {
       const geminiDir = path.join(tmpdir, '.gemini')
       await verifyKBPathsShared(geminiDir)
     })
+
+    tmpdirTest('Gemini: agent files retain MCP tool references after install', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --gemini --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      // Read the installed planner agent (source has mcp__context7__* in tools)
+      const plannerAgent = path.join(tmpdir, '.gemini', 'agents', 'gsd-planner.md')
+      const content = await fs.readFile(plannerAgent, 'utf8')
+
+      // MCP tool reference should be preserved, not stripped
+      expect(content).toContain('mcp__context7')
+    })
   })
 
   // ---------------------------------------------------------------------------

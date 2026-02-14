@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd } = require('../../bin/install.js')
+const { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, convertClaudeToGeminiAgent } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -1129,6 +1129,87 @@ Use WebFetch and Task and SlashCommand for these features.`
           }
         }
       })
+    })
+  })
+
+  describe('Gemini CLI MCP tool preservation', () => {
+    describe('convertClaudeToGeminiAgent() unit tests', () => {
+      it('preserves MCP tools in Gemini agent tools field', () => {
+        const input = `---
+tools: Read, Write, Bash, mcp__context7__resolve-library-id
+---
+
+Agent body content.`
+
+        const result = convertClaudeToGeminiAgent(input)
+
+        // MCP tool should be preserved as-is
+        expect(result).toContain('mcp__context7__resolve-library-id')
+        // Built-in tool should be converted to Gemini name
+        expect(result).toContain('read_file')
+        // Original Claude tool name should be converted
+        expect(result).not.toMatch(/\bRead\b/)
+      })
+
+      it('preserves MCP tools from allowed-tools YAML array in Gemini agent', () => {
+        const input = `---
+allowed-tools:
+  - Read
+  - Write
+  - Task
+  - mcp__context7__*
+---
+
+Agent body content.`
+
+        const result = convertClaudeToGeminiAgent(input)
+
+        // MCP tool wildcard should be preserved
+        expect(result).toContain('mcp__context7__*')
+        // Task should be excluded (agents auto-register in Gemini)
+        expect(result).not.toMatch(/\bTask\b/)
+        // Built-in tool should be converted
+        expect(result).toContain('read_file')
+      })
+
+      it('preserves multiple MCP tools in Gemini agent', () => {
+        const input = `---
+tools: Read, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__fetch__get
+---
+
+Agent body content.`
+
+        const result = convertClaudeToGeminiAgent(input)
+
+        expect(result).toContain('mcp__context7__resolve-library-id')
+        expect(result).toContain('mcp__context7__query-docs')
+        expect(result).toContain('mcp__fetch__get')
+      })
+    })
+  })
+
+  describe('Codex CLI MCP body text preservation', () => {
+    it('Codex skill conversion preserves MCP tool references in body text', () => {
+      const input = `---
+name: phase-researcher
+description: Researches how to implement a phase
+---
+
+Use mcp__context7__resolve-library-id to find library IDs.
+Then use mcp__context7__query-docs to get documentation.
+Also use the Read tool to read files and Bash to run commands.`
+
+      const result = convertClaudeToCodexSkill(input, 'gsd-phase-researcher')
+
+      // MCP tool references should pass through unchanged
+      expect(result).toContain('mcp__context7__resolve-library-id')
+      expect(result).toContain('mcp__context7__query-docs')
+      // Built-in tool names in body text ARE converted per claudeToCodexTools map
+      expect(result).toContain('read_file')
+      expect(result).toContain('shell')
+      // Original Claude tool names should be replaced
+      expect(result).not.toMatch(/\bRead\b/)
+      expect(result).not.toMatch(/\bBash\b/)
     })
   })
 })
