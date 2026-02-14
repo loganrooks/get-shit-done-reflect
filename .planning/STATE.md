@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 19 of 21 — KB Infrastructure & Data Safety
-Plan: 1 of 1 — Complete
-Status: Phase 19 plan 01 complete. KB scripts installable to ~/.gsd/bin/.
-Last activity: 2026-02-14 -- Completed 19-01-PLAN.md (2 tasks, 19 tests passing)
+Plan: 2 of 2 — Complete
+Status: Phase 19 complete. Pre-migration backup + provenance fields added. 27 KB tests passing.
+Last activity: 2026-02-14 -- Completed 19-02-PLAN.md (3 tasks, 27 KB tests passing)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (3) = 56 plans shipped | v1.14 gap closure: [█████░░░░░] 50% (Phases 18-19 done)
+Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (4) = 57 plans shipped | v1.14 gap closure: [██████░░░░] 60% (Phases 18-19 done)
 
 ## Performance Metrics
 
@@ -31,6 +31,10 @@ Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (3) = 56 plan
 **v1.14 Final:**
 - Plans completed: 10
 - Duration: 46min (6min + 8min + 8min + 3min + 6min + 2min + 3min + 4min + 3min + 3min)
+
+**v1.14 Gap Closure:**
+- Plans completed: 4
+- Duration: 18min (3min + 3min + 4min + 4min + 4min)
 
 ## Accumulated Context
 
@@ -58,6 +62,9 @@ Recent decisions affecting current work:
 - Capability matrix corrected: Gemini Y for mcp_servers/tool_permissions/task_tool[annotated], Codex Y for mcp_servers
 - All 4 runtimes now support MCP servers; mcp_servers degraded section retained as informational
 - KB scripts copied (not symlinked) to ~/.gsd/bin/ via installKBScripts() for runtime-agnostic access
+- Pre-migration backup in migrateKB() with timestamped copy and integrity verification
+- Provenance fields (runtime, model, gsd_version) promoted to common base schema for all KB entry types
+- All provenance fields optional for backward compatibility; gsd_version from VERSION file with config.json fallback
 
 ### Pending Todos
 
@@ -67,7 +74,7 @@ None.
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
-- v1.14 release ready: 132 tests passing across 7 test files, all 4 runtimes validated
+- v1.14 release ready: 140 tests passing across 7 test files, all 4 runtimes validated
 
 ### Quick Tasks Completed
 
@@ -91,5 +98,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complet
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 19-01-PLAN.md. Phase 19 complete. Ready for Phase 20 (Runtime Portability).
+Stopped at: Completed 19-02-PLAN.md. Phase 19 fully complete (2 plans). Ready for Phase 20 (Runtime Portability).
 Resume file: N/A
