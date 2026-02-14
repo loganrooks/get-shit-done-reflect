@@ -22,7 +22,7 @@
 - [x] **Phase 16: Cross-Runtime Handoff & Signal Enrichment** - Pause/resume across runtimes; enrich signals with runtime provenance ✓ 2026-02-11
 - [x] **Phase 17: Validation & Release** - Verify all runtimes work end-to-end after all changes ✓ 2026-02-11
 - [x] **Phase 18: Capability Matrix & Installer Corrections** - Update stale matrix cells; stop stripping MCP/tool_permissions for capable runtimes ✓ 2026-02-14
-- [ ] **Phase 19: KB Infrastructure & Data Safety** - Relocate KB scripts, add backup/recovery, add provenance fields to templates
+- [x] **Phase 19: KB Infrastructure & Data Safety** - Relocate KB scripts, add backup/recovery, add provenance fields to templates ✓ 2026-02-14
 - [ ] **Phase 20: Runtime Portability** - Make agent specs accessible in non-Claude runtimes; add Gemini/Codex format converters
 - [ ] **Phase 21: Workflow Refinements** - Reduce signal workflow context bloat; add spike feasibility gate
 
@@ -133,8 +133,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 19-01-PLAN.md -- Relocate KB scripts to ~/.gsd/bin/ with installer integration and path reference updates
-- [ ] 19-02-PLAN.md -- Pre-migration backup, gsd_version provenance, and runtime/model fields for spike/lesson templates
+- [x] 19-01-PLAN.md -- Relocate KB scripts to ~/.gsd/bin/ with installer integration and path reference updates ✓
+- [x] 19-02-PLAN.md -- Pre-migration backup, gsd_version provenance, and runtime/model fields for spike/lesson templates ✓
 
 #### Phase 20: Runtime Portability
 **Goal**: Agent spec content works in all runtimes, and the installer generates correct runtime-specific configurations for Gemini tool_permissions and Codex MCP
@@ -176,6 +176,6 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19 �
 | 16. Cross-Runtime Handoff & Signal Enrichment | 2/2 | ✓ Complete | 2026-02-11 |
 | 17. Validation & Release | 2/2 | ✓ Complete | 2026-02-11 |
 | 18. Capability Matrix & Installer Corrections | 2/2 | ✓ Complete | 2026-02-14 |
-| 19. KB Infrastructure & Data Safety | 0/2 | Planned | — |
+| 19. KB Infrastructure & Data Safety | 2/2 | ✓ Complete | 2026-02-14 |
 | 20. Runtime Portability | 0/? | Pending | — |
 | 21. Workflow Refinements | 0/? | Pending | — |
