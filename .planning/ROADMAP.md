@@ -4,7 +4,7 @@
 
 - <details><summary>v1.12 GSD Reflect (Phases 0-6) -- SHIPPED 2026-02-09</summary>See milestones/v1.12-ROADMAP.md</details>
 - <details><summary>v1.13 Upstream Sync & Validation (Phases 7-12) -- SHIPPED 2026-02-11</summary>See milestones/v1.13-ROADMAP.md</details>
-- **v1.14 Multi-Runtime Interop** - Phases 13-17 (complete)
+- **v1.14 Multi-Runtime Interop** - Phases 13-21 (gap closure in progress)
 
 ## v1.14 Multi-Runtime Interop
 
@@ -21,6 +21,10 @@
 - [x] **Phase 15: Codex CLI Integration** - Install GSD commands as Codex Skills with AGENTS.md generation ✓ 2026-02-11
 - [x] **Phase 16: Cross-Runtime Handoff & Signal Enrichment** - Pause/resume across runtimes; enrich signals with runtime provenance ✓ 2026-02-11
 - [x] **Phase 17: Validation & Release** - Verify all runtimes work end-to-end after all changes ✓ 2026-02-11
+- [ ] **Phase 18: Capability Matrix & Installer Corrections** - Update stale matrix cells; stop stripping MCP/tool_permissions for capable runtimes
+- [ ] **Phase 19: KB Infrastructure & Data Safety** - Relocate KB scripts, add backup/recovery, add provenance fields to templates
+- [ ] **Phase 20: Runtime Portability** - Make agent specs accessible in non-Claude runtimes; add Gemini/Codex format converters
+- [ ] **Phase 21: Workflow Refinements** - Reduce signal workflow context bloat; add spike feasibility gate
 
 ### Phase Details
 
@@ -102,10 +106,59 @@ Plans:
 - [x] 17-01-PLAN.md -- Per-runtime deep validation tests for OpenCode and Gemini + multi-runtime --all content verification (VALID-01, VALID-02, VALID-03) ✓
 - [x] 17-02-PLAN.md -- Cross-runtime KB accessibility tests + release readiness validation (VALID-04) ✓
 
+#### Phase 18: Capability Matrix & Installer Corrections
+**Goal**: The capability matrix accurately reflects current runtime capabilities, and the installer preserves MCP and tool_permissions content for runtimes that support them
+**Depends on**: Phase 17 (builds on validated installer from v1.14 initial work)
+**Gap Closure**: Gaps 1-4 from post-v1.14 analysis
+**Success Criteria** (what must be TRUE):
+  1. capability-matrix.md has 4 corrected cells: Codex mcp_servers=Y, Gemini mcp_servers=Y, Gemini tool_permissions=Y, Gemini task_tool annotated as experimental/sequential
+  2. Codex CLI installer preserves MCP tool references in converted files (was stripping them)
+  3. Gemini CLI installer preserves MCP tool references in converted files (was stripping them)
+  4. Gemini CLI installer preserves tool permission frontmatter in converted files (was stripping them)
+**Plans**: TBD (created during /gsd:plan-phase 18)
+
+#### Phase 19: KB Infrastructure & Data Safety
+**Goal**: KB management scripts are properly located, data loss has a safety net, and KB entries carry version provenance
+**Depends on**: Phase 18 (independent, but sequential for focus)
+**Gap Closure**: Gaps 5-6, 13-14 from post-v1.14 analysis
+**Success Criteria** (what must be TRUE):
+  1. KB management scripts (kb-rebuild-index.sh, kb-create-dirs.sh) exist at ~/.gsd/bin/ and are functional
+  2. KB migration includes pre-migration backup and a recovery mechanism for data loss scenarios
+  3. KB signal/spike/lesson entries include a `gsd_version` field
+  4. Spike and lesson templates include provenance fields (runtime, model, gsd_version)
+**Plans**: TBD (created during /gsd:plan-phase 19)
+
+#### Phase 20: Runtime Portability
+**Goal**: Agent spec content works in all runtimes, and the installer generates correct runtime-specific configurations for Gemini tool_permissions and Codex MCP
+**Depends on**: Phase 18 (matrix corrections inform format conversion logic)
+**Gap Closure**: Gaps 7-9 from post-v1.14 analysis
+**Success Criteria** (what must be TRUE):
+  1. Agent spec content (tool restrictions, execution context) is accessible and functional in non-Claude runtimes
+  2. Gemini CLI installer maps GSD `allowed-tools` frontmatter to Gemini's `tools.core`/`tools.exclude` format
+  3. Codex CLI installer generates TOML-format MCP server configuration when MCP references are present
+**Plans**: TBD (created during /gsd:plan-phase 20)
+
+#### Phase 21: Workflow Refinements
+**Goal**: Signal workflow is lean, spike workflow has proper feasibility gates, reducing context bloat and preventing premature spiking
+**Depends on**: Nothing (independent workflow improvements)
+**Gap Closure**: Gaps 10-12 from post-v1.14 analysis
+**Success Criteria** (what must be TRUE):
+  1. /gsd:signal loads <200 lines of reference context (down from ~864)
+  2. Spike DESIGN.md template includes a Prerequisites/Feasibility section
+  3. /gsd:spike workflow includes a research-first advisory gate before spike execution
+**Plans**: TBD (created during /gsd:plan-phase 21)
+
+### Deferred (Monitor Only)
+
+These depend on external runtime vendor changes. No phases needed — revisit when capabilities ship:
+- Codex CLI hooks evolution — monitor next 30 days (PR #9691 hints at expanded hooks)
+- Codex CLI subagents — "under active development", no ETA (issue #2604)
+- Gemini CLI parallel subagents — issue #17749 open, 0/4 subtasks complete
+
 ### Progress
 
 **Execution Order:**
-Phases execute in numeric order: 13 -> 14 -> 15 -> 16 -> 17
+Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19 → 20 → 21
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
@@ -114,3 +167,7 @@ Phases execute in numeric order: 13 -> 14 -> 15 -> 16 -> 17
 | 15. Codex CLI Integration | 2/2 | ✓ Complete | 2026-02-11 |
 | 16. Cross-Runtime Handoff & Signal Enrichment | 2/2 | ✓ Complete | 2026-02-11 |
 | 17. Validation & Release | 2/2 | ✓ Complete | 2026-02-11 |
+| 18. Capability Matrix & Installer Corrections | 0/? | Pending | — |
+| 19. KB Infrastructure & Data Safety | 0/? | Pending | — |
+| 20. Runtime Portability | 0/? | Pending | — |
+| 21. Workflow Refinements | 0/? | Pending | — |

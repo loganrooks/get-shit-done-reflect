@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-11)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Post-v1.14 gap analysis — capability matrix research complete, ready for milestone gap planning
+**Current focus:** v1.14 gap closure — 4 phases (18-21) covering installer corrections, KB safety, runtime portability, workflow refinements
 
 ## Current Position
 
-Phase: Post-v1.14 (gap analysis)
-Plan: N/A — between milestones
-Status: Research complete — ready for /gsd:plan-milestone-gaps
-Last activity: 2026-02-14 -- Capability matrix research completed (4 of 8 cells stale), 2 spike workflow signals captured
+Phase: 18 of 21 — Capability Matrix & Installer Corrections
+Plan: 0 of ? — Not yet planned
+Status: Gap closure phases created, ready to plan Phase 18
+Last activity: 2026-02-14 -- Gap closure phases 18-21 added to v1.14 roadmap (14 gaps across 4 phases)
 
-Progress: v1.12 (25 plans) + v1.13 (18 plans) = 43 plans shipped | v1.14: [##########] 100%
+Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) = 53 plans shipped | v1.14 gap closure: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -87,5 +87,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Capability matrix research complete. 4 stale cells found (Codex+Gemini MCP, Gemini tool_permissions). 2 spike workflow signals captured. 17-item combined gap list ready for milestone gap planning.
-Resume file: .planning/phases/17-validation-release/.continue-here.md
+Stopped at: Gap closure phases 18-21 created in ROADMAP.md. Ready to plan Phase 18.
+Resume file: N/A
