@@ -23,7 +23,7 @@
 - [x] **Phase 17: Validation & Release** - Verify all runtimes work end-to-end after all changes ✓ 2026-02-11
 - [x] **Phase 18: Capability Matrix & Installer Corrections** - Update stale matrix cells; stop stripping MCP/tool_permissions for capable runtimes ✓ 2026-02-14
 - [x] **Phase 19: KB Infrastructure & Data Safety** - Relocate KB scripts, add backup/recovery, add provenance fields to templates ✓ 2026-02-14
-- [ ] **Phase 20: Runtime Portability** - Make agent specs accessible in non-Claude runtimes; add Gemini/Codex format converters
+- [x] **Phase 20: Runtime Portability** - Make agent specs accessible in non-Claude runtimes; add Gemini/Codex format converters ✓ 2026-02-14
 - [ ] **Phase 21: Workflow Refinements** - Reduce signal workflow context bloat; add spike feasibility gate
 
 ### Phase Details
@@ -147,8 +147,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 20-01-PLAN.md -- Gemini agent body text tool name replacement (Gap 7, Gap 8)
-- [ ] 20-02-PLAN.md -- Codex MCP config.toml generator with install/uninstall integration (Gap 9)
+- [x] 20-01-PLAN.md -- Gemini agent body text tool name replacement (Gap 7, Gap 8) ✓
+- [x] 20-02-PLAN.md -- Codex MCP config.toml generator with install/uninstall integration (Gap 9) ✓
 
 #### Phase 21: Workflow Refinements
 **Goal**: Signal workflow is lean, spike workflow has proper feasibility gates, reducing context bloat and preventing premature spiking
@@ -181,5 +181,5 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19 �
 | 17. Validation & Release | 2/2 | ✓ Complete | 2026-02-11 |
 | 18. Capability Matrix & Installer Corrections | 2/2 | ✓ Complete | 2026-02-14 |
 | 19. KB Infrastructure & Data Safety | 2/2 | ✓ Complete | 2026-02-14 |
-| 20. Runtime Portability | 0/2 | Pending | — |
+| 20. Runtime Portability | 2/2 | ✓ Complete | 2026-02-14 |
 | 21. Workflow Refinements | 0/? | Pending | — |
