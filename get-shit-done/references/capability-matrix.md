@@ -33,8 +33,10 @@
 
 Can spawn subagent processes via Task() calls for parallel execution. This is the primary mechanism for wave-based plan execution -- the orchestrator spawns a gsd-executor agent for each plan in a wave, and they run concurrently.
 
-**Available in:** Claude Code, OpenCode, Gemini CLI
+**Available in:** Claude Code, OpenCode, Gemini CLI [1]
 **Missing in:** Codex CLI
+
+> [1] Gemini CLI task_tool support is experimental and sequential only. Parallel subagent execution is not yet available -- plans within a wave execute one at a time rather than concurrently.
 
 **Degraded behavior when missing:**
 Execute plans sequentially in the main context. The orchestrator reads plan files directly and executes tasks one at a time instead of spawning gsd-executor agents per wave. Wave grouping and parallel spawning are skipped. Plans execute in dependency order, and each plan's tasks are completed before moving to the next plan.
@@ -59,27 +61,33 @@ Use `<capability_check name="hooks_support">` before hook configuration. If hook
 
 Granular tool allow/deny lists in agent/command frontmatter. Allows restricting which tools an agent can use (e.g., read-only agents that cannot write files).
 
-**Available in:** Claude Code (allowed-tools list), OpenCode (permission map in YAML)
-**Missing in:** Gemini CLI, Codex CLI
+**Available in:** Claude Code (allowed-tools list), OpenCode (permission map in YAML), Gemini CLI (tools.core allowlist, tools.exclude denylist)
+**Missing in:** Codex CLI
 
 **Degraded behavior when missing:**
-All tools are available to all agents. There is no mechanism to restrict tool access at the agent/command level. This is generally safe -- GSD agents are designed to operate correctly without restrictions -- but means that tool sandboxing relies on runtime-level controls rather than per-agent configuration.
+All tools are available to all agents (Codex CLI). There is no mechanism to restrict tool access at the agent/command level. This is generally safe -- GSD agents are designed to operate correctly without restrictions -- but means that tool sandboxing relies on runtime-level controls rather than per-agent configuration.
 
 **How orchestrators adapt:**
-No orchestrator adaptation needed. The installer already strips tool permission frontmatter during format conversion for runtimes that do not support it. Agents function correctly with all tools available.
+No orchestrator adaptation needed. The installer preserves tool permission frontmatter for runtimes that support it (Claude Code, OpenCode, Gemini CLI) and strips it for runtimes that do not (Codex CLI). Agents function correctly with all tools available.
 
 ### mcp_servers
 
 MCP (Model Context Protocol) server integration. Allows agents to access external tools and services via the MCP protocol.
 
-**Available in:** Claude Code, OpenCode
-**Missing in:** Gemini CLI, Codex CLI
+**Available in:** Claude Code, OpenCode, Gemini CLI, Codex CLI
+**Status:** Available in all supported runtimes.
 
-**Degraded behavior when missing:**
-MCP-dependent features are skipped. MCP tool references in agent specs are excluded during format conversion (the installer's tool name conversion returns null for `mcp__` prefixed tools, effectively stripping them). Agents function with their built-in tools only.
+**Transport support by runtime:**
+- Claude Code: STDIO, SSE, Streamable HTTP
+- OpenCode: STDIO, SSE, Streamable HTTP
+- Gemini CLI: STDIO, SSE, Streamable HTTP. OAuth support.
+- Codex CLI: STDIO, Streamable HTTP. OAuth support.
+
+**Degraded behavior (informational):**
+All four supported runtimes now support MCP servers. This section is retained for documentation purposes -- if a future runtime lacks MCP support, the degraded behavior is: MCP-dependent features are skipped, MCP tool references in agent specs are excluded during format conversion, and agents function with their built-in tools only.
 
 **How orchestrators adapt:**
-No orchestrator adaptation needed. The installer handles MCP tool stripping at install time. Agents that reference MCP tools will simply not have those tools available, and their workflows are designed to function without them.
+No orchestrator adaptation needed. The installer preserves MCP tool references for all runtimes. MCP server configuration is handled at the runtime config level (settings.json, opencode.json, codex.toml).
 
 ## Degraded Behavior Summary
 
@@ -90,18 +98,19 @@ No orchestrator adaptation needed. The installer handles MCP tool stripping at i
 | Parallel agents (task_tool) | N | Sequential plan execution in main context |
 | Hooks | N | Update checks on GSD command invocation |
 | Tool permissions | N | All tools available to all agents |
-| MCP servers | N | MCP features skipped |
+| MCP servers | Y | Full MCP support via STDIO and Streamable HTTP |
 
-Codex CLI operates as the baseline runtime. All GSD workflows are designed to function correctly under these constraints. The primary impact is execution speed (sequential vs parallel) and the absence of automatic session hooks.
+Codex CLI operates as the baseline runtime with two missing capabilities: parallel execution (task_tool) and session hooks. All GSD workflows are designed to function correctly under these constraints. The primary impact is execution speed (sequential vs parallel) and the absence of automatic session hooks. MCP servers and tool permissions are the only areas where Codex remains more constrained than other runtimes (no tool permissions support).
 
 ### Gemini CLI
 
 | Feature | Status | Adaptation |
 |---------|--------|------------|
-| Tool permissions | N | All tools available to all agents |
-| MCP servers | N | MCP features skipped |
+| Parallel agents (task_tool) | Y [1] | Experimental, sequential only -- no parallel subagent execution |
 
-Gemini CLI supports parallel execution and hooks but lacks tool-level permission controls and MCP integration. The installer handles tool permission stripping and MCP tool exclusion at install time.
+> [1] task_tool is available but limited. Subagents execute sequentially rather than in parallel waves.
+
+Gemini CLI is near-full capability. It supports tool permissions (via tools.core/tools.exclude), MCP servers (STDIO, SSE, Streamable HTTP), and hooks. The only limitation is that task_tool support is experimental and sequential -- parallel subagent execution is not yet available.
 
 ### OpenCode
 
