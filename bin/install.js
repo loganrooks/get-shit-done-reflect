@@ -234,6 +234,25 @@ function migrateKB(gsdHome, runtimes) {
   if (!runtimes) runtimes = [];
   const newKBDir = path.join(gsdHome, 'knowledge');
 
+  // PRE-MIGRATION BACKUP: Safety net before any KB operations
+  if (fs.existsSync(newKBDir)) {
+    const existingEntries = countKBEntries(newKBDir);
+    if (existingEntries > 0) {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const backupDir = newKBDir + '.backup-' + timestamp;
+      fs.cpSync(newKBDir, backupDir, { recursive: true });
+
+      // Verify backup integrity
+      const backupEntries = countKBEntries(backupDir);
+      if (backupEntries < existingEntries) {
+        console.error(`  ${yellow}!${reset} Backup verification failed: ${existingEntries} entries in source, ${backupEntries} in backup`);
+        console.error(`    Aborting migration. Manual intervention required.`);
+        return;
+      }
+      console.log(`  ${green}+${reset} Backed up ${existingEntries} KB entries to ${path.basename(backupDir)}`);
+    }
+  }
+
   // Step 1: Create new KB directory structure
   fs.mkdirSync(path.join(newKBDir, 'signals'), { recursive: true });
   fs.mkdirSync(path.join(newKBDir, 'spikes'), { recursive: true });
