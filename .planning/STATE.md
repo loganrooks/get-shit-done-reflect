@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 20 of 21 — Runtime Portability
-Plan: 1 of ? — 20-01 complete
-Status: In progress. Plan 20-01 (Gemini body text tool name replacement) complete.
-Last activity: 2026-02-14 -- Completed 20-01-PLAN.md (Gemini body text tool name replacement)
+Plan: 2 of 2 — 20-02 complete (Phase 20 complete)
+Status: Phase 20 complete. Ready for Phase 21 (Workflow Refinements).
+Last activity: 2026-02-14 -- Completed 20-02-PLAN.md (Codex MCP config generator)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (5) = 58 plans shipped | v1.14 gap closure: [███████░░░] 70% (Phases 18-19 done, 20-01 done)
+Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (7) = 60 plans shipped | v1.14 gap closure: [████████░░] 80% (Phases 18-20 done)
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (5) = 58 plan
 - Duration: 46min (6min + 8min + 8min + 3min + 6min + 2min + 3min + 4min + 3min + 3min)
 
 **v1.14 Gap Closure:**
-- Plans completed: 5
-- Duration: 20min (3min + 3min + 4min + 4min + 4min + 2min)
+- Plans completed: 7
+- Duration: 25min (3min + 3min + 4min + 4min + 4min + 2min + 2min + 3min)
 
 ## Accumulated Context
 
@@ -66,6 +66,8 @@ Recent decisions affecting current work:
 - Provenance fields (runtime, model, gsd_version) promoted to common base schema for all KB entry types
 - All provenance fields optional for backward compatibility; gsd_version from VERSION file with config.json fallback
 - Gemini agent body text tool name replacement uses same word-boundary regex pattern as Codex converter
+- Static gsdMcpServers mapping for Codex config.toml (no auto-discovery, no TOML parser dependency)
+- No required=true in generated MCP TOML (avoid blocking Codex startup if server unavailable)
 
 ### Pending Todos
 
@@ -75,7 +77,7 @@ None.
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
-- v1.14 release ready: 150 tests passing across 7 test files, all 4 runtimes validated
+- v1.14 release ready: 155 tests passing across 7 test files, all 4 runtimes validated
 
 ### Quick Tasks Completed
 
@@ -85,7 +87,7 @@ None.
 
 ### Roadmap Evolution
 
-v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complete (Phases 13-17). v1.14 gap Phases 18-19 complete. Phase 20-01 complete.
+v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complete (Phases 13-17). v1.14 gap Phases 18-20 complete.
 
 ### Key Artifacts
 
@@ -99,5 +101,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complet
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 20-01-PLAN.md (Gemini agent body text tool name replacement).
+Stopped at: Completed 20-02-PLAN.md (Codex MCP config generator). Phase 20 complete.
 Resume file: N/A
