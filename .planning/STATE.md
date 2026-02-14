@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 20 of 21 — Runtime Portability
-Plan: 0 of ? — Not yet planned
-Status: Phase 19 verified and complete. Ready to plan Phase 20.
-Last activity: 2026-02-14 -- Phase 19 verified (7/7 must-haves, 27 KB tests passing)
+Plan: 1 of ? — 20-01 complete
+Status: In progress. Plan 20-01 (Gemini body text tool name replacement) complete.
+Last activity: 2026-02-14 -- Completed 20-01-PLAN.md (Gemini body text tool name replacement)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (4) = 57 plans shipped | v1.14 gap closure: [██████░░░░] 60% (Phases 18-19 done)
+Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (5) = 58 plans shipped | v1.14 gap closure: [███████░░░] 70% (Phases 18-19 done, 20-01 done)
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (4) = 57 plan
 - Duration: 46min (6min + 8min + 8min + 3min + 6min + 2min + 3min + 4min + 3min + 3min)
 
 **v1.14 Gap Closure:**
-- Plans completed: 4
-- Duration: 18min (3min + 3min + 4min + 4min + 4min)
+- Plans completed: 5
+- Duration: 20min (3min + 3min + 4min + 4min + 4min + 2min)
 
 ## Accumulated Context
 
@@ -65,6 +65,7 @@ Recent decisions affecting current work:
 - Pre-migration backup in migrateKB() with timestamped copy and integrity verification
 - Provenance fields (runtime, model, gsd_version) promoted to common base schema for all KB entry types
 - All provenance fields optional for backward compatibility; gsd_version from VERSION file with config.json fallback
+- Gemini agent body text tool name replacement uses same word-boundary regex pattern as Codex converter
 
 ### Pending Todos
 
@@ -74,7 +75,7 @@ None.
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
-- v1.14 release ready: 140 tests passing across 7 test files, all 4 runtimes validated
+- v1.14 release ready: 150 tests passing across 7 test files, all 4 runtimes validated
 
 ### Quick Tasks Completed
 
@@ -84,7 +85,7 @@ None.
 
 ### Roadmap Evolution
 
-v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complete (Phases 13-17). v1.14 gap Phases 18-19 complete.
+v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complete (Phases 13-17). v1.14 gap Phases 18-19 complete. Phase 20-01 complete.
 
 ### Key Artifacts
 
@@ -98,5 +99,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complet
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Phase 19 verified and complete. Ready to plan Phase 20 (Runtime Portability).
+Stopped at: Completed 20-01-PLAN.md (Gemini agent body text tool name replacement).
 Resume file: N/A
