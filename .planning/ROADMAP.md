@@ -21,7 +21,7 @@
 - [x] **Phase 15: Codex CLI Integration** - Install GSD commands as Codex Skills with AGENTS.md generation ✓ 2026-02-11
 - [x] **Phase 16: Cross-Runtime Handoff & Signal Enrichment** - Pause/resume across runtimes; enrich signals with runtime provenance ✓ 2026-02-11
 - [x] **Phase 17: Validation & Release** - Verify all runtimes work end-to-end after all changes ✓ 2026-02-11
-- [ ] **Phase 18: Capability Matrix & Installer Corrections** - Update stale matrix cells; stop stripping MCP/tool_permissions for capable runtimes
+- [x] **Phase 18: Capability Matrix & Installer Corrections** - Update stale matrix cells; stop stripping MCP/tool_permissions for capable runtimes ✓ 2026-02-14
 - [ ] **Phase 19: KB Infrastructure & Data Safety** - Relocate KB scripts, add backup/recovery, add provenance fields to templates
 - [ ] **Phase 20: Runtime Portability** - Make agent specs accessible in non-Claude runtimes; add Gemini/Codex format converters
 - [ ] **Phase 21: Workflow Refinements** - Reduce signal workflow context bloat; add spike feasibility gate
@@ -118,8 +118,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 18-01-PLAN.md -- Correct capability matrix document (4 stale cells + prose consistency)
-- [ ] 18-02-PLAN.md -- Fix Gemini installer MCP tool stripping + add tests
+- [x] 18-01-PLAN.md -- Correct capability matrix document (4 stale cells + prose consistency) ✓
+- [x] 18-02-PLAN.md -- Fix Gemini installer MCP tool stripping + add tests ✓
 
 #### Phase 19: KB Infrastructure & Data Safety
 **Goal**: KB management scripts are properly located, data loss has a safety net, and KB entries carry version provenance
@@ -171,7 +171,7 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19 �
 | 15. Codex CLI Integration | 2/2 | ✓ Complete | 2026-02-11 |
 | 16. Cross-Runtime Handoff & Signal Enrichment | 2/2 | ✓ Complete | 2026-02-11 |
 | 17. Validation & Release | 2/2 | ✓ Complete | 2026-02-11 |
-| 18. Capability Matrix & Installer Corrections | 0/2 | Pending | — |
+| 18. Capability Matrix & Installer Corrections | 2/2 | ✓ Complete | 2026-02-14 |
 | 19. KB Infrastructure & Data Safety | 0/? | Pending | — |
 | 20. Runtime Portability | 0/? | Pending | — |
 | 21. Workflow Refinements | 0/? | Pending | — |
