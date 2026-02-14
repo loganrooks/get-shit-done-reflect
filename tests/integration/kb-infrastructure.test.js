@@ -2,7 +2,12 @@ import { describe, it, expect } from 'vitest'
 import { tmpdirTest } from '../helpers/tmpdir.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
+import fsSync from 'node:fs'
 import { execSync } from 'node:child_process'
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const { installKBScripts } = require('../../bin/install.js')
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..')
 const KB_CREATE_DIRS = path.join(REPO_ROOT, '.claude/agents/kb-create-dirs.sh')
@@ -332,5 +337,63 @@ Signal without explicit status field.
     expect(index).toContain('## Signals (2)')
     expect(index).toContain('## Spikes (1)')
     expect(index).toContain('## Lessons (3)')
+  })
+})
+
+describe('installKBScripts', () => {
+  tmpdirTest('creates ~/.gsd/bin/ directory', async ({ tmpdir }) => {
+    installKBScripts(tmpdir)
+
+    const binDir = path.join(tmpdir, 'bin')
+    const exists = fsSync.existsSync(binDir)
+    expect(exists).toBe(true)
+  })
+
+  tmpdirTest('copies kb-rebuild-index.sh to ~/.gsd/bin/', async ({ tmpdir }) => {
+    installKBScripts(tmpdir)
+
+    const scriptPath = path.join(tmpdir, 'bin', 'kb-rebuild-index.sh')
+    const exists = fsSync.existsSync(scriptPath)
+    expect(exists).toBe(true)
+  })
+
+  tmpdirTest('copies kb-create-dirs.sh to ~/.gsd/bin/', async ({ tmpdir }) => {
+    installKBScripts(tmpdir)
+
+    const scriptPath = path.join(tmpdir, 'bin', 'kb-create-dirs.sh')
+    const exists = fsSync.existsSync(scriptPath)
+    expect(exists).toBe(true)
+  })
+
+  tmpdirTest('sets executable permissions on copied scripts', async ({ tmpdir }) => {
+    installKBScripts(tmpdir)
+
+    const rebuildScript = path.join(tmpdir, 'bin', 'kb-rebuild-index.sh')
+    const createDirsScript = path.join(tmpdir, 'bin', 'kb-create-dirs.sh')
+
+    const rebuildMode = fsSync.statSync(rebuildScript).mode
+    const createDirsMode = fsSync.statSync(createDirsScript).mode
+
+    // Check that user-execute bit is set (0o100)
+    expect(rebuildMode & 0o100).toBe(0o100)
+    expect(createDirsMode & 0o100).toBe(0o100)
+
+    // Check that full 0o755 permissions are set
+    expect(rebuildMode & 0o755).toBe(0o755)
+    expect(createDirsMode & 0o755).toBe(0o755)
+  })
+
+  tmpdirTest('is idempotent (safe to run twice)', async ({ tmpdir }) => {
+    installKBScripts(tmpdir)
+    installKBScripts(tmpdir)
+
+    // Both scripts still exist with correct permissions
+    const rebuildScript = path.join(tmpdir, 'bin', 'kb-rebuild-index.sh')
+    const createDirsScript = path.join(tmpdir, 'bin', 'kb-create-dirs.sh')
+
+    expect(fsSync.existsSync(rebuildScript)).toBe(true)
+    expect(fsSync.existsSync(createDirsScript)).toBe(true)
+    expect(fsSync.statSync(rebuildScript).mode & 0o755).toBe(0o755)
+    expect(fsSync.statSync(createDirsScript).mode & 0o755).toBe(0o755)
   })
 })
