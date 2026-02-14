@@ -483,9 +483,9 @@ function convertToolName(claudeTool) {
  * @returns {string|null} Gemini tool name, or null if tool should be excluded
  */
 function convertGeminiToolName(claudeTool) {
-  // MCP tools: exclude — auto-discovered from mcpServers config at runtime
+  // MCP tools: preserve as-is — Gemini CLI supports MCP servers
   if (claudeTool.startsWith('mcp__')) {
-    return null;
+    return claudeTool;
   }
   // Task: exclude — agents are auto-registered as callable tools
   if (claudeTool === 'Task') {
@@ -515,7 +515,7 @@ function stripSubTags(content) {
  * - tools: must be a YAML array (not comma-separated string)
  * - tool names: must use Gemini built-in names (read_file, not Read)
  * - color: must be removed (causes validation error)
- * - mcp__* tools: must be excluded (auto-discovered at runtime)
+ * - mcp__* tools: preserved as-is (Gemini CLI supports MCP servers)
  */
 function convertClaudeToGeminiAgent(content) {
   if (!content.startsWith('---')) return content;
@@ -2247,4 +2247,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd };
+module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, convertClaudeToGeminiAgent };
