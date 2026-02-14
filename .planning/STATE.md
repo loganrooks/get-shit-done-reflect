@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 18 of 21 — Capability Matrix & Installer Corrections
-Plan: 0 of ? — Not yet planned
-Status: Gap closure phases created, ready to plan Phase 18
-Last activity: 2026-02-14 -- Gap closure phases 18-21 added to v1.14 roadmap (14 gaps across 4 phases)
+Plan: 02 of 02 — Completed 18-02 (Gemini MCP Tool Preservation Fix)
+Status: In progress (18-01 pending)
+Last activity: 2026-02-14 -- Completed 18-02-PLAN.md (Gemini MCP tool preservation fix, 132 tests passing)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) = 53 plans shipped | v1.14 gap closure: [░░░░░░░░░░] 0%
+Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) = 53 plans shipped | v1.14 gap closure: [█░░░░░░░░░] ~7%
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Recent decisions affecting current work:
 - Runtime detected via installed path prefix (no new infrastructure needed)
 - Nested vitest meta-test impractical; release gate documented as code comment instead
 - All 4 VALID requirements validated: VALID-01 (OpenCode), VALID-02 (Gemini), VALID-03 (--all depth), VALID-04 (cross-runtime KB)
+- MCP tools preserved as-is in Gemini agent conversion (not mapped to Gemini built-in names)
 
 ### Pending Todos
 
@@ -63,7 +64,7 @@ None.
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
-- v1.14 release ready: 127 tests passing across 7 test files, all 4 runtimes validated
+- v1.14 release ready: 132 tests passing across 7 test files, all 4 runtimes validated
 
 ### Quick Tasks Completed
 
@@ -87,5 +88,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Gap closure phases 18-21 created in ROADMAP.md. Ready to plan Phase 18.
+Stopped at: Completed 18-02-PLAN.md (Gemini MCP tool preservation fix). 18-01 still pending.
 Resume file: N/A
