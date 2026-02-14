@@ -7,7 +7,7 @@ import { execSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
-const { installKBScripts } = require('../../bin/install.js')
+const { installKBScripts, migrateKB, countKBEntries } = require('../../bin/install.js')
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..')
 const KB_CREATE_DIRS = path.join(REPO_ROOT, '.claude/agents/kb-create-dirs.sh')
@@ -395,5 +395,102 @@ describe('installKBScripts', () => {
     expect(fsSync.existsSync(createDirsScript)).toBe(true)
     expect(fsSync.statSync(rebuildScript).mode & 0o755).toBe(0o755)
     expect(fsSync.statSync(createDirsScript).mode & 0o755).toBe(0o755)
+  })
+})
+
+describe('migrateKB pre-migration backup', () => {
+  tmpdirTest('creates timestamped backup when KB has existing entries', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    const signalDir = path.join(kbDir, 'signals', 'test-project')
+    fsSync.mkdirSync(signalDir, { recursive: true })
+    fsSync.writeFileSync(path.join(signalDir, 'test-signal.md'), '---\nid: sig-test\ntype: signal\n---\n')
+
+    migrateKB(tmpdir, [])
+
+    const entries = fsSync.readdirSync(tmpdir)
+    const backupDirs = entries.filter(e => e.startsWith('knowledge.backup-'))
+    expect(backupDirs.length).toBeGreaterThanOrEqual(1)
+
+    // Verify backup contains the test signal
+    const backupDir = path.join(tmpdir, backupDirs[0])
+    const backupSignal = path.join(backupDir, 'signals', 'test-project', 'test-signal.md')
+    expect(fsSync.existsSync(backupSignal)).toBe(true)
+  })
+
+  tmpdirTest('backup preserves all entry files', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+
+    // Create 3 entries across signals/, spikes/, lessons/
+    const sigDir = path.join(kbDir, 'signals', 'test-project')
+    const spkDir = path.join(kbDir, 'spikes', 'test-project')
+    const lesDir = path.join(kbDir, 'lessons', 'testing')
+    fsSync.mkdirSync(sigDir, { recursive: true })
+    fsSync.mkdirSync(spkDir, { recursive: true })
+    fsSync.mkdirSync(lesDir, { recursive: true })
+    fsSync.writeFileSync(path.join(sigDir, 'sig.md'), '---\nid: sig-1\ntype: signal\n---\n')
+    fsSync.writeFileSync(path.join(spkDir, 'spk.md'), '---\nid: spk-1\ntype: spike\n---\n')
+    fsSync.writeFileSync(path.join(lesDir, 'les.md'), '---\nid: les-1\ntype: lesson\n---\n')
+
+    migrateKB(tmpdir, [])
+
+    const entries = fsSync.readdirSync(tmpdir)
+    const backupDirs = entries.filter(e => e.startsWith('knowledge.backup-'))
+    expect(backupDirs.length).toBeGreaterThanOrEqual(1)
+
+    const backupDir = path.join(tmpdir, backupDirs[0])
+    expect(countKBEntries(backupDir)).toBe(3)
+  })
+
+  tmpdirTest('skips backup when KB is empty', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    fsSync.mkdirSync(path.join(kbDir, 'signals'), { recursive: true })
+    fsSync.mkdirSync(path.join(kbDir, 'spikes'), { recursive: true })
+    fsSync.mkdirSync(path.join(kbDir, 'lessons'), { recursive: true })
+
+    migrateKB(tmpdir, [])
+
+    const entries = fsSync.readdirSync(tmpdir)
+    const backupDirs = entries.filter(e => e.startsWith('knowledge.backup-'))
+    expect(backupDirs).toHaveLength(0)
+  })
+
+  tmpdirTest('skips backup when KB directory does not exist', async ({ tmpdir }) => {
+    // tmpdir has NO knowledge/ directory
+    migrateKB(tmpdir, [])
+
+    const entries = fsSync.readdirSync(tmpdir)
+    const backupDirs = entries.filter(e => e.startsWith('knowledge.backup-'))
+    expect(backupDirs).toHaveLength(0)
+  })
+})
+
+describe('KB template provenance fields', () => {
+  tmpdirTest('signal template includes gsd_version field', async () => {
+    const templatePath = path.join(REPO_ROOT, '.claude', 'agents', 'kb-templates', 'signal.md')
+    const content = fsSync.readFileSync(templatePath, 'utf8')
+    expect(content).toContain('gsd_version:')
+  })
+
+  tmpdirTest('spike template includes runtime, model, and gsd_version fields', async () => {
+    const templatePath = path.join(REPO_ROOT, '.claude', 'agents', 'kb-templates', 'spike.md')
+    const content = fsSync.readFileSync(templatePath, 'utf8')
+    expect(content).toContain('runtime:')
+    expect(content).toContain('model:')
+    expect(content).toContain('gsd_version:')
+  })
+
+  tmpdirTest('lesson template includes runtime, model, and gsd_version fields', async () => {
+    const templatePath = path.join(REPO_ROOT, '.claude', 'agents', 'kb-templates', 'lesson.md')
+    const content = fsSync.readFileSync(templatePath, 'utf8')
+    expect(content).toContain('runtime:')
+    expect(content).toContain('model:')
+    expect(content).toContain('gsd_version:')
+  })
+
+  tmpdirTest('knowledge-store.md documents gsd_version in common schema', async () => {
+    const storePath = path.join(REPO_ROOT, '.claude', 'agents', 'knowledge-store.md')
+    const content = fsSync.readFileSync(storePath, 'utf8')
+    expect(content).toContain('gsd_version')
+    expect(content).toContain('Optional provenance fields')
   })
 })
