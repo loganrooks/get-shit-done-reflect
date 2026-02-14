@@ -115,7 +115,11 @@ Plans:
   2. Codex CLI installer preserves MCP tool references in converted files (was stripping them)
   3. Gemini CLI installer preserves MCP tool references in converted files (was stripping them)
   4. Gemini CLI installer preserves tool permission frontmatter in converted files (was stripping them)
-**Plans**: TBD (created during /gsd:plan-phase 18)
+**Plans**: 2 plans
+
+Plans:
+- [ ] 18-01-PLAN.md -- Correct capability matrix document (4 stale cells + prose consistency)
+- [ ] 18-02-PLAN.md -- Fix Gemini installer MCP tool stripping + add tests
 
 #### Phase 19: KB Infrastructure & Data Safety
 **Goal**: KB management scripts are properly located, data loss has a safety net, and KB entries carry version provenance
@@ -167,7 +171,7 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19 �
 | 15. Codex CLI Integration | 2/2 | ✓ Complete | 2026-02-11 |
 | 16. Cross-Runtime Handoff & Signal Enrichment | 2/2 | ✓ Complete | 2026-02-11 |
 | 17. Validation & Release | 2/2 | ✓ Complete | 2026-02-11 |
-| 18. Capability Matrix & Installer Corrections | 0/? | Pending | — |
+| 18. Capability Matrix & Installer Corrections | 0/2 | Pending | — |
 | 19. KB Infrastructure & Data Safety | 0/? | Pending | — |
 | 20. Runtime Portability | 0/? | Pending | — |
 | 21. Workflow Refinements | 0/? | Pending | — |
