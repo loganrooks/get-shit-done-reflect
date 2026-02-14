@@ -148,7 +148,7 @@ For each signal that passes filtering, dedup, and cap checks:
 
 After all signals are written:
 ```bash
-bash ~/.claude/agents/kb-rebuild-index.sh
+bash ~/.gsd/bin/kb-rebuild-index.sh
 ```
 
 This updates `~/.gsd/knowledge/index.md` to include the new signals.

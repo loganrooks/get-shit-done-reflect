@@ -181,7 +181,7 @@ If `--fix` flag is set and repairable issues exist, execute repairs.
   - "abort" -- stop all repairs
 
 **Repair actions (from reference Section 5):**
-- KB index mismatch: Run `~/.claude/agents/kb-rebuild-index.sh`
+- KB index mismatch: Run `~/.gsd/bin/kb-rebuild-index.sh`
 - Missing gsd_reflect_version: Set to installed VERSION value
 - Missing health_check section: Add default config section
 - Missing config template fields: Add with template defaults
@@ -212,7 +212,7 @@ Signal fields:
 - `tags: [workspace/health-check, workspace/{failing-category}]`
 - `source: auto`
 
-After writing, run `~/.claude/agents/kb-rebuild-index.sh` to update the index.
+After writing, run `~/.gsd/bin/kb-rebuild-index.sh` to update the index.
 </step>
 
 <step name="final_summary">

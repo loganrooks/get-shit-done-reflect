@@ -204,7 +204,7 @@ Create parent directories if needed (`mkdir -p`).
 Run the knowledge base index rebuild script:
 
 ```bash
-bash ~/.claude/agents/kb-rebuild-index.sh
+bash ~/.gsd/bin/kb-rebuild-index.sh
 ```
 
 This regenerates `~/.gsd/knowledge/index.md` from all entry files.

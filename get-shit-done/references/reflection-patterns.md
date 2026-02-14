@@ -576,7 +576,7 @@ Common mistakes in reflection implementation.
 - Read from: `~/.gsd/knowledge/index.md` (signal listing)
 - Read from: `~/.gsd/knowledge/signals/{project}/` (signal details)
 - Write to: `~/.gsd/knowledge/lessons/{category}/` (new lessons)
-- Execute: `~/.claude/agents/kb-rebuild-index.sh` (after writes)
+- Execute: `~/.gsd/bin/kb-rebuild-index.sh` (after writes)
 
 ### 11.2 Phase Artifact Integration
 

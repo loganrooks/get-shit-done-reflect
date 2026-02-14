@@ -273,7 +273,7 @@ rounds: {1|2}
 
 5. **Rebuild KB index:**
    ```bash
-   bash ~/.claude/agents/kb-rebuild-index.sh
+   bash ~/.gsd/bin/kb-rebuild-index.sh
    ```
 </step>
 

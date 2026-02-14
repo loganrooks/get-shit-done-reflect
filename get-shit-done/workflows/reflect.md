@@ -347,7 +347,7 @@ After any lesson writes, rebuild the KB index:
 
 ```bash
 if [ "$LESSONS_CREATED" -gt 0 ]; then
-  bash ~/.claude/agents/kb-rebuild-index.sh
+  bash ~/.gsd/bin/kb-rebuild-index.sh
   echo "Index rebuilt after creating $LESSONS_CREATED lessons"
 fi
 ```

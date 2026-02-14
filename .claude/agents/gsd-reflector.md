@@ -148,7 +148,7 @@ For each pattern that meets distillation criteria from reflection-patterns.md:
 
 6. **Rebuild index:**
    ```bash
-   bash ~/.claude/agents/kb-rebuild-index.sh
+   bash ~/.gsd/bin/kb-rebuild-index.sh
    ```
 
 ## Step 6: Semantic Drift Check (if --drift-check)

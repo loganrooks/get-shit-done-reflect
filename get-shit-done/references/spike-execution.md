@@ -272,7 +272,7 @@ After spike completion, persist results to the Knowledge Base.
    - Decision
    - Consequences/implications
 
-5. **Rebuild KB index:** Run `bash ~/.claude/agents/kb-rebuild-index.sh`
+5. **Rebuild KB index:** Run `bash ~/.gsd/bin/kb-rebuild-index.sh`
 
 ---
 

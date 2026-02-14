@@ -294,6 +294,32 @@ function migrateKB(gsdHome, runtimes) {
 }
 
 /**
+ * Copy KB management scripts to ~/.gsd/bin/ so they are accessible
+ * from any runtime (not just Claude). Source scripts remain in
+ * .claude/agents/ in the repo as the source of truth.
+ */
+function installKBScripts(gsdHome) {
+  const binDir = path.join(gsdHome, 'bin');
+  fs.mkdirSync(binDir, { recursive: true });
+
+  const scriptSrcDir = path.join(__dirname, '..', '.claude', 'agents');
+  const scripts = ['kb-rebuild-index.sh', 'kb-create-dirs.sh'];
+
+  for (const script of scripts) {
+    const src = path.join(scriptSrcDir, script);
+    const dest = path.join(binDir, script);
+    if (!fs.existsSync(src)) {
+      console.log(`  ${yellow}!${reset} KB script not found, skipping: ${src}`);
+      continue;
+    }
+    fs.copyFileSync(src, dest);
+    fs.chmodSync(dest, 0o755);
+  }
+
+  console.log(`  ${green}+${reset} Installed KB scripts to ${binDir}`);
+}
+
+/**
  * Build a hook command path using forward slashes for cross-platform compatibility.
  * On Windows, $HOME is not expanded by cmd.exe/PowerShell, so we use the actual path.
  */
@@ -2155,6 +2181,7 @@ function installAllRuntimes(runtimes, isGlobal, isInteractive) {
   // Resolve GSD home and migrate KB once before per-runtime loop
   const gsdHome = getGsdHome();
   migrateKB(gsdHome, runtimes);
+  installKBScripts(gsdHome);
 
   const results = [];
 
@@ -2247,4 +2274,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, convertClaudeToGeminiAgent };
+module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, installKBScripts, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, convertClaudeToGeminiAgent };
