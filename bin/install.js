@@ -629,7 +629,12 @@ function convertClaudeToGeminiAgent(content) {
   }
 
   const newFrontmatter = newLines.join('\n').trim();
-  return `---\n${newFrontmatter}\n---${stripSubTags(body)}`;
+  // Apply tool name replacement to body text (same pattern as Codex converter)
+  let processedBody = stripSubTags(body);
+  for (const [claudeTool, geminiTool] of Object.entries(claudeToGeminiTools)) {
+    processedBody = processedBody.replace(new RegExp(`\\b${claudeTool}\\b`, 'g'), geminiTool);
+  }
+  return `---\n${newFrontmatter}\n---${processedBody}`;
 }
 
 function convertClaudeToOpencodeFrontmatter(content) {
