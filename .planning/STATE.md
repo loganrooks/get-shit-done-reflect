@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 18 of 21 — Capability Matrix & Installer Corrections
-Plan: 02 of 02 — Completed 18-02 (Gemini MCP Tool Preservation Fix)
-Status: In progress (18-01 pending)
-Last activity: 2026-02-14 -- Completed 18-02-PLAN.md (Gemini MCP tool preservation fix, 132 tests passing)
+Plan: 2 of 2 — Phase 18 complete
+Status: Phase 18 complete. Both plans shipped (18-01 matrix corrections, 18-02 installer fixes).
+Last activity: 2026-02-14 -- Completed 18-01-PLAN.md (capability matrix 4 cell corrections + prose alignment)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) = 53 plans shipped | v1.14 gap closure: [█░░░░░░░░░] ~7%
+Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (2) = 55 plans shipped | v1.14 gap closure: [██░░░░░░░░] Phase 18 complete
 
 ## Performance Metrics
 
@@ -55,6 +55,8 @@ Recent decisions affecting current work:
 - Nested vitest meta-test impractical; release gate documented as code comment instead
 - All 4 VALID requirements validated: VALID-01 (OpenCode), VALID-02 (Gemini), VALID-03 (--all depth), VALID-04 (cross-runtime KB)
 - MCP tools preserved as-is in Gemini agent conversion (not mapped to Gemini built-in names)
+- Capability matrix corrected: Gemini Y for mcp_servers/tool_permissions/task_tool[annotated], Codex Y for mcp_servers
+- All 4 runtimes now support MCP servers; mcp_servers degraded section retained as informational
 
 ### Pending Todos
 
@@ -88,5 +90,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 18-02-PLAN.md (Gemini MCP tool preservation fix). 18-01 still pending.
+Stopped at: Phase 18 complete (18-01 matrix corrections + 18-02 installer fixes). Ready for Phase 19.
 Resume file: N/A
