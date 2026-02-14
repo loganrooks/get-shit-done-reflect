@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, convertClaudeToGeminiAgent } = require('../../bin/install.js')
+const { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -1306,6 +1306,60 @@ Also use the Read tool to read files and Bash to run commands.`
       // Original Claude tool names should be replaced
       expect(result).not.toMatch(/\bRead\b/)
       expect(result).not.toMatch(/\bBash\b/)
+    })
+  })
+
+  describe('Codex MCP config.toml generation', () => {
+    tmpdirTest('creates config.toml with MCP entries', async ({ tmpdir }) => {
+      generateCodexMcpConfig(tmpdir)
+
+      const configPath = path.join(tmpdir, 'config.toml')
+      const exists = fsSync.existsSync(configPath)
+      expect(exists).toBe(true)
+
+      const content = fsSync.readFileSync(configPath, 'utf8')
+      expect(content).toContain('[mcp_servers.context7]')
+      expect(content).toContain('command = "npx"')
+      expect(content).toContain('args = ["-y", "@upstash/context7-mcp"]')
+      expect(content).toContain('# GSD:BEGIN (get-shit-done-reflect-cc)')
+      expect(content).toContain('# GSD:END (get-shit-done-reflect-cc)')
+    })
+
+    tmpdirTest('merges with existing config.toml', async ({ tmpdir }) => {
+      const configPath = path.join(tmpdir, 'config.toml')
+      const userContent = 'model = "o3-mini"\n\n[mcp_servers.my-server]\ncommand = "my-server"\n'
+      fsSync.writeFileSync(configPath, userContent)
+
+      generateCodexMcpConfig(tmpdir)
+
+      const content = fsSync.readFileSync(configPath, 'utf8')
+      // User content preserved
+      expect(content).toContain('model = "o3-mini"')
+      expect(content).toContain('[mcp_servers.my-server]')
+      expect(content).toContain('command = "my-server"')
+      // GSD MCP section appended
+      expect(content).toContain('[mcp_servers.context7]')
+      expect(content).toContain('# GSD:BEGIN (get-shit-done-reflect-cc)')
+    })
+
+    tmpdirTest('idempotent update replaces existing GSD section', async ({ tmpdir }) => {
+      generateCodexMcpConfig(tmpdir)
+      generateCodexMcpConfig(tmpdir)
+
+      const content = fsSync.readFileSync(path.join(tmpdir, 'config.toml'), 'utf8')
+      // Exactly ONE [mcp_servers.context7] entry (not duplicated)
+      const context7Count = (content.match(/\[mcp_servers\.context7\]/g) || []).length
+      expect(context7Count).toBe(1)
+      // Exactly ONE GSD:BEGIN marker
+      const beginCount = (content.match(/# GSD:BEGIN/g) || []).length
+      expect(beginCount).toBe(1)
+    })
+
+    tmpdirTest('does not include required = true', async ({ tmpdir }) => {
+      generateCodexMcpConfig(tmpdir)
+
+      const content = fsSync.readFileSync(path.join(tmpdir, 'config.toml'), 'utf8')
+      expect(content).not.toContain('required')
     })
   })
 })

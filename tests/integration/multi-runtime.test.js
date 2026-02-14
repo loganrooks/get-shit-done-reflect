@@ -351,6 +351,32 @@ describe('multi-runtime validation', () => {
   })
 
   // ---------------------------------------------------------------------------
+  // Codex MCP config.toml after install
+  // ---------------------------------------------------------------------------
+
+  describe('Codex MCP config.toml after install', () => {
+    tmpdirTest('Codex install generates config.toml with MCP servers', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --codex --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const configTomlPath = path.join(tmpdir, '.codex', 'config.toml')
+      const exists = await fs.access(configTomlPath).then(() => true).catch(() => false)
+      expect(exists, 'config.toml should exist after Codex install').toBe(true)
+
+      const content = await fs.readFile(configTomlPath, 'utf8')
+      expect(content).toContain('[mcp_servers.context7]')
+      expect(content).toContain('command = "npx"')
+      expect(content).toContain('args = ["-y", "@upstash/context7-mcp"]')
+      expect(content).toContain('# GSD:BEGIN (get-shit-done-reflect-cc)')
+      expect(content).toContain('# GSD:END (get-shit-done-reflect-cc)')
+    })
+  })
+
+  // ---------------------------------------------------------------------------
   // VALID-03: Multi-runtime --all install (added in Task 2)
   // ---------------------------------------------------------------------------
 
