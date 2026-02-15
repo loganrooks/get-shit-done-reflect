@@ -40,7 +40,51 @@ MODE=$(cat .planning/config.json 2>/dev/null | grep -o '"mode"[[:space:]]*:[[:sp
 MODE="${MODE:-interactive}"
 ```
 
-### 2. Create Workspace
+### 2. Research-First Advisory
+
+Before creating a workspace or drafting DESIGN.md, assess whether the question is better suited to research or experimentation.
+
+**Research indicators** (question may not need a spike):
+- Asks about capabilities, features, or API support ("Does X support Y?")
+- Answer likely exists in official documentation or changelogs
+- Asks WHAT exists rather than HOW it performs empirically
+- No measurement under specific conditions is needed
+
+**Spike indicators** (question genuinely needs experimentation):
+- Requires empirical measurement ("Is X faster than Y for our workload?")
+- Depends on conditions that documentation cannot address
+- Tests performance, reliability, or compatibility under specific constraints
+- Official documentation is ambiguous or contradictory
+
+**If mode == interactive AND question appears research-suitable:**
+
+Present advisory to user:
+
+```
+This question may be answerable through documentation research rather
+than empirical experimentation. The spike anti-pattern "Premature Spiking"
+(spike-execution.md Section 10) warns against running spikes for questions
+that normal research could resolve.
+
+Options:
+1. Proceed with spike (you know your intent best)
+2. Cancel -- try research first (/gsd:research-phase)
+3. Rephrase question to focus on the empirical aspect
+
+Select [1/2/3]:
+```
+
+If user selects 1: proceed to workspace creation.
+If user selects 2: exit workflow, suggest `/gsd:research-phase`.
+If user selects 3: prompt for rephrased question, restart from Step 1.
+
+**If mode == yolo OR question appears spike-suitable:**
+
+Log a brief one-line assessment ("Question assessed as spike-suitable, proceeding to design") and continue. Do NOT present a checkpoint or pause.
+
+**Note:** This advisory only applies to standalone `/gsd:spike` invocations. Orchestrator-triggered spikes (via plan-phase) already have research-before-spike flow from spike-integration.md.
+
+### 3. Create Workspace
 
 ```bash
 # Find next index
@@ -55,7 +99,7 @@ WORKSPACE=".planning/spikes/${NEXT_INDEX}-${SLUG}"
 mkdir -p "$WORKSPACE"
 ```
 
-### 3. Draft DESIGN.md (Design Phase)
+### 4. Draft DESIGN.md (Design Phase)
 
 Using the spike-design template, create DESIGN.md with:
 
@@ -71,7 +115,7 @@ Using the spike-design template, create DESIGN.md with:
 
 Write to `$WORKSPACE/DESIGN.md`.
 
-### 4. User Confirmation (Interactive Mode)
+### 5. User Confirmation (Interactive Mode)
 
 **If mode == interactive:**
 
@@ -112,7 +156,7 @@ Wait for user response. If option 2, allow edits, then re-present.
 
 Auto-approve DESIGN.md, proceed immediately.
 
-### 5. Spawn Spike Runner Agent
+### 6. Spawn Spike Runner Agent
 
 ```markdown
 **Spawning gsd-spike-runner agent**
@@ -126,14 +170,14 @@ Execute Build -> Run -> Document phases for:
 Return when complete with outcome and decision summary.
 ```
 
-### 6. Handle Agent Result
+### 7. Handle Agent Result
 
 Parse agent output:
 - outcome: confirmed | rejected | partial | inconclusive
 - decision: one-line summary
 - kb_entry: path to KB spike entry
 
-### 7. Update RESEARCH.md (If Phase-Linked)
+### 8. Update RESEARCH.md (If Phase-Linked)
 
 **If phase was specified:**
 
@@ -153,7 +197,7 @@ Read `{PHASE_DIR}/*-RESEARCH.md` and add/update "Resolved by Spike" section:
 
 If RESEARCH.md doesn't exist yet, note that spike resolution should be added when it's created.
 
-### 8. Report Result
+### 9. Report Result
 
 ```markdown
 ## SPIKE COMPLETE
