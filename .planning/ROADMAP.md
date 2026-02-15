@@ -24,7 +24,7 @@
 - [x] **Phase 18: Capability Matrix & Installer Corrections** - Update stale matrix cells; stop stripping MCP/tool_permissions for capable runtimes ✓ 2026-02-14
 - [x] **Phase 19: KB Infrastructure & Data Safety** - Relocate KB scripts, add backup/recovery, add provenance fields to templates ✓ 2026-02-14
 - [x] **Phase 20: Runtime Portability** - Make agent specs accessible in non-Claude runtimes; add Gemini/Codex format converters ✓ 2026-02-14
-- [ ] **Phase 21: Workflow Refinements** - Reduce signal workflow context bloat; add spike feasibility gate
+- [x] **Phase 21: Workflow Refinements** - Reduce signal workflow context bloat; add spike feasibility gate ✓ 2026-02-14
 
 ### Phase Details
 
@@ -161,8 +161,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 21-01-PLAN.md -- Consolidate signal command into self-contained file (Gap 10)
-- [ ] 21-02-PLAN.md -- Spike feasibility section and research-first advisory gate (Gaps 11-12)
+- [x] 21-01-PLAN.md -- Consolidate signal command into self-contained file (Gap 10) ✓
+- [x] 21-02-PLAN.md -- Spike feasibility section and research-first advisory gate (Gaps 11-12) ✓
 
 ### Deferred (Monitor Only)
 
@@ -186,4 +186,4 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19 �
 | 18. Capability Matrix & Installer Corrections | 2/2 | ✓ Complete | 2026-02-14 |
 | 19. KB Infrastructure & Data Safety | 2/2 | ✓ Complete | 2026-02-14 |
 | 20. Runtime Portability | 2/2 | ✓ Complete | 2026-02-14 |
-| 21. Workflow Refinements | 0/2 | Pending | — |
+| 21. Workflow Refinements | 2/2 | ✓ Complete | 2026-02-14 |
