@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 ## Current Position
 
 Phase: 21 of 21 — Workflow Refinements
-Plan: 1 of 3 — 21-01 complete (signal context consolidation)
-Status: In progress. Plans 21-02 and 21-03 remaining.
-Last activity: 2026-02-14 -- Completed 21-01-PLAN.md (signal context consolidation)
+Plan: 2 of 2 — 21-02 complete (Phase 21 complete)
+Status: Phase 21 complete. v1.14 gap closure COMPLETE (all 4 phases: 18-21 done).
+Last activity: 2026-02-15 -- Completed 21-02-PLAN.md (Spike workflow refinements)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (8) = 61 plans shipped | v1.14 gap closure: [████████░░] 82%
+Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (9) = 62 plans shipped | v1.14 gap closure: [██████████] 100% (Phases 18-21 done)
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (8) = 61 plan
 - Duration: 46min (6min + 8min + 8min + 3min + 6min + 2min + 3min + 4min + 3min + 3min)
 
 **v1.14 Gap Closure:**
-- Plans completed: 8
-- Duration: 27min (3min + 3min + 4min + 4min + 4min + 2min + 2min + 3min + 2min)
+- Plans completed: 9
+- Duration: 29min (3min + 3min + 4min + 4min + 4min + 2min + 2min + 3min + 2min + 2min)
 
 ## Accumulated Context
 
@@ -70,6 +70,9 @@ Recent decisions affecting current work:
 - No required=true in generated MCP TOML (avoid blocking Codex startup if server unavailable)
 - Signal command consolidated: inline rules into command, remove @ imports of full reference docs (self-contained pattern)
 - Signal workflow reduced to thin redirect (not deleted) for discoverability
+- Prerequisites/Feasibility section in spike DESIGN.md between Type and Hypothesis (scientific protocol order)
+- Research-first advisory gate is non-blocking -- users always proceed if they choose to
+- Standalone /gsd:spike only gets advisory; orchestrator-triggered spikes already have research flow
 
 ### Pending Todos
 
@@ -89,7 +92,7 @@ None.
 
 ### Roadmap Evolution
 
-v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complete (Phases 13-17). v1.14 gap Phases 18-20 complete. Phase 21 in progress (plan 01 done).
+v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complete (Phases 13-17). v1.14 gap closure complete (Phases 18-21). All planned phases shipped.
 
 ### Key Artifacts
 
@@ -102,6 +105,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complet
 
 ## Session Continuity
 
-Last session: 2026-02-14
-Stopped at: Completed 21-01-PLAN.md (signal context consolidation). Phase 21 in progress.
+Last session: 2026-02-15
+Stopped at: Completed 21-02-PLAN.md (Spike workflow refinements). Phase 21 complete. v1.14 gap closure complete.
 Resume file: N/A
