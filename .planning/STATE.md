@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 
 ## Current Position
 
-Phase: 20 of 21 — Runtime Portability
-Plan: 2 of 2 — 20-02 complete (Phase 20 complete)
-Status: Phase 20 complete. Ready for Phase 21 (Workflow Refinements).
-Last activity: 2026-02-14 -- Completed 20-02-PLAN.md (Codex MCP config generator)
+Phase: 21 of 21 — Workflow Refinements
+Plan: 1 of 3 — 21-01 complete (signal context consolidation)
+Status: In progress. Plans 21-02 and 21-03 remaining.
+Last activity: 2026-02-14 -- Completed 21-01-PLAN.md (signal context consolidation)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (7) = 60 plans shipped | v1.14 gap closure: [████████░░] 80% (Phases 18-20 done)
+Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (8) = 61 plans shipped | v1.14 gap closure: [████████░░] 82%
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (7) = 60 plan
 - Duration: 46min (6min + 8min + 8min + 3min + 6min + 2min + 3min + 4min + 3min + 3min)
 
 **v1.14 Gap Closure:**
-- Plans completed: 7
-- Duration: 25min (3min + 3min + 4min + 4min + 4min + 2min + 2min + 3min)
+- Plans completed: 8
+- Duration: 27min (3min + 3min + 4min + 4min + 4min + 2min + 2min + 3min + 2min)
 
 ## Accumulated Context
 
@@ -68,6 +68,8 @@ Recent decisions affecting current work:
 - Gemini agent body text tool name replacement uses same word-boundary regex pattern as Codex converter
 - Static gsdMcpServers mapping for Codex config.toml (no auto-discovery, no TOML parser dependency)
 - No required=true in generated MCP TOML (avoid blocking Codex startup if server unavailable)
+- Signal command consolidated: inline rules into command, remove @ imports of full reference docs (self-contained pattern)
+- Signal workflow reduced to thin redirect (not deleted) for discoverability
 
 ### Pending Todos
 
@@ -87,7 +89,7 @@ None.
 
 ### Roadmap Evolution
 
-v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complete (Phases 13-17). v1.14 gap Phases 18-20 complete.
+v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complete (Phases 13-17). v1.14 gap Phases 18-20 complete. Phase 21 in progress (plan 01 done).
 
 ### Key Artifacts
 
@@ -101,5 +103,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 initial complet
 ## Session Continuity
 
 Last session: 2026-02-14
-Stopped at: Completed 20-02-PLAN.md (Codex MCP config generator). Phase 20 complete.
+Stopped at: Completed 21-01-PLAN.md (signal context consolidation). Phase 21 in progress.
 Resume file: N/A
