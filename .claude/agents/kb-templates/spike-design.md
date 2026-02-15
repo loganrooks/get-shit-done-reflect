@@ -6,6 +6,7 @@ Notes:
 - Use pipe syntax for enum placeholders: {option1|option2}
 - DESIGN.md lives in spike workspace (.planning/spikes/{index}-{slug}/), NOT in kb-templates
 - This template is for reference; spike-runner and /gsd:spike use it to create DESIGN.md files
+- Sections: Question, Type, Prerequisites/Feasibility, Hypothesis, Success Criteria, Experiment Plan, Scope Boundaries, Time Estimate, Iteration Log
 -->
 ---
 # Spike Design Template
@@ -37,6 +38,21 @@ time_estimate: {rough estimate}
 - Comparative: Choose between known options with defined metrics
 - Exploratory: Understand a space, learning goals can refine
 - Open Inquiry: Flexible structure at Claude's discretion
+
+## Prerequisites / Feasibility
+
+**Environment requirements:**
+- {API keys, credentials, or accounts needed -- or "None"}
+- {CLI tools or software to install -- or "None"}
+- {Network access, service availability, hardware -- or "Standard dev environment"}
+
+**Feasibility checklist:**
+- [ ] All prerequisites available or obtainable within spike timeframe
+- [ ] Experiments can run in spike workspace isolation (no main project modification)
+- [ ] No production systems, data, or credentials at risk
+
+**If prerequisites NOT met:**
+{Action: defer spike until prerequisites available / adjust experiments to work within constraints / document blocker and checkpoint}
 
 ## Hypothesis
 
