@@ -158,7 +158,11 @@ Plans:
   1. /gsd:signal loads <200 lines of reference context (down from ~864)
   2. Spike DESIGN.md template includes a Prerequisites/Feasibility section
   3. /gsd:spike workflow includes a research-first advisory gate before spike execution
-**Plans**: TBD (created during /gsd:plan-phase 21)
+**Plans**: 2 plans
+
+Plans:
+- [ ] 21-01-PLAN.md -- Consolidate signal command into self-contained file (Gap 10)
+- [ ] 21-02-PLAN.md -- Spike feasibility section and research-first advisory gate (Gaps 11-12)
 
 ### Deferred (Monitor Only)
 
@@ -182,4 +186,4 @@ Phases execute in numeric order: 13 → 14 → 15 → 16 → 17 → 18 → 19 �
 | 18. Capability Matrix & Installer Corrections | 2/2 | ✓ Complete | 2026-02-14 |
 | 19. KB Infrastructure & Data Safety | 2/2 | ✓ Complete | 2026-02-14 |
 | 20. Runtime Portability | 2/2 | ✓ Complete | 2026-02-14 |
-| 21. Workflow Refinements | 0/? | Pending | — |
+| 21. Workflow Refinements | 0/2 | Pending | — |
