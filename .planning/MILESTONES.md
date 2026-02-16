@@ -1,5 +1,34 @@
 # Project Milestones: GSD Reflect
 
+## v1.14 Multi-Runtime Interop (Shipped: 2026-02-16)
+
+**Delivered:** A truly runtime-agnostic GSD system where users can seamlessly switch between Claude Code, OpenAI Codex CLI, Gemini CLI, and OpenCode mid-work, with shared project state and knowledge base at `~/.gsd/knowledge/`.
+
+**Phases completed:** 13-21 (18 plans total, 9 phases: 5 planned + 4 gap closure)
+
+**Key accomplishments:**
+
+- Two-pass path replacement system splitting KB paths (shared) from runtime-specific paths across 4 runtimes with runtime capability matrix
+- Knowledge base migrated to runtime-agnostic `~/.gsd/knowledge/` with `GSD_HOME` support, backward-compatible symlinks, pre-migration backup, and provenance fields
+- OpenAI Codex CLI added as 4th supported runtime with Skills format, AGENTS.md generation, and MCP config.toml generation
+- Cross-runtime pause/resume with semantic handoff files and path-prefix runtime detection for all 4 runtimes
+- 54 new tests (+105 to 159) validating multi-runtime installation, cross-runtime KB accessibility, and signal enrichment
+- Signal command context reduced 7.6x (888 to 116 lines) and spike workflow enhanced with feasibility gates
+
+**Stats:**
+
+- 122 files modified
+- +19,423 / -2,642 lines (Markdown, JavaScript, Shell)
+- 9 phases, 18 plans, 29 requirements (all satisfied), 14 gaps closed
+- 5 days from start to ship (2026-02-11 to 2026-02-15)
+- 100 commits
+
+**Git range:** `v1.13.0..c13bc09`
+
+**What's next:** Next milestone TBD via `/gsd:new-milestone`
+
+---
+
 ## v1.13 Upstream Sync & Validation (Shipped: 2026-02-11)
 
 **Delivered:** Synchronized fork with 70 upstream GSD commits (v1.11.2→v1.18.0), adopting gsd-tools CLI architecture, 11 bug fixes, and 7 features while validating gsd-reflect's knowledge base in production.
