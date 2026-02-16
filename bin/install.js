@@ -292,7 +292,13 @@ function migrateKB(gsdHome, runtimes) {
 
     // Rename old to backup, create symlink
     const backupDir = oldKBDir + '.migration-backup';
-    fs.renameSync(oldKBDir, backupDir);
+    // Check for existing backup — append timestamp if collision
+    let finalBackupDir = backupDir;
+    if (fs.existsSync(backupDir)) {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      finalBackupDir = backupDir + '-' + timestamp;
+    }
+    fs.renameSync(oldKBDir, finalBackupDir);
     fs.symlinkSync(newKBDir, oldKBDir);
     console.log(`  ${green}✓${reset} Migrated knowledge base: ${oldEntries} entries`);
     console.log(`    ${oldKBDir} -> ${newKBDir}`);
