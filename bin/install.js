@@ -815,9 +815,10 @@ function convertClaudeToGeminiToml(content) {
  * - Drops allowed-tools, argument-hint, color fields
  * @param {string} content - Markdown file content with YAML frontmatter
  * @param {string} commandName - The skill name (e.g., 'gsd-help')
+ * @param {string} [pathPrefix] - Runtime path prefix (e.g., '~/.codex/' or '/abs/path/.codex/') for @ reference conversion
  * @returns {string} - SKILL.md content
  */
-function convertClaudeToCodexSkill(content, commandName) {
+function convertClaudeToCodexSkill(content, commandName, pathPrefix) {
   // Step 1: Replace tool name references in body text
   let converted = content;
   for (const [claudeTool, codexTool] of Object.entries(claudeToCodexTools)) {
@@ -828,8 +829,13 @@ function convertClaudeToCodexSkill(content, commandName) {
   // Step 2: Replace /gsd:command with $gsd-command for Codex skill mention
   converted = converted.replace(/\/gsd:([a-z0-9-]+)/g, '\\$gsd-$1');
 
-  // Step 3: Convert @~/.codex/ file references to explicit read instructions
-  // (After path replacement has already changed ~/.claude/ to ~/.codex/)
+  // Step 3: Convert @ file references to explicit read instructions
+  // (After path replacement has already changed ~/.claude/ to the runtime prefix)
+  if (pathPrefix) {
+    const escapedPrefix = pathPrefix.replace(/[.*+?^${}()|[\]\\\/]/g, '\\$&');
+    converted = converted.replace(new RegExp(`@(${escapedPrefix}[^\\s]+)`, 'g'), 'Read the file at `$1`');
+  }
+  // Also match tilde variant as fallback (covers calls without pathPrefix)
   converted = converted.replace(/@(~\/\.codex\/[^\s]+)/g, 'Read the file at `$1`');
 
   // Step 4: Parse frontmatter and rebuild as SKILL.md format
@@ -925,7 +931,7 @@ function copyCodexSkills(srcDir, destDir, prefix, pathPrefix) {
       let content = fs.readFileSync(srcPath, 'utf8');
       content = replacePathsInContent(content, pathPrefix);
       content = processAttribution(content, getCommitAttribution('codex'));
-      content = convertClaudeToCodexSkill(content, skillName);
+      content = convertClaudeToCodexSkill(content, skillName, pathPrefix);
 
       fs.writeFileSync(path.join(skillDir, 'SKILL.md'), content);
     }
