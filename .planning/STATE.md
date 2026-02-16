@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 Phase: N/A — between milestones
 Plan: N/A
 Status: v1.14 Multi-Runtime Interop shipped 2026-02-16. All 3 milestones complete (v1.12, v1.13, v1.14).
-Last activity: 2026-02-16 -- Completed v1.14 milestone archival
+Last activity: 2026-02-16 -- Completed quick-3: Fix 6 Critical PR#4 Bugs
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) = 61 plans shipped across 22 phases
 
@@ -42,7 +42,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 
 ### Pending Todos
 
-None.
+- v1.15 milestone candidate written: `.planning/milestones/v1.15-CANDIDATE.md` (Token Efficiency & MCP Infrastructure). Ready for `/gsd:new-milestone` when approved.
 
 ### Blockers/Concerns
 
@@ -56,6 +56,7 @@ None.
 |---|-------------|------|--------|-----------|
 | 001 | Update installer branding for GSD Reflect | 2026-02-09 | c82ce23 | [001-update-installer-branding-for-gsd-reflect](./quick/001-update-installer-branding-for-gsd-reflect/) |
 | 002 | Fix 2 failing install.test.js tests (signal.md -> reflect.md) | 2026-02-15 | ac3f385 | [2-fix-the-2-failing-install-test-js-tests](./quick/2-fix-the-2-failing-install-test-js-tests/) |
+| 003 | Fix 6 critical PR#4 bugs (migrateKB collision, dangling symlink, Codex regex, 3 capability guards) | 2026-02-16 | 509936e | [3-fix-6-critical-pr4-bugs-migratekb-collis](./quick/3-fix-6-critical-pr4-bugs-migratekb-collis/) |
 
 ### Roadmap Evolution
 
@@ -73,5 +74,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-16
-Stopped at: v1.14 milestone archived. Ready for `/gsd:new-milestone`.
+Stopped at: Completed quick-3 (Fix 6 Critical PR#4 Bugs). PR #4 ready for re-review.
 Resume file: N/A
