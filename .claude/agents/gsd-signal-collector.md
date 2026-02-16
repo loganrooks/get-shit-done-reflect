@@ -121,11 +121,11 @@ For each persistable signal:
    - Set `occurrence_count` to highest matched occurrence_count + 1
 5. If no matches: `related_signals` is empty, `occurrence_count` is 1
 
-## Step 7: Per-Phase Cap Check
+## Step 7: Per-Project Cap Check
 
-1. Count existing active signals for this phase and project in the index
-2. If count < 10: proceed to write
-3. If count >= 10:
+1. Count existing active signals for this project in the index
+2. If count < 100: proceed to write
+3. If count >= 100:
    - Compare new signal severity against lowest-severity existing signal
    - If new >= lowest: archive lowest signal (set status: archived), proceed to write
    - If new < lowest: skip persistence, log in report as "Capped: [description]"
