@@ -23,7 +23,7 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 - 54 new tests for multi-runtime support (155 total)
 
 ### Changed
-- Knowledge base migrated from `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/`
+- Knowledge base migrated from legacy per-runtime location to `~/.gsd/knowledge/`
 - Installer uses two-pass path replacement (KB paths → shared, runtime paths → per-runtime)
 - Signal command context reduced 7.6x (888 → 116 lines) with self-contained pattern
 - Signal cap changed from per-phase/10 to per-project/100
