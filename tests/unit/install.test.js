@@ -355,9 +355,9 @@ describe('install script', () => {
           timeout: 15000
         })
 
-        // Read signal.md which contains KB paths (already ~/.gsd/knowledge/ in source)
-        const signalWorkflow = path.join(configHome, 'opencode', 'get-shit-done', 'workflows', 'signal.md')
-        const content = await fs.readFile(signalWorkflow, 'utf8')
+        // Read reflect.md which contains KB paths (already ~/.gsd/knowledge/ in source)
+        const reflectWorkflow = path.join(configHome, 'opencode', 'get-shit-done', 'workflows', 'reflect.md')
+        const content = await fs.readFile(reflectWorkflow, 'utf8')
 
         // KB paths should remain at shared location (no-op for Pass 1)
         expect(content).toContain('~/.gsd/knowledge')
@@ -417,9 +417,9 @@ describe('install script', () => {
           timeout: 15000
         })
 
-        // Read signal.md from Claude install
-        const signalWorkflow = path.join(tmpdir, '.claude', 'get-shit-done', 'workflows', 'signal.md')
-        const content = await fs.readFile(signalWorkflow, 'utf8')
+        // Read reflect.md from Claude install
+        const reflectWorkflow = path.join(tmpdir, '.claude', 'get-shit-done', 'workflows', 'reflect.md')
+        const content = await fs.readFile(reflectWorkflow, 'utf8')
 
         // KB paths already at shared location pass through unchanged
         expect(content).toContain('~/.gsd/knowledge')
