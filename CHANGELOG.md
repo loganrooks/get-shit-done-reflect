@@ -6,6 +6,34 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.14.1] - 2026-02-16
+
+### Added
+- 4 runtimes supported: Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI
+- Runtime-agnostic knowledge base at `~/.gsd/knowledge/` with backward-compatible symlink bridge
+- Cross-runtime pause/resume with semantic handoff files and runtime detection
+- Runtime capability matrix with `has_capability()` pattern for graceful degradation
+- OpenAI Codex CLI support: Skills format, AGENTS.md, MCP config.toml generation
+- Signal provenance fields (runtime, model, gsd_version) in all KB entry types
+- Gemini/Codex format converters for agent body text and MCP configuration
+- KB management scripts copied to `~/.gsd/bin/` for runtime-agnostic access
+- Pre-migration backup before KB migration with integrity verification
+- Capability guards on collect-signals, reflect, and run-spike workflows
+- Spike workflow enhanced with feasibility section and research-first advisory gate
+- 54 new tests for multi-runtime support (155 total)
+
+### Changed
+- Knowledge base migrated from `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/`
+- Installer uses two-pass path replacement (KB paths → shared, runtime paths → per-runtime)
+- Signal command context reduced 7.6x (888 → 116 lines) with self-contained pattern
+- Signal cap changed from per-phase/10 to per-project/100
+- `convertClaudeToCodexSkill()` uses dynamic regex for absolute path support
+
+### Fixed
+- migrateKB: backup collision check (appends timestamp if `.migration-backup` exists)
+- migrateKB: dangling symlink detection and cleanup via `lstatSync`
+- Codex `@` file reference regex now handles absolute paths in global installs
+
 ## [1.13.0] - 2026-02-11
 
 ### Added
