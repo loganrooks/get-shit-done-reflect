@@ -260,6 +260,24 @@ function migrateKB(gsdHome, runtimes) {
 
   const oldKBDir = path.join(os.homedir(), '.claude', 'gsd-knowledge');
 
+  // Check for dangling symlink at old path (existsSync returns false for dangling symlinks)
+  try {
+    const oldStat = fs.lstatSync(oldKBDir);
+    if (oldStat.isSymbolicLink()) {
+      // Symlink exists — check if target is valid
+      if (!fs.existsSync(oldKBDir)) {
+        // Dangling symlink — remove it and create fresh one pointing to new location
+        console.log(`  ${yellow}!${reset} Removing dangling symlink at ${oldKBDir}`);
+        fs.unlinkSync(oldKBDir);
+        fs.symlinkSync(newKBDir, oldKBDir);
+        console.log(`  ${green}✓${reset} Knowledge base already at: ${newKBDir}`);
+        return;
+      }
+    }
+  } catch (e) {
+    // lstat failed — path doesn't exist at all, proceed normally
+  }
+
   // Step 2: Check if old KB exists
   if (fs.existsSync(oldKBDir)) {
     // Check if it's already a symlink (re-install after migration)
