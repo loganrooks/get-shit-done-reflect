@@ -240,7 +240,7 @@ After spike completion, persist results to the Knowledge Base.
 
 **Steps:**
 
-1. **Create spike entry** at `~/.claude/gsd-knowledge/spikes/{project}/`
+1. **Create spike entry** at `~/.gsd/knowledge/spikes/{project}/`
 
 2. **Use spike body template** from knowledge-store.md:
    ```yaml
@@ -272,7 +272,7 @@ After spike completion, persist results to the Knowledge Base.
    - Decision
    - Consequences/implications
 
-5. **Rebuild KB index:** Run `bash ~/.claude/agents/kb-rebuild-index.sh`
+5. **Rebuild KB index:** Run `bash ~/.gsd/bin/kb-rebuild-index.sh`
 
 ---
 

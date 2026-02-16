@@ -1,454 +1,314 @@
-# Domain Pitfalls: Upstream Fork Sync
+# Pitfalls Research: Multi-Runtime CLI Interop
 
-**Domain:** Syncing a divergent fork (GSD Reflect) with upstream GSD (70 commits, v1.11.2 to v1.18.0)
-**Researched:** 2026-02-09
-**Overall confidence:** HIGH (grounded in actual git diff analysis of this codebase, not generic advice)
+**Domain:** Adding cross-runtime interop (Codex CLI), shared KB migration, runtime-agnostic state to existing multi-runtime CLI workflow tool
+**Researched:** 2026-02-11
+**Confidence:** HIGH (grounded in actual codebase analysis of 313 hardcoded path references, 4 runtime installer architectures, and verified Codex CLI documentation)
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause data loss, broken releases, or multi-day recovery efforts.
+### Pitfall 1: The 313 Hardcoded Path Pandemic
 
-### Pitfall 1: The install.js Three-Way Merge Trap
+**What goes wrong:**
+The codebase has 313 references to `~/.claude/` across 82+ files (76 in commands, 39 in agents, 198 in get-shit-done/). The current installer handles this with a simple regex replacement (`/~\/\.claude\//g` -> pathPrefix) at installation time. But this approach has three fatal flaws when adding a 4th runtime and migrating KB to `~/.gsd/knowledge/`:
 
-**What goes wrong:** `bin/install.js` has been modified by three independent change streams that all touch the same file:
-1. **Our fork:** Branding changes (banner text, package name `get-shit-done-reflect-cc`, help text)
-2. **Upstream memory add/revert:** af7a057 added MCP server registration, cc3c6ac reverted it -- but the revert also touched `install.js` (137 lines removed)
-3. **Upstream post-revert changes:** Local patch preservation (ca03a06, +145 lines), `--include` flag, JSONC parser (+61 lines), hex color validation fix, statusline path fix, `gsd-file-manifest.json` writing
+1. **Split-path problem:** After migration, some paths must become `~/.gsd/knowledge/` (KB) while others must become `~/.codex/` or `~/.config/opencode/` (runtime config). A single regex replacement cannot distinguish between `~/.claude/gsd-knowledge/` (should become `~/.gsd/knowledge/`) and `~/.claude/get-shit-done/` (should become runtime-specific path). The current architecture assumes ALL `~/.claude/` references resolve to the same base directory.
 
-A naive `git merge upstream/main` will produce a conflict in `install.js` where the merge resolution must correctly keep our branding, adopt upstream's patch-preservation and JSONC parser, and NOT reintroduce the memory system code that was added then reverted.
+2. **Content vs. path confusion:** Files like `knowledge-surfacing.md` contain both instructional text referencing `~/.claude/gsd-knowledge/` as documentation AND functional path references that agents execute via `cat ~/.claude/gsd-knowledge/index.md`. The regex replaces both identically, but after migration they should point to different locations.
 
-**Why it happens:** Git's three-way merge sees the memory add and revert as a net-zero change from the fork point, but our fork diverged between those commits. The install.js diff from our fork point to upstream HEAD is 338 lines of changes across multiple functional areas mixed together.
+3. **Cascading breakage:** The 276 references to `gsd-knowledge` across 62 files currently assume the KB lives under the runtime config directory. Moving it to `~/.gsd/knowledge/` means every single reference must be audited: is this a path agents execute, documentation text, or a conceptual reference?
 
-**Warning signs:**
-- `git merge upstream/main` produces a conflict marker spanning 100+ lines in install.js
-- After resolving, the install script crashes with "crypto is not defined" (upstream added `const crypto = require('crypto')` for manifest hashing)
-- After resolving, the banner still says "Get Shit Done" instead of "GSD Reflect"
-- After resolving, `npx get-shit-done-reflect-cc --help` shows upstream's package name
+**Why it happens:**
+The original design embedded the KB under the Claude config directory (`~/.claude/gsd-knowledge/`) because Claude Code was the only runtime. When OpenCode and Gemini support was added, the installer's path replacement handled it because the KB location simply tracked the runtime directory. Moving KB to a shared location breaks this 1:1 mapping.
 
-**Prevention:**
-- Merge install.js manually in a dedicated step, NOT as part of a bulk merge
-- Use the semantic approach: read both versions, understand each functional section, reconstruct by hand
-- Test the merged install.js in isolation: `HOME=$(mktemp -d) node bin/install.js --claude 2>&1` -- verify banner, package name, directory creation, manifest writing
-- Specifically verify: (1) branding preserved, (2) crypto require present, (3) patch preservation functions present, (4) JSONC parser present, (5) NO gsd-memory references
-
-**Severity:** HIGH -- install.js is the user-facing entry point. A broken installer means nobody can install the fork.
-
-**Which phase should address it:** Must be the FIRST file resolved in the merge phase. Other files depend on install.js working correctly.
-
----
-
-### Pitfall 2: The Thin Orchestrator Architecture Mismatch
-
-**What goes wrong:** Upstream refactored ALL commands from fat self-contained specs to thin orchestrators that delegate to workflow files via `@~/.claude/get-shit-done/workflows/` references. This is the single largest architectural change (commit d44c7dc: 22,000+ tokens reduced across 15 commands, 22 workflows, 14 agents). Our fork's `commands/gsd/new-project.md` is still the fat version with 481 lines of inline logic PLUS our DevOps detection addition (+79 lines). Upstream's `new-project.md` is now 44 lines that just reference `workflows/new-project.md`.
-
-If we merge upstream's thin `new-project.md` on top of our fat version, we lose our DevOps detection feature. If we keep our fat version, we're incompatible with the new gsd-tools CLI and all the workflow improvements upstream has made.
-
-**Why it happens:** Our fork's "additive only" rule assumed upstream's file structure would remain stable. Instead, upstream moved the logic from `commands/` to `get-shit-done/workflows/`, fundamentally changing where code lives.
-
-**Consequences:**
-- Commands reference workflow files that don't exist (if we take upstream commands but miss workflow files)
-- Commands that call `gsd-tools.js init` fail because gsd-tools doesn't exist in our installation
-- Our DevOps detection feature silently disappears
-- Agent specs become incompatible with workflow specs (agents are 50-70% smaller upstream)
+**How to avoid:**
+- Introduce a TWO-PATH replacement system in the installer: `RUNTIME_DIR` (runtime-specific config) and `SHARED_DIR` (shared `~/.gsd/` resources)
+- Before migration, audit all 276 `gsd-knowledge` references and classify each as: (a) agent-executable path, (b) documentation/example, (c) conceptual reference
+- Use a distinct path token in source files: `~/.claude/gsd-knowledge/` for KB references vs `~/.claude/get-shit-done/` for runtime references, so the installer can apply different replacements
+- Write a validation test that verifies no `~/.claude/gsd-knowledge/` references survive after installation for any runtime
 
 **Warning signs:**
-- After merge, any `/gsd:` command fails with "workflow file not found"
-- Agent specs still reference old inline patterns while commands reference new workflow patterns
-- gsd-tools.js is present but not in the npm `files` array
-- Commands work but produce different output than expected (using old logic path)
+- After install for Codex, agents still reference `~/.codex/gsd-knowledge/` (KB path was replaced to follow the runtime dir, not the shared dir)
+- After install for OpenCode, KB queries return empty because they check `~/.config/opencode/gsd-knowledge/` which does not exist
+- Knowledge surfacing stops working for any non-Claude runtime
+- Running `grep -r 'gsd-knowledge' ~/.codex/` after install shows paths pointing to the wrong location
 
-**Prevention:**
-- Adopt the thin orchestrator architecture wholesale -- this is not optional, it's the new foundation
-- Port our DevOps detection from `commands/gsd/new-project.md` into `get-shit-done/workflows/new-project.md` as an additional section
-- Verify every command/workflow/agent triple is internally consistent after merge
-- Run the wiring validation test (`tests/integration/wiring-validation.test.js`) after merge -- this test was specifically built to catch broken references
-
-**Severity:** HIGH -- architectural mismatch means nothing works, not just one feature.
-
-**Which phase should address it:** Core merge phase, immediately after install.js. The architectural adoption must happen before porting any features.
+**Phase to address:**
+Must be the FIRST phase -- create the path abstraction layer before touching any KB migration or Codex CLI integration. Every subsequent phase depends on paths resolving correctly.
 
 ---
 
-### Pitfall 3: The Agent Spec Dual-Location Problem
+### Pitfall 2: The KB Migration Data Loss Window
 
-**What goes wrong:** Our fork has agent specs in TWO locations:
-- `agents/gsd-executor.md` (784 lines, upstream-compatible path, installed by installer)
-- `.claude/agents/gsd-executor.md` (also 784 lines, local project path, only differs by 2 lines: `~/.claude/` to `./.claude/` path references)
+**What goes wrong:**
+Migrating from `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/` requires moving files from one location to another. During the migration window:
 
-Upstream's `agents/gsd-executor.md` is now 403 lines (48% smaller). It was rewritten to work with the thin orchestrator pattern, removing inline logic that moved to workflow files. Our fork's version at both locations is the OLD fat version plus our minor path modifications.
+1. **Race condition with running agents:** If a GSD agent is actively writing a signal to `~/.claude/gsd-knowledge/signals/my-project/` while the migration script is moving files to `~/.gsd/knowledge/signals/my-project/`, the signal either gets written to the old location (orphaned) or fails because the directory was already moved.
 
-During merge, we need to update BOTH locations, but the `.claude/agents/` copies contain our fork's custom agents (reflector, signal-collector, spike-runner, knowledge-store) that upstream doesn't have. A careless merge might:
-- Overwrite our custom agents in `.claude/agents/`
-- Leave stale fat agent specs that reference patterns gsd-tools has replaced
-- Create inconsistency between the two locations
+2. **Index invalidation:** The KB `index.md` contains absolute-ish paths (`signals/{project}/filename.md`). The index is rebuilt by scanning directories. During migration, a partial scan (some files in old location, some in new) produces a corrupt index missing entries.
+
+3. **Atomic rename impossibility:** `fs.rename()` only works within the same filesystem. If `~/.claude/` and `~/.gsd/` are on different partitions (rare but possible, especially with custom `CLAUDE_CONFIG_DIR`), the migration requires copy-then-delete, which is not atomic and creates a window where data exists in both places or neither.
+
+4. **Rollback complexity:** If the user upgrades GSD, the migration runs, then they downgrade back to the previous version, the old version looks for KB in `~/.claude/gsd-knowledge/` and finds nothing. There is no rollback path built into the current system.
+
+**Why it happens:**
+File-based knowledge stores with cross-directory migration have inherently weaker atomicity guarantees than database migrations. The lack of a single transaction boundary means partial failures leave inconsistent state.
+
+**How to avoid:**
+- **Symlink bridge:** After moving files to `~/.gsd/knowledge/`, create a symlink from `~/.claude/gsd-knowledge/` -> `~/.gsd/knowledge/`. This provides backward compatibility -- old agents and old versions of GSD still find the KB at the old path. The symlink costs nothing and eliminates the rollback problem entirely.
+- **Copy-then-symlink, never move-then-pray:** Copy all files to new location, verify copy integrity (file count + checksum), create symlink at old location pointing to new location, then (optionally) remove the copy at old location in a later release.
+- **Lock file during migration:** Write `~/.gsd/knowledge/.migrating` during the migration process. Agents check for this file and wait/retry if present.
+- **Index rebuild after migration:** Always rebuild index.md from scratch after migration completes, never try to update paths in the existing index.
 
 **Warning signs:**
-- Agents call `cat .planning/config.json | node -e "..."` instead of `node gsd-tools.js state load` (old pattern)
-- Agents have inline bash for operations that gsd-tools now handles
-- `.claude/agents/` has different versions than `agents/`
-- Our custom agents (reflector, signal-collector) reference patterns that no longer exist in the updated upstream agents
+- `index.md` shows fewer entries after migration than before
+- Signals written during migration appear in `~/.claude/gsd-knowledge/` instead of `~/.gsd/knowledge/`
+- Users who downgrade report "knowledge base empty"
+- `ls -la ~/.claude/gsd-knowledge` shows a broken symlink after migration failure
 
-**Prevention:**
-- Update `agents/` to match upstream's new versions FIRST
-- Then update `.claude/agents/` copies of upstream agents to match
-- Leave our fork-unique agents (reflector, signal-collector, spike-runner, knowledge-store) untouched for now
-- Verify our fork-unique agents don't reference upstream patterns that changed (they currently reference checkpoint.md which was rewritten)
-- Add a test that verifies `agents/` and `.claude/agents/` are in sync for shared files
-
-**Severity:** HIGH -- inconsistent agent specs cause silent failures where agents execute with wrong instructions.
-
-**Which phase should address it:** Must be addressed in the same phase as the thin orchestrator adoption, since agent changes are coupled to the workflow changes.
+**Phase to address:**
+KB migration phase -- must happen AFTER the path abstraction layer is in place and BEFORE Codex CLI integration (Codex needs to find KB at the shared path from day one).
 
 ---
 
-### Pitfall 4: package.json Identity Collision
+### Pitfall 3: The Codex CLI Impedance Mismatch
 
-**What goes wrong:** Our fork's `package.json` has extensive identity changes:
-- `name`: `get-shit-done-reflect-cc` (vs upstream's `get-shit-done-cc`)
-- `version`: `1.12.2` (vs upstream's `1.18.0`)
-- `description`: fork-specific
-- `bin`: `get-shit-done-reflect-cc` (vs `get-shit-done-cc`)
-- `keywords`: additional fork-specific keywords
-- `repository`, `bugs`, `homepage`: point to our fork's GitHub repo
-- `devDependencies`: we added vitest and @vitest/coverage-v8
+**What goes wrong:**
+Codex CLI has a fundamentally different architecture from Claude Code, OpenCode, and Gemini CLI. The existing three runtimes all share a common pattern: slash commands are Markdown files installed to a config directory, read by the runtime at invocation time. Codex CLI breaks this pattern in multiple ways:
 
-Upstream's `package.json` at v1.18.0 has version `1.18.0` and may have added new fields, changed the `files` array (to include `get-shit-done/bin/gsd-tools.js`), or updated dependencies.
+1. **No direct slash command equivalent:** Codex CLI uses `AGENTS.md` for project-level instructions (read at session start, not invoked on-demand) and `SKILL.md` directories for task-specific capabilities. There is no Codex equivalent of putting a Markdown file in `~/.codex/commands/gsd/new-project.md` and having it show up as `/gsd:new-project`.
 
-A git merge will conflict on nearly every field. The resolution must keep our identity but adopt upstream's structural changes (files array, any new dependencies, scripts).
+2. **Config format mismatch:** Codex uses TOML (`~/.codex/config.toml`), not JSON. The settings.json hook registration pattern used for Claude Code and the opencode.json permission pattern for OpenCode have no Codex equivalent.
+
+3. **Tool name divergence:** Codex CLI does not expose named tools like `Read`, `Write`, `Bash`, `Glob`, `Grep` the way Claude Code does. Codex has a shell execution sandbox with approval policies, not a discrete tool-by-tool permission model. The `allowed-tools:` frontmatter section that GSD uses to restrict agent capabilities has no Codex counterpart.
+
+4. **AGENTS.md vs. commands/agents architecture:** Codex reads `AGENTS.md` at session start with a byte limit (`project_doc_max_bytes` = 32KB default). GSD's entire agent system (12+ agents, 780+ lines each) cannot fit in 32KB. The GSD architecture of spawning specialized subagents via Task tool has no direct Codex equivalent.
+
+**Why it happens:**
+GSD was designed for Claude Code's architecture (slash commands, Task tool spawning, named tool permissions) and extended to OpenCode/Gemini by converting between formats. Codex CLI represents a genuinely different paradigm (AGENTS.md + Skills + approval-based sandbox) that cannot be bridged by format conversion alone.
+
+**How to avoid:**
+- **Do NOT attempt to make GSD commands work as Codex slash commands.** Instead, create a Codex-native integration layer:
+  - Use `AGENTS.md` to provide GSD workflow awareness and instructions
+  - Use Codex Skills (SKILL.md directories) to package GSD's key operations
+  - Use `.codex/config.toml` with MCP server configuration if MCP-based integration is feasible
+- **Accept capability gaps.** Codex may support 60-70% of GSD's features initially, not 100%. Features requiring Task tool spawning (parallel research, wave-based execution) may not be possible in Codex's architecture.
+- **Design the installer's Codex path separately** from the Claude/OpenCode/Gemini paths. Do not try to reuse `copyWithPathReplacement()` or `convertClaudeToOpencodeFrontmatter()` for Codex -- the transformation is too different.
+- **Identify the intersection of capabilities** early: file read/write, bash execution, and markdown processing are common. Build on that common ground.
 
 **Warning signs:**
-- After merge, `npm publish` publishes to the wrong package name
-- `gsd-tools.js` not included in published package (missing from `files` array)
-- Version number is wrong (either our old version or upstream's version)
-- `npm test` fails because test scripts changed
+- Installer produces Codex output that looks like Claude Code commands (Markdown with YAML frontmatter in `~/.codex/commands/gsd/`)
+- After install, Codex CLI does not recognize any GSD commands
+- AGENTS.md exceeds 32KB and Codex silently truncates it
+- GSD workflows reference Task tool which Codex does not have
 
-**Prevention:**
-- Resolve package.json entirely by hand, never accept either side wholesale
-- Checklist for package.json resolution:
-  1. Keep our `name`, `bin`, `description`, `repository`, `bugs`, `homepage`
-  2. Adopt upstream's `files` array additions (especially `get-shit-done/bin/`)
-  3. Keep our `devDependencies` (vitest), adopt any new upstream deps
-  4. Set version to our next version (e.g., `1.13.0`), NOT upstream's version
-  5. Keep our `keywords` superset
-- After resolution, run `npm pack --dry-run` to verify the correct files are included
-- Run `npm publish --dry-run` to verify package identity
-
-**Severity:** HIGH -- wrong package identity means publishing to wrong npm package or breaking installs.
-
-**Which phase should address it:** Early in merge phase, since other changes (gsd-tools) depend on the files array being correct.
+**Phase to address:**
+Codex CLI integration phase -- must come AFTER the runtime abstraction layer is defined, because Codex requires a genuinely different integration approach, not a format conversion.
 
 ---
 
-### Pitfall 5: The Memory System Ghost
+### Pitfall 4: The State File Runtime Leakage
 
-**What goes wrong:** Upstream added a full `gsd-memory/` directory (af7a057) then reverted it (cc3c6ac). Our fork was created AFTER the fork point (2347fca) which is before both the add and the revert. During merge, git's three-way merge sees:
-- Base (2347fca): no gsd-memory/
-- Ours (main): no gsd-memory/
-- Theirs (upstream/main): no gsd-memory/ (added then reverted)
+**What goes wrong:**
+The `.planning/` directory is supposed to be runtime-agnostic (committed to git, shared across sessions). But state files contain runtime-specific content:
 
-This should merge cleanly for the directory itself. But the REAL danger is in the files the memory system MODIFIED:
-- `agents/gsd-phase-researcher.md` -- memory system added 38 lines of "query memory before Context7" instructions
-- `agents/gsd-project-researcher.md` -- same 38-line addition
-- `commands/gsd/new-project.md` -- added 20 lines of "register project with memory"
-- `get-shit-done/workflows/complete-milestone.md` -- added 26 lines of "index milestone completion"
-- `get-shit-done/workflows/execute-phase.md` -- added 16 lines of "index after execution"
+1. **`.continue-here.md` references runtime-specific paths:** The pause-work workflow writes `~/.claude/get-shit-done/bin/gsd-tools.js` directly into handoff files. When a different runtime (Codex, OpenCode) tries to resume from this handoff, the path does not exist.
 
-The revert removed these additions, BUT then the thin orchestrator refactoring also rewrote these same files. The merge must handle the combined effect: memory add + memory revert + thin orchestrator rewrite.
+2. **STATE.md records runtime-specific commands:** "Resume with: `/gsd:execute-phase 3`" -- but OpenCode uses `/gsd-execute-phase 3` and Codex uses a completely different invocation pattern. A user pausing in Claude Code and resuming in Codex sees instructions they cannot follow.
+
+3. **PLAN.md frontmatter contains tool names:** Plans reference tool names like `Read`, `Write`, `Bash` which are Claude Code tool names. When an OpenCode executor reads the plan, it sees tool names it does not recognize. The executor might still work (it interprets semantically) but verification steps like "verify using the Read tool" become confusing.
+
+4. **config.json stores runtime-agnostic settings alongside runtime-dependent behavior:** The `commit_docs` setting and `model_profile` setting are runtime-agnostic. But the config is read by `gsd-tools.js` which lives at a runtime-specific path. If a project is shared between a Claude Code user and a Codex user (via git), the config works for one but the tool path differs.
+
+**Why it happens:**
+The `.planning/` directory was designed for single-runtime use. Runtime-specific details leaked into "shared" state because there was no separation between "what the user should do" (runtime-specific) and "what the project state is" (runtime-agnostic).
+
+**How to avoid:**
+- **Audit all writes to `.planning/`** for runtime-specific content. Grep for: `~/.claude/`, `~/.config/opencode/`, `~/.gemini/`, `~/.codex/`, `/gsd:`, `/gsd-`, tool name references (`Read`, `Write`, `Bash`, `Glob`, `Grep`)
+- **Introduce runtime-neutral command references:** Instead of `/gsd:execute-phase 3`, write `[resume command: execute-phase 3]` and let the resume workflow translate to the current runtime's syntax
+- **Separate state from instructions:** `.continue-here.md` should contain WHAT state to restore, not HOW to restore it. The runtime's resume workflow handles the HOW.
+- **Use gsd-tools.js path resolution:** Instead of hardcoding `~/.claude/get-shit-done/bin/gsd-tools.js` in state files, the workflow should call gsd-tools at the path appropriate for the CURRENT runtime
 
 **Warning signs:**
-- After merge, agent specs contain references to `gsd_memory_search` or `gsd_memory_register`
-- Workflow files mention "index with memory" operations
-- install.js tries to configure MCP server for gsd-memory
-- References to `~/.gsd/projects.json` (memory's project registry)
+- User pauses in Claude Code, switches to Codex, and `/gsd:resume-work` does not exist
+- `.continue-here.md` contains paths starting with `~/.claude/` in a project used by multiple runtimes
+- STATE.md shows "Last action: /gsd:execute-phase 5" but the current runtime uses different syntax
+- Agent reads PLAN.md and tries to use tool names that do not exist in its runtime
 
-**Prevention:**
-- After merge, grep for `memory`, `gsd_memory`, `gsd-memory`, `projects.json` across the entire codebase
-- The result should be ZERO hits (except in our own knowledge base system which uses different naming)
-- Pay special attention to the five files listed above during conflict resolution
-- Our fork has its OWN knowledge system (`.claude/agents/knowledge-store.md`, `gsd-knowledge/`) which is architecturally different from upstream's reverted memory system -- do not confuse the two
-
-**Severity:** HIGH -- ghost references to a removed system cause runtime errors.
-
-**Which phase should address it:** Part of the core merge phase, specifically during conflict resolution of agent and workflow files.
+**Phase to address:**
+State normalization phase -- should happen early (before cross-runtime handoff feature), after the path abstraction layer is in place.
 
 ---
 
-## Moderate Pitfalls
+### Pitfall 5: The Capability Gap Denial
 
-Mistakes that cause delays, broken features, or technical debt.
+**What goes wrong:**
+The four runtimes have genuinely different capabilities, and pretending they are equivalent causes silent failures:
 
-### Pitfall 6: CI/CD Workflow Collision
+| Capability | Claude Code | OpenCode | Gemini CLI | Codex CLI |
+|-----------|-------------|----------|------------|-----------|
+| Task tool (spawn subagent) | Yes | Yes | Auto (agents are tools) | No equivalent |
+| Named tool permissions | Yes (allowed-tools) | Yes (permission) | Yes (tools array) | No (sandbox policy) |
+| Slash commands | `/gsd:name` | `/gsd-name` | `/gsd:name` | No direct equivalent |
+| Session hooks | settings.json hooks | No | No | Notification hooks (different format) |
+| Statusline | Yes (statusLine) | No | No | TUI built-in |
+| MCP servers | Yes (mcpServers) | Yes | Yes (config) | Yes (config.toml) |
+| Web search | WebSearch tool | websearch | google_web_search | Built-in web search |
+| File manifest | gsd-file-manifest.json | No | No | No |
 
-**What goes wrong:** Our fork has three GitHub Actions workflows:
-- `.github/workflows/ci.yml` -- runs tests on push/PR
-- `.github/workflows/publish.yml` -- OIDC npm Trusted Publishing on release
-- `.github/workflows/smoke-test.yml` -- install verification
+When the runtime abstraction layer pretends all runtimes have the same capabilities, it either:
+- **Fails silently:** Agent tries to spawn a Task subagent in Codex, nothing happens, the workflow proceeds without parallel execution
+- **Crashes loudly:** Agent references a tool name that does not exist, the runtime throws an error mid-execution
+- **Degrades invisibly:** Execution works but skips critical steps (verification, knowledge surfacing, signal collection) because the tool needed is not available
 
-Upstream added three NEW GitHub files:
-- `.github/CODEOWNERS` -- requires @glittercowboy review (not our maintainer)
-- `.github/ISSUE_TEMPLATE/bug_report.yml` -- references upstream's package name
-- `.github/ISSUE_TEMPLATE/feature_request.yml` -- generic
-- `.github/workflows/auto-label-issues.yml` -- auto-labels issues
+**Why it happens:**
+The current installer maps tool NAMES between runtimes (e.g., `Read` -> `read_file` for Gemini) but does not handle capability GAPS (e.g., "Task tool does not exist in this runtime"). Name mapping is a bijection problem; capability gaps require graceful degradation logic.
 
-Risks:
-1. CODEOWNERS with `@glittercowboy` will block our PRs if we adopt it
-2. Issue templates reference `get-shit-done-cc` package name
-3. Auto-label workflow may conflict with our own issue management
-4. Our OIDC publishing workflow is specifically configured for our npm package -- any interference breaks publishing
+**How to avoid:**
+- **Create a runtime capability matrix** (like the table above) and make it a first-class artifact in the codebase. Every feature must declare which capabilities it requires.
+- **Design for graceful degradation, not equivalence:** Instead of "convert Task to Codex equivalent," design "if Task unavailable, run sequentially instead of in parallel."
+- **Use feature detection, not runtime detection:** Instead of `if (runtime === 'codex') { skip_subagents(); }`, check `if (!has_capability('task_tool')) { run_sequentially(); }`. This future-proofs against capability changes in any runtime.
+- **Document degraded behavior explicitly:** Users should know "In Codex CLI, wave-based parallel execution runs sequentially. This is slower but produces identical results."
+- **Identify the common subset:** File read/write, bash execution, and markdown processing work everywhere. Build the cross-runtime handoff feature on these universal capabilities.
 
 **Warning signs:**
-- PRs blocked waiting for @glittercowboy review
-- Issue templates show wrong package name
-- npm publish fails because OIDC identity doesn't match
+- Agent specs contain `if runtime == 'codex'` conditional logic scattered across multiple files
+- A new runtime (5th, 6th) requires modifying every conditional
+- Users report "it works in Claude Code but not in Codex" for features that should be universal
+- Test suite only tests Claude Code paths, other runtimes are untested
 
-**Prevention:**
-- Do NOT adopt `.github/CODEOWNERS` -- skip or replace with our own maintainer
-- Update issue template to reference our package name if adopting
-- Keep our three workflows untouched; they are entirely fork-specific
-- Upstream's auto-label workflow is harmless to adopt but unnecessary
-- After merge, run: `gh workflow list` to verify no duplicate or broken workflows
-
-**Severity:** MEDIUM -- broken CI doesn't break the code but blocks releases.
-
-**Which phase should address it:** Post-merge validation phase. CI/CD can be fixed after code merge is stable.
+**Phase to address:**
+Runtime abstraction layer phase -- must happen BEFORE Codex integration. Define the capability model, then implement Codex as the first consumer of that model.
 
 ---
 
-### Pitfall 7: The gsd-tools.js Adoption Gap
+## Technical Debt Patterns
 
-**What goes wrong:** Upstream's `get-shit-done/bin/gsd-tools.js` is a 1400+ line CLI utility that replaces inline bash patterns across 50+ files. It handles: config parsing, model resolution, phase lookup, git commits, summary verification, frontmatter CRUD, scaffolding, and more. Our fork has NONE of this.
+Shortcuts that seem reasonable but create long-term problems.
 
-After merge, commands and workflows will call `node ~/.claude/get-shit-done/bin/gsd-tools.js <command>` but:
-1. gsd-tools.js may not be in the right location after installation
-2. Our fork's installer may not copy it correctly
-3. Commands that reference gsd-tools patterns we haven't tested will fail silently
-4. gsd-tools has its own test suite (`gsd-tools.test.js`, using node:test) that runs separately from our vitest suite
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Adding Codex as another `if/else` branch in install.js | Quick to implement, familiar pattern | 5th runtime requires modifying 5+ code paths; no plugin architecture; install.js already 1500+ lines | Never -- this is the time to refactor to a runtime plugin model |
+| Keeping `~/.claude/gsd-knowledge/` as the canonical KB path with symlinks from other runtimes | Zero migration needed | Every runtime needs its own symlink; path references in docs are confusing; user confusion about "why is my KB under .claude?" | Only as a temporary bridge during migration, not as permanent architecture |
+| Hardcoding Codex tool name mappings like the existing `claudeToGeminiTools` object | Fast parity with existing pattern | Codex does not have 1:1 tool name mapping (capability model is different); creates false equivalence | Never -- Codex needs a different integration approach, not a mapping table |
+| Skipping KB migration and just making Codex read from `~/.claude/gsd-knowledge/` | Zero migration work | Codex users must have Claude Code installed for KB to exist; violates shared resource principle; confusing UX | Only as v0 proof of concept, must migrate before release |
+| Using AGENTS.md as the sole Codex integration point | Simple, single file | 32KB byte limit means most GSD content is truncated; no slash command UX; no progressive loading | As the initial integration, but must evolve to Skills-based approach |
 
-**Warning signs:**
-- Commands fail with "gsd-tools.js not found" or "ENOENT"
-- Commands produce empty/undefined output where they should produce JSON
-- `gsd-tools.js state load` fails because `.planning/config.json` has fork-specific fields it doesn't expect
-- Test suite passes but gsd-tools tests were never run
+## Integration Gotchas
 
-**Prevention:**
-- Verify gsd-tools.js is included in `package.json` `files` array
-- Verify installer copies gsd-tools.js to the correct location
-- Run gsd-tools.js test suite separately: `node --test get-shit-done/bin/gsd-tools.test.js`
-- Test critical gsd-tools commands against our fork's `.planning/config.json`:
-  - `state load` -- does it handle our `health_check` and `devops` config sections?
-  - `resolve-model` -- does it work with our `model_profile: "quality"` setting?
-  - `progress` -- does it render correctly with our project state?
-- Add gsd-tools test run to our CI workflow
+Common mistakes when connecting runtime-specific systems.
 
-**Severity:** MEDIUM -- gsd-tools is now load-bearing for all workflows. Failure here means workflows break.
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Codex config.toml | Trying to write settings.json-style hook registration into TOML format | Codex uses `[features]` table and MCP server config, not hook arrays. Use Codex's native config patterns. |
+| KB index.md across runtimes | Rebuilding index with paths relative to runtime dir | Use paths relative to KB root (`signals/project/file.md`), let each runtime resolve the KB root independently |
+| OpenCode XDG path migration | Assuming `~/.config/opencode/` always exists | Check `OPENCODE_CONFIG_DIR`, `XDG_CONFIG_HOME`, fall back to default. Existing bug: old `~/.opencode/` installations are not migrated. |
+| Gemini experimental agents | Assuming Gemini agent registration is stable | Gemini CLI agent support is experimental. Agent format may change. Pin to known-working Gemini CLI version in docs. |
+| Codex Skills | Packaging all GSD operations as one mega-skill | Each skill should focus on one job (per Codex docs). Create separate skills for: project-init, plan, execute, resume, debug. |
+| Codex AGENTS.md discovery | Putting GSD instructions only in `~/.codex/AGENTS.md` (global) | Project-level `.codex/AGENTS.md` overrides global. GSD should install project-level instructions that reference the global GSD skill set. |
+| Cross-runtime resume | Storing runtime-specific tool invocations in .continue-here.md | Store semantic state (phase, task, position, decisions) not procedural commands. Let the resume workflow generate runtime-appropriate commands. |
 
-**Which phase should address it:** Must be validated immediately after the core merge, before testing any workflows.
+## Performance Traps
 
----
+Patterns that work at small scale but fail as usage grows.
 
-### Pitfall 8: Test Suite Fragility During Merge
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Scanning all KB entries for every agent query | Queries take seconds, not milliseconds; context window fills with index | Progressive disclosure: read index summary first, fetch full entries only for top-5 matches. Already designed this way, but verify Codex respects the pattern. | ~200+ KB entries |
+| Installer regex-replacing every .md file on every install | Install takes 30+ seconds; disk I/O spikes | Cache file hashes (gsd-file-manifest.json); only replace files that changed. Upstream already added this -- ensure it works for all 4 runtimes. | ~100+ files across 4 runtimes |
+| Loading full STATE.md + ROADMAP.md + PROJECT.md + config.json on resume | Context window consumed by state loading before any useful work begins | Use gsd-tools.js `init resume` to parse state into structured JSON, load only relevant fields. Verify Codex's AGENTS.md byte limit does not conflict. | Projects with 10+ completed phases |
+| Full KB index rebuild on every signal write | Write latency increases linearly with KB size | Append-only writes (signal files are immutable). Rebuild index only on explicit command or periodic schedule, not on every write. Already designed this way. | ~500+ KB entries |
 
-**What goes wrong:** Our fork has 42 tests across 5 test files:
-- `tests/e2e/real-agent.test.js` (183 lines)
-- `tests/integration/kb-infrastructure.test.js` (336 lines)
-- `tests/integration/kb-write.test.js` (216 lines)
-- `tests/integration/wiring-validation.test.js` (314 lines)
-- `tests/unit/install.test.js` (129 lines)
+## Security Mistakes
 
-The wiring validation test checks that agent specs, command files, and workflow files are internally consistent. After the thin orchestrator refactoring, this test will likely FAIL because:
-- It expects command files to contain inline logic (old pattern)
-- It may not know about new workflow files
-- It may flag upstream's new agent names/paths as "unwired"
+Domain-specific security issues for shared cross-runtime resources.
 
-The KB tests reference knowledge store structures that are unchanged by the merge but may need path updates.
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| KB at `~/.gsd/knowledge/` readable by any process | Knowledge entries may contain project-specific secrets, API patterns, or vulnerability details | Set `chmod 700 ~/.gsd/` on creation. Verify installer sets correct permissions for the shared directory. |
+| Symlink from `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/` followed by any user | Symlink target can be changed to point elsewhere (symlink attack) | Create symlink with `lchown` to current user. Verify symlink target before reading in agents. Low risk for single-user systems but worth noting. |
+| AGENTS.md in project repo containing sensitive GSD configuration | Project-level `.codex/AGENTS.md` is committed to git; may contain team-specific instructions or paths | Never put sensitive configuration in AGENTS.md. Use `~/.codex/config.toml` (user-level, not committed) for API keys and sensitive settings. |
+| Cross-runtime state files in `.planning/` containing runtime-specific paths | Leaking `~/.claude/` or `~/.codex/` paths reveals user's home directory structure | Normalize all paths in `.planning/` files to relative references. Never write absolute home directory paths to committed state files. |
 
-The install test checks the installer output, which will change with upstream's new features.
+## UX Pitfalls
 
-**Warning signs:**
-- `npm test` fails immediately after merge with 20+ test failures
-- Wiring validation reports "orphaned agent" or "missing workflow" for upstream's new files
-- Install test fails because banner text or directory structure changed
+Common user experience mistakes when adding multi-runtime support.
 
-**Prevention:**
-- Accept that tests WILL break during merge -- this is expected, not a sign of bad merge
-- Fix tests in a specific order:
-  1. `install.test.js` first (installer is the foundation)
-  2. `wiring-validation.test.js` second (validates structural integrity)
-  3. KB tests last (least likely to be affected)
-- Update wiring validation test to recognize the thin orchestrator pattern (commands reference workflows, not inline logic)
-- Add upstream's `gsd-tools.test.js` to the test suite runner
-- Do NOT skip failing tests to "fix later" -- they are the primary merge correctness signal
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Installer asks "Which runtime?" every time, even for updates | Annoying for users who always use the same runtime | Remember last-used runtime in `~/.gsd/config.json`. Auto-detect installed runtimes and default to the one in use. |
+| Different command syntax across runtimes without documentation | User switches from Claude Code to Codex and cannot find commands | Provide runtime-specific quick reference card. Include "Switching runtimes?" section in help output. |
+| KB migration runs without warning on update | User loses KB entries if migration fails silently | Show migration preview: "Moving N entries from ~/.claude/gsd-knowledge/ to ~/.gsd/knowledge/. Continue? [Y/n]" |
+| Codex integration requires manual AGENTS.md setup | Users must know to create .codex/ directory and write AGENTS.md themselves | Installer should create `.codex/` directory and generate AGENTS.md automatically, just like it creates `.claude/commands/gsd/` for Claude Code. |
+| Resume shows instructions for wrong runtime | User pauses in Claude Code, resumes in Codex, sees "/gsd:execute-phase 3" which does not work in Codex | Resume workflow detects current runtime and renders appropriate instructions. Store semantic state, not procedural commands. |
+| No indication of degraded features in non-Claude runtimes | User expects parallel execution in Codex, gets sequential without explanation | Display capability notice on first GSD use in each runtime: "Running in Codex CLI. Some features run in sequential mode." |
 
-**Severity:** MEDIUM -- tests are the safety net. If we ignore them during merge, we ship broken code.
+## "Looks Done But Isn't" Checklist
 
-**Which phase should address it:** Dedicated test-fixing phase after the core merge, before any feature porting.
+Things that appear complete but are missing critical pieces.
 
----
+- [ ] **KB Migration:** Files are moved but symlink bridge not created -- old GSD versions on same machine cannot find KB
+- [ ] **Codex Integration:** AGENTS.md created but Skills not installed -- GSD commands not accessible as Codex skills
+- [ ] **Path Abstraction:** Installer replaces paths but agent inline bash still hardcodes `~/.claude/` -- agents fail at runtime, not install time
+- [ ] **Cross-Runtime Resume:** .continue-here.md written but contains runtime-specific commands -- resume works in same runtime, fails in different runtime
+- [ ] **Capability Gaps:** Tool name mapping done but Task tool spawning not handled -- commands work but subagent-dependent workflows silently skip steps
+- [ ] **Index Rebuild:** KB moved but index.md not rebuilt -- agents find index with stale paths, entries appear missing
+- [ ] **Test Coverage:** Install test passes for Codex but no integration test for actual Codex CLI execution -- installer works but Codex does not recognize GSD
+- [ ] **Config Migration:** `.planning/config.json` updated but `gsd-tools.js` not updated to handle Codex-specific settings -- gsd-tools crashes on Codex-only projects
+- [ ] **Concurrent Access:** Single-user tests pass but two agents writing KB simultaneously corrupt entries -- rare in practice but possible during reflection + execution overlap
+- [ ] **Rollback Path:** Migration succeeds but no mechanism to revert -- user who downgrades loses all KB access until they re-upgrade
 
-### Pitfall 9: Version Number Confusion
+## Recovery Strategies
 
-**What goes wrong:** Our fork is at v1.12.2. Upstream is at v1.18.0. After merge, what version are we?
+When pitfalls occur despite prevention, how to recover.
 
-If we keep v1.12.2, users don't know we incorporated upstream changes. If we jump to v1.18.0, our version number collides with upstream's and implies parity we don't have. If we use v1.13.0, it's unclear how much has changed.
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| P1: Path replacement breaks KB references | MEDIUM | Grep for broken paths across installed files. Run installer with `--force` to re-install all files. Verify with: `grep -r 'gsd-knowledge' ~/.codex/` should show `~/.gsd/knowledge/` paths, not `~/.codex/gsd-knowledge/`. |
+| P2: KB migration data loss | HIGH | If symlink bridge was used: data still at old location, just re-run migration. If files were moved without bridge: check git history of `~/.claude/gsd-knowledge/` (if it was ever committed), or check filesystem journal. Worst case: KB entries lost, must be rebuilt from project `.planning/` artifacts. |
+| P3: Codex integration not working | LOW | Codex is additive (new runtime). Existing Claude/OpenCode/Gemini installs unaffected. Re-generate Codex integration files by running installer with `--codex`. No data loss risk. |
+| P4: State files contain runtime-specific content | MEDIUM | Run a state normalization script that scans `.planning/` for runtime-specific patterns and replaces with neutral references. Commit the normalized state. |
+| P5: Capability gap causes silent failure | MEDIUM | Add runtime capability logging to agent output. Review SUMMARY.md files for missing sections (knowledge surfacing, signal collection). Re-run affected phases in a runtime that supports the missing capability. |
+| Concurrent KB write corruption | LOW | KB entries are individual files with unique names (type-date-slug). Corruption only affects the index.md, which can be rebuilt from files: `gsd-tools.js rebuild-index`. |
+| Installer fails mid-migration | MEDIUM | If symlink bridge pattern used: old location still works, just re-run migration. If not: manually check both locations, consolidate entries, rebuild index. |
 
-**Warning signs:**
-- `gsd-check-update.js` compares versions against the wrong npm package
-- Users on v1.12.2 don't get prompted to update
-- CHANGELOG.md doesn't reflect what changed
-- npm version sort puts our package in the wrong position relative to upstream
+## Pitfall-to-Phase Mapping
 
-**Prevention:**
-- Use semantic versioning based on OUR fork's history, not upstream's:
-  - v1.13.0: if the merge is a clean adoption of upstream + our existing features
-  - v2.0.0: if the merge involves breaking changes to our fork's public API
-- Document in CHANGELOG.md: "Synced with upstream GSD v1.18.0" with a summary of what we adopted
-- Update `gsd-check-update.js` to check our npm package (`get-shit-done-reflect-cc`), not upstream's -- this is already done but verify after merge
-- Set `gsd_reflect_version` in `.planning/config.json` to match
+How roadmap phases should address these pitfalls.
 
-**Severity:** MEDIUM -- version confusion causes user confusion and broken update detection.
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| P1: 313 hardcoded paths | Phase 1: Path Abstraction Layer | `grep -r '~/.claude/' commands/ agents/ get-shit-done/` returns 0 hits (all replaced with tokens); installer test verifies 4 runtimes resolve correctly |
+| P2: KB migration data loss | Phase 2: KB Migration | Before/after entry count matches; symlink at old location resolves correctly; `cat ~/.claude/gsd-knowledge/index.md` and `cat ~/.gsd/knowledge/index.md` show identical content |
+| P3: Codex impedance mismatch | Phase 3: Codex Integration | Codex can read AGENTS.md with GSD instructions; at least one GSD skill (e.g., resume-work) invocable from Codex; Codex can read/write `.planning/` files |
+| P4: State file runtime leakage | Phase 1: Path Abstraction (state normalization) | `grep -r '~/.claude/' .planning/` returns 0 hits; .continue-here.md contains semantic state only; STATE.md commands are runtime-neutral |
+| P5: Capability gap denial | Phase 1: Runtime Abstraction (capability matrix) | Runtime capability matrix exists as code/config; agent specs include capability checks; degraded behavior documented per runtime |
+| KB concurrent access | Phase 2: KB Migration | Lock file mechanism exists; write test with simulated concurrent access; index rebuild produces correct results after interrupted write |
+| Cross-runtime resume | Phase 4: Cross-Runtime Handoff | Pause in Claude Code, resume in OpenCode -- state fully restored; pause in OpenCode, resume in Codex -- state fully restored with degradation notice |
 
-**Which phase should address it:** Final phase, after all code changes are validated and tests pass.
+## Phase Ordering Rationale
 
----
+Based on pitfall dependencies:
 
-### Pitfall 10: The "Additive Only" Constraint Is Dead
-
-**What goes wrong:** The fork was built on the assumption that we only ADD files, never modify upstream files. This assumption was already violated (12 files modified on both sides) and is now untenable because upstream's architecture moved code from the files we were trying to not modify.
-
-If we try to maintain "additive only" during the merge, we will:
-- Refuse to adopt the thin orchestrator pattern (our commands stay fat, upstream's workflow improvements are inaccessible)
-- Have two parallel architectures in one codebase (fat commands + thin workflows for any new upstream commands we adopt)
-- Be unable to sync again in the future because the divergence compounds
-
-**Warning signs:**
-- Team debates "should we really modify this upstream file?" on every conflict
-- Merge produces a hybrid codebase where some commands are thin and some are fat
-- Future upstream syncs become harder, not easier
-- Development velocity drops because every change requires checking "is this additive?"
-
-**Prevention:**
-- Formally retire the "additive only" constraint and replace it with a new strategy:
-  - **Upstream-tracked files:** We modify them, but track our modifications explicitly. Use upstream's new `gsd-file-manifest.json` and `reapply-patches` command to manage this.
-  - **Fork-unique files:** Our agents, knowledge base, CI/CD, etc. remain ours.
-  - **Sync contract:** We sync with upstream at each upstream minor version, accepting their architectural changes and porting our features onto their new structure.
-- Document which files we intentionally diverge from upstream and WHY
-- Upstream's own `reapply-patches` feature (ca03a06) was literally built for this use case -- leverage it
-
-**Severity:** MEDIUM -- clinging to "additive only" makes the merge harder and future syncs impossible.
-
-**Which phase should address it:** Must be decided BEFORE the merge begins. This is a strategic decision, not a merge decision.
-
----
-
-## Minor Pitfalls
-
-Mistakes that cause friction but are recoverable within hours.
-
-### Pitfall 11: Hook Changes Clobbering Our Fork's Customization
-
-**What goes wrong:** Upstream made two changes to hook files:
-- `hooks/gsd-check-update.js`: added `detached: true` for Windows process detachment
-- `hooks/gsd-statusline.js`: added try-catch around file system operations for crash resilience
-
-Our fork modified `gsd-check-update.js` to check our npm package name instead of upstream's. A merge must keep our package name change AND adopt upstream's Windows fix.
-
-**Prevention:**
-- These are simple, non-overlapping changes. A three-way merge should handle them automatically.
-- Verify after merge: `grep 'get-shit-done-reflect-cc' hooks/gsd-check-update.js` returns a match
-- Verify after merge: `grep 'detached: true' hooks/gsd-check-update.js` returns a match
-
-**Severity:** LOW -- hooks are small files with clear, non-overlapping changes.
-
----
-
-### Pitfall 12: Upstream's Deleted Files Creating Confusion
-
-**What goes wrong:** Upstream deleted three files:
-- `CONTRIBUTING.md`
-- `GSD-STYLE.md`
-- `MAINTAINERS.md`
-
-Our fork never modified these files, so the merge should delete them cleanly. But if anyone on our team added content to these files locally (or if they're referenced from our README), the deletion creates broken links.
-
-**Prevention:**
-- Verify our README.md and other docs don't link to these files
-- Accept the deletions -- they're upstream's decision and don't affect our fork's functionality
-- If we want contributing guidelines, create our own `CONTRIBUTING.md` with fork-specific content
-
-**Severity:** LOW -- file deletions are harmless unless something references them.
-
----
-
-### Pitfall 13: The Brave Search Integration Contamination
-
-**What goes wrong:** Upstream added Brave Search integration for researchers (commit 60ccba9). This modifies researcher agent specs to include web search capabilities via Brave API. Our fork's researcher agents (in `.claude/agents/`) may or may not want this feature. If we adopt it without configuration, agents will try to call Brave Search API and fail if no API key is configured.
-
-**Prevention:**
-- Review the Brave Search additions in `agents/gsd-phase-researcher.md` and `agents/gsd-project-researcher.md`
-- If we want the feature, ensure our config supports the Brave Search API key
-- If we don't want it, ensure our fork's researcher agents explicitly skip the Brave Search path
-- The feature should be gated on configuration, not always-on
-
-**Severity:** LOW -- Brave Search integration gracefully degrades if no API key is present.
-
----
-
-## Phase-Specific Warnings
-
-| Phase/Step | Likely Pitfall | Mitigation | Severity |
-|------------|---------------|------------|----------|
-| Pre-merge strategy decision | P10: Additive-only constraint is dead | Formally retire it, adopt new sync strategy | MEDIUM |
-| install.js merge | P1: Three-way merge trap | Manual semantic merge, test in isolation | HIGH |
-| Architecture adoption | P2: Thin orchestrator mismatch | Adopt wholesale, port features onto new structure | HIGH |
-| Agent spec merge | P3: Dual-location problem | Update both locations, protect custom agents | HIGH |
-| Agent/workflow merge | P5: Memory system ghost | Grep for memory references, verify zero hits | HIGH |
-| package.json merge | P4: Identity collision | Hand-resolve, verify with npm pack --dry-run | HIGH |
-| gsd-tools adoption | P7: Adoption gap | Verify installation path, run gsd-tools tests | MEDIUM |
-| CI/CD merge | P6: Workflow collision | Skip CODEOWNERS, update templates, keep our workflows | MEDIUM |
-| Test fixing | P8: Test suite fragility | Fix in order: install -> wiring -> KB | MEDIUM |
-| Version/release | P9: Version confusion | Use our semver, document upstream sync in CHANGELOG | MEDIUM |
-| Hook merge | P11: Hook customization | Verify both our changes and upstream's are present | LOW |
-| File cleanup | P12: Deleted files | Accept deletions, check for broken references | LOW |
-| Feature adoption | P13: Brave Search | Gate on configuration, verify graceful degradation | LOW |
-
-## Merge Strategy Recommendation
-
-Based on this pitfall analysis, the safest merge approach is NOT a single `git merge upstream/main`. Instead:
-
-**Recommended approach: Staged semantic merge**
-
-1. **Create a sync branch** from `main`
-2. **Cherry-pick upstream structural changes first** (gsd-tools.js, workflow files) -- these are pure additions with no conflicts
-3. **Manually merge the 12 conflict files** one at a time, in dependency order:
-   - `package.json` (identity foundation)
-   - `bin/install.js` (installation foundation)
-   - `commands/gsd/new-project.md` and other commands (adopt thin orchestrators)
-   - Agent specs (adopt thin patterns)
-   - Hooks (simple non-overlapping changes)
-   - `CHANGELOG.md`, `README.md` (documentation, keep ours)
-4. **Port fork features** onto the new architecture (DevOps detection into workflow, etc.)
-5. **Fix tests** in order
-6. **Validate CI/CD** in a test release
-7. **Publish**
-
-**Why NOT a single `git merge`:** With 70 upstream commits, 88 changed files, and 12 conflicts, a single merge produces an overwhelming conflict resolution session. Missing one detail in one file (e.g., a memory ghost in an agent spec) creates subtle runtime bugs. The staged approach ensures each change is understood and verified.
-
-**Alternative considered: `git merge --no-commit upstream/main`** -- this would stage all non-conflicting changes and leave conflicts for manual resolution. This is faster but riskier because you can't verify intermediate states. Only use this if the team has high git merge experience and a comprehensive test suite to catch issues.
+1. **Path Abstraction Layer + Runtime Capability Matrix** (P1, P4, P5) -- Foundation. Everything else depends on paths resolving correctly and capabilities being declared.
+2. **KB Migration** (P2) -- Must happen after paths are abstracted. Creates the shared `~/.gsd/` directory structure. Symlink bridge ensures backward compatibility.
+3. **Codex CLI Integration** (P3) -- Must happen after path abstraction AND KB migration. Codex is the first consumer of the new shared path model.
+4. **Cross-Runtime Handoff** (P4 completion) -- Must happen after Codex integration exists (need a 4th runtime to test handoff). State normalization from Phase 1 provides the foundation.
 
 ## Sources
 
-- Direct git analysis of this repository (primary source for all codebase-specific findings)
-- [Best Practices for Keeping a Forked Repository Up to Date (GitHub Community)](https://github.com/orgs/community/discussions/153608)
-- [Stop Forking Around: Hidden Dangers of Fork Drift (Preset)](https://preset.io/blog/stop-forking-around-the-hidden-dangers-of-fork-drift-in-open-source-adoption/)
-- [Friend Zone: Strategies for Friendly Fork Management (GitHub Blog)](https://github.blog/developer-skills/github/friend-zone-strategies-friendly-fork-management/)
-- [Git Merge Strategy Options (Atlassian)](https://www.atlassian.com/git/tutorials/using-branches/merge-strategy)
-- [Git Tricks for Maintaining a Long-Lived Fork (die-antwort.eu)](https://die-antwort.eu/techblog/2016-08-git-tricks-for-maintaining-a-long-lived-fork/)
-- [Lessons Learned from Maintaining a Fork (DEV Community)](https://dev.to/bengreenberg/lessons-learned-from-maintaining-a-fork-48i8)
-- [npm Trusted Publishing with OIDC (GitHub Changelog)](https://github.blog/changelog/2025-07-31-npm-trusted-publishing-with-oidc-is-generally-available/)
-- [Soft Fork Strategy Handbook (Open Energy Transition)](https://open-energy-transition.github.io/handbook/docs/Engineering/SoftForkStrategy/)
+- Direct codebase analysis of `get-shit-done-reflect` repository (primary source for all path counts and architecture findings)
+- [Codex CLI Configuration Reference](https://developers.openai.com/codex/config-reference/) -- TOML config format, feature toggles, MCP servers
+- [Codex CLI Slash Commands](https://developers.openai.com/codex/cli/slash-commands/) -- Built-in commands, no custom command file format
+- [Codex AGENTS.md Guide](https://developers.openai.com/codex/guides/agents-md/) -- Instruction discovery, 32KB limit, override hierarchy
+- [Codex Agent Skills](https://developers.openai.com/codex/skills) -- SKILL.md format, directory structure, progressive disclosure
+- [Codex Advanced Configuration](https://developers.openai.com/codex/config-advanced/) -- Profiles, project-level config, MCP servers
+- [Codex Basic Configuration](https://developers.openai.com/codex/config-basic/) -- Precedence order, sandbox policies, approval system
+- [5 Key Trends Shaping Agentic Development in 2026 (The New Stack)](https://thenewstack.io/5-key-trends-shaping-agentic-development-in-2026/) -- MCP as standard connector layer
+- [Node.js File System in Practice (TheLinuxCode)](https://thelinuxcode.com/nodejs-file-system-in-practice-a-production-grade-guide-for-2026/) -- Atomic rename, advisory locking, concurrent access patterns
+- [Data Migration Checklist 2025 (Quinnox)](https://www.quinnox.com/blogs/data-migration-checklist/) -- Migration rollback strategies, testing before go-live
 
 ---
-
-*Pitfalls research for upstream sync: 2026-02-09*
+*Pitfalls research for: multi-runtime CLI interop*
+*Researched: 2026-02-11*

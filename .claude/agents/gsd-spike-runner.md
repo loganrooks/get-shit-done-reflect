@@ -226,7 +226,7 @@ Create spike entry in the Knowledge Base.
    - Use project name from context
    - Or derive from current directory name (kebab-case)
 
-2. **Create KB entry** at `~/.claude/gsd-knowledge/spikes/{project}/{spike-slug}.md`:
+2. **Create KB entry** at `~/.gsd/knowledge/spikes/{project}/{spike-slug}.md`:
 
 ```yaml
 ---
@@ -271,9 +271,14 @@ rounds: {1|2}
 
 4. **Derive tags** from question keywords (technology, domain, concern)
 
-5. **Rebuild KB index:**
+5. **Provenance fields:** When creating KB entries, populate:
+   - `runtime`: Detect from installed path prefix (~/.claude/ = claude-code, ~/.config/opencode/ = opencode, ~/.gemini/ = gemini-cli, ~/.codex/ = codex-cli)
+   - `model`: Use the current model identifier (available from session context)
+   - `gsd_version`: Read from VERSION file at the current runtime's install directory (e.g., ~/.claude/get-shit-done/VERSION). Fallback: read `gsd_reflect_version` from `.planning/config.json`. If neither available, use "unknown".
+
+6. **Rebuild KB index:**
    ```bash
-   bash ~/.claude/agents/kb-rebuild-index.sh
+   bash ~/.gsd/bin/kb-rebuild-index.sh
    ```
 </step>
 

@@ -233,7 +233,7 @@ A pattern qualifies for lesson distillation when ALL of:
        v
 4. Write lesson file
    - Use kb-templates/lesson.md
-   - Write to ~/.claude/gsd-knowledge/lessons/{category}/
+   - Write to ~/.gsd/knowledge/lessons/{category}/
        |
        v
 5. Rebuild index
@@ -324,7 +324,7 @@ A pattern qualifies as global lesson when:
 # Query index for cross-project patterns
 # Group by signal_type + tags, ignoring project column
 
-KB_INDEX="$HOME/.claude/gsd-knowledge/index.md"
+KB_INDEX="$HOME/.gsd/knowledge/index.md"
 
 # Extract all signal rows
 grep "^| sig-" "$KB_INDEX" | while read row; do
@@ -573,10 +573,10 @@ Common mistakes in reflection implementation.
 
 ### 11.1 Knowledge Store Integration
 
-- Read from: `~/.claude/gsd-knowledge/index.md` (signal listing)
-- Read from: `~/.claude/gsd-knowledge/signals/{project}/` (signal details)
-- Write to: `~/.claude/gsd-knowledge/lessons/{category}/` (new lessons)
-- Execute: `~/.claude/agents/kb-rebuild-index.sh` (after writes)
+- Read from: `~/.gsd/knowledge/index.md` (signal listing)
+- Read from: `~/.gsd/knowledge/signals/{project}/` (signal details)
+- Write to: `~/.gsd/knowledge/lessons/{category}/` (new lessons)
+- Execute: `~/.gsd/bin/kb-rebuild-index.sh` (after writes)
 
 ### 11.2 Phase Artifact Integration
 

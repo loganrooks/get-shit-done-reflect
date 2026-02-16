@@ -1,264 +1,266 @@
 # Project Research Summary
 
-**Project:** v1.13 Upstream Sync & Validation
-**Domain:** Fork synchronization — syncing GSD Reflect with 70 upstream commits (v1.11.2 to v1.18.0)
-**Researched:** 2026-02-09
-**Confidence:** HIGH (direct git diff analysis of both codebases)
+**Project:** Multi-Runtime CLI Interop (Codex CLI, Shared KB, Cross-Runtime Continuity)
+**Domain:** CLI tool interoperability for AI coding agents
+**Researched:** 2026-02-11
+**Confidence:** HIGH
 
 ## Executive Summary
 
-Upstream GSD underwent a massive architectural transformation between v1.11.2 and v1.18.0. The dominant change is the extraction of repetitive bash patterns into `gsd-tools.js`, a 4,597-line zero-dependency Node.js CLI. This refactoring touched every agent, command, and workflow file in the system. Commands were hollowed out from 200-1000+ lines to 20-40 lines, delegating all logic to workflow files. Agent specs were condensed by 60% while maintaining identical behavior. Alongside this, upstream fixed 11 critical bugs, added 6 valuable features, and improved verification infrastructure.
+This project extends GSD Reflect to support OpenAI Codex CLI as a 4th runtime, migrates the knowledge base from `~/.claude/gsd-knowledge/` to a shared `~/.gsd/knowledge/` location, and enables seamless cross-runtime session handoff. The core architectural challenge is that GSD was designed with Claude Code as the canonical runtime, embedding Claude-specific paths and patterns throughout 313+ path references across 82+ files. Adding Codex CLI reveals fundamental architectural gaps: the runtime abstraction layer conflates commands and agents, the KB path is runtime-bound instead of shared, and state files leak runtime-specific details that break cross-runtime handoff.
 
-**Our fork's challenge:** We made targeted branding changes and added fork-specific features (signals, spikes, knowledge base, reflection) as additive-only files. The fork overlaps with upstream in 12 files, primarily `bin/install.js`, package identity files, and a few commands. The research reveals that the "additive only" constraint held for fork features but not for branding, and the constraint itself is now untenable given upstream's architectural shift. The recommended approach is to **adopt upstream's architecture wholesale, then port fork features onto the new structure**. This is not a traditional merge — it's an architectural migration with branding preservation.
+The recommended approach is to build the foundation first: create a two-path replacement system in the installer (runtime-specific vs shared paths), migrate KB to `~/.gsd/knowledge/` with symlink backward compatibility, and establish a capability matrix to handle runtime differences gracefully. Codex CLI integration follows as the first consumer of this new architecture, using Skills (not slash commands) and AGENTS.md (not agent specs). The most critical risk is the 313-path pandemic: a naive find-and-replace will break KB references for non-Claude runtimes. The mitigation is to separate KB paths (`~/.gsd/knowledge/`) from runtime config paths during the installer transformation phase.
 
-**Critical risks and mitigation:** The biggest risks are (1) install.js three-way merge trap — upstream made extensive changes while we added branding, (2) thin orchestrator architecture mismatch — upstream moved logic from commands to workflows, potentially losing our DevOps detection feature, and (3) agent spec dual-location problem — we have agents in both `agents/` and `.claude/agents/` that must stay synchronized. All three are mitigated by a staged semantic merge approach: accept upstream's structural changes first, then selectively re-apply fork branding and port fork features to the workflow layer.
+Cross-runtime handoff already works in principle (`.planning/` is git-committed and runtime-agnostic), but needs three fixes: KB must be accessible from all runtimes, state files must use semantic content (not runtime-specific commands), and each runtime must have working GSD commands installed. The good news: the hardest problems (state management, git-based handoff) are already solved. The remaining work is plumbing: path abstraction, format conversion, and capability-aware degradation.
 
 ## Key Findings
 
-### Recommended Stack (from STACK.md)
+### Recommended Stack
 
-Upstream introduced `gsd-tools.js`, a 4,597-line Node.js CLI that replaces 30-50% of context budget previously spent on bash snippets for config parsing, state management, phase discovery, and git operations. It contains 63 commands across 10 categories: state management (12 functions), compound init commands (12 functions), phase operations (8 functions), roadmap operations, frontmatter CRUD, verification suite, templates, config management, and utilities.
+**No new dependencies needed.** The entire integration uses Node.js built-ins (`fs`, `path`, `os`) and extends the existing installer architecture. Core technologies remain unchanged: Node.js >=16.7.0, JavaScript (CommonJS ES2020), Markdown with YAML frontmatter, esbuild for hook bundling.
 
 **Core technologies:**
-- **gsd-tools.js CLI** (Node.js, CommonJS): Centralized deterministic operations — zero dependencies, 2,033-line test suite with node:test, fully preserves zero-dependency philosophy
-- **Thin orchestrator pattern**: Commands (20-40 lines) delegate to workflows (200+ lines) which delegate to gsd-tools for deterministic operations — reduces context consumption by 75.6%
-- **Compound init commands**: Single `init <workflow>` call returns all context a workflow needs in JSON, replacing 6+ file reads — saves 5,000-10,000 tokens per execution
-- **Frontmatter CRUD suite**: Tested YAML frontmatter parsing replacing fragile inline regex — highly relevant for our signal collection and knowledge base
+- **Node.js built-ins** — all file operations, path resolution, KB migration use `fs`, `path`, `os` modules. Maintains zero-dependency philosophy.
+- **Markdown + YAML frontmatter** — commands, agents, KB entries all use this format. Codex Skills use the same pattern (SKILL.md).
+- **`~/.gsd/` directory** — new runtime-agnostic home for shared resources (KB, cache). Not under any runtime's config directory.
+- **Two-path replacement system** — installer distinguishes `RUNTIME_DIR` (runtime-specific config) from `SHARED_DIR` (`~/.gsd/`). Critical for KB path migration.
 
-**Adoption recommendation:** ADOPT fully. gsd-tools is additive (new file), maintains zero-dependency philosophy, and provides infrastructure our fork features can extend. Rejecting it means maintaining divergent patterns that make every future sync exponentially harder. The thin orchestrator pattern is the right architectural direction.
+**Codex CLI integration surface:**
+- **Config directory:** `~/.codex/` (overridable via `CODEX_HOME`)
+- **Config format:** TOML (`config.toml`) not JSON
+- **Commands:** Skills in `~/.codex/skills/gsd-*/SKILL.md` (not slash commands)
+- **Invocation:** `$gsd-command` (skill mention) or implicit matching, not `/gsd:command`
+- **Instructions:** `AGENTS.md` (32KB limit) not separate agent files
+- **No hooks:** No SessionStart equivalent, no statusline, no auto-update checks
 
-### Expected Features (from FEATURES.md)
+### Expected Features
 
-The 70 upstream commits break down into: 11 must-adopt bug fixes, 7 should-adopt features, 8 architectural changes requiring evaluation, and the rest are skip (community-specific, changelog, Windows-specific, or reverted changes).
+**Must have (table stakes):**
+- **Codex CLI command installation** — `npx get-shit-done-reflect-cc --codex` installs GSD commands to Codex. Without this, Codex support is vaporware.
+- **Shared knowledge base** — KB at `~/.gsd/knowledge/` accessible from all runtimes. Without this, cross-runtime workflows have no memory.
+- **Cross-runtime session handoff** — Pause in Claude Code, resume in Codex CLI. The killer feature that no other tool provides.
+- **Runtime-agnostic `.planning/` state** — Already works. STATE.md, ROADMAP.md, config.json contain no runtime-specific paths or commands.
+- **Tool name mapping** — Agent/workflow files reference correct tool names per runtime (Read vs read_file vs file_read).
 
-**Must adopt (critical bug fixes):**
-- **Executor completion verification** (f380275): Prevents hallucinated success — executors now verify key files exist and commits are real before reporting success
-- **Context fidelity enforcement** (ecbc692): Planner now honors locked decisions from CONTEXT.md — user decisions are binding, not advisory
-- **Respect parallelization config** (4267c6c): Fixes ignored `parallelization: false` setting
-- **Researcher always writes RESEARCH.md** (161aa61): Fixes silent file loss when `commit_docs=false`
-- **commit_docs=false in all paths** (01c9115): Fixes two bypasses that committed planning files when they shouldn't
-- **Auto-create config.json** (4dff989): Prevents hard crash when config missing
-- **Statusline crash handling** (9d7ea9c): Prevents terminal corruption on file system errors
-- **API key prevention** (f53011c): Defense-in-depth against committing secrets
-- **Persist research decision** (767bef6): Saves "skip research" choice to config
-- **JSONC parsing in installer** (6cf4a4e): Prevents data loss on parse errors
-- **Statusline reference update** (074b2bc): Preserves statusline across updates
+**Should have (competitive advantage):**
+- **Runtime provenance tracking** — `runtime:` field in KB entries shows which runtime produced each signal/lesson. Enables debugging and trust calibration.
+- **AGENTS.md generation** — Auto-generate `.codex/AGENTS.md` from project context (PROJECT.md, ROADMAP.md) so Codex understands the project without manual setup.
+- **Capability-aware degradation** — Commands detect missing capabilities (Task tool, hooks) and degrade gracefully (sequential instead of parallel).
+- **Migration with symlink bridge** — Copy KB to new location, symlink old location for backward compatibility. Zero-downtime migration.
 
-**Should adopt (valuable features):**
-- **Preserve local patches** (ca03a06): SHA256 manifest + backup system — directly relevant to our fork use case
-- **classifyHandoffIfNeeded workaround** (4072fd2): Handles Claude Code v2.1.27+ bug where agents falsely report failure
-- **--include flag optimization** (fa81821 + 01c9115): Eliminates redundant file reads, saves 5k-10k tokens per execution
-- **Brave Search integration** (60ccba9): Optional, graceful degradation
-- **Update respects install type** (8384575): Preserves local vs global install
-- **--auto flag** (7f49083): Unattended project initialization
+**Defer (v2+):**
+- **Codex Skills with scripts** — Package complex GSD workflows as Skills with executable `scripts/` and `references/`. Requires deep Skills understanding.
+- **Full orchestrated execution in Codex** — Wave-based parallel execution via Task tool. Codex has no Task equivalent; sequential execution is acceptable for v1.
+- **Real-time session sync** — Impossibly complex, marginal benefit. Explicit pause/resume is 30 seconds overhead with 100% reliability.
+- **Unified conversation history** — Conversation formats are runtime-internal and incompatible. Track work at `.planning/` level instead.
 
-**Architectural changes (evaluate):**
-- **gsd-tools.js CLI** (8 commits): Foundation of v1.12-v1.18 architecture
-- **Thin orchestrator refactoring** (d44c7dc + 2 others): 44 files changed, 22k chars (75.6%) reduced
-- **Frontmatter CRUD/verification suite** (6a2d1f1): 1,037 new lines in gsd-tools
-- **Context-optimizing parsing** (6c53737): state-snapshot, phase-plan-index, summary-extract
+### Architecture Approach
 
-**Skip (not applicable to fork):**
-- GSD Memory system (added then reverted)
-- Community GitHub infrastructure (CODEOWNERS, issue templates, auto-label)
-- README badge changes (Discord, X, $GSD token)
-- Changelog/version bump commits (18 commits)
-- Windows-specific fixes (4 commits) — low priority for our macOS/Linux users
-- Removed files (CONTRIBUTING.md, GSD-STYLE.md, etc.)
+The current architecture uses a transformation pipeline in `bin/install.js` that converts Claude Code-native markdown commands/agents into runtime-specific formats at install time. This works for 3 runtimes (Claude, OpenCode, Gemini) because they share a common pattern: slash commands are markdown files in a config directory. Codex CLI breaks this pattern: commands are Skills (directories with SKILL.md), instructions are AGENTS.md (read at session start, not on-demand), and there is no slash command mechanism.
 
-### Architecture Approach (from ARCHITECTURE.md)
+**The fix is a two-layer architecture:**
+1. **Runtime abstraction layer** — capability matrix declares what each runtime supports (Task tool, hooks, tool permissions). Commands use feature detection (`has_capability('task_tool')`) not runtime detection (`if runtime == 'codex'`).
+2. **Shared resource layer** — `~/.gsd/knowledge/` and `~/.gsd/cache/` live outside any runtime's directory. Installer creates these once, all runtimes reference them without path transformation.
 
-The fork has 12 overlapping files with upstream. The overlap analysis reveals:
-- **High conflict (5 files):** bin/install.js, commands/gsd/help.md, commands/gsd/new-project.md, commands/gsd/update.md, package.json
-- **Medium conflict (3 files):** get-shit-done/references/planning-config.md, get-shit-done/templates/research.md, hooks/gsd-check-update.js
-- **Low conflict (4 files):** .gitignore, package-lock.json (regenerate), CHANGELOG.md (keep ours), README.md (keep ours)
+**Major components:**
+1. **Installer (`bin/install.js`)** — extended with Codex runtime support, two-path replacement system, KB migration logic, capability matrix configuration.
+2. **`~/.gsd/` directory** — NEW shared home for KB (`knowledge/`), cache (`cache/`), optional cross-runtime config (`config.toml`).
+3. **Runtime adapters** — per-runtime conversion functions: `convertClaudeToOpencodeFrontmatter()`, `convertClaudeToGeminiToml()`, NEW `convertClaudeToCodexSkill()`.
+4. **State files (`.planning/`)** — already runtime-agnostic. Minor enhancement: add optional `runtime:` field to `.continue-here.md` for cross-runtime handoff provenance.
+5. **KB paths (313 references)** — change from `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/` in source files. Installer does NOT transform these (they are already shared).
 
-**Major architectural changes from upstream:**
-1. **Thin orchestrator pattern**: Commands reduced from 200-1000+ lines to 20-40 lines, all logic moved to workflow layer
-2. **gsd-tools.js CLI**: 63 commands replace inline bash across 50+ files
-3. **Agent spec condensation**: 60% reduction (net -2,298 lines across 9 agents) while maintaining identical behavior
-4. **19 new workflow files**: Extracted from commands (add-phase, check-todos, help, new-project, plan-phase, etc.)
-5. **Memory system ghost**: Added (af7a057) then reverted (cc3c6ac) — must ensure no ghost references remain
+### Critical Pitfalls
 
-**Merge strategy recommendation:** `git merge upstream/main` with targeted manual resolution. Not rebase (70 commits too many), not cherry-pick (interdependent commits). A single merge commit captures the sync point for future merges.
+1. **The 313 Hardcoded Path Pandemic** — 313 references to `~/.claude/` across 82+ files. Installer's single regex replacement (`~/.claude/` -> runtime path) cannot distinguish between KB paths (should become `~/.gsd/knowledge/`) and runtime config paths (should become `~/.codex/`). Attempting naive KB migration will break KB references for all non-Claude runtimes because the installer blindly replaces ALL `~/.claude/` paths. **Prevention:** Introduce two-path replacement system. Change source files to use `~/.gsd/knowledge/` for KB (not caught by installer regex). Use `~/.claude/get-shit-done/` for runtime config (transformed per runtime). Validate with: `grep -r 'gsd-knowledge' ~/.codex/` must show `~/.gsd/knowledge/` not `~/.codex/gsd-knowledge/`.
 
-**Conflict resolution approach:**
-- `.gitignore`, `CHANGELOG.md`, `README.md`: Keep fork versions entirely
-- `bin/install.js`: Accept upstream + re-apply branding (gets JSONC parser, patch preservation, Windows fixes)
-- Commands (help, new-project, update): Accept upstream thin orchestrators, migrate fork logic to workflow layer
-- `package.json`: Manual field merge (fork identity + upstream structure + merged deps)
-- `package-lock.json`: Regenerate after package.json merge
-- Hooks, planning-config, research template: Accept upstream + append/re-apply fork sections
+2. **The KB Migration Data Loss Window** — Race conditions during migration: agents writing signals while files are being moved, index corruption from partial scans, no rollback path for users who downgrade. **Prevention:** Use copy-then-symlink, never move-then-pray. Copy all files to `~/.gsd/knowledge/`, verify integrity (file count + checksum), create symlink at `~/.claude/gsd-knowledge/` -> `~/.gsd/knowledge/`, rebuild index from scratch. The symlink provides backward compatibility and zero-downtime migration. Write `~/.gsd/knowledge/.migrating` lock file during migration; agents wait if present.
 
-**Post-merge adaptations:**
-- **Phase A: Workflow layer migration** — DevOps detection from new-project.md moves to workflows/new-project.md
-- **Phase B: Agent alignment** — Upstream agents now condensed and gsd-tools-aware, installed copies will update automatically
-- **Phase C: gsd-tools integration** — Fork features can optionally use gsd-tools for state/config/commits
+3. **The Codex CLI Impedance Mismatch** — Codex CLI has a fundamentally different architecture: Skills (not slash commands), AGENTS.md (not agent specs), sandbox policy (not tool permissions), no Task tool (no subagent spawning). Attempting to convert GSD commands 1:1 to Codex format will fail. **Prevention:** Accept that Codex support is 60-70% feature coverage initially. Use Skills for commands, consolidate agent specs into AGENTS.md, skip hook registration (Codex has no hooks), design sequential workflows for operations that require Task tool in Claude. Document capability gaps clearly: "In Codex CLI, wave-based parallel execution runs sequentially. This is slower but produces identical results."
 
-### Critical Pitfalls (from PITFALLS.md)
+4. **The State File Runtime Leakage** — `.planning/` state files (`.continue-here.md`, `STATE.md`, `PLAN.md`) contain runtime-specific content: paths like `~/.claude/get-shit-done/bin/gsd-tools.js`, commands like `/gsd:execute-phase 3`, tool names like `Read`/`Write`. Cross-runtime handoff breaks when resuming runtime encounters instructions it cannot follow. **Prevention:** Audit all writes to `.planning/` for runtime-specific content. Store semantic state ("resume phase 3, task 4") not procedural commands ("/gsd:execute-phase 3"). Let the resume workflow translate to current runtime's syntax. Use `runtime:` field in `.continue-here.md` for provenance, not execution.
 
-1. **The install.js three-way merge trap** — Three independent change streams (our branding, memory add/revert, post-revert changes) all touch install.js. Naive merge loses branding or introduces ghost code. Prevention: Manual semantic merge, test in isolation before proceeding.
-
-2. **Thin orchestrator architecture mismatch** — Upstream moved logic from commands to workflows. Taking upstream commands without workflows breaks everything. Taking our commands without upstream workflows loses improvements. Prevention: Adopt architecture wholesale, port features onto new structure.
-
-3. **Agent spec dual-location problem** — We have agents in both `agents/` (source) and `.claude/agents/` (installed copies). Upstream condensed agents by 60%. Must update both locations consistently without clobbering our custom agents (reflector, signal-collector, spike-runner, knowledge-store). Prevention: Update `agents/` first, then `.claude/agents/` copies, leave fork-unique agents untouched.
-
-4. **package.json identity collision** — Both sides modified every field. Must keep our identity (name, bin, repository) but adopt upstream's structural changes (files array for gsd-tools.js). Prevention: Hand-resolve field by field, verify with `npm pack --dry-run`.
-
-5. **Memory system ghost** — Upstream added gsd-memory/ (38 lines in researcher agents, 20 in new-project, 26 in complete-milestone, 16 in execute-phase) then reverted it. Three-way merge may reintroduce ghost references. Prevention: Grep for `memory`, `gsd_memory`, `gsd-memory`, `projects.json` after merge — must be zero hits except our own KB system.
-
-6. **gsd-tools.js adoption gap** — Commands/workflows call gsd-tools but it may not be installed correctly, may not handle our fork config fields, or tests may never run. Prevention: Verify files array, run `node --test gsd-tools.test.js`, test against our config.json.
-
-7. **Test suite fragility** — Our wiring-validation.test.js expects old pattern (inline command logic), will fail after thin orchestrator adoption. Prevention: Fix tests in order (install.test.js → wiring-validation.test.js → KB tests), don't skip failing tests.
-
-8. **Version number confusion** — Fork at v1.12.2, upstream at v1.18.0. What version are we after merge? Prevention: Use semantic versioning based on our fork history (v1.13.0), document "Synced with upstream v1.18.0" in CHANGELOG.
+5. **The Capability Gap Denial** — Pretending all runtimes are equivalent causes silent failures. Task tool (subagent spawning) exists in Claude/OpenCode, not in Codex. Named tool permissions (`allowed-tools:`) exist in Claude/OpenCode/Gemini, not in Codex. Session hooks exist in Claude/Gemini, not in OpenCode/Codex. **Prevention:** Create runtime capability matrix as first-class artifact. Every feature declares which capabilities it requires. Use feature detection (`has_capability('task_tool')`) not runtime detection. Design for graceful degradation: sequential execution if Task unavailable, skip hooks if not supported. Document degraded behavior per runtime.
 
 ## Implications for Roadmap
 
-Based on research, this is not a traditional feature development roadmap. This is an **architectural migration with feature preservation**. The research reveals 5 distinct work streams that have dependencies on each other.
+Based on research, this project decomposes into a 5-phase roadmap with clear dependency ordering:
 
-### Phase 1: Pre-Merge Preparation & Strategy
-**Rationale:** The "additive only" constraint is dead (PITFALLS.md P10). Before touching code, we need strategic decisions and a clean snapshot.
-**Delivers:**
-- Decision on new fork maintenance strategy (use upstream's reapply-patches system)
-- Snapshot of current fork state (all tests passing, documentation of what we've modified)
-- Sync branch created
-- Validation plan defined
-**Addresses:** Risk of clinging to an unworkable constraint
-**Avoids:** P10 (additive-only constraint confusion), sets up for P1-P5 mitigation
+### Phase 1: Path Abstraction & Runtime Capability Matrix (Foundation)
+**Rationale:** Everything else depends on paths resolving correctly and capabilities being explicitly declared. This is the foundation that unlocks all subsequent work.
 
-### Phase 2: Core Merge & Conflict Resolution
-**Rationale:** The 12 overlapping files must be resolved correctly or everything downstream breaks. install.js must be first (foundation), then package.json (identity), then architecture (commands/agents).
 **Delivers:**
-- install.js merged (branding preserved, upstream features adopted) — addresses P1
-- package.json merged (fork identity + upstream structure) — addresses P4
-- CHANGELOG.md, README.md preserved (fork versions)
-- Commands converted to thin orchestrators — addresses P2
-- Agent specs updated (both locations) — addresses P3
-- All memory ghost references purged — addresses P5
-**Uses:** Manual semantic merge approach from ARCHITECTURE.md conflict resolution table
-**Avoids:** P1 (install.js trap), P2 (architecture mismatch), P3 (dual-location), P4 (identity collision), P5 (memory ghost)
-**Research flag:** HIGH — This is the most complex phase, requires deep understanding of both codebases
+- Two-path replacement system in installer (RUNTIME_DIR vs SHARED_DIR)
+- Runtime capability matrix (declares Task tool, hooks, tool permissions per runtime)
+- Source files updated: `~/.claude/gsd-knowledge/` -> `~/.gsd/knowledge/` (276 references across 62 files)
+- State file audit: remove runtime-specific paths/commands from `.planning/` files
 
-### Phase 3: gsd-tools Integration & Validation
-**Rationale:** gsd-tools.js is the foundation of the new architecture. Must verify it works with our fork config before proceeding.
-**Delivers:**
-- gsd-tools.js and test suite adopted
-- Files array updated in package.json
-- gsd-tools tested against fork config.json (health_check, devops, gsd_reflect_version fields)
-- Test suite passing: `node --test gsd-tools.test.js`
-**Implements:** STACK.md adoption recommendation (gsd-tools CLI)
-**Avoids:** P6 (gsd-tools adoption gap)
-**Research flag:** MEDIUM — Test-driven validation, straightforward once merge is clean
+**Addresses:**
+- Pitfall 1 (313 path pandemic) — separation of KB paths from runtime paths
+- Pitfall 4 (state file leakage) — normalization of .planning/ content
+- Pitfall 5 (capability denial) — explicit capability model
 
-### Phase 4: Fork Feature Migration to Workflow Layer
-**Rationale:** Our fork features (DevOps detection, help content, package name references) were in command files. Upstream moved logic to workflow layer. Must port our features.
-**Delivers:**
-- DevOps detection migrated from commands/gsd/new-project.md to workflows/new-project-reflect.md or extended upstream workflow
-- Fork help content added to workflows/help.md
-- Package name references updated in workflows/update.md
-- Fork-specific workflow files verified (collect-signals, reflect, run-spike) — unchanged, already follow thin pattern
-**Addresses:** Feature preservation after architectural migration
-**Avoids:** P2 (losing features due to architecture mismatch)
+**Avoids:** Cascading breakage where every subsequent phase discovers new path problems
 
-### Phase 5: Test Suite Repair & CI/CD Validation
-**Rationale:** Tests will break after the architectural migration. They are the primary merge correctness signal. Must fix in dependency order.
-**Delivers:**
-- install.test.js updated (new banner, new directory structure)
-- wiring-validation.test.js updated (recognize thin orchestrator pattern)
-- KB tests verified (unchanged, still passing)
-- gsd-tools tests integrated into CI workflow
-- CI/CD workflows validated (.github/workflows/ci.yml, publish.yml, smoke-test.yml)
-- CODEOWNERS skipped (upstream's @glittercowboy not our maintainer)
-- Issue templates updated or skipped
-**Avoids:** P7 (test suite fragility), P8 (CI/CD workflow collision)
-**Research flag:** LOW — Test-driven, clear pass/fail criteria
+**Research flag:** Standard patterns (installer architecture already exists, extending not rebuilding)
 
-### Phase 6: Version, Documentation, Release
-**Rationale:** After all code and tests are validated, set version and document what changed.
-**Delivers:**
-- Version set to 1.13.0 (semantic versioning for our fork)
-- CHANGELOG.md updated: "Synced with upstream GSD v1.18.0" with adoption summary
-- gsd_reflect_version in config.json updated to 1.13.0
-- Release notes documenting: (1) Upstream sync, (2) Bug fixes adopted, (3) Breaking changes (if any), (4) Fork features preserved
-**Avoids:** P9 (version confusion)
+### Phase 2: KB Migration to ~/.gsd/knowledge/ (Shared Resource Foundation)
+**Rationale:** Must happen after path abstraction (Phase 1) but before Codex integration (Phase 3). Codex needs to find KB at the shared path from day one.
 
-### Phase 7: Dogfooding — Signal Tracking & KB Building
-**Rationale:** This sync milestone is perfect for dogfooding our fork's features (signals, knowledge base, reflection). Capture learnings for validation.
 **Delivers:**
-- Signal collection during each phase (architecture decisions, merge conflicts resolved, patterns learned)
-- Knowledge base entries for: (1) Upstream sync process, (2) gsd-tools CLI usage, (3) Thin orchestrator pattern, (4) Fork maintenance strategy
-- Health check validation after merge (infrastructure integrity)
-- Reflection at milestone completion (process retrospective)
-**Uses:** Fork-specific features (collect-signals, signal, health-check, reflect)
-**Implements:** Validates that our fork features still work after architecture migration
+- `~/.gsd/` directory structure: knowledge/, cache/, optional config.toml
+- Migration logic in installer: copy `~/.claude/gsd-knowledge/` -> `~/.gsd/knowledge/`
+- Symlink bridge: `~/.claude/gsd-knowledge/` -> `~/.gsd/knowledge/` for backward compatibility
+- Lock file mechanism: `~/.gsd/knowledge/.migrating` prevents concurrent access during migration
+- Index rebuild: `index.md` generated from new location
+
+**Addresses:**
+- Pitfall 2 (migration data loss) — copy-then-symlink eliminates rollback problem
+- Table stakes: shared knowledge base across runtimes
+
+**Avoids:** Attempting Codex integration before KB is accessible to all runtimes
+
+**Research flag:** Standard patterns (file migration, symlink, index rebuild are well-documented)
+
+### Phase 3: Codex CLI Runtime Support (New Runtime Integration)
+**Rationale:** Must happen after path abstraction (Phase 1) and KB migration (Phase 2). Codex is the first consumer of the new shared path model and the capability matrix.
+
+**Delivers:**
+- `codex` runtime option in installer
+- `convertClaudeToCodexSkill()` conversion function (commands -> Skills)
+- AGENTS.md generation from agent specs
+- `~/.codex/get-shit-done/` reference docs installation
+- Tool name mapping for Codex (if needed — likely similar to Claude)
+- Graceful degradation for missing capabilities (no Task tool, no hooks)
+
+**Addresses:**
+- Pitfall 3 (Codex impedance mismatch) — Skills + AGENTS.md, not slash commands
+- Table stakes: Codex CLI command installation
+- Differentiator: AGENTS.md generation
+
+**Avoids:** Attempting 1:1 feature parity; accepts 60-70% coverage initially
+
+**Research flag:** NEEDS RESEARCH — Codex Skills are documented but GSD's conversion logic is novel. May need research-phase for AGENTS.md consolidation strategy and skill directory structure.
+
+### Phase 4: Cross-Runtime State Audit & Handoff (Continuity)
+**Rationale:** Must happen after Codex integration (Phase 3) exists. Need a 4th runtime to test actual cross-runtime handoff. State normalization from Phase 1 provides foundation.
+
+**Delivers:**
+- Verified: `.planning/` has no runtime-specific paths (audit from Phase 1)
+- `runtime:` field in `.continue-here.md` template (optional, for provenance)
+- Runtime detection utility (detectRuntime() in gsd-tools.js)
+- Updated pause-work/resume-work workflows to handle cross-runtime scenarios
+- End-to-end test: pause in Claude Code, resume in Codex CLI
+
+**Addresses:**
+- Pitfall 4 (state file leakage) — verification that state is truly runtime-agnostic
+- Table stakes: cross-runtime session handoff
+- Differentiator: seamless pause/resume across runtimes
+
+**Avoids:** Assuming handoff works without testing; edge cases reveal themselves in cross-runtime scenarios
+
+**Research flag:** Standard patterns (state management already proven, just extending)
+
+### Phase 5: Existing Runtime Regression Testing & Polish (Validation)
+**Rationale:** Must happen after all architectural changes (Phases 1-3) to catch regressions. Integration testing phase.
+
+**Delivers:**
+- Verified: OpenCode installation works correctly with new path system
+- Verified: Gemini CLI installation works correctly with new path system
+- Verified: `--all` flag installs all 4 runtimes with correct format conversion
+- Verified: KB accessible from all runtimes (read/write/index rebuild)
+- End-to-end: create project in Claude, add signals, resume in Codex, KB intact
+- Documentation updates: README, CHANGELOG, capability matrix docs
+- Version bump to v1.14.0
+
+**Addresses:**
+- Ensure no regressions from multi-phase changes
+- Validate entire cross-runtime workflow end-to-end
+
+**Avoids:** Shipping broken OpenCode/Gemini support due to installer changes
+
+**Research flag:** Standard patterns (regression testing, no new research needed)
 
 ### Phase Ordering Rationale
 
-- **Phase 1 before 2:** Strategic decisions must be made before touching code, otherwise mid-merge confusion
-- **Phase 2 before 3:** Core merge must complete before validating gsd-tools, since gsd-tools is part of the merge
-- **Phase 3 before 4:** gsd-tools must work before porting fork features that might use it
-- **Phase 4 before 5:** Fork features must be migrated before testing, since tests validate feature presence
-- **Phase 5 before 6:** All tests must pass before versioning/release
-- **Phase 7 parallel:** Signal tracking happens throughout Phases 2-6, synthesis at the end
+**Why this order:**
+1. **Path abstraction first** — unblocks everything. KB migration depends on correct path separation. Codex integration depends on paths resolving correctly. Handoff depends on runtime-agnostic state.
+2. **KB migration second** — creates the shared resource layer. Codex needs KB at shared path from day one. Handoff needs KB accessible to all runtimes.
+3. **Codex integration third** — first consumer of new architecture. Validates that shared paths work, capability matrix works, format conversion works.
+4. **Handoff fourth** — requires Codex to exist for testing. State normalization from Phase 1 + KB from Phase 2 + Codex commands from Phase 3 = complete handoff.
+5. **Regression testing last** — validates entire system after all changes. Catches interaction bugs between phases.
+
+**Why this grouping:**
+- **Foundation phases (1-2):** Path abstraction + KB migration. These change the installer and source files but do not add new runtime support.
+- **Integration phase (3):** Codex CLI support. Consumes the foundation, validates the architecture.
+- **Validation phases (4-5):** Handoff + regression testing. Verify the complete system works end-to-end.
+
+**How this avoids pitfalls:**
+- **Pitfall 1 (313 paths)** — addressed in Phase 1, before any migration or new runtime
+- **Pitfall 2 (migration loss)** — addressed in Phase 2, with symlink safety net
+- **Pitfall 3 (Codex mismatch)** — addressed in Phase 3, with acceptance of capability gaps
+- **Pitfall 4 (state leakage)** — addressed in Phase 1 (normalization) and Phase 4 (verification)
+- **Pitfall 5 (capability denial)** — addressed in Phase 1 (capability matrix) and enforced in Phase 3 (Codex degradation)
 
 ### Research Flags
 
 **Phases needing deeper research during planning:**
-- **Phase 2 (Core Merge):** Complex, high-stakes. Needs detailed plan for each of the 12 conflict files. Consider sub-phasing: 2.1 install.js, 2.2 package.json, 2.3 commands, 2.4 agents, 2.5 validation.
-- **Phase 4 (Feature Migration):** Depends on upstream's workflow structure which we haven't fully analyzed. May need research-phase to understand workflow extension patterns.
+- **Phase 3 (Codex CLI integration)** — Skills directory structure, AGENTS.md consolidation strategy, exact tool name mapping (if different from Claude), handling 32KB AGENTS.md limit. Codex Skills are documented but GSD's specific conversion approach is novel.
 
-**Phases with standard patterns (skip research):**
-- **Phase 1 (Preparation):** Snapshot and strategy — standard git workflow
-- **Phase 3 (gsd-tools Integration):** Test-driven validation — clear acceptance criteria
-- **Phase 5 (Test Repair):** Test-driven — clear pass/fail
-- **Phase 6 (Version/Docs):** Administrative — no technical complexity
-- **Phase 7 (Dogfooding):** Uses existing fork features — known patterns
+**Phases with standard patterns (skip research-phase):**
+- **Phase 1 (Path abstraction)** — Installer transformation pipeline already exists, extending not rebuilding. Path replacement is well-understood Node.js filesystem operations.
+- **Phase 2 (KB migration)** — File copying, symlink creation, index rebuild are standard operations. No novel patterns.
+- **Phase 4 (Handoff)** — `.planning/` state management already proven. Adding `runtime:` field is incremental.
+- **Phase 5 (Regression testing)** — Testing methodology is established. Smoke tests, integration tests, manual verification.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Direct source analysis of gsd-tools.js (4,597 lines), test suite (2,033 lines), and all usage across 50+ files. Zero-dependency philosophy verified. |
-| Features | HIGH | All 70 commits examined via `git diff`. Bug fixes categorized by severity, features by adoption priority. Overlap analysis confirmed with git diff on 12 files. |
-| Architecture | HIGH | Detailed git diff analysis of both codebases. Conflict resolution strategy grounded in actual file contents. Thin orchestrator pattern verified across all command/workflow pairs. |
-| Pitfalls | HIGH | All pitfalls grounded in actual codebase analysis (git diffs showing three-way merge issues, memory add/revert tracked through commits, dual-location confirmed via ls). Community sources provide context but not the primary findings. |
+| Stack | HIGH | No new dependencies. All Node.js built-ins. Codex CLI config/Skills format verified via official docs (developers.openai.com/codex). |
+| Features | HIGH | Table stakes features clearly defined (shared KB, Codex installation, handoff). Differentiators validated against competitor landscape (Aider, Continue.dev have no cross-runtime support). Anti-features identified from complexity analysis. |
+| Architecture | HIGH | Direct codebase analysis of 313 path references, installer transformation pipeline (1765 lines), existing 3-runtime support. Codex integration patterns verified via official documentation (Skills, AGENTS.md, config.toml). |
+| Pitfalls | HIGH | Grounded in actual codebase analysis. 313 hardcoded paths counted via grep. Migration risks identified from Node.js filesystem behavior. Codex impedance mismatch verified via capability comparison table. |
 
 **Overall confidence:** HIGH
 
-The research is grounded in direct git analysis of this repository and upstream. Every finding is traceable to specific commits, files, and line numbers. The only uncertainty is execution risk (merge conflicts are complex), not analysis risk.
+Research is grounded in three high-confidence sources:
+1. Direct codebase analysis of get-shit-done-reflect repository
+2. Official Codex CLI documentation (developers.openai.com/codex)
+3. Existing multi-runtime implementation patterns (Claude/OpenCode/Gemini)
+
+The architecture is an extension of proven patterns, not a greenfield design. The hardest problems (state management, git-based handoff) are already solved. The remaining work is plumbing: path abstraction, format conversion, capability-aware degradation.
 
 ### Gaps to Address
 
-- **Upstream workflow extension patterns:** We haven't fully analyzed how to extend upstream's workflow files without modifying them. Phase 4 planning may need research-phase to understand best practices for workflow composition.
+**Minor gaps (address during planning/execution):**
+- **Exact Codex tool names** — Documentation does not specify tool names (Read, Write, Bash equivalents). Confidence: MEDIUM. Likely similar to Claude Code based on architecture. Verify during Phase 3 implementation via runtime inspection.
+- **Runtime detection via environment variables** — Each runtime sets different env vars. Confidence: LOW. Best approach: path-based detection (which config directory loaded the commands). Alternative: prompt user if ambiguous. Address during Phase 4.
+- **AGENTS.md 32KB limit handling** — How to consolidate 12+ GSD agents into 32KB. Confidence: MEDIUM. Options: (a) summary-only AGENTS.md with Skills for details, (b) progressive disclosure via Skills, (c) project-level AGENTS.md + global Skills. Choose during Phase 3 planning.
+- **Codex subagent spawning** — Codex has Skills (can invoke other skills) but no Task tool (isolated context window). Confidence: MEDIUM. Approach: sequential execution for Task-dependent workflows, document degraded behavior. Phase 3.
 
-- **gsd-tools extensibility:** The research confirms gsd-tools can be extended (add new commands) but doesn't detail the best approach (modify gsd-tools.js vs. create gsd-reflect-tools.js). Decision needed during Phase 3 planning.
-
-- **Installer behavior changes:** Upstream's installer now writes `gsd-file-manifest.json`, backs up patches, handles JSONC. We need to verify these features don't conflict with our fork's installation needs. Validation during Phase 3.
-
-- **Windows fixes relevance:** Skipped 4 Windows-specific commits as low priority for our macOS/Linux users. If we expand platform support later, revisit: 1344bd8 (detached:true), ced41d7 (HEREDOC), 1c6a35f (backslashes), dac502f (gsd-tools merge).
+**No critical blockers.** All gaps have clear mitigation paths. Research provides sufficient foundation for roadmap creation.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Direct git diff analysis: `git log --oneline 2347fca..upstream/main` (70 commits)
-- `git show upstream/main:get-shit-done/bin/gsd-tools.js` — Full 4,597-line source
-- `git show upstream/main:get-shit-done/bin/gsd-tools.test.js` — Full 2,033-line test suite
-- `git diff --stat` and `git diff` for all must-adopt and should-adopt commits
-- `git diff HEAD upstream/main --name-only` for overlap analysis
-- `git diff 2347fca..HEAD --name-only` for fork modification tracking
-- Commit messages and linked issue numbers for bug fix context
+- Direct codebase analysis: `bin/install.js` (1765 lines), all commands/agents/workflows (313 path references), `.planning/` state files (runtime-agnostic verification)
+- [Codex CLI Documentation](https://developers.openai.com/codex/cli/) — official reference for CLI commands, config format
+- [Codex Config Reference](https://developers.openai.com/codex/config-reference/) — complete TOML schema, all settings
+- [Codex Skills Documentation](https://developers.openai.com/codex/skills) — SKILL.md format, directory structure, progressive disclosure
+- [Codex AGENTS.md Guide](https://developers.openai.com/codex/guides/agents-md/) — discovery order, layering, 32KB limit
+- [Codex Slash Commands](https://developers.openai.com/codex/cli/slash-commands/) — built-in commands, no custom command support
+- [Codex Custom Prompts](https://developers.openai.com/codex/custom-prompts/) — deprecated in favor of Skills (relevant for understanding evolution)
 
 ### Secondary (MEDIUM confidence)
-- Best Practices for Keeping a Forked Repository Up to Date (GitHub Community)
-- Stop Forking Around: Hidden Dangers of Fork Drift (Preset)
-- Friend Zone: Strategies for Friendly Fork Management (GitHub Blog)
-- Git Merge Strategy Options (Atlassian)
-- Git Tricks for Maintaining a Long-Lived Fork (die-antwort.eu)
-- Lessons Learned from Maintaining a Fork (DEV Community)
-- npm Trusted Publishing with OIDC (GitHub Changelog)
-- Soft Fork Strategy Handbook (Open Energy Transition)
+- [AGENTS.md Standard](https://agents.md/) — open format specification, cross-tool compatibility, Linux Foundation governance
+- [Claude Code AGENTS.md Support Request](https://github.com/anthropics/claude-code/issues/6235) — 2,520+ upvotes, shows demand for cross-tool standards
+- [5 Key Trends Shaping Agentic Development in 2026](https://thenewstack.io/5-key-trends-shaping-agentic-development-in-2026/) — MCP as standard connector layer, relevance to cross-runtime interop
+- [Node.js File System in Practice](https://thelinuxcode.com/nodejs-file-system-in-practice-a-production-grade-guide-for-2026/) — atomic operations, advisory locking, migration patterns
+
+### Tertiary (LOW confidence)
+- Community config examples — Codex settings from GitHub repos (validation needed during implementation)
+- Runtime detection heuristics — environment variables per runtime (needs verification)
 
 ---
-*Research completed: 2026-02-09*
+*Research completed: 2026-02-11*
 *Ready for roadmap: yes*

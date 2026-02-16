@@ -1232,11 +1232,11 @@ Query for **both lessons AND spikes equally**. Unlike the planner (lessons only)
 
 ### Query Pattern
 
-1. Read `~/.claude/gsd-knowledge/index.md`
+1. Read `~/.gsd/knowledge/index.md`
 2. Grep for error-related keywords in both the Lessons and Spikes tables:
    ```bash
-   grep -i "{error-keyword}" ~/.claude/gsd-knowledge/index.md
-   grep -i "{technology}" ~/.claude/gsd-knowledge/index.md
+   grep -i "{error-keyword}" ~/.gsd/knowledge/index.md
+   grep -i "{technology}" ~/.gsd/knowledge/index.md
    ```
 3. Read the top 2-3 matching entries (full entry files)
 4. Check freshness via `depends_on` if present in the entry frontmatter

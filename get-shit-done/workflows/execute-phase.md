@@ -47,6 +47,64 @@ From init JSON: `phase_dir`, `plan_count`, `incomplete_count`.
 Report: "Found {plan_count} plans in {phase_dir} ({incomplete_count} incomplete)"
 </step>
 
+<!-- Capability gap signals are logged as trace severity during degraded execution.
+     They appear in signal collection reports but are NOT persisted to the KB.
+     See signal-detection.md Section 12 for the full specification. -->
+
+<capability_adaptation>
+## Runtime Capability Adaptation
+
+Before executing waves, check the runtime capability matrix
+(read get-shit-done/references/capability-matrix.md if not already loaded).
+
+<capability_check name="parallel_execution">
+Check the runtime capability matrix (get-shit-done/references/capability-matrix.md):
+
+If has_capability("task_tool"):
+  Execute waves as designed -- spawn gsd-executor via Task() for each plan in the wave.
+  Track agent progress, collect results, proceed to next wave.
+
+Else:
+  Note to user (first occurrence only): "Note: Running sequentially -- this runtime doesn't support parallel agents."
+
+  Log capability gap signal (trace severity, not persisted to KB):
+  - signal_type: capability-gap
+  - severity: trace
+  - runtime: {detected from path prefix in this workflow file}
+  - model: {self-reported model name}
+  - description: "task_tool capability unavailable. Degraded from parallel wave execution to sequential plan execution."
+
+  This signal appears in the signal collection report when /gsd:collect-signals
+  runs for this phase. It is NOT written to the KB (trace signals are report-only
+  per signal-detection.md Section 6).
+
+  For each plan in execution order:
+  1. Read the plan file directly
+  2. Execute each task in sequence (follow execute-plan.md flow)
+  3. Create SUMMARY.md after all tasks complete
+  4. Commit task artifacts
+  5. Proceed to next plan
+  Skip: wave grouping, parallel spawning, agent tracking (init_agent_tracking)
+</capability_check>
+
+<capability_check name="hooks_support">
+If has_capability("hooks"):
+  Configure hooks as normal (update check on SessionStart, etc.).
+
+Else:
+  Skip hook configuration.
+  Note (first occurrence): "Update checks will run on GSD command invocation instead of session start."
+
+  Log capability gap signal (trace severity, not persisted to KB):
+  - signal_type: capability-gap
+  - severity: trace
+  - runtime: {detected from path prefix}
+  - model: {self-reported model name}
+  - description: "hooks capability unavailable. Update checks deferred to command invocation."
+</capability_check>
+
+</capability_adaptation>
+
 <step name="discover_and_group_plans">
 Load plan inventory with wave grouping in one call:
 

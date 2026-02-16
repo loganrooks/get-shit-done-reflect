@@ -8,7 +8,7 @@ version: 1.0.0
 
 ## 1. Overview
 
-The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.claude/gsd-knowledge/`. It stores signals (workflow deviations and struggles), spikes (structured experiments and decisions), and lessons (distilled wisdom from patterns).
+The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.gsd/knowledge/`. It stores signals (workflow deviations and struggles), spikes (structured experiments and decisions), and lessons (distilled wisdom from patterns).
 
 **Consumers:** GSD-internal agents only. No external tool integration required.
 
@@ -22,7 +22,7 @@ The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.cla
 ## 2. Directory Structure
 
 ```
-~/.claude/gsd-knowledge/
+~/.gsd/knowledge/
 ├── signals/
 │   └── {project-name}/
 │       └── {YYYY-MM-DD}-{slug}.md
@@ -93,6 +93,16 @@ These fields support future pruning design. Agents should increment `retrieval_c
 
 The `depends_on` field supports the knowledge surfacing system's freshness model. When agents retrieve an entry, they check `depends_on` conditions against the current codebase. If conditions no longer hold, the entry is surfaced with a staleness caveat. If `depends_on` is absent, agents fall back to temporal decay heuristics. See `get-shit-done/references/knowledge-surfacing.md` Section 4 for the full freshness checking specification.
 
+**Optional provenance fields:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `runtime` | enum | Runtime that created this entry: `claude-code`, `opencode`, `gemini-cli`, or `codex-cli` |
+| `model` | string | LLM model identifier (e.g., `claude-opus-4-6`, `o3`) |
+| `gsd_version` | string | GSD version that created this entry (e.g., `1.14.0`). Read from VERSION file or config.json |
+
+These fields are optional for backward compatibility. Existing entries without them remain valid. New entries SHOULD include all three when available.
+
 ## 4. Type-Specific Extensions
 
 ### Signal Extensions
@@ -101,8 +111,8 @@ Added to frontmatter alongside common base fields:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `severity` | enum | yes | `critical`, `high`, `medium`, or `low` |
-| `signal_type` | enum | yes | `deviation`, `struggle`, `config-mismatch`, or `custom` |
+| `severity` | enum | yes | `critical` or `notable` |
+| `signal_type` | enum | yes | `deviation`, `struggle`, `config-mismatch`, `capability-gap`, or `custom` |
 | `phase` | number | no | Phase number where signal was captured |
 | `plan` | number | no | Plan number where signal was captured |
 
@@ -238,7 +248,7 @@ Initial tags organized by concern. Agents may create new tags freely; these prov
 
 ## 9. Index Format
 
-The index at `~/.claude/gsd-knowledge/index.md` is auto-generated and never hand-edited.
+The index at `~/.gsd/knowledge/index.md` is auto-generated and never hand-edited.
 
 ```markdown
 # Knowledge Store Index

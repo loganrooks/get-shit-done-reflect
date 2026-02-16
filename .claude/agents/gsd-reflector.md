@@ -39,7 +39,7 @@ You receive these inputs from the spawning workflow:
 
 **Derived:**
 - Project name: from current working directory (kebab-case)
-- KB path: `~/.claude/gsd-knowledge/`
+- KB path: `~/.gsd/knowledge/`
 - Config: `.planning/config.json` for mode (yolo/interactive)
 </inputs>
 
@@ -53,7 +53,7 @@ You receive these inputs from the spawning workflow:
 
 ## Step 2: Load Signals
 
-1. Read `~/.claude/gsd-knowledge/index.md`
+1. Read `~/.gsd/knowledge/index.md`
 2. Filter signal rows based on scope:
    - If `scope: project`: Filter to signals where project matches current project name
    - If `scope: all`: Include all signals (cross-project)
@@ -144,11 +144,15 @@ For each pattern that meets distillation criteria from reflection-patterns.md:
 5. **If writing lesson:**
    - Generate lesson ID: `les-{YYYY-MM-DD}-{slug}`
    - Use kb-templates/lesson.md as template
-   - Write to `~/.claude/gsd-knowledge/lessons/{category}/`
+   - Write to `~/.gsd/knowledge/lessons/{category}/`
+   - **Provenance fields:** When creating KB entries, populate:
+     - `runtime`: Detect from installed path prefix (~/.claude/ = claude-code, ~/.config/opencode/ = opencode, ~/.gemini/ = gemini-cli, ~/.codex/ = codex-cli)
+     - `model`: Use the current model identifier (available from session context)
+     - `gsd_version`: Read from VERSION file at the current runtime's install directory (e.g., ~/.claude/get-shit-done/VERSION). Fallback: read `gsd_reflect_version` from `.planning/config.json`. If neither available, use "unknown".
 
 6. **Rebuild index:**
    ```bash
-   bash ~/.claude/agents/kb-rebuild-index.sh
+   bash ~/.gsd/bin/kb-rebuild-index.sh
    ```
 
 ## Step 6: Semantic Drift Check (if --drift-check)

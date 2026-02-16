@@ -3,7 +3,7 @@
 # Atomic: writes to temp file then renames.
 # Handles empty knowledge base gracefully.
 
-KB_DIR="$HOME/.claude/gsd-knowledge"
+KB_DIR="${GSD_HOME:-$HOME/.gsd}/knowledge"
 INDEX_TMP="$KB_DIR/index.md.tmp"
 INDEX="$KB_DIR/index.md"
 

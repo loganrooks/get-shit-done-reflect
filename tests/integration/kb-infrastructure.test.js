@@ -2,7 +2,12 @@ import { describe, it, expect } from 'vitest'
 import { tmpdirTest } from '../helpers/tmpdir.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
+import fsSync from 'node:fs'
 import { execSync } from 'node:child_process'
+import { createRequire } from 'node:module'
+
+const require = createRequire(import.meta.url)
+const { installKBScripts, migrateKB, countKBEntries } = require('../../bin/install.js')
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..')
 const KB_CREATE_DIRS = path.join(REPO_ROOT, '.claude/agents/kb-create-dirs.sh')
@@ -100,7 +105,7 @@ describe('kb-create-dirs.sh', () => {
   tmpdirTest('creates signals/, spikes/, lessons/ directories', async ({ tmpdir }) => {
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     const entries = await fs.readdir(kbDir)
     expect(entries).toContain('signals')
     expect(entries).toContain('spikes')
@@ -111,7 +116,7 @@ describe('kb-create-dirs.sh', () => {
     runKbScript(KB_CREATE_DIRS, tmpdir)
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     const entries = await fs.readdir(kbDir)
     expect(entries).toContain('signals')
     expect(entries).toContain('spikes')
@@ -132,7 +137,7 @@ describe('kb-rebuild-index.sh', () => {
     runKbScript(KB_REBUILD_INDEX, tmpdir)
 
     const index = await fs.readFile(
-      path.join(tmpdir, '.claude', 'gsd-knowledge', 'index.md'),
+      path.join(tmpdir, '.gsd', 'knowledge', 'index.md'),
       'utf8'
     )
     expect(index).toContain('# Knowledge Store Index')
@@ -143,7 +148,7 @@ describe('kb-rebuild-index.sh', () => {
   })
 
   tmpdirTest('single signal entry appears in Signals table', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'test-deviation.md', {
@@ -161,7 +166,7 @@ describe('kb-rebuild-index.sh', () => {
   })
 
   tmpdirTest('multiple entry types all indexed correctly', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'multi-sig.md')
@@ -178,7 +183,7 @@ describe('kb-rebuild-index.sh', () => {
   })
 
   tmpdirTest('archived entries filtered out', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'active-signal.md', {
@@ -199,7 +204,7 @@ describe('kb-rebuild-index.sh', () => {
   })
 
   tmpdirTest('date descending sort order', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'older.md', {
@@ -220,7 +225,7 @@ describe('kb-rebuild-index.sh', () => {
   })
 
   tmpdirTest('entries without status field treated as active', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     // Write signal without status field
@@ -254,7 +259,7 @@ Signal without explicit status field.
   })
 
   tmpdirTest('tags extraction handles [tag1, tag2] array format', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'tagged.md', {
@@ -270,7 +275,7 @@ Signal without explicit status field.
   })
 
   tmpdirTest('spike outcome column populated', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSpike(kbDir, 'outcome-test.md', {
@@ -286,7 +291,7 @@ Signal without explicit status field.
   })
 
   tmpdirTest('lesson category column populated', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeLesson(kbDir, 'category-test.md', {
@@ -302,7 +307,7 @@ Signal without explicit status field.
   })
 
   tmpdirTest('atomic write leaves no .tmp file behind', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'atomic-test.md')
@@ -315,7 +320,7 @@ Signal without explicit status field.
   })
 
   tmpdirTest('per-type section counts accurate in headers', async ({ tmpdir }) => {
-    const kbDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
+    const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
     runKbScript(KB_CREATE_DIRS, tmpdir)
 
     await writeSignal(kbDir, 'sig-1.md', { id: 'sig-2026-01-15-one' })
@@ -332,5 +337,160 @@ Signal without explicit status field.
     expect(index).toContain('## Signals (2)')
     expect(index).toContain('## Spikes (1)')
     expect(index).toContain('## Lessons (3)')
+  })
+})
+
+describe('installKBScripts', () => {
+  tmpdirTest('creates ~/.gsd/bin/ directory', async ({ tmpdir }) => {
+    installKBScripts(tmpdir)
+
+    const binDir = path.join(tmpdir, 'bin')
+    const exists = fsSync.existsSync(binDir)
+    expect(exists).toBe(true)
+  })
+
+  tmpdirTest('copies kb-rebuild-index.sh to ~/.gsd/bin/', async ({ tmpdir }) => {
+    installKBScripts(tmpdir)
+
+    const scriptPath = path.join(tmpdir, 'bin', 'kb-rebuild-index.sh')
+    const exists = fsSync.existsSync(scriptPath)
+    expect(exists).toBe(true)
+  })
+
+  tmpdirTest('copies kb-create-dirs.sh to ~/.gsd/bin/', async ({ tmpdir }) => {
+    installKBScripts(tmpdir)
+
+    const scriptPath = path.join(tmpdir, 'bin', 'kb-create-dirs.sh')
+    const exists = fsSync.existsSync(scriptPath)
+    expect(exists).toBe(true)
+  })
+
+  tmpdirTest('sets executable permissions on copied scripts', async ({ tmpdir }) => {
+    installKBScripts(tmpdir)
+
+    const rebuildScript = path.join(tmpdir, 'bin', 'kb-rebuild-index.sh')
+    const createDirsScript = path.join(tmpdir, 'bin', 'kb-create-dirs.sh')
+
+    const rebuildMode = fsSync.statSync(rebuildScript).mode
+    const createDirsMode = fsSync.statSync(createDirsScript).mode
+
+    // Check that user-execute bit is set (0o100)
+    expect(rebuildMode & 0o100).toBe(0o100)
+    expect(createDirsMode & 0o100).toBe(0o100)
+
+    // Check that full 0o755 permissions are set
+    expect(rebuildMode & 0o755).toBe(0o755)
+    expect(createDirsMode & 0o755).toBe(0o755)
+  })
+
+  tmpdirTest('is idempotent (safe to run twice)', async ({ tmpdir }) => {
+    installKBScripts(tmpdir)
+    installKBScripts(tmpdir)
+
+    // Both scripts still exist with correct permissions
+    const rebuildScript = path.join(tmpdir, 'bin', 'kb-rebuild-index.sh')
+    const createDirsScript = path.join(tmpdir, 'bin', 'kb-create-dirs.sh')
+
+    expect(fsSync.existsSync(rebuildScript)).toBe(true)
+    expect(fsSync.existsSync(createDirsScript)).toBe(true)
+    expect(fsSync.statSync(rebuildScript).mode & 0o755).toBe(0o755)
+    expect(fsSync.statSync(createDirsScript).mode & 0o755).toBe(0o755)
+  })
+})
+
+describe('migrateKB pre-migration backup', () => {
+  tmpdirTest('creates timestamped backup when KB has existing entries', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    const signalDir = path.join(kbDir, 'signals', 'test-project')
+    fsSync.mkdirSync(signalDir, { recursive: true })
+    fsSync.writeFileSync(path.join(signalDir, 'test-signal.md'), '---\nid: sig-test\ntype: signal\n---\n')
+
+    migrateKB(tmpdir, [])
+
+    const entries = fsSync.readdirSync(tmpdir)
+    const backupDirs = entries.filter(e => e.startsWith('knowledge.backup-'))
+    expect(backupDirs.length).toBeGreaterThanOrEqual(1)
+
+    // Verify backup contains the test signal
+    const backupDir = path.join(tmpdir, backupDirs[0])
+    const backupSignal = path.join(backupDir, 'signals', 'test-project', 'test-signal.md')
+    expect(fsSync.existsSync(backupSignal)).toBe(true)
+  })
+
+  tmpdirTest('backup preserves all entry files', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+
+    // Create 3 entries across signals/, spikes/, lessons/
+    const sigDir = path.join(kbDir, 'signals', 'test-project')
+    const spkDir = path.join(kbDir, 'spikes', 'test-project')
+    const lesDir = path.join(kbDir, 'lessons', 'testing')
+    fsSync.mkdirSync(sigDir, { recursive: true })
+    fsSync.mkdirSync(spkDir, { recursive: true })
+    fsSync.mkdirSync(lesDir, { recursive: true })
+    fsSync.writeFileSync(path.join(sigDir, 'sig.md'), '---\nid: sig-1\ntype: signal\n---\n')
+    fsSync.writeFileSync(path.join(spkDir, 'spk.md'), '---\nid: spk-1\ntype: spike\n---\n')
+    fsSync.writeFileSync(path.join(lesDir, 'les.md'), '---\nid: les-1\ntype: lesson\n---\n')
+
+    migrateKB(tmpdir, [])
+
+    const entries = fsSync.readdirSync(tmpdir)
+    const backupDirs = entries.filter(e => e.startsWith('knowledge.backup-'))
+    expect(backupDirs.length).toBeGreaterThanOrEqual(1)
+
+    const backupDir = path.join(tmpdir, backupDirs[0])
+    expect(countKBEntries(backupDir)).toBe(3)
+  })
+
+  tmpdirTest('skips backup when KB is empty', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    fsSync.mkdirSync(path.join(kbDir, 'signals'), { recursive: true })
+    fsSync.mkdirSync(path.join(kbDir, 'spikes'), { recursive: true })
+    fsSync.mkdirSync(path.join(kbDir, 'lessons'), { recursive: true })
+
+    migrateKB(tmpdir, [])
+
+    const entries = fsSync.readdirSync(tmpdir)
+    const backupDirs = entries.filter(e => e.startsWith('knowledge.backup-'))
+    expect(backupDirs).toHaveLength(0)
+  })
+
+  tmpdirTest('skips backup when KB directory does not exist', async ({ tmpdir }) => {
+    // tmpdir has NO knowledge/ directory
+    migrateKB(tmpdir, [])
+
+    const entries = fsSync.readdirSync(tmpdir)
+    const backupDirs = entries.filter(e => e.startsWith('knowledge.backup-'))
+    expect(backupDirs).toHaveLength(0)
+  })
+})
+
+describe('KB template provenance fields', () => {
+  tmpdirTest('signal template includes gsd_version field', async () => {
+    const templatePath = path.join(REPO_ROOT, '.claude', 'agents', 'kb-templates', 'signal.md')
+    const content = fsSync.readFileSync(templatePath, 'utf8')
+    expect(content).toContain('gsd_version:')
+  })
+
+  tmpdirTest('spike template includes runtime, model, and gsd_version fields', async () => {
+    const templatePath = path.join(REPO_ROOT, '.claude', 'agents', 'kb-templates', 'spike.md')
+    const content = fsSync.readFileSync(templatePath, 'utf8')
+    expect(content).toContain('runtime:')
+    expect(content).toContain('model:')
+    expect(content).toContain('gsd_version:')
+  })
+
+  tmpdirTest('lesson template includes runtime, model, and gsd_version fields', async () => {
+    const templatePath = path.join(REPO_ROOT, '.claude', 'agents', 'kb-templates', 'lesson.md')
+    const content = fsSync.readFileSync(templatePath, 'utf8')
+    expect(content).toContain('runtime:')
+    expect(content).toContain('model:')
+    expect(content).toContain('gsd_version:')
+  })
+
+  tmpdirTest('knowledge-store.md documents gsd_version in common schema', async () => {
+    const storePath = path.join(REPO_ROOT, '.claude', 'agents', 'knowledge-store.md')
+    const content = fsSync.readFileSync(storePath, 'utf8')
+    expect(content).toContain('gsd_version')
+    expect(content).toContain('Optional provenance fields')
   })
 })

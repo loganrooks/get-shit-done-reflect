@@ -53,6 +53,20 @@ Use `context_content` from init JSON (already loaded via `--include context`).
 
 If `context_content` is not null, display: `Using phase context from: ${PHASE_DIR}/*-CONTEXT.md`
 
+<capability_check name="agent_spawning">
+Check the runtime capability matrix (get-shit-done/references/capability-matrix.md):
+
+If has_capability("task_tool"):
+  Spawn gsd-phase-researcher and gsd-planner via Task() as designed in steps 5 and 8.
+
+Else:
+  Note (first occurrence): "Note: Running without parallel agents -- research and planning happen sequentially in this context."
+  Instead of spawning agents:
+  1. Read the researcher agent spec and perform research inline
+  2. Read the planner agent spec and perform planning inline
+  3. Continue with plan creation in the same context
+</capability_check>
+
 ## 5. Handle Research
 
 **Skip if:** `--gaps` flag, `--skip-research` flag, or `research_enabled` is false (from init) without `--research` override.

@@ -7,7 +7,7 @@ describe('knowledge base writes', () => {
   describe('signal file creation', () => {
     tmpdirTest('creates signal file with correct frontmatter', async ({ tmpdir }) => {
       // Set up mock KB directory structure
-      const kbDir = path.join(tmpdir, 'gsd-knowledge')
+      const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
       const signalsDir = path.join(kbDir, 'signals', 'test-project')
       await fs.mkdir(signalsDir, { recursive: true })
 
@@ -50,7 +50,7 @@ This is a test signal created by the test suite.
     })
 
     tmpdirTest('signal file has valid YAML frontmatter', async ({ tmpdir }) => {
-      const kbDir = path.join(tmpdir, 'gsd-knowledge')
+      const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
       const signalsDir = path.join(kbDir, 'signals', 'test-project')
       await fs.mkdir(signalsDir, { recursive: true })
 
@@ -93,7 +93,7 @@ Critical signal.
 
   describe('KB directory structure', () => {
     tmpdirTest('creates correct directory hierarchy', async ({ tmpdir }) => {
-      const kbDir = path.join(tmpdir, 'gsd-knowledge')
+      const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
 
       // Create KB structure
       await fs.mkdir(path.join(kbDir, 'signals'), { recursive: true })
@@ -108,7 +108,7 @@ Critical signal.
     })
 
     tmpdirTest('creates project subdirectory in signals', async ({ tmpdir }) => {
-      const kbDir = path.join(tmpdir, 'gsd-knowledge')
+      const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
       const projectDir = path.join(kbDir, 'signals', 'my-project')
       await fs.mkdir(projectDir, { recursive: true })
 
@@ -119,7 +119,7 @@ Critical signal.
 
   describe('index file operations', () => {
     tmpdirTest('can create index.md with entry summary', async ({ tmpdir }) => {
-      const kbDir = path.join(tmpdir, 'gsd-knowledge')
+      const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
       await fs.mkdir(kbDir, { recursive: true })
 
       const indexContent = `# Knowledge Base Index
@@ -151,7 +151,7 @@ Critical signal.
     })
 
     tmpdirTest('index reflects actual entries', async ({ tmpdir }) => {
-      const kbDir = path.join(tmpdir, 'gsd-knowledge')
+      const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
       const signalsDir = path.join(kbDir, 'signals', 'project-a')
       await fs.mkdir(signalsDir, { recursive: true })
 
@@ -174,7 +174,7 @@ Critical signal.
 
   describe('signal deduplication', () => {
     tmpdirTest('identifies duplicate signals by content hash', async ({ tmpdir }) => {
-      const kbDir = path.join(tmpdir, 'gsd-knowledge')
+      const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
       const signalsDir = path.join(kbDir, 'signals', 'test-project')
       await fs.mkdir(signalsDir, { recursive: true })
 

@@ -659,7 +659,7 @@ The phase researcher is the PRIMARY knowledge consumer in the GSD workflow. You 
 **Step-by-step process:**
 
 1. **Read the KB index:**
-   Read `~/.claude/gsd-knowledge/index.md`
+   Read `~/.gsd/knowledge/index.md`
 
 2. **Scan the Lessons table:**
    Look for entries whose tags overlap with:
@@ -702,7 +702,7 @@ As part of the initial KB query, check if any existing spike already answers a c
 
 ### Cross-Project Surfacing (SURF-04)
 
-- Query `~/.claude/gsd-knowledge/index.md` WITHOUT filtering by project name
+- Query `~/.gsd/knowledge/index.md` WITHOUT filtering by project name
 - This naturally surfaces lessons and spike decisions from ALL projects in the knowledge base
 - Global lessons (project: `_global`) are always included in results
 - Cross-project lessons are valuable -- a database pitfall learned in one project applies everywhere
@@ -748,7 +748,7 @@ After the Sources section, include:
 ```
 
 **If no relevant entries found:**
-Still include the section: "Checked knowledge base (`~/.claude/gsd-knowledge/index.md`), no relevant entries found for this phase's domain."
+Still include the section: "Checked knowledge base (`~/.gsd/knowledge/index.md`), no relevant entries found for this phase's domain."
 
 ### Debug Mode
 
