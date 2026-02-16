@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-11)
 Phase: 21 of 21 — Workflow Refinements
 Plan: 2 of 2 — 21-02 complete (Phase 21 complete)
 Status: Phase 21 complete. v1.14 gap closure COMPLETE (all 4 phases: 18-21 done).
-Last activity: 2026-02-15 -- Completed 21-02-PLAN.md (Spike workflow refinements)
+Last activity: 2026-02-16 -- Completed quick task 002: Fix 2 failing install.test.js tests
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14-initial (10) + v1.14-gap (9) = 62 plans shipped | v1.14 gap closure: [██████████] 100% (Phases 18-21 done)
 
