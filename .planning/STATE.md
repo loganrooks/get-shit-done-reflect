@@ -75,5 +75,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-16
-Stopped at: Completed quick-4 (Create /gsd:release command for automated releases).
-Resume file: N/A
+Stopped at: Completed quick-4 (/gsd:release command). Next: fix C7-C10 test quality issues from PR #4, then /gsd:new-milestone for v1.15.
+Resume file: .planning/.continue-here.md
