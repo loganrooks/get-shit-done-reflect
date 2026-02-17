@@ -2,17 +2,17 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-16)
+See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.15 Backlog & Update Experience
+**Current focus:** v1.15 Backlog & Update Experience -- Phase 22 Agent Boilerplate Extraction
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-17 — v1.15 research complete, requirements scoping in progress
+Phase: 22 of 27 (Agent Boilerplate Extraction)
+Plan: --
+Status: Ready to plan
+Last activity: 2026-02-17 -- v1.15 roadmap created (6 phases, 33 requirements)
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) = 61 plans shipped across 22 phases
 
@@ -42,14 +42,14 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 
 ### Pending Todos
 
-- v1.15 milestone candidate written: `.planning/milestones/v1.15-CANDIDATE.md` (Token Efficiency & MCP Infrastructure). Ready for `/gsd:new-milestone` when approved.
-- Feature manifest system for declarative feature initialization (architecture todo — user-level vs project-level config, `/gsd:release` config schema, upgrade-project gap detection)
+- Feature manifest system for declarative feature initialization (architecture todo -- addressed by Phase 23-24)
 
 ### Blockers/Concerns
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
 - Human verification backlog: 7 items requiring real multi-runtime E2E testing (see v1.14 audit)
+- Phase 24 (Config Migration) and Phase 26 (Backlog Integration) flagged for `/gsd:research-phase` before planning
 
 ### Quick Tasks Completed
 
@@ -64,6 +64,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 ### Roadmap Evolution
 
 v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phases 13-21). All planned phases shipped.
+v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config Migration, Backlog Core, Backlog Integration, Workflow DX.
 
 ### Key Artifacts
 
@@ -77,5 +78,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Mid /gsd:new-milestone — research done, requirements scoping in progress (Step 9 of workflow)
-Resume file: .planning/.continue-here.md
+Stopped at: v1.15 roadmap created, Phase 22 ready to plan
+Resume file: None
