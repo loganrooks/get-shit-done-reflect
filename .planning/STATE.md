@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 Phase: N/A — between milestones
 Plan: N/A
 Status: v1.14 Multi-Runtime Interop shipped 2026-02-16. All 3 milestones complete (v1.12, v1.13, v1.14).
-Last activity: 2026-02-16 -- Completed quick-4: Create /gsd:release command
+Last activity: 2026-02-16 -- Completed quick-5: Remove C7-C10 self-fulfilling tests
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) = 61 plans shipped across 22 phases
 
@@ -58,6 +58,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | 002 | Fix 2 failing install.test.js tests (signal.md -> reflect.md) | 2026-02-15 | ac3f385 | [2-fix-the-2-failing-install-test-js-tests](./quick/2-fix-the-2-failing-install-test-js-tests/) |
 | 003 | Fix 6 critical PR#4 bugs (migrateKB collision, dangling symlink, Codex regex, 3 capability guards) | 2026-02-16 | 509936e | [3-fix-6-critical-pr4-bugs-migratekb-collis](./quick/3-fix-6-critical-pr4-bugs-migratekb-collis/) |
 | 004 | Create /gsd:release command for automated version bump, changelog, tag, and GitHub Release | 2026-02-16 | 7902519 | [4-create-gsd-release-command-for-automated](./quick/4-create-gsd-release-command-for-automated/) |
+| 005 | Remove C7-C10 self-fulfilling tests (15 tests removed, suite now 140 passing) | 2026-02-16 | 001e7aa | [5-rewrite-c7-c10-self-fulfilling-tests-to-](./quick/5-rewrite-c7-c10-self-fulfilling-tests-to-/) |
 
 ### Roadmap Evolution
 
@@ -75,5 +76,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-16
-Stopped at: Completed quick-4 (/gsd:release command). Next: fix C7-C10 test quality issues from PR #4, then /gsd:new-milestone for v1.15.
+Stopped at: Completed quick-5 (C7-C10 self-fulfilling test removal). Next: /gsd:new-milestone for v1.15.
 Resume file: .planning/.continue-here.md
