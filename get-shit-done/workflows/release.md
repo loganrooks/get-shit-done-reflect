@@ -1,5 +1,5 @@
 <purpose>
-Automate the full release cycle: version bump, changelog update, git tag, push, and GitHub Release creation. This workflow handles safety checks, version computation, changelog formatting, and publishing. It triggers npm publish automatically via the publish.yml GitHub Action.
+Automate the full release cycle: version bump, changelog update, git tag, push, and GitHub Release creation. This workflow handles safety checks, version computation, changelog formatting, and publishing. If the project has a CI workflow triggered by GitHub Releases (e.g., publish.yml), it will be triggered automatically.
 </purpose>
 
 <required_reading>
@@ -195,6 +195,12 @@ This triggers the `publish.yml` workflow which handles npm publish automatically
 
 Display the final summary:
 
+First, get the repo URL dynamically:
+```bash
+REPO_URL=$(gh repo view --json url -q .url 2>/dev/null || git remote get-url origin | sed 's/\.git$//' | sed 's|git@github.com:|https://github.com/|')
+```
+
+Then display:
 ```
 ---
 Release v{NEW_VERSION} complete!
@@ -202,10 +208,10 @@ Release v{NEW_VERSION} complete!
   package.json: {NEW_VERSION}
   CHANGELOG.md: updated
   Git tag:      v{NEW_VERSION}
-  GitHub Release: https://github.com/loganrooks/get-shit-done-reflect/releases/tag/v{NEW_VERSION}
+  GitHub Release: {REPO_URL}/releases/tag/v{NEW_VERSION}
 
-  npm publish will be triggered automatically by the GitHub Release.
-  Monitor: https://github.com/loganrooks/get-shit-done-reflect/actions
+  If this repo has CI triggered by releases (e.g., npm publish), it will run automatically.
+  Monitor: {REPO_URL}/actions
 ---
 ```
 </step>
