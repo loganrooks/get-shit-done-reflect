@@ -1,631 +1,816 @@
-# Architecture Research: Multi-Runtime CLI Interop
+# Architecture Research
 
-**Domain:** Multi-runtime CLI tool interoperability -- adding 4th runtime, shared KB, cross-runtime handoff
-**Researched:** 2026-02-11
-**Confidence:** HIGH (direct codebase analysis + official Codex CLI documentation)
+**Domain:** Backlog management, feature manifest, and update UX integration for GSD Reflect
+**Researched:** 2026-02-16
+**Confidence:** HIGH (analysis of existing codebase -- no external research needed)
 
-## Executive Summary
+## System Overview: How New Features Integrate
 
-GSD Reflect currently supports 3 runtimes (Claude Code, OpenCode, Gemini CLI) via a transformation pipeline in `bin/install.js` that converts Claude Code-native markdown commands, agent specs, and path references into runtime-specific formats at install time. The knowledge base lives at `~/.claude/gsd-knowledge/` with hardcoded paths in 20+ workflow and reference files. Adding Codex CLI as a 4th runtime, migrating KB to `~/.gsd/knowledge/`, and enabling cross-runtime handoff requires changes across 3 architectural boundaries: the installer, the KB path layer, and the state/handoff system.
-
-The core architectural insight: **the installer already does path replacement** (`~/.claude/` to runtime-specific paths) for commands and agents. The KB path problem is that KB paths were never routed through this transformation -- they are hardcoded in workflow and reference files that the installer copies but does not path-transform for KB. The fix is not to add more path replacement; it is to move KB to a runtime-agnostic location (`~/.gsd/knowledge/`) so no runtime-specific translation is needed.
-
-## System Overview: Current Architecture
+The three new subsystems integrate with GSD's existing layered architecture. Each adds new files at specific layers without modifying the core Command -> Workflow -> Agent data flow.
 
 ```
-                          INSTALLATION TIME
-                          (bin/install.js)
-                                |
-              +-----------------+------------------+
-              |                 |                  |
-              v                 v                  v
-        ~/.claude/        ~/.config/opencode/   ~/.gemini/
-        commands/gsd/     command/gsd-*.md      commands/gsd/
-        agents/gsd-*      (flat + tool map)     (TOML + tool map)
-        get-shit-done/    get-shit-done/        get-shit-done/
-        hooks/            (no hooks)            hooks/
-        settings.json     opencode.json         settings.json
-              |                                     |
-              +------ All reference ~/.claude/ ------+
-              |       paths in content files         |
-              |       (already transformed by        |
-              |        install.js per runtime)        |
-              v
-        ~/.claude/gsd-knowledge/   <-- NOT TRANSFORMED
-        signals/                        hardcoded in 20+ files
-        spikes/
-        lessons/
-        index.md
-```
-
-### Current Path Transformation Pipeline
-
-The installer (`bin/install.js` lines 655-698, `copyWithPathReplacement`) performs a regex replacement on all `.md` files:
-
-```javascript
-const claudeDirRegex = /~\/\.claude\//g;
-content = content.replace(claudeDirRegex, pathPrefix);
-```
-
-This transforms `~/.claude/get-shit-done/workflows/foo.md` to the correct runtime-specific path. However, **KB paths (`~/.claude/gsd-knowledge/`) get caught in this same regex**, which means:
-
-- **Claude Code install:** KB path stays `~/.claude/gsd-knowledge/` (correct)
-- **OpenCode install:** KB path becomes `~/.config/opencode/gsd-knowledge/` (wrong -- KB does not exist there)
-- **Gemini install:** KB path becomes `~/.gemini/gsd-knowledge/` (wrong -- KB does not exist there)
-
-This is an existing bug: multi-runtime KB access was never properly addressed because KB was built assuming Claude Code as the only runtime.
-
-## Recommended Architecture: Post-Migration
-
-```
-                          INSTALLATION TIME
-                          (bin/install.js)
-                                |
-              +--------+--------+--------+--------+
-              |        |        |        |        |
-              v        v        v        v        v
-        ~/.claude/  ~/.config/  ~/.gemini/ ~/.codex/  ~/.gsd/
-        commands/   opencode/   commands/  skills/    knowledge/
-        agents/     command/    (TOML)     gsd/       signals/
-        get-shit-  get-shit-   agents/    SKILL.md    spikes/
-        done/      done/       get-shit-  AGENTS.md   lessons/
-        hooks/     (no hooks)  done/      (no hooks)  index.md
-        settings   opencode    settings                cache/
-        .json      .json       .json                   config.toml
-              |        |        |        |              |
-              +--------+--------+--------+--------------+
-                       All runtimes reference
-                       ~/.gsd/knowledge/ directly
-                       (no path transformation needed)
+                         EXISTING LAYERS
+                         ===============
+  ┌────────────────────────────────────────────────────────────────────┐
+  │  Command Layer: commands/gsd/*.md                                  │
+  │  ┌──────────┐  ┌───────────┐  ┌──────────────┐  ┌──────────────┐ │
+  │  │ NEW:     │  │ MODIFIED: │  │ MODIFIED:    │  │ MODIFIED:    │ │
+  │  │ backlog  │  │ update    │  │ new-project  │  │ upgrade-     │ │
+  │  │          │  │           │  │              │  │ project      │ │
+  │  └────┬─────┘  └────┬──────┘  └──────┬───────┘  └──────┬───────┘ │
+  ├───────┴──────────────┴───────────────┴──────────────────┴─────────┤
+  │  Workflow Layer: get-shit-done/workflows/*.md                      │
+  │  ┌──────────┐  ┌───────────┐  ┌──────────────┐  ┌──────────────┐ │
+  │  │ NEW:     │  │ MODIFIED: │  │ MODIFIED:    │  │ MODIFIED:    │ │
+  │  │ backlog  │  │ update    │  │ new-project  │  │ upgrade-     │ │
+  │  │          │  │           │  │              │  │ project      │ │
+  │  └────┬─────┘  └─────┬─────┘  └──────┬───────┘  └──────┬───────┘ │
+  ├───────┴───────────────┴──────────────┴──────────────────┴─────────┤
+  │  Reference Layer: get-shit-done/references/*.md                    │
+  │  ┌──────────────────────┐  ┌────────────────────────────────────┐ │
+  │  │ NEW:                 │  │ MODIFIED:                          │ │
+  │  │ feature-manifest.md  │  │ version-migration.md               │ │
+  │  └──────────────────────┘  └────────────────────────────────────┘ │
+  ├───────────────────────────────────────────────────────────────────┤
+  │  Runtime Layer: bin/install.js, gsd-tools.js                      │
+  │  ┌──────────────────────────────────────────────────────────────┐ │
+  │  │ MODIFIED: install.js reads feature-manifest.json             │ │
+  │  │ MODIFIED: gsd-tools.js gains backlog subcommands             │ │
+  │  └──────────────────────────────────────────────────────────────┘ │
+  ├───────────────────────────────────────────────────────────────────┤
+  │  Data Layer: .planning/*, ~/.gsd/*                                │
+  │  ┌──────────────────┐  ┌──────────────────────────────────────┐  │
+  │  │ NEW:             │  │ NEW:                                 │  │
+  │  │ .planning/       │  │ ~/.gsd/backlog/                     │  │
+  │  │  backlog/        │  │  items/                             │  │
+  │  │   items/         │  │   YYYY-MM-DD-slug.md                │  │
+  │  └──────────────────┘  └──────────────────────────────────────┘  │
+  └───────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Responsibility | Changes for v1.14 |
-|-----------|----------------|-------------------|
-| `bin/install.js` | Multi-runtime installer: path replacement, format conversion, hook registration | Add Codex CLI runtime; add `~/.gsd/` directory creation; add KB migration logic |
-| `~/.gsd/knowledge/` | Runtime-agnostic knowledge base | NEW -- replaces `~/.claude/gsd-knowledge/` |
-| `~/.gsd/config.toml` | Cross-runtime GSD configuration | NEW -- stores active runtimes, KB location, migration state |
-| Workflow files (20+) | KB access paths | Change `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/` |
-| Reference files (5+) | KB documentation and patterns | Change KB path references |
-| `kb-rebuild-index.sh` | Index regeneration | Update KB path |
-| `.planning/` state files | Project state, continue-here, STATE.md | Already runtime-agnostic (no changes needed) |
-| `continue-here.md` template | Cross-session handoff | Add optional `runtime:` field for cross-runtime handoff |
+| Component | Responsibility | New vs Modified |
+|-----------|----------------|-----------------|
+| Backlog system | Persistent idea capture across milestones | **NEW** -- command, workflow, data dirs |
+| Feature manifest | Declarative feature config registration | **NEW** -- JSON manifest, reference doc |
+| Update UX | Post-update awareness, project upgrade | **MODIFIED** -- update workflow, upgrade workflow |
+| `/gsd:new-project` | Manifest-driven config gathering | **MODIFIED** -- reads manifest for init questions |
+| `/gsd:new-milestone` | Backlog item surfacing during scoping | **MODIFIED** -- reads backlog, groups by theme |
+| gsd-tools.js | Backlog CRUD, manifest validation | **MODIFIED** -- new subcommands |
+| install.js | Manifest-aware file installation | **MODIFIED** -- reads manifest for user-level setup |
 
-## Detailed Component Changes
+## Component 1: Backlog System
 
-### 1. New Component: `~/.gsd/` Directory
+### Problem
+The current todo system (`/gsd:add-todo`, `.planning/todos/`) is scoped to the current project and milestone. When a milestone completes, todos in `.planning/` may get archived or lost. There is no global idea capture that survives across milestones and projects.
 
-**Purpose:** Runtime-agnostic GSD home directory for data that should be shared across all runtimes.
+### Architecture: Two-Tier Storage
+
+The backlog lives in two locations, mirroring the existing knowledge base dual-tier pattern (`~/.gsd/knowledge/` for global, `.planning/` for project):
 
 ```
-~/.gsd/
-  knowledge/           # Migrated from ~/.claude/gsd-knowledge/
-    signals/
-      {project}/
-        {date}-{slug}.md
-    spikes/
-      {project}/
-        {date}-{slug}.md
-    lessons/
-      {category}/
-        {name}.md
-    index.md           # Auto-generated index
-  cache/               # Shared cache (update checks, etc.)
-    gsd-update-check.json
-  config.toml          # Cross-runtime config (optional, future)
+~/.gsd/backlog/                          # Global backlog (cross-project)
+  items/
+    YYYY-MM-DD-slug.md                   # Global idea (not project-specific)
+  index.md                               # Auto-generated index (same pattern as KB)
+
+.planning/backlog/                       # Project backlog (project-specific)
+  items/
+    YYYY-MM-DD-slug.md                   # Project-specific idea
+  index.md                               # Auto-generated project index
 ```
 
-**Why `~/.gsd/` not `~/.config/gsd/`:**
-- Consistency with existing pattern (`~/.claude/`, `~/.gemini/`, `~/.codex/`)
-- Simpler than XDG for a tool that already uses dotfile directories
-- Short path reduces context token cost in agent prompts
-- Environment variable override: `GSD_HOME` (defaults to `~/.gsd`)
+**Why two-tier:** The existing `.planning/todos/` system works for "do this now during this milestone" tasks. The backlog is different -- it captures ideas that may span milestones or apply to other projects. The global tier follows the `~/.gsd/` pattern established by the knowledge base. The project tier follows the `.planning/` pattern for project-scoped artifacts.
 
-**Creation:** The installer creates `~/.gsd/knowledge/` during any runtime installation. This is a shared resource, not runtime-specific.
+**Why NOT extend `.planning/todos/`:** Todos are transient work items (moved to `done/` when worked on). Backlog items are persistent ideas that get promoted into milestones, not "done." Mixing the two semantics in one directory creates confusion about lifecycle.
 
-### 2. Modified Component: `bin/install.js`
+### Backlog Item Schema
 
-**Changes needed:**
+```yaml
+---
+id: back-YYYY-MM-DD-slug
+title: "Human-readable title"
+created: 2026-02-16T14:30:00Z
+updated: 2026-02-16T14:30:00Z
+scope: project | global
+project: get-shit-done-reflect    # only for project-scoped items
+tags: [ux, performance, feature]
+theme: "Descriptive theme name"   # for auto-grouping
+priority: high | medium | low     # user-set or auto-inferred
+status: captured | promoted | deferred | rejected
+promoted_to: "v1.16 Phase 3"     # set when item enters a milestone
+source: signal | todo | user | session
+source_ref: "sig-2026-02-17-..."  # optional link to originating signal/todo
+---
 
-#### a. Add Codex CLI runtime support
+## Idea
 
-```javascript
-// New runtime detection and directory mapping
-function getDirName(runtime) {
-  if (runtime === 'opencode') return '.opencode';
-  if (runtime === 'gemini') return '.gemini';
-  if (runtime === 'codex') return '.codex';  // NEW
-  return '.claude';
-}
+[Description of the idea, problem it solves, why it matters]
 
-function getGlobalDir(runtime, explicitDir = null) {
-  // ... existing code ...
-  if (runtime === 'codex') {
-    if (explicitDir) return expandTilde(explicitDir);
-    if (process.env.CODEX_HOME) return expandTilde(process.env.CODEX_HOME);
-    return path.join(os.homedir(), '.codex');
+## Notes
+
+[Any additional context, links, related items]
+```
+
+**Key design choices:**
+- `theme` field enables auto-grouping during `/gsd:new-milestone` scoping
+- `status` tracks lifecycle without physical file movement (unlike todos which move to `done/`)
+- `source_ref` creates traceability from signals/todos to backlog items
+- Schema mirrors KB entry patterns (YAML frontmatter + markdown body)
+
+### Data Flow: Idea Capture to Milestone Scoping
+
+```
+CAPTURE                    STORAGE                    SCOPING
+=======                    =======                    =======
+
+User says idea             .planning/backlog/items/   /gsd:new-milestone
+       |                          |                        |
+       +- /gsd:backlog add ----->|                        |
+       |    (inline args)         |                        |
+       |                          |                        |
+Signal detected ---------->|      |    +-------------------+
+       |  (auto-promote   |      |    | Read all items     |
+       |   high-severity  |      |    | with status:       |
+       |   signals)       |      |    | captured/deferred  |
+       |                  |      |    |                    |
+Todo promoted ------------>|      |    | Group by theme     |
+       |  (/gsd:backlog   |      |    |                    |
+       |   promote)       |      |    | Present grouped    |
+       |                  |      |    | items to user      |
+                          |      |    |                    |
+~/.gsd/backlog/items/     |      |    | User selects       |
+  (global items)----------+      |    | items for          |
+                                 |    | milestone          |
+                                 |    |                    |
+                                 |    | Selected items:    |
+                                 |    | status: promoted   |
+                                 |    | promoted_to: v1.16 |
+                                 |    +--------------------+
+```
+
+### Command Surface
+
+| Command | Purpose | Maps To |
+|---------|---------|---------|
+| `/gsd:backlog add [idea]` | Capture an idea | NEW command + workflow |
+| `/gsd:backlog list [--theme X] [--tag Y]` | Browse backlog | NEW command + workflow |
+| `/gsd:backlog promote [item]` | Promote todo/signal to backlog | NEW command + workflow |
+| `/gsd:backlog review` | Review + triage backlog items | NEW command + workflow |
+
+**Implementation note:** Rather than 4 separate commands, use a single `/gsd:backlog` command with subcommand routing (same pattern as `/gsd:settings`). The workflow handles routing based on the first argument.
+
+### Integration Points with Existing System
+
+| System | Integration | Direction |
+|--------|-------------|-----------|
+| `/gsd:add-todo` | "Promote to backlog" action in check-todos | Todo -> Backlog |
+| `/gsd:signal` | Auto-promote high-severity signals | Signal -> Backlog |
+| `/gsd:new-milestone` | Read backlog, group by theme, present for scoping | Backlog -> Milestone |
+| `/gsd:complete-milestone` | Review unaddressed backlog items | Milestone -> Backlog |
+| STATE.md | Backlog count in "### Accumulated Context" | Backlog -> State |
+| gsd-tools.js | `backlog add`, `backlog list`, `backlog promote`, `backlog stats` | CLI operations |
+
+### gsd-tools.js Extensions
+
+New subcommands following existing patterns (e.g., `todo complete`, `phase add`):
+
+```
+backlog add <title> [--scope project|global] [--theme X] [--tags t1,t2] [--priority med]
+backlog list [--scope project|global|all] [--theme X] [--tag Y] [--status captured]
+backlog promote <source-path> [--scope project|global]
+backlog update <id> --field <key> --value <val>
+backlog stats [--scope project|global|all]
+backlog index [--scope project|global|all]   # rebuild index
+```
+
+## Component 2: Feature Manifest System
+
+### Problem
+Adding new GSD features (like `/gsd:release`) requires:
+1. Manually coding config questions into `/gsd:new-project` workflow
+2. Manually adding migration logic to version-migration.md
+3. Manually adding gap detection to `/gsd:upgrade-project` workflow
+
+Each new feature duplicates this pattern. The feature manifest makes it declarative.
+
+### Architecture: Static JSON Manifest
+
+The manifest is a **static JSON file** shipped with GSD, not dynamically generated. It declares what config each feature needs, and existing workflows read it.
+
+```
+get-shit-done/
+  feature-manifest.json        # NEW: declarative feature config registry
+  references/
+    feature-manifest.md        # NEW: reference doc explaining manifest schema
+```
+
+**Why JSON (not YAML/Markdown):** The manifest is consumed by `install.js` (Node.js) and `gsd-tools.js` (Node.js), which natively parse JSON. YAML would require a dependency. Markdown would require parsing. JSON is zero-dependency and already used for `config.json`.
+
+### Manifest Schema
+
+```json
+{
+  "$schema": "feature-manifest-v1",
+  "features": {
+    "health_check": {
+      "version_introduced": "1.12.0",
+      "scope": "project",
+      "required": false,
+      "config_section": "health_check",
+      "schema": {
+        "frequency": {
+          "type": "string",
+          "enum": ["milestone-only", "on-resume", "every-phase", "explicit-only"],
+          "default": "milestone-only",
+          "description": "How often health checks run"
+        },
+        "stale_threshold_days": {
+          "type": "number",
+          "default": 7,
+          "description": "Days before STATE.md is considered stale"
+        },
+        "blocking_checks": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether health warnings block execution"
+        }
+      },
+      "init_prompts": [
+        {
+          "field": "frequency",
+          "question": "How often should health checks run?",
+          "options": [
+            { "value": "milestone-only", "label": "Milestone only (default)", "description": "Check at milestone boundaries" },
+            { "value": "on-resume", "label": "On resume", "description": "Check when resuming work" },
+            { "value": "every-phase", "label": "Every phase", "description": "Check before each phase" },
+            { "value": "explicit-only", "label": "Explicit only", "description": "Only when you run /gsd:health-check" }
+          ]
+        }
+      ]
+    },
+    "release": {
+      "version_introduced": "1.15.0",
+      "scope": "project",
+      "required": false,
+      "config_section": "release",
+      "schema": {
+        "version_file": {
+          "type": "string",
+          "default": "package.json",
+          "description": "File containing project version"
+        },
+        "changelog": {
+          "type": "string",
+          "default": "CHANGELOG.md",
+          "description": "Changelog file path"
+        },
+        "changelog_format": {
+          "type": "string",
+          "enum": ["keepachangelog", "conventional", "freeform"],
+          "default": "keepachangelog",
+          "description": "Changelog format"
+        },
+        "ci_trigger": {
+          "type": "string",
+          "enum": ["github-release", "git-tag", "manual", "none"],
+          "default": "none",
+          "description": "What triggers CI/CD on release"
+        },
+        "registry": {
+          "type": "string",
+          "default": "none",
+          "description": "Package registry (npm, pypi, crates.io, none)"
+        },
+        "branch": {
+          "type": "string",
+          "default": "main",
+          "description": "Branch releases are made from"
+        }
+      },
+      "init_prompts": [
+        {
+          "field": "version_file",
+          "question": "Where is your version number stored?",
+          "options": [
+            { "value": "package.json", "label": "package.json", "description": "Node.js / JavaScript" },
+            { "value": "Cargo.toml", "label": "Cargo.toml", "description": "Rust" },
+            { "value": "pyproject.toml", "label": "pyproject.toml", "description": "Python" },
+            { "value": "VERSION", "label": "VERSION file", "description": "Plain text version file" }
+          ]
+        }
+      ],
+      "auto_detect": {
+        "version_file": [
+          { "check": "file_exists", "path": "package.json", "value": "package.json" },
+          { "check": "file_exists", "path": "Cargo.toml", "value": "Cargo.toml" },
+          { "check": "file_exists", "path": "pyproject.toml", "value": "pyproject.toml" }
+        ]
+      }
+    }
   }
-  // ... existing code ...
 }
 ```
 
-#### b. Codex CLI command format conversion
-
-Codex CLI uses a **skills** system, not markdown commands:
-
-| Aspect | Claude Code | OpenCode | Gemini | Codex CLI |
-|--------|-------------|----------|--------|-----------|
-| Command format | `commands/gsd/*.md` | `command/gsd-*.md` | `commands/gsd/*.toml` | `.agents/skills/gsd-*/SKILL.md` or `~/.codex/skills/gsd-*/SKILL.md` |
-| Command invocation | `/gsd:help` | `/gsd-help` | `/gsd:help` | `$gsd-help` or implicit |
-| Agent format | `agents/gsd-*.md` (YAML frontmatter) | Same (tool mapping) | Same (tool mapping) | Via AGENTS.md + skills |
-| Config format | `settings.json` | `opencode.json` | `settings.json` | `config.toml` (TOML) |
-| Instructions | Built into commands | Built into commands | Built into commands | `AGENTS.md` (layered) |
-| Tool names | `Read`, `Write`, `Bash`, `Grep`, `Glob` | lowercase equivalents | snake_case equivalents | Not specified (likely similar to Claude) |
-| Hook system | `settings.json` hooks.SessionStart | N/A | Same as Claude | N/A (no hook system found) |
-| Subagent spawning | Task tool | Skill tool | Agents (experimental) | Skills (implicit/explicit) |
-
-**Codex skill structure for GSD commands:**
+### How the Manifest Flows Through the System
 
 ```
-~/.codex/skills/
-  gsd-new-project/
-    SKILL.md          # Frontmatter: name, description + instructions
-  gsd-plan-phase/
-    SKILL.md
-  gsd-execute-phase/
-    SKILL.md
-  ...
+MANIFEST SOURCE                CONSUMERS                     EFFECT
+==============                 =========                     ======
+
+get-shit-done/                 /gsd:new-project              Step 5 iterates manifest
+  feature-manifest.json ------>  (workflow reads manifest)    features with scope:project
+         |                        |                           Asks init_prompts[]
+         |                        |                           Writes config.json sections
+         |                        v
+         |                     .planning/config.json          Contains all feature configs
+         |
+         +-------------------->/gsd:upgrade-project           Diffs manifest schema
+         |                      (workflow reads manifest)     against existing config.json
+         |                        |                           Adds missing sections
+         |                        |                           Runs init_prompts for new
+         |                        v
+         |                     .planning/config.json          Patched with new features
+         |
+         +-------------------->version-migration.md           No longer needs per-version
+         |                      (simplified)                  migration actions hardcoded
+         |                                                    Manifest IS the migration spec
+         |
+         +-------------------->install.js                     Reads manifest for user-level
+                                (future: scope:user)          features (currently none)
 ```
 
-Or project-level (recommended for project-scoped commands):
+### Key Design Decisions
+
+**Manifest is read-only at runtime.** The manifest ships with GSD and describes what features exist and what config they need. It is never modified by user workflows. Only `config.json` is written to.
+
+**Manifest replaces hardcoded migration actions.** Currently, `version-migration.md` lists specific fields to add per version. With the manifest, `/gsd:upgrade-project` simply diffs `feature-manifest.json` against `config.json` -- any declared section missing from config gets initialized. No per-version migration code needed.
+
+**`auto_detect` enables smart defaults.** For features like `release`, the manifest declares file-existence checks. During `/gsd:new-project` or `/gsd:upgrade-project`, these auto-detect rules run first. If detection succeeds, the user is shown the detected value as the default rather than being asked.
+
+**Backward compatibility.** Existing `config.json` files without manifest-declared sections continue to work. Features check for their config section and fall back to defaults if absent. The manifest only adds -- never removes or renames.
+
+## Component 3: Update Experience Improvements
+
+### Problem
+The current update flow has gaps:
+1. `/gsd:update` installs new files but does not trigger `/gsd:upgrade-project`
+2. User must manually run `/gsd:upgrade-project` after updating
+3. No awareness of what new features need project-level initialization
+
+### Architecture: Connected Update Pipeline
+
 ```
-.agents/skills/
-  gsd-new-project/
-    SKILL.md
-  ...
+/gsd:update                        /gsd:upgrade-project
+===========                        ====================
+
+1. Check npm version               1. Read installed VERSION
+2. Show changelog                   2. Read config.json version
+3. User confirms                    3. Load feature-manifest.json
+4. Run npx install                  4. Diff manifest vs config
+5. Clear update cache               5. For each missing section:
+6. --- NEW ------------------>         a. Run auto_detect rules
+   Check if project needs              b. Ask init_prompts (interactive)
+   upgrade (manifest diff)                OR apply defaults (YOLO/auto)
+7. If yes: suggest                     c. Write to config.json
+   /gsd:upgrade-project             6. Update gsd_reflect_version
+   OR auto-run if YOLO              7. Log migration
+                                    8. Report changes
 ```
 
-**SKILL.md format:**
+### Modified: update.md Workflow
+
+After the install step succeeds, add a new step:
+
+```
+<step name="check_project_upgrade">
+After update completes, check if the project needs a config upgrade:
+
+1. Read feature-manifest.json from the newly installed files
+2. Read .planning/config.json (if exists)
+3. If config.json exists AND manifest has features not in config:
+   - Display: "New features available: [list]. Run /gsd:upgrade-project to configure."
+   - If YOLO mode: auto-run upgrade-project workflow with --auto
+</step>
+```
+
+### Modified: upgrade-project.md Workflow
+
+Replace the hardcoded migration actions in step 5 ("Apply Additive Config Patches") with manifest-driven logic:
+
+```
+<step name="apply_manifest_patches">
+1. Load feature-manifest.json
+2. Load .planning/config.json
+3. For each feature in manifest where scope == "project":
+   a. If config_section NOT in config.json:
+      - Feature is uninitialized
+      - In interactive mode: run init_prompts via AskUserQuestion
+      - In YOLO/auto mode: apply schema defaults
+      - Write section to config.json
+   b. If config_section IS in config.json:
+      - Check for new fields (added in later versions)
+      - Add missing fields with defaults only
+4. Update gsd_reflect_version
+5. Log migration
+</step>
+```
+
+### Modified: new-project.md Workflow
+
+Replace hardcoded Step 5 ("Workflow Preferences") with manifest-driven config gathering:
+
+**Before (hardcoded):**
+```
+Step 5: Ask about mode, depth, parallelization, commit_docs,
+        research, plan_check, verifier, model_profile
+        (all questions hardcoded in workflow)
+```
+
+**After (manifest-driven):**
+```
+Step 5: Core config (STAYS hardcoded: mode, depth, parallelization,
+        commit_docs, model_profile, workflow agents)
+        These are core GSD settings, not features.
+
+Step 5.5 (NEW): Load feature-manifest.json
+        For each feature where scope == "project":
+          Run auto_detect rules
+          Ask init_prompts (or apply defaults if --auto)
+        Write collected config to .planning/config.json
+```
+
+**Backward compatibility note:** The core workflow settings (mode, depth, parallelization, commit_docs, model_profile, workflow agents) are NOT features -- they are core config. These remain hardcoded in the workflow. Only additional feature-specific sections (health_check, devops, release, etc.) use the manifest.
+
+## Component 4: Agent Spec Boilerplate Extraction
+
+### Problem
+11 agent specs share ~600 lines of common protocol (role definition, tool strategy, execution flow, structured returns). Changes to the protocol require updating all 11 files.
+
+### Architecture: Shared Protocol Reference
+
+```
+get-shit-done/
+  references/
+    agent-protocol.md        # NEW: shared agent execution protocol
+```
+
+Each agent spec removes the duplicated sections and adds an `@`-reference:
+
 ```markdown
 ---
-name: gsd-new-project
-description: Initialize a new GSD project with research, requirements, and roadmap. Use when starting fresh project planning.
+name: gsd-executor
+# ... frontmatter
 ---
 
-[Command instructions -- equivalent to command .md body content]
+<required_reading>
+@./.claude/get-shit-done/references/agent-protocol.md
+</required_reading>
+
+<role>
+[Agent-specific role definition -- NOT shared]
+</role>
+
+<execution>
+[Agent-specific execution steps -- NOT shared]
+</execution>
 ```
 
-**Key difference:** Codex skills support implicit invocation (Codex auto-selects based on task description matching). This means GSD commands could be auto-triggered without explicit `/gsd:` invocation. The `description` field is critical for controlling when skills activate.
+**What moves to agent-protocol.md:**
+- Git safety protocol (shared across all agents that commit)
+- Structured return format (SUCCESS/BLOCKED)
+- Tool usage conventions
+- File path handling rules
+- Commit message formatting
+- Error reporting conventions
 
-#### c. New conversion function: `convertClaudeToCodexSkill()`
+**What stays in each agent:**
+- Role definition and purpose
+- Allowed tools (YAML frontmatter -- already agent-specific)
+- Execution steps
+- Agent-specific output formats
 
-```javascript
-function convertClaudeToCodexSkill(content, commandName) {
-  // Extract body (after frontmatter)
-  // Create SKILL.md with:
-  //   name: gsd-{commandName}
-  //   description: from existing YAML description field
-  // Body: command instructions with path replacement
-  // Tool names: likely no mapping needed (Codex uses similar names)
-  // Replace /gsd: references with $gsd- for skill invocation
-}
+**Estimated reduction:** From ~600 shared lines per agent to ~50 lines of `@`-references + agent-specific content. 11 agents * 550 lines saved = ~6,050 lines eliminated system-wide.
+
+## Recommended Project Structure (New Files)
+
+```
+get-shit-done/
+  feature-manifest.json                    # NEW: declarative feature registry
+  references/
+    feature-manifest.md                    # NEW: manifest schema reference
+    agent-protocol.md                      # NEW: shared agent execution protocol
+  workflows/
+    backlog.md                             # NEW: backlog operations workflow
+  templates/
+    backlog-item.md                        # NEW: backlog item template
+
+commands/gsd/
+    backlog.md                             # NEW: /gsd:backlog command
+
+.planning/                                 # Per-project (user's repo)
+  backlog/
+    items/
+      YYYY-MM-DD-slug.md                   # Project-scoped backlog items
+
+~/.gsd/                                    # Global (user's home)
+  backlog/
+    items/
+      YYYY-MM-DD-slug.md                   # Global backlog items
+    index.md                               # Auto-generated index
 ```
 
-#### d. AGENTS.md generation for Codex
+### Structure Rationale
 
-Codex reads `AGENTS.md` for custom instructions (equivalent to Claude's system prompt). The installer should generate:
-
-- `~/.codex/AGENTS.md` -- global GSD instructions (equivalent to the get-shit-done reference docs)
-- `.agents/AGENTS.md` -- project-level instructions (generated on `/gsd:new-project`)
-
-This replaces the agent spec model. Instead of individual agent files with YAML frontmatter, Codex uses a single layered AGENTS.md. The GSD agent specs would need to be consolidated into AGENTS.md sections or converted to skills.
-
-#### e. KB migration logic
-
-```javascript
-function migrateKB() {
-  const oldKBDir = path.join(os.homedir(), '.claude', 'gsd-knowledge');
-  const newKBDir = path.join(os.homedir(), '.gsd', 'knowledge');
-
-  if (fs.existsSync(oldKBDir) && !fs.existsSync(newKBDir)) {
-    // Copy (not move) to preserve backward compatibility during transition
-    copyRecursive(oldKBDir, newKBDir);
-    // Write migration marker
-    fs.writeFileSync(
-      path.join(newKBDir, '.migrated-from'),
-      `Migrated from ${oldKBDir} on ${new Date().toISOString()}\n`
-    );
-    console.log('Migrated knowledge base to ~/.gsd/knowledge/');
-  }
-
-  // Create symlink at old location for backward compatibility
-  if (fs.existsSync(newKBDir) && !fs.existsSync(oldKBDir)) {
-    fs.symlinkSync(newKBDir, oldKBDir);
-    console.log('Created symlink ~/.claude/gsd-knowledge/ -> ~/.gsd/knowledge/');
-  }
-}
-```
-
-### 3. Modified Component: KB Path References (20+ files)
-
-**Scope of change:** Every file that references `~/.claude/gsd-knowledge/` must change to `~/.gsd/knowledge/`.
-
-**Files requiring path changes:**
-
-| Category | Files | Path Pattern |
-|----------|-------|-------------|
-| Workflows | `signal.md`, `collect-signals.md`, `reflect.md`, `health-check.md` | `~/.claude/gsd-knowledge/` -> `~/.gsd/knowledge/` |
-| References | `knowledge-surfacing.md`, `signal-detection.md`, `reflection-patterns.md`, `health-check.md`, `spike-execution.md` | Same |
-| Scripts | `kb-rebuild-index.sh` | `$HOME/.claude/gsd-knowledge` -> `$HOME/.gsd/knowledge` |
-| Tests | `kb-infrastructure.test.js`, `kb-write.test.js`, `run-smoke.sh`, `standard-signal.js` | Same |
-| Agent specs | `.claude/agents/knowledge-store.md` (installed copy) | Handled by installer path replacement |
-
-**Strategy:** Since these files are in the repo (source of truth), change them in the repo. The installer's existing `~/.claude/` path replacement will NOT affect `~/.gsd/` paths, which is exactly what we want -- KB paths should be the same across all runtimes.
-
-**Important consideration:** The installer currently does `content.replace(/~\/\.claude\//g, pathPrefix)`. This would NOT catch `~/.gsd/` paths, meaning KB paths will correctly pass through unchanged for all runtimes. This is the desired behavior.
-
-### 4. Modified Component: Continue-Here Template
-
-**Current template** (`get-shit-done/templates/continue-here.md`):
-
-```yaml
----
-phase: XX-name
-task: 3
-total_tasks: 7
-status: in_progress
-last_updated: 2025-01-15T14:30:00Z
----
-```
-
-**Proposed addition for cross-runtime handoff:**
-
-```yaml
----
-phase: XX-name
-task: 3
-total_tasks: 7
-status: in_progress
-last_updated: 2025-01-15T14:30:00Z
-runtime: claude-code           # NEW: which runtime created this
-runtime_version: "1.0.23"      # NEW: runtime version for context
----
-```
-
-The `runtime` field is informational, not functional. It tells the resuming agent "this handoff was created by Claude Code" so it can note any runtime-specific context. The `.planning/` state is already runtime-agnostic -- all state files are plain markdown with YAML frontmatter that any runtime can read.
-
-### 5. No Change Needed: `.planning/` State System
-
-The `.planning/` directory is already runtime-agnostic:
-
-- **STATE.md** -- Plain markdown, no runtime-specific paths
-- **ROADMAP.md** -- Plain markdown
-- **config.json** -- JSON with workflow settings, no runtime paths
-- **PLAN.md** -- Markdown task specs
-- **SUMMARY.md** -- Execution results
-- **continue-here.md** -- Session handoff (adding optional `runtime:` field)
-
-The `@~/.claude/get-shit-done/` references in commands/agents are NOT in `.planning/` files -- they are in the GSD system files that get path-transformed by the installer. The `.planning/` files contain only project state with no references to runtime-specific directories.
-
-**Validation:** Grepped all `.planning/` files and confirmed zero references to `~/.claude/get-shit-done/` in any STATE.md, ROADMAP.md, config.json, PLAN.md, or SUMMARY.md. The only `~/.claude/` references in `.planning/` are in historical phase research docs referencing `~/.claude/gsd-knowledge/` (the KB path), which is the separate migration concern.
-
-### 6. New Component: Runtime Detection Utility
-
-For cross-runtime handoff, the system needs to know which runtime is currently active. This enables:
-- Setting the `runtime:` field in continue-here.md
-- Displaying runtime context in resume-work
-- Conditionally adjusting behavior (e.g., Codex has no hook system)
-
-**Implementation:** Add a `detectRuntime()` function to `gsd-tools.js` or a new `gsd-reflect-tools.js`:
-
-```javascript
-function detectRuntime() {
-  // Check environment variables set by each runtime
-  if (process.env.CLAUDE_CODE_VERSION) return 'claude-code';
-  if (process.env.OPENCODE_VERSION) return 'opencode';
-  if (process.env.GEMINI_CLI_VERSION) return 'gemini';
-  if (process.env.CODEX_VERSION || process.env.CODEX_HOME) return 'codex';
-
-  // Fallback: check which config directory loaded the commands
-  // (This is determined by the path prefix the installer used)
-  return 'unknown';
-}
-```
-
-**Confidence:** LOW on the exact environment variables -- each runtime sets different env vars. This needs verification during implementation. The fallback approach of checking the path prefix is more reliable.
+- **`feature-manifest.json` at `get-shit-done/` root:** Co-located with other top-level config (VERSION, CHANGELOG.md). Installed alongside them.
+- **`backlog/` at `.planning/`:** Follows the `.planning/todos/` pattern for project-scoped captures.
+- **`backlog/` at `~/.gsd/`:** Follows the `~/.gsd/knowledge/` pattern for cross-project data.
+- **Single `backlog.md` command:** Subcommand routing avoids command proliferation (matches existing `/gsd:settings` pattern).
 
 ## Architectural Patterns
 
-### Pattern 1: Runtime Adapter Pattern
+### Pattern 1: Manifest-Driven Configuration
 
-**What:** Each runtime has a transformation adapter in `install.js` that converts GSD's Claude Code-native format to the runtime's native format.
+**What:** A static JSON file declares what config each feature needs. Workflows read this file and generate config from it rather than hardcoding questions.
 
-**When to use:** Adding any new runtime.
-
-**Current adapters:**
-- Claude Code: identity (no transformation)
-- OpenCode: `convertClaudeToOpencodeFrontmatter()` -- flat naming, tool mapping, path swap
-- Gemini: `convertClaudeToGeminiToml()` + `convertClaudeToGeminiAgent()` -- TOML commands, tool mapping, strip color
-- Codex: NEW -- `convertClaudeToCodexSkill()` -- SKILL.md format, AGENTS.md generation
+**When to use:** When multiple entry points (new-project, upgrade-project, update) need the same feature configuration logic.
 
 **Trade-offs:**
-- Pro: Each runtime gets native-feeling commands
-- Pro: New runtimes can be added without changing core GSD files
-- Con: Claude Code is the "source of truth" format -- changes must propagate
-- Con: Transformation complexity grows with each runtime
+- PRO: Single source of truth for feature config requirements
+- PRO: Adding a new feature's config is one manifest edit, not 3 workflow edits
+- PRO: Auto-detect rules make smart defaults possible
+- CON: Adds indirection (workflow reads manifest reads schema)
+- CON: JSON schema is less expressive than inline code for complex conditions
 
-### Pattern 2: Shared Data Directory Pattern
+**Example:**
+```javascript
+// In gsd-tools.js or workflow logic:
+const manifest = JSON.parse(fs.readFileSync('feature-manifest.json', 'utf8'));
+const config = JSON.parse(fs.readFileSync('.planning/config.json', 'utf8'));
 
-**What:** Data that should be accessible from any runtime lives in a runtime-agnostic directory (`~/.gsd/`).
+for (const [featureName, feature] of Object.entries(manifest.features)) {
+  if (feature.scope === 'project' && !config[feature.config_section]) {
+    // Feature needs initialization
+    const defaults = {};
+    for (const [field, schema] of Object.entries(feature.schema)) {
+      defaults[field] = schema.default;
+    }
+    config[feature.config_section] = defaults;
+  }
+}
+```
 
-**When to use:** Any data that needs cross-runtime access (KB, cache, cross-runtime config).
+### Pattern 2: Two-Tier Storage (Project + Global)
+
+**What:** Data that spans milestones lives in both `.planning/` (project-scoped) and `~/.gsd/` (global). Same pattern already used by the knowledge base.
+
+**When to use:** When data needs to survive milestone archival AND be accessible across projects.
 
 **Trade-offs:**
-- Pro: No path transformation needed for shared data
-- Pro: Data survives runtime uninstallation
-- Pro: Single source of truth for KB
-- Con: Adds another directory to manage
-- Con: Migration needed for existing users
+- PRO: Familiar pattern (KB already works this way)
+- PRO: Project backlog committed to git with project
+- PRO: Global backlog travels with user
+- CON: Two directories to manage
+- CON: Index rebuild must scan both tiers
 
-### Pattern 3: Progressive Migration Pattern
+### Pattern 3: Status-Based Lifecycle (Not Directory-Based)
 
-**What:** Migrate data from old location to new location using copy + symlink, not move.
+**What:** Backlog items use a `status` field in frontmatter rather than moving between directories (unlike todos which move from `pending/` to `done/`).
 
-**When to use:** Any path migration where backward compatibility matters.
-
-**Steps:**
-1. Copy data to new location
-2. Create symlink at old location pointing to new location
-3. Update all path references in source files
-4. After N versions, remove symlink support
+**When to use:** When items have a multi-stage lifecycle (captured -> promoted -> deferred -> rejected) rather than a binary state (pending/done).
 
 **Trade-offs:**
-- Pro: Zero downtime -- old paths still work via symlink
-- Pro: Users who don't update immediately are not broken
-- Con: Symlink management adds complexity
-- Con: Eventual cleanup needed
+- PRO: No file moves on status change (simpler git history)
+- PRO: Supports more lifecycle states than 2 directories
+- PRO: Query by status via grep (fast)
+- CON: "Active" items not immediately obvious from directory listing
+- CON: Requires filtering in list operations
 
 ## Data Flow
 
-### Installation Flow (Updated for 4 Runtimes)
+### Backlog Item Lifecycle
 
 ```
-npx get-shit-done-reflect-cc
-        |
-        v
-  [Runtime Selection]
-  1) Claude Code  2) OpenCode  3) Gemini  4) Codex CLI  5) All
-        |
-        +---> [Create ~/.gsd/knowledge/ if not exists]
-        +---> [Migrate ~/.claude/gsd-knowledge/ if exists]
-        |
-        +---> [Per-runtime install loop]
-              |
-              +---> Claude: copyWithPathReplacement(~/.claude/)
-              +---> OpenCode: copyFlattenedCommands(~/.config/opencode/)
-              +---> Gemini: copyWithPathReplacement(~/.gemini/) + TOML
-              +---> Codex: convertToSkills(~/.codex/skills/) + AGENTS.md
-              |
-              +---> [Hook registration per runtime]
-                    Claude: settings.json hooks
-                    Gemini: settings.json hooks
-                    OpenCode: N/A (no hooks)
-                    Codex: N/A (no hook system)
+[User idea / Signal / Todo]
+         |
+         v
+  /gsd:backlog add          status: captured
+         |                  scope: project or global
+         v
+  /gsd:backlog review       User triages:
+         |                    - Keep as captured
+         +- Defer ----------> status: deferred
+         +- Reject ----------> status: rejected
+         +- Keep ------------> status: captured (unchanged)
+         |
+         v
+  /gsd:new-milestone        Items presented grouped by theme
+         |                  User selects items for milestone
+         v
+  Selected items            status: promoted
+                            promoted_to: "v1.16 Phase 3"
+                            (items become REQUIREMENTS in new milestone)
 ```
 
-### KB Access Flow (Post-Migration)
+### Feature Config Initialization
 
 ```
-Any Runtime (Claude/OpenCode/Gemini/Codex)
-        |
-        v
-  [Agent reads workflow/reference file]
-        |
-        v
-  [Path: ~/.gsd/knowledge/index.md]  <-- same for all runtimes
-        |
-        v
-  [Read index, select entries]
-        |
-        v
-  [Path: ~/.gsd/knowledge/lessons/{category}/{file}.md]
-        |
-        v
-  [Apply knowledge to current task]
+[GSD ships with feature-manifest.json]
+         |
+         v
+  /gsd:new-project
+         |
+         +- Step 5: Core config (hardcoded: mode, depth, etc.)
+         |
+         +- Step 5.5: Feature config (manifest-driven)
+         |     |
+         |     +- Load manifest
+         |     +- For each scope:project feature:
+         |     |     +- Run auto_detect (check file existence)
+         |     |     +- Ask init_prompts (interactive) or apply defaults (auto)
+         |     |     +- Write to config.json
+         |     +- Commit config.json
+         |
+         v
+  .planning/config.json     (contains all feature sections)
 ```
 
-### Cross-Runtime Handoff Flow
+### Update-to-Upgrade Pipeline
 
 ```
-Runtime A (e.g., Claude Code)
-        |
-  /gsd:pause-work
-        |
-        v
-  [Write .planning/phases/XX/.continue-here.md]
-  [Write .planning/STATE.md update]
-  [Git commit as WIP]
-        |
-        v
-  [User switches to Runtime B (e.g., Codex CLI)]
-        |
-  /gsd:resume-work (or $gsd-resume-work in Codex)
-        |
-        v
-  [Read .planning/STATE.md]
-  [Read .continue-here.md]
-  [Note: "Handoff from claude-code"]
-  [Resume work normally]
+/gsd:update
+  |
+  +- Install new files (npx)
+  +- Clear update cache
+  |
+  +- NEW: Check manifest diff
+  |     |
+  |     +- Load new feature-manifest.json
+  |     +- Load .planning/config.json
+  |     +- Compare: find features with no config section
+  |     |
+  |     +- If gaps found AND YOLO mode:
+  |     |     +- Auto-run /gsd:upgrade-project --auto
+  |     |
+  |     +- If gaps found AND interactive:
+  |           +- Display: "Run /gsd:upgrade-project to configure new features"
+  |
+  +- Display restart reminder
 ```
-
-**Key insight:** Cross-runtime handoff already works in principle because `.planning/` is runtime-agnostic and git-committed. The main gaps are:
-1. KB not accessible from non-Claude runtimes (fixed by `~/.gsd/` migration)
-2. No runtime metadata in handoff file (fixed by optional `runtime:` field)
-3. Codex CLI has no equivalent commands installed (fixed by skills conversion)
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Runtime-Specific Paths in Shared Data
+### Anti-Pattern 1: Merging Todos and Backlog
 
-**What people do:** Hardcode `~/.claude/` in files that are shared across runtimes.
-**Why it is wrong:** The path only works for Claude Code. Other runtimes get broken paths after the installer's regex replacement converts `~/.claude/` to `~/.config/opencode/` etc., pointing KB operations to non-existent directories.
-**Do this instead:** Use a runtime-agnostic path (`~/.gsd/`) for shared data that does not get caught by the installer's path replacement regex.
+**What people do:** Try to extend `.planning/todos/` with backlog semantics (tags, themes, promotion).
 
-### Anti-Pattern 2: Full Agent Spec Conversion to Skills
+**Why it's wrong:** Todos are transient work items with a binary lifecycle (pending/done). Backlog items are persistent ideas with a multi-stage lifecycle. Mixing them creates confusion about when an item is "done" vs "promoted." Todo `done/` directory implies completion, but promoted backlog items are just beginning their journey.
 
-**What people do:** Try to convert every GSD agent spec (with YAML frontmatter, tool restrictions, spawning logic) into a Codex skill 1:1.
-**Why it is wrong:** Codex skills have a different model. They do not have tool restrictions, they do not spawn subagents the same way (no Task tool equivalent), and they use implicit matching instead of explicit invocation.
-**Do this instead:** Convert GSD **commands** to Codex skills (they are the user-facing entry points). Use AGENTS.md for agent-level instructions. Accept that subagent spawning may work differently in Codex -- focus on the user-facing commands first.
+**Do this instead:** Keep todos for immediate work. Backlog for persistent ideas. Provide a "promote to backlog" action in `/gsd:check-todos` for items that deserve longer-term tracking.
 
-### Anti-Pattern 3: Move Instead of Copy for Migration
+### Anti-Pattern 2: Hardcoding Feature Config in Workflows
 
-**What people do:** Use `fs.renameSync` to move KB from old location to new location.
-**Why it is wrong:** Users who have not yet updated their GSD installation will have commands pointing to the old location. Moving breaks them immediately.
-**Do this instead:** Copy to new location, symlink old to new. Both paths work. Clean up symlink in a future version.
+**What people do:** Add new config questions directly into `new-project.md` and new migration actions into `version-migration.md` for each feature.
+
+**Why it's wrong:** N features * 3 entry points (new-project, upgrade-project, update) = 3N code locations to maintain. Each new feature requires editing 3+ files.
+
+**Do this instead:** Declare the feature in `feature-manifest.json`. Let the manifest-reading logic in workflows handle initialization, migration, and gap detection generically.
+
+### Anti-Pattern 3: Storing Backlog in STATE.md
+
+**What people do:** Embed backlog items directly in STATE.md's "Accumulated Context" section.
+
+**Why it's wrong:** STATE.md has a 100-line size constraint. It's a digest, not a store. Backlog can grow unbounded. Embedding it violates the "read once, know where we are" contract.
+
+**Do this instead:** Store backlog items as individual files. Reference only the count and a pointer in STATE.md: "12 backlog items -- see /gsd:backlog list".
 
 ## Integration Points
 
-### External Services
+### New Files Created/Modified per Component
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| Codex CLI | Skills in `~/.codex/skills/gsd-*/SKILL.md` | New runtime; skills are Codex's command mechanism |
-| Codex CLI | AGENTS.md in `~/.codex/AGENTS.md` | Global instructions; equivalent to agent specs |
-| npm Registry | Update check via `gsd-check-update.js` | No change; Codex has no hook system so no auto-update check |
+**Backlog System (NEW):**
+
+| File | Layer | Purpose |
+|------|-------|---------|
+| `commands/gsd/backlog.md` | Command | NEW: `/gsd:backlog` command |
+| `get-shit-done/workflows/backlog.md` | Workflow | NEW: backlog operations orchestration |
+| `get-shit-done/templates/backlog-item.md` | Template | NEW: backlog item file template |
+
+**Feature Manifest (NEW):**
+
+| File | Layer | Purpose |
+|------|-------|---------|
+| `get-shit-done/feature-manifest.json` | Reference | NEW: declarative feature registry |
+| `get-shit-done/references/feature-manifest.md` | Reference | NEW: manifest schema docs |
+
+**Update Experience (MODIFIED):**
+
+| File | Layer | Change |
+|------|-------|--------|
+| `get-shit-done/workflows/update.md` | Workflow | ADD: post-update manifest diff check |
+| `get-shit-done/workflows/upgrade-project.md` | Workflow | REPLACE: hardcoded patches with manifest-driven logic |
+| `get-shit-done/workflows/new-project.md` | Workflow | ADD: Step 5.5 for manifest-driven feature config |
+| `get-shit-done/workflows/new-milestone.md` | Workflow | ADD: backlog item surfacing during Step 2 |
+| `get-shit-done/references/version-migration.md` | Reference | SIMPLIFY: remove hardcoded migration actions |
+
+**Agent Boilerplate (MODIFIED):**
+
+| File | Layer | Change |
+|------|-------|--------|
+| `get-shit-done/references/agent-protocol.md` | Reference | NEW: shared execution protocol |
+| `agents/gsd-executor.md` | Agent | REDUCE: extract shared protocol |
+| `agents/gsd-planner.md` | Agent | REDUCE: extract shared protocol |
+| `agents/gsd-verifier.md` | Agent | REDUCE: extract shared protocol |
+| `agents/gsd-debugger.md` | Agent | REDUCE: extract shared protocol |
+| (+ 7 other agent specs) | Agent | REDUCE: extract shared protocol |
+
+**Runtime (MODIFIED):**
+
+| File | Layer | Change |
+|------|-------|--------|
+| `bin/install.js` | Runtime | ADD: copy feature-manifest.json during install |
+| `bin/gsd-tools.js` | Runtime | ADD: backlog subcommands |
 
 ### Internal Boundaries
 
-| Boundary | Communication | Changes for v1.14 |
-|----------|---------------|-------------------|
-| Installer <-> Runtime configs | File writes to runtime-specific directories | Add Codex runtime output |
-| Commands <-> KB | File reads/writes via paths in markdown | All paths change from `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/` |
-| Commands <-> `.planning/` | File reads/writes via relative paths | No change (already runtime-agnostic) |
-| Installer <-> `~/.gsd/` | Directory creation, KB migration | NEW boundary |
-| Handoff <-> Resume | `.continue-here.md` and `STATE.md` via git | Add optional `runtime:` metadata |
-
-## Codex CLI: Detailed Integration Assessment
-
-### What Works Natively
-
-- **File reading/writing:** Codex can read/write markdown files, including `.planning/` state
-- **Shell commands:** Codex can run bash commands (with sandbox policy approval)
-- **Git operations:** Codex can run git commands
-- **Web search:** Built-in web search capability
-- **MCP integration:** Can use MCP tools if configured
-
-### What Needs Adaptation
-
-| GSD Feature | Claude Code | Codex CLI Equivalent | Adaptation Needed |
-|-------------|-------------|---------------------|-------------------|
-| Slash commands | `/gsd:command` | `$gsd-command` (skill mention) | Convert commands to skills |
-| Agent specs | `agents/gsd-*.md` with YAML | `AGENTS.md` + skills | Consolidate or convert |
-| Task tool (subagent) | `Task(prompt, subagent_type)` | No direct equivalent | Skills can invoke other skills, but no isolated subagent context window |
-| Hooks (SessionStart) | `settings.json` hooks | None | Skip hooks for Codex; no auto-update check |
-| Tool restrictions | `allowed-tools:` in frontmatter | Not applicable | Codex does not restrict tools per-command |
-| `@` file references | `@~/.claude/get-shit-done/file.md` | No equivalent -- Codex reads files via shell | Convert `@` references to explicit read instructions |
-
-### Critical Limitation: No Subagent Spawning
-
-Codex CLI does not have a direct equivalent of Claude Code's `Task` tool for spawning isolated subagent instances with fresh context windows. This means:
-
-- **Plan execution with wave-based parallelism** will not work the same way
-- **Researcher/planner/executor chain** cannot spawn parallel agents
-- **Workaround:** Codex `exec` subcommand can run non-interactive tasks, and skills can invoke other skills, but the isolation model is different
-
-**Recommendation:** For v1.14, support Codex CLI for **individual command execution** (one command at a time) but do NOT promise full orchestrated workflow execution (multi-wave plan execution with parallel agents). This matches how most users would use a secondary runtime anyway -- for quick tasks, reviews, and resuming work, not for orchestrating an entire phase execution pipeline.
-
-### Codex CLI Specific Files to Generate
-
-| File | Location | Purpose |
-|------|----------|---------|
-| `SKILL.md` per command | `~/.codex/skills/gsd-{command}/SKILL.md` | User-facing commands |
-| `AGENTS.md` | `~/.codex/AGENTS.md` | Global GSD instructions and agent behaviors |
-| `get-shit-done/` | `~/.codex/get-shit-done/` | Reference docs, templates, workflows (same as other runtimes) |
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| Backlog <-> Milestone scoping | Workflow reads backlog files, updates status in frontmatter | Read during new-milestone Step 2 |
+| Backlog <-> Todos | "Promote" action reads todo, creates backlog item, optionally marks todo done | Cross-workflow file operation |
+| Backlog <-> Signals | Auto-promote high-severity signals | Signal workflow checks severity, creates backlog item |
+| Manifest <-> Config | Manifest defines schema, config stores values | Manifest is read-only reference; config is read-write state |
+| Manifest <-> Install | install.js copies manifest to target dir | Same mechanism as CHANGELOG.md, VERSION |
+| Update <-> Upgrade | Update detects gaps via manifest, suggests/triggers upgrade | Post-update hook, not automatic by default |
 
 ## Suggested Build Order
 
-Given dependencies between components, the recommended phase structure:
+Build order is driven by dependency chains. Features built first are consumed by features built later.
 
+### Phase 1: Agent Boilerplate Extraction
+**Rationale:** No dependencies on other new features. Reduces agent spec sizes before any modifications. Changes are mechanical (extract shared text, add `@`-references). Low risk.
+- Create `references/agent-protocol.md`
+- Extract shared sections from all 11 agents
+- Verify agents still function with `@`-reference pattern
+
+### Phase 2: Feature Manifest System
+**Rationale:** Foundation that `/gsd:upgrade-project` and `/gsd:new-project` modifications depend on. Must exist before update UX changes.
+- Create `feature-manifest.json` with existing features (health_check, devops)
+- Create `references/feature-manifest.md` (schema reference)
+- Add `release` feature to manifest
+- Add gsd-tools.js manifest validation subcommand
+- Modify install.js to copy manifest file
+
+### Phase 3: Feature Manifest Integration
+**Rationale:** Depends on Phase 2 (manifest exists). Modifies three workflows to consume the manifest.
+- Modify `upgrade-project.md` to use manifest-driven patches
+- Modify `new-project.md` to add Step 5.5 (manifest-driven feature config)
+- Modify `update.md` to add post-update manifest diff check
+- Simplify `version-migration.md` (remove hardcoded migration actions)
+
+### Phase 4: Backlog System Core
+**Rationale:** No dependency on manifest (backlog uses its own storage). Can be built in parallel with Phase 3 if resources allow.
+- Create backlog item schema and template
+- Create `commands/gsd/backlog.md` and `workflows/backlog.md`
+- Add gsd-tools.js backlog subcommands (add, list, update, stats, index)
+- Create `.planning/backlog/` and `~/.gsd/backlog/` directory structures
+- Add backlog count to STATE.md accumulated context
+
+### Phase 5: Backlog Integration
+**Rationale:** Depends on Phase 4 (backlog exists). Connects backlog to existing workflows.
+- Modify `/gsd:new-milestone` to surface backlog items during scoping
+- Add "promote to backlog" action in `/gsd:check-todos`
+- Add auto-promote for high-severity signals
+- Modify `/gsd:complete-milestone` to review unaddressed backlog
+
+### Phase 6: Workflow DX and Reliability
+**Rationale:** Independent of backlog/manifest. Can be scheduled flexibly. Groups remaining DX improvements.
+- Lighten `/gsd:quick` (fast path for simple tasks)
+- Installer hardening (try-catch, validation, error tests)
+- Shell script fixes (portability)
+
+**Dependency graph:**
 ```
-Phase 1: KB Migration (Foundation)
-  - Create ~/.gsd/knowledge/ directory structure
-  - Add migration logic to installer (copy + symlink)
-  - Update all 20+ source files: ~/.claude/gsd-knowledge/ -> ~/.gsd/knowledge/
-  - Update kb-rebuild-index.sh
-  - Update tests
-  - Verify: KB operations work with new paths
-  Dependencies: None (can start immediately)
-
-Phase 2: Cross-Runtime State Audit
-  - Verify .planning/ has no runtime-specific paths
-  - Add runtime: field to continue-here template
-  - Add runtime detection utility
-  - Update pause-work and resume-work workflows
-  - Verify: pause in one runtime, resume in another
-  Dependencies: Phase 1 (KB paths must be fixed first)
-
-Phase 3: Codex CLI Runtime Support
-  - Add 'codex' to installer runtime selection
-  - Implement convertClaudeToCodexSkill() conversion
-  - Generate AGENTS.md from agent specs
-  - Install get-shit-done/ reference docs to ~/.codex/
-  - Handle Codex-specific limitations (no hooks, no Task tool)
-  - Verify: basic commands work in Codex CLI
-  Dependencies: Phase 1 (KB paths), Phase 2 (state audit)
-
-Phase 4: Existing Runtime Audit
-  - Verify OpenCode installation still works correctly
-  - Verify Gemini CLI installation still works correctly
-  - Test multi-runtime install (--all flag with 4 runtimes)
-  - Verify KB accessible from all runtimes
-  Dependencies: Phase 1, Phase 3
-
-Phase 5: Integration Testing & Polish
-  - End-to-end: install all 4 runtimes, create project in Claude, resume in Codex
-  - KB operations from each runtime
-  - Update README, CHANGELOG
-  - Version bump
-  Dependencies: All previous phases
+Phase 1 (Boilerplate) ─────────────────────────────────────> Phase 6 (DX)
+                                                                  ^
+Phase 2 (Manifest) ──> Phase 3 (Manifest Integration)            |
+                                                                  |
+Phase 4 (Backlog) ───> Phase 5 (Backlog Integration) ────────────+
 ```
 
-**Ordering rationale:**
-- KB migration is the foundation because it unblocks all cross-runtime KB access
-- State audit is second because it validates the handoff mechanism before adding a new runtime
-- Codex CLI is third because it builds on the fixed KB paths and validated state system
-- Existing runtime audit is fourth to catch any regressions from the changes
-- Integration testing is last as the verification phase
-
-## Scaling Considerations
-
-| Scale | Architecture Adjustments |
-|-------|--------------------------|
-| 2-3 runtimes | Current approach works -- installer handles per-runtime transformation |
-| 4-5 runtimes | Current approach still works but conversion functions multiply. Consider extracting runtime adapters to separate modules. |
-| 6+ runtimes | Installer becomes unwieldy. Consider a plugin architecture where each runtime provides its own adapter module. Not needed for v1.14. |
-
-## Risk Assessment
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Codex skill format changes before v1.14 ships | Medium | Medium | Skills API is documented and stable per official docs; pin to current format |
-| KB migration breaks existing installations | Low | High | Copy + symlink approach preserves both paths; never destructive |
-| Path replacement regex breaks with new `~/.gsd/` paths | Low | Medium | `~/.gsd/` is never caught by `~/.claude/` regex -- verified by regex analysis |
-| Codex subagent limitation blocks core workflows | Medium | High | Scope Codex support to individual commands, not full orchestration |
-| OpenCode/Gemini regressions from installer changes | Low | Medium | Run existing test suite + manual smoke test after changes |
-| AGENTS.md size exceeds Codex 32KiB limit | Medium | Medium | Keep global AGENTS.md to essentials; use skills for detailed instructions |
+Phases 1, 2, and 4 have no mutual dependencies and can begin in any order. Phase 3 requires Phase 2. Phase 5 requires Phase 4. Phase 6 has no dependencies but should come last to benefit from all preceding refactors.
 
 ## Sources
 
-- HIGH confidence: Direct codebase analysis of `bin/install.js` (1765 lines), all workflow/reference files with KB paths
-- HIGH confidence: Codex CLI official documentation at [developers.openai.com/codex/cli](https://developers.openai.com/codex/cli/)
-- HIGH confidence: Codex CLI config reference at [developers.openai.com/codex/config-reference](https://developers.openai.com/codex/config-reference/)
-- HIGH confidence: Codex CLI skills documentation at [developers.openai.com/codex/skills](https://developers.openai.com/codex/skills)
-- HIGH confidence: Codex AGENTS.md documentation at [developers.openai.com/codex/guides/agents-md](https://developers.openai.com/codex/guides/agents-md/)
-- HIGH confidence: Codex CLI slash commands at [developers.openai.com/codex/cli/slash-commands](https://developers.openai.com/codex/cli/slash-commands/)
-- MEDIUM confidence: Runtime detection via environment variables (needs verification during implementation)
-- LOW confidence: Exact Codex tool name mapping (not documented; likely similar to Claude Code)
+- Existing codebase analysis: `.planning/codebase/ARCHITECTURE.md`, `STRUCTURE.md`, `INTEGRATIONS.md`
+- Todo: `.planning/todos/pending/2026-02-17-feature-manifest-system-for-declarative-feature-initialization.md`
+- Milestone candidate: `.planning/milestones/v1.15-CANDIDATE.md`
+- Workflow files: `workflows/new-project.md`, `workflows/upgrade-project.md`, `workflows/update.md`, `workflows/new-milestone.md`, `workflows/complete-milestone.md`
+- Runtime: `bin/install.js` (file copy logic, manifest system), `bin/gsd-tools.js` (CLI subcommands)
+- Knowledge store: `agents/knowledge-store.md` (two-tier storage pattern)
+- State template: `templates/state.md` (size constraint, accumulated context)
+- Existing todo/check-todos system: `workflows/add-todo.md`, `workflows/check-todos.md`
 
 ---
-*Architecture research for: Multi-Runtime CLI Interop (v1.14)*
-*Researched: 2026-02-11*
+*Architecture research for: GSD Reflect v1.15 Backlog, Feature Manifest, and Update UX*
+*Researched: 2026-02-16*

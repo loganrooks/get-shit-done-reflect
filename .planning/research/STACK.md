@@ -1,18 +1,16 @@
-# Stack Research: Codex CLI Integration, Shared KB, Cross-Runtime Continuity
+# Stack Research: Backlog System, Feature Manifest, Update Experience, Agent Boilerplate
 
-**Domain:** Multi-runtime CLI tool interop -- adding OpenAI Codex CLI as 4th runtime, migrating KB to shared location, enabling cross-runtime state
-**Researched:** 2026-02-11
-**Confidence:** HIGH (official OpenAI docs verified via WebFetch, cross-referenced with multiple sources)
+**Domain:** CLI-native workflow enhancement -- backlog management, declarative config schemas, update UX, and spec deduplication for an existing zero-dependency Node.js + Markdown system
+**Researched:** 2026-02-16
+**Confidence:** HIGH (all recommendations build on verified existing patterns; no new dependencies required)
 
 ---
 
 ## Executive Summary
 
-Adding OpenAI Codex CLI as a fourth runtime requires understanding three distinct integration surfaces: (1) command installation format, (2) agent/tool name mapping, and (3) config directory conventions. Codex CLI uses `~/.codex/` as its home (`CODEX_HOME`), TOML for configuration, Markdown with YAML frontmatter for custom prompts (deprecated) and SKILL.md for skills, and a different set of built-in tool names than Claude Code, OpenCode, or Gemini CLI. The knowledge base migration from `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/` is a filesystem-only change requiring no new dependencies. Cross-runtime continuity is achievable through the shared `~/.gsd/` directory since all four runtimes can read/write arbitrary filesystem paths.
+All four target features (tagged backlog, feature manifest, update experience, agent boilerplate extraction) are achievable with **zero new npm dependencies**. The existing stack -- Node.js built-ins, Markdown + YAML frontmatter, JSON for config, and the gsd-tools.js CLI -- provides every primitive needed. The backlog system extends the proven `todos/` pattern with richer frontmatter (tags, priority, scope). The feature manifest is a JSON schema embedded in a new file that the installer, upgrade-project, and new-project workflows all read. Config migration extends the existing version-migration.md additive-only pattern. Agent boilerplate extraction is pure Markdown refactoring with a shared reference document.
 
-**Critical finding:** Codex CLI has TWO command extension mechanisms -- custom prompts (`~/.codex/prompts/*.md`, invoked as `/prompts:name`) and skills (`~/.codex/skills/*/SKILL.md`, invoked implicitly or via `/skills`). Custom prompts are **deprecated in favor of skills**. However, skills use a different invocation model (implicit triggering based on description matching, not explicit `/command` invocation). GSD commands need explicit invocation. **Recommendation: Use the custom prompts mechanism** despite deprecation, because it maps directly to slash commands (`/prompts:gsd-help`), matching how GSD works on other runtimes. Skills are designed for implicit context injection, not explicit command dispatch.
-
-**No new npm dependencies needed.** The entire integration is achievable with Node.js built-ins (`fs`, `path`, `os`), consistent with the zero-dependency philosophy.
+**The single most important stack decision: do NOT add a dependency.** GSD Reflect's zero-dependency constraint is load-bearing -- it ensures the system works on any Node.js installation across 4 runtimes without npm install in the target project. Every feature must use `fs`, `path`, `os`, `crypto`, and the existing hand-rolled YAML frontmatter parser in gsd-tools.js.
 
 ---
 
@@ -22,416 +20,395 @@ Adding OpenAI Codex CLI as a fourth runtime requires understanding three distinc
 
 | Technology | Version | Purpose | Why Unchanged |
 |------------|---------|---------|---------------|
-| Node.js | >=16.7.0 | Installer runtime, hooks, gsd-tools | No Codex-specific Node features needed |
-| JavaScript (CommonJS) | ES2020 | All scripting | Codex CLI is Rust-based; our tooling remains JS |
-| Markdown + YAML frontmatter | N/A | Command definitions | Codex prompts use same format as Claude Code commands |
-| esbuild | 0.24.0 | Hook bundling (dev only) | No change |
+| Node.js | >= 18.x | Runtime for gsd-tools.js, install.js, hooks | Already required; all new features are file I/O and JSON manipulation |
+| Markdown + YAML frontmatter | N/A | Data format for backlog items, signals, lessons, todos | Proven pattern; backlog items follow same schema conventions as todos/signals |
+| JSON | N/A | Config format (config.json, feature-manifest.json) | Feature manifest and config schema validation are JSON-native operations |
+| gsd-tools.js | current | CLI for state, frontmatter, commits, scaffolding | All new commands extend existing command patterns |
 
-### New Integration Surface: Codex CLI
+### New Files (Not Dependencies)
 
-| Component | Value | Confidence | Source |
-|-----------|-------|------------|--------|
-| Config directory | `~/.codex/` (overridable via `CODEX_HOME`) | HIGH | [Official config docs](https://developers.openai.com/codex/config-basic/) |
-| Config format | TOML (`~/.codex/config.toml`) | HIGH | [Config reference](https://developers.openai.com/codex/config-reference/) |
-| Custom prompts dir | `~/.codex/prompts/` | HIGH | [Custom prompts docs](https://developers.openai.com/codex/custom-prompts/) |
-| Custom prompt format | Markdown with YAML frontmatter (`description:`, `argument-hint:`) | HIGH | [Custom prompts docs](https://developers.openai.com/codex/custom-prompts/) |
-| Custom prompt invocation | `/prompts:filename` (e.g., `/prompts:gsd-help`) | HIGH | [Custom prompts docs](https://developers.openai.com/codex/custom-prompts/) |
-| Skills dir | `~/.codex/skills/*/SKILL.md` | HIGH | [Skills docs](https://developers.openai.com/codex/skills/) |
-| AGENTS.md location | `~/.codex/AGENTS.md` (global) or `.codex/AGENTS.md` (project) | HIGH | [AGENTS.md guide](https://developers.openai.com/codex/guides/agents-md/) |
-| Settings format | TOML (not JSON like Claude/Gemini) | HIGH | [Config reference](https://developers.openai.com/codex/config-reference/) |
-| Env var override | `CODEX_HOME` (replaces `~/.codex`) | HIGH | [Advanced config](https://developers.openai.com/codex/config-advanced/) |
-| Prompt deprecation | Custom prompts deprecated in favor of skills | MEDIUM | [Custom prompts docs](https://developers.openai.com/codex/custom-prompts/) |
+These are new data files and reference documents within the existing system, not npm packages.
 
-### New Shared Directory: `~/.gsd/`
+| File | Purpose | Consumed By |
+|------|---------|-------------|
+| `~/.gsd/backlog/{project}/` | Per-project backlog items (Markdown + frontmatter) | `/gsd:backlog`, `/gsd:new-milestone`, gsd-tools.js |
+| `~/.gsd/backlog/_global/` | Cross-project backlog items | Same as above |
+| `.claude/get-shit-done/feature-manifest.json` | Declarative feature registry with config schemas | install.js, upgrade-project, new-project workflows |
+| `.claude/get-shit-done/references/agent-conventions.md` | Shared agent protocol (extracted boilerplate) | All 11 gsd-* agent specs |
+| `~/.gsd/backlog/index.md` | Auto-generated backlog index (same pattern as KB index) | `/gsd:new-milestone`, backlog listing |
 
-| Component | Path | Purpose | Why This Location |
-|-----------|------|---------|-------------------|
-| Shared root | `~/.gsd/` | Runtime-agnostic GSD home | Not inside any runtime's config dir; equally accessible to all 4 runtimes |
-| Knowledge base | `~/.gsd/knowledge/` | Signals, spikes, lessons | Currently at `~/.claude/gsd-knowledge/`; must be runtime-neutral |
-| KB index | `~/.gsd/knowledge/index.md` | Auto-generated signal/lesson index | Same format, new location |
-| KB signals | `~/.gsd/knowledge/signals/{project}/` | Per-project signal files | Same structure |
-| KB spikes | `~/.gsd/knowledge/spikes/` | Spike investigation results | Same structure |
-| KB lessons | `~/.gsd/knowledge/lessons/` | Distilled lessons from reflection | Same structure |
-| Cache | `~/.gsd/cache/` | Update check cache, shared across runtimes | Currently `~/.claude/cache/gsd-update-check.json` |
+### Supporting Libraries (None Added)
+
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| **None** | N/A | N/A | The zero-dependency constraint holds for all v1.15 features |
+
+### Development Tools (No Changes)
+
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| Vitest | Test runner | Add tests for new gsd-tools.js commands (backlog CRUD, manifest validation) |
+| GitHub Actions | CI/CD | No changes needed; existing test workflow covers new code |
 
 ---
 
-## Codex CLI Command Format: Detailed Specification
+## Stack Decisions by Feature
 
-### Custom Prompts (Recommended for GSD Commands)
+### 1. Tagged Backlog System
 
-Codex custom prompts use Markdown files in `~/.codex/prompts/`. Each file becomes a slash command:
+**Data format:** Markdown with YAML frontmatter (same as todos, signals, lessons)
 
-**File:** `~/.codex/prompts/gsd-help.md`
-**Invocation:** `/prompts:gsd-help`
+**Why not SQLite/JSON-lines/other structured stores:**
+- Frontmatter is the established pattern for ALL GSD data (signals, lessons, spikes, todos, plans, summaries)
+- Human-readable, git-trackable, agent-friendly
+- The existing `extractFrontmatter()` / `reconstructFrontmatter()` in gsd-tools.js (lines 252-397) handles all parsing
+- No new parser needed
+
+**Storage location:** `~/.gsd/backlog/` (parallel to `~/.gsd/knowledge/`)
+
+**Why `~/.gsd/` and not `.planning/todos/`:**
+- Backlog is cross-session, cross-milestone, potentially cross-project -- just like the knowledge base
+- The existing `todos/` system is project-scoped and session-scoped (quick capture during work). Backlog is the persistent, curated layer above that
+- `~/.gsd/` is already the runtime-agnostic shared directory with established conventions
+- Per-project subdirectories (`~/.gsd/backlog/{project-name}/`) follow the signals pattern exactly
+
+**Backlog item frontmatter schema:**
 
 ```yaml
 ---
-description: Show GSD help and available commands
-argument-hint: [COMMAND="specific command to get help for"]
+id: bl-{YYYY-MM-DD}-{slug}
+title: "Feature or improvement description"
+project: {project-name} | _global
+tags: [ux, performance, dx, installer, ...]
+priority: high | medium | low
+scope: feature | bug | improvement | idea | debt
+status: open | in-progress | done | wontfix
+source: manual | todo-promote | signal-derived | milestone-review
+created: 2026-02-16T14:30:00Z
+updated: 2026-02-16T14:30:00Z
+milestone: null | "v1.15"
 ---
 ```
 
-```markdown
-[Command body -- same content as Claude Code command, with path replacements]
-```
+**Auto-grouping implementation:** Pure JavaScript in gsd-tools.js. Group by `tags` using set intersection, then by `scope`, then by `priority`. No ML, no clustering library -- deterministic grouping rules.
 
-**Frontmatter fields:**
-- `description:` (required) -- shown in slash command menu, max ~200 chars
-- `argument-hint:` (optional) -- documents expected parameters
+**Index file:** `~/.gsd/backlog/index.md` following the same pattern as `~/.gsd/knowledge/index.md`. Auto-generated on write, lists all items with frontmatter fields for fast scanning.
 
-**Placeholder system:**
-- `$1` through `$9` -- positional arguments (space-separated)
-- `$ARGUMENTS` -- all arguments
-- `$NAME` -- named parameter (supplied as `NAME=value`)
-- `$$` -- literal dollar sign
+**New gsd-tools.js commands needed:**
 
-**Key differences from Claude Code commands:**
+| Command | Purpose | Implementation |
+|---------|---------|----------------|
+| `backlog add <title> [--tags t1,t2] [--priority p] [--scope s] [--project p]` | Create backlog item | Write frontmatter + body to `~/.gsd/backlog/{project}/` |
+| `backlog list [--project p] [--tags t] [--scope s] [--priority p] [--status s]` | List/filter backlog | Read + filter frontmatter from backlog directory |
+| `backlog group [--project p] [--by tags\|scope\|priority]` | Auto-group for milestone scoping | Read all items, group by field, return grouped JSON |
+| `backlog update <id> [--status s] [--milestone m] [--priority p]` | Update item fields | Read, modify frontmatter, write back |
+| `backlog promote <todo-file>` | Convert todo to backlog item | Read todo, create backlog item with `source: todo-promote` |
+| `backlog stats [--project p]` | Summary counts by scope/priority/status | Aggregate frontmatter fields |
+| `init backlog [--project p]` | Compound init for backlog workflows | Load backlog items + config + state |
 
-| Aspect | Claude Code | Codex CLI |
-|--------|-------------|-----------|
-| Directory | `commands/gsd/` (nested) | `prompts/` (flat) |
-| File naming | `help.md` in `gsd/` subdir | `gsd-help.md` (flat, prefixed) |
-| Invocation | `/gsd:help` | `/prompts:gsd-help` |
-| Frontmatter | `allowed-tools:`, `description:`, `name:`, `color:` | `description:`, `argument-hint:` |
-| Tool restrictions | Via `allowed-tools:` YAML array | Not supported in custom prompts |
-| Agent support | Via `agents/gsd-*.md` with frontmatter | Not applicable (Codex has its own agent system) |
+**Estimated new code:** ~300-400 lines in gsd-tools.js (comparable to the todo system at ~100 lines + the frontmatter system at ~200 lines).
 
-### Skills (NOT Recommended for GSD Commands)
+### 2. Feature Manifest / Config Schema System
 
-Skills use `SKILL.md` with a different paradigm:
+**Format:** JSON file at `.claude/get-shit-done/feature-manifest.json`
 
-```yaml
----
-name: gsd-help
-description: When the user asks about GSD workflow commands or needs help with project planning, show available GSD commands.
----
-```
+**Why JSON and not YAML or Markdown:**
+- Config schemas need to be machine-parsed reliably; JSON is native to Node.js
+- The existing `config.json` is JSON; the manifest validates JSON against JSON
+- `JSON.parse()` is a built-in -- zero dependencies
+- Schema definitions map directly to the config.json structure they validate
 
-**Why NOT skills for GSD:**
-1. Skills trigger **implicitly** based on description matching -- GSD commands need **explicit** invocation
-2. Skills have restricted frontmatter (`name`, `description`, `license`, `allowed-tools`, `metadata` only)
-3. Skills use progressive disclosure (loaded on-demand) which conflicts with GSD's "load full command spec" model
-4. The `/skills` invocation requires knowing to look there; `/prompts:gsd-*` is discoverable via `/` menu
-5. Skill names are hyphen-case only (`^[a-z0-9-]+$`, max 64 chars) -- works for GSD but adds constraints
+**Why not JSON Schema (the spec) or Ajv/Zod:**
+- Adding Ajv (168KB) or Zod (87KB) violates the zero-dependency constraint
+- The validation needs are simple: check field existence, type, enum membership, defaults
+- A hand-rolled validator (50-100 lines) suffices. The existing `FRONTMATTER_SCHEMAS` pattern at line 2109 of gsd-tools.js already does this for frontmatter; extend the same pattern for config
+- If validation grows complex in later milestones (MCP server), Zod could be reconsidered as a dev dependency only
 
-**When skills WOULD make sense:** If GSD wanted to provide always-available context (like "when user mentions project planning, load GSD patterns") rather than explicit commands. This could be a future enhancement for knowledge surfacing but should not replace the command system.
+**Manifest structure:**
 
-### AGENTS.md (Supplementary, Not Commands)
-
-Codex reads `~/.codex/AGENTS.md` at session start for global instructions. This is where GSD's "always-on" instructions could go (equivalent to Claude Code's `CLAUDE.md`), but it does not replace commands.
-
-**Discovery order:**
-1. `~/.codex/AGENTS.override.md` (if exists)
-2. `~/.codex/AGENTS.md`
-3. Per directory from git root to CWD: `AGENTS.override.md` > `AGENTS.md` > fallback names
-4. Configurable fallback: `project_doc_fallback_filenames = ["CLAUDE.md"]` in config.toml
-
-**Installer action:** Write a `~/.codex/AGENTS.md` that includes GSD's standard preamble (workflow conventions, commit style, etc.) if one does not already exist. If one exists, do not overwrite.
-
----
-
-## Codex CLI Tool Name Mapping
-
-Codex CLI uses different built-in tool names than Claude Code, OpenCode, or Gemini. Since custom prompts do NOT support `allowed-tools:` restrictions, tool name mapping is only needed for content references within command/workflow text (not frontmatter).
-
-### Built-in Tool Names (from codex-rs source)
-
-| Claude Code | OpenCode | Gemini CLI | Codex CLI | Notes |
-|-------------|----------|------------|-----------|-------|
-| Read | read | read_file | read_file | |
-| Write | write | write_file | apply_patch | Codex uses apply_patch for all file writes |
-| Edit | edit | replace | apply_patch | Codex uses apply_patch for edits too |
-| Bash | bash | run_shell_command | shell / exec_command | `shell` for simple, `exec_command` for PTY |
-| Glob | glob | glob | list_dir | Codex uses list_dir for directory listing |
-| Grep | grep | search_file_content | grep_files | |
-| WebSearch | websearch | google_web_search | web_search | |
-| WebFetch | webfetch | web_fetch | (N/A - not built-in) | Codex has web_search but not web_fetch |
-| AskUserQuestion | question | ask_user | request_user_input | |
-| Task | task | (auto) | spawn_agent | Codex agent spawning |
-| TodoWrite | todowrite | write_todos | update_plan | |
-| SlashCommand | skill | (N/A) | (N/A) | No equivalent in Codex |
-
-**Important:** Since Codex custom prompts do not support `allowed-tools:` frontmatter, the installer does NOT need to map tool names in frontmatter. Tool name mapping is only needed for inline text references (e.g., "use the Read tool" becomes "use the read_file tool").
-
-### Installer Transformation: Content-Only Mapping
-
-```javascript
-// Tool name mapping from Claude Code to Codex CLI
-// Only needed for content text, not frontmatter (Codex prompts don't support allowed-tools)
-const claudeToCodexTools = {
-  Read: 'read_file',
-  Write: 'apply_patch',
-  Edit: 'apply_patch',
-  Bash: 'shell',
-  Glob: 'list_dir',
-  Grep: 'grep_files',
-  WebSearch: 'web_search',
-  AskUserQuestion: 'request_user_input',
-  Task: 'spawn_agent',
-  TodoWrite: 'update_plan',
-};
-```
-
----
-
-## Installer Changes Required
-
-### New Runtime: `codex`
-
-The installer (`bin/install.js`) needs a fourth runtime option. The pattern follows the existing OpenCode/Gemini patterns with Codex-specific transformations.
-
-| Installer Component | Change Needed |
-|---------------------|---------------|
-| CLI flags | Add `--codex` flag |
-| Runtime selection menu | Add option 5: "Codex CLI (~/.codex)" |
-| `--all` flag | Include `codex` in all-runtimes array |
-| `getDirName('codex')` | Returns `.codex` |
-| `getGlobalDir('codex')` | Returns `CODEX_HOME` or `~/.codex` |
-| `getGlobalDir` env var | `CODEX_CONFIG_DIR` > `CODEX_HOME` > `~/.codex` |
-| Command installation | Flat to `prompts/` as `gsd-*.md` |
-| Command invocation prefix | `/prompts:gsd-*` (not `/gsd:*`) |
-| Frontmatter conversion | Strip `allowed-tools:`, `name:`, `color:`; keep `description:` |
-| Agent installation | Skip -- Codex has its own agent system |
-| Content path replacement | `~/.claude/` -> `~/.codex/` (or actual CODEX_HOME) |
-| Hook installation | Skip -- Codex does not support session hooks |
-| Settings configuration | Skip -- Codex uses TOML, not JSON settings |
-| AGENTS.md | Write/merge GSD preamble into `~/.codex/AGENTS.md` |
-| `get-shit-done/` dir | Install to `~/.codex/get-shit-done/` (reference docs) |
-| Uninstall | Remove `prompts/gsd-*.md`, `get-shit-done/`, GSD lines from AGENTS.md |
-
-### New Frontmatter Converter: `convertClaudeToCodexPrompt()`
-
-```javascript
-function convertClaudeToCodexPrompt(content) {
-  // 1. Strip frontmatter fields not supported by Codex prompts:
-  //    - allowed-tools (not supported)
-  //    - name (Codex uses filename)
-  //    - color (not supported)
-  //    Keep: description (required), add argument-hint if applicable
-
-  // 2. Replace tool name references in body text
-  //    Read -> read_file, Bash -> shell, etc.
-
-  // 3. Replace command invocation patterns
-  //    /gsd:command -> /prompts:gsd-command
-
-  // 4. Replace config path references
-  //    ~/.claude/ -> ~/.codex/ (or CODEX_HOME path)
-
-  // 5. Process Co-Authored-By attribution
-}
-```
-
-### New Command Copier: `copyCodexPrompts()`
-
-Similar to `copyFlattenedCommands()` for OpenCode, but targets `prompts/` directory:
-
-```javascript
-function copyCodexPrompts(srcDir, destDir, prefix, pathPrefix) {
-  // Source: commands/gsd/*.md (nested)
-  // Dest: prompts/gsd-*.md (flat)
-  // Transform: convertClaudeToCodexPrompt()
-  // Note: NO agents copied (Codex has its own agent system)
-}
-```
-
-### KB Path Migration in Installer
-
-The installer should handle `~/.gsd/knowledge/` directory creation and optionally migrate existing data:
-
-```javascript
-function setupSharedKB() {
-  const gsdHome = path.join(os.homedir(), '.gsd');
-  const kbDir = path.join(gsdHome, 'knowledge');
-
-  // Create directory structure
-  fs.mkdirSync(path.join(kbDir, 'signals'), { recursive: true });
-  fs.mkdirSync(path.join(kbDir, 'spikes'), { recursive: true });
-  fs.mkdirSync(path.join(kbDir, 'lessons'), { recursive: true });
-
-  // Check for existing KB at old location
-  const oldKB = path.join(os.homedir(), '.claude', 'gsd-knowledge');
-  if (fs.existsSync(oldKB) && !fs.existsSync(path.join(kbDir, 'index.md'))) {
-    // Offer migration (interactive) or auto-migrate (non-interactive)
-    // Copy contents, then create symlink at old location for backward compat
+```json
+{
+  "manifest_version": "1.0",
+  "features": {
+    "health_check": {
+      "scope": "project",
+      "introduced": "1.12.0",
+      "config_key": "health_check",
+      "schema": {
+        "frequency": { "type": "string", "enum": ["milestone-only", "on-resume", "every-phase", "explicit-only"], "default": "milestone-only" },
+        "stale_threshold_days": { "type": "number", "default": 7 },
+        "blocking_checks": { "type": "boolean", "default": false }
+      },
+      "prompts": [
+        { "key": "frequency", "question": "How often should health checks run?", "options_from": "enum" },
+        { "key": "blocking_checks", "question": "Should health check warnings block execution?" }
+      ]
+    },
+    "devops": {
+      "scope": "project",
+      "introduced": "1.12.0",
+      "config_key": "devops",
+      "schema": {
+        "ci_provider": { "type": "string", "enum": ["none", "github-actions", "gitlab-ci", "circleci", "jenkins", "other"], "default": "none" },
+        "deploy_target": { "type": "string", "enum": ["none", "vercel", "docker", "fly-io", "railway", "other"], "default": "none" },
+        "commit_convention": { "type": "string", "enum": ["freeform", "conventional"], "default": "freeform" },
+        "environments": { "type": "array", "default": [] }
+      },
+      "prompts": [
+        { "key": "_gate", "question": "Configure DevOps context now?", "options": ["skip", "configure"], "skip_value": "skip" }
+      ]
+    },
+    "release": {
+      "scope": "project",
+      "introduced": "1.15.0",
+      "config_key": "release",
+      "schema": {
+        "version_file": { "type": "string", "enum": ["package.json", "Cargo.toml", "pyproject.toml", "VERSION", "none"], "default": "none" },
+        "changelog": { "type": "string", "default": "CHANGELOG.md" },
+        "changelog_format": { "type": "string", "enum": ["keepachangelog", "conventional", "none"], "default": "keepachangelog" },
+        "ci_trigger": { "type": "string", "enum": ["github-release", "tag-push", "manual", "none"], "default": "none" },
+        "registry": { "type": "string", "enum": ["npm", "crates", "pypi", "none"], "default": "none" },
+        "branch": { "type": "string", "default": "main" }
+      },
+      "prompts": [
+        { "key": "version_file", "question": "Where is your version tracked?" },
+        { "key": "changelog_format", "question": "Changelog format?" }
+      ]
+    },
+    "backlog": {
+      "scope": "user",
+      "introduced": "1.15.0",
+      "config_key": null,
+      "init_action": "ensure_directory",
+      "init_path": "~/.gsd/backlog/",
+      "schema": {}
+    }
   }
 }
 ```
 
+**Key design decisions:**
+- `scope: "project"` means config lives in `.planning/config.json` -- initialized by new-project, migrated by upgrade-project
+- `scope: "user"` means infrastructure lives in `~/.gsd/` -- set up by installer (install.js)
+- `prompts` array drives mini-onboarding in new-project and upgrade-project
+- `introduced` version enables the migration system to know which features are new relative to a project's `gsd_reflect_version`
+
+**New gsd-tools.js commands needed:**
+
+| Command | Purpose | Implementation |
+|---------|---------|----------------|
+| `manifest list-features` | List all features with scope and introduced version | Read manifest, output JSON |
+| `manifest diff-config` | Compare manifest against project's config.json | Read both, return missing features/fields |
+| `manifest validate-config` | Validate config.json against manifest schemas | Type + enum + required checks per feature |
+| `manifest get-prompts <feature>` | Return prompts for a feature's config | Used by new-project and upgrade-project |
+| `manifest apply-defaults <feature>` | Write default config for a feature | Used by upgrade-project in auto mode |
+
+**Estimated new code:** ~200-300 lines in gsd-tools.js.
+
+### 3. CLI Update Experience Improvements
+
+**Config migration approach:** Extend the existing version-migration.md pattern, now driven by the feature manifest instead of hardcoded migration actions.
+
+**Current migration flow:**
+1. `gsd-version-check.js` hook detects version mismatch on session start (cached)
+2. `upgrade-project.md` workflow reads cache, compares versions, applies additive patches
+3. Patches are hardcoded in the workflow per version (e.g., "add health_check section if absent")
+
+**New migration flow (manifest-driven):**
+1. `gsd-version-check.js` hook detects version mismatch (unchanged)
+2. `upgrade-project.md` runs `manifest diff-config` to find features introduced after project version
+3. For each missing feature: apply defaults (auto mode) or run prompts (interactive mode)
+4. Update `gsd_reflect_version` last (unchanged safety mechanism)
+
+**Post-update awareness:**
+- After `/gsd:update` runs the installer, check if any project-level features are uninitialized
+- The `manifest diff-config` command makes this a single call
+- Display: "New features available. Run `/gsd:upgrade-project` to configure: [feature list]"
+- This extends the existing update.md workflow (step after install completes)
+
+**No new hooks needed.** The existing `gsd-version-check.js` and `gsd-check-update.js` SessionStart hooks already cover detection. The improvement is in the workflow logic, not the detection mechanism.
+
+**Release infrastructure config:**
+- `/gsd:new-project` gains a "Release infrastructure" question set driven by `manifest get-prompts release`
+- `/gsd:release` reads `config.release` instead of hardcoding npm/package.json/CHANGELOG.md
+- This is a workflow change (Markdown), not a stack change
+
+**Estimated new code:** ~50-100 lines in gsd-tools.js (manifest commands handle the heavy lifting), plus workflow Markdown changes.
+
+### 4. Agent Spec Boilerplate Extraction
+
+**Approach:** Pure Markdown refactoring. No code changes needed.
+
+**Current state:** 11 agent specs (gsd-executor, gsd-planner, gsd-debugger, gsd-verifier, gsd-phase-researcher, gsd-project-researcher, gsd-research-synthesizer, gsd-codebase-mapper, gsd-plan-checker, gsd-integration-checker, gsd-roadmapper) each contain ~600 lines of shared protocol:
+- Structured return format
+- Error handling conventions
+- Tool usage patterns
+- State management boilerplate
+- Commit patterns
+
+**Solution:** Extract shared content into `.claude/get-shit-done/references/agent-conventions.md`. Each agent spec references it with a `<required_reading>` tag (the established pattern for reference loading).
+
+**Why a reference document and not a template:**
+- References are loaded at agent spawn time (established pattern)
+- Templates are for file generation (different purpose)
+- The existing `required_reading` convention means agents already know to read referenced files
+- No code change needed to make this work
+
+**Estimated savings:** ~600 lines x 11 agents = 6,600 lines total, minus the ~800-line conventions doc = net ~5,800 lines eliminated from duplicated agent specs. Target: 30-50% reduction per agent spec.
+
 ---
 
-## Shared `~/.gsd/` Directory Convention
+## Installation
 
-### Directory Structure
+```bash
+# No new packages needed. Zero-dependency constraint maintained.
+# All features use existing Node.js built-ins.
 
+# The following directories are created by the features themselves:
+# ~/.gsd/backlog/              (backlog system, created on first use)
+# ~/.gsd/backlog/{project}/    (per-project backlog, created on first use)
+# ~/.gsd/backlog/_global/      (cross-project items, created on first use)
+
+# The following files are added to the GSD distribution:
+# .claude/get-shit-done/feature-manifest.json    (feature registry)
+# .claude/get-shit-done/references/agent-conventions.md  (shared agent protocol)
 ```
-~/.gsd/
-  knowledge/           # Shared knowledge base (was ~/.claude/gsd-knowledge/)
-    index.md           # Auto-generated index
-    signals/
-      {project}/
-        sig-*.md       # Signal entries
-    spikes/
-      spk-*.md         # Spike results
-    lessons/
-      les-*.md         # Distilled lessons
-  cache/
-    gsd-update-check.json  # Update check cache (was ~/.claude/cache/)
-  config.json          # Optional: shared GSD config (future)
-```
-
-### Why `~/.gsd/` and Not XDG
-
-| Option | Path | Pros | Cons |
-|--------|------|------|------|
-| `~/.gsd/` | `~/.gsd/` | Simple, discoverable, consistent across platforms, matches `~/.claude/` pattern | Not XDG-compliant |
-| XDG | `~/.local/share/gsd/` | Standards-compliant | Different on macOS vs Linux, harder to find, overkill for a few Markdown files |
-| `~/.config/gsd/` | `~/.config/gsd/` | Familiar to Linux users | macOS uses ~/Library, not ~/.config |
-
-**Recommendation: `~/.gsd/`** because:
-1. All four runtimes use dotdir conventions (`~/.claude/`, `~/.codex/`, `~/.gemini/`, `~/.config/opencode/`)
-2. GSD's knowledge base is data, not configuration -- XDG would put it in `~/.local/share/` which is less discoverable
-3. The installer already handles `~` expansion cross-platform
-4. Users need to find and sometimes manually edit KB entries -- a visible dotdir is better than buried XDG paths
-
-### Environment Variable Override
-
-```javascript
-// GSD_HOME env var overrides ~/.gsd
-function getGsdHome() {
-  if (process.env.GSD_HOME) {
-    return expandTilde(process.env.GSD_HOME);
-  }
-  return path.join(os.homedir(), '.gsd');
-}
-```
-
-### Migration Strategy
-
-**Phase 1 (this milestone):** Update all workflows/commands/agents to use `~/.gsd/knowledge/` path. Installer creates the directory structure. If old `~/.claude/gsd-knowledge/` exists, copy contents to new location.
-
-**Phase 2 (optional, later):** Create symlink at old location pointing to new location for any external tools that reference the old path. Or remove old directory after confirming migration.
-
-**Backward compatibility:** The installer should detect an existing `~/.claude/gsd-knowledge/` and offer to migrate. In non-interactive mode, migrate automatically. After migration, the old directory can be kept as a symlink.
 
 ---
 
-## Cross-Runtime Path References
+## Alternatives Considered
 
-All four runtimes need to reference the same shared paths. The installer's path replacement must handle this:
-
-| Source (in repo) | Claude Code | OpenCode | Gemini CLI | Codex CLI |
-|------------------|-------------|----------|------------|-----------|
-| `~/.claude/gsd-knowledge/` | `~/.gsd/knowledge/` | `~/.gsd/knowledge/` | `~/.gsd/knowledge/` | `~/.gsd/knowledge/` |
-| `~/.claude/get-shit-done/` | `~/.claude/get-shit-done/` | `~/.config/opencode/get-shit-done/` | `~/.gemini/get-shit-done/` | `~/.codex/get-shit-done/` |
-| `~/.claude/cache/` | `~/.gsd/cache/` | `~/.gsd/cache/` | `~/.gsd/cache/` | `~/.gsd/cache/` |
-
-**Key insight:** The knowledge base path becomes universal (`~/.gsd/knowledge/`) across all runtimes. The `get-shit-done/` reference docs path remains runtime-specific (each runtime installs its own copy). The cache path becomes shared.
-
----
-
-## What NOT to Add
-
-### No New npm Dependencies
-
-| Temptation | Why Avoid | Built-in Alternative |
-|------------|-----------|---------------------|
-| `toml` parser library | Codex config is TOML but we don't need to parse it | We write AGENTS.md (Markdown), not config.toml |
-| `js-yaml` for frontmatter | Already have inline YAML parsing in install.js | Existing line-by-line parser handles all cases |
-| `glob` library | Might want for KB file discovery | `fs.readdirSync` with recursion (existing pattern) |
-| `symlink` library | For KB migration backward compat | `fs.symlinkSync` is built-in |
-| `chalk` for colors | Installer already uses ANSI codes | Existing escape code constants work fine |
-
-### No Codex Agent Files
-
-Codex CLI has its own agent system (`spawn_agent` tool) that works differently from Claude Code's Task-based subagents. Do NOT try to map GSD agent specs to Codex agent format. GSD commands for Codex will operate as single-context prompts. Users running complex multi-agent workflows should use Claude Code or OpenCode.
-
-### No Codex Skills for Commands
-
-Skills are the wrong abstraction for explicit commands. They are designed for implicit context injection based on task matching. Using skills would mean GSD commands trigger unpredictably when the user's prompt happens to match a description. Use custom prompts (explicit `/prompts:gsd-*` invocation) instead.
-
-### No Codex Hook Integration
-
-Codex CLI does not have a hook system equivalent to Claude Code's `SessionStart` hooks. Do not attempt to configure update checking or statusline for Codex. The update check can happen when a GSD command is explicitly invoked instead.
-
-### No TOML Configuration Writes
-
-Do not write to `~/.codex/config.toml`. Codex manages its own configuration. GSD's integration is limited to:
-1. Writing prompts to `~/.codex/prompts/`
-2. Writing reference docs to `~/.codex/get-shit-done/`
-3. Optionally writing `~/.codex/AGENTS.md`
+| Recommended | Alternative | Why Not Alternative |
+|-------------|-------------|---------------------|
+| Hand-rolled JSON validator (~50 lines) | Ajv JSON Schema validator | Adds 168KB dependency; violates zero-dep constraint; validation needs are simple (type + enum + required) |
+| Hand-rolled JSON validator (~50 lines) | Zod schema validation | Adds 87KB dependency; requires TypeScript mindset; overkill for field-level checks |
+| Markdown + frontmatter for backlog | SQLite database | Adds native dependency; not human-readable; not git-trackable; breaks pattern consistency |
+| Markdown + frontmatter for backlog | JSON-lines (.jsonl) | Not human-editable; no established GSD pattern; loses the `## Description` body section |
+| `~/.gsd/backlog/` storage | `.planning/backlog/` storage | Backlog is cross-milestone, potentially cross-project; `.planning/` is project-scoped and resets per milestone |
+| `~/.gsd/backlog/` storage | `.planning/todos/` extension | Todos are quick captures during work; backlog is curated, persistent, tagged -- different lifecycle |
+| Single `feature-manifest.json` | Per-feature JSON files | Single file is simpler to parse, ship, and version; features are few enough (~10-20 max) |
+| Reference doc for agent conventions | Build-time template expansion | Adds build step complexity; agents already load references at runtime; no benefit |
+| Existing `extractFrontmatter()` | gray-matter npm package | External dependency; existing parser handles all current patterns; add edge cases as needed |
 
 ---
 
-## Codex CLI Limitations for GSD
+## What NOT to Use
 
-### What Works Differently
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| Any npm dependency for these features | Violates the zero-dependency constraint that enables 4-runtime portability | Node.js built-ins (`fs`, `path`, `os`, `crypto`, `JSON`) |
+| YAML parser library (js-yaml, yaml) | The existing regex-based frontmatter parser in gsd-tools.js works for GSD's subset of YAML | Extend `extractFrontmatter()` if new patterns arise |
+| Database (SQLite, LevelDB, etc.) | Adds native compilation dependency; not human-readable; overkill for ~100s of items | Markdown files with directory-based indexing |
+| TypeScript for new code | gsd-tools.js is JavaScript; mixing languages adds complexity | Continue with JavaScript + JSDoc type comments |
+| Configuration file formats beyond JSON | config.json is established; TOML/YAML would fragment the config story | JSON with JSONC support (already in place) |
+| Separate microservices or processes | The hook system already runs as background spawned processes | Extend existing gsd-tools.js with new subcommands |
 
-| GSD Feature | Claude Code Behavior | Codex CLI Behavior | Impact |
-|-------------|---------------------|-------------------|--------|
-| Subagent spawning | `Task` tool creates isolated agents | `spawn_agent` exists but different model | GSD multi-agent workflows may not work identically |
-| Tool restrictions | `allowed-tools:` in frontmatter | Not supported in custom prompts | Commands run with full tool access |
-| Statusline | Custom JS hook in settings.json | Not available | No GSD statusline |
-| Session hooks | `SessionStart` array in settings.json | Not available | No auto-update checks |
-| Nested commands | `/gsd:debug:start` via directory nesting | `/prompts:gsd-debug-start` via flat naming | Works but different invocation pattern |
-| Agent color coding | `color:` in agent frontmatter | Not supported | Agents have no visual distinction |
-| Knowledge surfacing | Auto-injects via hooks | Must be via AGENTS.md or explicit command | Less seamless knowledge integration |
+---
 
-### What Works the Same
+## Stack Patterns by Feature
 
-| Feature | How It Works | Notes |
-|---------|-------------|-------|
-| Slash commands | `/prompts:gsd-help` triggers command | Different prefix but same UX |
-| File reading | `read_file` tool | Same capability |
-| Shell execution | `shell` tool | Same capability |
-| Web search | `web_search` tool | Same capability |
-| File system access | Full filesystem access in `workspace-write` mode | Matches Claude Code behavior |
-| Git operations | Via shell tool | Same as other runtimes |
-| `.planning/` state | Read/write via filesystem tools | Fully compatible |
-| KB file access | Read/write `~/.gsd/knowledge/` | Works identically |
+**If building backlog system:**
+- Follow the `~/.gsd/knowledge/signals/{project}/` directory pattern exactly
+- Use the same `id: {prefix}-{date}-{slug}` naming convention as signals/lessons
+- Auto-generate `index.md` on write (same pattern as KB index)
+- Extend `extractFrontmatter()` only if new YAML patterns are needed (unlikely)
+
+**If building feature manifest:**
+- Store at `.claude/get-shit-done/feature-manifest.json` (shipped with GSD, not project-specific)
+- Read with `JSON.parse(fs.readFileSync(...))` -- zero error risk for well-formed shipped file
+- Validation logic follows `FRONTMATTER_SCHEMAS` pattern (line 2109 of gsd-tools.js)
+- Migration logic follows `version-migration.md` additive-only rules
+
+**If building post-update awareness:**
+- After installer completes, run `manifest diff-config` to detect uninitialized features
+- Display results in the existing update.md step_display_result step
+- No new hook; leverage existing `gsd-version-check.js` cache
+
+**If extracting agent boilerplate:**
+- Create `references/agent-conventions.md` containing shared protocol sections
+- Each agent spec adds `<required_reading>` reference (existing convention)
+- Test: verify each agent still produces correct structured output after extraction
+- Size target: conventions doc < 1,000 lines; each agent spec reduced by 30-50%
 
 ---
 
 ## Version Compatibility
 
-| Component | Minimum Version | Notes |
-|-----------|----------------|-------|
-| Node.js | >=16.7.0 | No change from current requirement |
-| Codex CLI | Any current version | Custom prompts supported since early releases |
-| npm | Any | No change |
-| macOS/Linux/Windows | All | `~/.gsd/` works on all platforms via `os.homedir()` |
+| Component | Compatible With | Notes |
+|-----------|-----------------|-------|
+| New gsd-tools.js commands | Node.js >= 18.x | Uses only built-in modules; no new APIs beyond what gsd-tools.js already uses |
+| feature-manifest.json | gsd-tools.js current | New commands read manifest; existing commands unaffected |
+| Backlog frontmatter schema | extractFrontmatter() current | Uses same YAML patterns as signals/todos (key: value, arrays, no nested objects beyond one level) |
+| agent-conventions.md | All 4 runtimes | Markdown reference loaded by `<required_reading>` convention; runtime-agnostic |
+| config.json extensions | version-migration.md | New fields follow additive-only pattern; existing `gsd_reflect_version` comparison unchanged |
 
-**Codex CLI versioning note:** Codex CLI updates frequently (Rust-based, compiled binary). The custom prompts API has been stable. Skills are newer and still experimental. By using custom prompts, we avoid depending on experimental features.
+---
+
+## Integration Points
+
+### gsd-tools.js Extensions
+
+New subcommand families to add to the CLI dispatch:
+
+```
+backlog add|list|group|update|promote|stats
+manifest list-features|diff-config|validate-config|get-prompts|apply-defaults
+init backlog
+```
+
+These follow the established pattern of `case 'backlog':` in the main dispatch switch (line ~4200 of gsd-tools.js), delegating to `cmdBacklogAdd()`, `cmdBacklogList()`, etc.
+
+### Workflow Touchpoints
+
+| Existing Workflow | Change Needed | Why |
+|-------------------|---------------|-----|
+| `new-project.md` | Add feature manifest prompts (release config, etc.) | New projects get all feature config at init time |
+| `upgrade-project.md` | Replace hardcoded migrations with `manifest diff-config` | Config migration becomes data-driven |
+| `update.md` | Add post-update `manifest diff-config` check | Users learn about new features after update |
+| `new-milestone.md` | Add backlog presentation step (call `backlog group`) | Milestone scoping draws from accumulated backlog |
+| `add-todo.md` | Add option to promote to backlog | Bridge between quick captures and persistent backlog |
+| `check-todos.md` | Add option to promote to backlog | Same bridge |
+| `complete-milestone.md` | Add backlog review step | Archive resolved items, carry forward remaining |
+
+### Installer Touchpoints
+
+| Installer Area | Change Needed | Why |
+|----------------|---------------|-----|
+| `install.js` | Ensure `~/.gsd/backlog/` directory exists | Same pattern as `~/.gsd/knowledge/` creation |
+| `install.js` | Ship `feature-manifest.json` to install target | New file in the GSD distribution |
+| `install.js` | Ship `references/agent-conventions.md` to install target | New reference document |
+
+---
+
+## Estimated Implementation Effort
+
+| Feature | New gsd-tools.js Code | New Markdown/JSON | Tests |
+|---------|----------------------|-------------------|-------|
+| Backlog system | ~300-400 lines | ~200 lines (workflows + templates) | ~30-40 tests |
+| Feature manifest | ~200-300 lines | ~150 lines (manifest file) | ~20-30 tests |
+| Update experience | ~50-100 lines | ~100 lines (workflow changes) | ~10-15 tests |
+| Agent boilerplate | 0 lines | ~800 lines (conventions doc), net -5,800 lines | ~5-10 verification tests |
+| **Total** | **~550-800 lines** | **net -4,550 lines** | **~65-95 tests** |
+
+The net effect is a **reduction** in total system size due to agent boilerplate extraction, while adding significant new capabilities.
 
 ---
 
 ## Sources
 
-### HIGH Confidence (Official Documentation)
-
-- [Codex CLI Reference](https://developers.openai.com/codex/cli/reference/) -- CLI flags, subcommands, CODEX_HOME
-- [Config Reference](https://developers.openai.com/codex/config-reference/) -- Full TOML schema, all settings
-- [Config Basics](https://developers.openai.com/codex/config-basic/) -- ~/.codex/config.toml location
-- [Advanced Config](https://developers.openai.com/codex/config-advanced/) -- CODEX_HOME, project scoping
-- [Custom Prompts](https://developers.openai.com/codex/custom-prompts/) -- Prompt format, frontmatter, placeholders, deprecation notice
-- [Slash Commands](https://developers.openai.com/codex/cli/slash-commands/) -- Built-in commands, invocation pattern
-- [AGENTS.md Guide](https://developers.openai.com/codex/guides/agents-md/) -- Discovery order, layering, override mechanism
-- [Agent Skills](https://developers.openai.com/codex/skills/) -- SKILL.md format, directory structure, progressive disclosure
-- [Sample Config](https://developers.openai.com/codex/config-sample/) -- Full config.toml example
-
-### MEDIUM Confidence (Cross-Referenced)
-
-- [SKILL.md Format Spec (DeepWiki)](https://deepwiki.com/openai/skills/8.1-skill.md-format-specification) -- Frontmatter schema details, validation rules
-- [Codex Tool System (DeepWiki)](https://deepwiki.com/openai/codex/6-node.js-implementation-(codex-cli)) -- Tool name registry
-- [codex-rs spec.rs (GitHub)](https://github.com/openai/codex/blob/main/codex-rs/core/src/tools/spec.rs) -- Built-in tool identifiers
-
-### LOW Confidence (Community, Needs Validation)
-
-- [Codex Settings Examples (GitHub)](https://github.com/feiskyer/codex-settings) -- Community config examples
-- [Skills in Codex (blog.fsck.com)](https://blog.fsck.com/2025/12/19/codex-skills/) -- Early skills experience report
+- **gsd-tools.js** (lines 252-397): Existing frontmatter parser and reconstructor -- verified by direct code reading
+- **gsd-tools.js** (lines 516-551): Existing todo list implementation -- pattern for backlog listing
+- **gsd-tools.js** (lines 571-665): Existing config management -- pattern for manifest validation
+- **gsd-tools.js** (lines 2109-2126): Existing `FRONTMATTER_SCHEMAS` validation -- pattern for manifest schema checks
+- **knowledge-store.md**: KB directory layout, common base schema, indexing conventions -- pattern for backlog storage
+- **version-migration.md**: Additive-only migration rules, version detection, migration log -- pattern for manifest-driven migration
+- **upgrade-project.md**: Current migration workflow -- touchpoint for manifest integration
+- **update.md**: Current update workflow -- touchpoint for post-update awareness
+- **v1.15-CANDIDATE.md**: Milestone scope and phase sketch -- context for feature requirements
+- **PROJECT.md**: Zero-dependency constraint, architecture overview -- governing constraints
+- [Ajv JSON Schema Validator](https://ajv.js.org/) -- considered and rejected (dependency constraint)
+- [Zod](https://zod.dev/) -- considered and rejected (dependency constraint)
 
 ---
-
-*Stack research for: Codex CLI integration, shared KB migration, cross-runtime continuity*
-*Researched: 2026-02-11*
+*Stack research for: GSD Reflect v1.15 -- Backlog, Feature Manifest, Update Experience, Agent Boilerplate*
+*Researched: 2026-02-16*

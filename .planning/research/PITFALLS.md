@@ -1,185 +1,184 @@
-# Pitfalls Research: Multi-Runtime CLI Interop
+# Pitfalls Research: Backlog Management, Config Migration, and Upgrade UX
 
-**Domain:** Adding cross-runtime interop (Codex CLI), shared KB migration, runtime-agnostic state to existing multi-runtime CLI workflow tool
-**Researched:** 2026-02-11
-**Confidence:** HIGH (grounded in actual codebase analysis of 313 hardcoded path references, 4 runtime installer architectures, and verified Codex CLI documentation)
+**Domain:** Adding structured backlog, feature manifest/config schema, update experience, and agent spec extraction to existing file-based CLI-native workflow system
+**Researched:** 2026-02-16
+**Confidence:** HIGH (grounded in actual codebase analysis, real data loss incident from v1.14 KB migration, existing system architecture review, and ecosystem research)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: The 313 Hardcoded Path Pandemic
+### Pitfall 1: Backlog Replaces Working Todo System and Breaks Mid-Flight
 
 **What goes wrong:**
-The codebase has 313 references to `~/.claude/` across 82+ files (76 in commands, 39 in agents, 198 in get-shit-done/). The current installer handles this with a simple regex replacement (`/~\/\.claude\//g` -> pathPrefix) at installation time. But this approach has three fatal flaws when adding a 4th runtime and migrating KB to `~/.gsd/knowledge/`:
-
-1. **Split-path problem:** After migration, some paths must become `~/.gsd/knowledge/` (KB) while others must become `~/.codex/` or `~/.config/opencode/` (runtime config). A single regex replacement cannot distinguish between `~/.claude/gsd-knowledge/` (should become `~/.gsd/knowledge/`) and `~/.claude/get-shit-done/` (should become runtime-specific path). The current architecture assumes ALL `~/.claude/` references resolve to the same base directory.
-
-2. **Content vs. path confusion:** Files like `knowledge-surfacing.md` contain both instructional text referencing `~/.claude/gsd-knowledge/` as documentation AND functional path references that agents execute via `cat ~/.claude/gsd-knowledge/index.md`. The regex replaces both identically, but after migration they should point to different locations.
-
-3. **Cascading breakage:** The 276 references to `gsd-knowledge` across 62 files currently assume the KB lives under the runtime config directory. Moving it to `~/.gsd/knowledge/` means every single reference must be audited: is this a path agents execute, documentation text, or a conceptual reference?
+The system currently has TWO working idea-capture paths: (1) `/gsd:add-todo` writes structured markdown files to `.planning/todos/pending/` with frontmatter, area inference, and duplicate detection; (2) Pending Todos bullet list in STATE.md under `### Pending Todos`. A new "backlog" system that replaces either path creates a migration gap where in-flight ideas exist in the old format but the new system expects the new format. Worse, the STATE.md bullets serve a different purpose than the todo files -- they are quick-reference items visible during every session (STATE.md is loaded on resume), while todo files are for detailed captures. Merging these into a single "backlog" system loses the quick-reference property of STATE.md bullets OR the structured detail of todo files.
 
 **Why it happens:**
-The original design embedded the KB under the Claude config directory (`~/.claude/gsd-knowledge/`) because Claude Code was the only runtime. When OpenCode and Gemini support was added, the installer's path replacement handled it because the KB location simply tracked the runtime directory. Moving KB to a shared location breaks this 1:1 mapping.
+The temptation is to see `### Pending Todos` in STATE.md and `.planning/todos/pending/` as redundant. They are not. STATE.md bullets are session-visible context (loaded by `/gsd:resume-work`, read by every orchestrator via `gsd-tools.js init`). Todo files are detailed captures with frontmatter metadata, file references, and problem/solution sections. A backlog system that consolidates them must serve BOTH purposes or it degrades one.
 
 **How to avoid:**
-- Introduce a TWO-PATH replacement system in the installer: `RUNTIME_DIR` (runtime-specific config) and `SHARED_DIR` (shared `~/.gsd/` resources)
-- Before migration, audit all 276 `gsd-knowledge` references and classify each as: (a) agent-executable path, (b) documentation/example, (c) conceptual reference
-- Use a distinct path token in source files: `~/.claude/gsd-knowledge/` for KB references vs `~/.claude/get-shit-done/` for runtime references, so the installer can apply different replacements
-- Write a validation test that verifies no `~/.claude/gsd-knowledge/` references survive after installation for any runtime
+- Keep STATE.md `### Pending Todos` as a lightweight index/reference (title + one-liner + link to detail)
+- Keep `.planning/todos/pending/` as the detail store
+- New backlog features (prioritization, tagging, promotion to phase) should extend the existing todo system, not replace it
+- Migration: existing todos already have valid frontmatter -- add optional `priority`, `status`, `milestone` fields without requiring them
+- Test: `/gsd:resume-work` still sees pending items after migration; `/gsd:add-todo` still works unchanged
 
 **Warning signs:**
-- After install for Codex, agents still reference `~/.codex/gsd-knowledge/` (KB path was replaced to follow the runtime dir, not the shared dir)
-- After install for OpenCode, KB queries return empty because they check `~/.config/opencode/gsd-knowledge/` which does not exist
-- Knowledge surfacing stops working for any non-Claude runtime
-- Running `grep -r 'gsd-knowledge' ~/.codex/` after install shows paths pointing to the wrong location
+- Design doc mentions "replacing" or "consolidating" the todo system
+- STATE.md Pending Todos section goes empty while backlog grows elsewhere
+- `/gsd:resume-work` no longer surfaces pending ideas
+- Todo files lose their structured frontmatter in favor of a flat list
 
-**Phase to address:**
-Must be the FIRST phase -- create the path abstraction layer before touching any KB migration or Codex CLI integration. Every subsequent phase depends on paths resolving correctly.
+**Phase to address:** First phase -- define backlog as extension of existing `.planning/todos/`, not replacement
 
 ---
 
-### Pitfall 2: The KB Migration Data Loss Window
+### Pitfall 2: Config Schema Validation Breaks Existing Projects on Update
 
 **What goes wrong:**
-Migrating from `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/` requires moving files from one location to another. During the migration window:
+config.json is currently a permissive JSON blob read by `gsd-tools.js loadConfig()` with hardcoded defaults as fallback. There is no schema validation -- any key can exist, missing keys get defaults. Adding strict schema validation (required fields, type checking, rejection of unknown fields) immediately breaks every existing project that has a config.json from an older version. The user runs `/gsd:update`, gets new code that validates config.json, and their existing config fails validation because it lacks fields added in v1.15 (e.g., `release`, `backlog`, `feature_manifest`).
 
-1. **Race condition with running agents:** If a GSD agent is actively writing a signal to `~/.claude/gsd-knowledge/signals/my-project/` while the migration script is moving files to `~/.gsd/knowledge/signals/my-project/`, the signal either gets written to the old location (orphaned) or fails because the directory was already moved.
-
-2. **Index invalidation:** The KB `index.md` contains absolute-ish paths (`signals/{project}/filename.md`). The index is rebuilt by scanning directories. During migration, a partial scan (some files in old location, some in new) produces a corrupt index missing entries.
-
-3. **Atomic rename impossibility:** `fs.rename()` only works within the same filesystem. If `~/.claude/` and `~/.gsd/` are on different partitions (rare but possible, especially with custom `CLAUDE_CONFIG_DIR`), the migration requires copy-then-delete, which is not atomic and creates a window where data exists in both places or neither.
-
-4. **Rollback complexity:** If the user upgrades GSD, the migration runs, then they downgrade back to the previous version, the old version looks for KB in `~/.claude/gsd-knowledge/` and finds nothing. There is no rollback path built into the current system.
+The actual config.json in this project has `"gsd_reflect_version": "1.12.2"` while the template has `"gsd_reflect_version": "1.13.0"` -- version drift is already real. The project config has `"mode": "yolo"` and `"parallelization": true` (flat boolean), while the template has `"mode": "interactive"` and `"parallelization": { "enabled": true, ... }` (nested object). Schema validation would reject the existing project config.
 
 **Why it happens:**
-File-based knowledge stores with cross-directory migration have inherently weaker atomicity guarantees than database migrations. The lack of a single transaction boundary means partial failures leave inconsistent state.
+Developers add schema validation to catch errors but forget that validation is a breaking change for systems that previously accepted anything. The "additive only" principle of backward compatibility is violated when validation rejects configs that worked yesterday.
 
 **How to avoid:**
-- **Symlink bridge:** After moving files to `~/.gsd/knowledge/`, create a symlink from `~/.claude/gsd-knowledge/` -> `~/.gsd/knowledge/`. This provides backward compatibility -- old agents and old versions of GSD still find the KB at the old path. The symlink costs nothing and eliminates the rollback problem entirely.
-- **Copy-then-symlink, never move-then-pray:** Copy all files to new location, verify copy integrity (file count + checksum), create symlink at old location pointing to new location, then (optionally) remove the copy at old location in a later release.
-- **Lock file during migration:** Write `~/.gsd/knowledge/.migrating` during the migration process. Agents check for this file and wait/retry if present.
-- **Index rebuild after migration:** Always rebuild index.md from scratch after migration completes, never try to update paths in the existing index.
+- Schema validation must be LENIENT by default: warn on unknown fields, never reject; coerce types where possible; fill defaults for missing fields
+- Use the existing `loadConfig()` pattern: hardcoded defaults merged with whatever is in config.json
+- Schema is for documentation and migration, not gatekeeping
+- `config-ensure-section` already exists in gsd-tools.js -- extend it to handle schema migration (add missing sections with defaults, never remove existing sections)
+- Version-gate schema requirements: new fields are optional until the user explicitly runs `/gsd:upgrade-project` which migrates config with user prompts
+- Append to `migration-log.md` on every schema migration for auditability
 
 **Warning signs:**
-- `index.md` shows fewer entries after migration than before
-- Signals written during migration appear in `~/.claude/gsd-knowledge/` instead of `~/.gsd/knowledge/`
-- Users who downgrade report "knowledge base empty"
-- `ls -la ~/.claude/gsd-knowledge` shows a broken symlink after migration failure
+- Config validation uses `throw` or `process.exit` on unknown fields
+- Tests create configs from scratch instead of testing with real legacy configs
+- No migration path documented from current config shape to new config shape
+- `loadConfig()` changes from lenient to strict without a deprecation period
 
-**Phase to address:**
-KB migration phase -- must happen AFTER the path abstraction layer is in place and BEFORE Codex CLI integration (Codex needs to find KB at the shared path from day one).
+**Phase to address:** Early phase -- define config schema as permissive/additive; migration logic before any features that depend on new config fields
 
 ---
 
-### Pitfall 3: The Codex CLI Impedance Mismatch
+### Pitfall 3: The v1.14 Data Loss Pattern Repeats in Backlog Migration
 
 **What goes wrong:**
-Codex CLI has a fundamentally different architecture from Claude Code, OpenCode, and Gemini CLI. The existing three runtimes all share a common pattern: slash commands are Markdown files installed to a config directory, read by the runtime at invocation time. Codex CLI breaks this pattern in multiple ways:
-
-1. **No direct slash command equivalent:** Codex CLI uses `AGENTS.md` for project-level instructions (read at session start, not invoked on-demand) and `SKILL.md` directories for task-specific capabilities. There is no Codex equivalent of putting a Markdown file in `~/.codex/commands/gsd/new-project.md` and having it show up as `/gsd:new-project`.
-
-2. **Config format mismatch:** Codex uses TOML (`~/.codex/config.toml`), not JSON. The settings.json hook registration pattern used for Claude Code and the opencode.json permission pattern for OpenCode have no Codex equivalent.
-
-3. **Tool name divergence:** Codex CLI does not expose named tools like `Read`, `Write`, `Bash`, `Glob`, `Grep` the way Claude Code does. Codex has a shell execution sandbox with approval policies, not a discrete tool-by-tool permission model. The `allowed-tools:` frontmatter section that GSD uses to restrict agent capabilities has no Codex counterpart.
-
-4. **AGENTS.md vs. commands/agents architecture:** Codex reads `AGENTS.md` at session start with a byte limit (`project_doc_max_bytes` = 32KB default). GSD's entire agent system (12+ agents, 780+ lines each) cannot fit in 32KB. The GSD architecture of spawning specialized subagents via Task tool has no direct Codex equivalent.
+In v1.14, 13 signals + 3 lessons were lost during KB migration because the migration logic existed only in the installer (`install.js`), not in the workflow system. When code paths that write/read KB data were updated but the actual data was not migrated, the system looked for data at the new path and found nothing. The same pattern threatens backlog migration: if STATE.md `### Pending Todos` bullets are migrated to structured todo files, but the migration runs only in one code path (e.g., only in `/gsd:upgrade-project` but not in `gsd-tools.js init todos`), then workflows that read the old location see nothing while the data sits in the new location.
 
 **Why it happens:**
-GSD was designed for Claude Code's architecture (slash commands, Task tool spawning, named tool permissions) and extended to OpenCode/Gemini by converting between formats. Codex CLI represents a genuinely different paradigm (AGENTS.md + Skills + approval-based sandbox) that cannot be bridged by format conversion alone.
+Multiple code paths read the same data. Migration updates one path but not all of them. The system has at minimum these readers of todo/idea data:
+1. `gsd-tools.js init todos` -- reads `.planning/todos/pending/`
+2. STATE.md `### Pending Todos` -- read by every orchestrator
+3. `/gsd:check-todos` -- reads todo files
+4. `/gsd:resume-work` -- reads STATE.md
+5. Any future backlog command -- needs to find ALL historical ideas
+
+A migration that moves data from one location but only updates paths in 3 of 5 readers causes silent data invisibility.
 
 **How to avoid:**
-- **Do NOT attempt to make GSD commands work as Codex slash commands.** Instead, create a Codex-native integration layer:
-  - Use `AGENTS.md` to provide GSD workflow awareness and instructions
-  - Use Codex Skills (SKILL.md directories) to package GSD's key operations
-  - Use `.codex/config.toml` with MCP server configuration if MCP-based integration is feasible
-- **Accept capability gaps.** Codex may support 60-70% of GSD's features initially, not 100%. Features requiring Task tool spawning (parallel research, wave-based execution) may not be possible in Codex's architecture.
-- **Design the installer's Codex path separately** from the Claude/OpenCode/Gemini paths. Do not try to reuse `copyWithPathReplacement()` or `convertClaudeToOpencodeFrontmatter()` for Codex -- the transformation is too different.
-- **Identify the intersection of capabilities** early: file read/write, bash execution, and markdown processing are common. Build on that common ground.
+- Enumerate ALL code paths that read/write todo/idea data before migration design
+- Migration must be atomic: either all readers see the new location or none do
+- Copy-then-symlink pattern (proven in KB migration): keep old location as redirect to new
+- Pre-migration backup: snapshot `.planning/todos/` and STATE.md `### Pending Todos` section before migration
+- Post-migration verification: count items before and after, alert if mismatch
+- Never delete the old format until at least one full milestone cycle confirms the new format works
 
 **Warning signs:**
-- Installer produces Codex output that looks like Claude Code commands (Markdown with YAML frontmatter in `~/.codex/commands/gsd/`)
-- After install, Codex CLI does not recognize any GSD commands
-- AGENTS.md exceeds 32KB and Codex silently truncates it
-- GSD workflows reference Task tool which Codex does not have
+- `/gsd:check-todos` returns 0 items when items exist in STATE.md bullets
+- STATE.md Pending Todos and `.planning/todos/pending/` show different item counts
+- `/gsd:resume-work` mentions no pending work but todo files exist
+- Migration code has no verification step counting items before/after
 
-**Phase to address:**
-Codex CLI integration phase -- must come AFTER the runtime abstraction layer is defined, because Codex requires a genuinely different integration approach, not a format conversion.
+**Phase to address:** Backlog phase -- migration is a plan-level concern with explicit verification criteria
 
 ---
 
-### Pitfall 4: The State File Runtime Leakage
+### Pitfall 4: Feature Manifest Creates a Second Source of Truth for Config
 
 **What goes wrong:**
-The `.planning/` directory is supposed to be runtime-agnostic (committed to git, shared across sessions). But state files contain runtime-specific content:
+The feature manifest system proposes that each GSD feature declares its config schema. This creates a manifest file (or set of files) that describes what config.json SHOULD contain. Now config.json is the actual config, and the manifest is the desired config. If they drift apart, which is authoritative? When `/gsd:upgrade-project` reads the manifest and discovers a missing section in config.json, does it add it silently, prompt the user, or fail? When a user manually edits config.json to add a custom field not in the manifest, does the next upgrade delete it?
 
-1. **`.continue-here.md` references runtime-specific paths:** The pause-work workflow writes `~/.claude/get-shit-done/bin/gsd-tools.js` directly into handoff files. When a different runtime (Codex, OpenCode) tries to resume from this handoff, the path does not exist.
-
-2. **STATE.md records runtime-specific commands:** "Resume with: `/gsd:execute-phase 3`" -- but OpenCode uses `/gsd-execute-phase 3` and Codex uses a completely different invocation pattern. A user pausing in Claude Code and resuming in Codex sees instructions they cannot follow.
-
-3. **PLAN.md frontmatter contains tool names:** Plans reference tool names like `Read`, `Write`, `Bash` which are Claude Code tool names. When an OpenCode executor reads the plan, it sees tool names it does not recognize. The executor might still work (it interprets semantically) but verification steps like "verify using the Read tool" become confusing.
-
-4. **config.json stores runtime-agnostic settings alongside runtime-dependent behavior:** The `commit_docs` setting and `model_profile` setting are runtime-agnostic. But the config is read by `gsd-tools.js` which lives at a runtime-specific path. If a project is shared between a Claude Code user and a Codex user (via git), the config works for one but the tool path differs.
+The fundamental tension: the manifest is a SCHEMA (what's allowed), but config.json is a DOCUMENT (what the user chose). Schema and document must stay in sync, but they live in different places (manifest in the npm package, config in the user's project). Every version bump can create drift.
 
 **Why it happens:**
-The `.planning/` directory was designed for single-runtime use. Runtime-specific details leaked into "shared" state because there was no separation between "what the user should do" (runtime-specific) and "what the project state is" (runtime-agnostic).
+Declarative manifest systems assume a clean initialization path. But GSD already has hundreds of projects with existing config.json files that were created before the manifest existed. The manifest must retroactively describe config that was created ad-hoc.
 
 **How to avoid:**
-- **Audit all writes to `.planning/`** for runtime-specific content. Grep for: `~/.claude/`, `~/.config/opencode/`, `~/.gemini/`, `~/.codex/`, `/gsd:`, `/gsd-`, tool name references (`Read`, `Write`, `Bash`, `Glob`, `Grep`)
-- **Introduce runtime-neutral command references:** Instead of `/gsd:execute-phase 3`, write `[resume command: execute-phase 3]` and let the resume workflow translate to the current runtime's syntax
-- **Separate state from instructions:** `.continue-here.md` should contain WHAT state to restore, not HOW to restore it. The runtime's resume workflow handles the HOW.
-- **Use gsd-tools.js path resolution:** Instead of hardcoding `~/.claude/get-shit-done/bin/gsd-tools.js` in state files, the workflow should call gsd-tools at the path appropriate for the CURRENT runtime
+- Manifest is ADDITIVE ONLY: it describes what CAN exist, not what MUST exist
+- Unknown fields in config.json are always preserved (pass-through)
+- Manifest version must be tracked in config.json (`manifest_version: 1`) so upgrade logic knows what migrations to apply
+- `/gsd:upgrade-project` presents a diff of what will change and asks for confirmation -- never silent mutation
+- Manifest defaults are the same as `loadConfig()` defaults -- single source of truth for "what happens when a field is missing"
+- Consider: manifest could live IN config.json as a `$schema` reference rather than as a separate file tree
 
 **Warning signs:**
-- User pauses in Claude Code, switches to Codex, and `/gsd:resume-work` does not exist
-- `.continue-here.md` contains paths starting with `~/.claude/` in a project used by multiple runtimes
-- STATE.md shows "Last action: /gsd:execute-phase 5" but the current runtime uses different syntax
-- Agent reads PLAN.md and tries to use tool names that do not exist in its runtime
+- Manifest and `loadConfig()` defaults diverge
+- `upgrade-project` adds fields without user confirmation
+- Custom user fields in config.json disappear after upgrade
+- Manifest validation rejects configs that `loadConfig()` would accept
 
-**Phase to address:**
-State normalization phase -- should happen early (before cross-runtime handoff feature), after the path abstraction layer is in place.
+**Phase to address:** Feature manifest phase -- design manifest as extension of existing `loadConfig()` defaults, not a parallel system
 
 ---
 
-### Pitfall 5: The Capability Gap Denial
+### Pitfall 5: Agent Boilerplate Extraction Changes Agent Behavior Silently
 
 **What goes wrong:**
-The four runtimes have genuinely different capabilities, and pretending they are equivalent causes silent failures:
-
-| Capability | Claude Code | OpenCode | Gemini CLI | Codex CLI |
-|-----------|-------------|----------|------------|-----------|
-| Task tool (spawn subagent) | Yes | Yes | Auto (agents are tools) | No equivalent |
-| Named tool permissions | Yes (allowed-tools) | Yes (permission) | Yes (tools array) | No (sandbox policy) |
-| Slash commands | `/gsd:name` | `/gsd-name` | `/gsd:name` | No direct equivalent |
-| Session hooks | settings.json hooks | No | No | Notification hooks (different format) |
-| Statusline | Yes (statusLine) | No | No | TUI built-in |
-| MCP servers | Yes (mcpServers) | Yes | Yes (config) | Yes (config.toml) |
-| Web search | WebSearch tool | websearch | google_web_search | Built-in web search |
-| File manifest | gsd-file-manifest.json | No | No | No |
-
-When the runtime abstraction layer pretends all runtimes have the same capabilities, it either:
-- **Fails silently:** Agent tries to spawn a Task subagent in Codex, nothing happens, the workflow proceeds without parallel execution
-- **Crashes loudly:** Agent references a tool name that does not exist, the runtime throws an error mid-execution
-- **Degrades invisibly:** Execution works but skips critical steps (verification, knowledge surfacing, signal collection) because the tool needed is not available
+11 agent specs share ~600 lines of boilerplate (role definition, tool strategy, execution flow protocol, structured returns). Extracting this into a shared reference file (`agent-protocol.md`) reduces duplication. But agents are prompts, not code. When an agent loads `@~/.claude/get-shit-done/references/agent-protocol.md`, the LLM processes the shared protocol text in a different context position than when it was inline. This changes:
+1. **Attention patterns:** Inline text at the top of an agent spec gets strong positional attention. Referenced text loaded later may get less weight.
+2. **Override behavior:** If agent-specific instructions contradict the shared protocol (e.g., executor has a different commit pattern than the default), the LLM must resolve the conflict. With inline text, the specific overrides the general naturally. With referenced text, the resolution is unpredictable.
+3. **Context budget:** The shared protocol still consumes context tokens. It does not save tokens -- it saves maintenance effort. If the shared reference is 600 lines and each agent still loads it, total token consumption per agent is unchanged. The savings are in human maintenance, not LLM context.
 
 **Why it happens:**
-The current installer maps tool NAMES between runtimes (e.g., `Read` -> `read_file` for Gemini) but does not handle capability GAPS (e.g., "Task tool does not exist in this runtime"). Name mapping is a bijection problem; capability gaps require graceful degradation logic.
+Developers think of agent specs as code (DRY principle: extract shared logic). But agent specs are prompts. DRY for prompts is different from DRY for code. Code deduplication saves compute. Prompt deduplication saves human maintenance but can degrade LLM behavior because the positional and contextual properties of the text change.
 
 **How to avoid:**
-- **Create a runtime capability matrix** (like the table above) and make it a first-class artifact in the codebase. Every feature must declare which capabilities it requires.
-- **Design for graceful degradation, not equivalence:** Instead of "convert Task to Codex equivalent," design "if Task unavailable, run sequentially instead of in parallel."
-- **Use feature detection, not runtime detection:** Instead of `if (runtime === 'codex') { skip_subagents(); }`, check `if (!has_capability('task_tool')) { run_sequentially(); }`. This future-proofs against capability changes in any runtime.
-- **Document degraded behavior explicitly:** Users should know "In Codex CLI, wave-based parallel execution runs sequentially. This is slower but produces identical results."
-- **Identify the common subset:** File read/write, bash execution, and markdown processing work everywhere. Build the cross-runtime handoff feature on these universal capabilities.
+- Extract ONLY truly shared protocol (structured return format, tool naming conventions, state file paths) -- NOT behavior-shaping instructions like "be concise" or "commit after each task"
+- Test extraction incrementally: extract one section, run the affected agents through a real phase, compare output quality to baseline
+- Keep agent-specific overrides ABOVE the shared reference `@` import so they get stronger positional attention
+- Measure: before and after extraction, run the same plan through the executor and compare SUMMARY.md quality
+- Maintain an "extraction registry" documenting what was moved where, so future editors know that modifying the shared protocol affects all 11 agents
+- Consider: instead of runtime reference loading, use a build step that inlines the shared protocol into each agent spec at install time (saves runtime loading, maintains single source for maintenance)
 
 **Warning signs:**
-- Agent specs contain `if runtime == 'codex'` conditional logic scattered across multiple files
-- A new runtime (5th, 6th) requires modifying every conditional
-- Users report "it works in Claude Code but not in Codex" for features that should be universal
-- Test suite only tests Claude Code paths, other runtimes are untested
+- Agent produces different output format after extraction (especially structured returns)
+- Executor stops creating per-task commits (commit protocol was in extracted section)
+- Planner creates plans with wrong frontmatter format (template was in extracted section)
+- Agent "forgets" shared protocol instructions in long context (reference loaded but not attended to)
 
-**Phase to address:**
-Runtime abstraction layer phase -- must happen BEFORE Codex integration. Define the capability model, then implement Codex as the first consumer of that model.
+**Phase to address:** Agent extraction phase -- must include before/after comparison testing as verification criteria
+
+---
+
+### Pitfall 6: Install Two-Pass Path Replacement Collides with Feature Manifest Paths
+
+**What goes wrong:**
+`install.js` does two-pass path replacement: Pass 1 replaces `~/.claude/gsd-knowledge` with `~/.gsd/knowledge`; Pass 2 replaces remaining `~/.claude/` with the runtime-specific path. A feature manifest system likely introduces new paths like `~/.gsd/manifests/` or `~/.gsd/config/`. If manifest-related files reference `~/.gsd/` paths in their content, and those files are installed via the same `copyWithPathReplacement()` pipeline, the regex replacement could corrupt them. The Pass 2 regex (`/~\/\.claude\/(?!gsd-knowledge)/g`) would not touch `~/.gsd/` paths, but any NEW pass or regex pattern added for manifest paths could create cascading replacement bugs.
+
+Additionally, the installer currently runs migrateKB() ONCE before per-runtime installation. Feature manifest initialization might need to run both per-runtime AND per-project. But the installer operates on global/local scope, not project scope. There is no mechanism in `install.js` to modify `.planning/config.json` -- that is a project-level concern handled by commands, not the installer.
+
+**Why it happens:**
+The installer and the command system operate at different scopes:
+- Installer: `~/.claude/`, `~/.gsd/`, `~/.config/opencode/` (user-level)
+- Commands: `.planning/` (project-level)
+Feature manifests bridge both scopes. Attempting to handle project-level config in the installer, or user-level file installation in commands, creates scope confusion.
+
+**How to avoid:**
+- Clear scope boundary: installer handles user-level files only (commands, agents, workflows, hooks, KB scripts at `~/.gsd/bin/`)
+- Feature manifest lives in the npm package (`get-shit-done/manifests/` or embedded in config template)
+- `/gsd:new-project` and `/gsd:upgrade-project` read the manifest from the installed files and apply project-level config changes
+- The installer does NOT read, write, or validate `.planning/config.json`
+- New paths in manifest files should use `~/.gsd/` prefix which is NOT touched by either Pass 1 or Pass 2 of the replacement system
+- Test: run installer, verify manifest-related content is NOT corrupted by path replacement
+
+**Warning signs:**
+- `install.js` gains a Pass 3 or additional regex for manifest paths
+- Installer starts reading or writing `.planning/config.json`
+- Feature manifest files installed to `~/.claude/get-shit-done/` have their `~/.gsd/` paths corrupted
+- Scope confusion between what the installer does vs what commands do
+
+**Phase to address:** Feature manifest phase -- explicit scope boundary documentation as first task
 
 ---
 
@@ -189,25 +188,26 @@ Shortcuts that seem reasonable but create long-term problems.
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Adding Codex as another `if/else` branch in install.js | Quick to implement, familiar pattern | 5th runtime requires modifying 5+ code paths; no plugin architecture; install.js already 1500+ lines | Never -- this is the time to refactor to a runtime plugin model |
-| Keeping `~/.claude/gsd-knowledge/` as the canonical KB path with symlinks from other runtimes | Zero migration needed | Every runtime needs its own symlink; path references in docs are confusing; user confusion about "why is my KB under .claude?" | Only as a temporary bridge during migration, not as permanent architecture |
-| Hardcoding Codex tool name mappings like the existing `claudeToGeminiTools` object | Fast parity with existing pattern | Codex does not have 1:1 tool name mapping (capability model is different); creates false equivalence | Never -- Codex needs a different integration approach, not a mapping table |
-| Skipping KB migration and just making Codex read from `~/.claude/gsd-knowledge/` | Zero migration work | Codex users must have Claude Code installed for KB to exist; violates shared resource principle; confusing UX | Only as v0 proof of concept, must migrate before release |
-| Using AGENTS.md as the sole Codex integration point | Simple, single file | 32KB byte limit means most GSD content is truncated; no slash command UX; no progressive loading | As the initial integration, but must evolve to Skills-based approach |
+| Inline backlog priority in STATE.md bullet text | Quick to implement | Fragile parsing, no structured query, priorities drift as STATE.md grows | Never -- use frontmatter in todo files |
+| Config validation as hard rejection | Catches errors early | Breaks every existing project on update | Never in v1.15 -- use lenient validation with warnings |
+| Feature manifest as separate JSON files per feature | Clean separation | Multiple files to read, parse, merge; ordering conflicts; no single view | Only if features exceed 10; otherwise single manifest object in config template |
+| Shared agent protocol as runtime @-reference | Reduces maintenance duplication | Changes LLM attention patterns, unpredictable override resolution | Acceptable if tested against baseline; prefer build-time inlining |
+| Backlog items as pure markdown without frontmatter | Simpler to write | Cannot query, filter, sort, or aggregate programmatically | Never -- existing todo system already uses frontmatter, maintain that |
+| Silent config migration on update | Frictionless upgrade | User unaware of changes; surprises when config behaves differently | Only for adding fields with safe defaults; never for changing existing field semantics |
 
 ## Integration Gotchas
 
-Common mistakes when connecting runtime-specific systems.
+Common mistakes when connecting new features to the existing system.
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Codex config.toml | Trying to write settings.json-style hook registration into TOML format | Codex uses `[features]` table and MCP server config, not hook arrays. Use Codex's native config patterns. |
-| KB index.md across runtimes | Rebuilding index with paths relative to runtime dir | Use paths relative to KB root (`signals/project/file.md`), let each runtime resolve the KB root independently |
-| OpenCode XDG path migration | Assuming `~/.config/opencode/` always exists | Check `OPENCODE_CONFIG_DIR`, `XDG_CONFIG_HOME`, fall back to default. Existing bug: old `~/.opencode/` installations are not migrated. |
-| Gemini experimental agents | Assuming Gemini agent registration is stable | Gemini CLI agent support is experimental. Agent format may change. Pin to known-working Gemini CLI version in docs. |
-| Codex Skills | Packaging all GSD operations as one mega-skill | Each skill should focus on one job (per Codex docs). Create separate skills for: project-init, plan, execute, resume, debug. |
-| Codex AGENTS.md discovery | Putting GSD instructions only in `~/.codex/AGENTS.md` (global) | Project-level `.codex/AGENTS.md` overrides global. GSD should install project-level instructions that reference the global GSD skill set. |
-| Cross-runtime resume | Storing runtime-specific tool invocations in .continue-here.md | Store semantic state (phase, task, position, decisions) not procedural commands. Let the resume workflow generate runtime-appropriate commands. |
+| Backlog + STATE.md | Storing backlog state only in new files, orphaning STATE.md Pending Todos | Keep STATE.md as index with links; backlog detail in todo files |
+| Config schema + gsd-tools.js | Adding validation in `loadConfig()` that rejects old configs | Validation warns but never rejects; missing fields get defaults |
+| Feature manifest + installer | Having installer read/write project-level config | Installer handles user-level only; commands handle project-level |
+| Agent extraction + existing agents | Extracting shared text then modifying it without testing all 11 agents | Extract, test each agent against baseline, only then modify shared text |
+| `/gsd:upgrade-project` + `/gsd:update` | Both commands trying to migrate config simultaneously | `/gsd:update` installs files only; `/gsd:upgrade-project` handles config migration |
+| Backlog + `/gsd:plan-phase` | Backlog items automatically promoted to phase plans without user approval | Backlog surfaces candidates; user explicitly promotes to phase |
+| Config migration + migration-log.md | Forgetting to append to migration-log.md after config changes | Every automated config change gets a migration-log.md entry |
 
 ## Performance Traps
 
@@ -215,49 +215,38 @@ Patterns that work at small scale but fail as usage grows.
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Scanning all KB entries for every agent query | Queries take seconds, not milliseconds; context window fills with index | Progressive disclosure: read index summary first, fetch full entries only for top-5 matches. Already designed this way, but verify Codex respects the pattern. | ~200+ KB entries |
-| Installer regex-replacing every .md file on every install | Install takes 30+ seconds; disk I/O spikes | Cache file hashes (gsd-file-manifest.json); only replace files that changed. Upstream already added this -- ensure it works for all 4 runtimes. | ~100+ files across 4 runtimes |
-| Loading full STATE.md + ROADMAP.md + PROJECT.md + config.json on resume | Context window consumed by state loading before any useful work begins | Use gsd-tools.js `init resume` to parse state into structured JSON, load only relevant fields. Verify Codex's AGENTS.md byte limit does not conflict. | Projects with 10+ completed phases |
-| Full KB index rebuild on every signal write | Write latency increases linearly with KB size | Append-only writes (signal files are immutable). Rebuild index only on explicit command or periodic schedule, not on every write. Already designed this way. | ~500+ KB entries |
-
-## Security Mistakes
-
-Domain-specific security issues for shared cross-runtime resources.
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| KB at `~/.gsd/knowledge/` readable by any process | Knowledge entries may contain project-specific secrets, API patterns, or vulnerability details | Set `chmod 700 ~/.gsd/` on creation. Verify installer sets correct permissions for the shared directory. |
-| Symlink from `~/.claude/gsd-knowledge/` to `~/.gsd/knowledge/` followed by any user | Symlink target can be changed to point elsewhere (symlink attack) | Create symlink with `lchown` to current user. Verify symlink target before reading in agents. Low risk for single-user systems but worth noting. |
-| AGENTS.md in project repo containing sensitive GSD configuration | Project-level `.codex/AGENTS.md` is committed to git; may contain team-specific instructions or paths | Never put sensitive configuration in AGENTS.md. Use `~/.codex/config.toml` (user-level, not committed) for API keys and sensitive settings. |
-| Cross-runtime state files in `.planning/` containing runtime-specific paths | Leaking `~/.claude/` or `~/.codex/` paths reveals user's home directory structure | Normalize all paths in `.planning/` files to relative references. Never write absolute home directory paths to committed state files. |
+| Reading all todo files on every `init todos` call | Slow init when todo count grows | Cache todo count; lazy-load details only when needed | 50+ pending todos |
+| Manifest validation on every command invocation | Every `/gsd:*` command adds 100ms for manifest read+validate | Validate only in `/gsd:upgrade-project` and `/gsd:new-project` | Immediate -- validation adds latency to every command |
+| Full STATE.md rewrite on every todo add | STATE.md grows large, regex replacement becomes fragile | Use `gsd-tools.js state add-todo` for atomic section update | 20+ items in Pending Todos section |
+| Loading shared agent protocol file in every agent spawn | Token cost multiplied by agent count per phase | Build-time inlining; or load protocol only for agents that actually need it | 5+ agents spawned per phase |
 
 ## UX Pitfalls
 
-Common user experience mistakes when adding multi-runtime support.
+Common user experience mistakes in this domain.
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Installer asks "Which runtime?" every time, even for updates | Annoying for users who always use the same runtime | Remember last-used runtime in `~/.gsd/config.json`. Auto-detect installed runtimes and default to the one in use. |
-| Different command syntax across runtimes without documentation | User switches from Claude Code to Codex and cannot find commands | Provide runtime-specific quick reference card. Include "Switching runtimes?" section in help output. |
-| KB migration runs without warning on update | User loses KB entries if migration fails silently | Show migration preview: "Moving N entries from ~/.claude/gsd-knowledge/ to ~/.gsd/knowledge/. Continue? [Y/n]" |
-| Codex integration requires manual AGENTS.md setup | Users must know to create .codex/ directory and write AGENTS.md themselves | Installer should create `.codex/` directory and generate AGENTS.md automatically, just like it creates `.claude/commands/gsd/` for Claude Code. |
-| Resume shows instructions for wrong runtime | User pauses in Claude Code, resumes in Codex, sees "/gsd:execute-phase 3" which does not work in Codex | Resume workflow detects current runtime and renders appropriate instructions. Store semantic state, not procedural commands. |
-| No indication of degraded features in non-Claude runtimes | User expects parallel execution in Codex, gets sequential without explanation | Display capability notice on first GSD use in each runtime: "Running in Codex CLI. Some features run in sequential mode." |
+| Backlog becomes a dumping ground with no cleanup | Items accumulate, user stops checking backlog, it becomes noise | Auto-stale after 30 days; periodic prompt during milestone start: "review stale backlog items" |
+| Config migration asks too many questions | User abandons upgrade midway; partially migrated config | Smart defaults with confirmation; batch questions; allow "accept all defaults" |
+| Upgrade shows no diff of what changed | User uncertain what happened to their config | Show before/after diff; log changes to migration-log.md |
+| Feature manifest forces initialization of features user does not use | Unnecessary config bloat; user confused by irrelevant settings | Features declare "required" vs "optional"; optional features initialized on first use, not on upgrade |
+| Agent spec changes happen silently | User notices degraded output quality but cannot identify cause | CHANGELOG entry for any agent spec change; version bump on shared protocol changes |
+| Backlog priority system is too complex | User assigns priorities once, never updates them, priorities become meaningless | Simple three-tier: now / later / someday; or no priorities, just recency |
 
 ## "Looks Done But Isn't" Checklist
 
 Things that appear complete but are missing critical pieces.
 
-- [ ] **KB Migration:** Files are moved but symlink bridge not created -- old GSD versions on same machine cannot find KB
-- [ ] **Codex Integration:** AGENTS.md created but Skills not installed -- GSD commands not accessible as Codex skills
-- [ ] **Path Abstraction:** Installer replaces paths but agent inline bash still hardcodes `~/.claude/` -- agents fail at runtime, not install time
-- [ ] **Cross-Runtime Resume:** .continue-here.md written but contains runtime-specific commands -- resume works in same runtime, fails in different runtime
-- [ ] **Capability Gaps:** Tool name mapping done but Task tool spawning not handled -- commands work but subagent-dependent workflows silently skip steps
-- [ ] **Index Rebuild:** KB moved but index.md not rebuilt -- agents find index with stale paths, entries appear missing
-- [ ] **Test Coverage:** Install test passes for Codex but no integration test for actual Codex CLI execution -- installer works but Codex does not recognize GSD
-- [ ] **Config Migration:** `.planning/config.json` updated but `gsd-tools.js` not updated to handle Codex-specific settings -- gsd-tools crashes on Codex-only projects
-- [ ] **Concurrent Access:** Single-user tests pass but two agents writing KB simultaneously corrupt entries -- rare in practice but possible during reflection + execution overlap
-- [ ] **Rollback Path:** Migration succeeds but no mechanism to revert -- user who downgrades loses all KB access until they re-upgrade
+- [ ] **Backlog system:** Often missing STATE.md integration -- verify `/gsd:resume-work` surfaces backlog items
+- [ ] **Config migration:** Often missing migration-log.md entry -- verify every automated config change is logged
+- [ ] **Config migration:** Often missing rollback path -- verify user can revert to pre-migration config
+- [ ] **Feature manifest:** Often missing "unknown field preservation" -- verify custom user config fields survive upgrade
+- [ ] **Feature manifest:** Often missing manifest version tracking -- verify config.json records which manifest version was applied
+- [ ] **Agent extraction:** Often missing baseline comparison testing -- verify each agent's output format matches pre-extraction baseline
+- [ ] **Agent extraction:** Often missing extraction registry -- verify documentation of what moved where
+- [ ] **Backlog cleanup:** Often missing stale item handling -- verify items older than 30 days are flagged or surfaced
+- [ ] **Upgrade UX:** Often missing error recovery -- verify interrupted upgrade leaves config in valid state (not half-migrated)
+- [ ] **Config schema:** Often missing `loadConfig()` default synchronization -- verify schema defaults match `loadConfig()` fallbacks exactly
 
 ## Recovery Strategies
 
@@ -265,13 +254,13 @@ When pitfalls occur despite prevention, how to recover.
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| P1: Path replacement breaks KB references | MEDIUM | Grep for broken paths across installed files. Run installer with `--force` to re-install all files. Verify with: `grep -r 'gsd-knowledge' ~/.codex/` should show `~/.gsd/knowledge/` paths, not `~/.codex/gsd-knowledge/`. |
-| P2: KB migration data loss | HIGH | If symlink bridge was used: data still at old location, just re-run migration. If files were moved without bridge: check git history of `~/.claude/gsd-knowledge/` (if it was ever committed), or check filesystem journal. Worst case: KB entries lost, must be rebuilt from project `.planning/` artifacts. |
-| P3: Codex integration not working | LOW | Codex is additive (new runtime). Existing Claude/OpenCode/Gemini installs unaffected. Re-generate Codex integration files by running installer with `--codex`. No data loss risk. |
-| P4: State files contain runtime-specific content | MEDIUM | Run a state normalization script that scans `.planning/` for runtime-specific patterns and replaces with neutral references. Commit the normalized state. |
-| P5: Capability gap causes silent failure | MEDIUM | Add runtime capability logging to agent output. Review SUMMARY.md files for missing sections (knowledge surfacing, signal collection). Re-run affected phases in a runtime that supports the missing capability. |
-| Concurrent KB write corruption | LOW | KB entries are individual files with unique names (type-date-slug). Corruption only affects the index.md, which can be rebuilt from files: `gsd-tools.js rebuild-index`. |
-| Installer fails mid-migration | MEDIUM | If symlink bridge pattern used: old location still works, just re-run migration. If not: manually check both locations, consolidate entries, rebuild index. |
+| Backlog migration loses STATE.md bullets | LOW | Git history preserves STATE.md; `git show HEAD~N:.planning/STATE.md` recovers bullets |
+| Config schema validation breaks existing project | MEDIUM | Roll back gsd-tools.js to previous version; restore config.json from git; disable validation |
+| Agent extraction degrades output quality | MEDIUM | Revert shared protocol extraction; re-inline text in affected agents; re-test |
+| Feature manifest deletes custom config fields | HIGH | Restore config.json from git; but changes since last commit are lost; prevention: pre-migration backup |
+| Data loss during backlog migration (v1.14 pattern repeat) | HIGH | If pre-migration backup exists: restore from backup. If not: recover from git history. If data was in STATE.md bullets only (no git commit): likely unrecoverable. |
+| Install path replacement corrupts manifest files | LOW | Re-run installer; manifest files are read-only copies from npm package |
+| Upgrade interrupted mid-migration | MEDIUM | migration-log.md shows what was applied; re-run upgrade to apply remaining migrations; config.json should be valid at every migration step (each step is atomic) |
 
 ## Pitfall-to-Phase Mapping
 
@@ -279,36 +268,52 @@ How roadmap phases should address these pitfalls.
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| P1: 313 hardcoded paths | Phase 1: Path Abstraction Layer | `grep -r '~/.claude/' commands/ agents/ get-shit-done/` returns 0 hits (all replaced with tokens); installer test verifies 4 runtimes resolve correctly |
-| P2: KB migration data loss | Phase 2: KB Migration | Before/after entry count matches; symlink at old location resolves correctly; `cat ~/.claude/gsd-knowledge/index.md` and `cat ~/.gsd/knowledge/index.md` show identical content |
-| P3: Codex impedance mismatch | Phase 3: Codex Integration | Codex can read AGENTS.md with GSD instructions; at least one GSD skill (e.g., resume-work) invocable from Codex; Codex can read/write `.planning/` files |
-| P4: State file runtime leakage | Phase 1: Path Abstraction (state normalization) | `grep -r '~/.claude/' .planning/` returns 0 hits; .continue-here.md contains semantic state only; STATE.md commands are runtime-neutral |
-| P5: Capability gap denial | Phase 1: Runtime Abstraction (capability matrix) | Runtime capability matrix exists as code/config; agent specs include capability checks; degraded behavior documented per runtime |
-| KB concurrent access | Phase 2: KB Migration | Lock file mechanism exists; write test with simulated concurrent access; index rebuild produces correct results after interrupted write |
-| Cross-runtime resume | Phase 4: Cross-Runtime Handoff | Pause in Claude Code, resume in OpenCode -- state fully restored; pause in OpenCode, resume in Codex -- state fully restored with degradation notice |
+| Backlog replaces working todo system (#1) | Backlog design phase | `/gsd:add-todo` still works unchanged; STATE.md still has Pending Todos; `/gsd:resume-work` surfaces items |
+| Config schema breaks existing projects (#2) | Config schema phase (must precede feature manifest) | Real project configs from v1.12, v1.13, v1.14 all pass through new `loadConfig()` without error |
+| Data loss during migration (#3) | Backlog migration plan | Pre/post item count verification; migration-log.md entry; rollback test |
+| Feature manifest dual source of truth (#4) | Feature manifest phase | Manifest defaults == `loadConfig()` defaults; unknown fields preserved; manifest version tracked |
+| Agent extraction changes behavior (#5) | Agent extraction phase | Before/after SUMMARY.md comparison for each extracted agent; structured return format validation |
+| Installer scope collision (#6) | Feature manifest phase (scope boundary design) | Installer does NOT read/write `.planning/config.json`; manifest files survive path replacement |
+| Backlog becomes noise (UX) | Backlog cleanup phase or milestone workflow | Stale items flagged; milestone-start includes backlog review prompt |
+| Config migration asks too many questions (UX) | Config migration phase | "Accept all defaults" option works; migration completes in < 30 seconds for typical config |
 
-## Phase Ordering Rationale
+## Phase Ordering Implications
 
-Based on pitfall dependencies:
+Based on pitfall analysis, the following ordering constraints emerge:
 
-1. **Path Abstraction Layer + Runtime Capability Matrix** (P1, P4, P5) -- Foundation. Everything else depends on paths resolving correctly and capabilities being declared.
-2. **KB Migration** (P2) -- Must happen after paths are abstracted. Creates the shared `~/.gsd/` directory structure. Symlink bridge ensures backward compatibility.
-3. **Codex CLI Integration** (P3) -- Must happen after path abstraction AND KB migration. Codex is the first consumer of the new shared path model.
-4. **Cross-Runtime Handoff** (P4 completion) -- Must happen after Codex integration exists (need a 4th runtime to test handoff). State normalization from Phase 1 provides the foundation.
+1. **Config schema (lenient) must come before feature manifest** -- the manifest depends on a config system that can be extended without breaking; the lenient schema pattern must be established first
+2. **Backlog design must come before backlog migration** -- design the extension to the existing todo system before migrating any data
+3. **Agent extraction must include testing phase** -- extraction without before/after testing risks silent degradation; this should not be rushed
+4. **Feature manifest must establish scope boundary before implementation** -- installer vs. command scope confusion is the #1 integration risk
+5. **Config migration infrastructure must come before any feature that adds new config fields** -- every new feature that touches config.json should use the migration system, not ad-hoc field additions
 
 ## Sources
 
-- Direct codebase analysis of `get-shit-done-reflect` repository (primary source for all path counts and architecture findings)
-- [Codex CLI Configuration Reference](https://developers.openai.com/codex/config-reference/) -- TOML config format, feature toggles, MCP servers
-- [Codex CLI Slash Commands](https://developers.openai.com/codex/cli/slash-commands/) -- Built-in commands, no custom command file format
-- [Codex AGENTS.md Guide](https://developers.openai.com/codex/guides/agents-md/) -- Instruction discovery, 32KB limit, override hierarchy
-- [Codex Agent Skills](https://developers.openai.com/codex/skills) -- SKILL.md format, directory structure, progressive disclosure
-- [Codex Advanced Configuration](https://developers.openai.com/codex/config-advanced/) -- Profiles, project-level config, MCP servers
-- [Codex Basic Configuration](https://developers.openai.com/codex/config-basic/) -- Precedence order, sandbox policies, approval system
-- [5 Key Trends Shaping Agentic Development in 2026 (The New Stack)](https://thenewstack.io/5-key-trends-shaping-agentic-development-in-2026/) -- MCP as standard connector layer
-- [Node.js File System in Practice (TheLinuxCode)](https://thelinuxcode.com/nodejs-file-system-in-practice-a-production-grade-guide-for-2026/) -- Atomic rename, advisory locking, concurrent access patterns
-- [Data Migration Checklist 2025 (Quinnox)](https://www.quinnox.com/blogs/data-migration-checklist/) -- Migration rollback strategies, testing before go-live
+### Primary (HIGH confidence -- direct codebase analysis)
+
+- `.planning/STATE.md` -- Actual Pending Todos format, dual-storage pattern
+- `.planning/config.json` -- Real config with version drift from template (`1.12.2` vs template `1.13.0`)
+- `get-shit-done/templates/config.json` -- Template config with different shape than project config
+- `get-shit-done/workflows/add-todo.md` -- Current todo capture workflow with frontmatter, area inference
+- `.claude/get-shit-done/bin/gsd-tools.js` -- `loadConfig()` with hardcoded defaults, `init todos` reader, `config-ensure-section`
+- `bin/install.js` -- Two-pass path replacement (lines 609-635), `migrateKB()` with copy-then-symlink, scope boundary
+- `.planning/codebase/CONCERNS.md` -- Documented tech debt: large agent files, path regex fragility, file-based state parsing
+- `.planning/codebase/ARCHITECTURE.md` -- System layers, data flow, scope boundaries
+- `.planning/milestones/v1.15-CANDIDATE.md` -- Pillar 6 feature manifest design, agent boilerplate extraction plan
+- `.planning/phases/14-knowledge-base-migration/14-RESEARCH.md` -- KB migration patterns, copy-then-symlink, verification
+- `.planning/phases/19-kb-infrastructure-data-safety/19-RESEARCH.md` -- Pre-migration backup pattern, script relocation
+- `.planning/migration-log.md` -- Existing migration tracking format
+- `.planning/todos/pending/2026-02-17-feature-manifest-system-for-declarative-feature-initialization.md` -- Feature manifest problem statement
+
+### Secondary (MEDIUM confidence -- ecosystem research)
+
+- [Agilemania: Managing Large Product Backlogs](https://agilemania.com/how-to-manage-large-complex-product-backlog) -- Backlog growth limits (150 items), 2-year retirement rule
+- [Perforce: Backlog Management Techniques](https://www.perforce.com/blog/hns/backlog-management-6-tips-make-your-backlog-lean) -- Lean backlog principles, grooming burden
+- [BayTech: Importance of Backlog Management](https://www.baytechconsulting.com/blog/the-importance-of-backlog-management-from-a-developer) -- Developer perspective on backlog abandonment
+- [json-schema-org: Backward Compatibility](https://github.com/json-schema-org/json-schema-spec/issues/1242) -- JSON Schema evolution challenges
+- [Creek Service: Evolving JSON Schemas](https://www.creekservice.org/articles/2024/01/08/json-schema-evolution-part-1.html) -- Open/closed content models for schema evolution
+- [Nx: Automate Updating Dependencies](https://nx.dev/docs/features/automate-updating-dependencies) -- Automated migration patterns for CLI tools
 
 ---
-*Pitfalls research for: multi-runtime CLI interop*
-*Researched: 2026-02-11*
+*Pitfalls research for: GSD Reflect v1.15 Backlog & Update Experience*
+*Researched: 2026-02-16*
