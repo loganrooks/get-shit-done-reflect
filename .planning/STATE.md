@@ -43,6 +43,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 ### Pending Todos
 
 - v1.15 milestone candidate written: `.planning/milestones/v1.15-CANDIDATE.md` (Token Efficiency & MCP Infrastructure). Ready for `/gsd:new-milestone` when approved.
+- Feature manifest system for declarative feature initialization (architecture todo — user-level vs project-level config, `/gsd:release` config schema, upgrade-project gap detection)
 
 ### Blockers/Concerns
 
