@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-16)
 Phase: Not started (defining requirements)
 Plan: —
 Status: Defining requirements
-Last activity: 2026-02-16 — Milestone v1.15 started
+Last activity: 2026-02-17 — v1.15 research complete, requirements scoping in progress
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) = 61 plans shipped across 22 phases
 
@@ -77,5 +77,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-17
-Stopped at: Completed quick-5 (C7-C10 test cleanup). Both .continue-here.md tasks done. Next: log release process signal, then /gsd:new-milestone for v1.15.
+Stopped at: Mid /gsd:new-milestone — research done, requirements scoping in progress (Step 9 of workflow)
 Resume file: .planning/.continue-here.md
