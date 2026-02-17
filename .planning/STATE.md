@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-16)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Planning next milestone (run `/gsd:new-milestone`)
+**Current focus:** v1.15 Backlog & Update Experience
 
 ## Current Position
 
-Phase: N/A — between milestones
-Plan: N/A
-Status: v1.14 Multi-Runtime Interop shipped 2026-02-16. All 3 milestones complete (v1.12, v1.13, v1.14).
-Last activity: 2026-02-16 -- Completed quick-5: Remove C7-C10 self-fulfilling tests
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-16 — Milestone v1.15 started
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) = 61 plans shipped across 22 phases
 

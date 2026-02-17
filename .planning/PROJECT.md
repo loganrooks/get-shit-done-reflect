@@ -62,7 +62,17 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ### Active
 
-(No active milestone — run `/gsd:new-milestone` to start next)
+## Current Milestone: v1.15 Backlog & Update Experience
+
+**Goal:** Give users a structured way to capture, organize, and surface ideas across sessions and milestones, and make the update/upgrade experience smooth with declarative feature configuration.
+
+**Target features:**
+- Persistent backlog system (per-project + global) with tagged items and auto-grouping
+- `/gsd:new-milestone` integration: backlog items presented grouped by theme during scoping
+- Feature manifest system: features declare config schemas, upgrades detect and initialize gaps
+- Update experience: post-update awareness, config migration, release infrastructure config
+- Workflow DX: lighter `/gsd:quick`, agent spec boilerplate extraction
+- Reliability: installer hardening, shell script fixes
 
 ### Out of Scope
 
@@ -139,4 +149,4 @@ Test suite: 159 tests (107 fork vitest + 75 upstream gsd-tools + 7 fork gsd-tool
 | Research-first advisory gate for spikes | Prevent premature spiking when research would suffice | ✓ Good — non-blocking advisory, orchestrator-triggered spikes already have research |
 
 ---
-*Last updated: 2026-02-16 after v1.14 milestone completed*
+*Last updated: 2026-02-16 after v1.15 milestone started*
