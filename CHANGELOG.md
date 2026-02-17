@@ -6,6 +6,20 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.14.2] - 2026-02-17
+
+### Added
+- `/gsd:release [patch|minor|major]` command for automated version bump, changelog, tag, and GitHub Release
+- Release command registered in `/gsd:help` reference
+
+### Fixed
+- Removed 15 self-fulfilling tests (C7-C10 from PR #4 review): tests that tested Node.js stdlib instead of application code
+- Rewrote `real-agent.test.js` as honest `.todo()` scaffold instead of fake-passing tests
+- Made `/gsd:release` workflow project-agnostic (dynamic repo URL instead of hardcoded)
+
+### Changed
+- Test suite: 140 passing + 4 todo (down from 155 passing — honest count after removing inflated tests)
+
 ## [1.14.1] - 2026-02-16
 
 ### Added
