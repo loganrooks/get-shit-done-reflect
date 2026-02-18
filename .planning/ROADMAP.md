@@ -35,7 +35,13 @@
   2. Each agent's spec-specific overrides appear ABOVE the shared protocol reference, so agent-specific instructions take priority over shared conventions
   3. An extraction registry artifact documents exactly which sections moved from which agents, enabling audit of what changed
   4. Running each agent (executor, planner, debugger, etc.) on a representative task produces equivalent output quality to pre-extraction behavior -- verified via before/after comparison for at least 3 agents
-**Plans**: TBD
+**Plans:** 5 plans
+Plans:
+- [ ] 22-01-PLAN.md -- Create shared agent-protocol.md + extraction registry
+- [ ] 22-02-PLAN.md -- Extract from executor + planner specs
+- [ ] 22-03-PLAN.md -- Extract from debugger + researcher specs
+- [ ] 22-04-PLAN.md -- Extract from remaining 6 agent specs
+- [ ] 22-05-PLAN.md -- Before/after verification + final metrics
 
 #### Phase 23: Feature Manifest Foundation
 **Goal**: Features declare their config requirements in a single JSON manifest, enabling data-driven initialization and upgrade instead of hardcoded migration logic
@@ -123,7 +129,7 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
-| 22. Agent Boilerplate Extraction | 0/TBD | Not started | - |
+| 22. Agent Boilerplate Extraction | 0/5 | Planned | - |
 | 23. Feature Manifest Foundation | 0/TBD | Not started | - |
 | 24. Manifest-Driven Config Migration | 0/TBD | Not started | - |
 | 25. Backlog System Core | 0/TBD | Not started | - |
