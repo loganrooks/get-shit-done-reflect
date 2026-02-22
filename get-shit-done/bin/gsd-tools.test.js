@@ -2682,3 +2682,302 @@ describe('manifest apply-migration command', () => {
     assert.ok(output.total_changes >= 4, 'should have at least 4 changes');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// manifest log-migration command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest log-migration command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('creates migration-log.md when it does not exist', () => {
+    const changes = JSON.stringify([
+      { type: 'feature_added', config_key: 'release', fields_added: ['version_file', 'changelog'] }
+    ]);
+    const result = runGsdTools(
+      `manifest log-migration --from 1.12.0 --to 1.15.0 --changes '${changes}' --raw`,
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const logPath = path.join(tmpDir, '.planning', 'migration-log.md');
+    assert.ok(fs.existsSync(logPath), 'migration-log.md should be created');
+
+    const content = fs.readFileSync(logPath, 'utf-8');
+    assert.ok(content.includes('# Migration Log'), 'should have header');
+    assert.ok(content.includes('1.12.0 -> 1.15.0'), 'should have version range');
+    assert.ok(content.includes('`release`'), 'should reference release config_key');
+  });
+
+  test('appends entry to existing migration-log.md', () => {
+    const logPath = path.join(tmpDir, '.planning', 'migration-log.md');
+    const existingContent = '# Migration Log\n\nTracks version upgrades applied to this project.\n\n## 1.0.0 -> 1.12.0 (2026-01-01T00:00:00.000Z)\n\n### Changes Applied\n- Added `health_check` section (frequency, stale_threshold_days, blocking_checks)\n\n---\n\n*Log is append-only.*\n';
+    fs.writeFileSync(logPath, existingContent, 'utf-8');
+
+    const changes = JSON.stringify([
+      { type: 'field_added', feature: 'devops', field: 'environments', default_value: [] }
+    ]);
+    const result = runGsdTools(
+      `manifest log-migration --from 1.12.0 --to 1.15.0 --changes '${changes}' --raw`,
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const content = fs.readFileSync(logPath, 'utf-8');
+    // New entry should come before old entry
+    const newEntryPos = content.indexOf('1.12.0 -> 1.15.0');
+    const oldEntryPos = content.indexOf('1.0.0 -> 1.12.0');
+    assert.ok(newEntryPos < oldEntryPos, 'new entry should be prepended before old entry');
+  });
+
+  test('formats feature_added changes correctly', () => {
+    const changes = JSON.stringify([
+      { type: 'feature_added', config_key: 'release', fields_added: ['version_file', 'changelog'] }
+    ]);
+    const result = runGsdTools(
+      `manifest log-migration --from 1.12.0 --to 1.15.0 --changes '${changes}' --raw`,
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const logPath = path.join(tmpDir, '.planning', 'migration-log.md');
+    const content = fs.readFileSync(logPath, 'utf-8');
+    assert.ok(content.includes('Added `release` section (version_file, changelog)'), 'should format feature_added with fields');
+  });
+
+  test('formats field_added changes correctly', () => {
+    const changes = JSON.stringify([
+      { type: 'field_added', feature: 'devops', field: 'environments', default_value: [] }
+    ]);
+    const result = runGsdTools(
+      `manifest log-migration --from 1.12.0 --to 1.15.0 --changes '${changes}' --raw`,
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const logPath = path.join(tmpDir, '.planning', 'migration-log.md');
+    const content = fs.readFileSync(logPath, 'utf-8');
+    assert.ok(content.includes('Added `devops.environments`:'), 'should format field_added with feature.field');
+  });
+
+  test('formats type_coerced changes correctly', () => {
+    const changes = JSON.stringify([
+      { type: 'type_coerced', feature: 'health_check', field: 'blocking_checks', from: 'true', to: true }
+    ]);
+    const result = runGsdTools(
+      `manifest log-migration --from 1.12.0 --to 1.15.0 --changes '${changes}' --raw`,
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const logPath = path.join(tmpDir, '.planning', 'migration-log.md');
+    const content = fs.readFileSync(logPath, 'utf-8');
+    assert.ok(content.includes('Coerced `health_check.blocking_checks`'), 'should format type_coerced');
+    assert.ok(content.includes('"true"'), 'should show from value');
+    assert.ok(content.includes('true'), 'should show to value');
+  });
+
+  test('formats manifest_version_updated correctly', () => {
+    const changes = JSON.stringify([
+      { type: 'manifest_version_updated', from: 0, to: 1 }
+    ]);
+    const result = runGsdTools(
+      `manifest log-migration --from 1.12.0 --to 1.15.0 --changes '${changes}' --raw`,
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const logPath = path.join(tmpDir, '.planning', 'migration-log.md');
+    const content = fs.readFileSync(logPath, 'utf-8');
+    assert.ok(content.includes('Updated manifest_version: 0 -> 1'), 'should show version from/to');
+  });
+
+  test('reports logged: true with path', () => {
+    const changes = JSON.stringify([
+      { type: 'feature_added', config_key: 'release', fields_added: ['version_file'] }
+    ]);
+    const result = runGsdTools(
+      `manifest log-migration --from 1.12.0 --to 1.15.0 --changes '${changes}' --raw`,
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const parsed = JSON.parse(result.output);
+    assert.strictEqual(parsed.logged, true, 'should report logged: true');
+    assert.ok(parsed.path, 'should include path field');
+    assert.ok(parsed.path.includes('migration-log.md'), 'path should reference migration-log.md');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// manifest auto-detect command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest auto-detect command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  // Helper: create manifest with auto_detect rules in the temp project
+  function setupAutoDetectEnv(tmpDir, features) {
+    const manifestDir = path.join(tmpDir, '.claude', 'get-shit-done');
+    fs.mkdirSync(manifestDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(manifestDir, 'feature-manifest.json'),
+      JSON.stringify({ manifest_version: 1, features }, null, 2)
+    );
+  }
+
+  // Devops feature with auto_detect rules
+  function devopsFeatureWithAutoDetect() {
+    return {
+      devops: {
+        scope: 'project',
+        introduced: '1.12.0',
+        config_key: 'devops',
+        schema: {
+          ci_provider: { type: 'string', default: 'none' },
+          deploy_target: { type: 'string', default: 'none' },
+          commit_convention: { type: 'string', default: 'freeform' },
+        },
+        auto_detect: {
+          ci_provider: [
+            { check: 'dir_exists', path: '.github/workflows', value: 'github-actions' },
+            { check: 'file_exists', path: '.gitlab-ci.yml', value: 'gitlab-ci' },
+          ],
+          deploy_target: [
+            { check: 'file_exists', path: 'Dockerfile', value: 'docker' },
+            { check: 'file_exists', path: 'vercel.json', value: 'vercel' },
+          ],
+        },
+      },
+    };
+  }
+
+  // Release feature with auto_detect rules
+  function releaseFeatureWithAutoDetect() {
+    return {
+      release: {
+        scope: 'project',
+        introduced: '1.15.0',
+        config_key: 'release',
+        schema: {
+          version_file: { type: 'string', default: 'none' },
+        },
+        auto_detect: {
+          version_file: [
+            { check: 'file_exists', path: 'package.json', value: 'package.json' },
+            { check: 'file_exists', path: 'Cargo.toml', value: 'Cargo.toml' },
+          ],
+        },
+      },
+    };
+  }
+
+  test('detects CI provider from .github/workflows directory', () => {
+    setupAutoDetectEnv(tmpDir, devopsFeatureWithAutoDetect());
+    // Create the detection target
+    fs.mkdirSync(path.join(tmpDir, '.github', 'workflows'), { recursive: true });
+
+    const result = runGsdTools('manifest auto-detect devops --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const parsed = JSON.parse(result.output);
+    assert.strictEqual(parsed.detected.ci_provider, 'github-actions', 'should detect github-actions');
+  });
+
+  test('detects deploy target from Dockerfile', () => {
+    setupAutoDetectEnv(tmpDir, devopsFeatureWithAutoDetect());
+    // Create Dockerfile
+    fs.writeFileSync(path.join(tmpDir, 'Dockerfile'), 'FROM node:20\n');
+
+    const result = runGsdTools('manifest auto-detect devops --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const parsed = JSON.parse(result.output);
+    assert.strictEqual(parsed.detected.deploy_target, 'docker', 'should detect docker');
+  });
+
+  test('detects multiple fields simultaneously', () => {
+    setupAutoDetectEnv(tmpDir, devopsFeatureWithAutoDetect());
+    // Create both detection targets
+    fs.mkdirSync(path.join(tmpDir, '.github', 'workflows'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, 'Dockerfile'), 'FROM node:20\n');
+
+    const result = runGsdTools('manifest auto-detect devops --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const parsed = JSON.parse(result.output);
+    assert.strictEqual(parsed.detected.ci_provider, 'github-actions', 'should detect ci_provider');
+    assert.strictEqual(parsed.detected.deploy_target, 'docker', 'should detect deploy_target');
+  });
+
+  test('returns empty detected for feature with no auto_detect rules', () => {
+    // health_check has no auto_detect
+    setupAutoDetectEnv(tmpDir, {
+      health_check: {
+        scope: 'project',
+        introduced: '1.12.0',
+        config_key: 'health_check',
+        schema: { frequency: { type: 'string', default: 'milestone-only' } },
+      },
+    });
+
+    const result = runGsdTools('manifest auto-detect health_check --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const parsed = JSON.parse(result.output);
+    assert.deepStrictEqual(parsed.detected, {}, 'should return empty detected object');
+  });
+
+  test('detects version_file from package.json', () => {
+    setupAutoDetectEnv(tmpDir, releaseFeatureWithAutoDetect());
+    // Create package.json
+    fs.writeFileSync(path.join(tmpDir, 'package.json'), '{"name": "test", "version": "1.0.0"}\n');
+
+    const result = runGsdTools('manifest auto-detect release --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const parsed = JSON.parse(result.output);
+    assert.strictEqual(parsed.detected.version_file, 'package.json', 'should detect package.json');
+  });
+
+  test('file_exists does not match directories', () => {
+    setupAutoDetectEnv(tmpDir, devopsFeatureWithAutoDetect());
+    // Create a DIRECTORY named Dockerfile (not a file)
+    fs.mkdirSync(path.join(tmpDir, 'Dockerfile'), { recursive: true });
+
+    const result = runGsdTools('manifest auto-detect devops --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const parsed = JSON.parse(result.output);
+    assert.strictEqual(parsed.detected.deploy_target, undefined, 'should NOT detect directory as file');
+  });
+
+  test('dir_exists does not match files', () => {
+    setupAutoDetectEnv(tmpDir, devopsFeatureWithAutoDetect());
+    // Create .github/workflows as a FILE (not a directory)
+    fs.mkdirSync(path.join(tmpDir, '.github'), { recursive: true });
+    fs.writeFileSync(path.join(tmpDir, '.github', 'workflows'), 'not a directory');
+
+    const result = runGsdTools('manifest auto-detect devops --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const parsed = JSON.parse(result.output);
+    assert.strictEqual(parsed.detected.ci_provider, undefined, 'should NOT detect file as directory');
+  });
+});
