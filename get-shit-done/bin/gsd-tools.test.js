@@ -2480,3 +2480,205 @@ describe('manifest self-test (real manifest)', () => {
     );
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// manifest apply-migration command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest apply-migration command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('adds missing feature sections with defaults', () => {
+    // Config missing health_check entirely
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      mode: 'yolo',
+      manifest_version: 1,
+    });
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(output.total_changes > 0, 'should have changes');
+    assert.ok(
+      output.changes.some(c => c.type === 'feature_added' && c.feature === 'health_check'),
+      'should have feature_added change for health_check'
+    );
+
+    // Verify config was actually updated on disk
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.ok(config.health_check, 'config should now have health_check section');
+    assert.strictEqual(config.health_check.frequency, 'milestone-only', 'frequency should be default');
+    assert.strictEqual(config.health_check.stale_threshold_days, 7, 'stale_threshold_days should be default');
+    assert.strictEqual(config.health_check.blocking_checks, false, 'blocking_checks should be default');
+  });
+
+  test('adds missing fields to existing sections', () => {
+    // Config has health_check but missing blocking_checks
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      manifest_version: 1,
+      health_check: {
+        frequency: 'milestone-only',
+        stale_threshold_days: 7,
+      },
+    });
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(
+      output.changes.some(c => c.type === 'field_added' && c.field === 'blocking_checks'),
+      'should have field_added change for blocking_checks'
+    );
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.health_check.blocking_checks, false, 'blocking_checks should be added with default');
+  });
+
+  test('coerces string boolean to boolean', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      manifest_version: 1,
+      health_check: {
+        frequency: 'milestone-only',
+        stale_threshold_days: 7,
+        blocking_checks: 'true',
+      },
+    });
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(
+      output.changes.some(c => c.type === 'type_coerced' && c.field === 'blocking_checks'),
+      'should have type_coerced change for blocking_checks'
+    );
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.health_check.blocking_checks, true, 'blocking_checks should be coerced to boolean true');
+  });
+
+  test('coerces string number to number', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      manifest_version: 1,
+      health_check: {
+        frequency: 'milestone-only',
+        stale_threshold_days: '7',
+        blocking_checks: false,
+      },
+    });
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(
+      output.changes.some(c => c.type === 'type_coerced' && c.field === 'stale_threshold_days'),
+      'should have type_coerced change for stale_threshold_days'
+    );
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.health_check.stale_threshold_days, 7, 'stale_threshold_days should be coerced to number 7');
+  });
+
+  test('updates manifest_version', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      manifest_version: 0,
+      health_check: {
+        frequency: 'milestone-only',
+        stale_threshold_days: 7,
+        blocking_checks: false,
+      },
+    });
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(
+      output.changes.some(c => c.type === 'manifest_version_updated'),
+      'should have manifest_version_updated change'
+    );
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.manifest_version, 1, 'manifest_version should be updated to manifest version');
+  });
+
+  test('no changes when config is complete', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      manifest_version: 1,
+      health_check: {
+        frequency: 'milestone-only',
+        stale_threshold_days: 7,
+        blocking_checks: false,
+      },
+    });
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.total_changes, 0, 'should have no changes');
+  });
+
+  test('preserves existing values', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      manifest_version: 1,
+      health_check: {
+        frequency: 'every-phase',
+        stale_threshold_days: 7,
+        blocking_checks: false,
+      },
+    });
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.health_check.frequency, 'every-phase', 'frequency should NOT be overwritten with default');
+  });
+
+  test('atomic write creates no .tmp residue', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      mode: 'yolo',
+      manifest_version: 0,
+    });
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const tmpFileExists = fs.existsSync(path.join(tmpDir, '.planning', 'config.json.tmp'));
+    assert.strictEqual(tmpFileExists, false, 'no .tmp file should remain after atomic write');
+  });
+
+  test('reports all change types in output', () => {
+    // Config with: missing devops feature, missing blocking_checks field, string stale_threshold_days
+    createManifestTestEnv(tmpDir, twoFeatureManifest(), {
+      manifest_version: 0,
+      health_check: {
+        frequency: 'milestone-only',
+        stale_threshold_days: '7',
+      },
+    });
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    const changeTypes = output.changes.map(c => c.type);
+    assert.ok(changeTypes.includes('feature_added'), 'should include feature_added');
+    assert.ok(changeTypes.includes('field_added'), 'should include field_added');
+    assert.ok(changeTypes.includes('type_coerced'), 'should include type_coerced');
+    assert.ok(changeTypes.includes('manifest_version_updated'), 'should include manifest_version_updated');
+    assert.ok(output.total_changes >= 4, 'should have at least 4 changes');
+  });
+});
