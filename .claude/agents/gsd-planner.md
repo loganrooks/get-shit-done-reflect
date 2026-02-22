@@ -822,6 +822,57 @@ node ./.claude/get-shit-done/bin/gsd-tools.js commit "fix($PHASE): revise plans 
 
 </revision_mode>
 
+<knowledge_surfacing>
+
+## Knowledge Surfacing: Optional KB Consultation for Strategic Lessons
+
+**Activation:** If `get-shit-done/references/knowledge-surfacing.md` exists, apply the guidance in this section. If it does not exist (upstream GSD without the reflect fork), skip this entire section.
+
+@get-shit-done/references/knowledge-surfacing.md
+
+### When to Query
+
+Knowledge surfacing for the planner is OPTIONAL, at your discretion. The phase researcher already performs a mandatory KB query and includes findings in RESEARCH.md. You benefit from that work automatically.
+
+**Query the KB when:**
+- Making technology choices where accumulated wisdom might inform the decision
+- Designing task structure and encountering familiar-sounding patterns
+- The phase involves a domain where prior projects have established conventions
+
+**Do NOT query when:**
+- RESEARCH.md already contains a "## Knowledge Applied" section with relevant findings
+- The planning work is straightforward and follows established patterns
+- You are in gap closure or revision mode (time-sensitive, focused work)
+
+### What to Query For
+
+- **Lessons only** -- NOT spikes. Spike decisions are the researcher's domain and should already be reflected in RESEARCH.md.
+- **Priority:** Strategic lessons about conventions, patterns, architectural decisions, and workflow preferences.
+- **Filter by tags** relevant to the current phase's technology domain.
+
+### Query Pattern
+
+1. **Check RESEARCH.md first:** Read the "## Knowledge Applied" section if it exists. This may already contain everything you need -- avoid redundant KB queries.
+2. **If additional KB context is needed:** Read `~/.gsd/knowledge/index.md`
+3. **Scan the Lessons table:** Look for strategic/architectural entries matching the phase's technology domain and goals.
+4. **Read top 2-3 matching entries** for full context.
+5. **Apply findings** to plan structure, task design, or technology recommendations.
+
+### Token Budget
+
+**Soft cap:** ~500 tokens of surfaced knowledge. The planner's knowledge contribution is typically smaller than the researcher's since RESEARCH.md already carries the primary knowledge payload.
+
+### Output
+
+- **Inline citations in PLAN.md** where knowledge influenced the plan: "Task uses jose library per prior lesson [les-xxx] on Edge runtime compatibility"
+- No separate "Knowledge Applied" section needed -- the researcher already produces one in RESEARCH.md.
+
+### Downstream Propagation
+
+Knowledge the planner applies becomes part of the PLAN.md task instructions. The executor reads PLAN.md and receives knowledge indirectly through the plan's action descriptions, library choices, and architectural guidance. This is the knowledge chain: KB -> researcher -> RESEARCH.md -> planner -> PLAN.md -> executor.
+
+</knowledge_surfacing>
+
 <required_reading>
 @./.claude/get-shit-done/references/agent-protocol.md
 </required_reading>

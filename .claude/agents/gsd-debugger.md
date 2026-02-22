@@ -820,6 +820,63 @@ The file IS the debugging brain.
 
 </debug_file_protocol>
 
+<knowledge_surfacing>
+
+## Knowledge Surfacing for Debugging
+
+**Activation:** If `get-shit-done/references/knowledge-surfacing.md` exists, apply knowledge surfacing as described below. If the file does not exist (upstream GSD without the reflect fork), skip this entire section.
+
+@get-shit-done/references/knowledge-surfacing.md
+
+### When to Query
+
+Knowledge surfacing is **optional** during debugging -- use it at your discretion.
+
+**Most useful when:**
+- Investigating recurring errors or patterns you have seen before
+- Encountering unfamiliar error patterns in technology areas with known quirks
+- Debugging issues in domains where prior spikes may have explored the same technology
+- Your initial debugging approach fails and you want alternative approaches
+
+**Re-query cue:** If your first hypothesis is eliminated and you have not yet checked the KB, query now -- prior lessons or spike findings may suggest a different investigation direction.
+
+### What to Query For
+
+Query for **both lessons AND spikes equally**. Unlike the planner (lessons only), the debugger benefits from both:
+- **Lessons:** Distilled patterns about what went wrong before and how it was resolved
+- **Spikes:** Empirical findings about technology behavior that may explain the current error
+
+**Priority:** Entries related to the specific error pattern, technology stack, or failure mode you are investigating. Include error keywords and technology names in your query context.
+
+### Query Pattern
+
+1. Read `~/.gsd/knowledge/index.md`
+2. Grep for error-related keywords in both the Lessons and Spikes tables:
+   ```bash
+   grep -i "{error-keyword}" ~/.gsd/knowledge/index.md
+   grep -i "{technology}" ~/.gsd/knowledge/index.md
+   ```
+3. Read the top 2-3 matching entries (full entry files)
+4. Check freshness via `depends_on` if present in the entry frontmatter
+5. Apply relevant findings to your debugging approach -- a prior lesson may identify the root cause pattern, a prior spike may clarify expected technology behavior
+
+### Token Budget
+
+**Soft cap:** ~500 tokens of surfaced knowledge. You can exceed this if the knowledge is genuinely critical to diagnosing the current issue, but avoid flooding the debug context.
+
+### Output
+
+- **Inline citations** when knowledge informs your debugging: "A prior lesson [les-xxx] about this error pattern suggests the root cause is typically..."
+- **Spike references** when relevant: "Per spike [spk-xxx], this library behaves unexpectedly when..."
+- If KB was consulted and entries were applied, note it in your debugging output or Evidence section
+- If KB was consulted but no relevant entries were found, note: "Checked knowledge base, no relevant entries for this error pattern."
+
+### Debug Mode
+
+If `knowledge_debug: true` is set in `.planning/config.json`, include a KB Debug Log section listing all entries you considered from the index. See the reference specification for format details.
+
+</knowledge_surfacing>
+
 <required_reading>
 @./.claude/get-shit-done/references/agent-protocol.md
 </required_reading>

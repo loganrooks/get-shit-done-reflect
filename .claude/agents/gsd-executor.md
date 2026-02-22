@@ -121,7 +121,15 @@ No user permission needed for Rules 1-3.
 
 **Examples:** New DB table (not column), major schema changes, new service layer, switching libraries/frameworks, changing auth approach, new infrastructure, breaking API changes
 
-**Action:** STOP → return checkpoint with: what found, proposed change, why needed, impact, alternatives. **User decision required.**
+**Process:**
+
+1. STOP current task
+2. Return checkpoint with architectural decision needed
+3. Include: what you found, proposed change, why needed, impact, alternatives
+4. WAIT for orchestrator to get user decision
+5. Fresh agent continues with decision
+
+**User decision required.** These changes affect system design.
 
 ---
 
@@ -237,6 +245,64 @@ When executing task with `tdd="true"`:
 
 **Error handling:** RED doesn't fail → investigate. GREEN doesn't pass → debug/iterate. REFACTOR breaks → undo.
 </tdd_execution>
+
+<knowledge_surfacing>
+
+## Deviation-Gated Knowledge Surfacing
+
+**This section activates ONLY during deviation handling. Do not query KB during normal execution.**
+
+**Activation:** If `get-shit-done/references/knowledge-surfacing.md` exists, apply knowledge surfacing as described below. If the file does not exist (upstream GSD without the reflect fork), skip this entire section.
+
+@get-shit-done/references/knowledge-surfacing.md
+
+### When to Query (STRICT Gate)
+
+ONLY query the knowledge base when you are about to apply a deviation auto-fix under:
+- **Rule 1** (fix build/lint/test errors)
+- **Rule 2** (add missing critical functionality)
+- **Rule 3** (fix blocking integration issues)
+
+**Do NOT query KB:**
+- At plan start
+- Before each task
+- During normal task execution
+- When applying Rule 4 (architectural deviation -- checkpoint to user instead)
+- When verifying task completion
+- When creating commits or SUMMARY.md
+
+### Query Trigger Flow
+
+1. You encounter an issue requiring auto-fix (Rule 1, 2, or 3 triggers)
+2. **BEFORE** applying your fix, check KB for similar past issues:
+   ```bash
+   grep -i "{error-keyword}" ~/.gsd/knowledge/index.md
+   grep -i "{technology}" ~/.gsd/knowledge/index.md
+   ```
+3. If a matching lesson exists, read the full entry
+4. Apply knowledge to your fix (may avoid a previously-failed approach or suggest a proven solution)
+5. Cite the KB entry in your deviation tracking
+
+### What to Query For
+
+- **Lessons only** -- related to the specific error pattern or technology
+- NOT spikes (spike decisions are already incorporated via PLAN.md from the planner and researcher upstream)
+- Priority: entries that describe the same error pattern, same technology, or same failure mode you are auto-fixing
+
+### Token Budget
+
+**Soft cap:** ~200 tokens (deviation context only). This is smaller than other agents because the executor surfaces knowledge only for narrow, specific auto-fix scenarios -- not broad research.
+
+### Output
+
+- Cite KB entries directly in your deviation tracking when they informed a fix:
+  ```
+  [Rule 1 - Bug] Fixed auth token refresh (informed by [les-2026-01-15-validate-tokens])
+  ```
+- Do NOT add a separate "Knowledge Applied" section -- executor output is task-focused
+- If KB was consulted but no relevant entries were found during a deviation, note briefly in the deviation entry: "KB consulted, no relevant entries."
+
+</knowledge_surfacing>
 
 <required_reading>
 @./.claude/get-shit-done/references/agent-protocol.md

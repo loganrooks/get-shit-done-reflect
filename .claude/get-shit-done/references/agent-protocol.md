@@ -136,6 +136,8 @@ Agents don't need to check commit_docs manually when using gsd-tools.js commit.
 ├── STATE.md                    # Current position, decisions, blockers
 ├── ROADMAP.md                  # Phase list with goals and plans
 ├── PROJECT.md                  # Project vision and metadata
+├── REQUIREMENTS.md             # Project requirements
+├── MILESTONES.md               # Milestone definitions and tracking
 ├── config.json                 # GSD configuration
 ├── phases/
 │   ├── XX-name/                # Phase directory (e.g., 01-foundation)
@@ -147,12 +149,16 @@ Agents don't need to check commit_docs manually when using gsd-tools.js commit.
 ├── debug/
 │   ├── {slug}.md               # Active debug sessions
 │   └── resolved/               # Completed debug sessions
+├── milestones/                 # Milestone tracking artifacts
+├── quick/                      # Quick fix plans (non-phase work)
 ├── research/
 │   ├── SUMMARY.md              # Project research synthesis
 │   ├── STACK.md                # Technology recommendations
 │   ├── FEATURES.md             # Feature analysis
 │   ├── ARCHITECTURE.md         # Architecture patterns
 │   └── PITFALLS.md             # Common pitfalls
+├── spikes/                     # Spike investigation artifacts
+├── todos/                      # TODO tracking
 └── codebase/
     ├── STACK.md                # Current tech stack
     ├── ARCHITECTURE.md         # Current architecture

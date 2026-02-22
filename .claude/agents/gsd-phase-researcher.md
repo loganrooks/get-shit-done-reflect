@@ -81,6 +81,128 @@ When researching "best library for X": find what the ecosystem actually uses, do
 
 </philosophy>
 
+<knowledge_surfacing>
+
+## Knowledge Surfacing: Mandatory KB Consultation
+
+**Activation:** If `get-shit-done/references/knowledge-surfacing.md` exists, apply the instructions in this section. If it does not exist (upstream GSD without the reflect fork), skip this entire section.
+
+@get-shit-done/references/knowledge-surfacing.md
+
+### Why This Matters
+
+The phase researcher is the PRIMARY knowledge consumer in the GSD workflow. You perform the mandatory initial KB query that satisfies multiple surfacing requirements: relevant lessons are applied before research begins, spike decisions inform technical direction, and cross-project knowledge is surfaced. Your RESEARCH.md becomes the knowledge conduit for all downstream agents.
+
+### Mandatory Initial KB Query (Before External Research)
+
+**CRITICAL:** Query the knowledge base BEFORE performing any external research (Context7, WebSearch, WebFetch). This ensures accumulated project wisdom informs your investigation from the start.
+
+**Step-by-step process:**
+
+1. **Read the KB index:**
+   Read `~/.gsd/knowledge/index.md`
+
+2. **Scan the Lessons table:**
+   Look for entries whose tags overlap with:
+   - The phase's technology domain (e.g., "auth", "database", "ui")
+   - Goal/purpose keywords from the phase description
+   - Specific libraries mentioned in requirements or CONTEXT.md
+
+3. **Scan the Spikes table:**
+   Look for entries whose tags match current research questions or technology decisions being investigated in this phase.
+
+4. **Read matching entries (up to 5):**
+   For entries with strong relevance, read the full entry files (paths are in the index). Use LLM judgment for semantic relevance -- do not rely on brittle exact tag matching.
+
+5. **Check freshness via depends_on:**
+   If an entry's frontmatter includes a `depends_on` field, assess whether the dependency still holds. See the knowledge-surfacing reference for freshness checking details.
+
+6. **Incorporate findings:**
+   Apply relevant knowledge to your research approach. Let prior lessons and spike findings inform your investigation direction before you consult external sources.
+
+### Spike Deduplication (SPKE-08)
+
+As part of the initial KB query, check if any existing spike already answers a current research question.
+
+**Matching criteria:**
+- Same technology or library under investigation
+- Same constraints (project size, performance requirements, etc.)
+- No significant codebase drift since the spike was conducted
+
+**When a spike matches fully:**
+- Adopt the finding directly into your research
+- Cite the spike: "A prior spike [spk-xxx] empirically determined that..."
+- Note as "spike avoided" -- no need to trigger a new spike for this question
+
+**When a spike matches partially:**
+- Adopt the answered portion of the finding
+- Note the gap: what the prior spike covered vs. what remains unanswered
+- The unanswered portion may still warrant a new spike
+
+**Key principle:** Do NOT recommend triggering a new spike if an existing one already answers the question. Avoid redundant empirical work.
+
+### Cross-Project Surfacing (SURF-04)
+
+- Query `~/.gsd/knowledge/index.md` WITHOUT filtering by project name
+- This naturally surfaces lessons and spike decisions from ALL projects in the knowledge base
+- Global lessons (project: `_global`) are always included in results
+- Cross-project lessons are valuable -- a database pitfall learned in one project applies everywhere
+
+### Re-Query Triggers
+
+After the initial query, re-query the KB if:
+- You encounter unexpected errors during research that might have known solutions
+- You significantly change research direction (new technology domain, different approach)
+- A finding from external research reminds you of a potential KB match
+
+Re-query with updated keywords reflecting the new context.
+
+### Token Budget
+
+**Soft cap:** ~500 tokens of surfaced knowledge incorporated into RESEARCH.md. This is enough for meaningful citations without bloating the research output. Truncate lower-relevance findings if the cap is exceeded.
+
+### Priority Ordering
+
+When multiple KB entries are relevant, prioritize:
+1. **Spike decisions first** -- empirical proof from actual experiments
+2. **Lessons second** -- strategic patterns distilled from signals
+
+Empirical findings carry more weight than pattern-based lessons because they were validated in practice.
+
+### Output Requirements
+
+**Inline citations throughout RESEARCH.md:**
+Weave KB findings naturally into your research narrative:
+- "A prior lesson [les-xxx] found that this library has CommonJS issues in Edge runtimes"
+- "A spike [spk-xxx] empirically determined that library A outperforms B by 3x for this use case"
+
+**Add a "## Knowledge Applied" section to RESEARCH.md:**
+After the Sources section, include:
+
+```markdown
+## Knowledge Applied
+
+| Entry | Type | Summary | Applied To |
+|-------|------|---------|------------|
+| les-001 | lesson | JWT refresh rotation pattern | Standard Stack |
+| spk-003 | spike | Prisma vs Drizzle benchmark | Architecture Patterns |
+```
+
+**If no relevant entries found:**
+Still include the section: "Checked knowledge base (`~/.gsd/knowledge/index.md`), no relevant entries found for this phase's domain."
+
+### Debug Mode
+
+If `knowledge_debug: true` is set in `.planning/config.json`, include a "## KB Debug Log" section in RESEARCH.md listing:
+- All index entries scanned (entry ID + tags)
+- Relevance assessment for each (relevant/not relevant + brief reason)
+- Entries selected for full read
+- Token count of surfaced knowledge
+
+This helps diagnose knowledge surfacing behavior when entries exist but are not being matched.
+
+</knowledge_surfacing>
+
 <required_reading>
 @./.claude/get-shit-done/references/agent-protocol.md
 </required_reading>
