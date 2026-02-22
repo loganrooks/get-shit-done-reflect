@@ -1946,6 +1946,14 @@ function install(isGlobal, runtime = 'claude') {
     failures.push('get-shit-done');
   }
 
+  // Verify feature manifest was installed
+  const manifestDest = path.join(skillDest, 'feature-manifest.json');
+  if (fs.existsSync(manifestDest)) {
+    console.log(`  ${green}+${reset} Feature manifest installed`);
+  } else {
+    console.log(`  ${yellow}!${reset} Feature manifest not found (expected at ${manifestDest})`);
+  }
+
   // Copy agents to agents directory (skip for Codex -- uses AGENTS.md instead)
   const agentsSrc = path.join(src, 'agents');
   if (fs.existsSync(agentsSrc) && !isCodex) {

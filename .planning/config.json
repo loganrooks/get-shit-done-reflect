@@ -20,5 +20,6 @@
     "commit_convention": "conventional",
     "environments": []
   },
-  "gsd_reflect_version": "1.12.2"
+  "gsd_reflect_version": "1.12.2",
+  "manifest_version": 1
 }
