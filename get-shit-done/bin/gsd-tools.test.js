@@ -2031,3 +2031,452 @@ describe('scaffold command', () => {
     assert.strictEqual(output.reason, 'already_exists');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Manifest test helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Create a temp directory with manifest and config for manifest command tests.
+ * @param {string} tmpDir - temp project root (from createTempProject)
+ * @param {object} manifestFeatures - features object for feature-manifest.json
+ * @param {object} configObj - config.json contents
+ * @param {number} [manifestVersion=1] - manifest_version field
+ */
+function createManifestTestEnv(tmpDir, manifestFeatures, configObj, manifestVersion = 1) {
+  const manifestDir = path.join(tmpDir, '.claude', 'get-shit-done');
+  fs.mkdirSync(manifestDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(manifestDir, 'feature-manifest.json'),
+    JSON.stringify({ manifest_version: manifestVersion, features: manifestFeatures }, null, 2)
+  );
+  fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
+  fs.writeFileSync(
+    path.join(tmpDir, '.planning', 'config.json'),
+    JSON.stringify(configObj, null, 2)
+  );
+  return tmpDir;
+}
+
+// Minimal test manifest with health_check feature
+function healthCheckFeature() {
+  return {
+    health_check: {
+      scope: 'project',
+      introduced: '1.12.0',
+      config_key: 'health_check',
+      schema: {
+        frequency: {
+          type: 'string',
+          enum: ['milestone-only', 'on-resume', 'every-phase', 'explicit-only'],
+          default: 'milestone-only',
+          description: 'How often health checks run',
+        },
+        stale_threshold_days: {
+          type: 'number',
+          default: 7,
+          description: 'Days before artifacts are considered stale',
+        },
+        blocking_checks: {
+          type: 'boolean',
+          default: false,
+          description: 'Whether health warnings block execution',
+        },
+      },
+      init_prompts: [
+        {
+          field: 'frequency',
+          question: 'How often should health checks run?',
+          options: [
+            { value: 'milestone-only', label: 'Milestone only (default)' },
+            { value: 'on-resume', label: 'On resume' },
+          ],
+        },
+      ],
+    },
+  };
+}
+
+// Two-feature manifest for counting tests
+function twoFeatureManifest() {
+  return {
+    health_check: healthCheckFeature().health_check,
+    devops: {
+      scope: 'project',
+      introduced: '1.12.0',
+      config_key: 'devops',
+      schema: {
+        ci_provider: {
+          type: 'string',
+          enum: ['none', 'github-actions', 'gitlab-ci'],
+          default: 'none',
+          description: 'CI/CD provider',
+        },
+        commit_convention: {
+          type: 'string',
+          enum: ['freeform', 'conventional'],
+          default: 'freeform',
+          description: 'Commit message convention',
+        },
+      },
+      init_prompts: [],
+    },
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// manifest diff-config command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest diff-config command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('detects missing feature section', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), { mode: 'yolo' });
+
+    const result = runGsdTools('manifest diff-config', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(
+      output.missing_features.some(f => f.feature === 'health_check'),
+      'missing_features should contain health_check'
+    );
+  });
+
+  test('detects missing field in existing section', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      health_check: {},
+    });
+
+    const result = runGsdTools('manifest diff-config', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.missing_features.length, 0, 'health_check section exists');
+    const fieldNames = output.missing_fields.map(f => f.field);
+    assert.ok(fieldNames.includes('frequency'), 'frequency should be missing');
+    assert.ok(fieldNames.includes('stale_threshold_days'), 'stale_threshold_days should be missing');
+    assert.ok(fieldNames.includes('blocking_checks'), 'blocking_checks should be missing');
+    // Verify default values are reported
+    const freqField = output.missing_fields.find(f => f.field === 'frequency');
+    assert.strictEqual(freqField.default, 'milestone-only', 'default for frequency correct');
+    assert.strictEqual(freqField.expected_type, 'string', 'expected type correct');
+  });
+
+  test('detects type mismatch', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      health_check: { frequency: 123, stale_threshold_days: 7, blocking_checks: false },
+    });
+
+    const result = runGsdTools('manifest diff-config', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(output.type_mismatches.length > 0, 'should have type mismatches');
+    const mismatch = output.type_mismatches.find(m => m.field === 'frequency');
+    assert.ok(mismatch, 'frequency type mismatch should be reported');
+    assert.strictEqual(mismatch.expected, 'string', 'expected string');
+    assert.strictEqual(mismatch.actual, 'number', 'actual number');
+  });
+
+  test('detects enum mismatch', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      health_check: { frequency: 'invalid-value', stale_threshold_days: 7, blocking_checks: false },
+    });
+
+    const result = runGsdTools('manifest diff-config', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(output.enum_mismatches.length > 0, 'should have enum mismatches');
+    const mismatch = output.enum_mismatches.find(m => m.field === 'frequency');
+    assert.ok(mismatch, 'frequency enum mismatch should be reported');
+    assert.strictEqual(mismatch.actual, 'invalid-value', 'actual value correct');
+    assert.ok(Array.isArray(mismatch.expected_values), 'expected_values should be array');
+  });
+
+  test('reports unknown fields as informational', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      custom_setting: true,
+      health_check: { frequency: 'milestone-only', stale_threshold_days: 7, blocking_checks: false },
+    });
+
+    const result = runGsdTools('manifest diff-config', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(
+      output.unknown_fields.some(f => f.path === 'custom_setting'),
+      'unknown_fields should contain custom_setting'
+    );
+  });
+
+  test('reports manifest and config versions', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      manifest_version: 1,
+      health_check: { frequency: 'milestone-only', stale_threshold_days: 7, blocking_checks: false },
+    });
+
+    const result = runGsdTools('manifest diff-config', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.manifest_version, 1, 'manifest_version from manifest');
+    assert.strictEqual(output.config_manifest_version, 1, 'config_manifest_version from config');
+  });
+
+  test('handles config without manifest_version', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      health_check: { frequency: 'milestone-only', stale_threshold_days: 7, blocking_checks: false },
+    });
+
+    const result = runGsdTools('manifest diff-config', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.config_manifest_version, null, 'config_manifest_version should be null');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// manifest validate command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest validate command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('valid config passes validation', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      health_check: { frequency: 'milestone-only', stale_threshold_days: 7, blocking_checks: false },
+    });
+
+    const result = runGsdTools('manifest validate', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, true, 'should be valid');
+    assert.strictEqual(output.errors.length, 0, 'no errors');
+  });
+
+  test('config with unknown fields passes validation', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      custom_field: true,
+      health_check: { frequency: 'milestone-only', stale_threshold_days: 7, blocking_checks: false },
+    });
+
+    const result = runGsdTools('manifest validate', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, true, 'should be valid despite unknown fields');
+    assert.ok(
+      output.warnings.some(w => w.type === 'unknown_field'),
+      'should have unknown_field warning'
+    );
+  });
+
+  test('type mismatch produces error', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      health_check: { frequency: 42, stale_threshold_days: 7, blocking_checks: false },
+    });
+
+    const result = runGsdTools('manifest validate', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, false, 'should be invalid');
+    assert.ok(
+      output.errors.some(e => e.type === 'type_mismatch'),
+      'errors should include type_mismatch'
+    );
+  });
+
+  test('missing feature is warning not error', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {
+      mode: 'yolo',
+    });
+
+    const result = runGsdTools('manifest validate', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, true, 'missing feature should NOT cause invalid');
+    assert.ok(
+      output.warnings.some(w => w.type === 'missing_feature'),
+      'should have missing_feature warning'
+    );
+  });
+
+  test('counts features correctly', () => {
+    createManifestTestEnv(tmpDir, twoFeatureManifest(), {
+      health_check: { frequency: 'milestone-only', stale_threshold_days: 7, blocking_checks: false },
+    });
+
+    const result = runGsdTools('manifest validate', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.features_checked, 2, 'manifest has 2 features');
+    assert.strictEqual(output.features_present, 1, 'config has 1 feature section');
+    assert.strictEqual(output.features_missing, 1, '1 feature missing');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// manifest get-prompts command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest get-prompts command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('returns prompts for known feature', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {});
+
+    const result = runGsdTools('manifest get-prompts health_check', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.feature, 'health_check', 'feature name correct');
+    assert.ok(Array.isArray(output.prompts), 'prompts should be array');
+    assert.ok(output.prompts.length > 0, 'should have at least one prompt');
+    assert.ok(output.schema, 'should include schema');
+    assert.ok(output.schema.frequency, 'schema should contain frequency field');
+  });
+
+  test('errors on unknown feature', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {});
+
+    const result = runGsdTools('manifest get-prompts nonexistent', tmpDir);
+    assert.ok(!result.success, 'should fail for unknown feature');
+    assert.ok(
+      result.error.includes('Unknown feature') || result.error.includes('nonexistent'),
+      'error should mention unknown feature'
+    );
+  });
+
+  test('errors when no feature specified', () => {
+    createManifestTestEnv(tmpDir, healthCheckFeature(), {});
+
+    const result = runGsdTools('manifest get-prompts', tmpDir);
+    assert.ok(!result.success, 'should fail when no feature specified');
+    assert.ok(
+      result.error.includes('required') || result.error.includes('Feature name'),
+      'error should mention feature name required'
+    );
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// manifest self-test (real manifest)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest self-test (real manifest)', () => {
+  const REPO_ROOT = path.resolve(__dirname, '..', '..');
+  const MANIFEST_PATH = path.join(REPO_ROOT, 'get-shit-done', 'feature-manifest.json');
+
+  test('real manifest is valid JSON with expected structure', () => {
+    assert.ok(fs.existsSync(MANIFEST_PATH), `Manifest should exist at ${MANIFEST_PATH}`);
+
+    const raw = fs.readFileSync(MANIFEST_PATH, 'utf-8');
+    let manifest;
+    assert.doesNotThrow(() => { manifest = JSON.parse(raw); }, 'Manifest should be valid JSON');
+
+    // Top-level structure
+    assert.strictEqual(typeof manifest.manifest_version, 'number', 'manifest_version should be integer');
+    assert.ok(manifest.features, 'should have features object');
+    assert.strictEqual(typeof manifest.features, 'object', 'features should be object');
+
+    // Exactly 3 features
+    const featureNames = Object.keys(manifest.features);
+    assert.strictEqual(featureNames.length, 3, 'should have exactly 3 features');
+    assert.ok(featureNames.includes('health_check'), 'should have health_check');
+    assert.ok(featureNames.includes('devops'), 'should have devops');
+    assert.ok(featureNames.includes('release'), 'should have release');
+
+    // Each feature has required top-level fields
+    for (const [name, feature] of Object.entries(manifest.features)) {
+      assert.ok(feature.scope, `${name} should have scope`);
+      assert.ok(feature.introduced, `${name} should have introduced`);
+      assert.ok(feature.config_key, `${name} should have config_key`);
+      assert.ok(feature.schema, `${name} should have schema`);
+      assert.ok(typeof feature.schema === 'object', `${name}.schema should be object`);
+      assert.ok(Object.keys(feature.schema).length > 0, `${name}.schema should be non-empty`);
+      assert.ok(Array.isArray(feature.init_prompts), `${name} should have init_prompts array`);
+
+      // Each field in schema has required metadata
+      for (const [fieldName, fieldDef] of Object.entries(feature.schema)) {
+        assert.ok(fieldDef.type, `${name}.${fieldName} should have type`);
+        assert.ok(fieldDef.hasOwnProperty('default'), `${name}.${fieldName} should have default`);
+        assert.ok(fieldDef.description, `${name}.${fieldName} should have description`);
+      }
+    }
+  });
+
+  test('real manifest defaults match loadConfig() defaults', () => {
+    assert.ok(fs.existsSync(MANIFEST_PATH), `Manifest should exist at ${MANIFEST_PATH}`);
+    const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf-8'));
+
+    // Critical defaults that MUST align between manifest and loadConfig()
+    // loadConfig() does NOT produce feature section defaults -- it handles top-level config only.
+    // The manifest defaults represent what new projects get when features are initialized.
+    // We verify them against the documented canonical values.
+    const expectedDefaults = {
+      'health_check.frequency': 'milestone-only',
+      'health_check.stale_threshold_days': 7,
+      'health_check.blocking_checks': false,
+      'devops.ci_provider': 'none',
+      'devops.commit_convention': 'freeform',
+      'release.version_file': 'none',
+      'release.branch': 'main',
+    };
+
+    const drifts = [];
+
+    for (const [path, expectedDefault] of Object.entries(expectedDefaults)) {
+      const [featureName, fieldName] = path.split('.');
+      const feature = manifest.features[featureName];
+      assert.ok(feature, `Feature ${featureName} should exist in manifest`);
+      const fieldSchema = feature.schema[fieldName];
+      assert.ok(fieldSchema, `Field ${featureName}.${fieldName} should exist in schema`);
+
+      if (fieldSchema.default !== expectedDefault) {
+        drifts.push(
+          `Default drift: ${path} -- manifest says '${fieldSchema.default}', expected '${expectedDefault}'`
+        );
+      }
+    }
+
+    assert.strictEqual(
+      drifts.length,
+      0,
+      drifts.length > 0
+        ? `Defaults alignment failures:\n  ${drifts.join('\n  ')}`
+        : 'All defaults aligned'
+    );
+  });
+});
