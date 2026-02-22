@@ -36,6 +36,11 @@
  *   phase remove <phase> [--force]     Remove phase, renumber all subsequent
  *   phase complete <phase>             Mark phase done, update state + roadmap
  *
+ * Manifest Operations:
+ *   manifest diff-config               Compare manifest vs config.json
+ *   manifest validate                  Validate config against manifest
+ *   manifest get-prompts <feature>     Get init prompts for a feature
+ *
  * Roadmap Operations:
  *   roadmap get-phase <phase>          Extract phase section from ROADMAP.md
  *   roadmap analyze                    Full roadmap parse with disk status
@@ -475,6 +480,50 @@ function output(result, raw, rawValue) {
 function error(message) {
   process.stderr.write('Error: ' + message + '\n');
   process.exit(1);
+}
+
+// ─── Manifest Helpers ─────────────────────────────────────────────────────────
+
+function loadManifest(cwd) {
+  const localPath = path.join(cwd, '.claude', 'get-shit-done', 'feature-manifest.json');
+  const globalPath = path.join(require('os').homedir(), '.claude', 'get-shit-done', 'feature-manifest.json');
+  // Also check relative to the script location (for running from source repo)
+  const scriptRelPath = path.join(__dirname, '..', 'feature-manifest.json');
+  const manifestPath = fs.existsSync(localPath) ? localPath
+    : fs.existsSync(globalPath) ? globalPath
+    : fs.existsSync(scriptRelPath) ? scriptRelPath : null;
+  if (!manifestPath) return null;
+  try {
+    return JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
+  } catch {
+    return null;
+  }
+}
+
+function loadProjectConfig(cwd) {
+  const configPath = path.join(cwd, '.planning', 'config.json');
+  if (!fs.existsSync(configPath)) return null;
+  try {
+    return JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+  } catch {
+    return null;
+  }
+}
+
+function validateFieldType(value, schema) {
+  if (value === undefined || value === null) return true; // missing is not a type error
+  const expectedType = schema.type;
+  if (expectedType === 'string') return typeof value === 'string';
+  if (expectedType === 'number') return typeof value === 'number';
+  if (expectedType === 'boolean') return typeof value === 'boolean';
+  if (expectedType === 'array') return Array.isArray(value);
+  if (expectedType === 'object') return typeof value === 'object' && !Array.isArray(value);
+  return true; // unknown type = pass
+}
+
+function validateFieldEnum(value, schema) {
+  if (!schema.enum || value === undefined) return true;
+  return schema.enum.includes(value);
 }
 
 // ─── Commands ─────────────────────────────────────────────────────────────────
@@ -4209,6 +4258,182 @@ function cmdInitProgress(cwd, includes, raw) {
   output(result, raw);
 }
 
+// ─── Manifest Commands ────────────────────────────────────────────────────────
+
+function cmdManifestDiffConfig(cwd, raw) {
+  const manifest = loadManifest(cwd);
+  if (!manifest) { error('Manifest not found. Is GSD installed?'); }
+  const config = loadProjectConfig(cwd);
+  if (!config) { error('No .planning/config.json found. Run /gsd:new-project first.'); }
+
+  const result = {
+    missing_features: [],
+    missing_fields: [],
+    type_mismatches: [],
+    enum_mismatches: [],
+    unknown_fields: [],
+    manifest_version: manifest.manifest_version,
+    config_manifest_version: config.manifest_version || null,
+  };
+
+  // Known config keys declared by manifest
+  const declaredKeys = new Set();
+  // Known top-level keys that are not feature sections
+  const knownTopLevel = new Set([
+    'mode', 'depth', 'model_profile', 'commit_docs', 'search_gitignored',
+    'branching_strategy', 'phase_branch_template', 'milestone_branch_template',
+    'workflow', 'planning', 'parallelization', 'gates', 'safety',
+    'gsd_reflect_version', 'manifest_version', 'brave_search',
+  ]);
+
+  for (const [featureName, featureDef] of Object.entries(manifest.features)) {
+    if (featureDef.scope !== 'project' || !featureDef.config_key) continue;
+    declaredKeys.add(featureDef.config_key);
+
+    const section = config[featureDef.config_key];
+    if (!section) {
+      result.missing_features.push({
+        feature: featureName,
+        config_key: featureDef.config_key,
+        introduced: featureDef.introduced,
+      });
+      continue;
+    }
+
+    // Check each field in the schema
+    for (const [fieldName, fieldSchema] of Object.entries(featureDef.schema)) {
+      const value = section[fieldName];
+      if (value === undefined) {
+        result.missing_fields.push({
+          feature: featureName,
+          field: fieldName,
+          expected_type: fieldSchema.type,
+          default: fieldSchema.default,
+        });
+      } else if (!validateFieldType(value, fieldSchema)) {
+        result.type_mismatches.push({
+          feature: featureName,
+          field: fieldName,
+          expected: fieldSchema.type,
+          actual: typeof value,
+          value,
+        });
+      } else if (!validateFieldEnum(value, fieldSchema)) {
+        result.enum_mismatches.push({
+          feature: featureName,
+          field: fieldName,
+          expected_values: fieldSchema.enum,
+          actual: value,
+        });
+      }
+    }
+  }
+
+  // Detect unknown top-level config fields
+  for (const key of Object.keys(config)) {
+    if (!declaredKeys.has(key) && !knownTopLevel.has(key)) {
+      result.unknown_fields.push({
+        path: key,
+        info: 'Not declared in manifest (user/legacy field)',
+      });
+    }
+  }
+
+  output(result, raw);
+}
+
+function cmdManifestValidate(cwd, raw) {
+  const manifest = loadManifest(cwd);
+  if (!manifest) { error('Manifest not found. Is GSD installed?'); }
+  const config = loadProjectConfig(cwd);
+  if (!config) { error('No .planning/config.json found.'); }
+
+  const warnings = [];
+  const errors = [];
+  let featuresChecked = 0;
+  let featuresPresent = 0;
+
+  for (const [featureName, featureDef] of Object.entries(manifest.features)) {
+    if (featureDef.scope !== 'project' || !featureDef.config_key) continue;
+    featuresChecked++;
+
+    const section = config[featureDef.config_key];
+    if (!section) {
+      warnings.push({
+        type: 'missing_feature',
+        feature: featureName,
+        message: `Feature "${featureName}" not configured (section "${featureDef.config_key}" absent)`,
+      });
+      continue;
+    }
+    featuresPresent++;
+
+    for (const [fieldName, fieldSchema] of Object.entries(featureDef.schema)) {
+      const value = section[fieldName];
+      if (value !== undefined) {
+        if (!validateFieldType(value, fieldSchema)) {
+          errors.push({
+            type: 'type_mismatch',
+            feature: featureName,
+            field: fieldName,
+            message: `${featureName}.${fieldName}: expected ${fieldSchema.type}, got ${typeof value}`,
+          });
+        }
+        if (!validateFieldEnum(value, fieldSchema)) {
+          errors.push({
+            type: 'enum_mismatch',
+            feature: featureName,
+            field: fieldName,
+            message: `${featureName}.${fieldName}: "${value}" not in [${fieldSchema.enum.join(', ')}]`,
+          });
+        }
+      }
+    }
+  }
+
+  // Unknown fields are warnings, never errors
+  const knownKeys = new Set(Object.values(manifest.features)
+    .filter(f => f.config_key).map(f => f.config_key));
+  const knownTopLevel = new Set([
+    'mode', 'depth', 'model_profile', 'commit_docs', 'search_gitignored',
+    'branching_strategy', 'phase_branch_template', 'milestone_branch_template',
+    'workflow', 'planning', 'parallelization', 'gates', 'safety',
+    'gsd_reflect_version', 'manifest_version', 'brave_search',
+  ]);
+  for (const key of Object.keys(config)) {
+    if (!knownKeys.has(key) && !knownTopLevel.has(key)) {
+      warnings.push({
+        type: 'unknown_field',
+        path: key,
+        message: `"${key}" is not declared in the manifest`,
+      });
+    }
+  }
+
+  output({
+    valid: errors.length === 0,
+    warnings,
+    errors,
+    features_checked: featuresChecked,
+    features_present: featuresPresent,
+    features_missing: featuresChecked - featuresPresent,
+  }, raw);
+}
+
+function cmdManifestGetPrompts(cwd, feature, raw) {
+  const manifest = loadManifest(cwd);
+  if (!manifest) { error('Manifest not found.'); }
+  if (!feature) { error('Feature name required. Usage: manifest get-prompts <feature>'); }
+  const featureDef = manifest.features[feature];
+  if (!featureDef) { error(`Unknown feature: ${feature}. Available: ${Object.keys(manifest.features).join(', ')}`); }
+  output({
+    feature,
+    config_key: featureDef.config_key,
+    prompts: featureDef.init_prompts || [],
+    schema: featureDef.schema,
+  }, raw);
+}
+
 // ─── CLI Router ───────────────────────────────────────────────────────────────
 
 async function main() {
@@ -4221,7 +4446,7 @@ async function main() {
   const cwd = process.cwd();
 
   if (!command) {
-    error('Usage: gsd-tools <command> [args] [--raw]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, init');
+    error('Usage: gsd-tools <command> [args] [--raw]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, init, manifest');
   }
 
   switch (command) {
@@ -4586,6 +4811,21 @@ async function main() {
         limit: limitIdx !== -1 ? parseInt(args[limitIdx + 1], 10) : 10,
         freshness: freshnessIdx !== -1 ? args[freshnessIdx + 1] : null,
       }, raw);
+      break;
+    }
+
+    case 'manifest': {
+      const subcommand = args[1];
+      if (subcommand === 'diff-config') {
+        cmdManifestDiffConfig(cwd, raw);
+      } else if (subcommand === 'validate') {
+        cmdManifestValidate(cwd, raw);
+      } else if (subcommand === 'get-prompts') {
+        const feature = args[2];
+        cmdManifestGetPrompts(cwd, feature, raw);
+      } else {
+        error('Unknown manifest subcommand. Available: diff-config, validate, get-prompts');
+      }
       break;
     }
 
