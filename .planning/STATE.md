@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.15 Backlog & Update Experience -- Phase 23 in progress
+**Current focus:** v1.15 Backlog & Update Experience -- Phase 23 Complete, ready for Phase 24
 
 ## Current Position
 
