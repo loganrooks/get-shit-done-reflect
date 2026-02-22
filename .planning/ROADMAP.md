@@ -19,7 +19,7 @@
 
 - [x] **Phase 22: Agent Boilerplate Extraction** - Extract shared execution protocol from 11 agent specs into single reference ✓ 2026-02-22
 - [x] **Phase 23: Feature Manifest Foundation** - Declarative feature config schema with typed defaults and manifest tooling ✓ 2026-02-22
-- [ ] **Phase 24: Manifest-Driven Config Migration** - Upgrade, new-project, and update workflows consume manifest for config gap detection
+- [x] **Phase 24: Manifest-Driven Config Migration** - Upgrade, new-project, and update workflows consume manifest for config gap detection ✓ 2026-02-22
 - [ ] **Phase 25: Backlog System Core** - Structured idea capture with two-tier storage, rich metadata, and CLI tooling
 - [ ] **Phase 26: Backlog Workflow Integration** - Connect backlog to milestone planning, todo promotion, and completion review
 - [ ] **Phase 27: Workflow DX & Reliability** - Lighter quick-task flow, installer hardening, shell script portability
@@ -138,7 +138,7 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 |-------|---------------|--------|-----------|
 | 22. Agent Boilerplate Extraction | 5/5 | ✓ Complete | 2026-02-22 |
 | 23. Feature Manifest Foundation | 2/2 | ✓ Complete | 2026-02-22 |
-| 24. Manifest-Driven Config Migration | 0/3 | Not started | - |
+| 24. Manifest-Driven Config Migration | 3/3 | ✓ Complete | 2026-02-22 |
 | 25. Backlog System Core | 0/TBD | Not started | - |
 | 26. Backlog Workflow Integration | 0/TBD | Not started | - |
 | 27. Workflow DX & Reliability | 0/TBD | Not started | - |
@@ -150,6 +150,6 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 | 0-6 | v1.12 | 25/25 | Complete | 2026-02-09 |
 | 7-12 | v1.13 | 18/18 | Complete | 2026-02-11 |
 | 13-21 | v1.14 | 18/18 | Complete | 2026-02-16 |
-| 22-27 | v1.15 | 7/TBD | In progress | - |
+| 22-27 | v1.15 | 10/TBD | In progress | - |
 
-**Totals:** 3 milestones shipped, 24 phases complete, 68 plans completed
+**Totals:** 3 milestones shipped, 24 phases complete, 71 plans completed
