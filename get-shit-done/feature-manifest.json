@@ -1,0 +1,142 @@
+{
+  "manifest_version": 1,
+  "features": {
+    "health_check": {
+      "scope": "project",
+      "introduced": "1.12.0",
+      "config_key": "health_check",
+      "schema": {
+        "frequency": {
+          "type": "string",
+          "enum": ["milestone-only", "on-resume", "every-phase", "explicit-only"],
+          "default": "milestone-only",
+          "description": "How often health checks run"
+        },
+        "stale_threshold_days": {
+          "type": "number",
+          "default": 7,
+          "description": "Days before artifacts are considered stale"
+        },
+        "blocking_checks": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether health warnings block execution"
+        }
+      },
+      "init_prompts": [
+        {
+          "field": "frequency",
+          "question": "How often should health checks run?",
+          "options": [
+            { "value": "milestone-only", "label": "Milestone only (default)" },
+            { "value": "on-resume", "label": "On resume" },
+            { "value": "every-phase", "label": "Every phase" },
+            { "value": "explicit-only", "label": "Explicit only" }
+          ]
+        }
+      ]
+    },
+    "devops": {
+      "scope": "project",
+      "introduced": "1.12.0",
+      "config_key": "devops",
+      "schema": {
+        "ci_provider": {
+          "type": "string",
+          "enum": ["none", "github-actions", "gitlab-ci", "circleci", "jenkins", "bitbucket-pipelines", "travis-ci", "other"],
+          "default": "none",
+          "description": "CI/CD provider"
+        },
+        "deploy_target": {
+          "type": "string",
+          "enum": ["none", "vercel", "docker", "fly-io", "railway", "netlify", "serverless", "aws", "gcp", "other"],
+          "default": "none",
+          "description": "Deployment target"
+        },
+        "commit_convention": {
+          "type": "string",
+          "enum": ["freeform", "conventional"],
+          "default": "freeform",
+          "description": "Commit message convention"
+        },
+        "environments": {
+          "type": "array",
+          "default": [],
+          "description": "Environment names (e.g., staging, production)"
+        }
+      },
+      "init_prompts": [
+        {
+          "field": "_gate",
+          "question": "Configure DevOps context now?",
+          "options": [
+            { "value": "skip", "label": "Skip (use defaults)" },
+            { "value": "configure", "label": "Configure now" }
+          ],
+          "skip_value": "skip"
+        }
+      ]
+    },
+    "release": {
+      "scope": "project",
+      "introduced": "1.15.0",
+      "config_key": "release",
+      "schema": {
+        "version_file": {
+          "type": "string",
+          "enum": ["package.json", "Cargo.toml", "pyproject.toml", "VERSION", "none"],
+          "default": "none",
+          "description": "File containing project version"
+        },
+        "changelog": {
+          "type": "string",
+          "default": "CHANGELOG.md",
+          "description": "Changelog file path"
+        },
+        "changelog_format": {
+          "type": "string",
+          "enum": ["keepachangelog", "conventional", "freeform", "none"],
+          "default": "keepachangelog",
+          "description": "Changelog format"
+        },
+        "ci_trigger": {
+          "type": "string",
+          "enum": ["github-release", "tag-push", "manual", "none"],
+          "default": "none",
+          "description": "What triggers CI/CD on release"
+        },
+        "registry": {
+          "type": "string",
+          "enum": ["npm", "crates", "pypi", "none"],
+          "default": "none",
+          "description": "Package registry"
+        },
+        "branch": {
+          "type": "string",
+          "default": "main",
+          "description": "Branch releases are made from"
+        }
+      },
+      "init_prompts": [
+        {
+          "field": "version_file",
+          "question": "Where is your version tracked?",
+          "options": [
+            { "value": "package.json", "label": "package.json (Node.js)" },
+            { "value": "Cargo.toml", "label": "Cargo.toml (Rust)" },
+            { "value": "pyproject.toml", "label": "pyproject.toml (Python)" },
+            { "value": "VERSION", "label": "VERSION file" },
+            { "value": "none", "label": "Not configured yet" }
+          ]
+        }
+      ],
+      "auto_detect": {
+        "version_file": [
+          { "check": "file_exists", "path": "package.json", "value": "package.json" },
+          { "check": "file_exists", "path": "Cargo.toml", "value": "Cargo.toml" },
+          { "check": "file_exists", "path": "pyproject.toml", "value": "pyproject.toml" }
+        ]
+      }
+    }
+  }
+}
