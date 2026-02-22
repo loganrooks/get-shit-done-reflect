@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 
 ## Current Position
 
-Phase: 23 of 27 (Feature Manifest Foundation) -- IN PROGRESS
-Plan: 01 of 2
-Status: Executing
-Last activity: 2026-02-22 -- Completed 23-01-PLAN.md (feature manifest foundation)
+Phase: 23 of 27 (Feature Manifest Foundation) -- COMPLETE
+Plan: 02 of 2
+Status: Phase complete
+Last activity: 2026-02-22 -- Completed 23-02-PLAN.md (manifest tests, installer verification, config versioning)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (6) = 67 plans shipped across 22 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (8) = 69 plans shipped across 23 phases
 
 ## Performance Metrics
 
@@ -43,6 +43,8 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 22]: Extraction verification confirms 100% content coverage -- zero behavioral regression across 3 audited agents
 - [Phase 23]: Added script-relative path resolution to loadManifest() for dev/source-repo usage
 - [Phase 23]: Manifest defaults represent new-project defaults (none/freeform), not project-specific values
+- [Phase 23]: Self-test validates real shipped manifest structure, not just synthetic fixtures
+- [Phase 23]: Defaults drift test uses hardcoded expected values (not loadConfig extraction) for clarity
 
 ### Pending Todos
 
@@ -69,6 +71,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 22 P04 | 2min | 2 tasks | 6 files |
 | Phase 22 P05 | 4min | 2 tasks | 2 files |
 | Phase 23 P01 | 3min | 2 tasks | 2 files |
+| Phase 23 P02 | 3min | 2 tasks | 3 files |
 
 ### Roadmap Evolution
 
@@ -87,5 +90,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 23-01-PLAN.md (feature manifest foundation)
+Stopped at: Completed 23-02-PLAN.md (Phase 23 complete -- all 2 plans shipped)
 Resume file: None
