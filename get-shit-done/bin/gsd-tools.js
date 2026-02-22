@@ -526,6 +526,48 @@ function validateFieldEnum(value, schema) {
   return schema.enum.includes(value);
 }
 
+// ─── Module-Level Constants ───────────────────────────────────────────────────
+
+const KNOWN_TOP_LEVEL_KEYS = new Set([
+  'mode', 'depth', 'model_profile', 'commit_docs', 'search_gitignored',
+  'branching_strategy', 'phase_branch_template', 'milestone_branch_template',
+  'workflow', 'planning', 'parallelization', 'gates', 'safety',
+  'gsd_reflect_version', 'manifest_version', 'brave_search',
+]);
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function coerceValue(value, schema) {
+  const target = schema.type;
+  if (target === 'boolean') {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+  }
+  if (target === 'number') {
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (trimmed !== '' && !isNaN(trimmed)) return Number(trimmed);
+    }
+  }
+  if (target === 'string') {
+    if (typeof value === 'boolean') return String(value);
+    if (typeof value === 'number') return String(value);
+  }
+  if (target === 'array') {
+    if (!Array.isArray(value) && value !== null && value !== undefined) {
+      return [value];
+    }
+  }
+  return value;
+}
+
+function atomicWriteJson(filePath, data) {
+  const tmpPath = filePath + '.tmp';
+  const content = JSON.stringify(data, null, 2) + '\n';
+  fs.writeFileSync(tmpPath, content, 'utf-8');
+  fs.renameSync(tmpPath, filePath);
+}
+
 // ─── Commands ─────────────────────────────────────────────────────────────────
 
 function cmdGenerateSlug(text, raw) {
@@ -4278,13 +4320,6 @@ function cmdManifestDiffConfig(cwd, raw) {
 
   // Known config keys declared by manifest
   const declaredKeys = new Set();
-  // Known top-level keys that are not feature sections
-  const knownTopLevel = new Set([
-    'mode', 'depth', 'model_profile', 'commit_docs', 'search_gitignored',
-    'branching_strategy', 'phase_branch_template', 'milestone_branch_template',
-    'workflow', 'planning', 'parallelization', 'gates', 'safety',
-    'gsd_reflect_version', 'manifest_version', 'brave_search',
-  ]);
 
   for (const [featureName, featureDef] of Object.entries(manifest.features)) {
     if (featureDef.scope !== 'project' || !featureDef.config_key) continue;
@@ -4331,7 +4366,7 @@ function cmdManifestDiffConfig(cwd, raw) {
 
   // Detect unknown top-level config fields
   for (const key of Object.keys(config)) {
-    if (!declaredKeys.has(key) && !knownTopLevel.has(key)) {
+    if (!declaredKeys.has(key) && !KNOWN_TOP_LEVEL_KEYS.has(key)) {
       result.unknown_fields.push({
         path: key,
         info: 'Not declared in manifest (user/legacy field)',
@@ -4394,14 +4429,8 @@ function cmdManifestValidate(cwd, raw) {
   // Unknown fields are warnings, never errors
   const knownKeys = new Set(Object.values(manifest.features)
     .filter(f => f.config_key).map(f => f.config_key));
-  const knownTopLevel = new Set([
-    'mode', 'depth', 'model_profile', 'commit_docs', 'search_gitignored',
-    'branching_strategy', 'phase_branch_template', 'milestone_branch_template',
-    'workflow', 'planning', 'parallelization', 'gates', 'safety',
-    'gsd_reflect_version', 'manifest_version', 'brave_search',
-  ]);
   for (const key of Object.keys(config)) {
-    if (!knownKeys.has(key) && !knownTopLevel.has(key)) {
+    if (!knownKeys.has(key) && !KNOWN_TOP_LEVEL_KEYS.has(key)) {
       warnings.push({
         type: 'unknown_field',
         path: key,
@@ -4432,6 +4461,76 @@ function cmdManifestGetPrompts(cwd, feature, raw) {
     prompts: featureDef.init_prompts || [],
     schema: featureDef.schema,
   }, raw);
+}
+
+function cmdManifestApplyMigration(cwd, raw) {
+  const manifest = loadManifest(cwd);
+  if (!manifest) { error('Manifest not found. Is GSD installed?'); }
+  const configPath = path.join(cwd, '.planning', 'config.json');
+  const config = loadProjectConfig(cwd);
+  if (!config) { error('No .planning/config.json found. Run /gsd:new-project first.'); }
+
+  const changes = [];
+
+  for (const [featureName, featureDef] of Object.entries(manifest.features)) {
+    if (featureDef.scope !== 'project' || !featureDef.config_key) continue;
+    const key = featureDef.config_key;
+
+    if (!config[key]) {
+      // Add entire missing feature section with defaults
+      config[key] = {};
+      for (const [field, schema] of Object.entries(featureDef.schema)) {
+        config[key][field] = schema.default;
+      }
+      changes.push({
+        type: 'feature_added',
+        feature: featureName,
+        config_key: key,
+        fields_added: Object.keys(featureDef.schema),
+      });
+    } else {
+      // Add missing fields and coerce types in existing section
+      for (const [field, schema] of Object.entries(featureDef.schema)) {
+        if (config[key][field] === undefined) {
+          config[key][field] = schema.default;
+          changes.push({
+            type: 'field_added',
+            feature: featureName,
+            field,
+            default_value: schema.default,
+          });
+        } else {
+          const coerced = coerceValue(config[key][field], schema);
+          if (coerced !== config[key][field]) {
+            changes.push({
+              type: 'type_coerced',
+              feature: featureName,
+              field,
+              from: config[key][field],
+              to: coerced,
+            });
+            config[key][field] = coerced;
+          }
+        }
+      }
+    }
+  }
+
+  // Update manifest_version
+  if (config.manifest_version !== manifest.manifest_version) {
+    changes.push({
+      type: 'manifest_version_updated',
+      from: config.manifest_version || null,
+      to: manifest.manifest_version,
+    });
+    config.manifest_version = manifest.manifest_version;
+  }
+
+  if (changes.length > 0) {
+    atomicWriteJson(configPath, config);
+  }
+
+  output({ changes, total_changes: changes.length }, raw);
 }
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -4823,8 +4922,10 @@ async function main() {
       } else if (subcommand === 'get-prompts') {
         const feature = args[2];
         cmdManifestGetPrompts(cwd, feature, raw);
+      } else if (subcommand === 'apply-migration') {
+        cmdManifestApplyMigration(cwd, raw);
       } else {
-        error('Unknown manifest subcommand. Available: diff-config, validate, get-prompts');
+        error('Unknown manifest subcommand. Available: diff-config, validate, get-prompts, apply-migration');
       }
       break;
     }

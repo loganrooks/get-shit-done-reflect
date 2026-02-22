@@ -21,5 +21,13 @@
     "environments": []
   },
   "gsd_reflect_version": "1.12.2",
-  "manifest_version": 1
+  "manifest_version": 1,
+  "release": {
+    "version_file": "none",
+    "changelog": "CHANGELOG.md",
+    "changelog_format": "keepachangelog",
+    "ci_trigger": "none",
+    "registry": "none",
+    "branch": "main"
+  }
 }

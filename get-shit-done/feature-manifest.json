@@ -75,7 +75,26 @@
           ],
           "skip_value": "skip"
         }
-      ]
+      ],
+      "auto_detect": {
+        "ci_provider": [
+          { "check": "dir_exists", "path": ".github/workflows", "value": "github-actions" },
+          { "check": "file_exists", "path": ".gitlab-ci.yml", "value": "gitlab-ci" },
+          { "check": "file_exists", "path": ".circleci/config.yml", "value": "circleci" },
+          { "check": "file_exists", "path": "Jenkinsfile", "value": "jenkins" },
+          { "check": "file_exists", "path": "bitbucket-pipelines.yml", "value": "bitbucket-pipelines" }
+        ],
+        "deploy_target": [
+          { "check": "file_exists", "path": "vercel.json", "value": "vercel" },
+          { "check": "dir_exists", "path": ".vercel", "value": "vercel" },
+          { "check": "file_exists", "path": "Dockerfile", "value": "docker" },
+          { "check": "file_exists", "path": "fly.toml", "value": "fly-io" },
+          { "check": "file_exists", "path": "netlify.toml", "value": "netlify" }
+        ],
+        "commit_convention": [
+          { "check": "git_log_pattern", "pattern": "^(feat|fix|chore|docs|style|refactor|test|ci|build|perf)\\(", "threshold": 0.5, "value": "conventional" }
+        ]
+      }
     },
     "release": {
       "scope": "project",
