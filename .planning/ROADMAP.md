@@ -69,7 +69,11 @@ Plans:
   4. Config validation is lenient: unknown fields are preserved, type mismatches are coerced where possible (e.g., boolean string "true" to boolean true), missing fields are filled with defaults -- config is never rejected
   5. Every automated config change (whether from upgrade-project, new-project, or update) appends an entry to `migration-log.md` with timestamp and description of what changed
   6. If a migration is interrupted mid-execution (e.g., context loss), config.json remains in a valid, loadable state -- each field addition is atomic
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 24-01-PLAN.md -- Core migration engine (coerceValue, atomicWriteJson, apply-migration command + tests)
+- [ ] 24-02-PLAN.md -- Migration logging + auto-detect commands with tests
+- [ ] 24-03-PLAN.md -- Workflow integration (upgrade-project, new-project, update)
 
 #### Phase 25: Backlog System Core
 **Goal**: Users can capture, organize, and retrieve ideas with structured metadata across sessions and projects -- ideas no longer get lost in flat STATE.md bullets
@@ -134,7 +138,7 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 |-------|---------------|--------|-----------|
 | 22. Agent Boilerplate Extraction | 5/5 | ✓ Complete | 2026-02-22 |
 | 23. Feature Manifest Foundation | 2/2 | ✓ Complete | 2026-02-22 |
-| 24. Manifest-Driven Config Migration | 0/TBD | Not started | - |
+| 24. Manifest-Driven Config Migration | 0/3 | Not started | - |
 | 25. Backlog System Core | 0/TBD | Not started | - |
 | 26. Backlog Workflow Integration | 0/TBD | Not started | - |
 | 27. Workflow DX & Reliability | 0/TBD | Not started | - |
