@@ -250,8 +250,77 @@ For completeness, these sections remain agent-specific (not extracted):
 
 ---
 
+## Final Line Counts
+
+### Modified Agents (Existed Pre-Extraction)
+
+| Agent | Pre-Extraction | Post-Extraction | Lines Removed | % Reduction |
+|-------|---------------|-----------------|---------------|-------------|
+| gsd-executor | 842 | 457 | 385 | 46% |
+| gsd-planner | 1,437 | 1,209 | 228 | 16% |
+| gsd-debugger | 1,260 | 1,252 | 8 | 1% |
+| gsd-phase-researcher | 763 | 503 | 260 | 34% |
+| **Subtotal (modified)** | **4,302** | **3,421** | **881** | **20%** |
+
+### New Agents (Created During Extraction)
+
+These agents were created as new standalone specs during Plans 03-04. They did not exist as separate agent files before Phase 22 -- their functionality was previously embedded in orchestrator workflows and commands.
+
+| Agent | Lines | Created In |
+|-------|-------|------------|
+| gsd-codebase-mapper | 743 | Plan 04 (022d068) |
+| gsd-integration-checker | 427 | Plan 04 (c369df3) |
+| gsd-plan-checker | 626 | Plan 04 (022d068) |
+| gsd-project-researcher | 517 | Plan 03 (0b51f15) |
+| gsd-research-synthesizer | 240 | Plan 04 (022d068) |
+| gsd-roadmapper | 609 | Plan 04 (c369df3) |
+| gsd-verifier | 527 | Plan 04 (c369df3) |
+| **Subtotal (new)** | **3,689** | |
+
+### Retired Agents (Not Part of Extraction)
+
+These agents still exist in git history but are no longer in active use (deleted from working tree separately from Phase 22).
+
+| Agent | Lines (Last Known) |
+|-------|-------------------|
+| gsd-reflector | 278 |
+| gsd-signal-collector | 209 |
+| gsd-spike-runner | 474 |
+| **Subtotal (retired)** | **961** |
+
+### Totals
+
+| Metric | Value |
+|--------|-------|
+| **Pre-extraction agent lines** (4 modified) | 4,302 |
+| **Post-extraction agent lines** (11 active) | 7,110 |
+| **Protocol file** (agent-protocol.md) | 540 lines |
+| **Lines removed from modified agents** | 881 |
+| **New agent lines added** | 3,689 |
+| **Net agent line change** | +2,808 (4,302 -> 7,110) |
+
+**Note:** The net increase in total agent lines reflects the CREATION of 7 new standalone agent specs that previously had no dedicated files. The extraction goal was not to reduce total lines, but to:
+1. Eliminate duplicated operational content across agents (achieved: 881 lines removed from 4 agents)
+2. Centralize operational conventions in one protocol file (achieved: 540-line protocol with 13 sections)
+3. Enable single-file convention maintenance (achieved: all 11 agents reference protocol via `<required_reading>`)
+
+The actual deduplication benefit is best measured by the 881 lines removed from the 4 agents that had inline operational content, versus the 540-line protocol that replaces it -- a net reduction of 341 lines of duplicated content.
+
+---
+
+## Verification Results
+
+See: [22-VERIFICATION.md](./22-VERIFICATION.md)
+
+- **Agents verified:** gsd-executor, gsd-planner, gsd-verifier
+- **Overall verdict:** PASS
+- **Content coverage:** 100% -- all pre-extraction content accounted for
+- **Regressions found:** 0
+- **Enhancements added during extraction:** 3 (executor: self_check; planner: context_fidelity, validate_plan)
+- **Quality fix applied:** Commit af34ff3 restored knowledge_surfacing to 4 agents
+
+---
+
 **Registry Complete**
 
-This extraction enables single-file convention maintenance: changing an operational convention requires editing `agent-protocol.md` once, not 11 agent specs.
-
-**Next Phase (23):** Update agent specs to reference the protocol via `<required_reading>` tags.
+This extraction enables single-file convention maintenance: changing an operational convention requires editing `agent-protocol.md` once, not 11 agent specs. All 11 active GSD agents now reference the shared protocol via `<required_reading>` tags.
