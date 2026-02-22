@@ -568,6 +568,27 @@ function atomicWriteJson(filePath, data) {
   fs.renameSync(tmpPath, filePath);
 }
 
+function formatMigrationEntry(fromVersion, toVersion, timestamp, changes) {
+  let entry = `## ${fromVersion} -> ${toVersion} (${timestamp})\n\n`;
+  entry += `### Changes Applied\n`;
+  for (const change of changes) {
+    if (change.type === 'feature_added') {
+      entry += `- Added \`${change.config_key}\` section`;
+      if (change.fields_added) {
+        entry += ` (${change.fields_added.join(', ')})`;
+      }
+      entry += '\n';
+    } else if (change.type === 'field_added') {
+      entry += `- Added \`${change.feature}.${change.field}\`: ${JSON.stringify(change.default_value)}\n`;
+    } else if (change.type === 'type_coerced') {
+      entry += `- Coerced \`${change.feature}.${change.field}\` from ${JSON.stringify(change.from)} to ${JSON.stringify(change.to)}\n`;
+    } else if (change.type === 'manifest_version_updated') {
+      entry += `- Updated manifest_version: ${change.from} -> ${change.to}\n`;
+    }
+  }
+  return entry;
+}
+
 // ─── Commands ─────────────────────────────────────────────────────────────────
 
 function cmdGenerateSlug(text, raw) {
@@ -4533,6 +4554,108 @@ function cmdManifestApplyMigration(cwd, raw) {
   output({ changes, total_changes: changes.length }, raw);
 }
 
+function cmdManifestLogMigration(cwd, raw) {
+  const args = process.argv.slice(2);
+  const fromIdx = args.indexOf('--from');
+  const toIdx = args.indexOf('--to');
+  const changesIdx = args.indexOf('--changes');
+
+  if (fromIdx === -1 || toIdx === -1 || changesIdx === -1) {
+    error('Usage: manifest log-migration --from <version> --to <version> --changes <json>');
+  }
+
+  const fromVersion = args[fromIdx + 1];
+  const toVersion = args[toIdx + 1];
+  let changes;
+  try {
+    changes = JSON.parse(args[changesIdx + 1]);
+  } catch (e) {
+    error('Invalid JSON for --changes: ' + e.message);
+  }
+
+  const logPath = path.join(cwd, '.planning', 'migration-log.md');
+  const timestamp = new Date().toISOString();
+  const entry = formatMigrationEntry(fromVersion, toVersion, timestamp, changes);
+
+  const header = '# Migration Log\n\nTracks version upgrades applied to this project.\n';
+  const footer = '\n---\n\n*Log is append-only.*\n';
+
+  if (!fs.existsSync(logPath)) {
+    fs.writeFileSync(logPath, header + '\n' + entry + footer, 'utf-8');
+  } else {
+    const existing = fs.readFileSync(logPath, 'utf-8');
+    const headerMarker = '# Migration Log';
+    const headerPos = existing.indexOf(headerMarker);
+    if (headerPos === -1) {
+      fs.writeFileSync(logPath, header + '\n' + entry + '\n---\n\n' + existing, 'utf-8');
+    } else {
+      const headerEnd = existing.indexOf('\n\n', headerPos + headerMarker.length);
+      if (headerEnd === -1) {
+        fs.writeFileSync(logPath, existing + '\n\n' + entry + footer, 'utf-8');
+      } else {
+        const before = existing.substring(0, headerEnd + 2);
+        const after = existing.substring(headerEnd + 2);
+        fs.writeFileSync(logPath, before + entry + '\n---\n\n' + after, 'utf-8');
+      }
+    }
+  }
+
+  output({ logged: true, path: '.planning/migration-log.md', timestamp }, raw);
+}
+
+function cmdManifestAutoDetect(cwd, raw) {
+  const args = process.argv.slice(2);
+  const feature = args[2]; // manifest auto-detect <feature>
+
+  const manifest = loadManifest(cwd);
+  if (!manifest) { error('Manifest not found. Is GSD installed?'); }
+  if (!feature) { error('Feature name required. Usage: manifest auto-detect <feature>'); }
+  const featureDef = manifest.features[feature];
+  if (!featureDef) {
+    error(`Unknown feature: ${feature}. Available: ${Object.keys(manifest.features).join(', ')}`);
+  }
+  if (!featureDef.auto_detect) {
+    output({ feature, detected: {} }, raw);
+    return;
+  }
+
+  const detected = {};
+  for (const [field, rules] of Object.entries(featureDef.auto_detect)) {
+    for (const rule of rules) {
+      if (rule.check === 'file_exists') {
+        const fullPath = path.join(cwd, rule.path);
+        if (fs.existsSync(fullPath) && !fs.statSync(fullPath).isDirectory()) {
+          detected[field] = rule.value;
+          break;
+        }
+      } else if (rule.check === 'dir_exists') {
+        const fullPath = path.join(cwd, rule.path);
+        if (fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory()) {
+          detected[field] = rule.value;
+          break;
+        }
+      } else if (rule.check === 'git_log_pattern') {
+        try {
+          const logs = execSync('git log --oneline -20 2>/dev/null', { cwd, encoding: 'utf-8' }).trim();
+          const lines = logs.split('\n').filter(l => l.length > 0);
+          if (lines.length > 0) {
+            const regex = new RegExp(rule.pattern);
+            const matches = lines.filter(l => regex.test(l.replace(/^[a-f0-9]+ /, '')));
+            if (matches.length / lines.length >= (rule.threshold || 0.5)) {
+              detected[field] = rule.value;
+            }
+          }
+        } catch (e) {
+          // git not available or not a git repo -- skip
+        }
+        break;
+      }
+    }
+  }
+
+  output({ feature, detected }, raw);
+}
+
 // ─── CLI Router ───────────────────────────────────────────────────────────────
 
 async function main() {
@@ -4924,8 +5047,12 @@ async function main() {
         cmdManifestGetPrompts(cwd, feature, raw);
       } else if (subcommand === 'apply-migration') {
         cmdManifestApplyMigration(cwd, raw);
+      } else if (subcommand === 'log-migration') {
+        cmdManifestLogMigration(cwd, raw);
+      } else if (subcommand === 'auto-detect') {
+        cmdManifestAutoDetect(cwd, raw);
       } else {
-        error('Unknown manifest subcommand. Available: diff-config, validate, get-prompts, apply-migration');
+        error('Unknown manifest subcommand. Available: diff-config, validate, get-prompts, apply-migration, log-migration, auto-detect');
       }
       break;
     }
