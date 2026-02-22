@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.15 Backlog & Update Experience -- Phase 23 Complete, ready for Phase 24
+**Current focus:** v1.15 Backlog & Update Experience -- Phase 24 in progress
 
 ## Current Position
 
-Phase: 23 of 27 (Feature Manifest Foundation) -- COMPLETE
-Plan: 02 of 2
-Status: Phase complete
-Last activity: 2026-02-22 -- Completed 23-02-PLAN.md (manifest tests, installer verification, config versioning)
+Phase: 24 of 27 (Manifest-Driven Config Migration)
+Plan: 01 of 3
+Status: Executing
+Last activity: 2026-02-22 -- Completed 24-01-PLAN.md (core migration engine: apply-migration command, coerceValue, atomicWriteJson, KNOWN_TOP_LEVEL_KEYS)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (8) = 69 plans shipped across 23 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (9) = 70 plans shipped across 24 phases
 
 ## Performance Metrics
 
@@ -45,6 +45,11 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 23]: Manifest defaults represent new-project defaults (none/freeform), not project-specific values
 - [Phase 23]: Self-test validates real shipped manifest structure, not just synthetic fixtures
 - [Phase 23]: Defaults drift test uses hardcoded expected values (not loadConfig extraction) for clarity
+- [Phase 24]: User intervention during planning — plans revised to use TDD (tests-first) for Plans 01 and 02 (code plans); Plan 03 (workflow .md files) kept as-is since TDD doesn't apply to instruction files
+- [Phase 24]: Plan checker warnings fixed in Plan 03 frontmatter (must_haves truths for MIGR-03 under-specified, missing key_link for new-project.md -> log-migration)
+- [Phase 24]: coerceValue does NOT coerce numbers to booleans (0 means zero, not false)
+- [Phase 24]: atomicWriteJson writes .tmp in same directory for same-filesystem rename guarantee
+- [Phase 24]: Running apply-migration on real project config applied missing release section with defaults
 
 ### Pending Todos
 
@@ -72,6 +77,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 22 P05 | 4min | 2 tasks | 2 files |
 | Phase 23 P01 | 3min | 2 tasks | 2 files |
 | Phase 23 P02 | 3min | 2 tasks | 3 files |
+| Phase 24 P01 | 5min | 2 tasks | 4 files |
 
 ### Roadmap Evolution
 
@@ -90,5 +96,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 23-02-PLAN.md (Phase 23 complete -- all 2 plans shipped)
+Stopped at: Completed 24-01-PLAN.md (core migration engine with TDD)
 Resume file: None
