@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 ## Current Position
 
 Phase: 24 of 27 (Manifest-Driven Config Migration)
-Plan: 02 of 3
-Status: Executing
-Last activity: 2026-02-22 -- Completed 24-02-PLAN.md (migration logging & auto-detection: log-migration, auto-detect commands with 14 TDD tests)
+Plan: 03 of 3 (PHASE COMPLETE)
+Status: Phase Complete
+Last activity: 2026-02-22 -- Completed 24-03-PLAN.md (workflow integration: upgrade-project, new-project, update now use manifest commands)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (10) = 71 plans shipped across 24 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (11) = 72 plans shipped across 24 phases
 
 ## Performance Metrics
 
@@ -53,6 +53,8 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 24]: log-migration inserts new entries after header (before older entries) for reverse-chronological order
 - [Phase 24]: auto-detect file_exists/dir_exists discriminate between files and directories using statSync
 - [Phase 24]: git_log_pattern check uses threshold-based matching (default 50% of last 20 commits)
+- [Phase 24]: Feature config step numbered 5.6 (not 5.5) to avoid collision with existing model profile step
+- [Phase 24]: update.md YOLO mode auto-applies migration; interactive mode defers to /gsd:upgrade-project
 
 ### Pending Todos
 
@@ -82,6 +84,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 23 P02 | 3min | 2 tasks | 3 files |
 | Phase 24 P01 | 5min | 2 tasks | 4 files |
 | Phase 24 P02 | 5min | 2 tasks | 2 files |
+| Phase 24 P03 | 3min | 3 tasks | 4 files |
 
 ### Roadmap Evolution
 
@@ -100,5 +103,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 24-02-PLAN.md (migration logging & auto-detection with TDD)
+Stopped at: Completed 24-03-PLAN.md (Phase 24 complete -- all workflow files now manifest-driven)
 Resume file: None
