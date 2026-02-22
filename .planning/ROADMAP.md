@@ -52,7 +52,10 @@ Plans:
   2. Running `gsd-tools manifest diff-config` against a project's config.json reports which manifest-declared fields are missing, which have type mismatches, and which config fields are unknown to the manifest -- unknown fields are reported as informational warnings, never errors
   3. Running `gsd-tools manifest validate` on a config.json with extra unknown fields passes validation (warns but does not reject), confirming the manifest is additive-only
   4. A manifest version field is tracked in config.json so the system can detect when the installed manifest is newer than what the project was last configured against
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 23-01-PLAN.md -- Create feature-manifest.json and manifest subcommands (diff-config, validate, get-prompts)
+- [ ] 23-02-PLAN.md -- Tests, installer verification, and manifest_version tracking
 
 #### Phase 24: Manifest-Driven Config Migration
 **Goal**: Upgrading, creating, and updating projects uses the manifest as single source of truth for config requirements -- no more hardcoded field additions scattered across workflows
