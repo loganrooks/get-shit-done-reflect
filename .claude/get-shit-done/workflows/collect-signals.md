@@ -123,6 +123,8 @@ Task(
   {CONFIG_CONTENT}
 
   Follow your execution_flow to detect, classify, filter, and persist signals.
+  After writing signal files, rebuild the KB index:
+  bash ~/.gsd/bin/kb-rebuild-index.sh
   Return the Signal Collection Report when complete.",
   subagent_type="gsd-signal-collector"
 )
@@ -178,6 +180,16 @@ Index rebuilt via kb-rebuild-index.
 If zero signals detected:
 ```
 No signals detected for phase {X}. Clean execution.
+```
+</step>
+
+<step name="rebuild_index">
+If signals were written, ensure the KB index is up to date (in case the agent did not rebuild it):
+
+```bash
+if [ "$SIGNALS_WRITTEN" -gt 0 ]; then
+  bash ~/.gsd/bin/kb-rebuild-index.sh
+fi
 ```
 </step>
 
