@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.15 Backlog & Update Experience -- Phase 25 complete, Phase 26 next
+**Current focus:** v1.15 Backlog & Update Experience -- Phase 26 in progress (Backlog Workflow Integration)
 
 ## Current Position
 
-Phase: 25 of 27 (Backlog System Core)
-Plan: 03 of 3 (PHASE COMPLETE)
-Status: Phase Complete — Verified (5/5 must-haves passed)
-Last activity: 2026-02-23 -- Phase 25 complete: backlog CRUD, group/promote/index, global storage, add-todo metadata fields
+Phase: 26 of 27 (Backlog Workflow Integration)
+Plan: 01 of 3 (complete)
+Status: Executing Phase 26
+Last activity: 2026-02-23 -- Plan 26-01 complete: milestone field + multi-status filter
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (13) = 74 plans shipped across 25 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (14) = 75 plans shipped across 26 phases
 
 ## Performance Metrics
 
@@ -63,6 +63,8 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 25]: regenerateBacklogIndex extracted as silent helper to avoid double-output during add/update/promote
 - [Phase 25]: Items appear in multiple tag groups when they have multiple tags (not deduplicated)
 - [Phase 25]: Index sort order: priority (HIGH > MEDIUM > LOW) then date (newest first within same priority)
+- [Phase 26]: milestone stored as string 'null' in frontmatter (same pattern as promoted_to) to survive reconstructFrontmatter null-skipping
+- [Phase 26]: multi-status filter uses split(',').includes() for comma-separated --status values
 
 ### Pending Todos
 
@@ -96,6 +98,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 25 P01 | 8min | 2 tasks | 2 files |
 | Phase 25 P02 | 5min | 2 tasks | 2 files |
 | Phase 25 P03 | 2min | 2 tasks | 2 files |
+| Phase 26 P01 | 13min | 2 tasks | 2 files |
 
 ### Roadmap Evolution
 
@@ -114,5 +117,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Phase 25 complete and verified (5/5 must-haves). Next: Phase 26 (Backlog Workflow Integration)
+Stopped at: Completed 26-01-PLAN.md (milestone field + multi-status filter). Next: 26-02-PLAN.md
 Resume file: None
