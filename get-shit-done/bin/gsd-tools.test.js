@@ -2981,3 +2981,385 @@ describe('manifest auto-detect command', () => {
     assert.strictEqual(parsed.detected.ci_provider, undefined, 'should NOT detect file as directory');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Backlog test helpers
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Create a backlog item file directly in the temp project.
+ * Used by list/update/stats tests to avoid dependency on the add command.
+ */
+function createBacklogItem(tmpDir, overrides = {}) {
+  const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+  fs.mkdirSync(itemsDir, { recursive: true });
+  const date = '2026-02-22';
+  const slug = (overrides.title || 'test-item').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  const id = overrides.id || `blog-${date}-${slug}`;
+  const filename = overrides.filename || `${date}-${slug}.md`;
+  const tags = overrides.tags || [];
+  const tagsStr = tags.length > 0 ? `[${tags.join(', ')}]` : '[]';
+  const content = `---
+id: ${id}
+title: ${overrides.title || 'Test item'}
+tags: ${tagsStr}
+theme: ${overrides.theme || 'general'}
+priority: ${overrides.priority || 'MEDIUM'}
+status: ${overrides.status || 'captured'}
+source: ${overrides.source || 'command'}
+promoted_to: ${overrides.promoted_to || 'null'}
+created: ${overrides.created || '2026-02-22T10:00:00.000Z'}
+updated: ${overrides.updated || '2026-02-22T10:00:00.000Z'}
+---
+
+## Description
+
+Test backlog item.
+`;
+  fs.writeFileSync(path.join(itemsDir, filename), content, 'utf-8');
+  return { id, filename, itemsDir };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// backlog add command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('backlog add command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('creates backlog item with all frontmatter fields', () => {
+    const result = runGsdTools(
+      'backlog add --title "Add auth refresh" --tags "auth,security" --priority HIGH --theme "authentication" --source "conversation"',
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.created, true, 'should report created');
+    assert.ok(output.id.startsWith('blog-'), 'id should start with blog-');
+
+    // Read the created file and verify frontmatter
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    assert.strictEqual(files.length, 1, 'should have one file');
+
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('id: '), 'should have id field');
+    assert.ok(content.includes('title: Add auth refresh'), 'should have title');
+    assert.ok(content.includes('auth') && content.includes('security'), 'should have tags');
+    assert.ok(content.includes('theme: authentication'), 'should have theme');
+    assert.ok(content.includes('priority: HIGH'), 'should have priority');
+    assert.ok(content.includes('status: captured'), 'should have status');
+    assert.ok(content.includes('source: conversation'), 'should have source');
+    assert.ok(content.includes('promoted_to:'), 'should have promoted_to');
+    assert.ok(content.includes('created:'), 'should have created');
+    assert.ok(content.includes('updated:'), 'should have updated');
+  });
+
+  test('uses correct filename format (date-slug.md)', () => {
+    const result = runGsdTools('backlog add --title "Fix login bug"', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    assert.strictEqual(files.length, 1);
+
+    // Filename should match YYYY-MM-DD-fix-login-bug.md
+    const filename = files[0];
+    assert.ok(/^\d{4}-\d{2}-\d{2}-fix-login-bug\.md$/.test(filename), `Filename ${filename} should match date-slug pattern`);
+  });
+
+  test('handles filename collision with numeric suffix', () => {
+    // Create first item
+    const result1 = runGsdTools('backlog add --title "Duplicate idea"', tmpDir);
+    assert.ok(result1.success, `First add failed: ${result1.error}`);
+
+    // Create second item with same title
+    const result2 = runGsdTools('backlog add --title "Duplicate idea"', tmpDir);
+    assert.ok(result2.success, `Second add failed: ${result2.error}`);
+
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir).sort();
+    assert.strictEqual(files.length, 2, 'should have two files');
+
+    // First should be date-slug.md, second should be date-slug-2.md
+    assert.ok(files.some(f => f.match(/^\d{4}-\d{2}-\d{2}-duplicate-idea\.md$/)), 'first file should be date-slug.md');
+    assert.ok(files.some(f => f.match(/^\d{4}-\d{2}-\d{2}-duplicate-idea-2\.md$/)), 'second file should be date-slug-2.md');
+  });
+
+  test('defaults priority to MEDIUM when not specified', () => {
+    const result = runGsdTools('backlog add --title "Some idea"', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('priority: MEDIUM'), 'should default priority to MEDIUM');
+  });
+
+  test('defaults source to command when not specified', () => {
+    const result = runGsdTools('backlog add --title "Some idea"', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('source: command'), 'should default source to command');
+  });
+
+  test('creates .planning/backlog/items/ directory if missing', () => {
+    // tmpDir has .planning/phases but NOT .planning/backlog
+    const backlogDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    assert.ok(!fs.existsSync(backlogDir), 'backlog dir should not exist yet');
+
+    const result = runGsdTools('backlog add --title "First item"', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    assert.ok(fs.existsSync(backlogDir), 'backlog dir should be created');
+    const files = fs.readdirSync(backlogDir);
+    assert.strictEqual(files.length, 1, 'should have one file');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// backlog list command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('backlog list command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('returns empty list when no items', () => {
+    const result = runGsdTools('backlog list', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.count, 0, 'count should be 0');
+    assert.deepStrictEqual(output.items, [], 'items should be empty array');
+  });
+
+  test('returns all items', () => {
+    createBacklogItem(tmpDir, { title: 'Item one', filename: '2026-02-22-item-one.md', id: 'blog-2026-02-22-item-one' });
+    createBacklogItem(tmpDir, { title: 'Item two', filename: '2026-02-22-item-two.md', id: 'blog-2026-02-22-item-two' });
+
+    const result = runGsdTools('backlog list', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.count, 2, 'count should be 2');
+    assert.strictEqual(output.items.length, 2, 'should return 2 items');
+  });
+
+  test('filters by priority', () => {
+    createBacklogItem(tmpDir, { title: 'High item', filename: '2026-02-22-high-item.md', id: 'blog-2026-02-22-high-item', priority: 'HIGH' });
+    createBacklogItem(tmpDir, { title: 'Low item', filename: '2026-02-22-low-item.md', id: 'blog-2026-02-22-low-item', priority: 'LOW' });
+
+    const result = runGsdTools('backlog list --priority HIGH', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.count, 1, 'should have 1 HIGH item');
+    assert.strictEqual(output.items[0].priority, 'HIGH', 'item should be HIGH priority');
+  });
+
+  test('filters by status', () => {
+    createBacklogItem(tmpDir, { title: 'Captured item', filename: '2026-02-22-captured-item.md', id: 'blog-2026-02-22-captured-item', status: 'captured' });
+    createBacklogItem(tmpDir, { title: 'Triaged item', filename: '2026-02-22-triaged-item.md', id: 'blog-2026-02-22-triaged-item', status: 'triaged' });
+
+    const result = runGsdTools('backlog list --status triaged', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.count, 1, 'should have 1 triaged item');
+    assert.strictEqual(output.items[0].status, 'triaged', 'item should be triaged');
+  });
+
+  test('filters by tags', () => {
+    createBacklogItem(tmpDir, { title: 'Auth item', filename: '2026-02-22-auth-item.md', id: 'blog-2026-02-22-auth-item', tags: ['auth', 'api'] });
+    createBacklogItem(tmpDir, { title: 'UI item', filename: '2026-02-22-ui-item.md', id: 'blog-2026-02-22-ui-item', tags: ['ui'] });
+
+    const result = runGsdTools('backlog list --tags "auth"', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.count, 1, 'should have 1 auth-tagged item');
+    assert.ok(output.items[0].tags.includes('auth'), 'item should have auth tag');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// backlog update command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('backlog update command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('updates frontmatter fields', () => {
+    const { id } = createBacklogItem(tmpDir, { title: 'Update me', priority: 'HIGH', status: 'captured' });
+
+    const result = runGsdTools(`backlog update ${id} --priority LOW --status triaged`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.updated, true, 'should report updated');
+
+    // Read file and verify changes
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('priority: LOW'), 'priority should be LOW');
+    assert.ok(content.includes('status: triaged'), 'status should be triaged');
+  });
+
+  test('updates the updated timestamp', () => {
+    const originalTimestamp = '2026-01-01T10:00:00.000Z';
+    const { id } = createBacklogItem(tmpDir, {
+      title: 'Timestamp test',
+      created: originalTimestamp,
+      updated: originalTimestamp,
+    });
+
+    const result = runGsdTools(`backlog update ${id} --status triaged`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+
+    // Extract updated field
+    const updatedMatch = content.match(/^updated:\s*(.+)$/m);
+    assert.ok(updatedMatch, 'should have updated field');
+    assert.notStrictEqual(updatedMatch[1].trim(), originalTimestamp, 'updated timestamp should be newer than original');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// backlog stats command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('backlog stats command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('returns counts by status and priority', () => {
+    createBacklogItem(tmpDir, { title: 'High captured 1', filename: '2026-02-22-hc1.md', id: 'blog-hc1', priority: 'HIGH', status: 'captured' });
+    createBacklogItem(tmpDir, { title: 'High captured 2', filename: '2026-02-22-hc2.md', id: 'blog-hc2', priority: 'HIGH', status: 'captured' });
+    createBacklogItem(tmpDir, { title: 'Low triaged', filename: '2026-02-22-lt.md', id: 'blog-lt', priority: 'LOW', status: 'triaged' });
+
+    const result = runGsdTools('backlog stats', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.total, 3, 'total should be 3');
+    assert.strictEqual(output.by_status.captured, 2, 'captured count should be 2');
+    assert.strictEqual(output.by_status.triaged, 1, 'triaged count should be 1');
+    assert.strictEqual(output.by_priority.HIGH, 2, 'HIGH count should be 2');
+    assert.strictEqual(output.by_priority.LOW, 1, 'LOW count should be 1');
+  });
+
+  test('returns zero counts when no items', () => {
+    const result = runGsdTools('backlog stats', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.total, 0, 'total should be 0');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// todo auto-defaults
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('todo auto-defaults', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('cmdListTodos includes priority, source, status with defaults', () => {
+    // Create todo file with ONLY created, title, area -- no priority/source/status
+    const pendingDir = path.join(tmpDir, '.planning', 'todos', 'pending');
+    fs.mkdirSync(pendingDir, { recursive: true });
+    fs.writeFileSync(path.join(pendingDir, 'test-todo.md'), `---
+created: 2026-02-22
+title: Test todo
+area: general
+---
+
+## Description
+
+A test todo item.
+`, 'utf-8');
+
+    const result = runGsdTools('list-todos', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.count, 1, 'should have 1 todo');
+    const todo = output.todos[0];
+    assert.strictEqual(todo.priority, 'MEDIUM', 'should default priority to MEDIUM');
+    assert.strictEqual(todo.source, 'unknown', 'should default source to unknown');
+    assert.strictEqual(todo.status, 'pending', 'should default status to pending');
+  });
+
+  test('cmdInitTodos includes priority, source, status with defaults', () => {
+    // Create todo file with ONLY created, title, area
+    const pendingDir = path.join(tmpDir, '.planning', 'todos', 'pending');
+    fs.mkdirSync(pendingDir, { recursive: true });
+    fs.writeFileSync(path.join(pendingDir, 'test-todo.md'), `---
+created: 2026-02-22
+title: Test todo for init
+area: architecture
+---
+
+## Description
+
+A test todo item for init.
+`, 'utf-8');
+
+    const result = runGsdTools('init todos', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(output.todos.length >= 1, 'should have at least 1 todo');
+    const todo = output.todos[0];
+    assert.strictEqual(todo.priority, 'MEDIUM', 'should default priority to MEDIUM');
+    assert.strictEqual(todo.source, 'unknown', 'should default source to unknown');
+    assert.strictEqual(todo.status, 'pending', 'should default status to pending');
+  });
+});
