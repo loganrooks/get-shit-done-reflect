@@ -3747,6 +3747,9 @@ function cmdBacklogAdd(cwd, options, raw) {
 
   fs.writeFileSync(fullPath, content, 'utf-8');
 
+  // Auto-regenerate index
+  try { regenerateBacklogIndex(cwd, isGlobal); } catch {}
+
   output({
     created: true,
     id,
@@ -3816,6 +3819,9 @@ function cmdBacklogUpdate(cwd, itemId, updates, raw) {
 
   fs.writeFileSync(targetPath, newContent, 'utf-8');
 
+  // Auto-regenerate index
+  try { regenerateBacklogIndex(cwd, false); } catch {}
+
   output({
     updated: true,
     id: itemId,
@@ -3845,6 +3851,145 @@ function cmdBacklogStats(cwd, raw) {
     by_status: byStatus,
     by_priority: byPriority,
   }, raw, `${allItems.length} items`);
+}
+
+function cmdBacklogGroup(cwd, groupBy, isGlobal, raw) {
+  const items = readBacklogItems(cwd, isGlobal);
+  const groups = {};
+
+  if (groupBy === 'tags') {
+    for (const item of items) {
+      const tags = Array.isArray(item.tags) ? item.tags : [];
+      if (tags.length === 0) {
+        const key = '(untagged)';
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(item);
+      } else {
+        for (const tag of tags) {
+          if (!groups[tag]) groups[tag] = [];
+          groups[tag].push(item);
+        }
+      }
+    }
+  } else {
+    // Default: group by theme
+    for (const item of items) {
+      const key = item.theme || '(no theme)';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(item);
+    }
+  }
+
+  output({
+    group_by: groupBy || 'theme',
+    group_count: Object.keys(groups).length,
+    total_items: items.length,
+    groups,
+  }, raw, `${Object.keys(groups).length} groups`);
+}
+
+function cmdBacklogPromote(cwd, itemId, target, raw) {
+  if (!itemId) { error('item ID required for backlog promote'); }
+
+  const itemsDir = resolveBacklogDir(cwd, false);
+  let targetFile = null;
+  let targetPath = null;
+
+  try {
+    const files = fs.readdirSync(itemsDir).filter(f => f.endsWith('.md'));
+    for (const file of files) {
+      const content = fs.readFileSync(path.join(itemsDir, file), 'utf-8');
+      const fm = extractFrontmatter(content);
+      if (fm.id === itemId) {
+        targetFile = file;
+        targetPath = path.join(itemsDir, file);
+        break;
+      }
+    }
+  } catch {}
+
+  if (!targetPath) { error(`Backlog item not found: ${itemId}`); }
+
+  const content = fs.readFileSync(targetPath, 'utf-8');
+  const fm = extractFrontmatter(content);
+
+  fm.status = 'planned';
+  if (target) {
+    fm.promoted_to = target;
+  }
+  fm.updated = new Date().toISOString();
+
+  const bodyMatch = content.match(/^---\n[\s\S]+?\n---\n([\s\S]*)$/);
+  const body = bodyMatch ? bodyMatch[1] : '\n\n## Description\n\n_No description provided._\n';
+  const fmStr = reconstructFrontmatter(fm);
+  const newContent = `---\n${fmStr}\n---\n${body}`;
+
+  fs.writeFileSync(targetPath, newContent, 'utf-8');
+
+  // Auto-regenerate index
+  try { regenerateBacklogIndex(cwd, false); } catch {}
+
+  output({
+    promoted: true,
+    id: itemId,
+    status: 'planned',
+    promoted_to: target || null,
+    file: targetFile,
+  }, raw, itemId);
+}
+
+/**
+ * Silent index regeneration -- called by add, update, promote.
+ * Does not call output() so it won't interfere with the caller's output.
+ */
+function regenerateBacklogIndex(cwd, isGlobal) {
+  const itemsDir = resolveBacklogDir(cwd, isGlobal);
+  const indexPath = path.join(path.dirname(itemsDir), 'index.md');
+
+  let items = [];
+  try {
+    const files = fs.readdirSync(itemsDir).filter(f => f.endsWith('.md'));
+    for (const file of files) {
+      const content = fs.readFileSync(path.join(itemsDir, file), 'utf-8');
+      const fm = extractFrontmatter(content);
+      items.push({
+        id: fm.id || file.replace('.md', ''),
+        title: fm.title || 'Untitled',
+        priority: fm.priority || 'MEDIUM',
+        status: fm.status || 'captured',
+        tags: Array.isArray(fm.tags) ? fm.tags.join(', ') : (fm.tags || ''),
+        created: (fm.created || '').split('T')[0],
+      });
+    }
+  } catch {}
+
+  // Sort by priority (HIGH first), then date (newest first)
+  const priorityOrder = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+  items.sort((a, b) =>
+    (priorityOrder[a.priority] ?? 1) - (priorityOrder[b.priority] ?? 1)
+    || b.created.localeCompare(a.created)
+  );
+
+  const generated = new Date().toISOString();
+  let md = `# Backlog Index\n\n**Generated:** ${generated}\n**Total items:** ${items.length}\n\n`;
+  md += `| ID | Title | Priority | Status | Tags | Date |\n`;
+  md += `|----|-------|----------|--------|------|------|\n`;
+  for (const item of items) {
+    md += `| ${item.id} | ${item.title} | ${item.priority} | ${item.status} | ${item.tags} | ${item.created} |\n`;
+  }
+
+  // Ensure parent directory exists and write atomically
+  fs.mkdirSync(path.dirname(indexPath), { recursive: true });
+  const tmpPath = indexPath + '.tmp';
+  fs.writeFileSync(tmpPath, md, 'utf-8');
+  fs.renameSync(tmpPath, indexPath);
+
+  return { generated, total: items.length, path: indexPath };
+}
+
+function cmdBacklogIndex(cwd, isGlobal, raw) {
+  const result = regenerateBacklogIndex(cwd, isGlobal);
+  output(result, raw, `Index rebuilt: ${result.total} items`);
 }
 
 function getMilestoneInfo(cwd) {
@@ -5292,6 +5437,17 @@ async function main() {
         }, raw);
       } else if (subcommand === 'stats') {
         cmdBacklogStats(cwd, raw);
+      } else if (subcommand === 'group') {
+        const byIdx = args.indexOf('--by');
+        const globalFlag = args.includes('--global');
+        cmdBacklogGroup(cwd, byIdx !== -1 ? args[byIdx + 1] : 'theme', globalFlag, raw);
+      } else if (subcommand === 'promote') {
+        const itemId = args[2];
+        const toIdx = args.indexOf('--to');
+        cmdBacklogPromote(cwd, itemId, toIdx !== -1 ? args[toIdx + 1] : null, raw);
+      } else if (subcommand === 'index') {
+        const globalFlag = args.includes('--global');
+        cmdBacklogIndex(cwd, globalFlag, raw);
       } else {
         error('Unknown backlog subcommand. Available: add, list, update, stats, group, promote, index');
       }
