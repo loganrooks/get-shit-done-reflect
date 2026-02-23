@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 Phase: 25 of 27 (Backlog System Core)
 Plan: 03 of 3
 Status: Complete
-Last activity: 2026-02-22 -- Completed 25-03-PLAN.md (add-todo metadata fields: priority, source, status)
+Last activity: 2026-02-22 -- Completed 25-02-PLAN.md (backlog group/promote/index + auto-regeneration + --global)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (14) = 75 plans shipped across 25 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (15) = 76 plans shipped across 25 phases
 
 ## Performance Metrics
 
@@ -60,6 +60,9 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 25]: backlog stats aggregates local items only when no GSD_HOME set (global dir doesn't exist in test env)
 - [Phase 25]: Priority/source/status always written with defaults in add-todo -- user provides them optionally
 - [Phase 25]: BLOG-06 verified: STATE.md Pending Todos section untouched, todo and backlog systems coexist
+- [Phase 25]: regenerateBacklogIndex extracted as silent helper to avoid double-output during add/update/promote
+- [Phase 25]: Items appear in multiple tag groups when they have multiple tags (not deduplicated)
+- [Phase 25]: Index sort order: priority (HIGH > MEDIUM > LOW) then date (newest first within same priority)
 
 ### Pending Todos
 
@@ -91,6 +94,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 24 P02 | 5min | 2 tasks | 2 files |
 | Phase 24 P03 | 3min | 3 tasks | 4 files |
 | Phase 25 P01 | 8min | 2 tasks | 2 files |
+| Phase 25 P02 | 5min | 2 tasks | 2 files |
 | Phase 25 P03 | 2min | 2 tasks | 2 files |
 
 ### Roadmap Evolution
@@ -110,5 +114,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 25-03-PLAN.md (add-todo metadata fields) -- Phase 25 complete
+Stopped at: Completed 25-02-PLAN.md (backlog group/promote/index + auto-regen + --global) -- Phase 25 all 3 plans complete
 Resume file: None
