@@ -267,7 +267,7 @@ function migrateKB(gsdHome, runtimes) {
     if (existingEntries > 0) {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       const backupDir = newKBDir + '.backup-' + timestamp;
-      fs.cpSync(newKBDir, backupDir, { recursive: true });
+      safeFs('cpSync', () => fs.cpSync(newKBDir, backupDir, { recursive: true }), newKBDir, backupDir);
 
       // Verify backup integrity
       const backupEntries = countKBEntries(backupDir);
@@ -281,9 +281,9 @@ function migrateKB(gsdHome, runtimes) {
   }
 
   // Step 1: Create new KB directory structure
-  fs.mkdirSync(path.join(newKBDir, 'signals'), { recursive: true });
-  fs.mkdirSync(path.join(newKBDir, 'spikes'), { recursive: true });
-  fs.mkdirSync(path.join(newKBDir, 'lessons'), { recursive: true });
+  safeFs('mkdirSync', () => fs.mkdirSync(path.join(newKBDir, 'signals'), { recursive: true }), path.join(newKBDir, 'signals'));
+  safeFs('mkdirSync', () => fs.mkdirSync(path.join(newKBDir, 'spikes'), { recursive: true }), path.join(newKBDir, 'spikes'));
+  safeFs('mkdirSync', () => fs.mkdirSync(path.join(newKBDir, 'lessons'), { recursive: true }), path.join(newKBDir, 'lessons'));
 
   const oldKBDir = path.join(os.homedir(), '.claude', 'gsd-knowledge');
 
@@ -324,7 +324,7 @@ function migrateKB(gsdHome, runtimes) {
     // First migration: copy old to new
     const oldEntries = countKBEntries(oldKBDir);
     if (oldEntries > 0) {
-      fs.cpSync(oldKBDir, newKBDir, { recursive: true });
+      safeFs('cpSync', () => fs.cpSync(oldKBDir, newKBDir, { recursive: true }), oldKBDir, newKBDir);
 
       // Verify zero data loss
       const newEntries = countKBEntries(newKBDir);
@@ -343,7 +343,7 @@ function migrateKB(gsdHome, runtimes) {
       const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
       finalBackupDir = backupDir + '-' + timestamp;
     }
-    fs.renameSync(oldKBDir, finalBackupDir);
+    safeFs('renameSync', () => fs.renameSync(oldKBDir, finalBackupDir), oldKBDir, finalBackupDir);
     fs.symlinkSync(newKBDir, oldKBDir);
     console.log(`  ${green}✓${reset} Migrated knowledge base: ${oldEntries} entries`);
     console.log(`    ${oldKBDir} -> ${newKBDir}`);
@@ -353,7 +353,7 @@ function migrateKB(gsdHome, runtimes) {
   // Step 3: Old KB doesn't exist - create symlink only for Claude runtime
   if (runtimes.includes('claude')) {
     // Ensure ~/.claude/ directory exists
-    fs.mkdirSync(path.join(os.homedir(), '.claude'), { recursive: true });
+    safeFs('mkdirSync', () => fs.mkdirSync(path.join(os.homedir(), '.claude'), { recursive: true }), path.join(os.homedir(), '.claude'));
     // Create symlink from old path to new path
     if (!fs.existsSync(oldKBDir)) {
       fs.symlinkSync(newKBDir, oldKBDir);
@@ -370,7 +370,7 @@ function migrateKB(gsdHome, runtimes) {
  */
 function installKBScripts(gsdHome) {
   const binDir = path.join(gsdHome, 'bin');
-  fs.mkdirSync(binDir, { recursive: true });
+  safeFs('mkdirSync', () => fs.mkdirSync(binDir, { recursive: true }), binDir);
 
   const scriptSrcDir = path.join(__dirname, '..', '.claude', 'agents');
   const scripts = ['kb-rebuild-index.sh', 'kb-create-dirs.sh'];
@@ -937,7 +937,7 @@ function copyCodexSkills(srcDir, destDir, prefix, pathPrefix) {
       }
     }
   } else {
-    fs.mkdirSync(destDir, { recursive: true });
+    safeFs('mkdirSync', () => fs.mkdirSync(destDir, { recursive: true }), destDir);
   }
 
   const entries = fs.readdirSync(srcDir, { withFileTypes: true });
@@ -953,7 +953,7 @@ function copyCodexSkills(srcDir, destDir, prefix, pathPrefix) {
       const skillName = `${prefix}-${baseName}`;
       const skillDir = path.join(destDir, skillName);
 
-      fs.mkdirSync(skillDir, { recursive: true });
+      safeFs('mkdirSync', () => fs.mkdirSync(skillDir, { recursive: true }), skillDir);
 
       let content = fs.readFileSync(srcPath, 'utf8');
       content = replacePathsInContent(content, pathPrefix);
@@ -1157,9 +1157,9 @@ function copyFlattenedCommands(srcDir, destDir, prefix, pathPrefix, runtime) {
       }
     }
   } else {
-    fs.mkdirSync(destDir, { recursive: true });
+    safeFs('mkdirSync', () => fs.mkdirSync(destDir, { recursive: true }), destDir);
   }
-  
+
   const entries = fs.readdirSync(srcDir, { withFileTypes: true });
   
   for (const entry of entries) {
@@ -1204,7 +1204,7 @@ function copyWithPathReplacement(srcDir, destDir, pathPrefix, runtime) {
   if (fs.existsSync(destDir)) {
     fs.rmSync(destDir, { recursive: true });
   }
-  fs.mkdirSync(destDir, { recursive: true });
+  safeFs('mkdirSync', () => fs.mkdirSync(destDir, { recursive: true }), destDir);
 
   const entries = fs.readdirSync(srcDir, { withFileTypes: true });
 
@@ -1650,7 +1650,7 @@ function configureOpencodePermissions() {
   const configPath = path.join(opencodeConfigDir, 'opencode.json');
 
   // Ensure config directory exists
-  fs.mkdirSync(opencodeConfigDir, { recursive: true });
+  safeFs('mkdirSync', () => fs.mkdirSync(opencodeConfigDir, { recursive: true }), opencodeConfigDir);
 
   // Read existing config or create empty object
   let config = {};
@@ -1832,7 +1832,7 @@ function saveLocalPatches(configDir) {
     const currentHash = fileHash(fullPath);
     if (currentHash !== originalHash) {
       const backupPath = path.join(patchesDir, relPath);
-      fs.mkdirSync(path.dirname(backupPath), { recursive: true });
+      safeFs('mkdirSync', () => fs.mkdirSync(path.dirname(backupPath), { recursive: true }), path.dirname(backupPath));
       fs.copyFileSync(fullPath, backupPath);
       modified.push(relPath);
     }
@@ -1923,7 +1923,7 @@ function install(isGlobal, runtime = 'claude') {
   // Claude Code & Gemini use 'commands/' (plural) with nested structure
   if (isCodex) {
     const skillsDir = path.join(targetDir, 'skills');
-    fs.mkdirSync(skillsDir, { recursive: true });
+    safeFs('mkdirSync', () => fs.mkdirSync(skillsDir, { recursive: true }), skillsDir);
     const gsdSrc = path.join(src, 'commands', 'gsd');
     copyCodexSkills(gsdSrc, skillsDir, 'gsd', pathPrefix);
     if (verifyInstalled(skillsDir, 'skills/gsd-*')) {
@@ -1937,7 +1937,7 @@ function install(isGlobal, runtime = 'claude') {
   } else if (isOpencode) {
     // OpenCode: flat structure in command/ directory
     const commandDir = path.join(targetDir, 'command');
-    fs.mkdirSync(commandDir, { recursive: true });
+    safeFs('mkdirSync', () => fs.mkdirSync(commandDir, { recursive: true }), commandDir);
     
     // Copy commands/gsd/*.md as command/gsd-*.md (flatten structure)
     const gsdSrc = path.join(src, 'commands', 'gsd');
@@ -1951,7 +1951,7 @@ function install(isGlobal, runtime = 'claude') {
   } else {
     // Claude Code & Gemini: nested structure in commands/ directory
     const commandsDir = path.join(targetDir, 'commands');
-    fs.mkdirSync(commandsDir, { recursive: true });
+    safeFs('mkdirSync', () => fs.mkdirSync(commandsDir, { recursive: true }), commandsDir);
     
     const gsdSrc = path.join(src, 'commands', 'gsd');
     const gsdDest = path.join(commandsDir, 'gsd');
@@ -1985,7 +1985,7 @@ function install(isGlobal, runtime = 'claude') {
   const agentsSrc = path.join(src, 'agents');
   if (fs.existsSync(agentsSrc) && !isCodex) {
     const agentsDest = path.join(targetDir, 'agents');
-    fs.mkdirSync(agentsDest, { recursive: true });
+    safeFs('mkdirSync', () => fs.mkdirSync(agentsDest, { recursive: true }), agentsDest);
 
     // Remove old GSD agents (gsd-*.md) before copying new ones
     if (fs.existsSync(agentsDest)) {
@@ -2053,7 +2053,7 @@ function install(isGlobal, runtime = 'claude') {
   const hooksSrc = path.join(src, 'hooks', 'dist');
   if (fs.existsSync(hooksSrc) && !isCodex) {
     const hooksDest = path.join(targetDir, 'hooks');
-    fs.mkdirSync(hooksDest, { recursive: true });
+    safeFs('mkdirSync', () => fs.mkdirSync(hooksDest, { recursive: true }), hooksDest);
     const hookEntries = fs.readdirSync(hooksSrc);
     for (const entry of hookEntries) {
       const srcFile = path.join(hooksSrc, entry);
