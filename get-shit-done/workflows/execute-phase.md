@@ -284,6 +284,16 @@ After all waves:
 ```
 </step>
 
+<step name="cleanup_handoffs">
+Clean up any .continue-here files from the completed phase:
+
+```bash
+rm -f "${PHASE_DIR}/.continue-here"*.md
+```
+
+Phase execution is complete -- any handoff files are now stale.
+</step>
+
 <step name="verify_phase_goal">
 Verify phase achieved its GOAL, not just completed tasks.
 

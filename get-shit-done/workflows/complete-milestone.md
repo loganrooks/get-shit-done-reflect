@@ -97,6 +97,18 @@ Wait for confirmation.
 
 </step>
 
+<step name="cleanup_milestone_handoffs">
+Clean up .continue-here files across all phases in this milestone:
+
+```bash
+for phase_dir in .planning/phases/*/; do
+  rm -f "${phase_dir}.continue-here"*.md
+done
+```
+
+Milestone is complete -- all phase handoffs are stale.
+</step>
+
 <step name="gather_stats">
 
 Calculate milestone statistics:
