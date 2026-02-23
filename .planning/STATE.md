@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.15 Backlog & Update Experience -- MILESTONE COMPLETE (all 27 phases shipped)
+**Current focus:** v1.15 Gap Closure (Phases 28-30) -- restoring deleted commands, fixing tech debt
 
 ## Current Position
 
-Phase: 27 of 27 (Workflow DX & Reliability)
-Plan: 03 of 3 (PHASE COMPLETE)
-Status: Phase Complete — Verified (12/12 must-haves passed)
-Last activity: 2026-02-23 -- Phase 27 complete: complexity gate, safeFs wrapper, shell portability
+Phase: 28 of 30 (Restore Deleted Commands)
+Plan: 01 of 1 (PHASE COMPLETE)
+Status: Phase Complete -- 20/20 wiring validation tests pass, 5 files restored
+Last activity: 2026-02-23 -- Phase 28 complete: restored 3 agent specs + 2 commands deleted by f664984
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (19) = 80 plans shipped across 27 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (19) + gap closure (1) = 81 plans shipped across 28 phases
 
 ## Performance Metrics
 
@@ -75,6 +75,8 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 27]: safeFs uses thunk pattern (fn arg is a lambda) to avoid duplicating fs API signatures
 - [Phase 27]: Error hints mapped by error.code (EACCES, ENOENT, ENOSPC, EPERM, EEXIST); unknown codes get no hint
 - [Phase 27]: safeFs always re-throws -- logging only, never error suppression
+- [Phase 28]: Restored files verbatim from f664984^ (pre-deletion commit) -- no modifications needed
+- [Phase 28]: Known debt accepted: restored agents have inline protocol (pre-Phase 22 extraction), works but inconsistent with other 8 agents
 
 ### Pending Todos
 
@@ -114,6 +116,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 27 P02 | 5min | 3 tasks | 2 files |
 | Phase 27 P03 | 2min | 2 tasks | 5 files |
 | Phase 27 P01 | 2 | 2 tasks | 1 files |
+| Phase 28 P01 | 1min | 2 tasks | 5 files |
 
 ### Roadmap Evolution
 
@@ -132,5 +135,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Phase 27 complete and verified (12/12 must-haves). v1.15 milestone complete — all 6 phases shipped.
+Stopped at: Completed 28-01-PLAN.md -- Phase 28 complete (1/1 plans). Gap closure phases 29-30 remain.
 Resume file: None
