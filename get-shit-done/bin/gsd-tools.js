@@ -3694,6 +3694,7 @@ function readBacklogItems(cwd, isGlobal) {
           theme: fm.theme || null,
           source: fm.source || 'unknown',
           promoted_to: fm.promoted_to === 'null' ? null : (fm.promoted_to || null),
+          milestone: fm.milestone === 'null' ? null : (fm.milestone || null),
           created: fm.created || 'unknown',
           updated: fm.updated || 'unknown',
           file,
@@ -3738,6 +3739,7 @@ function cmdBacklogAdd(cwd, options, raw) {
     status: 'captured',
     source: source || 'command',
     promoted_to: 'null',
+    milestone: 'null',
     created: now.toISOString(),
     updated: now.toISOString(),
   };
@@ -3765,7 +3767,7 @@ function cmdBacklogList(cwd, filters, raw) {
 
   const items = allItems.filter(item => {
     if (priority && item.priority !== priority.toUpperCase()) return false;
-    if (status && item.status !== status) return false;
+    if (status && !status.split(',').map(s => s.trim()).includes(item.status)) return false;
     if (tags) {
       const filterTags = tags.split(',').map(t => t.trim());
       if (!filterTags.some(ft => item.tags.includes(ft))) return false;
@@ -3888,7 +3890,7 @@ function cmdBacklogGroup(cwd, groupBy, isGlobal, raw) {
   }, raw, `${Object.keys(groups).length} groups`);
 }
 
-function cmdBacklogPromote(cwd, itemId, target, raw) {
+function cmdBacklogPromote(cwd, itemId, target, milestone, raw) {
   if (!itemId) { error('item ID required for backlog promote'); }
 
   const itemsDir = resolveBacklogDir(cwd, false);
@@ -3917,6 +3919,9 @@ function cmdBacklogPromote(cwd, itemId, target, raw) {
   if (target) {
     fm.promoted_to = target;
   }
+  if (milestone) {
+    fm.milestone = milestone;
+  }
   fm.updated = new Date().toISOString();
 
   const bodyMatch = content.match(/^---\n[\s\S]+?\n---\n([\s\S]*)$/);
@@ -3934,6 +3939,7 @@ function cmdBacklogPromote(cwd, itemId, target, raw) {
     id: itemId,
     status: 'planned',
     promoted_to: target || null,
+    milestone: milestone || null,
     file: targetFile,
   }, raw, itemId);
 }
@@ -3958,6 +3964,7 @@ function regenerateBacklogIndex(cwd, isGlobal) {
         priority: fm.priority || 'MEDIUM',
         status: fm.status || 'captured',
         tags: Array.isArray(fm.tags) ? fm.tags.join(', ') : (fm.tags || ''),
+        milestone: fm.milestone === 'null' ? null : (fm.milestone || null),
         created: (fm.created || '').split('T')[0],
       });
     }
@@ -3972,10 +3979,10 @@ function regenerateBacklogIndex(cwd, isGlobal) {
 
   const generated = new Date().toISOString();
   let md = `# Backlog Index\n\n**Generated:** ${generated}\n**Total items:** ${items.length}\n\n`;
-  md += `| ID | Title | Priority | Status | Tags | Date |\n`;
-  md += `|----|-------|----------|--------|------|------|\n`;
+  md += `| ID | Title | Priority | Status | Tags | Milestone | Date |\n`;
+  md += `|----|-------|----------|--------|------|-----------|------|\n`;
   for (const item of items) {
-    md += `| ${item.id} | ${item.title} | ${item.priority} | ${item.status} | ${item.tags} | ${item.created} |\n`;
+    md += `| ${item.id} | ${item.title} | ${item.priority} | ${item.status} | ${item.tags} | ${item.milestone || '\u2014'} | ${item.created} |\n`;
   }
 
   // Ensure parent directory exists and write atomically
@@ -5429,11 +5436,13 @@ async function main() {
         const statusIdx = args.indexOf('--status');
         const themeIdx = args.indexOf('--theme');
         const tagsIdx = args.indexOf('--tags');
+        const milestoneIdx = args.indexOf('--milestone');
         cmdBacklogUpdate(cwd, itemId, {
           priority: priorityIdx !== -1 ? args[priorityIdx + 1] : undefined,
           status: statusIdx !== -1 ? args[statusIdx + 1] : undefined,
           theme: themeIdx !== -1 ? args[themeIdx + 1] : undefined,
           tags: tagsIdx !== -1 ? args[tagsIdx + 1].split(',').map(t => t.trim()) : undefined,
+          milestone: milestoneIdx !== -1 ? args[milestoneIdx + 1] : undefined,
         }, raw);
       } else if (subcommand === 'stats') {
         cmdBacklogStats(cwd, raw);
@@ -5444,7 +5453,8 @@ async function main() {
       } else if (subcommand === 'promote') {
         const itemId = args[2];
         const toIdx = args.indexOf('--to');
-        cmdBacklogPromote(cwd, itemId, toIdx !== -1 ? args[toIdx + 1] : null, raw);
+        const milestoneIdx = args.indexOf('--milestone');
+        cmdBacklogPromote(cwd, itemId, toIdx !== -1 ? args[toIdx + 1] : null, milestoneIdx !== -1 ? args[milestoneIdx + 1] : null, raw);
       } else if (subcommand === 'index') {
         const globalFlag = args.includes('--global');
         cmdBacklogIndex(cwd, globalFlag, raw);

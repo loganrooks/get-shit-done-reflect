@@ -3008,6 +3008,7 @@ priority: ${overrides.priority || 'MEDIUM'}
 status: ${overrides.status || 'captured'}
 source: ${overrides.source || 'command'}
 promoted_to: ${overrides.promoted_to || 'null'}
+milestone: ${overrides.milestone || 'null'}
 created: ${overrides.created || '2026-02-22T10:00:00.000Z'}
 updated: ${overrides.updated || '2026-02-22T10:00:00.000Z'}
 ---
@@ -3713,7 +3714,7 @@ describe('milestone field in readBacklogItems', () => {
   test('item with milestone: null in file returns JS null', () => {
     createBacklogItem(tmpDir, { title: 'Null milestone', milestone: null });
 
-    const result = runGsdTools('backlog list --raw', tmpDir);
+    const result = runGsdTools('backlog list', tmpDir);
     assert.ok(result.success, `Command failed: ${result.error}`);
 
     const output = JSON.parse(result.output);
@@ -3723,7 +3724,7 @@ describe('milestone field in readBacklogItems', () => {
   test('item with milestone: v1.5 in file returns string v1.5', () => {
     createBacklogItem(tmpDir, { title: 'Versioned milestone', milestone: 'v1.5' });
 
-    const result = runGsdTools('backlog list --raw', tmpDir);
+    const result = runGsdTools('backlog list', tmpDir);
     assert.ok(result.success, `Command failed: ${result.error}`);
 
     const output = JSON.parse(result.output);
@@ -3746,7 +3747,7 @@ describe('milestone field in backlog promote', () => {
     const { id } = createBacklogItem(tmpDir, { title: 'Promote with milestone', status: 'captured' });
 
     const result = runGsdTools(
-      `backlog promote ${id} --to AUTH-01 --milestone v1.5 --raw`,
+      `backlog promote ${id} --to AUTH-01 --milestone v1.5`,
       tmpDir
     );
     assert.ok(result.success, `Command failed: ${result.error}`);
@@ -3767,7 +3768,7 @@ describe('milestone field in backlog promote', () => {
     const { id } = createBacklogItem(tmpDir, { title: 'Promote no milestone', status: 'captured' });
 
     const result = runGsdTools(
-      `backlog promote ${id} --to AUTH-02 --raw`,
+      `backlog promote ${id} --to AUTH-02`,
       tmpDir
     );
     assert.ok(result.success, `Command failed: ${result.error}`);
@@ -3795,7 +3796,7 @@ describe('milestone field in backlog update CLI', () => {
     const { id } = createBacklogItem(tmpDir, { title: 'Update milestone' });
 
     const result = runGsdTools(
-      `backlog update ${id} --milestone v1.5 --raw`,
+      `backlog update ${id} --milestone v1.5`,
       tmpDir
     );
     assert.ok(result.success, `Command failed: ${result.error}`);
@@ -3873,7 +3874,7 @@ describe('multi-status filter in backlog list', () => {
     createBacklogItem(tmpDir, { title: 'Triaged item', filename: '2026-02-22-tri.md', id: 'blog-tri', status: 'triaged' });
     createBacklogItem(tmpDir, { title: 'Planned item', filename: '2026-02-22-plan.md', id: 'blog-plan', status: 'planned' });
 
-    const result = runGsdTools('backlog list --status captured,triaged --raw', tmpDir);
+    const result = runGsdTools('backlog list --status captured,triaged', tmpDir);
     assert.ok(result.success, `Command failed: ${result.error}`);
 
     const output = JSON.parse(result.output);
@@ -3886,7 +3887,7 @@ describe('multi-status filter in backlog list', () => {
     createBacklogItem(tmpDir, { title: 'Captured item', filename: '2026-02-22-cap2.md', id: 'blog-cap2', status: 'captured' });
     createBacklogItem(tmpDir, { title: 'Planned item', filename: '2026-02-22-plan2.md', id: 'blog-plan2', status: 'planned' });
 
-    const result = runGsdTools('backlog list --status planned --raw', tmpDir);
+    const result = runGsdTools('backlog list --status planned', tmpDir);
     assert.ok(result.success, `Command failed: ${result.error}`);
 
     const output = JSON.parse(result.output);
@@ -3958,7 +3959,7 @@ updated: 2026-02-22T10:00:00.000Z
 Pre-Phase-26 item without milestone field.
 `, 'utf-8');
 
-    const result = runGsdTools('backlog list --raw', tmpDir);
+    const result = runGsdTools('backlog list', tmpDir);
     assert.ok(result.success, `Command failed: ${result.error}`);
 
     const output = JSON.parse(result.output);
@@ -3988,7 +3989,7 @@ Old item to promote.
 `, 'utf-8');
 
     const result = runGsdTools(
-      'backlog promote blog-old-promote --to REQ-01 --milestone v2.0 --raw',
+      'backlog promote blog-old-promote --to REQ-01 --milestone v2.0',
       tmpDir
     );
     assert.ok(result.success, `Command failed: ${result.error}`);
@@ -4025,7 +4026,7 @@ Old item to update.
 `, 'utf-8');
 
     const result = runGsdTools(
-      'backlog update blog-old-update --milestone v1.5 --raw',
+      'backlog update blog-old-update --milestone v1.5',
       tmpDir
     );
     assert.ok(result.success, `Command failed: ${result.error}`);
