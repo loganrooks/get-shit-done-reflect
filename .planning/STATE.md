@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 ## Current Position
 
 Phase: 26 of 27 (Backlog Workflow Integration)
-Plan: 02 of 3 (complete)
-Status: Executing Phase 26
-Last activity: 2026-02-23 -- Plan 26-02 complete: workflow integration (new-milestone, check-todos, complete-milestone)
+Plan: 03 of 3 (complete)
+Status: Phase 26 complete
+Last activity: 2026-02-23 -- Plan 26-03 complete: BINT-05 reader enumeration verification (mixed-schema + todo isolation)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (15) = 76 plans shipped across 26 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (16) = 77 plans shipped across 26 phases
 
 ## Performance Metrics
 
@@ -68,6 +68,8 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 26]: Two-phase promote in new-milestone: select items in Step 1b, promote in Step 9b after REQ-IDs exist
 - [Phase 26]: Backlog review in complete-milestone always skippable -- never gates milestone completion
 - [Phase 26]: check-todos priority/status filters are additive (AND logic)
+- [Phase 26]: Stats test uses GSD_HOME env override to isolate from global backlog directory pollution
+- [Phase 26]: Todo isolation verified: cmdListTodos and cmdInitTodos produce no milestone field in output
 
 ### Pending Todos
 
@@ -103,6 +105,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 25 P03 | 2min | 2 tasks | 2 files |
 | Phase 26 P01 | 13min | 2 tasks | 2 files |
 | Phase 26 P02 | 3min | 2 tasks | 3 files |
+| Phase 26 P03 | 5min | 2 tasks | 1 files |
 
 ### Roadmap Evolution
 
@@ -121,5 +124,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 26-02-PLAN.md (workflow integration). Next: 26-03-PLAN.md
+Stopped at: Completed 26-03-PLAN.md (reader enumeration verification). Phase 26 complete. Next: Phase 27
 Resume file: None
