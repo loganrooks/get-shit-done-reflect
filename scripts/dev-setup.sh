@@ -1,9 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Development setup script for GSD Reflect
 # Creates symlinks from ~/.claude/ to repo files for instant hot reload
 # Mac/Linux only (per CONTEXT.md decision)
 
-set -e
+set -eo pipefail
 
 CLAUDE_DIR="$HOME/.claude"
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"

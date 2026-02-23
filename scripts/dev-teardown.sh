@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Development teardown script for GSD Reflect
 # Removes symlinks and optionally restores backups
 
-set -e
+set -eo pipefail
 
 CLAUDE_DIR="$HOME/.claude"
 
