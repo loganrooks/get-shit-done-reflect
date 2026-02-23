@@ -21,3 +21,4 @@ tests/benchmarks/results.json
 # Internal planning documents
 reports/
 RAILROAD_ARCHITECTURE.md
+.vscode/
