@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 
 ## Current Position
 
-Phase: 29 of 30 (Test Fixes & Installer Deploy) -- COMPLETE
+Phase: 30 of 30 (Signal-Driven Workflow Fixes) -- COMPLETE
 Plan: 02 of 2 (all plans complete)
-Status: Phase 29 complete -- 256 tests green, deployed binaries match source
-Last activity: 2026-02-23 -- Plan 02 complete: closed 875-line gap in deployed gsd-tools.js binaries
+Status: Phase 30 complete -- both spike signals closed, RESEARCH.md artifact check added
+Last activity: 2026-02-23 -- Plan 02 complete: spike signal closure with artifact check enhancement
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (19) + gap closure (4) = 84 plans shipped across 29 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (19) + gap closure (6) = 86 plans shipped across 30 phases
 
 ## Performance Metrics
 
@@ -80,6 +80,8 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 29]: Only backlog stats tests need GSD_HOME isolation (stats merges local+global items; list/group/add operate on local only)
 - [Phase 29]: Installer clobbers force-tracked .claude/ files (agents, commands, agent-protocol.md) -- must restore from git after install
 - [Phase 29]: Accepted collect-signals.md source update (adds KB index rebuild after signal collection)
+- [Phase 30]: Artifact check is additive-only -- does not block spikes, only surfaces existing research as context
+- [Phase 30]: spike-design.md confirmed correct from Phase 21 -- no modifications needed
 
 ### Pending Todos
 
@@ -122,6 +124,8 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 28 P01 | 1min | 2 tasks | 5 files |
 | Phase 29 P01 | 4min | 3 tasks | 1 files |
 | Phase 29 P02 | 2min | 3 tasks | 1 files |
+| Phase 30 P01 | -- | -- | -- |
+| Phase 30 P02 | 1min | 2 tasks | 1 files |
 
 ### Roadmap Evolution
 
@@ -140,5 +144,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 29-02-PLAN.md -- Phase 29 complete (2/2 plans). Phase 30 remains.
+Stopped at: Completed 30-02-PLAN.md -- Phase 30 complete (2/2 plans). All 30 phases shipped.
 Resume file: None
