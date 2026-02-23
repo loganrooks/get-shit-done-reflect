@@ -85,7 +85,11 @@ Plans:
   3. The `/gsd:add-todo` command accepts optional `priority` and `source` fields, and existing todos without these fields are readable with auto-defaulted values (priority: MEDIUM, source: unknown, status: pending) -- no migration required
   4. STATE.md `### Pending Todos` section continues to function as a lightweight index with links to detail files -- it is NOT replaced or restructured by the backlog system
   5. Auto-generated `index.md` files exist in both `.planning/backlog/` and `~/.gsd/backlog/` directories, matching the pattern used by the knowledge base
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 25-01-PLAN.md -- Core backlog CRUD (add, list, update, stats) + todo auto-defaults (TDD)
+- [ ] 25-02-PLAN.md -- Group, promote, index + global storage + auto-regeneration (TDD)
+- [ ] 25-03-PLAN.md -- Workflow updates (add-todo.md priority/source fields, BLOG-06 verification)
 
 #### Phase 26: Backlog Workflow Integration
 **Goal**: Backlog items flow naturally into milestone planning, todo management, and milestone completion -- the capture-to-requirements pipeline is connected end-to-end
@@ -139,7 +143,7 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 | 22. Agent Boilerplate Extraction | 5/5 | ✓ Complete | 2026-02-22 |
 | 23. Feature Manifest Foundation | 2/2 | ✓ Complete | 2026-02-22 |
 | 24. Manifest-Driven Config Migration | 3/3 | ✓ Complete | 2026-02-22 |
-| 25. Backlog System Core | 0/TBD | Not started | - |
+| 25. Backlog System Core | 0/3 | Planned | - |
 | 26. Backlog Workflow Integration | 0/TBD | Not started | - |
 | 27. Workflow DX & Reliability | 0/TBD | Not started | - |
 
