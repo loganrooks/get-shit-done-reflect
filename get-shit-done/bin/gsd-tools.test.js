@@ -3277,7 +3277,9 @@ describe('backlog stats command', () => {
     createBacklogItem(tmpDir, { title: 'High captured 2', filename: '2026-02-22-hc2.md', id: 'blog-hc2', priority: 'HIGH', status: 'captured' });
     createBacklogItem(tmpDir, { title: 'Low triaged', filename: '2026-02-22-lt.md', id: 'blog-lt', priority: 'LOW', status: 'triaged' });
 
-    const result = runGsdTools('backlog stats', tmpDir);
+    const result = runGsdToolsWithEnv('backlog stats', tmpDir, {
+      GSD_HOME: path.join(tmpDir, '__nonexistent_gsd_home__'),
+    });
     assert.ok(result.success, `Command failed: ${result.error}`);
 
     const output = JSON.parse(result.output);
@@ -3289,7 +3291,9 @@ describe('backlog stats command', () => {
   });
 
   test('returns zero counts when no items', () => {
-    const result = runGsdTools('backlog stats', tmpDir);
+    const result = runGsdToolsWithEnv('backlog stats', tmpDir, {
+      GSD_HOME: path.join(tmpDir, '__nonexistent_gsd_home__'),
+    });
     assert.ok(result.success, `Command failed: ${result.error}`);
 
     const output = JSON.parse(result.output);
