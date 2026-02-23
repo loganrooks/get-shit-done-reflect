@@ -3667,3 +3667,373 @@ Global index test.
     assert.ok(content.includes('blog-global-idx'), 'index should contain global item');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Phase 26-01: Milestone field + multi-status filter TDD tests
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('milestone field in backlog add', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('backlog add creates item with milestone: null in frontmatter', () => {
+    const result = runGsdTools(
+      'backlog add --title "Test milestone default"',
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    assert.strictEqual(files.length, 1, 'should have one file');
+
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('milestone: null'), 'should have milestone: null in frontmatter');
+  });
+});
+
+describe('milestone field in readBacklogItems', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('item with milestone: null in file returns JS null', () => {
+    createBacklogItem(tmpDir, { title: 'Null milestone', milestone: null });
+
+    const result = runGsdTools('backlog list --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.items[0].milestone, null, 'milestone should be JS null');
+  });
+
+  test('item with milestone: v1.5 in file returns string v1.5', () => {
+    createBacklogItem(tmpDir, { title: 'Versioned milestone', milestone: 'v1.5' });
+
+    const result = runGsdTools('backlog list --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.items[0].milestone, 'v1.5', 'milestone should be v1.5');
+  });
+});
+
+describe('milestone field in backlog promote', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('promote with --milestone writes milestone and promoted_to to file', () => {
+    const { id } = createBacklogItem(tmpDir, { title: 'Promote with milestone', status: 'captured' });
+
+    const result = runGsdTools(
+      `backlog promote ${id} --to AUTH-01 --milestone v1.5 --raw`,
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.milestone, 'v1.5', 'output should include milestone');
+
+    // Read file and verify
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('milestone: v1.5'), 'file should have milestone: v1.5');
+    assert.ok(content.includes('promoted_to: AUTH-01'), 'file should have promoted_to: AUTH-01');
+    assert.ok(content.includes('status: planned'), 'file should have status: planned');
+  });
+
+  test('promote without --milestone leaves milestone unchanged', () => {
+    const { id } = createBacklogItem(tmpDir, { title: 'Promote no milestone', status: 'captured' });
+
+    const result = runGsdTools(
+      `backlog promote ${id} --to AUTH-02 --raw`,
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    // Read file and verify milestone still null
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('milestone: null'), 'milestone should remain null');
+  });
+});
+
+describe('milestone field in backlog update CLI', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('backlog update --milestone writes milestone to file', () => {
+    const { id } = createBacklogItem(tmpDir, { title: 'Update milestone' });
+
+    const result = runGsdTools(
+      `backlog update ${id} --milestone v1.5 --raw`,
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('milestone: v1.5'), 'file should have milestone: v1.5');
+  });
+});
+
+describe('milestone column in backlog index', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('index table includes Milestone column with version', () => {
+    createBacklogItem(tmpDir, {
+      title: 'Milestone item',
+      filename: '2026-02-22-milestone-item.md',
+      id: 'blog-milestone-item',
+      milestone: 'v1.5',
+    });
+
+    const result = runGsdTools('backlog index --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const indexPath = path.join(tmpDir, '.planning', 'backlog', 'index.md');
+    const content = fs.readFileSync(indexPath, 'utf-8');
+    assert.ok(content.includes('Milestone'), 'table header should include Milestone');
+    assert.ok(content.includes('v1.5'), 'row should show v1.5 milestone');
+  });
+
+  test('index table shows dash for null milestone', () => {
+    createBacklogItem(tmpDir, {
+      title: 'No milestone item',
+      filename: '2026-02-22-no-milestone.md',
+      id: 'blog-no-milestone',
+    });
+
+    const result = runGsdTools('backlog index --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const indexPath = path.join(tmpDir, '.planning', 'backlog', 'index.md');
+    const content = fs.readFileSync(indexPath, 'utf-8');
+    assert.ok(content.includes('Milestone'), 'table header should include Milestone');
+    // The null milestone row should have a dash
+    const lines = content.split('\n');
+    const dataRow = lines.find(l => l.includes('blog-no-milestone'));
+    assert.ok(dataRow, 'should have row for item');
+    // Verify it does NOT show 'null' as text but rather empty or dash
+    assert.ok(!dataRow.includes('| null |'), 'should not show literal "null" in milestone column');
+  });
+});
+
+describe('multi-status filter in backlog list', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('backlog list --status captured,triaged returns items matching either', () => {
+    createBacklogItem(tmpDir, { title: 'Captured item', filename: '2026-02-22-cap.md', id: 'blog-cap', status: 'captured' });
+    createBacklogItem(tmpDir, { title: 'Triaged item', filename: '2026-02-22-tri.md', id: 'blog-tri', status: 'triaged' });
+    createBacklogItem(tmpDir, { title: 'Planned item', filename: '2026-02-22-plan.md', id: 'blog-plan', status: 'planned' });
+
+    const result = runGsdTools('backlog list --status captured,triaged --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.count, 2, 'should return 2 items (captured + triaged)');
+    const ids = output.items.map(i => i.id).sort();
+    assert.deepStrictEqual(ids, ['blog-cap', 'blog-tri'], 'should return captured and triaged items');
+  });
+
+  test('backlog list --status planned still works for single status', () => {
+    createBacklogItem(tmpDir, { title: 'Captured item', filename: '2026-02-22-cap2.md', id: 'blog-cap2', status: 'captured' });
+    createBacklogItem(tmpDir, { title: 'Planned item', filename: '2026-02-22-plan2.md', id: 'blog-plan2', status: 'planned' });
+
+    const result = runGsdTools('backlog list --status planned --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.count, 1, 'should return 1 planned item');
+    assert.strictEqual(output.items[0].id, 'blog-plan2', 'should be the planned item');
+  });
+});
+
+describe('createBacklogItem helper milestone field', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('default createBacklogItem includes milestone: null', () => {
+    createBacklogItem(tmpDir, {});
+
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('milestone: null'), 'should have milestone: null');
+  });
+
+  test('createBacklogItem with milestone override writes version', () => {
+    createBacklogItem(tmpDir, { milestone: 'v1.5' });
+
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('milestone: v1.5'), 'should have milestone: v1.5');
+  });
+});
+
+describe('backward compatibility: pre-Phase-26 items without milestone', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('item without milestone field parses with milestone: null default', () => {
+    // Manually create a pre-Phase-26 item (no milestone line)
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    fs.mkdirSync(itemsDir, { recursive: true });
+    fs.writeFileSync(path.join(itemsDir, '2026-02-22-old-item.md'), `---
+id: blog-old-item
+title: Old item
+tags: []
+theme: general
+priority: MEDIUM
+status: captured
+source: command
+promoted_to: null
+created: 2026-02-22T10:00:00.000Z
+updated: 2026-02-22T10:00:00.000Z
+---
+
+## Description
+
+Pre-Phase-26 item without milestone field.
+`, 'utf-8');
+
+    const result = runGsdTools('backlog list --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.items[0].milestone, null, 'milestone should default to null for old items');
+  });
+
+  test('promote on item without milestone preserves fields and adds milestone', () => {
+    // Create item without milestone field
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    fs.mkdirSync(itemsDir, { recursive: true });
+    fs.writeFileSync(path.join(itemsDir, '2026-02-22-old-promote.md'), `---
+id: blog-old-promote
+title: Old promote item
+tags: [auth]
+theme: security
+priority: HIGH
+status: captured
+source: conversation
+promoted_to: null
+created: 2026-02-22T10:00:00.000Z
+updated: 2026-02-22T10:00:00.000Z
+---
+
+## Description
+
+Old item to promote.
+`, 'utf-8');
+
+    const result = runGsdTools(
+      'backlog promote blog-old-promote --to REQ-01 --milestone v2.0 --raw',
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const content = fs.readFileSync(path.join(itemsDir, '2026-02-22-old-promote.md'), 'utf-8');
+    assert.ok(content.includes('milestone: v2.0'), 'should have milestone: v2.0');
+    assert.ok(content.includes('id: blog-old-promote'), 'id should be intact');
+    assert.ok(content.includes('title: Old promote item'), 'title should be intact');
+    assert.ok(content.includes('auth'), 'tags should be intact');
+    assert.ok(content.includes('status: planned'), 'status should be planned');
+    assert.ok(content.includes('promoted_to: REQ-01'), 'promoted_to should be REQ-01');
+  });
+
+  test('update --milestone on item without prior milestone adds it', () => {
+    // Create item without milestone field
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    fs.mkdirSync(itemsDir, { recursive: true });
+    fs.writeFileSync(path.join(itemsDir, '2026-02-22-old-update.md'), `---
+id: blog-old-update
+title: Old update item
+tags: []
+theme: general
+priority: MEDIUM
+status: captured
+source: command
+promoted_to: null
+created: 2026-02-22T10:00:00.000Z
+updated: 2026-02-22T10:00:00.000Z
+---
+
+## Description
+
+Old item to update.
+`, 'utf-8');
+
+    const result = runGsdTools(
+      'backlog update blog-old-update --milestone v1.5 --raw',
+      tmpDir
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const content = fs.readFileSync(path.join(itemsDir, '2026-02-22-old-update.md'), 'utf-8');
+    assert.ok(content.includes('milestone: v1.5'), 'should have milestone: v1.5');
+    assert.ok(content.includes('id: blog-old-update'), 'id should be intact');
+    assert.ok(content.includes('title: Old update item'), 'title should be intact');
+    assert.ok(content.includes('priority: MEDIUM'), 'priority should be intact');
+  });
+});
