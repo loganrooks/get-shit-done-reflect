@@ -5,7 +5,7 @@
 - <details><summary>v1.12 GSD Reflect (Phases 0-6) -- SHIPPED 2026-02-09</summary>See milestones/v1.12-ROADMAP.md</details>
 - <details><summary>v1.13 Upstream Sync & Validation (Phases 7-12) -- SHIPPED 2026-02-11</summary>See milestones/v1.13-ROADMAP.md</details>
 - <details><summary>v1.14 Multi-Runtime Interop (Phases 13-21) -- SHIPPED 2026-02-16</summary>See milestones/v1.14-ROADMAP.md</details>
-- **v1.15 Backlog & Update Experience** - Phases 22-27 (complete)
+- **v1.15 Backlog & Update Experience** - Phases 22-30 (27 complete, 28-30 gap closure)
 
 ## v1.15 Backlog & Update Experience
 
@@ -23,6 +23,9 @@
 - [x] **Phase 25: Backlog System Core** - Structured idea capture with two-tier storage, rich metadata, and CLI tooling ✓ 2026-02-23
 - [x] **Phase 26: Backlog Workflow Integration** - Connect backlog to milestone planning, todo promotion, and completion review ✓ 2026-02-23
 - [x] **Phase 27: Workflow DX & Reliability** - Lighter quick-task flow, installer hardening, shell script portability ✓ 2026-02-23
+- [ ] **Phase 28: Restore Deleted Commands & Fix Dangling References** - Revert botched f664984 refactor, restore 3 agents + 2 commands, fix 15+ broken references *(Gap Closure)*
+- [ ] **Phase 29: Test Fixes & Installer Deployment** - Fix GSD_HOME test isolation, wiring validation failures, redeploy stale installer binary *(Gap Closure)*
+- [ ] **Phase 30: Signal-Driven Workflow Fixes** - Address open signals: .continue-here cleanup, resume-work path gaps, spike research gate *(Gap Closure)*
 
 ### Phase Details
 
@@ -122,6 +125,58 @@ Plans:
 - [ ] 27-02-PLAN.md -- Installer error handling with safeFs() wrapper (DX-03)
 - [ ] 27-03-PLAN.md -- Shell script portability fixes (DX-04)
 
+#### Phase 28: Restore Deleted Commands & Fix Dangling References
+**Goal**: The reflect, spike, and collect-signals commands work again -- all 3 agent specs restored, all dangling references fixed, wiring validation tests pass
+**Depends on**: Nothing (independent, reverts damage from commit f664984)
+**Gap Closure**: Fixes botched refactor that deleted 1,166 lines of agent logic without migrating it
+**Success Criteria** (what must be TRUE):
+  1. Agent specs `gsd-reflector.md`, `gsd-signal-collector.md`, and `gsd-spike-runner.md` exist in `.claude/agents/` with their pre-deletion content restored (plus any KB path fixes from f664984 that were valid)
+  2. Command files `reflect.md` and `spike.md` exist in `.claude/commands/gsd/` and route to their respective workflows
+  3. All `subagent_type` references in workflow files (`collect-signals.md`, `reflect.md`, `run-spike.md`) point to existing agent specs
+  4. All `@.claude/agents/` file references in workflows resolve to existing files
+  5. Reference docs (`spike-execution.md`, `signal-detection.md`) reference agents that exist
+  6. Wiring validation tests pass (0 failures, currently 4)
+**Plans:** 2 plans
+Plans:
+- [ ] 28-01-PLAN.md -- Restore 3 agent specs + 2 command files from git, apply valid KB path fixes
+- [ ] 28-02-PLAN.md -- Fix all dangling references across workflows/references/commands, verify wiring tests pass
+
+#### Phase 29: Test Fixes & Installer Deployment
+**Goal**: All tests pass and the installed binary matches the source -- no stale deployments, no test pollution
+**Depends on**: Phase 28 (wiring tests depend on restored agents)
+**Gap Closure**: Fixes 2 GSD_HOME test isolation failures, deploys 875-line installer gap
+**Success Criteria** (what must be TRUE):
+  1. `backlog stats` tests use `GSD_HOME` env override (matching Phase 26 pattern) and pass without global item pollution
+  2. Wiring validation tests pass (all agent references resolve) -- 0 failures
+  3. Full test suite runs green: `gsd-tools.test.js`, `install.test.js`, `wiring-validation.test.js`
+  4. Installed `~/.claude/get-shit-done/bin/gsd-tools.js` matches source `bin/gsd-tools.js` (same line count, same content hash)
+  5. `.claude/get-shit-done/bin/gsd-tools.js` (repo-local) matches source
+**Plans:** 2 plans
+Plans:
+- [ ] 29-01-PLAN.md -- Fix GSD_HOME test isolation in backlog stats tests + verify full suite green
+- [ ] 29-02-PLAN.md -- Redeploy installer, verify installed binary matches source
+
+#### Phase 30: Signal-Driven Workflow Fixes
+**Goal**: Address the highest-impact open signals -- stale handoff files cleaned up, resume workflow finds all handoffs, spike workflow has proper research gate
+**Depends on**: Nothing (independent from 28-29, addresses different signal clusters)
+**Gap Closure**: Closes 5-6 open signals accumulated across v1.12-v1.15
+**Signals addressed**:
+  - `sig-2026-02-16-stale-continue-here-files-not-cleaned` -- .continue-here.md persists after phase completion
+  - `sig-2026-02-17-continue-here-not-deleted-after-resume` -- .continue-here.md not cleaned after resume
+  - `sig-2026-02-17-resume-work-misses-non-phase-handoffs` -- resume only searches phases/, misses .planning/
+  - `sig-2026-02-11-premature-spiking-no-research-gate` -- spike command lacks research-first check
+  - `sig-2026-02-11-spike-design-missing-feasibility` -- spike DESIGN.md missing feasibility section
+**Success Criteria** (what must be TRUE):
+  1. Phase completion workflows (`execute-phase`, `complete-milestone`) delete `.continue-here.md` files in the completed phase directory
+  2. `/gsd:resume-work` deletes the `.continue-here.md` file after successfully loading its context
+  3. `/gsd:resume-work` searches both `.planning/phases/*/.continue-here.md` AND `.planning/.continue-here.md` for handoff files
+  4. `/gsd:spike` workflow includes a research-first advisory gate that checks whether research was already done before proceeding
+  5. Spike `DESIGN.md` template includes a feasibility/prerequisites section
+**Plans:** 2 plans
+Plans:
+- [ ] 30-01-PLAN.md -- .continue-here.md lifecycle fixes (cleanup on completion + resume, search path expansion)
+- [ ] 30-02-PLAN.md -- Spike workflow research gate + feasibility template section
+
 ### Dependency Graph
 
 ```
@@ -130,9 +185,15 @@ Phase 22 (Agent Extraction) ─────────────────�
 Phase 23 (Manifest Foundation) ──> Phase 24 (Config Migration)     |
                                                                     |
 Phase 25 (Backlog Core) ─────────> Phase 26 (Backlog Integration) ─+
+
+Gap Closure:
+Phase 28 (Restore Commands) ──> Phase 29 (Test Fixes + Deploy)
+Phase 30 (Signal-Driven Fixes)  [independent]
 ```
 
 Phases 22, 23, 25 have NO mutual dependencies -- can begin in any order.
+Phase 28 must complete before Phase 29 (wiring tests depend on restored agents).
+Phase 30 is independent of 28-29.
 
 ### Deferred (Monitor Only)
 
@@ -144,7 +205,7 @@ These depend on external runtime vendor changes. No phases needed -- revisit whe
 ### Progress
 
 **Execution Order:**
-Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
+Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27 -> 28 -> 29 -> 30
 
 | Phase | Plans Complete | Status | Completed |
 |-------|---------------|--------|-----------|
@@ -154,6 +215,9 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 | 25. Backlog System Core | 3/3 | ✓ Complete | 2026-02-23 |
 | 26. Backlog Workflow Integration | 3/3 | ✓ Complete | 2026-02-23 |
 | 27. Workflow DX & Reliability | 3/3 | ✓ Complete | 2026-02-23 |
+| 28. Restore Deleted Commands | 0/2 | Pending | - |
+| 29. Test Fixes & Installer Deploy | 0/2 | Pending | - |
+| 30. Signal-Driven Workflow Fixes | 0/2 | Pending | - |
 
 ## Overall Progress
 
@@ -162,6 +226,6 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 | 0-6 | v1.12 | 25/25 | Complete | 2026-02-09 |
 | 7-12 | v1.13 | 18/18 | Complete | 2026-02-11 |
 | 13-21 | v1.14 | 18/18 | Complete | 2026-02-16 |
-| 22-27 | v1.15 | 19/19 | Complete | 2026-02-23 |
+| 22-30 | v1.15 | 19/25 | In Progress | - |
 
-**Totals:** 4 milestones shipped, 27 phases complete, 80 plans completed
+**Totals:** 4 milestones, 27 phases complete, 3 gap closure phases pending, 80 plans completed
