@@ -5,7 +5,7 @@
 - <details><summary>v1.12 GSD Reflect (Phases 0-6) -- SHIPPED 2026-02-09</summary>See milestones/v1.12-ROADMAP.md</details>
 - <details><summary>v1.13 Upstream Sync & Validation (Phases 7-12) -- SHIPPED 2026-02-11</summary>See milestones/v1.13-ROADMAP.md</details>
 - <details><summary>v1.14 Multi-Runtime Interop (Phases 13-21) -- SHIPPED 2026-02-16</summary>See milestones/v1.14-ROADMAP.md</details>
-- **v1.15 Backlog & Update Experience** - Phases 22-30 (27 complete, 28-30 gap closure)
+- **v1.15 Backlog & Update Experience** - Phases 22-30 -- COMPLETE 2026-02-23
 
 ## v1.15 Backlog & Update Experience
 
@@ -25,7 +25,7 @@
 - [x] **Phase 27: Workflow DX & Reliability** - Lighter quick-task flow, installer hardening, shell script portability ✓ 2026-02-23
 - [x] **Phase 28: Restore Deleted Commands & Fix Dangling References** - Revert botched f664984 refactor, restore 3 agents + 2 commands, fix 15+ broken references *(Gap Closure)* ✓ 2026-02-23
 - [x] **Phase 29: Test Fixes & Installer Deployment** - Fix GSD_HOME test isolation, wiring validation failures, redeploy stale installer binary *(Gap Closure)* ✓ 2026-02-23
-- [ ] **Phase 30: Signal-Driven Workflow Fixes** - Address open signals: .continue-here cleanup, resume-work path gaps, spike research gate *(Gap Closure)*
+- [x] **Phase 30: Signal-Driven Workflow Fixes** - Address open signals: .continue-here cleanup, resume-work path gaps, spike research gate *(Gap Closure)* ✓ 2026-02-23
 
 ### Phase Details
 
@@ -216,7 +216,7 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27 -> 28 -> 29 ->
 | 27. Workflow DX & Reliability | 3/3 | ✓ Complete | 2026-02-23 |
 | 28. Restore Deleted Commands | 1/1 | ✓ Complete | 2026-02-23 |
 | 29. Test Fixes & Installer Deploy | 2/2 | ✓ Complete | 2026-02-23 |
-| 30. Signal-Driven Workflow Fixes | 0/2 | Pending | - |
+| 30. Signal-Driven Workflow Fixes | 2/2 | ✓ Complete | 2026-02-23 |
 
 ## Overall Progress
 
@@ -225,6 +225,6 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27 -> 28 -> 29 ->
 | 0-6 | v1.12 | 25/25 | Complete | 2026-02-09 |
 | 7-12 | v1.13 | 18/18 | Complete | 2026-02-11 |
 | 13-21 | v1.14 | 18/18 | Complete | 2026-02-16 |
-| 22-30 | v1.15 | 22/25 | In Progress | - |
+| 22-30 | v1.15 | 25/25 | Complete | 2026-02-23 |
 
-**Totals:** 4 milestones, 29 phases complete, 1 gap closure phase pending, 83 plans completed
+**Totals:** 4 milestones, 30 phases complete, 86 plans completed
