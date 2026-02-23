@@ -22,7 +22,7 @@
 - [x] **Phase 24: Manifest-Driven Config Migration** - Upgrade, new-project, and update workflows consume manifest for config gap detection ✓ 2026-02-22
 - [x] **Phase 25: Backlog System Core** - Structured idea capture with two-tier storage, rich metadata, and CLI tooling ✓ 2026-02-23
 - [x] **Phase 26: Backlog Workflow Integration** - Connect backlog to milestone planning, todo promotion, and completion review ✓ 2026-02-23
-- [ ] **Phase 27: Workflow DX & Reliability** - Lighter quick-task flow, installer hardening, shell script portability
+- [x] **Phase 27: Workflow DX & Reliability** - Lighter quick-task flow, installer hardening, shell script portability ✓ 2026-02-23
 
 ### Phase Details
 
@@ -153,7 +153,7 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 | 24. Manifest-Driven Config Migration | 3/3 | ✓ Complete | 2026-02-22 |
 | 25. Backlog System Core | 3/3 | ✓ Complete | 2026-02-23 |
 | 26. Backlog Workflow Integration | 3/3 | ✓ Complete | 2026-02-23 |
-| 27. Workflow DX & Reliability | 0/3 | Planned | - |
+| 27. Workflow DX & Reliability | 3/3 | ✓ Complete | 2026-02-23 |
 
 ## Overall Progress
 
@@ -162,6 +162,6 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 | 0-6 | v1.12 | 25/25 | Complete | 2026-02-09 |
 | 7-12 | v1.13 | 18/18 | Complete | 2026-02-11 |
 | 13-21 | v1.14 | 18/18 | Complete | 2026-02-16 |
-| 22-27 | v1.15 | 16/19 | In progress | - |
+| 22-27 | v1.15 | 19/19 | Complete | 2026-02-23 |
 
-**Totals:** 3 milestones shipped, 26 phases complete, 77 plans completed, 3 planned
+**Totals:** 4 milestones shipped, 27 phases complete, 80 plans completed
