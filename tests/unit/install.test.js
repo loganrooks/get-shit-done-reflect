@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { tmpdirTest } from '../helpers/tmpdir.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent } = require('../../bin/install.js')
+const { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -1242,4 +1242,56 @@ Also use the Read tool to read files and Bash to run commands.`
       expect(content).not.toContain('required')
     })
   })
+
+  describe('safeFs', () => {
+    it('returns the value from the wrapped function on success', () => {
+      const result = safeFs('mkdirSync', () => 'ok', '/tmp/test');
+      expect(result).toBe('ok');
+    });
+
+    it('re-throws the original error after logging', () => {
+      const original = Object.assign(new Error('permission denied'), { code: 'EACCES' });
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      expect(() => safeFs('mkdirSync', () => { throw original; }, '/tmp/test')).toThrow(original);
+      spy.mockRestore();
+    });
+
+    it('logs error message with operation name, path, and EACCES hint', () => {
+      const errors = [];
+      const spy = vi.spyOn(console, 'error').mockImplementation((...args) => errors.push(args.join(' ')));
+      const err = Object.assign(new Error('permission denied'), { code: 'EACCES' });
+      try {
+        safeFs('mkdirSync', () => { throw err; }, '/some/path');
+      } catch (e) { /* expected */ }
+      spy.mockRestore();
+      expect(errors.some(line => line.includes('mkdirSync'))).toBe(true);
+      expect(errors.some(line => line.includes('/some/path'))).toBe(true);
+      expect(errors.some(line => line.includes('Check file/directory permissions'))).toBe(true);
+    });
+
+    it('logs error message with operation name, both paths, and ENOENT hint', () => {
+      const errors = [];
+      const spy = vi.spyOn(console, 'error').mockImplementation((...args) => errors.push(args.join(' ')));
+      const err = Object.assign(new Error('no such file'), { code: 'ENOENT' });
+      try {
+        safeFs('cpSync', () => { throw err; }, '/src/path', '/dest/path');
+      } catch (e) { /* expected */ }
+      spy.mockRestore();
+      expect(errors.some(line => line.includes('cpSync'))).toBe(true);
+      expect(errors.some(line => line.includes('/src/path') && line.includes('/dest/path'))).toBe(true);
+      expect(errors.some(line => line.includes('Source path does not exist'))).toBe(true);
+    });
+
+    it('logs operation name but no hint for unknown error codes', () => {
+      const errors = [];
+      const spy = vi.spyOn(console, 'error').mockImplementation((...args) => errors.push(args.join(' ')));
+      const err = Object.assign(new Error('something unexpected'), { code: 'UNKNOWN' });
+      try {
+        safeFs('mkdirSync', () => { throw err; }, '/tmp/test');
+      } catch (e) { /* expected */ }
+      spy.mockRestore();
+      expect(errors.some(line => line.includes('mkdirSync'))).toBe(true);
+      expect(errors.every(line => !line.includes('Hint:'))).toBe(true);
+    });
+  });
 })
