@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 
 ## Current Position
 
-Phase: 28 of 30 (Restore Deleted Commands)
-Plan: 01 of 1 (PHASE COMPLETE)
-Status: Phase Complete -- 20/20 wiring validation tests pass, 5 files restored
-Last activity: 2026-02-23 -- Phase 28 complete: restored 3 agent specs + 2 commands deleted by f664984
+Phase: 29 of 30 (Test Fixes & Installer Deploy)
+Plan: 01 of 2
+Status: Plan 01 complete -- 256 tests green across 3 runners, backlog stats isolation fixed
+Last activity: 2026-02-23 -- Plan 01 complete: fixed 2 GSD_HOME isolation gaps in backlog stats tests
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (19) + gap closure (1) = 81 plans shipped across 28 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (19) + gap closure (2) = 82 plans shipped across 29 phases
 
 ## Performance Metrics
 
@@ -77,6 +77,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 27]: safeFs always re-throws -- logging only, never error suppression
 - [Phase 28]: Restored files verbatim from f664984^ (pre-deletion commit) -- no modifications needed
 - [Phase 28]: Known debt accepted: restored agents have inline protocol (pre-Phase 22 extraction), works but inconsistent with other 8 agents
+- [Phase 29]: Only backlog stats tests need GSD_HOME isolation (stats merges local+global items; list/group/add operate on local only)
 
 ### Pending Todos
 
@@ -117,6 +118,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 27 P03 | 2min | 2 tasks | 5 files |
 | Phase 27 P01 | 2 | 2 tasks | 1 files |
 | Phase 28 P01 | 1min | 2 tasks | 5 files |
+| Phase 29 P01 | 4min | 3 tasks | 1 files |
 
 ### Roadmap Evolution
 
@@ -135,5 +137,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 28-01-PLAN.md -- Phase 28 complete (1/1 plans). Gap closure phases 29-30 remain.
+Stopped at: Completed 29-01-PLAN.md -- Plan 01 of 2 done. Plan 02 (installer deploy) remains.
 Resume file: None
