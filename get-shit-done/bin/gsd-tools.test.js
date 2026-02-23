@@ -4038,3 +4038,214 @@ Old item to update.
     assert.ok(content.includes('priority: MEDIUM'), 'priority should be intact');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BINT-05: reader enumeration verification
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('BINT-05: reader enumeration verification', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  // ── Mixed-schema reader tests (B3-B4, B7) ──────────────────────────────
+
+  test('backlog group handles items with and without milestone field', () => {
+    // Item WITH milestone field (via createBacklogItem helper)
+    createBacklogItem(tmpDir, {
+      title: 'With milestone',
+      filename: '2026-02-22-with-milestone.md',
+      id: 'blog-with-milestone',
+      milestone: 'v1.5',
+      theme: 'feature',
+    });
+
+    // Item WITHOUT milestone field (pre-Phase-26 format, manually created)
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    fs.writeFileSync(path.join(itemsDir, '2026-02-22-no-milestone.md'), `---
+id: blog-no-milestone
+title: No milestone
+tags: []
+theme: feature
+priority: MEDIUM
+status: captured
+source: command
+promoted_to: null
+created: 2026-02-22T10:00:00.000Z
+updated: 2026-02-22T10:00:00.000Z
+---
+
+## Description
+
+Pre-Phase-26 item without milestone line.
+`, 'utf-8');
+
+    const result = runGsdTools('backlog group --by theme', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.total_items, 2, 'should count both items');
+    assert.ok(output.groups['feature'], 'should have feature group');
+    assert.strictEqual(output.groups['feature'].length, 2, 'feature group should have 2 items');
+  });
+
+  test('backlog stats counts items regardless of milestone field presence', () => {
+    // Item WITH milestone field
+    createBacklogItem(tmpDir, {
+      title: 'Has milestone',
+      filename: '2026-02-22-has-milestone.md',
+      id: 'blog-has-milestone',
+      milestone: 'v1.5',
+      status: 'captured',
+    });
+
+    // Item WITHOUT milestone field (pre-Phase-26 format)
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    fs.writeFileSync(path.join(itemsDir, '2026-02-22-lacks-milestone.md'), `---
+id: blog-lacks-milestone
+title: Lacks milestone
+tags: []
+theme: general
+priority: HIGH
+status: triaged
+source: command
+promoted_to: null
+created: 2026-02-22T10:00:00.000Z
+updated: 2026-02-22T10:00:00.000Z
+---
+
+## Description
+
+Pre-Phase-26 item without milestone line.
+`, 'utf-8');
+
+    // Use GSD_HOME pointing to nonexistent dir to isolate from global items
+    const result = runGsdToolsWithEnv('backlog stats', tmpDir, {
+      GSD_HOME: path.join(tmpDir, '__nonexistent_gsd_home__'),
+    });
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.total, 2, 'total should count both items');
+    assert.strictEqual(output.by_status.captured, 1, 'captured count should be 1');
+    assert.strictEqual(output.by_status.triaged, 1, 'triaged count should be 1');
+    assert.strictEqual(output.by_priority.MEDIUM, 1, 'MEDIUM count should be 1');
+    assert.strictEqual(output.by_priority.HIGH, 1, 'HIGH count should be 1');
+  });
+
+  test('backlog index includes Milestone column for mixed items', () => {
+    // Item WITH milestone
+    createBacklogItem(tmpDir, {
+      title: 'Milestone item',
+      filename: '2026-02-22-milestone-item.md',
+      id: 'blog-milestone-item',
+      milestone: 'v1.5',
+      priority: 'HIGH',
+    });
+
+    // Item WITHOUT milestone field (pre-Phase-26 format)
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    fs.writeFileSync(path.join(itemsDir, '2026-02-22-no-ms-item.md'), `---
+id: blog-no-ms-item
+title: No milestone item
+tags: []
+theme: general
+priority: LOW
+status: captured
+source: command
+promoted_to: null
+created: 2026-02-22T10:00:00.000Z
+updated: 2026-02-22T10:00:00.000Z
+---
+
+## Description
+
+Pre-Phase-26 item without milestone line.
+`, 'utf-8');
+
+    const result = runGsdTools('backlog index', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const indexPath = path.join(tmpDir, '.planning', 'backlog', 'index.md');
+    assert.ok(fs.existsSync(indexPath), 'index.md should exist');
+
+    const content = fs.readFileSync(indexPath, 'utf-8');
+    assert.ok(content.includes('| Milestone |'), 'table header should include Milestone column');
+    assert.ok(content.includes('v1.5'), 'row with milestone should show v1.5');
+    // Item without milestone should show em-dash fallback
+    assert.ok(content.includes('\u2014'), 'row without milestone should show em-dash fallback');
+  });
+
+  // ── Todo system isolation tests (T1-T2) ────────────────────────────────
+
+  test('cmdListTodos output is unchanged by backlog schema changes', () => {
+    // Create a standard pending todo file (no milestone field)
+    const pendingDir = path.join(tmpDir, '.planning', 'todos', 'pending');
+    fs.mkdirSync(pendingDir, { recursive: true });
+    fs.writeFileSync(path.join(pendingDir, 'isolation-test.md'), `---
+created: 2026-02-22
+title: Todo isolation test
+area: testing
+priority: HIGH
+source: conversation
+status: pending
+---
+
+## Description
+
+This todo should not have a milestone field.
+`, 'utf-8');
+
+    const result = runGsdTools('list-todos', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.count, 1, 'should have 1 todo');
+    const todo = output.todos[0];
+    assert.strictEqual(todo.title, 'Todo isolation test', 'title should match');
+    assert.strictEqual(todo.area, 'testing', 'area should match');
+    assert.strictEqual(todo.priority, 'HIGH', 'priority should match');
+    assert.strictEqual(todo.source, 'conversation', 'source should match');
+    assert.strictEqual(todo.status, 'pending', 'status should match');
+    // Verify NO milestone field in todo object
+    assert.strictEqual(todo.milestone, undefined, 'todo should NOT have milestone field');
+    assert.ok(!('milestone' in todo), 'milestone key should not exist in todo object');
+  });
+
+  test('todo with auto-defaults does not gain milestone field', () => {
+    // Create a minimal todo file (only title and area, no priority/source/status)
+    const pendingDir = path.join(tmpDir, '.planning', 'todos', 'pending');
+    fs.mkdirSync(pendingDir, { recursive: true });
+    fs.writeFileSync(path.join(pendingDir, 'minimal-todo.md'), `---
+created: 2026-02-22
+title: Minimal todo
+area: general
+---
+
+## Description
+
+Minimal todo with only title and area.
+`, 'utf-8');
+
+    const result = runGsdTools('init todos', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(output.todos, 'should have todos array');
+    assert.strictEqual(output.todo_count, 1, 'should have 1 todo');
+    const todo = output.todos[0];
+    // Auto-defaults should be applied
+    assert.strictEqual(todo.priority, 'MEDIUM', 'should default priority to MEDIUM');
+    assert.strictEqual(todo.source, 'unknown', 'should default source to unknown');
+    assert.strictEqual(todo.status, 'pending', 'should default status to pending');
+    // NO milestone field should exist
+    assert.strictEqual(todo.milestone, undefined, 'todo should NOT have milestone field');
+    assert.ok(!('milestone' in todo), 'milestone key should not exist in todo object');
+  });
+});
