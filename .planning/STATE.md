@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.15 Backlog & Update Experience -- Phase 24 in progress
+**Current focus:** v1.15 Backlog & Update Experience -- Phase 25 in progress
 
 ## Current Position
 
-Phase: 24 of 27 (Manifest-Driven Config Migration)
-Plan: 03 of 3 (PHASE COMPLETE)
-Status: Phase Complete
-Last activity: 2026-02-22 -- Completed 24-03-PLAN.md (workflow integration: upgrade-project, new-project, update now use manifest commands)
+Phase: 25 of 27 (Backlog System Core)
+Plan: 01 of 3
+Status: In Progress
+Last activity: 2026-02-22 -- Completed 25-01-PLAN.md (backlog CRUD: add/list/update/stats commands + todo auto-defaults)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (11) = 72 plans shipped across 24 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (12) = 73 plans shipped across 25 phases
 
 ## Performance Metrics
 
@@ -55,6 +55,9 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 24]: git_log_pattern check uses threshold-based matching (default 50% of last 20 commits)
 - [Phase 24]: Feature config step numbered 5.6 (not 5.5) to avoid collision with existing model profile step
 - [Phase 24]: update.md YOLO mode auto-applies migration; interactive mode defers to /gsd:upgrade-project
+- [Phase 25]: promoted_to stored as string 'null' (not JS null) to survive reconstructFrontmatter null-skipping
+- [Phase 25]: TDD approach: 17 tests written first (RED), then implementation to pass all (GREEN)
+- [Phase 25]: backlog stats aggregates local items only when no GSD_HOME set (global dir doesn't exist in test env)
 
 ### Pending Todos
 
@@ -85,6 +88,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 24 P01 | 5min | 2 tasks | 4 files |
 | Phase 24 P02 | 5min | 2 tasks | 2 files |
 | Phase 24 P03 | 3min | 3 tasks | 4 files |
+| Phase 25 P01 | 8min | 2 tasks | 2 files |
 
 ### Roadmap Evolution
 
@@ -103,5 +107,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 24-03-PLAN.md (Phase 24 complete -- all workflow files now manifest-driven)
+Stopped at: Completed 25-01-PLAN.md (backlog CRUD: add/list/update/stats + todo auto-defaults)
 Resume file: None
