@@ -113,7 +113,7 @@ If `SCOPE="all"`, depth is effectively comprehensive regardless of setting.
 Check that the knowledge base exists and has content:
 
 ```bash
-KB_DIR="$HOME/.claude/gsd-knowledge"
+KB_DIR="$HOME/.gsd/knowledge"
 KB_INDEX="$KB_DIR/index.md"
 
 if [ ! -f "$KB_INDEX" ]; then
@@ -181,17 +181,6 @@ fi
 
 <step name="spawn_reflector">
 
-**Runtime capability check:**
-
-If the current runtime does not support agent spawning (e.g., Codex CLI — no Task tool available), execute the reflection analysis inline instead of delegating to a subagent:
-
-1. Read the gsd-reflector agent spec for analysis rules
-2. Follow the reflection logic directly in the current context
-3. Write lessons to `~/.gsd/knowledge/lessons/`
-4. Return the Reflection Report
-
-**If agent spawning is available (Claude Code, OpenCode, Gemini CLI):**
-
 Delegate to the `gsd-reflector` agent with prepared context:
 
 ```
@@ -237,8 +226,6 @@ Task(
   subagent_type="gsd-reflector"
 )
 ```
-
-**End capability check**
 
 The agent performs all analysis logic and returns a structured Reflection Report.
 
@@ -415,11 +402,11 @@ If lessons were written and `COMMIT_PLANNING_DOCS` is true, commit the new lesso
 ```bash
 if [ "$COMMIT_PLANNING_DOCS" = "true" ] && [ "$LESSONS_CREATED" -gt 0 ]; then
   # Stage individual lesson files
-  for lesson_file in $(find ./.claude/gsd-knowledge/lessons/ -name "les-*.md" -newer ./.claude/gsd-knowledge/index.md 2>/dev/null); do
+  for lesson_file in $(find ~/.gsd/knowledge/lessons/ -name "les-*.md" -newer ~/.gsd/knowledge/index.md 2>/dev/null); do
     git add "$lesson_file"
   done
   # Stage updated index
-  git add ./.claude/gsd-knowledge/index.md
+  git add ~/.gsd/knowledge/index.md
   git commit -m "docs(lessons): distill ${LESSONS_CREATED} lessons from reflection
 
 - Patterns analyzed: ${PATTERNS_DETECTED}
@@ -438,7 +425,7 @@ Skip if `COMMIT_PLANNING_DOCS` is false or no lessons were created.
 
 **No KB:**
 ```
-No knowledge base found at ./.claude/gsd-knowledge/index.md
+No knowledge base found at ~/.gsd/knowledge/index.md
 Run /gsd:collect-signals first to create the KB and collect signals.
 ```
 

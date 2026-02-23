@@ -100,17 +100,6 @@ fi
 CONFIG_CONTENT=$(cat .planning/config.json 2>/dev/null)
 ```
 
-**Runtime capability check:**
-
-If the current runtime does not support agent spawning (e.g., Codex CLI — no Task tool available), execute the signal collection inline instead of delegating to a subagent:
-
-1. Read the gsd-signal-collector agent spec for detection rules
-2. Follow the detection logic directly in the current context
-3. Write signals to `~/.gsd/knowledge/signals/{PROJECT_NAME}/`
-4. Return the Signal Collection Report
-
-**If agent spawning is available (Claude Code, OpenCode, Gemini CLI):**
-
 Spawn the agent:
 
 ```
@@ -138,8 +127,6 @@ Task(
   subagent_type="gsd-signal-collector"
 )
 ```
-
-**End capability check**
 
 The agent performs all detection logic and returns a structured Signal Collection Report.
 </step>
@@ -179,7 +166,7 @@ Plans analyzed: {N}
 
 ### Signal Files
 
-{List of files written to ./.claude/gsd-knowledge/signals/}
+{List of files written to ~/.gsd/knowledge/signals/}
 
 ───────────────────────────────────────────────────────────────
 
@@ -200,11 +187,11 @@ If signals were written and `COMMIT_PLANNING_DOCS` is true, commit the new signa
 ```bash
 if [ "$COMMIT_PLANNING_DOCS" = "true" ] && [ "$SIGNALS_WRITTEN" -gt 0 ]; then
   # Stage individual signal files
-  for signal_file in $(ls ./.claude/gsd-knowledge/signals/${PROJECT_NAME}/*.md 2>/dev/null); do
+  for signal_file in $(ls ~/.gsd/knowledge/signals/${PROJECT_NAME}/*.md 2>/dev/null); do
     git add "$signal_file"
   done
   # Stage updated index
-  git add ./.claude/gsd-knowledge/index.md
+  git add ~/.gsd/knowledge/index.md
   git commit -m "docs(signals): collect phase ${PADDED_PHASE} signals
 
 - ${SIGNALS_WRITTEN} signals persisted
