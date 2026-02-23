@@ -101,7 +101,11 @@ Plans:
   2. Running `/gsd:check-todos` offers a "promote to backlog" action for any pending todo, and supports filtering by priority and status
   3. During `/gsd:complete-milestone`, a backlog review step surfaces un-promoted items and asks the user whether to keep, defer, or discard them
   4. All code paths that read todo or backlog data are enumerated and verified working (init, STATE.md rendering, check-todos, resume-work, backlog commands) -- preventing the v1.14 pattern where migration updated one reader but broke others
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 26-01-PLAN.md -- Schema extension + promote enhancement (TDD: milestone field, multi-status filter)
+- [ ] 26-02-PLAN.md -- Workflow integration (new-milestone, check-todos, complete-milestone)
+- [ ] 26-03-PLAN.md -- Reader enumeration verification (backward compat, todo isolation, full suite)
 
 #### Phase 27: Workflow DX & Reliability
 **Goal**: Common tasks are faster, errors are clearer, and scripts work across environments without surprises
@@ -144,7 +148,7 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 | 23. Feature Manifest Foundation | 2/2 | ✓ Complete | 2026-02-22 |
 | 24. Manifest-Driven Config Migration | 3/3 | ✓ Complete | 2026-02-22 |
 | 25. Backlog System Core | 3/3 | ✓ Complete | 2026-02-23 |
-| 26. Backlog Workflow Integration | 0/TBD | Not started | - |
+| 26. Backlog Workflow Integration | 0/3 | Not started | - |
 | 27. Workflow DX & Reliability | 0/TBD | Not started | - |
 
 ## Overall Progress
