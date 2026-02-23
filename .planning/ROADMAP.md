@@ -23,7 +23,7 @@
 - [x] **Phase 25: Backlog System Core** - Structured idea capture with two-tier storage, rich metadata, and CLI tooling ✓ 2026-02-23
 - [x] **Phase 26: Backlog Workflow Integration** - Connect backlog to milestone planning, todo promotion, and completion review ✓ 2026-02-23
 - [x] **Phase 27: Workflow DX & Reliability** - Lighter quick-task flow, installer hardening, shell script portability ✓ 2026-02-23
-- [ ] **Phase 28: Restore Deleted Commands & Fix Dangling References** - Revert botched f664984 refactor, restore 3 agents + 2 commands, fix 15+ broken references *(Gap Closure)*
+- [x] **Phase 28: Restore Deleted Commands & Fix Dangling References** - Revert botched f664984 refactor, restore 3 agents + 2 commands, fix 15+ broken references *(Gap Closure)* ✓ 2026-02-23
 - [ ] **Phase 29: Test Fixes & Installer Deployment** - Fix GSD_HOME test isolation, wiring validation failures, redeploy stale installer binary *(Gap Closure)*
 - [ ] **Phase 30: Signal-Driven Workflow Fixes** - Address open signals: .continue-here cleanup, resume-work path gaps, spike research gate *(Gap Closure)*
 
@@ -214,7 +214,7 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27 -> 28 -> 29 ->
 | 25. Backlog System Core | 3/3 | ✓ Complete | 2026-02-23 |
 | 26. Backlog Workflow Integration | 3/3 | ✓ Complete | 2026-02-23 |
 | 27. Workflow DX & Reliability | 3/3 | ✓ Complete | 2026-02-23 |
-| 28. Restore Deleted Commands | 0/1 | Pending | - |
+| 28. Restore Deleted Commands | 1/1 | ✓ Complete | 2026-02-23 |
 | 29. Test Fixes & Installer Deploy | 0/2 | Pending | - |
 | 30. Signal-Driven Workflow Fixes | 0/2 | Pending | - |
 
@@ -225,6 +225,6 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27 -> 28 -> 29 ->
 | 0-6 | v1.12 | 25/25 | Complete | 2026-02-09 |
 | 7-12 | v1.13 | 18/18 | Complete | 2026-02-11 |
 | 13-21 | v1.14 | 18/18 | Complete | 2026-02-16 |
-| 22-30 | v1.15 | 19/25 | In Progress | - |
+| 22-30 | v1.15 | 20/25 | In Progress | - |
 
-**Totals:** 4 milestones, 27 phases complete, 3 gap closure phases pending, 80 plans completed
+**Totals:** 4 milestones, 28 phases complete, 2 gap closure phases pending, 81 plans completed
