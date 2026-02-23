@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-17)
 ## Current Position
 
 Phase: 25 of 27 (Backlog System Core)
-Plan: 01 of 3
-Status: In Progress
-Last activity: 2026-02-22 -- Completed 25-01-PLAN.md (backlog CRUD: add/list/update/stats commands + todo auto-defaults)
+Plan: 03 of 3
+Status: Complete
+Last activity: 2026-02-22 -- Completed 25-03-PLAN.md (add-todo metadata fields: priority, source, status)
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (12) = 73 plans shipped across 25 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (14) = 75 plans shipped across 25 phases
 
 ## Performance Metrics
 
@@ -58,6 +58,8 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 25]: promoted_to stored as string 'null' (not JS null) to survive reconstructFrontmatter null-skipping
 - [Phase 25]: TDD approach: 17 tests written first (RED), then implementation to pass all (GREEN)
 - [Phase 25]: backlog stats aggregates local items only when no GSD_HOME set (global dir doesn't exist in test env)
+- [Phase 25]: Priority/source/status always written with defaults in add-todo -- user provides them optionally
+- [Phase 25]: BLOG-06 verified: STATE.md Pending Todos section untouched, todo and backlog systems coexist
 
 ### Pending Todos
 
@@ -89,6 +91,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 24 P02 | 5min | 2 tasks | 2 files |
 | Phase 24 P03 | 3min | 3 tasks | 4 files |
 | Phase 25 P01 | 8min | 2 tasks | 2 files |
+| Phase 25 P03 | 2min | 2 tasks | 2 files |
 
 ### Roadmap Evolution
 
@@ -107,5 +110,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-22
-Stopped at: Completed 25-01-PLAN.md (backlog CRUD: add/list/update/stats + todo auto-defaults)
+Stopped at: Completed 25-03-PLAN.md (add-todo metadata fields) -- Phase 25 complete
 Resume file: None
