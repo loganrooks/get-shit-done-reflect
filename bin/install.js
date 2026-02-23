@@ -13,6 +13,33 @@ const yellow = '\x1b[33m';
 const dim = '\x1b[2m';
 const reset = '\x1b[0m';
 
+/**
+ * Safe wrapper for fs operations with descriptive error messages.
+ * Wraps fs.*Sync calls in try-catch, logs operation/path/hint on failure, re-throws.
+ * @param {string} operation - Name of the operation (e.g., 'mkdirSync', 'cpSync', 'renameSync')
+ * @param {Function} fn - The fs function to call (thunk)
+ * @param {string} src - Source path (or target for mkdir)
+ * @param {string} [dest] - Destination path (for copy/rename)
+ */
+function safeFs(operation, fn, src, dest) {
+  try {
+    return fn();
+  } catch (err) {
+    const destMsg = dest ? ` -> ${dest}` : '';
+    const hint = {
+      EACCES: 'Check file/directory permissions',
+      ENOSPC: 'Check available disk space',
+      ENOENT: 'Source path does not exist',
+      EPERM: 'Operation not permitted (check ownership)',
+      EEXIST: 'Destination already exists',
+    }[err.code] || '';
+    console.error(`  ${yellow}!${reset} ${operation} failed: ${src}${destMsg}`);
+    console.error(`    Error: ${err.message}`);
+    if (hint) console.error(`    Hint: ${hint}`);
+    throw err;
+  }
+}
+
 // Get version from package.json
 const pkg = require('../package.json');
 
@@ -2406,4 +2433,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, installKBScripts, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent };
+module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, installKBScripts, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs };
