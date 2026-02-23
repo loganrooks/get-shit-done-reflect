@@ -116,7 +116,11 @@ Plans:
   2. Running `/gsd:quick` with a complex task description (multi-step, multiple concerns) falls back to the full planner+executor flow unchanged -- no regression in quality for complex work
   3. Installer file operations (fs.mkdirSync, fs.cpSync, fs.renameSync) are wrapped in try-catch blocks that produce descriptive error messages identifying the operation, source path, and destination path on failure
   4. Shell scripts use portable constructs: `${GSD_HOME:-$HOME/.gsd}` for home directory, portable `mktemp`, and `set -o pipefail` for error propagation
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 27-01-PLAN.md -- Quick workflow complexity gate (DX-01, DX-02)
+- [ ] 27-02-PLAN.md -- Installer error handling with safeFs() wrapper (DX-03)
+- [ ] 27-03-PLAN.md -- Shell script portability fixes (DX-04)
 
 ### Dependency Graph
 
@@ -149,7 +153,7 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 | 24. Manifest-Driven Config Migration | 3/3 | ✓ Complete | 2026-02-22 |
 | 25. Backlog System Core | 3/3 | ✓ Complete | 2026-02-23 |
 | 26. Backlog Workflow Integration | 3/3 | ✓ Complete | 2026-02-23 |
-| 27. Workflow DX & Reliability | 0/TBD | Not started | - |
+| 27. Workflow DX & Reliability | 0/3 | Planned | - |
 
 ## Overall Progress
 
@@ -158,6 +162,6 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27
 | 0-6 | v1.12 | 25/25 | Complete | 2026-02-09 |
 | 7-12 | v1.13 | 18/18 | Complete | 2026-02-11 |
 | 13-21 | v1.14 | 18/18 | Complete | 2026-02-16 |
-| 22-27 | v1.15 | 16/TBD | In progress | - |
+| 22-27 | v1.15 | 16/19 | In progress | - |
 
-**Totals:** 3 milestones shipped, 26 phases complete, 77 plans completed
+**Totals:** 3 milestones shipped, 26 phases complete, 77 plans completed, 3 planned
