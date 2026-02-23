@@ -640,6 +640,9 @@ function cmdListTodos(cwd, area, raw) {
         const createdMatch = content.match(/^created:\s*(.+)$/m);
         const titleMatch = content.match(/^title:\s*(.+)$/m);
         const areaMatch = content.match(/^area:\s*(.+)$/m);
+        const priorityMatch = content.match(/^priority:\s*(.+)$/m);
+        const sourceMatch = content.match(/^source:\s*(.+)$/m);
+        const statusMatch = content.match(/^status:\s*(.+)$/m);
 
         const todoArea = areaMatch ? areaMatch[1].trim() : 'general';
 
@@ -652,6 +655,9 @@ function cmdListTodos(cwd, area, raw) {
           created: createdMatch ? createdMatch[1].trim() : 'unknown',
           title: titleMatch ? titleMatch[1].trim() : 'Untitled',
           area: todoArea,
+          priority: priorityMatch ? priorityMatch[1].trim() : 'MEDIUM',
+          source: sourceMatch ? sourceMatch[1].trim() : 'unknown',
+          status: statusMatch ? statusMatch[1].trim() : 'pending',
           path: path.join('.planning', 'todos', 'pending', file),
         });
       } catch {}
@@ -3660,6 +3666,187 @@ function generateSlugInternal(text) {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
+// ─── Backlog Helpers ─────────────────────────────────────────────────────────
+
+function resolveBacklogDir(cwd, isGlobal) {
+  if (isGlobal) {
+    const gsdHome = process.env.GSD_HOME || path.join(require('os').homedir(), '.gsd');
+    return path.join(gsdHome, 'backlog', 'items');
+  }
+  return path.join(cwd, '.planning', 'backlog', 'items');
+}
+
+function readBacklogItems(cwd, isGlobal) {
+  const itemsDir = resolveBacklogDir(cwd, isGlobal);
+  const items = [];
+  try {
+    const files = fs.readdirSync(itemsDir).filter(f => f.endsWith('.md'));
+    for (const file of files) {
+      try {
+        const content = fs.readFileSync(path.join(itemsDir, file), 'utf-8');
+        const fm = extractFrontmatter(content);
+        items.push({
+          id: fm.id || file.replace('.md', ''),
+          title: fm.title || 'Untitled',
+          priority: fm.priority || 'MEDIUM',
+          status: fm.status || 'captured',
+          tags: Array.isArray(fm.tags) ? fm.tags : [],
+          theme: fm.theme || null,
+          source: fm.source || 'unknown',
+          promoted_to: fm.promoted_to === 'null' ? null : (fm.promoted_to || null),
+          created: fm.created || 'unknown',
+          updated: fm.updated || 'unknown',
+          file,
+        });
+      } catch {}
+    }
+  } catch {}
+  return items;
+}
+
+// ─── Backlog Commands ────────────────────────────────────────────────────────
+
+function cmdBacklogAdd(cwd, options, raw) {
+  const { title, tags, priority, theme, source, global: isGlobal } = options;
+  if (!title) { error('--title required for backlog add'); }
+
+  const itemsDir = resolveBacklogDir(cwd, isGlobal);
+  fs.mkdirSync(itemsDir, { recursive: true });
+
+  const now = new Date();
+  const date = now.toISOString().split('T')[0];
+  const slug = generateSlugInternal(title);
+  const id = `blog-${date}-${slug}`;
+
+  // Check for collision
+  let filename = `${date}-${slug}.md`;
+  let fullPath = path.join(itemsDir, filename);
+  let counter = 2;
+  while (fs.existsSync(fullPath)) {
+    filename = `${date}-${slug}-${counter}.md`;
+    fullPath = path.join(itemsDir, filename);
+    counter++;
+  }
+
+  const tagArray = tags ? tags.split(',').map(t => t.trim()) : [];
+  const frontmatter = {
+    id,
+    title,
+    tags: tagArray,
+    theme: theme || 'null',
+    priority: (priority || 'MEDIUM').toUpperCase(),
+    status: 'captured',
+    source: source || 'command',
+    promoted_to: 'null',
+    created: now.toISOString(),
+    updated: now.toISOString(),
+  };
+
+  const fmStr = reconstructFrontmatter(frontmatter);
+  const content = `---\n${fmStr}\n---\n\n## Description\n\n_No description provided._\n`;
+
+  fs.writeFileSync(fullPath, content, 'utf-8');
+
+  output({
+    created: true,
+    id,
+    file: filename,
+    path: fullPath,
+    global: isGlobal || false,
+  }, raw, id);
+}
+
+function cmdBacklogList(cwd, filters, raw) {
+  const { priority, status, tags, global: isGlobal } = filters;
+  const allItems = readBacklogItems(cwd, isGlobal);
+
+  const items = allItems.filter(item => {
+    if (priority && item.priority !== priority.toUpperCase()) return false;
+    if (status && item.status !== status) return false;
+    if (tags) {
+      const filterTags = tags.split(',').map(t => t.trim());
+      if (!filterTags.some(ft => item.tags.includes(ft))) return false;
+    }
+    return true;
+  });
+
+  output({ count: items.length, items }, raw, items.length.toString());
+}
+
+function cmdBacklogUpdate(cwd, itemId, updates, raw) {
+  if (!itemId) { error('item ID required for backlog update'); }
+
+  const itemsDir = resolveBacklogDir(cwd, false);
+  let targetFile = null;
+  let targetPath = null;
+
+  try {
+    const files = fs.readdirSync(itemsDir).filter(f => f.endsWith('.md'));
+    for (const file of files) {
+      const content = fs.readFileSync(path.join(itemsDir, file), 'utf-8');
+      const fm = extractFrontmatter(content);
+      if (fm.id === itemId) {
+        targetFile = file;
+        targetPath = path.join(itemsDir, file);
+        break;
+      }
+    }
+  } catch {}
+
+  if (!targetPath) { error(`Backlog item not found: ${itemId}`); }
+
+  const content = fs.readFileSync(targetPath, 'utf-8');
+  const fm = extractFrontmatter(content);
+
+  // Apply updates
+  const updatedFields = [];
+  for (const [key, value] of Object.entries(updates)) {
+    if (value !== undefined && value !== null) {
+      fm[key] = key === 'priority' ? value.toUpperCase() : value;
+      updatedFields.push(key);
+    }
+  }
+  fm.updated = new Date().toISOString();
+
+  // Reconstruct file content (preserve body after frontmatter)
+  const bodyMatch = content.match(/^---\n[\s\S]+?\n---\n([\s\S]*)$/);
+  const body = bodyMatch ? bodyMatch[1] : '\n\n## Description\n\n_No description provided._\n';
+  const fmStr = reconstructFrontmatter(fm);
+  const newContent = `---\n${fmStr}\n---\n${body}`;
+
+  fs.writeFileSync(targetPath, newContent, 'utf-8');
+
+  output({
+    updated: true,
+    id: itemId,
+    fields: updatedFields,
+    file: targetFile,
+  }, raw, itemId);
+}
+
+function cmdBacklogStats(cwd, raw) {
+  const localItems = readBacklogItems(cwd, false);
+  const globalItems = readBacklogItems(cwd, true);
+  const allItems = [...localItems, ...globalItems];
+
+  const byStatus = {};
+  const byPriority = {};
+  for (const item of allItems) {
+    const s = item.status || 'captured';
+    const p = item.priority || 'MEDIUM';
+    byStatus[s] = (byStatus[s] || 0) + 1;
+    byPriority[p] = (byPriority[p] || 0) + 1;
+  }
+
+  output({
+    total: allItems.length,
+    local: localItems.length,
+    global: globalItems.length,
+    by_status: byStatus,
+    by_priority: byPriority,
+  }, raw, `${allItems.length} items`);
+}
+
 function getMilestoneInfo(cwd) {
   try {
     const roadmap = fs.readFileSync(path.join(cwd, '.planning', 'ROADMAP.md'), 'utf-8');
@@ -4077,6 +4264,9 @@ function cmdInitTodos(cwd, area, raw) {
         const createdMatch = content.match(/^created:\s*(.+)$/m);
         const titleMatch = content.match(/^title:\s*(.+)$/m);
         const areaMatch = content.match(/^area:\s*(.+)$/m);
+        const priorityMatch = content.match(/^priority:\s*(.+)$/m);
+        const sourceMatch = content.match(/^source:\s*(.+)$/m);
+        const statusMatch = content.match(/^status:\s*(.+)$/m);
         const todoArea = areaMatch ? areaMatch[1].trim() : 'general';
 
         if (area && todoArea !== area) continue;
@@ -4087,6 +4277,9 @@ function cmdInitTodos(cwd, area, raw) {
           created: createdMatch ? createdMatch[1].trim() : 'unknown',
           title: titleMatch ? titleMatch[1].trim() : 'Untitled',
           area: todoArea,
+          priority: priorityMatch ? priorityMatch[1].trim() : 'MEDIUM',
+          source: sourceMatch ? sourceMatch[1].trim() : 'unknown',
+          status: statusMatch ? statusMatch[1].trim() : 'pending',
           path: path.join('.planning', 'todos', 'pending', file),
         });
       } catch {}
@@ -5053,6 +5246,54 @@ async function main() {
         cmdManifestAutoDetect(cwd, raw);
       } else {
         error('Unknown manifest subcommand. Available: diff-config, validate, get-prompts, apply-migration, log-migration, auto-detect');
+      }
+      break;
+    }
+
+    case 'backlog': {
+      const subcommand = args[1];
+      if (subcommand === 'add') {
+        const titleIdx = args.indexOf('--title');
+        const tagsIdx = args.indexOf('--tags');
+        const priorityIdx = args.indexOf('--priority');
+        const themeIdx = args.indexOf('--theme');
+        const sourceIdx = args.indexOf('--source');
+        const globalFlag = args.includes('--global');
+        cmdBacklogAdd(cwd, {
+          title: titleIdx !== -1 ? args[titleIdx + 1] : null,
+          tags: tagsIdx !== -1 ? args[tagsIdx + 1] : null,
+          priority: priorityIdx !== -1 ? args[priorityIdx + 1] : 'MEDIUM',
+          theme: themeIdx !== -1 ? args[themeIdx + 1] : null,
+          source: sourceIdx !== -1 ? args[sourceIdx + 1] : 'command',
+          global: globalFlag,
+        }, raw);
+      } else if (subcommand === 'list') {
+        const priorityIdx = args.indexOf('--priority');
+        const statusIdx = args.indexOf('--status');
+        const tagsIdx = args.indexOf('--tags');
+        const globalFlag = args.includes('--global');
+        cmdBacklogList(cwd, {
+          priority: priorityIdx !== -1 ? args[priorityIdx + 1] : null,
+          status: statusIdx !== -1 ? args[statusIdx + 1] : null,
+          tags: tagsIdx !== -1 ? args[tagsIdx + 1] : null,
+          global: globalFlag,
+        }, raw);
+      } else if (subcommand === 'update') {
+        const itemId = args[2];
+        const priorityIdx = args.indexOf('--priority');
+        const statusIdx = args.indexOf('--status');
+        const themeIdx = args.indexOf('--theme');
+        const tagsIdx = args.indexOf('--tags');
+        cmdBacklogUpdate(cwd, itemId, {
+          priority: priorityIdx !== -1 ? args[priorityIdx + 1] : undefined,
+          status: statusIdx !== -1 ? args[statusIdx + 1] : undefined,
+          theme: themeIdx !== -1 ? args[themeIdx + 1] : undefined,
+          tags: tagsIdx !== -1 ? args[tagsIdx + 1].split(',').map(t => t.trim()) : undefined,
+        }, raw);
+      } else if (subcommand === 'stats') {
+        cmdBacklogStats(cwd, raw);
+      } else {
+        error('Unknown backlog subcommand. Available: add, list, update, stats, group, promote, index');
       }
       break;
     }
