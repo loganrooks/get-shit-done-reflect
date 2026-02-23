@@ -69,16 +69,26 @@ Store `$QUICK_DIR` for use in orchestration.
 **Step 4b: Assess task complexity**
 
 <!-- Complexity gate: routes trivial tasks to inline execution, complex tasks to planner+executor -->
-<!-- Examples of TRIVIAL tasks: "fix typo in README", "update version to 1.5.0", "add .gitignore entry" -->
-<!-- Examples of COMPLEX tasks: "update the tests and fix the linting errors", "refactor auth module", -->
-<!--   "integrate Stripe webhooks with the order service", multi-line descriptions -->
+<!--                                                                                             -->
+<!-- TRIVIAL examples (inline execution):                                                        -->
+<!--   "fix typo in README"              - short, single concern, no keywords                    -->
+<!--   "update version to 1.5.0"         - short, single concern                                -->
+<!--   "add .gitignore entry"            - short, single concern                                 -->
+<!--   "remove unused import in utils"   - short, single concern                                 -->
+<!--                                                                                             -->
+<!-- COMPLEX examples (planner+executor):                                                        -->
+<!--   "update the tests and fix the linting errors"  - multi-concern ("and" joining two tasks)  -->
+<!--   "refactor auth module"                         - complexity keyword ("refactor")           -->
+<!--   "integrate Stripe webhooks with the order service" - complexity keyword ("integrate")     -->
+<!--   "fix the build across all packages"            - multi-concern keyword ("across", "all")  -->
+<!--   multi-line descriptions                        - multiple sentences signal complexity      -->
 
 Evaluate `$DESCRIPTION` for complexity signals:
 
 ```
 isTrivial = true  IF ALL of the following are true:
   - length(DESCRIPTION) < 100 characters
-  - DESCRIPTION does NOT contain multi-step indicators: "and then", "also", "additionally", "as well"
+  - DESCRIPTION does NOT contain multi-step indicators: "and then", "and", "then", "also", "additionally", "as well"
   - DESCRIPTION does NOT contain multi-concern indicators: "multiple", "several", "across", "each", "all"
   - DESCRIPTION does NOT contain complexity keywords: "refactor", "migrate", "integrate", "architecture", "redesign"
   - DESCRIPTION does NOT contain numbered steps (patterns like "1." "2." or bullet lists)
@@ -86,6 +96,8 @@ isTrivial = true  IF ALL of the following are true:
 
 isTrivial = false  OTHERWISE (fall back to planner+executor flow)
 ```
+
+Note: The "and" check uses word-boundary matching to avoid false positives on words containing "and" (e.g., "handler", "standard"). Match the standalone word "and" only.
 
 > **Conservative by design:** This heuristic errs on the side of caution. False positives (treating trivial as complex) only waste a planner spawn. False negatives (treating complex as trivial) risk incomplete execution. When in doubt, the task is classified as complex.
 
