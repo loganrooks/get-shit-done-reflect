@@ -1,5 +1,34 @@
 # Project Milestones: GSD Reflect
 
+## v1.15 Backlog & Update Experience (Shipped: 2026-02-23)
+
+**Delivered:** A structured backlog system for capturing and surfacing ideas across sessions, declarative feature configuration with manifest-driven upgrades, and workflow reliability improvements — agent boilerplate extraction, installer hardening, and signal-driven bug fixes.
+
+**Phases completed:** 22-30 (24 plans total, 9 phases: 6 planned + 3 gap closure)
+
+**Key accomplishments:**
+
+- Shared agent-protocol.md extracted from 11 agent specs — 881 lines of boilerplate removed, single-edit propagation
+- Feature manifest system with typed config schemas, diff-config/validate/get-prompts CLI commands, and manifest-driven upgrade/new-project/update flows
+- Backlog system with two-tier storage (per-project + global), Markdown+YAML items, 7 CLI subcommands, and workflow integration (milestone scoping, todo promotion, completion review)
+- Workflow DX: `/gsd:quick` complexity gate for faster trivial tasks, `safeFs()` installer error wrapper, portable shell scripts
+- Gap closure: restored 3 deleted agent specs + 2 commands, fixed test isolation, redeployed installer, closed 5 open signals
+- 256 tests passing (163 gsd-tools + 73 install + 20 wiring), 33/33 requirements satisfied
+
+**Stats:**
+
+- 137 files modified
+- +26,238 / -3,924 lines (Markdown, JavaScript, Shell)
+- 9 phases, 24 plans, 33 requirements (all satisfied), 11 tech debt items (0 blockers)
+- 13 days from start to ship (2026-02-11 → 2026-02-23)
+- 140 commits
+
+**Git range:** `v1.14.0..HEAD`
+
+**What's next:** Next milestone TBD via `/gsd:new-milestone`
+
+---
+
 ## v1.14 Multi-Runtime Interop (Shipped: 2026-02-16)
 
 **Delivered:** A truly runtime-agnostic GSD system where users can seamlessly switch between Claude Code, OpenAI Codex CLI, Gemini CLI, and OpenCode mid-work, with shared project state and knowledge base at `~/.gsd/knowledge/`.
@@ -86,3 +115,4 @@
 **What's next:** v2 features — proactive lesson push, signal-based workflow auto-modification, shared knowledge base, external integrations
 
 ---
+

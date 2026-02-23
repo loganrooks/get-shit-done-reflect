@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A self-improving, runtime-agnostic enhancement to the GSD (Get Shit Done) workflow system. Adds signal tracking (automatic detection of workflow deviations, config mismatches, debugging struggles), a structured spike/experiment workflow for resolving design uncertainty empirically, a persistent cross-project knowledge base at `~/.gsd/knowledge/`, a reflection engine that distills signals into actionable lessons, and knowledge surfacing that automatically retrieves relevant lessons during research and planning. Supports 4 runtimes (Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI) with cross-runtime pause/resume, shared state, and per-runtime capability detection. Synchronized with upstream GSD v1.18.0 including the gsd-tools CLI, thin orchestrator architecture, and 11 bug fixes. Includes production tooling: workspace health checks, version migration, and DevOps context capture.
+A self-improving, runtime-agnostic enhancement to the GSD (Get Shit Done) workflow system. Adds signal tracking (automatic detection of workflow deviations, config mismatches, debugging struggles), a structured spike/experiment workflow for resolving design uncertainty empirically, a persistent cross-project knowledge base at `~/.gsd/knowledge/`, a reflection engine that distills signals into actionable lessons, and knowledge surfacing that automatically retrieves relevant lessons during research and planning. Supports 4 runtimes (Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI) with cross-runtime pause/resume, shared state, and per-runtime capability detection. Includes a structured backlog system (per-project + global) for capturing and surfacing ideas across sessions, a declarative feature manifest for config-driven upgrades, and a shared agent protocol for maintainable agent specs. Synchronized with upstream GSD v1.18.0 including the gsd-tools CLI, thin orchestrator architecture, and 11 bug fixes. Includes production tooling: workspace health checks, version migration, DevOps context capture, and installer hardening with safeFs error reporting.
 
 ## Core Value
 
@@ -59,20 +59,17 @@ The system never makes the same mistake twice — signals capture what went wron
 - ✓ Gemini/Codex format converters for agent body text and MCP configuration — v1.14
 - ✓ Signal command context reduced 7.6x (888→116 lines) with self-contained pattern — v1.14
 - ✓ Spike workflow enhanced with feasibility section and research-first advisory gate — v1.14
+- ✓ Shared agent execution protocol extracted into agent-protocol.md, referenced by all agent specs — v1.15
+- ✓ Feature manifest system with typed config schemas and manifest-driven upgrade/new-project/update flows — v1.15
+- ✓ Manifest-driven config migration with lenient validation, atomic writes, and migration logging — v1.15
+- ✓ Backlog system with two-tier storage, Markdown+YAML items, 7 CLI subcommands, and auto-indexing — v1.15
+- ✓ Backlog workflow integration: milestone scoping, todo promotion, completion review — v1.15
+- ✓ Workflow DX: /gsd:quick complexity gate, safeFs() installer hardening, portable shell scripts — v1.15
+- ✓ 256 tests passing (163 gsd-tools + 73 install + 20 wiring) — v1.15
 
 ### Active
 
-## Current Milestone: v1.15 Backlog & Update Experience
-
-**Goal:** Give users a structured way to capture, organize, and surface ideas across sessions and milestones, and make the update/upgrade experience smooth with declarative feature configuration.
-
-**Target features:**
-- Persistent backlog system (per-project + global) with tagged items and auto-grouping
-- `/gsd:new-milestone` integration: backlog items presented grouped by theme during scoping
-- Feature manifest system: features declare config schemas, upgrades detect and initialize gaps
-- Update experience: post-update awareness, config migration, release infrastructure config
-- Workflow DX: lighter `/gsd:quick`, agent spec boilerplate extraction
-- Reliability: installer hardening, shell script fixes
+(No active requirements — next milestone not yet defined. Run `/gsd:new-milestone` to begin.)
 
 ### Out of Scope
 
@@ -87,18 +84,23 @@ The system never makes the same mistake twice — signals capture what went wron
 - Full subagent parity in Codex CLI — Codex has no Task tool equivalent; graceful degradation instead
 - Windows-specific runtime support — macOS/Linux focus; Windows fixes from upstream can be adopted later
 - Runtime-specific test suites per runtime — validated via Claude Code + mechanical installer tests
+- Web UI / Kanban board for backlog — GSD is CLI-native, zero-dependency
+- Automatic priority scoring for backlog — priority is subjective, auto-scoring creates false confidence
+- Backlog item dependencies — over-engineering; dependencies belong in roadmap phases
+- Config migration rollback scripts — config changes are additive with defaults; nothing to undo
 
 ## Context
 
-Shipped v1.14 Multi-Runtime Interop. GSD now supports 4 runtimes with shared knowledge base.
-Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, gsd-tools.js CLI (4,597 lines).
-Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents, with Runtime layer (Node.js) for installation and hooks.
-Knowledge base: `~/.gsd/knowledge/` (runtime-agnostic) with `signals/`, `spikes/`, `lessons/` subdirectories, auto-generated `index.md`, and provenance fields (runtime, model, gsd_version). Validated in production during v1.13: 13 signals collected, 3 lessons distilled.
-Test suite: 159 tests (107 fork vitest + 75 upstream gsd-tools + 7 fork gsd-tools), CI/CD via GitHub Actions with branch protection.
-2 tech debt items remaining (no critical blockers): NPM_TOKEN config, gitignore friction. Human verification backlog of 7 items for real multi-runtime E2E testing.
+Shipped v1.15 Backlog & Update Experience. GSD now has structured idea capture, declarative config management, and lean agent specs.
+Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, gsd-tools.js CLI (~5,400 lines with backlog + manifest commands).
+Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents (with shared agent-protocol.md), Runtime layer (Node.js) for installation and hooks.
+Knowledge base: `~/.gsd/knowledge/` (runtime-agnostic) with `signals/`, `spikes/`, `lessons/` subdirectories, auto-generated `index.md`, and provenance fields.
+Backlog: Two-tier storage (`.planning/backlog/items/` per-project, `~/.gsd/backlog/items/` global) with Markdown+YAML items, 7 CLI subcommands, auto-indexed.
+Test suite: 256 tests (163 gsd-tools + 73 install + 20 wiring), CI/CD via GitHub Actions with branch protection.
+11 tech debt items from v1.15 audit (0 blockers): agent protocol gaps (2), human verification pending (7), restoration inconsistency (2). See v1.15 audit.
 
-**Fork status (post v1.14):**
-- Fork at v1.14.0, upstream at v1.18.0
+**Fork status (post v1.15):**
+- Fork at v1.15.0, upstream at v1.18.0
 - Tracked-modifications strategy with FORK-DIVERGENCES.md documenting per-file merge stances
 - 4 runtimes supported: Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI
 - Upstream's reverted GSD Memory vs fork's file-based KB: fork approach validated in production (see KB-COMPARISON.md)
@@ -147,6 +149,13 @@ Test suite: 159 tests (107 fork vitest + 75 upstream gsd-tools + 7 fork gsd-tool
 | KB scripts copied (not symlinked) to ~/.gsd/bin/ | Runtime-agnostic access to management scripts | ✓ Good — installKBScripts() copies on install |
 | Pre-migration backup before KB migration | Data safety net for existing installations | ✓ Good — timestamped backup with integrity verification |
 | Research-first advisory gate for spikes | Prevent premature spiking when research would suffice | ✓ Good — non-blocking advisory, orchestrator-triggered spikes already have research |
+| Monolithic agent-protocol.md (not split) | 534 lines is manageable; splitting adds indirection without benefit at this scale | ✓ Good — single file, single edit propagates to all 11 agents |
+| Feature manifest as additive-only schema | Manifest describes what CAN exist, not what MUST; unknown config fields always preserved | ✓ Good — lenient validation, zero breaking changes on upgrade |
+| Manifest-driven config migration | Hardcoded field additions scattered across workflows were unmaintainable | ✓ Good — manifest is single source of truth for config requirements |
+| Two-tier backlog storage (project + global) | Ideas should be capturable anywhere; global ideas travel across projects | ✓ Good — mirrors KB two-tier pattern with GSD_HOME support |
+| Backlog review always skippable | Never gate milestone completion on backlog triage | ✓ Good — nudge, don't block |
+| safeFs thunk pattern for installer | Wrapping every fs call individually duplicates API signatures | ✓ Good — lambda-based, logging only, always re-throws |
+| Complexity gate for /gsd:quick | Trivial tasks don't need planner spawn; complex tasks need full flow | ✓ Good — word-boundary matching for multi-step indicators |
 
 ---
-*Last updated: 2026-02-16 after v1.15 milestone started*
+*Last updated: 2026-02-23 after v1.15 milestone*
