@@ -3363,3 +3363,307 @@ A test todo item for init.
     assert.strictEqual(todo.status, 'pending', 'should default status to pending');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: run gsd-tools with custom environment variables
+// ─────────────────────────────────────────────────────────────────────────────
+
+function runGsdToolsWithEnv(args, cwd, env) {
+  try {
+    const result = execSync(`node "${TOOLS_PATH}" ${args}`, {
+      cwd,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, ...env },
+    });
+    return { success: true, output: result.trim() };
+  } catch (err) {
+    return {
+      success: false,
+      output: err.stdout?.toString().trim() || '',
+      error: err.stderr?.toString().trim() || err.message,
+    };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// backlog group command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('backlog group command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('groups items by theme (default)', () => {
+    createBacklogItem(tmpDir, { title: 'Auth login', filename: '2026-02-22-auth-login.md', id: 'blog-auth-login', theme: 'authentication' });
+    createBacklogItem(tmpDir, { title: 'Auth refresh', filename: '2026-02-22-auth-refresh.md', id: 'blog-auth-refresh', theme: 'authentication' });
+    createBacklogItem(tmpDir, { title: 'Better modals', filename: '2026-02-22-better-modals.md', id: 'blog-better-modals', theme: 'ux' });
+
+    const result = runGsdTools('backlog group', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(output.groups, 'should have groups object');
+    assert.strictEqual(output.groups['authentication'].length, 2, 'authentication group should have 2 items');
+    assert.strictEqual(output.groups['ux'].length, 1, 'ux group should have 1 item');
+  });
+
+  test('groups items by tags', () => {
+    createBacklogItem(tmpDir, { title: 'Auth API', filename: '2026-02-22-auth-api.md', id: 'blog-auth-api', tags: ['auth', 'api'] });
+    createBacklogItem(tmpDir, { title: 'Auth UI', filename: '2026-02-22-auth-ui.md', id: 'blog-auth-ui', tags: ['auth', 'ui'] });
+
+    const result = runGsdTools('backlog group --by tags', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(output.groups, 'should have groups object');
+    assert.strictEqual(output.groups['auth'].length, 2, 'auth tag should have 2 items');
+    assert.strictEqual(output.groups['api'].length, 1, 'api tag should have 1 item');
+    assert.strictEqual(output.groups['ui'].length, 1, 'ui tag should have 1 item');
+  });
+
+  test('defaults to theme when no --by specified', () => {
+    createBacklogItem(tmpDir, { title: 'Theme item', filename: '2026-02-22-theme-item.md', id: 'blog-theme-item', theme: 'testing' });
+
+    const result = runGsdTools('backlog group', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.group_by, 'theme', 'group_by should be theme by default');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// backlog promote command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('backlog promote command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('updates status to planned and sets promoted_to', () => {
+    const { id } = createBacklogItem(tmpDir, { title: 'Promote me', status: 'captured' });
+
+    const result = runGsdTools(`backlog promote ${id} --to REQ-42`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.promoted, true, 'should report promoted');
+    assert.strictEqual(output.status, 'planned', 'status should be planned');
+    assert.strictEqual(output.promoted_to, 'REQ-42', 'promoted_to should be REQ-42');
+
+    // Read file and verify
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('status: planned'), 'file should have status: planned');
+    assert.ok(content.includes('promoted_to: REQ-42'), 'file should have promoted_to: REQ-42');
+  });
+
+  test('sets status to planned without --to', () => {
+    const { id } = createBacklogItem(tmpDir, { title: 'Promote no target', status: 'captured' });
+
+    const result = runGsdTools(`backlog promote ${id}`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.promoted, true, 'should report promoted');
+    assert.strictEqual(output.status, 'planned', 'status should be planned');
+    assert.strictEqual(output.promoted_to, null, 'promoted_to should be null');
+
+    // Read file and verify
+    const itemsDir = path.join(tmpDir, '.planning', 'backlog', 'items');
+    const files = fs.readdirSync(itemsDir);
+    const content = fs.readFileSync(path.join(itemsDir, files[0]), 'utf-8');
+    assert.ok(content.includes('status: planned'), 'file should have status: planned');
+  });
+
+  test('fails for nonexistent item ID', () => {
+    const result = runGsdTools('backlog promote nonexistent-id', tmpDir);
+    assert.strictEqual(result.success, false, 'should fail for nonexistent item');
+    assert.ok(result.error.includes('not found') || result.error.includes('Error'), 'should contain error message');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// backlog index command
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('backlog index command', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('generates index.md with table of all items', () => {
+    createBacklogItem(tmpDir, { title: 'High item', filename: '2026-02-22-high-item.md', id: 'blog-high-item', priority: 'HIGH' });
+    createBacklogItem(tmpDir, { title: 'Low item', filename: '2026-02-22-low-item.md', id: 'blog-low-item', priority: 'LOW' });
+
+    const result = runGsdTools('backlog index', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const indexPath = path.join(tmpDir, '.planning', 'backlog', 'index.md');
+    assert.ok(fs.existsSync(indexPath), 'index.md should exist');
+
+    const content = fs.readFileSync(indexPath, 'utf-8');
+    assert.ok(content.includes('# Backlog Index'), 'should have title');
+    assert.ok(content.includes('blog-high-item'), 'should contain high item');
+    assert.ok(content.includes('blog-low-item'), 'should contain low item');
+    assert.ok(content.includes('| ID |'), 'should have table header');
+
+    // HIGH should appear before LOW (sorted by priority)
+    const highPos = content.indexOf('blog-high-item');
+    const lowPos = content.indexOf('blog-low-item');
+    assert.ok(highPos < lowPos, 'HIGH priority item should appear before LOW priority item');
+  });
+
+  test('index sorts by priority then date', () => {
+    createBacklogItem(tmpDir, {
+      title: 'High old', filename: '2026-02-20-high-old.md', id: 'blog-high-old',
+      priority: 'HIGH', created: '2026-02-20T10:00:00.000Z',
+    });
+    createBacklogItem(tmpDir, {
+      title: 'Low new', filename: '2026-02-22-low-new.md', id: 'blog-low-new',
+      priority: 'LOW', created: '2026-02-22T10:00:00.000Z',
+    });
+    createBacklogItem(tmpDir, {
+      title: 'High new', filename: '2026-02-22-high-new.md', id: 'blog-high-new',
+      priority: 'HIGH', created: '2026-02-22T10:00:00.000Z',
+    });
+
+    const result = runGsdTools('backlog index', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const indexPath = path.join(tmpDir, '.planning', 'backlog', 'index.md');
+    const content = fs.readFileSync(indexPath, 'utf-8');
+
+    // Expected order: HIGH-new (2026-02-22), HIGH-old (2026-02-20), LOW-new (2026-02-22)
+    const highNewPos = content.indexOf('blog-high-new');
+    const highOldPos = content.indexOf('blog-high-old');
+    const lowNewPos = content.indexOf('blog-low-new');
+
+    assert.ok(highNewPos < highOldPos, 'HIGH new (2026-02-22) should come before HIGH old (2026-02-20)');
+    assert.ok(highOldPos < lowNewPos, 'HIGH old should come before LOW new');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// backlog --global flag
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('backlog --global flag', () => {
+  let tmpDir;
+  let globalDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+    globalDir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'gsd-global-'));
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+    cleanup(globalDir);
+  });
+
+  test('backlog add --global creates item in GSD_HOME/backlog/items/', () => {
+    const result = runGsdToolsWithEnv(
+      'backlog add --title "Global idea" --global',
+      tmpDir,
+      { GSD_HOME: globalDir }
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const globalItemsDir = path.join(globalDir, 'backlog', 'items');
+    assert.ok(fs.existsSync(globalItemsDir), 'global items dir should exist');
+    const files = fs.readdirSync(globalItemsDir).filter(f => f.endsWith('.md'));
+    assert.strictEqual(files.length, 1, 'should have one global item');
+  });
+
+  test('backlog list --global reads from global directory', () => {
+    // Create item directly in global dir
+    const globalItemsDir = path.join(globalDir, 'backlog', 'items');
+    fs.mkdirSync(globalItemsDir, { recursive: true });
+    fs.writeFileSync(path.join(globalItemsDir, '2026-02-22-global-test.md'), `---
+id: blog-global-test
+title: Global test item
+tags: []
+theme: general
+priority: HIGH
+status: captured
+source: command
+promoted_to: null
+created: 2026-02-22T10:00:00.000Z
+updated: 2026-02-22T10:00:00.000Z
+---
+
+## Description
+
+Global test item.
+`, 'utf-8');
+
+    const result = runGsdToolsWithEnv(
+      'backlog list --global',
+      tmpDir,
+      { GSD_HOME: globalDir }
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.count, 1, 'should have 1 global item');
+    assert.strictEqual(output.items[0].id, 'blog-global-test', 'should return global item');
+  });
+
+  test('backlog index --global generates index in GSD_HOME/backlog/', () => {
+    // Create item in global dir
+    const globalItemsDir = path.join(globalDir, 'backlog', 'items');
+    fs.mkdirSync(globalItemsDir, { recursive: true });
+    fs.writeFileSync(path.join(globalItemsDir, '2026-02-22-global-idx.md'), `---
+id: blog-global-idx
+title: Global index item
+tags: []
+theme: general
+priority: MEDIUM
+status: captured
+source: command
+promoted_to: null
+created: 2026-02-22T10:00:00.000Z
+updated: 2026-02-22T10:00:00.000Z
+---
+
+## Description
+
+Global index test.
+`, 'utf-8');
+
+    const result = runGsdToolsWithEnv(
+      'backlog index --global',
+      tmpDir,
+      { GSD_HOME: globalDir }
+    );
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const indexPath = path.join(globalDir, 'backlog', 'index.md');
+    assert.ok(fs.existsSync(indexPath), 'global index.md should exist');
+    const content = fs.readFileSync(indexPath, 'utf-8');
+    assert.ok(content.includes('blog-global-idx'), 'index should contain global item');
+  });
+});
