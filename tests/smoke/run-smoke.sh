@@ -28,7 +28,7 @@ KEEP_WORK_DIR="${KEEP_WORK_DIR:-false}"
 
 # Unique project name for KB isolation
 RUN_ID="smoke-$$-$(date +%s)"
-KB_DIR="$HOME/.gsd/knowledge"
+KB_DIR="${GSD_HOME:-$HOME/.gsd}/knowledge"
 
 # Source verify helpers
 source "$SCRIPT_DIR/verify-kb.sh"
@@ -62,7 +62,7 @@ check_prerequisites() {
 setup_work_dirs() {
   log_info "=== Setup ==="
 
-  WORK_DIR=$(mktemp -d -t gsd-smoke-XXXXXX)
+  WORK_DIR=$(mktemp -d "${TMPDIR:-/tmp}/gsd-smoke-XXXXXX")
 
   # Ensure KB exists
   bash "$REPO_DIR/.claude/agents/kb-create-dirs.sh" >/dev/null
