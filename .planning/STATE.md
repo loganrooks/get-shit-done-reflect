@@ -80,6 +80,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 29]: Only backlog stats tests need GSD_HOME isolation (stats merges local+global items; list/group/add operate on local only)
 - [Phase 29]: Installer clobbers force-tracked .claude/ files (agents, commands, agent-protocol.md) -- must restore from git after install
 - [Phase 29]: Accepted collect-signals.md source update (adds KB index rebuild after signal collection)
+- [Phase 30]: delete-after-load placed after all context extraction (not inline per-section) to avoid partial reads
 - [Phase 30]: Artifact check is additive-only -- does not block spikes, only surfaces existing research as context
 - [Phase 30]: spike-design.md confirmed correct from Phase 21 -- no modifications needed
 
@@ -124,7 +125,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 28 P01 | 1min | 2 tasks | 5 files |
 | Phase 29 P01 | 4min | 3 tasks | 1 files |
 | Phase 29 P02 | 2min | 3 tasks | 1 files |
-| Phase 30 P01 | -- | -- | -- |
+| Phase 30 P01 | 2min | 2 tasks | 3 files |
 | Phase 30 P02 | 1min | 2 tasks | 1 files |
 
 ### Roadmap Evolution
@@ -144,5 +145,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 30-02-PLAN.md -- Phase 30 complete (2/2 plans). All 30 phases shipped.
+Stopped at: Completed 30-01-PLAN.md -- continue-here lifecycle fixes. Phase 30 complete (2/2 plans). All 30 phases shipped.
 Resume file: None
