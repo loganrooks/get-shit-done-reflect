@@ -71,6 +71,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 26]: Stats test uses GSD_HOME env override to isolate from global backlog directory pollution
 - [Phase 26]: Todo isolation verified: cmdListTodos and cmdInitTodos produce no milestone field in output
 - [Phase 27]: kb-rebuild-index.sh pipefail is safe without grep || true guards -- get_field/get_tags called via command substitution, exit codes captured by assignment not shell error handling
+- [Phase 27]: Standalone 'and' added to multi-step indicators with word-boundary matching to avoid false positives
 
 ### Pending Todos
 
@@ -108,6 +109,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 26 P02 | 3min | 2 tasks | 3 files |
 | Phase 26 P03 | 5min | 2 tasks | 1 files |
 | Phase 27 P03 | 2min | 2 tasks | 5 files |
+| Phase 27 P01 | 2 | 2 tasks | 1 files |
 
 ### Roadmap Evolution
 
