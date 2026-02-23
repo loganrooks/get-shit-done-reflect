@@ -5,7 +5,7 @@
 - <details><summary>v1.12 GSD Reflect (Phases 0-6) -- SHIPPED 2026-02-09</summary>See milestones/v1.12-ROADMAP.md</details>
 - <details><summary>v1.13 Upstream Sync & Validation (Phases 7-12) -- SHIPPED 2026-02-11</summary>See milestones/v1.13-ROADMAP.md</details>
 - <details><summary>v1.14 Multi-Runtime Interop (Phases 13-21) -- SHIPPED 2026-02-16</summary>See milestones/v1.14-ROADMAP.md</details>
-- **v1.15 Backlog & Update Experience** - Phases 22-27 (in progress)
+- **v1.15 Backlog & Update Experience** - Phases 22-27 (complete)
 
 ## v1.15 Backlog & Update Experience
 
