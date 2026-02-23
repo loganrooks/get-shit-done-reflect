@@ -295,6 +295,65 @@ Initial user testing showed demand for shape tools.
 
 </step>
 
+<step name="backlog_review">
+
+## Post-Evolve: Backlog Review
+
+```bash
+BACKLOG_LIST=$(node ~/.claude/get-shit-done/bin/gsd-tools.js backlog list --status captured,triaged --raw)
+```
+
+Parse BACKLOG_LIST for item count. If 0 unpromoted items, skip to next step.
+
+If unpromoted items exist, display:
+
+```
+## Backlog Review
+
+[N] backlog items were not promoted during this milestone:
+
+| # | Priority | Title | Status | Tags |
+|---|----------|-------|--------|------|
+| 1 | HIGH     | ...   | captured | ... |
+```
+
+Use AskUserQuestion:
+- header: "Backlog Review"
+- question: "How would you like to handle these items?"
+- options:
+  - "Review individually" -- per-item keep/defer/discard
+  - "Keep all" -- no changes, carry forward
+  - "Defer all" -- set all to status: deferred
+  - "Skip review" -- proceed without changes
+
+**If "Review individually":** For each item, AskUserQuestion with:
+- "Keep" -- no change
+- "Defer" -- `node ~/.claude/get-shit-done/bin/gsd-tools.js backlog update <id> --status deferred`
+- "Discard" -- `node ~/.claude/get-shit-done/bin/gsd-tools.js backlog update <id> --status done`
+
+**If "Defer all":**
+```bash
+# For each unpromoted item:
+node ~/.claude/get-shit-done/bin/gsd-tools.js backlog update <id> --status deferred
+```
+
+**Check for planned items** (promoted during this milestone):
+
+```bash
+PLANNED=$(node ~/.claude/get-shit-done/bin/gsd-tools.js backlog list --status planned --raw)
+```
+
+If planned items exist, AskUserQuestion:
+- header: "Planned Items"
+- question: "These backlog items were promoted during this milestone. Mark as done?"
+- options:
+  - "Mark all as done" -- `node ~/.claude/get-shit-done/bin/gsd-tools.js backlog update <id> --status done` for each
+  - "Keep as planned" -- no change (useful if milestone partially shipped)
+
+**This step is always skippable** -- never gate milestone completion on backlog triage. If item count is 0, skip entirely.
+
+</step>
+
 <step name="reorganize_roadmap">
 
 Update `.planning/ROADMAP.md` — group completed milestone phases:
