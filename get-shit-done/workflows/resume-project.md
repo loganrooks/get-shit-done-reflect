@@ -78,8 +78,11 @@ cat .planning/PROJECT.md
 Look for incomplete work that needs attention:
 
 ```bash
-# Check for continue-here files (mid-plan resumption)
+# Check for phase-level handoffs (mid-plan resumption)
 ls .planning/phases/*/.continue-here*.md 2>/dev/null
+
+# Check for project-level handoffs (not tied to a specific phase)
+ls .planning/.continue-here.md 2>/dev/null
 
 # Check for plans without summaries (incomplete execution)
 for plan in .planning/phases/*/*-PLAN.md; do
@@ -116,7 +119,19 @@ runtime prefix from detect_runtime step.
 - Subagent was spawned but session ended before completion
 - Read agent-history.json for task details
 - Flag: "Found interrupted agent"
-  </step>
+
+**After loading .continue-here context, delete the file:**
+
+```bash
+# Delete the loaded handoff file (phase-level or project-level)
+rm -f "$CONTINUE_HERE_PATH"
+```
+
+The handoff context is now loaded into this session. The file is stale.
+The continue-here template contract states: "This file gets DELETED after resume -- it's not permanent storage."
+If the session ends unexpectedly before work completes, the user can re-create
+a handoff with /gsd:pause-work.
+</step>
 
 <step name="present_status">
 Present complete project status to user:
