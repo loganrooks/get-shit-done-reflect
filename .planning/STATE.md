@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-17)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.15 Backlog & Update Experience -- Phase 27 in progress (plan 03 of 3 complete)
+**Current focus:** v1.15 Backlog & Update Experience -- Phase 27 complete (all 3 plans shipped)
 
 ## Current Position
 
 Phase: 27 of 27 (Workflow DX & Reliability)
-Plan: 03 of 3
-Status: Plan 03 complete -- shell script portability fixes shipped
-Last activity: 2026-02-23 -- Phase 27 Plan 03: portable shebangs, pipefail, GSD_HOME, mktemp across 5 scripts
+Plan: 03 of 3 (PHASE COMPLETE)
+Status: Phase Complete -- all 3 plans shipped (complexity gate, safeFs wrapper, shell portability)
+Last activity: 2026-02-23 -- Phase 27 Plan 02: safeFs wrapper for 19 fs operations with descriptive error messages
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (17) = 78 plans shipped across 27 phases
+Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (18) = 79 plans shipped across 27 phases
 
 ## Performance Metrics
 
@@ -72,6 +72,9 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 - [Phase 26]: Todo isolation verified: cmdListTodos and cmdInitTodos produce no milestone field in output
 - [Phase 27]: kb-rebuild-index.sh pipefail is safe without grep || true guards -- get_field/get_tags called via command substitution, exit codes captured by assignment not shell error handling
 - [Phase 27]: Standalone 'and' added to multi-step indicators with word-boundary matching to avoid false positives
+- [Phase 27]: safeFs uses thunk pattern (fn arg is a lambda) to avoid duplicating fs API signatures
+- [Phase 27]: Error hints mapped by error.code (EACCES, ENOENT, ENOSPC, EPERM, EEXIST); unknown codes get no hint
+- [Phase 27]: safeFs always re-throws -- logging only, never error suppression
 
 ### Pending Todos
 
@@ -108,6 +111,7 @@ v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
 | Phase 26 P01 | 13min | 2 tasks | 2 files |
 | Phase 26 P02 | 3min | 2 tasks | 3 files |
 | Phase 26 P03 | 5min | 2 tasks | 1 files |
+| Phase 27 P02 | 5min | 3 tasks | 2 files |
 | Phase 27 P03 | 2min | 2 tasks | 5 files |
 | Phase 27 P01 | 2 | 2 tasks | 1 files |
 
@@ -128,5 +132,5 @@ v1.15 roadmap created (Phases 22-27): Agent Extraction, Feature Manifest, Config
 ## Session Continuity
 
 Last session: 2026-02-23
-Stopped at: Completed 27-03-PLAN.md (shell script portability fixes)
+Stopped at: Completed 27-02-PLAN.md (safeFs installer error wrapper). Phase 27 all 3 plans complete.
 Resume file: None
