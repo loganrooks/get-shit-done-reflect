@@ -136,10 +136,9 @@ Plans:
   4. All `@.claude/agents/` file references in workflows resolve to existing files
   5. Reference docs (`spike-execution.md`, `signal-detection.md`) reference agents that exist
   6. Wiring validation tests pass (0 failures, currently 4)
-**Plans:** 2 plans
+**Plans:** 1 plan
 Plans:
-- [ ] 28-01-PLAN.md -- Restore 3 agent specs + 2 command files from git, apply valid KB path fixes
-- [ ] 28-02-PLAN.md -- Fix all dangling references across workflows/references/commands, verify wiring tests pass
+- [ ] 28-01-PLAN.md -- Restore 5 deleted files from git history (3 agent specs + 2 commands), verify wiring tests pass
 
 #### Phase 29: Test Fixes & Installer Deployment
 **Goal**: All tests pass and the installed binary matches the source -- no stale deployments, no test pollution
@@ -215,7 +214,7 @@ Phases execute in numeric order: 22 -> 23 -> 24 -> 25 -> 26 -> 27 -> 28 -> 29 ->
 | 25. Backlog System Core | 3/3 | ✓ Complete | 2026-02-23 |
 | 26. Backlog Workflow Integration | 3/3 | ✓ Complete | 2026-02-23 |
 | 27. Workflow DX & Reliability | 3/3 | ✓ Complete | 2026-02-23 |
-| 28. Restore Deleted Commands | 0/2 | Pending | - |
+| 28. Restore Deleted Commands | 0/1 | Pending | - |
 | 29. Test Fixes & Installer Deploy | 0/2 | Pending | - |
 | 30. Signal-Driven Workflow Fixes | 0/2 | Pending | - |
 
