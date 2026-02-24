@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 Phase: None (between milestones)
 Plan: N/A
 Status: v1.15 Backlog & Update Experience shipped. 4 milestones complete.
-Last activity: 2026-02-23 -- v1.15 milestone archived
+Last activity: 2026-02-24 -- Released v1.15.0 to npm with reflect- tag prefix
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (24) = 85 plans shipped across 30 phases
 
@@ -64,6 +64,7 @@ v1.15 decisions archived in milestones/v1.15-ROADMAP.md.
 | 003 | Fix 6 critical PR#4 bugs (migrateKB collision, dangling symlink, Codex regex, 3 capability guards) | 2026-02-16 | 509936e | [3-fix-6-critical-pr4-bugs-migratekb-collis](./quick/3-fix-6-critical-pr4-bugs-migratekb-collis/) |
 | 004 | Create /gsd:release command for automated version bump, changelog, tag, and GitHub Release | 2026-02-16 | 7902519 | [4-create-gsd-release-command-for-automated](./quick/4-create-gsd-release-command-for-automated/) |
 | 005 | Remove C7-C10 self-fulfilling tests (15 tests removed, suite now 140 passing) | 2026-02-16 | 001e7aa | [5-rewrite-c7-c10-self-fulfilling-tests-to-](./quick/5-rewrite-c7-c10-self-fulfilling-tests-to-/) |
+| 006 | Release v1.15.0 to npm with reflect- tag prefix | 2026-02-24 | 7fc4a7c | [6-release-v1-15-0-to-npm-with-reflect-tag-](./quick/6-release-v1-15-0-to-npm-with-reflect-tag-/) |
 
 ### Roadmap Evolution
 
