@@ -95,7 +95,7 @@ Release Summary:
   Current version: {CURRENT_VERSION}
   New version:     {NEW_VERSION}
   Bump type:       {BUMP_TYPE}
-  Tag:             v{NEW_VERSION}
+  Tag:             reflect-v{NEW_VERSION}
   Branch:          main
 ```
 
@@ -161,13 +161,13 @@ git commit -m "release: v${NEW_VERSION}"
 
 Create an annotated tag:
 ```bash
-git tag -a "v${NEW_VERSION}" -m "v${NEW_VERSION}"
+git tag -a "reflect-v${NEW_VERSION}" -m "reflect-v${NEW_VERSION}"
 ```
 
 Push the commit and tag to origin:
 ```bash
 git push origin main
-git push origin "v${NEW_VERSION}"
+git push origin "reflect-v${NEW_VERSION}"
 ```
 </step>
 
@@ -184,7 +184,7 @@ NOTES_EOF
 
 Create the GitHub Release:
 ```bash
-gh release create "v${NEW_VERSION}" --title "v${NEW_VERSION}" --notes-file /tmp/release-notes-${NEW_VERSION}.md
+gh release create "reflect-v${NEW_VERSION}" --title "reflect-v${NEW_VERSION}" --notes-file /tmp/release-notes-${NEW_VERSION}.md
 ```
 
 This triggers the `publish.yml` workflow which handles npm publish automatically.
@@ -207,8 +207,8 @@ Release v{NEW_VERSION} complete!
 
   package.json: {NEW_VERSION}
   CHANGELOG.md: updated
-  Git tag:      v{NEW_VERSION}
-  GitHub Release: {REPO_URL}/releases/tag/v{NEW_VERSION}
+  Git tag:      reflect-v{NEW_VERSION}
+  GitHub Release: {REPO_URL}/releases/tag/reflect-v{NEW_VERSION}
 
   If this repo has CI triggered by releases (e.g., npm publish), it will run automatically.
   Monitor: {REPO_URL}/actions
@@ -223,7 +223,7 @@ Release v{NEW_VERSION} complete!
 - [ ] Version bumped in package.json
 - [ ] CHANGELOG.md updated with new version section and today's date
 - [ ] Git commit created with message "release: vX.Y.Z"
-- [ ] Annotated git tag vX.Y.Z created
+- [ ] Annotated git tag reflect-vX.Y.Z created
 - [ ] Commit and tag pushed to origin
 - [ ] GitHub Release created (triggers npm publish via publish.yml)
 </success_criteria>

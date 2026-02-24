@@ -32,7 +32,7 @@ jobs:
       - name: Verify version matches release tag
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
-          TAG_VERSION=${GITHUB_REF#refs/tags/v}
+          TAG_VERSION=${GITHUB_REF#refs/tags/reflect-v}
           if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
             echo "::error::Version mismatch: package.json has $PKG_VERSION but tag is v$TAG_VERSION"
             exit 1
@@ -42,7 +42,7 @@ jobs:
       - name: Extract release notes from CHANGELOG
         id: release_notes
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=${GITHUB_REF#refs/tags/reflect-v}
           echo "Extracting release notes for version $VERSION"
 
           # Extract content between this version header and the next version header
@@ -62,9 +62,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=${GITHUB_REF#refs/tags/v}
+          VERSION=${GITHUB_REF#refs/tags/reflect-v}
           # Append changelog notes to existing release body
-          gh release edit "v$VERSION" --notes-file /tmp/release-notes.md 2>/dev/null || \
+          gh release edit "reflect-v$VERSION" --notes-file /tmp/release-notes.md 2>/dev/null || \
             echo "Warning: Could not update release notes (release may not exist yet)"
 
       - name: Run tests before publish
