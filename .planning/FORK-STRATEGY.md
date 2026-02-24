@@ -4,6 +4,24 @@
 
 GSD Reflect is a fork of [GSD](https://github.com/gsd-build/get-shit-done) (Get Shit Done). The fork was created at commit `2347fca` (upstream v1.11.1), with the upstream remote configured as `upstream` pointing to `git@github.com:gsd-build/get-shit-done.git`. At the time of this document's creation, the fork is at v1.12.2 and upstream is at v1.18.0. The fork adds signal tracking, a knowledge base, spike workflows, a reflection engine, and knowledge surfacing on top of the base GSD workflow system.
 
+## Tag Strategy
+
+Fork tags use the `reflect-` prefix (e.g., `reflect-v1.15.0`) to avoid collision with upstream's version tags. When upstream was merged during v1.13, all upstream tags (v1.0.x through v1.18.0) entered the fork's history. Since both repos use `v1.X.Y` semver, tags like `v1.15.0` collide.
+
+**Convention:**
+- Fork release tags: `reflect-v1.X.Y` (e.g., `reflect-v1.15.0`)
+- Pre-sync snapshot tags: `reflect-vX.Y.Z-pre-sync`
+- Upstream tags: not fetched (remote configured with `--no-tags`)
+
+**Configuration:**
+```
+git config remote.upstream.tagOpt --no-tags
+```
+
+This prevents upstream tags from re-entering the local repo on future fetches. The `/gsd:release` command should be updated to use the `reflect-` prefix when creating tags.
+
+**Migrated in v1.15:** All prior fork tags (v1.12 through v1.14.2) were renamed to `reflect-*` prefix and upstream tags were deleted locally. See commit `chore: migrate fork tags to reflect-* namespace`.
+
 ## Strategy: Tracked Modifications
 
 All fork modifications to upstream files are explicitly tracked in [FORK-DIVERGENCES.md](./FORK-DIVERGENCES.md). Each modified file is recorded with its category (identity, commands, templates, build), a rationale for the modification, a merge stance (fork wins, hybrid merge, or case-by-case), and a conflict risk assessment.
@@ -47,7 +65,7 @@ The fork has 145 commits and 17 modified upstream files. Rebasing would require 
 ### Sync Branch Workflow
 
 ```
-1. Tag current state:     git tag -a v1.12.2-pre-sync -m "Pre-sync snapshot"
+1. Tag current state:     git tag -a reflect-vX.Y.Z-pre-sync -m "Pre-sync snapshot"
 2. Create sync branch:    git checkout -b sync/v1.13-upstream main
 3. Set conflict style:    git config merge.conflictstyle diff3
 4. Merge upstream:        git merge upstream/main

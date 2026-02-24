@@ -71,10 +71,11 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ### Key Artifacts
 
-- Tag `v1.12.2-pre-sync` -- immutable rollback point on main
-- Tag `v1.13.0` -- annotated release tag on commit d6a250b
-- Tag `v1.14.0` -- annotated release tag for multi-runtime interop
-- Tag `v1.15.0` -- annotated release tag for backlog & update experience
+- Tag `reflect-v1.12.2-pre-sync` -- immutable rollback point on main
+- Tag `reflect-v1.13.0` -- annotated release tag on commit d6a250b
+- Tag `reflect-v1.14.0` -- annotated release tag for multi-runtime interop
+- Tag `reflect-v1.15.0` -- annotated release tag for backlog & update experience
+- **Tag convention:** Fork tags use `reflect-v*` prefix to avoid collision with upstream tags. Upstream remote configured with `--no-tags`.
 - PR #3 -- sync/v1.13-upstream to main (https://github.com/loganrooks/get-shit-done-reflect/pull/3)
 - `.planning/FORK-STRATEGY.md` -- conflict resolution runbook + Merge Decision Log
 - `.planning/FORK-DIVERGENCES.md` -- per-file merge stances, post-merge risk recalibration
