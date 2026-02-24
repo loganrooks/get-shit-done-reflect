@@ -6,6 +6,33 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.15.0] - 2026-02-24
+
+### Added
+- Shared `agent-protocol.md` extracted from 11 agent specs — single-edit propagation for all agents (Phase 22)
+- Feature manifest system (`feature-manifest.json`) with typed config schemas, `manifest diff-config`, `manifest validate`, `manifest get-prompts` CLI commands (Phase 23)
+- Manifest-driven config migration: `upgrade-project`, `new-project`, and `update` workflows consume manifest for config gap detection with lenient validation (Phase 24)
+- Backlog system with two-tier storage (per-project + global `~/.gsd/backlog/`), Markdown+YAML items, 7 CLI subcommands (`add`, `list`, `group`, `update`, `promote`, `stats`, `index`) (Phase 25)
+- Backlog workflow integration: milestone scoping in `/gsd:new-milestone`, todo promotion in `/gsd:check-todos`, backlog review in `/gsd:complete-milestone` (Phase 26)
+- `/gsd:quick` complexity gate: trivial tasks execute inline, complex tasks use full planner+executor (Phase 27)
+- `safeFs()` wrapper for installer file operations with descriptive error messages (Phase 27)
+- Restored `/gsd:reflect`, `/gsd:spike`, `/gsd:collect-signals` commands and 3 agent specs deleted by f664984 (Phase 28)
+- `.continue-here.md` lifecycle management: delete-after-load in resume, cleanup in execute-phase and complete-milestone (Phase 30)
+- Spike research-first advisory gate with RESEARCH.md artifact existence check (Phase 30)
+
+### Changed
+- Fork tags migrated to `reflect-v*` namespace (e.g., `reflect-v1.15.0`) to avoid upstream tag collision
+- Upstream remote configured with `--no-tags` to prevent tag re-import on fetch
+- Release workflow and publish.yml updated to use `reflect-v*` tag prefix
+- Test suite: 256 tests passing (163 gsd-tools + 73 install + 20 wiring)
+- Shell scripts use portable constructs: `${GSD_HOME:-$HOME/.gsd}`, portable `mktemp`, `set -o pipefail` (Phase 27)
+- `/gsd:resume-work` searches both `.planning/phases/*/` and `.planning/` for handoff files (Phase 30)
+
+### Fixed
+- Backlog stats test isolation via `GSD_HOME` env override (Phase 29)
+- Wiring validation tests pass after restoring deleted agent specs (Phase 28-29)
+- Installer binary redeployed to match source (875-line gap closed) (Phase 29)
+
 ## [1.14.2] - 2026-02-17
 
 ### Added
