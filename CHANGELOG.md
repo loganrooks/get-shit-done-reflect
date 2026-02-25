@@ -6,6 +6,12 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.15.1] - 2026-02-25
+
+### Fixed
+- Restore `/gsd:reflect`, `/gsd:spike` commands and `gsd-reflector`, `gsd-signal-collector`, `gsd-spike-runner` agent specs that were missing from the npm package despite being committed in Phase 28
+- Updated `gsd-reflector` lesson category taxonomy to match v1.15 schema (`architecture|workflow|tooling|testing|debugging|performance|other`)
+
 ## [1.15.0] - 2026-02-24
 
 ### Added

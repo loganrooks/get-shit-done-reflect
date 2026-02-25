@@ -274,7 +274,7 @@ rounds: {1|2}
 5. **Provenance fields:** When creating KB entries, populate:
    - `runtime`: Detect from installed path prefix (~/.claude/ = claude-code, ~/.config/opencode/ = opencode, ~/.gemini/ = gemini-cli, ~/.codex/ = codex-cli)
    - `model`: Use the current model identifier (available from session context)
-   - `gsd_version`: Read from VERSION file at the current runtime's install directory (e.g., ~/.claude/get-shit-done/VERSION). Fallback: read `gsd_reflect_version` from `.planning/config.json`. If neither available, use "unknown".
+   - `gsd_version`: Read from VERSION file at the current runtime's install directory (e.g., .claude/get-shit-done/VERSION or ~/.claude/get-shit-done/VERSION). Fallback: read `gsd_reflect_version` from `.planning/config.json`. If neither available, use "unknown".
 
 6. **Rebuild KB index:**
    ```bash

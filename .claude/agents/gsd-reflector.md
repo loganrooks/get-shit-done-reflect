@@ -77,11 +77,7 @@ Apply severity-weighted pattern detection from reflection-patterns.md:
    - Max severity (highest severity among clustered signals)
 
 3. **Apply severity-weighted threshold:**
-   ```
-   critical/high: 2+ occurrences = pattern
-   medium: 4+ occurrences = pattern
-   low: 5+ occurrences = pattern
-   ```
+   - See reflection-patterns.md for current thresholds per severity level
 
 4. **For qualifying patterns:**
    - Generate pattern name from common tags/type
@@ -125,7 +121,7 @@ For each pattern that meets distillation criteria from reflection-patterns.md:
    - Actionable recommendation possible: Can we derive specific guidance?
 
 2. **If qualified, draft lesson:**
-   - `category`: Match to taxonomy (tooling, architecture, testing, workflow, external, environment)
+   - `category`: Match to taxonomy (`architecture|workflow|tooling|testing|debugging|performance|other`)
    - `insight`: One-sentence actionable lesson
    - `evidence`: List of signal IDs from the pattern
    - `confidence`: Based on occurrence count (HIGH: 6+, MEDIUM: 3-5, LOW: 2-3)
@@ -148,7 +144,7 @@ For each pattern that meets distillation criteria from reflection-patterns.md:
    - **Provenance fields:** When creating KB entries, populate:
      - `runtime`: Detect from installed path prefix (~/.claude/ = claude-code, ~/.config/opencode/ = opencode, ~/.gemini/ = gemini-cli, ~/.codex/ = codex-cli)
      - `model`: Use the current model identifier (available from session context)
-     - `gsd_version`: Read from VERSION file at the current runtime's install directory (e.g., ~/.claude/get-shit-done/VERSION). Fallback: read `gsd_reflect_version` from `.planning/config.json`. If neither available, use "unknown".
+     - `gsd_version`: Read from VERSION file at the current runtime's install directory (e.g., .claude/get-shit-done/VERSION or ~/.claude/get-shit-done/VERSION). Fallback: read `gsd_reflect_version` from `.planning/config.json`. If neither available, use "unknown".
 
 6. **Rebuild index:**
    ```bash
@@ -162,7 +158,7 @@ If drift check requested, analyze trends across phases:
 1. **Collect metrics:**
    - Verification gap rate: Count VERIFICATION.md files with gaps
    - Auto-fix frequency: Count auto-fixes per plan from SUMMARYs
-   - Signal severity rate: Proportion of critical/high signals
+   - Signal severity rate: Proportion of critical/notable signals
    - Deviation ratio: Plans with deviations vs total plans
 
 2. **Calculate baseline and recent:**

@@ -143,10 +143,10 @@ For each signal that passes filtering, dedup, and cap checks:
 8. **Provenance fields:** When creating KB entries, populate:
    - `runtime`: Detect from installed path prefix (~/.claude/ = claude-code, ~/.config/opencode/ = opencode, ~/.gemini/ = gemini-cli, ~/.codex/ = codex-cli)
    - `model`: Use the current model identifier (available from session context)
-   - `gsd_version`: Read from VERSION file at the current runtime's install directory (e.g., ~/.claude/get-shit-done/VERSION). Fallback: read `gsd_reflect_version` from `.planning/config.json`. If neither available, use "unknown".
+   - `gsd_version`: Read from VERSION file at the current runtime's install directory (e.g., .claude/get-shit-done/VERSION or ~/.claude/get-shit-done/VERSION). Fallback: read `gsd_reflect_version` from `.planning/config.json`. If neither available, use "unknown".
 9. Write body sections (What Happened, Context, Potential Cause)
-9. Ensure parent directory exists: `mkdir -p ~/.gsd/knowledge/signals/{project}/`
-10. Write the file
+10. Ensure parent directory exists: `mkdir -p ~/.gsd/knowledge/signals/{project}/`
+11. Write the file
 
 ## Step 9: Rebuild Index
 

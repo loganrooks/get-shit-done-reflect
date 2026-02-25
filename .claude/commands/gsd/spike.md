@@ -61,4 +61,4 @@ See: `get-shit-done/workflows/run-spike.md`
 
 - `/gsd:collect-signals` -- Post-execution signal collection
 - `/gsd:signal` -- Manual signal logging
-- `/gsd:reflect` -- Pattern analysis (Phase 4)
+- `/gsd:reflect` -- Pattern analysis and lesson distillation
