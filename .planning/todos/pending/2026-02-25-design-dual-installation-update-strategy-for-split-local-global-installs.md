@@ -1,35 +1,69 @@
 ---
 created: 2026-02-25T10:23:13.230Z
-title: Design dual-installation update strategy for split local/global installs
+title: "Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression"
 area: tooling
 priority: HIGH
 source: conversation
 status: pending
 files:
   - .claude/get-shit-done/workflows/update.md
-  - src/install.js
+  - .claude/hooks/gsd-check-update.js
+  - .claude/hooks/gsd-version-check.js
+  - .claude/hooks/gsd-statusline.js
 ---
 
 ## Problem
 
-`/gsd:update` only detects and updates ONE installation (local takes priority over global). When a user has GSD installed at both project-level (`./.claude/`) and user-level (`~/.claude/`), updating via `/gsd:update` silently leaves the other installation stale. This creates version drift between installations with no warning.
+Phase 1 (quick-7) adds dual-install detection, installer warnings, version/scope in command descriptions, and documentation. But the update flow and hooks still don't handle dual installations properly:
 
-Broader concerns that need design work:
+- `/gsd:update` updates whichever install it finds first (local priority) and silently leaves the other stale
+- The statusline update indicator (`⬆ /gsd:update`) doesn't distinguish which scope is outdated
+- No way for user to decline updating one scope without being nagged every session
+- Changelog deliberation before accepting updates doesn't account for the different blast radius of local vs global updates
 
-1. **Auto-detection**: The update workflow should detect BOTH installations and offer to update both (or at least warn about the stale one)
-2. **Interaction model**: What's the intended relationship between local and global installs? Does local override global? Are they independent? How does Claude Code resolve commands when both exist?
-3. **Version drift risks**: Different agent specs, workflow files, and command definitions at different versions could cause subtle bugs or inconsistent behavior
-4. **Update UX**: Should `/gsd:update` default to updating all detected installations? Should it show a picker? Should it always sync both?
-5. **Should split installations even be supported?**: Maybe the recommendation should be one or the other, with clear guidance on when to use which
-6. **Installer behavior**: When running `npx get-shit-done-reflect-cc --local` in a repo that also has a global install, should it warn? Should it offer to remove the global one (or vice versa)?
-7. **statusline/cache interactions**: Update check cache exists per-installation -- clearing one doesn't clear the other's stale indicator
+## Design Decisions (Resolved)
 
-## Solution
+These were resolved during the Phase 1 planning session:
 
-Design decisions needed before implementation:
+1. **Topology**: Global = baseline (available everywhere), Local = version pin (overrides global for a project). Dual install is supported and informed, not discouraged.
+2. **Precedence**: Local always wins. Documented in `references/dual-installation.md`.
+3. **Cross-project impact**: Updating global affects all projects without local installs. The version-check hook already detects mismatches, but user should be informed proactively during the update flow.
 
-- Define the intended installation topology (single vs. dual, recommended approach)
-- Decide on update workflow changes (detect both → warn/update both)
-- Consider adding `gsd-tools.js` command to list all detected installations with versions
-- Consider deprecation path if dual-install is deemed unsupported
-- Look at how Claude Code itself resolves `.claude/` files when both local and global exist
+## Solution: Phase 2 Scope
+
+### A. Update workflow scope choice (`update.md`)
+
+When dual install detected, `/gsd:update` should:
+1. Show both installations with versions
+2. Fetch and display changelog
+3. Ask: "Which installation(s) to update?" → Local only / Global only / Both
+4. **Per-scope changelog deliberation**: Frame implications differently:
+   - Local: "Changes affect this project only"
+   - Global: "Changes affect ALL projects without local installs"
+5. Confirm per scope before executing
+
+No "Skip" option — if user ran `/gsd:update` they want to update something. They can ctrl+c to cancel.
+
+### B. Scope-aware hook indicators
+
+**gsd-check-update.js** and **gsd-version-check.js**: Detect both installations, include `dual_install`, `local_version`, `global_version` in cache output.
+
+**gsd-statusline.js**: Show scope-aware indicator:
+- `⬆ local+global` — both outdated
+- `⬆ global` — only global outdated
+- `⬆ local` — only local outdated
+
+### C. Version-pinned suppression
+
+When user updates local but not global (or vice versa), offer: "Suppress update indicator for [scope] v1.16.0?"
+
+If accepted, store `declined_global_version: "1.16.0"` in cache. Suppression auto-expires when a NEWER version (e.g., v1.17.0) appears on npm. This means:
+- User's choice is respected for the specific version they declined
+- New releases automatically re-trigger the indicator
+- No timers, no cleanup logic — one field handles it
+- Indicator is hidden (not dimmed) for the declined version+scope
+
+### Open Questions (for Phase 2 planning)
+
+- Should we also show which projects would be affected by a global update? (e.g., scan for `.planning/` dirs in common project locations?) — Probably over-engineering.
+- Hook source files vs `hooks/dist/` build pipeline — need to understand the build step before modifying hooks.

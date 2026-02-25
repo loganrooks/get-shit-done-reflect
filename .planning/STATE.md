@@ -49,7 +49,7 @@ v1.15 decisions archived in milestones/v1.15-ROADMAP.md.
 
 2 pending:
 - [MEDIUM] Feature manifest system for declarative feature initialization (architecture)
-- [HIGH] Design dual-installation update strategy for split local/global installs (tooling)
+- [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 
 ### Blockers/Concerns
 
