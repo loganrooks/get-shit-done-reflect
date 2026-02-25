@@ -47,7 +47,9 @@ v1.15 decisions archived in milestones/v1.15-ROADMAP.md.
 
 ### Pending Todos
 
-(None — cleared at milestone boundary)
+2 pending:
+- [MEDIUM] Feature manifest system for declarative feature initialization (architecture)
+- [HIGH] Design dual-installation update strategy for split local/global installs (tooling)
 
 ### Blockers/Concerns
 
