@@ -85,6 +85,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-02-23
-Stopped at: v1.15 milestone archived. Ready for /gsd:new-milestone.
-Resume file: None
+Last session: 2026-02-25
+Stopped at: Quick task 7 (dual-install detection) planned, ready to execute. Phase 1 of 2 — detection/awareness only.
+Resume file: .planning/.continue-here.md
