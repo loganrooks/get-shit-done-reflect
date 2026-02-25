@@ -1134,6 +1134,59 @@ function replacePathsInContent(content, runtimePathPrefix) {
 }
 
 /**
+ * Inject version and scope into command file frontmatter description.
+ * Appends "(vX.Y.Z scope)" to the description field to differentiate
+ * local vs global installations in autocomplete.
+ *
+ * @param {string} content - File content with YAML frontmatter
+ * @param {string} version - Version string (e.g., "1.15.0")
+ * @param {string} scope - Installation scope ("local" or "global")
+ * @returns {string} Modified content with version/scope in description
+ */
+function injectVersionScope(content, version, scope) {
+  if (!content.startsWith('---')) return content;
+  const endIdx = content.indexOf('---', 3);
+  if (endIdx === -1) return content;
+  const frontmatter = content.substring(0, endIdx + 3);
+  const body = content.substring(endIdx + 3);
+  // Strip any existing version/scope suffix before adding new one
+  const modified = frontmatter.replace(
+    /^(description:\s*)(.+?)(\s*\(v[\d.]+ (?:local|global)\))?$/m,
+    `$1$2 (v${version} ${scope})`
+  );
+  return modified + body;
+}
+
+/**
+ * Walk a directory (non-recursively) and apply injectVersionScope to all .md files.
+ *
+ * @param {string} dir - Directory to walk
+ * @param {string} version - Version string
+ * @param {string} scope - "local" or "global"
+ */
+function applyVersionScopeToCommands(dir, version, scope) {
+  if (!fs.existsSync(dir)) return;
+  try {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      if (entry.isFile() && entry.name.endsWith('.md')) {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        const modified = injectVersionScope(content, version, scope);
+        if (modified !== content) {
+          fs.writeFileSync(fullPath, modified);
+        }
+      } else if (entry.isDirectory()) {
+        // Recurse into subdirectories (for nested command structure)
+        applyVersionScopeToCommands(fullPath, version, scope);
+      }
+    }
+  } catch {
+    // Non-critical — skip version injection on error
+  }
+}
+
+/**
  * Copy commands to a flat structure for OpenCode
  * OpenCode expects: command/gsd-help.md (invoked as /gsd-help)
  * Source structure: commands/gsd/help.md
@@ -1909,6 +1962,23 @@ function install(isGlobal, runtime = 'claude') {
 
   console.log(`  Installing for ${cyan}${runtimeLabel}${reset} to ${cyan}${locationLabel}${reset}\n`);
 
+  // Cross-scope detection: warn if the other scope already has GSD installed
+  const otherScopeVersionPath = isGlobal
+    ? path.join(process.cwd(), dirName, 'get-shit-done', 'VERSION')
+    : path.join(getGlobalDir(runtime, explicitConfigDir), 'get-shit-done', 'VERSION');
+  if (fs.existsSync(otherScopeVersionPath)) {
+    try {
+      const otherVersion = fs.readFileSync(otherScopeVersionPath, 'utf8').trim();
+      const otherLabel = isGlobal ? 'local (this project)' : 'global';
+      console.log(`  ${yellow}Note:${reset} GSD is also installed ${otherLabel} (v${otherVersion}).`);
+      console.log(`  You will have dual installations after this install.`);
+      console.log(`  ${dim}Local always takes precedence. Commands may appear twice in autocomplete.${reset}`);
+      console.log(`  ${dim}See: .claude/get-shit-done/references/dual-installation.md${reset}\n`);
+    } catch {
+      // Ignore read errors — non-critical informational warning
+    }
+  }
+
   // Track installation failures
   const failures = [];
 
@@ -1934,11 +2004,13 @@ function install(isGlobal, runtime = 'claude') {
     } else {
       failures.push('skills/gsd-*');
     }
+    // Inject version/scope into Codex skill descriptions
+    applyVersionScopeToCommands(skillsDir, pkg.version, isGlobal ? 'global' : 'local');
   } else if (isOpencode) {
     // OpenCode: flat structure in command/ directory
     const commandDir = path.join(targetDir, 'command');
     safeFs('mkdirSync', () => fs.mkdirSync(commandDir, { recursive: true }), commandDir);
-    
+
     // Copy commands/gsd/*.md as command/gsd-*.md (flatten structure)
     const gsdSrc = path.join(src, 'commands', 'gsd');
     copyFlattenedCommands(gsdSrc, commandDir, 'gsd', pathPrefix, runtime);
@@ -1948,11 +2020,13 @@ function install(isGlobal, runtime = 'claude') {
     } else {
       failures.push('command/gsd-*');
     }
+    // Inject version/scope into OpenCode command descriptions
+    applyVersionScopeToCommands(commandDir, pkg.version, isGlobal ? 'global' : 'local');
   } else {
     // Claude Code & Gemini: nested structure in commands/ directory
     const commandsDir = path.join(targetDir, 'commands');
     safeFs('mkdirSync', () => fs.mkdirSync(commandsDir, { recursive: true }), commandsDir);
-    
+
     const gsdSrc = path.join(src, 'commands', 'gsd');
     const gsdDest = path.join(commandsDir, 'gsd');
     copyWithPathReplacement(gsdSrc, gsdDest, pathPrefix, runtime);
@@ -1961,6 +2035,8 @@ function install(isGlobal, runtime = 'claude') {
     } else {
       failures.push('commands/gsd');
     }
+    // Inject version/scope into Claude/Gemini command descriptions
+    applyVersionScopeToCommands(gsdDest, pkg.version, isGlobal ? 'global' : 'local');
   }
 
   // Copy get-shit-done skill with path replacement
