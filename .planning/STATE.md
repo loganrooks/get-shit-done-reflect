@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 Phase: None (between milestones)
 Plan: N/A
 Status: v1.15 Backlog & Update Experience shipped. 4 milestones complete.
-Last activity: 2026-02-26 -- Completed quick-8: recovered lost code to npm source (knowledge-store.md + dual-install detection)
+Last activity: 2026-02-26 -- Completed quick-9: fix installer local patch detection false positives
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (24) = 85 plans shipped across 30 phases
 
@@ -69,6 +69,7 @@ v1.15 decisions archived in milestones/v1.15-ROADMAP.md.
 | 006 | Release v1.15.0 to npm with reflect- tag prefix | 2026-02-24 | 7fc4a7c | [6-release-v1-15-0-to-npm-with-reflect-tag-](./quick/6-release-v1-15-0-to-npm-with-reflect-tag-/) |
 | 007 | Dual-install detection/awareness (Phase 1): VERSION comparison, cross-scope warning, description injection, reference doc | 2026-02-25 | 0346ac6 | [7-implement-dual-installation-detection-an](./quick/7-implement-dual-installation-detection-an/) |
 | 008 | Recover lost code: knowledge-store.md + dual-install in resume-project.md to npm source | 2026-02-26 | 9c7e7a9 | [8-recover-lost-code-from-deleted-local-pat](./quick/8-recover-lost-code-from-deleted-local-pat/) |
+| 009 | Fix installer local patch detection false positives (pruneRedundantPatches) | 2026-02-26 | b979680 | [9-fix-installer-local-patch-detection-to-a](./quick/9-fix-installer-local-patch-detection-to-a/) |
 
 ### Roadmap Evolution
 
