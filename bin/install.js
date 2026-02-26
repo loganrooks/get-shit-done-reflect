@@ -1134,25 +1134,26 @@ function replacePathsInContent(content, runtimePathPrefix) {
 }
 
 /**
- * Inject version and scope into command file frontmatter description.
- * Appends "(vX.Y.Z scope)" to the description field to differentiate
- * local vs global installations in autocomplete.
+ * Inject version into command file frontmatter description.
+ * Appends "(vX.Y.Z)" to the description field so users can see which
+ * version a command comes from in autocomplete. Claude Code already
+ * discriminates local vs global by path, so scope is not included.
  *
  * @param {string} content - File content with YAML frontmatter
  * @param {string} version - Version string (e.g., "1.15.0")
- * @param {string} scope - Installation scope ("local" or "global")
- * @returns {string} Modified content with version/scope in description
+ * @param {string} _scope - Unused (kept for call-site compatibility)
+ * @returns {string} Modified content with version in description
  */
-function injectVersionScope(content, version, scope) {
+function injectVersionScope(content, version, _scope) {
   if (!content.startsWith('---')) return content;
   const endIdx = content.indexOf('---', 3);
   if (endIdx === -1) return content;
   const frontmatter = content.substring(0, endIdx + 3);
   const body = content.substring(endIdx + 3);
-  // Strip any existing version/scope suffix before adding new one
+  // Strip any existing version suffix (with or without scope) before adding new one
   const modified = frontmatter.replace(
-    /^(description:\s*)(.+?)(\s*\(v[\d.]+ (?:local|global)\))?$/m,
-    `$1$2 (v${version} ${scope})`
+    /^(description:\s*)(.+?)(\s*\(v[\d.]+(?:\s+(?:local|global))?\))?$/m,
+    `$1$2 (v${version})`
   );
   return modified + body;
 }
@@ -2574,4 +2575,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, installKBScripts, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs };

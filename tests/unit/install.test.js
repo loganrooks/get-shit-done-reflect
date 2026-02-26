@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -236,6 +236,51 @@ describe('install script', () => {
         const input = '~/.claude/get-shit-done/VERSION'
         const result = replacePathsInContent(input, '~/.config/opencode/')
         expect(result).toBe('~/.config/opencode/get-shit-done/VERSION')
+      })
+    })
+
+    describe('injectVersionScope unit tests', () => {
+      const cmd = (desc) => `---\nname: gsd:test\ndescription: ${desc}\n---\nBody content`
+
+      it('appends version to description without scope', () => {
+        const result = injectVersionScope(cmd('Do something cool'), '1.15.5', 'local')
+        expect(result).toContain('description: Do something cool (v1.15.5)')
+        expect(result).not.toContain('local')
+        expect(result).not.toContain('global')
+      })
+
+      it('strips old version+scope suffix before injecting', () => {
+        const result = injectVersionScope(cmd('Do something cool (v1.15.4 local)'), '1.15.5', 'local')
+        expect(result).toContain('description: Do something cool (v1.15.5)')
+        expect(result).not.toContain('v1.15.4')
+        expect(result).not.toContain('local')
+      })
+
+      it('strips old version-only suffix before injecting', () => {
+        const result = injectVersionScope(cmd('Do something cool (v1.15.4)'), '1.15.5', 'global')
+        expect(result).toContain('description: Do something cool (v1.15.5)')
+        expect(result).not.toContain('v1.15.4')
+      })
+
+      it('ignores scope parameter (does not include it in output)', () => {
+        const local = injectVersionScope(cmd('Test'), '1.15.5', 'local')
+        const global = injectVersionScope(cmd('Test'), '1.15.5', 'global')
+        expect(local).toBe(global)
+      })
+
+      it('returns content unchanged when no frontmatter', () => {
+        const input = 'No frontmatter here'
+        expect(injectVersionScope(input, '1.15.5', 'local')).toBe(input)
+      })
+
+      it('returns content unchanged when frontmatter has no closing ---', () => {
+        const input = '---\nname: gsd:test\ndescription: broken'
+        expect(injectVersionScope(input, '1.15.5', 'local')).toBe(input)
+      })
+
+      it('preserves body content after frontmatter', () => {
+        const result = injectVersionScope(cmd('Test'), '1.15.5', 'local')
+        expect(result).toContain('Body content')
       })
     })
 
