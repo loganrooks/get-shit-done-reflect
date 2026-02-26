@@ -6,6 +6,12 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.15.5] - 2026-02-26
+
+### Fixed
+- `replacePathsInContent()` regex now preserves documentation-style `~/.claude/` references (followed by space) instead of corrupting them into runtime paths — eliminates false-positive patches on every update for 4 affected agent/reference files
+- Reworded `dual-installation.md` topology descriptions to avoid ambiguous path patterns that looked identical to functional path references
+
 ## [1.15.4] - 2026-02-26
 
 ### Fixed
