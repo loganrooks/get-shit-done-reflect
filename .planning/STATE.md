@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 Phase: None (between milestones)
 Plan: N/A
 Status: v1.15 Backlog & Update Experience shipped. 4 milestones complete.
-Last activity: 2026-02-26 -- Released v1.15.2 (dual-install detection, source sync fix, CLAUDE.md)
+Last activity: 2026-02-26 -- Completed quick-8: recovered lost code to npm source (knowledge-store.md + dual-install detection)
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (24) = 85 plans shipped across 30 phases
 
@@ -88,5 +88,4 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-26
-Stopped at: Completed quick-8 (recovered knowledge-store.md and dual-install detection to npm source).
-Resume file: .planning/.continue-here.md
+Stopped at: Quick-8 complete. npm source/install parity fully verified. No continue-here needed.
