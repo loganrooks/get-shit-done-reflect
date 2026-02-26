@@ -6,6 +6,14 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.15.6] - 2026-02-26
+
+### Changed
+- Version injection in command descriptions now shows `(v1.15.6)` instead of `(v1.15.6 local)` — Claude Code already discriminates by path, scope was redundant
+
+### Added
+- Unit tests for `injectVersionScope()` (7 tests covering new format, old format stripping, edge cases)
+
 ## [1.15.5] - 2026-02-26
 
 ### Fixed
