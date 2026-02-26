@@ -6,6 +6,21 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.15.2] - 2026-02-26
+
+### Added
+- Dual-installation detection: `detectDualInstall()` in gsd-tools.js reports local/global installs in all init commands
+- Cross-scope installer warning when installing at a scope where the other scope already has GSD
+- Version and scope injection into command descriptions for autocomplete differentiation (e.g., "v1.15.2 local")
+- Dual-install status surfaced in `/gsd:resume-work` status box
+- `references/dual-installation.md` documenting topology, precedence, and cross-project impact
+- `CLAUDE.md` with project-specific development rules (dual-directory architecture)
+- `.planning/deliberations/` for persistent design thinking across sessions
+
+### Fixed
+- Synced agent-protocol.md and KB surfacing sections to npm source directories — v1.15 Phase 22 work was developed exclusively in `.claude/` (install target) and never propagated to `agents/` and `get-shit-done/references/` (npm source), causing installer to overwrite protocol-enhanced agents with old versions
+- Recovered 251-line v1.16 brainstorming from overwritten `.continue-here.md`
+
 ## [1.15.1] - 2026-02-25
 
 ### Fixed
