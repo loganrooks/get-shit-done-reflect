@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 Phase: None (between milestones)
 Plan: N/A
 Status: v1.15 Backlog & Update Experience shipped. 4 milestones complete.
-Last activity: 2026-02-25 -- Quick task 7: dual-install detection and awareness (Phase 1)
+Last activity: 2026-02-26 -- Released v1.15.2 (dual-install detection, source sync fix, CLAUDE.md)
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (24) = 85 plans shipped across 30 phases
 
@@ -86,6 +86,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-02-25
-Stopped at: Completed quick-7 (dual-install detection Phase 1). Phase 2 deferred (update flow, hook awareness, version-pinned suppression).
-Resume file: none
+Last session: 2026-02-26
+Stopped at: Released v1.15.2 (dual-install detection + source sync fix + CLAUDE.md). Next: recover code lost when local patches were cleaned up.
+Resume file: .planning/.continue-here.md
