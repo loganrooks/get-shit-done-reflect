@@ -1907,6 +1907,67 @@ function saveLocalPatches(configDir) {
 }
 
 /**
+ * Remove patches that are identical to newly installed files.
+ * After an update, a backed-up "modification" may actually match what we just
+ * installed (e.g., user already had the new content from a dev install, or the
+ * only difference was the installer's own path normalization). These aren't
+ * real user patches — prune them to avoid false-positive noise.
+ */
+function pruneRedundantPatches(configDir) {
+  const patchesDir = path.join(configDir, PATCHES_DIR_NAME);
+  const metaPath = path.join(patchesDir, 'backup-meta.json');
+  if (!fs.existsSync(metaPath)) return;
+
+  let meta;
+  try { meta = JSON.parse(fs.readFileSync(metaPath, 'utf8')); } catch { return; }
+
+  const remaining = [];
+  let pruned = 0;
+
+  for (const relPath of (meta.files || [])) {
+    const patchPath = path.join(patchesDir, relPath);
+    const installedPath = path.join(configDir, relPath);
+
+    if (!fs.existsSync(patchPath) || !fs.existsSync(installedPath)) {
+      remaining.push(relPath);
+      continue;
+    }
+
+    if (fileHash(patchPath) === fileHash(installedPath)) {
+      // Patch is identical to newly installed file — not a real modification
+      fs.unlinkSync(patchPath);
+      pruned++;
+    } else {
+      remaining.push(relPath);
+    }
+  }
+
+  if (pruned === 0) return;
+
+  if (remaining.length === 0) {
+    // No real patches — clean up entirely
+    fs.rmSync(patchesDir, { recursive: true, force: true });
+  } else {
+    // Update meta with pruned list
+    meta.files = remaining;
+    fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2));
+    // Clean up empty subdirectories left after pruning
+    for (const sub of ['agents', 'get-shit-done', 'commands']) {
+      const subDir = path.join(patchesDir, sub);
+      if (fs.existsSync(subDir)) {
+        try {
+          const entries = fs.readdirSync(subDir, { recursive: true }).filter(e => {
+            const full = path.join(subDir, e);
+            return fs.existsSync(full) && fs.statSync(full).isFile();
+          });
+          if (entries.length === 0) fs.rmSync(subDir, { recursive: true, force: true });
+        } catch { /* ignore cleanup errors */ }
+      }
+    }
+  }
+}
+
+/**
  * After install, report backed-up patches for user to reapply.
  */
 function reportLocalPatches(configDir) {
@@ -2154,6 +2215,7 @@ function install(isGlobal, runtime = 'claude') {
   if (isCodex) {
     writeManifest(targetDir);
     console.log(`  ${green}✓${reset} Wrote file manifest (${MANIFEST_NAME})`);
+    pruneRedundantPatches(targetDir);
     reportLocalPatches(targetDir);
     return { settingsPath: null, settings: {}, statuslineCommand: null, runtime };
   }
@@ -2228,6 +2290,9 @@ function install(isGlobal, runtime = 'claude') {
   // Write file manifest for future modification detection
   writeManifest(targetDir);
   console.log(`  ${green}✓${reset} Wrote file manifest (${MANIFEST_NAME})`);
+
+  // Prune patches that match the newly installed files (false positives)
+  pruneRedundantPatches(targetDir);
 
   // Report any backed-up local patches
   reportLocalPatches(targetDir);
