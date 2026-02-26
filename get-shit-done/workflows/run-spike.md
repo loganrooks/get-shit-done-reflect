@@ -44,21 +44,6 @@ MODE="${MODE:-interactive}"
 
 Before creating a workspace or drafting DESIGN.md, assess whether the question is better suited to research or experimentation.
 
-**Check for existing research:**
-
-```bash
-# If phase-linked, check for existing research artifacts
-if [ "$PHASE" != "project-level" ]; then
-  EXISTING_RESEARCH=$(ls .planning/phases/${PHASE}-*/*-RESEARCH.md 2>/dev/null)
-  if [ -n "$EXISTING_RESEARCH" ]; then
-    echo "Note: Research already exists for this phase: $EXISTING_RESEARCH"
-    echo "Review existing research before spiking -- the answer may already be there."
-  fi
-fi
-```
-
-If existing research is found for the linked phase, surface this to the user as additional context in the advisory. This does NOT block the spike -- it adds information to help the user make a better decision.
-
 **Research indicators** (question may not need a spike):
 - Asks about capabilities, features, or API support ("Does X support Y?")
 - Answer likely exists in official documentation or changelogs
