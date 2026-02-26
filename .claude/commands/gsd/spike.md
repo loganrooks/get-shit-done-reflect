@@ -1,6 +1,6 @@
 ---
 name: gsd:spike
-description: Translate design uncertainty into a structured experiment with testable hypotheses
+description: Translate design uncertainty into a structured experiment with testable hypotheses (v1.15.4 local)
 argument-hint: "[question] [--phase N]"
 allowed-tools:
   - Read

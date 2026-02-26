@@ -500,35 +500,6 @@ function loadManifest(cwd) {
   }
 }
 
-function detectDualInstall(cwd) {
-  const homedir = require('os').homedir();
-  const localVersionPath = path.join(cwd, '.claude', 'get-shit-done', 'VERSION');
-  const globalVersionPath = path.join(homedir, '.claude', 'get-shit-done', 'VERSION');
-
-  // Avoid false positive when cwd IS the home dir
-  const localResolved = path.resolve(path.dirname(localVersionPath));
-  const globalResolved = path.resolve(path.dirname(globalVersionPath));
-  if (localResolved === globalResolved) {
-    return { detected: false };
-  }
-
-  const localExists = fs.existsSync(localVersionPath);
-  const globalExists = fs.existsSync(globalVersionPath);
-
-  if (localExists && globalExists) {
-    const localVersion = fs.readFileSync(localVersionPath, 'utf-8').trim();
-    const globalVersion = fs.readFileSync(globalVersionPath, 'utf-8').trim();
-    return {
-      detected: true,
-      local: { path: localResolved, version: localVersion },
-      global: { path: globalResolved, version: globalVersion },
-      active_scope: 'local'
-    };
-  }
-
-  return { detected: false };
-}
-
 function loadProjectConfig(cwd) {
   const configPath = path.join(cwd, '.planning', 'config.json');
   if (!fs.existsSync(configPath)) return null;
@@ -4098,9 +4069,6 @@ function cmdInitExecutePhase(cwd, phase, includes, raw) {
     state_exists: pathExistsInternal(cwd, '.planning/STATE.md'),
     roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
     config_exists: pathExistsInternal(cwd, '.planning/config.json'),
-
-    // Dual installation detection
-    dual_install: detectDualInstall(cwd),
   };
 
   // Include file contents if requested via --include
@@ -4153,9 +4121,6 @@ function cmdInitPlanPhase(cwd, phase, includes, raw) {
     // Environment
     planning_exists: pathExistsInternal(cwd, '.planning'),
     roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
-
-    // Dual installation detection
-    dual_install: detectDualInstall(cwd),
   };
 
   // Include file contents if requested via --include
@@ -4341,9 +4306,6 @@ function cmdInitQuick(cwd, description, raw) {
     // File existence
     roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
     planning_exists: pathExistsInternal(cwd, '.planning'),
-
-    // Dual installation detection
-    dual_install: detectDualInstall(cwd),
   };
 
   output(result, raw);
@@ -4371,9 +4333,6 @@ function cmdInitResume(cwd, raw) {
 
     // Config
     commit_docs: config.commit_docs,
-
-    // Dual installation detection
-    dual_install: detectDualInstall(cwd),
   };
 
   output(result, raw);

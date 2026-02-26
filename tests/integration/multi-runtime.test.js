@@ -122,10 +122,12 @@ async function verifyNoLeakedPaths(runtimeDir, runtime) {
     const content = await fs.readFile(filePath, 'utf8')
 
     // Check for leaked ~/.claude/ paths in non-Claude runtimes
+    // Documentation-style uses (e.g., "~/.claude/ = claude-code") have a space after the slash
+    // and are intentionally preserved by replacePathsInContent()
     if (runtime !== 'claude' && content.includes('~/.claude/')) {
       const lines = content.split('\n')
       for (let i = 0; i < lines.length; i++) {
-        if (lines[i].includes('~/.claude/')) {
+        if (lines[i].includes('~/.claude/') && !lines[i].match(/~\/\.claude\/\s/)) {
           violations.push({ file, line: i + 1, issue: 'leaked ~/.claude/ path', text: lines[i].trim() })
         }
       }

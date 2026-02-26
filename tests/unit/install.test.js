@@ -219,6 +219,24 @@ describe('install script', () => {
         const result = replacePathsInContent(input, '~/.config/opencode/')
         expect(result).toBe('@~/.config/opencode/get-shit-done/workflows/signal.md')
       })
+
+      it('preserves bare ~/.claude/ in documentation text (space after slash)', () => {
+        const input = '~/.claude/ = claude-code provenance'
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toBe('~/.claude/ = claude-code provenance')
+      })
+
+      it('preserves $HOME/.claude/ in documentation text (space after slash)', () => {
+        const input = '$HOME/.claude/ paths -> runtime paths'
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toBe('$HOME/.claude/ paths -> runtime paths')
+      })
+
+      it('still replaces ~/.claude/ followed by path component', () => {
+        const input = '~/.claude/get-shit-done/VERSION'
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toBe('~/.config/opencode/get-shit-done/VERSION')
+      })
     })
 
     // Integration tests: full installer run
@@ -993,6 +1011,7 @@ Use WebFetch and Task and SlashCommand for these features.`
         expect(mdFiles.length).toBeGreaterThan(0)
 
         // Check that none contain ~/.claude/ (should all be ~/.codex/)
+        // Documentation-style uses ("~/.claude/ " with trailing space) are intentionally preserved
         for (const mdFile of mdFiles) {
           const filePath = path.join(gsdDir, mdFile)
           const stat = await fs.stat(filePath)
@@ -1001,7 +1020,7 @@ Use WebFetch and Task and SlashCommand for these features.`
           // Runtime-specific paths should use ~/.codex/, not ~/.claude/
           if (content.includes('~/.claude/')) {
             // Allow KB-related paths that are supposed to use ~/.gsd/
-            const lines = content.split('\n').filter(l => l.includes('~/.claude/'))
+            const lines = content.split('\n').filter(l => l.includes('~/.claude/') && !l.match(/~\/\.claude\/\s/))
             for (const line of lines) {
               // Every line with ~/.claude/ is an error for Codex install
               expect(line).not.toContain('~/.claude/')

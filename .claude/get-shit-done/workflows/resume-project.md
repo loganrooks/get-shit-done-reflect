@@ -32,11 +32,11 @@ Parse JSON for: `state_exists`, `roadmap_exists`, `project_exists`, `planning_ex
 
 <step name="detect_runtime">
 Detect which runtime this workflow is executing in by examining the path prefix
-used in this file. The installer replaces ./.claude/ with the target runtime's
+used in this file. The installer replaces ~/.claude/ with the target runtime's
 path prefix during installation.
 
 Runtime detection from path prefix:
-- ./.claude/ paths -> Claude Code (command prefix: /gsd:)
+- ~/.claude/ paths -> Claude Code (command prefix: /gsd:)
 - ~/.config/opencode/ paths -> OpenCode (command prefix: /gsd-)
 - ~/.gemini/ paths -> Gemini CLI (command prefix: /gsd:)
 - ~/.codex/ paths -> Codex CLI (command prefix: $gsd-)

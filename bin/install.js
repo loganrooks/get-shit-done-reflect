@@ -1112,7 +1112,7 @@ function replacePathsInContent(content, runtimePathPrefix) {
 
   // Pass 2: Replace remaining runtime-specific paths
   // Negative lookahead for gsd-knowledge as a safety guard (Pass 1 already handled them)
-  result = result.replace(/~\/\.claude\/(?!gsd-knowledge)/g, runtimePathPrefix);
+  result = result.replace(/~\/\.claude\/(?!gsd-knowledge)(?! )/g, runtimePathPrefix);
 
   // Handle $HOME/.claude/ variant for runtime-specific paths
   // Derive the HOME-relative path suffix for $HOME substitution
@@ -1128,7 +1128,7 @@ function replacePathsInContent(content, runtimePathPrefix) {
     // $HOME patterns are unlikely in local installs, but handle gracefully
     runtimeSuffix = runtimePathPrefix;
   }
-  result = result.replace(/\$HOME\/\.claude\/(?!gsd-knowledge)/g, '$HOME/' + runtimeSuffix);
+  result = result.replace(/\$HOME\/\.claude\/(?!gsd-knowledge)(?! )/g, '$HOME/' + runtimeSuffix);
 
   return result;
 }

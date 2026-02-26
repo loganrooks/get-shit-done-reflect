@@ -1,6 +1,6 @@
 ---
 name: gsd:reflect
-description: Analyze accumulated signals and distill patterns into lessons
+description: Analyze accumulated signals and distill patterns into lessons (v1.15.4 local)
 argument-hint: "[phase] [--all] [--drift]"
 allowed-tools:
   - Read

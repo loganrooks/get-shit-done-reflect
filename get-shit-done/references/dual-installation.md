@@ -2,8 +2,8 @@
 
 ## Intended Topology
 
-- **Global install** (`~/.claude/get-shit-done/`): Baseline. Makes GSD available in every project by default.
-- **Local install** (`~/.claude/get-shit-done/`): Version pin. Overrides global for a specific project that needs stability or a particular version.
+- **Global install** (user-level config dir, e.g. `$HOME/.claude/get-shit-done/`): Baseline. Makes GSD available in every project by default.
+- **Local install** (project-level `.claude/get-shit-done/`): Version pin. Overrides global for a specific project that needs stability or a particular version.
 
 This mirrors the npm global vs local package model.
 
@@ -26,7 +26,7 @@ Local always takes precedence over global. When both exist:
 
 ## Autocomplete Behavior
 
-When both installations exist, Claude Code discovers commands from both `~/.claude/commands/` and `~/.claude/commands/`. This may cause duplicate entries in autocomplete. The version and scope are appended to each command's description (e.g., "Create execution plan (v1.15.2 local)") to help differentiate them.
+When both installations exist, Claude Code discovers commands from both the global and local `commands/` directories. This may cause duplicate entries in autocomplete. The version and scope are appended to each command's description (e.g., "Create execution plan (v1.15.2 local)") to help differentiate them.
 
 The local installation's commands take precedence for execution.
 
