@@ -23,7 +23,7 @@ Load all context in one call:
 INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init resume)
 ```
 
-Parse JSON for: `state_exists`, `roadmap_exists`, `project_exists`, `planning_exists`, `has_interrupted_agent`, `interrupted_agent_id`, `commit_docs`.
+Parse JSON for: `state_exists`, `roadmap_exists`, `project_exists`, `planning_exists`, `has_interrupted_agent`, `interrupted_agent_id`, `commit_docs`, `dual_install`.
 
 **If `state_exists` is true:** Proceed to load_state
 **If `state_exists` is false but `roadmap_exists` or `project_exists` is true:** Offer to reconstruct STATE.md
@@ -148,6 +148,12 @@ Present complete project status to user:
 ║                                                               ║
 ║  Last activity: [date] - [what happened]                     ║
 ╚══════════════════════════════════════════════════════════════╝
+
+[If dual_install.detected is true (from init JSON):]
+ℹ️  Dual GSD installation detected:
+    Local: v[dual_install.local.version] (this project — active)
+    Global: v[dual_install.global.version] (baseline)
+    See: references/dual-installation.md
 
 [If incomplete work found:]
 ⚠️  Incomplete work detected:
