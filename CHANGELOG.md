@@ -6,6 +6,11 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.15.4] - 2026-02-26
+
+### Fixed
+- Installer local patch detection: added `pruneRedundantPatches()` to eliminate false positives where backed-up files are identical to newly installed files (common in dev repos with frequent local installs)
+
 ## [1.15.3] - 2026-02-26
 
 ### Fixed
