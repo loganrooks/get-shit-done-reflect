@@ -6,6 +6,12 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.15.3] - 2026-02-26
+
+### Fixed
+- Recovered `knowledge-store.md` agent spec to npm source directory (366-line spec existed only in `.claude/` install target since v1.12 Phase 1)
+- Synced dual-install detection to npm source `resume-project.md` (quick-7 changes were only in `.claude/` copy)
+
 ## [1.15.2] - 2026-02-26
 
 ### Added
