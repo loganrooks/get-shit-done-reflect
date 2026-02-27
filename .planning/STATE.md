@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-23)
+See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.16 Signal Lifecycle & Reflection
+**Current focus:** v1.16 Signal Lifecycle & Reflection -- Phase 31 (Signal Schema Foundation)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-27 — Milestone v1.16 started
+Phase: 31 of 35 (Signal Schema Foundation)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-02-27 -- Roadmap created for v1.16
 
-Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (24) = 85 plans shipped across 30 phases
+Progress: [..........] 0% (v1.16)
 
 ## Performance Metrics
 
@@ -34,16 +34,21 @@ Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (24) = 85 plans shipped a
 
 **v1.15 Final (initial + gap closure):**
 - Plans completed: 24 (18 initial + 6 gap closure)
-- Timeline: 13 days (2026-02-11 → 2026-02-23)
+- Timeline: 13 days (2026-02-11 -> 2026-02-23)
+
+**v1.16:** No plans completed yet.
 
 ## Accumulated Context
 
 ### Decisions
 
 Full decision log in PROJECT.md Key Decisions table.
-v1.13 decisions archived in milestones/v1.13-ROADMAP.md.
-v1.14 decisions archived in milestones/v1.14-ROADMAP.md.
-v1.15 decisions archived in milestones/v1.15-ROADMAP.md.
+v1.13-v1.15 decisions archived in milestones/ directories.
+
+Recent decisions affecting current work:
+- v1.16 roadmap: 5 phases derived from 36 requirements across SCHEMA/SENSOR/REFLECT/LIFECYCLE/SPIKE categories
+- v1.16 ordering: Schema first (foundation), then sensors, then reflector (highest value), then linkage (closes loop), spikes last (independent)
+- Critical pitfall: Build reflector BEFORE adding more sensors -- reflector is the bottleneck, not detection
 
 ### Pending Todos
 
@@ -55,7 +60,8 @@ v1.15 decisions archived in milestones/v1.15-ROADMAP.md.
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
-- 11 tech debt items from v1.15 audit (0 blockers) — see milestones/v1.15-MILESTONE-AUDIT.md
+- 11 tech debt items from v1.15 audit (0 blockers) -- see milestones/v1.15-MILESTONE-AUDIT.md
+- Nested YAML parsing risk: extractFrontmatter() may not handle deep nesting (triage.decision, evidence.supporting) -- test early in Phase 31
 
 ### Quick Tasks Completed
 
@@ -74,7 +80,7 @@ v1.15 decisions archived in milestones/v1.15-ROADMAP.md.
 
 ### Roadmap Evolution
 
-v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phases 13-21). v1.15 complete (Phases 22-30). All planned phases shipped.
+v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phases 13-21). v1.15 complete (Phases 22-30). All planned phases shipped. v1.16 roadmap created (Phases 31-35).
 
 ### Key Artifacts
 
@@ -89,5 +95,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-02-26
-Stopped at: Quick-8 complete. npm source/install parity fully verified. No continue-here needed.
+Last session: 2026-02-27
+Stopped at: v1.16 roadmap created. Ready to plan Phase 31.
+Resume file: None
