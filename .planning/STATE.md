@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-23)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Planning next milestone
+**Current focus:** v1.16 Signal Lifecycle & Reflection
 
 ## Current Position
 
-Phase: None (between milestones)
-Plan: N/A
-Status: v1.15 Backlog & Update Experience shipped. 4 milestones complete.
-Last activity: 2026-02-27 -- Completed quick-10: fix pre-v1.16 tech debt (agent-protocol refs + kb-templates)
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-02-27 — Milestone v1.16 started
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (24) = 85 plans shipped across 30 phases
 

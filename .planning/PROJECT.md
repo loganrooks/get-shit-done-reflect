@@ -69,7 +69,18 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ### Active
 
-(No active requirements — next milestone not yet defined. Run `/gsd:new-milestone` to begin.)
+## Current Milestone: v1.16 Signal Lifecycle & Reflection
+
+**Goal:** Close the self-improvement loop — from partial signal detection to a complete lifecycle (detect → triage → remediate → verify → recurrence check → lesson) with epistemic rigor built into every stage.
+
+**Target features:**
+- Multi-sensor collect-signals orchestrator (artifact, git, log sensors with extensible plugin pattern)
+- Signal lifecycle metadata (triage, remediation tracking, verification, recurrence linking)
+- Enhanced /gsd:reflect with lifecycle awareness, confidence-weighted pattern detection, counter-evidence seeking
+- Verification as passive recurrence check inside collect-signals
+- Spike system audit and lightweight mode for low-ceremony empirical investigation
+- Epistemic rigor as structural requirement: counter-evidence fields, positive signals, confidence tracking in schemas
+- Prediction mechanism (STRETCH: predicted vs actual outcomes as signal source)
 
 ### Out of Scope
 
@@ -91,7 +102,7 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ## Context
 
-Shipped v1.15 Backlog & Update Experience. GSD now has structured idea capture, declarative config management, and lean agent specs.
+Shipped v1.15 Backlog & Update Experience. Starting v1.16 Signal Lifecycle & Reflection. Core problem: 46 signals accumulated, 1 lesson distilled across 4 milestones — the pipeline from detection to actionable lessons is broken.
 Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, gsd-tools.js CLI (~5,400 lines with backlog + manifest commands).
 Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents (with shared agent-protocol.md), Runtime layer (Node.js) for installation and hooks.
 Knowledge base: `~/.gsd/knowledge/` (runtime-agnostic) with `signals/`, `spikes/`, `lessons/` subdirectories, auto-generated `index.md`, and provenance fields.
@@ -158,4 +169,4 @@ Test suite: 256 tests (163 gsd-tools + 73 install + 20 wiring), CI/CD via GitHub
 | Complexity gate for /gsd:quick | Trivial tasks don't need planner spawn; complex tasks need full flow | ✓ Good — word-boundary matching for multi-step indicators |
 
 ---
-*Last updated: 2026-02-23 after v1.15 milestone*
+*Last updated: 2026-02-27 after v1.16 milestone start*
