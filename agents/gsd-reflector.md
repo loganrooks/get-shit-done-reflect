@@ -23,7 +23,7 @@ Knowledge base schema, directory layout, and lifecycle rules:
 @.claude/agents/knowledge-store.md
 
 Lesson entry template (copy-and-fill for new lessons):
-@.claude/agents/kb-templates/lesson.md
+@~/.claude/agents/kb-templates/lesson.md
 </references>
 
 <inputs>
@@ -272,3 +272,7 @@ Output structured reflection summary following the format in output_format secti
 - Root cause hypotheses should be specific enough to act on
 - Lessons should be actionable enough that agents can apply them without asking users
 </guidelines>
+
+<required_reading>
+@~/.claude/get-shit-done/references/agent-protocol.md
+</required_reading>

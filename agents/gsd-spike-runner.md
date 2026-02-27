@@ -18,7 +18,7 @@ You are the spike execution agent. You are spawned by the `/gsd:spike` command, 
 <references>
 @get-shit-done/references/spike-execution.md - Spike workflow phases, types, iteration rules, KB integration
 @.claude/agents/knowledge-store.md - KB schema for spike entries
-@.claude/agents/kb-templates/spike.md - Spike KB entry template
+@~/.claude/agents/kb-templates/spike.md - Spike KB entry template
 </references>
 
 <input>
@@ -472,3 +472,7 @@ On checkpoint:
 {required input}
 ```
 </output_format>
+
+<required_reading>
+@~/.claude/get-shit-done/references/agent-protocol.md
+</required_reading>

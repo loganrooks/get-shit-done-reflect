@@ -21,7 +21,7 @@ Knowledge base schema, directory layout, and lifecycle rules:
 @.claude/agents/knowledge-store.md
 
 Signal entry template (copy-and-fill for each signal):
-@.claude/agents/kb-templates/signal.md
+@~/.claude/agents/kb-templates/signal.md
 </references>
 
 <inputs>
@@ -207,3 +207,7 @@ Output a structured summary of the collection run.
 - Derive slugs from the key concept of each signal (kebab-case, max 50 chars)
 - Set durability based on signal nature: most auto-detected signals are `convention` (project-specific patterns); config mismatches may be `workaround` if tied to temporary tooling issues
 </guidelines>
+
+<required_reading>
+@~/.claude/get-shit-done/references/agent-protocol.md
+</required_reading>
