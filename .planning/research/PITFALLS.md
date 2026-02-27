@@ -1,184 +1,183 @@
-# Pitfalls Research: Backlog Management, Config Migration, and Upgrade UX
+# Pitfalls Research: Signal Lifecycle, Multi-Sensor Detection, Epistemic Rigor & Reflection Enhancement
 
-**Domain:** Adding structured backlog, feature manifest/config schema, update experience, and agent spec extraction to existing file-based CLI-native workflow system
-**Researched:** 2026-02-16
-**Confidence:** HIGH (grounded in actual codebase analysis, real data loss incident from v1.14 KB migration, existing system architecture review, and ecosystem research)
+**Domain:** Adding signal lifecycle tracking (triage, remediation, verification, recurrence), multi-sensor detection, epistemic rigor enforcement, and reflection enhancement to an existing file-based AI workflow system
+**Researched:** 2026-02-27
+**Confidence:** HIGH (grounded in actual system analysis -- 46 signals/1 lesson pipeline ratio, 1 spike created/0 completed, specific schema review, real token budget measurements, known confirmation bias incidents from this project)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Backlog Replaces Working Todo System and Breaks Mid-Flight
+### Pitfall 1: Schema Expansion Breaks the Pipeline It's Supposed to Fix
 
 **What goes wrong:**
-The system currently has TWO working idea-capture paths: (1) `/gsd:add-todo` writes structured markdown files to `.planning/todos/pending/` with frontmatter, area inference, and duplicate detection; (2) Pending Todos bullet list in STATE.md under `### Pending Todos`. A new "backlog" system that replaces either path creates a migration gap where in-flight ideas exist in the old format but the new system expects the new format. Worse, the STATE.md bullets serve a different purpose than the todo files -- they are quick-reference items visible during every session (STATE.md is loaded on resume), while todo files are for detailed captures. Merging these into a single "backlog" system loses the quick-reference property of STATE.md bullets OR the structured detail of todo files.
+The proposed signal schema expands from ~15 YAML frontmatter fields to ~30+ fields (adding `source.sensor`, `source.evidence`, `triage.decision`, `triage.rationale`, `triage.by`, `triage.at`, `remediation.ref`, `remediation.approach`, `remediation.expected_outcome`, `remediation.status`, `verification.status`, `verification.method`, `verification.at`, `evidence.supporting`, `evidence.counter`, `evidence.confidence`, `evidence.confidence_basis`, `recurrence_of`, `previous_remediations`). The signal collector agent already generates signals with ~1.5-2.8KB each (measured from current KB). With the expanded schema, each signal could reach 4-6KB. The reflector must read ALL active signals -- currently 46 files totaling ~95KB. At the expanded size with lifecycle fields populated across phases, this could reach 200-300KB just for signal data, consuming 10-15% of context window before the agent even starts reasoning.
+
+More critically, the schema expansion makes signal CREATION harder. The current signal collector already has a 213-line agent spec plus ~258-line signal-detection reference. Adding mandatory counter-evidence fields, confidence basis, and source evidence tracing means the collector must do MORE WORK per signal. If the pipeline is broken at 46:1 signal-to-lesson ratio, making each signal more expensive to create does not fix the pipeline -- it makes the input side more fragile while the output side (reflection/lessons) remains the actual bottleneck.
 
 **Why it happens:**
-The temptation is to see `### Pending Todos` in STATE.md and `.planning/todos/pending/` as redundant. They are not. STATE.md bullets are session-visible context (loaded by `/gsd:resume-work`, read by every orchestrator via `gsd-tools.js init`). Todo files are detailed captures with frontmatter metadata, file references, and problem/solution sections. A backlog system that consolidates them must serve BOTH purposes or it degrades one.
+The deliberation document correctly identifies that "signals are write-once dead letters" -- but the proposed fix adds lifecycle metadata to signals rather than building the processing machinery that consumes them. Schema-first thinking feels like progress because it's concrete and designable, but the system's failure mode is not "signals lack metadata" -- it's "nothing reads signals and produces lessons."
 
 **How to avoid:**
-- Keep STATE.md `### Pending Todos` as a lightweight index/reference (title + one-liner + link to detail)
-- Keep `.planning/todos/pending/` as the detail store
-- New backlog features (prioritization, tagging, promotion to phase) should extend the existing todo system, not replace it
-- Migration: existing todos already have valid frontmatter -- add optional `priority`, `status`, `milestone` fields without requiring them
-- Test: `/gsd:resume-work` still sees pending items after migration; `/gsd:add-todo` still works unchanged
+- Phase the schema expansion: Ship lifecycle fields as OPTIONAL first. Required fields stay as-is (the current ~15 fields). New fields get populated incrementally as the lifecycle machinery comes online.
+- Build the processing pipeline FIRST (reflector enhancement, pattern detection, lesson distillation), THEN add richer schema fields once the pipeline proves it can consume what already exists.
+- Measure: Before expanding the schema, run the reflector on the existing 46 signals and produce lessons. If it cannot produce lessons from existing data, the problem is not schema richness -- it's reflector logic.
+- Schema migration: Use the pattern from v1.15 config migration -- optional fields with defaults, no breaking changes, gradual adoption. Existing signals without new fields remain valid.
 
 **Warning signs:**
-- Design doc mentions "replacing" or "consolidating" the todo system
-- STATE.md Pending Todos section goes empty while backlog grows elsewhere
-- `/gsd:resume-work` no longer surfaces pending ideas
-- Todo files lose their structured frontmatter in favor of a flat list
+- Schema design takes more than one phase while reflector enhancement is deferred
+- New required fields are added before any agent uses them
+- Signal creation time increases (measurable: agent spec line count, average signal file size)
+- Schema validation rejects old signals
 
-**Phase to address:** First phase -- define backlog as extension of existing `.planning/todos/`, not replacement
+**Phase to address:** Schema expansion should be the LAST phase, not the first. Build the consumer (reflector) before enriching the producer (collector).
 
 ---
 
-### Pitfall 2: Config Schema Validation Breaks Existing Projects on Update
+### Pitfall 2: Multi-Sensor Orchestration Generates Noise Faster Than Reflect Can Process
 
 **What goes wrong:**
-config.json is currently a permissive JSON blob read by `gsd-tools.js loadConfig()` with hardcoded defaults as fallback. There is no schema validation -- any key can exist, missing keys get defaults. Adding strict schema validation (required fields, type checking, rejection of unknown fields) immediately breaks every existing project that has a config.json from an older version. The user runs `/gsd:update`, gets new code that validates config.json, and their existing config fails validation because it lacks fields added in v1.15 (e.g., `release`, `backlog`, `feature_manifest`).
+The proposed sensor architecture adds git-sensor, log-sensor, and metrics-sensor alongside the existing artifact-sensor. The artifact sensor currently produces ~10-15 signals per phase (before trace filtering). A git-sensor analyzing commit patterns, churn, and "fix fix fix" sequences could easily double that. A log-sensor reading conversation patterns could triple it again. The per-phase signal cap is currently 10 persistent signals -- but across all sensors, candidates could number 30-50 before filtering.
 
-The actual config.json in this project has `"gsd_reflect_version": "1.12.2"` while the template has `"gsd_reflect_version": "1.13.0"` -- version drift is already real. The project config has `"mode": "yolo"` and `"parallelization": true` (flat boolean), while the template has `"mode": "interactive"` and `"parallelization": { "enabled": true, ... }` (nested object). Schema validation would reject the existing project config.
+The real danger: more sensors = more signals = larger KB = more context for the reflector = less reasoning room for actual pattern detection. The current reflector already has a 278-line agent spec plus ~596-line reflection-patterns reference. If it must also load 100+ active signals (expanded from 46), the context budget for actual reasoning shrinks below the ~50% quality threshold documented in agent-protocol.md Section 11.
+
+From observability engineering: "When alerts become noise, important signals get lost." The parallel is exact. The existing 46-signal backlog already exceeds the reflector's ability to process (1 lesson from 46 signals). Adding more sensors without fixing the processing bottleneck accelerates noise accumulation.
 
 **Why it happens:**
-Developers add schema validation to catch errors but forget that validation is a breaking change for systems that previously accepted anything. The "additive only" principle of backward compatibility is violated when validation rejects configs that worked yesterday.
+Sensor addition is additive and feels like progress. Each sensor individually seems valuable (git patterns ARE useful information). But the system constraint is not "insufficient detection" -- it's "insufficient synthesis." The signal collector works; the reflector doesn't. Adding more input to a broken pipeline produces a larger pile of unprocessed input, not better output.
 
 **How to avoid:**
-- Schema validation must be LENIENT by default: warn on unknown fields, never reject; coerce types where possible; fill defaults for missing fields
-- Use the existing `loadConfig()` pattern: hardcoded defaults merged with whatever is in config.json
-- Schema is for documentation and migration, not gatekeeping
-- `config-ensure-section` already exists in gsd-tools.js -- extend it to handle schema migration (add missing sections with defaults, never remove existing sections)
-- Version-gate schema requirements: new fields are optional until the user explicitly runs `/gsd:upgrade-project` which migrates config with user prompts
-- Append to `migration-log.md` on every schema migration for auditability
+- MANDATORY: Fix the reflector BEFORE adding new sensors. The existing artifact-sensor produces enough signals to test the full pipeline. New sensors add value only AFTER the pipeline can process existing input.
+- When sensors are added, implement a per-sensor-run budget: each sensor emits a maximum of N signal candidates (e.g., 5). The synthesizer picks the highest-severity across all sensors, subject to the existing per-phase cap of 10.
+- Implement severity stratification from observability best practices: "Alert on business impact, not on every error." Git commit pattern anomalies are LOW severity unless they correlate with execution failures (MEDIUM) or verified bugs (HIGH).
+- Run sensors with cheap models (the deliberation correctly identifies this -- `"git": { "model": "haiku" }`). But verify that cheap models produce useful signals before expanding sensor count.
 
 **Warning signs:**
-- Config validation uses `throw` or `process.exit` on unknown fields
-- Tests create configs from scratch instead of testing with real legacy configs
-- No migration path documented from current config shape to new config shape
-- `loadConfig()` changes from lenient to strict without a deprecation period
+- Signal count per phase exceeds 20 before filtering
+- Reflector load time (signal reading) exceeds 30% of its context budget
+- New sensors are added before existing signal backlog is processed
+- The "signal synthesis" step becomes the most expensive part of collection
 
-**Phase to address:** Early phase -- define config schema as permissive/additive; migration logic before any features that depend on new config fields
+**Phase to address:** Reflector enhancement MUST precede sensor expansion. Add one new sensor at a time, with measured impact on signal volume and reflector load.
 
 ---
 
-### Pitfall 3: The v1.14 Data Loss Pattern Repeats in Backlog Migration
+### Pitfall 3: Epistemic Rigor Requirements Create a Compliance Tax That Kills Throughput
 
 **What goes wrong:**
-In v1.14, 13 signals + 3 lessons were lost during KB migration because the migration logic existed only in the installer (`install.js`), not in the workflow system. When code paths that write/read KB data were updated but the actual data was not migrated, the system looked for data at the new path and found nothing. The same pattern threatens backlog migration: if STATE.md `### Pending Todos` bullets are migrated to structured todo files, but the migration runs only in one code path (e.g., only in `/gsd:upgrade-project` but not in `gsd-tools.js init todos`), then workflows that read the old location see nothing while the data sits in the new location.
+The epistemic rigor design principle requires structural counter-evidence in every signal (`evidence.counter: ["alternative explanations considered and why rejected"]`), every verification (`Evidence Against` section), and every reflector pattern assessment. This is philosophically correct -- confirmation bias is a real observed problem in this system (the tech debt dismissal incident, the .claude/ directory confusion going undetected for 23 days).
+
+But the cost is concrete: every signal now requires the collector to generate BOTH supporting AND counter-evidence. If the collector currently spends ~30 seconds per signal, counter-evidence seeking could double that. Across a phase with 10 signals, that's an extra 5 minutes of token consumption. For the reflector analyzing 46+ signals, actively seeking counter-evidence to each emerging pattern could consume most of the context budget in falsification attempts rather than synthesis.
+
+The proportionality principle in the deliberation is correct ("falsification effort should scale with cost of being wrong") but is vague enough that agents will either over-apply it (seeking counter-evidence for trivial signals) or under-apply it (generating formulaic "no counter-evidence found" text to satisfy the field requirement).
 
 **Why it happens:**
-Multiple code paths read the same data. Migration updates one path but not all of them. The system has at minimum these readers of todo/idea data:
-1. `gsd-tools.js init todos` -- reads `.planning/todos/pending/`
-2. STATE.md `### Pending Todos` -- read by every orchestrator
-3. `/gsd:check-todos` -- reads todo files
-4. `/gsd:resume-work` -- reads STATE.md
-5. Any future backlog command -- needs to find ALL historical ideas
-
-A migration that moves data from one location but only updates paths in 3 of 5 readers causes silent data invisibility.
+Epistemic rigor is a response to real failures. But the response treats the problem as structural when it is partly behavioral. The tech debt dismissal happened because the agent took a literal workflow path, not because the signal schema lacked a counter-evidence field. The .claude/ confusion went undetected because no test existed, not because signals lacked confidence annotations. Structural requirements can enforce the form of rigor without guaranteeing the substance.
 
 **How to avoid:**
-- Enumerate ALL code paths that read/write todo/idea data before migration design
-- Migration must be atomic: either all readers see the new location or none do
-- Copy-then-symlink pattern (proven in KB migration): keep old location as redirect to new
-- Pre-migration backup: snapshot `.planning/todos/` and STATE.md `### Pending Todos` section before migration
-- Post-migration verification: count items before and after, alert if mismatch
-- Never delete the old format until at least one full milestone cycle confirms the new format works
+- Make counter-evidence fields optional-but-flagged: If a signal lacks `evidence.counter`, the reflector should flag it as "unvetted" rather than preventing its creation. This preserves signal throughput while incentivizing rigor where it matters.
+- Implement the proportionality principle as a concrete rule: Counter-evidence is REQUIRED only for `critical` severity signals and for pattern detection in the reflector. For `notable` signals, it is recommended. For `trace`, it is unnecessary.
+- Positive signal emission should be a REFLECTOR responsibility (periodic baseline assertions), not a per-signal-creation requirement for sensors. Sensors detect deviations; baselines are a separate concern.
+- Measure the actual token cost of epistemic rigor in the first phase that implements it. If signal creation time increases >50%, the implementation is too heavy.
 
 **Warning signs:**
-- `/gsd:check-todos` returns 0 items when items exist in STATE.md bullets
-- STATE.md Pending Todos and `.planning/todos/pending/` show different item counts
-- `/gsd:resume-work` mentions no pending work but todo files exist
-- Migration code has no verification step counting items before/after
+- Counter-evidence fields contain formulaic text ("No counter-evidence identified" copy-pasted across signals)
+- Signal creation latency doubles or more
+- Agents spend more context on falsification than on detection
+- Users skip signal collection because it takes too long
 
-**Phase to address:** Backlog phase -- migration is a plan-level concern with explicit verification criteria
+**Phase to address:** Implement tiered rigor in the same phase as signal schema expansion. Critical = required counter-evidence. Notable = optional. Trace = none.
 
 ---
 
-### Pitfall 4: Feature Manifest Creates a Second Source of Truth for Config
+### Pitfall 4: Relaxing Signal Immutability Creates Data Integrity Nightmares
 
 **What goes wrong:**
-The feature manifest system proposes that each GSD feature declares its config schema. This creates a manifest file (or set of files) that describes what config.json SHOULD contain. Now config.json is the actual config, and the manifest is the desired config. If they drift apart, which is authoritative? When `/gsd:upgrade-project` reads the manifest and discovers a missing section in config.json, does it add it silently, prompt the user, or fail? When a user manually edits config.json to add a custom field not in the manifest, does the next upgrade delete it?
+The deliberation proposes relaxing signal immutability: "Detection data stays frozen, but lifecycle fields (triage, remediation, verification) are mutable." This seems reasonable in isolation, but the current system architecture is built on signal immutability. The knowledge-store.md spec says explicitly: "Signals capture a moment in time" and "Only status field changes are allowed (for archival)." The deduplication system (`related_signals`, `occurrence_count`) depends on signals being stable references. The index rebuild process assumes it can re-derive the index from files at any time.
 
-The fundamental tension: the manifest is a SCHEMA (what's allowed), but config.json is a DOCUMENT (what the user chose). Schema and document must stay in sync, but they live in different places (manifest in the npm package, config in the user's project). Every version bump can create drift.
+If lifecycle fields are mutable, then:
+1. The index must either include lifecycle state (making it more complex and fragile) or exclude it (making it useless for lifecycle queries)
+2. Concurrent agent access becomes dangerous -- two agents could update the same signal's triage field simultaneously
+3. The "files are source of truth, indexes are derived" principle breaks if lifecycle state changes aren't reflected in the index
+4. Signal files referenced as evidence in lessons could change after the lesson was created, invalidating the evidence chain
+
+The current concurrency model states: "Entry files have unique IDs preventing write collisions" and "Parallel agents writing entries simultaneously write to different files." Mutable signals break this guarantee.
 
 **Why it happens:**
-Declarative manifest systems assume a clean initialization path. But GSD already has hundreds of projects with existing config.json files that were created before the manifest existed. The manifest must retroactively describe config that was created ad-hoc.
+The lifecycle needs mutable state somewhere. The instinct is to put it on the signal because the signal is the entity being triaged/remediated/verified. But this conflates the observation (immutable: what was detected) with the response (mutable: what was done about it).
 
 **How to avoid:**
-- Manifest is ADDITIVE ONLY: it describes what CAN exist, not what MUST exist
-- Unknown fields in config.json are always preserved (pass-through)
-- Manifest version must be tracked in config.json (`manifest_version: 1`) so upgrade logic knows what migrations to apply
-- `/gsd:upgrade-project` presents a diff of what will change and asks for confirmation -- never silent mutation
-- Manifest defaults are the same as `loadConfig()` defaults -- single source of truth for "what happens when a field is missing"
-- Consider: manifest could live IN config.json as a `$schema` reference rather than as a separate file tree
+- Keep signals immutable. Store lifecycle state in a SEPARATE file: `{signal-id}-lifecycle.md` adjacent to the signal, or a centralized `lifecycle.yaml` per project.
+- Alternative: A lightweight lifecycle index (not the main index) that maps signal IDs to their current triage/remediation/verification status. This is a derived file like the current index, but focused on lifecycle state.
+- The reflector reads both the signal (what happened) and its lifecycle record (what was done). This preserves the immutability guarantee while enabling the lifecycle tracking.
+- If mutable fields on signals are chosen despite the above, limit mutability to a specific YAML section (`lifecycle:`) that is clearly separated from detection data, and add a write-lock mechanism (`.lock` file or last-write-wins with timestamp checking).
 
 **Warning signs:**
-- Manifest and `loadConfig()` defaults diverge
-- `upgrade-project` adds fields without user confirmation
-- Custom user fields in config.json disappear after upgrade
-- Manifest validation rejects configs that `loadConfig()` would accept
+- Signals referenced in lessons have different content than when the lesson was created
+- Index rebuild produces different results depending on when it runs (lifecycle state changed between rebuilds)
+- Two agents update the same signal and one's changes are lost
+- Debug session trying to trace "what did this signal say when the lesson was created?"
 
-**Phase to address:** Feature manifest phase -- design manifest as extension of existing `loadConfig()` defaults, not a parallel system
+**Phase to address:** Address in the schema design phase, BEFORE any lifecycle field implementation. This is an architectural decision that affects every downstream consumer.
 
 ---
 
-### Pitfall 5: Agent Boilerplate Extraction Changes Agent Behavior Silently
+### Pitfall 5: Repeating the Spike System Mistake -- Building Infrastructure Without Usage Pressure
 
 **What goes wrong:**
-11 agent specs share ~600 lines of boilerplate (role definition, tool strategy, execution flow protocol, structured returns). Extracting this into a shared reference file (`agent-protocol.md`) reduces duplication. But agents are prompts, not code. When an agent loads `@~/.claude/get-shit-done/references/agent-protocol.md`, the LLM processes the shared protocol text in a different context position than when it was inline. This changes:
-1. **Attention patterns:** Inline text at the top of an agent spec gets strong positional attention. Referenced text loaded later may get less weight.
-2. **Override behavior:** If agent-specific instructions contradict the shared protocol (e.g., executor has a different commit pattern than the default), the LLM must resolve the conflict. With inline text, the specific overrides the general naturally. With referenced text, the resolution is unpredictable.
-3. **Context budget:** The shared protocol still consumes context tokens. It does not save tokens -- it saves maintenance effort. If the shared reference is 600 lines and each agent still loads it, total token consumption per agent is unchanged. The savings are in human maintenance, not LLM context.
+The spike system is the clearest cautionary tale in this codebase: substantial infrastructure built (agent spec, workflow, templates, integration reference, KB schema), near-zero adoption (1 spike created, stuck at "designing" status, 0 KB entries). The v1.16 deliberation proposes "spike system revisit" with a lightweight mode, proactive surfacing, config additions, and reflect integration. This risks repeating the exact pattern: designing improvements to infrastructure that has no usage pressure to validate the design.
+
+Concrete failure modes:
+- A "lightweight spike" mode is designed, implemented, and never used -- because the original spike system wasn't unused due to weight, it was unused because nothing triggers it
+- Proactive surfacing is implemented, but the prompts are ignored or feel like noise -- because the system doesn't know which questions actually need empirical investigation vs. quick research
+- Config additions (`spike_sensitivity` in feature manifest) are built but never tuned -- because there's no feedback loop from spike outcomes to sensitivity calibration
 
 **Why it happens:**
-Developers think of agent specs as code (DRY principle: extract shared logic). But agent specs are prompts. DRY for prompts is different from DRY for code. Code deduplication saves compute. Prompt deduplication saves human maintenance but can degrade LLM behavior because the positional and contextual properties of the text change.
+The spike system has a plausible theory of value ("resolve uncertainty empirically") but no usage data to validate which parts of the theory are correct. The deliberation lists 5 hypotheses for why spikes aren't used but has not verified any of them. Designing improvements to an unused system based on hypotheses about non-usage is designing in the dark.
 
 **How to avoid:**
-- Extract ONLY truly shared protocol (structured return format, tool naming conventions, state file paths) -- NOT behavior-shaping instructions like "be concise" or "commit after each task"
-- Test extraction incrementally: extract one section, run the affected agents through a real phase, compare output quality to baseline
-- Keep agent-specific overrides ABOVE the shared reference `@` import so they get stronger positional attention
-- Measure: before and after extraction, run the same plan through the executor and compare SUMMARY.md quality
-- Maintain an "extraction registry" documenting what was moved where, so future editors know that modifying the shared protocol affects all 11 agents
-- Consider: instead of runtime reference loading, use a build step that inlines the shared protocol into each agent spec at install time (saves runtime loading, maintains single source for maintenance)
+- VERIFY the hypotheses FIRST. Before implementing any spike improvements:
+  1. Check if spike-integration.md step 5.5 is actually wired into plan-phase.md (it probably isn't -- the deliberation suspects this)
+  2. Check if any RESEARCH.md files contain "Genuine Gaps" sections (probably none exist)
+  3. Check config defaults for spike_sensitivity (probably not initialized)
+  4. Have the user manually try `/gsd:spike` on an actual open question from the v1.16 deliberation (e.g., "Where does Claude Code store session logs?")
+- If verification shows the problem is "not wired in" (hypothesis 1), the fix is wiring -- not new features. If the problem is ceremony weight (hypothesis 2), test lightweight mode manually before implementing it formally.
+- Implement the smallest possible spike improvement that addresses the verified root cause, then measure whether spikes actually get used before building more.
 
 **Warning signs:**
-- Agent produces different output format after extraction (especially structured returns)
-- Executor stops creating per-task commits (commit protocol was in extracted section)
-- Planner creates plans with wrong frontmatter format (template was in extracted section)
-- Agent "forgets" shared protocol instructions in long context (reference loaded but not attended to)
+- Spike improvement phase is planned before any spike usage verification
+- New spike infrastructure (lightweight mode, config, surfacing) is designed without a concrete spike question to test against
+- Post-milestone, spike usage count is still 0-1
 
-**Phase to address:** Agent extraction phase -- must include before/after comparison testing as verification criteria
+**Phase to address:** Spike audit should be a SINGLE task within an early phase, not a full phase. The outcome determines whether further spike work is warranted. If verification shows the system just needs wiring, that's a 30-minute fix, not a phase.
 
 ---
 
-### Pitfall 6: Install Two-Pass Path Replacement Collides with Feature Manifest Paths
+### Pitfall 6: Recurrence Detection False Positives Erode Trust in the Entire System
 
 **What goes wrong:**
-`install.js` does two-pass path replacement: Pass 1 replaces `~/.claude/gsd-knowledge` with `~/.gsd/knowledge`; Pass 2 replaces remaining `~/.claude/` with the runtime-specific path. A feature manifest system likely introduces new paths like `~/.gsd/manifests/` or `~/.gsd/config/`. If manifest-related files reference `~/.gsd/` paths in their content, and those files are installed via the same `copyWithPathReplacement()` pipeline, the regex replacement could corrupt them. The Pass 2 regex (`/~\/\.claude\/(?!gsd-knowledge)/g`) would not touch `~/.gsd/` paths, but any NEW pass or regex pattern added for manifest paths could create cascading replacement bugs.
+The proposed verification model uses "absence of recurrence" as evidence that a fix worked: "When sensors run after a phase, they also check: is this new signal a recurrence of a previously-remediated one? If no recurrence in the relevant area, evidence toward confirmed." This creates a false-positive problem in both directions:
 
-Additionally, the installer currently runs migrateKB() ONCE before per-runtime installation. Feature manifest initialization might need to run both per-runtime AND per-project. But the installer operates on global/local scope, not project scope. There is no mechanism in `install.js` to modify `.planning/config.json` -- that is a project-level concern handled by commands, not the installer.
+False confirmed: A signal is marked "verified/confirmed" because no recurrence was detected in the next 3 phases. But the root cause only manifests during specific operations (e.g., the .claude/ directory bug only manifested during installer runs, which don't happen every phase). Absence of evidence is not evidence of absence -- especially in a system where triggering conditions are phase-specific.
+
+False recurrence: Two signals with overlapping tags (`installer`, `path-resolution`) are flagged as recurrences, but they're actually unrelated issues. The current deduplication uses "same signal_type + 2+ overlapping tags" -- this is too loose for recurrence detection. Signal `sig-2026-02-11-local-install-global-kb-model` (about KB path architecture) and `sig-2026-02-24-local-patches-false-positive-dogfooding` (about installer false positives) share tags like `installer` and `path-resolution` but are completely different bugs.
 
 **Why it happens:**
-The installer and the command system operate at different scopes:
-- Installer: `~/.claude/`, `~/.gsd/`, `~/.config/opencode/` (user-level)
-- Commands: `.planning/` (project-level)
-Feature manifests bridge both scopes. Attempting to handle project-level config in the installer, or user-level file installation in commands, creates scope confusion.
+Tag-based matching is the only semantic matching available in a zero-dependency system (no embeddings, no ML, no NLP). Tags are assigned by agent judgment, which means two semantically different signals can share surface-level tags. Recurrence detection built on tag matching inherits all the noise of tag assignment.
 
 **How to avoid:**
-- Clear scope boundary: installer handles user-level files only (commands, agents, workflows, hooks, KB scripts at `~/.gsd/bin/`)
-- Feature manifest lives in the npm package (`get-shit-done/manifests/` or embedded in config template)
-- `/gsd:new-project` and `/gsd:upgrade-project` read the manifest from the installed files and apply project-level config changes
-- The installer does NOT read, write, or validate `.planning/config.json`
-- New paths in manifest files should use `~/.gsd/` prefix which is NOT touched by either Pass 1 or Pass 2 of the replacement system
-- Test: run installer, verify manifest-related content is NOT corrupted by path replacement
+- Recurrence detection should require MORE than tag overlap: same `signal_type` + 2+ overlapping tags + EXPLICIT `recurrence_of` link set by the reflector (not automatic). The reflector assesses whether signals are truly recurrences, not just tag-similar.
+- "Absence of recurrence" should never produce `confirmed` status. It should produce `no-recurrence-detected` -- a weaker claim. `confirmed` requires POSITIVE evidence (test passes, behavior verified, regression test added).
+- Define a recurrence window per signal type: deviation signals might recur within 3 phases; architectural signals might take 5+ phases. The window should be configurable, not hardcoded.
+- Include recurrence confidence: "2 phases without recurrence" is LOW confidence. "10 phases without recurrence AND a regression test exists" is HIGH confidence.
 
 **Warning signs:**
-- `install.js` gains a Pass 3 or additional regex for manifest paths
-- Installer starts reading or writing `.planning/config.json`
-- Feature manifest files installed to `~/.claude/get-shit-done/` have their `~/.gsd/` paths corrupted
-- Scope confusion between what the installer does vs what commands do
+- Signals marked "confirmed" that later recur (the verification was wrong)
+- Unrelated signals linked as recurrences (false clustering)
+- The "recurrence of" chain grows long without any actual pattern (just tag coincidence)
+- Users lose trust in verification status and ignore it
 
-**Phase to address:** Feature manifest phase -- explicit scope boundary documentation as first task
+**Phase to address:** Verification logic should be implemented alongside sensor expansion, NOT before. It needs real signal flow to test against. Use the existing 46 signals as test data.
 
 ---
 
@@ -188,65 +187,72 @@ Shortcuts that seem reasonable but create long-term problems.
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Inline backlog priority in STATE.md bullet text | Quick to implement | Fragile parsing, no structured query, priorities drift as STATE.md grows | Never -- use frontmatter in todo files |
-| Config validation as hard rejection | Catches errors early | Breaks every existing project on update | Never in v1.15 -- use lenient validation with warnings |
-| Feature manifest as separate JSON files per feature | Clean separation | Multiple files to read, parse, merge; ordering conflicts; no single view | Only if features exceed 10; otherwise single manifest object in config template |
-| Shared agent protocol as runtime @-reference | Reduces maintenance duplication | Changes LLM attention patterns, unpredictable override resolution | Acceptable if tested against baseline; prefer build-time inlining |
-| Backlog items as pure markdown without frontmatter | Simpler to write | Cannot query, filter, sort, or aggregate programmatically | Never -- existing todo system already uses frontmatter, maintain that |
-| Silent config migration on update | Frictionless upgrade | User unaware of changes; surprises when config behaves differently | Only for adding fields with safe defaults; never for changing existing field semantics |
+| All lifecycle fields on signal files (mutable) | Simple data model, everything in one place | Concurrency issues, broken immutability guarantee, evidence chain corruption | Never -- use separate lifecycle records |
+| Counter-evidence as free text | Low implementation cost | Formulaic "none found" responses, no structural benefit | Only for trace-level signals |
+| Per-sensor caps without cross-sensor coordination | Simple to implement per sensor | Sensors independently filter, missing cross-sensor correlations | Only in initial implementation; add synthesizer in next phase |
+| Hardcoded recurrence windows | Quick to ship | Different signal types recur at different rates; false positives for slow-recurring issues | Only as initial default; must be configurable |
+| Loading all signals into reflector context | Simple implementation | Context budget explosion at 100+ signals; quality degradation per agent-protocol.md Section 11 | Acceptable until ~60 signals; after that, must implement pre-filtering |
+| Skip positive signal emission | Faster sensor runs | No baselines for regression detection; verification has nothing to compare against | Never for artifact sensor; acceptable to defer for git/log sensors |
 
 ## Integration Gotchas
 
-Common mistakes when connecting new features to the existing system.
+Common mistakes when connecting lifecycle components to each other.
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Backlog + STATE.md | Storing backlog state only in new files, orphaning STATE.md Pending Todos | Keep STATE.md as index with links; backlog detail in todo files |
-| Config schema + gsd-tools.js | Adding validation in `loadConfig()` that rejects old configs | Validation warns but never rejects; missing fields get defaults |
-| Feature manifest + installer | Having installer read/write project-level config | Installer handles user-level only; commands handle project-level |
-| Agent extraction + existing agents | Extracting shared text then modifying it without testing all 11 agents | Extract, test each agent against baseline, only then modify shared text |
-| `/gsd:upgrade-project` + `/gsd:update` | Both commands trying to migrate config simultaneously | `/gsd:update` installs files only; `/gsd:upgrade-project` handles config migration |
-| Backlog + `/gsd:plan-phase` | Backlog items automatically promoted to phase plans without user approval | Backlog surfaces candidates; user explicitly promotes to phase |
-| Config migration + migration-log.md | Forgetting to append to migration-log.md after config changes | Every automated config change gets a migration-log.md entry |
+| Signal schema migration (old signals -> new schema) | Adding required fields that break old signals | All new fields optional with explicit defaults; old signals remain valid; schema version field enables graduated processing |
+| Sensor -> Synthesizer | Each sensor writes signals independently; synthesizer runs after, creating duplicates | Sensors emit CANDIDATES to synthesizer; only synthesizer writes to KB. Single write path prevents duplicates |
+| Plan frontmatter `resolves_signals` -> Signal lifecycle | Plans declare which signals they resolve; nobody checks if the resolution actually worked | Add post-plan verification: after plan completes, check if resolved signals' root cause is addressed. Auto-create verification pending status |
+| Reflector -> Lesson creation | Reflector creates lessons from pattern detection; lessons reference signal IDs that may be archived later | Lessons should snapshot evidence descriptions, not just IDs. If a signal is archived, the lesson's evidence section still makes sense |
+| Signal collector -> Index rebuild | Collector writes signals then rebuilds index; if collector crashes mid-write, index is stale | Write all signals first, rebuild index once at end. If crash occurs, index rebuild on next run catches up (idempotent) |
+| Recurrence checker -> Verification status | Checker updates verification status on old signals; violates immutability | Write a verification event/record, don't modify the original signal. The lifecycle record is the mutable entity |
 
 ## Performance Traps
 
-Patterns that work at small scale but fail as usage grows.
+Patterns that work at small scale but fail as the knowledge base grows.
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Reading all todo files on every `init todos` call | Slow init when todo count grows | Cache todo count; lazy-load details only when needed | 50+ pending todos |
-| Manifest validation on every command invocation | Every `/gsd:*` command adds 100ms for manifest read+validate | Validate only in `/gsd:upgrade-project` and `/gsd:new-project` | Immediate -- validation adds latency to every command |
-| Full STATE.md rewrite on every todo add | STATE.md grows large, regex replacement becomes fragile | Use `gsd-tools.js state add-todo` for atomic section update | 20+ items in Pending Todos section |
-| Loading shared agent protocol file in every agent spawn | Token cost multiplied by agent count per phase | Build-time inlining; or load protocol only for agents that actually need it | 5+ agents spawned per phase |
+| Reflector reads all signals into context | Works fine at 46 signals (~95KB) | Pre-filter by project + status + severity before loading; use index for filtering, load only relevant signal files | ~80-100 signals (~200KB+), consuming >15% of context budget |
+| Index.md as full-text table | Simple grep/parse for queries | Keep index lean (ID, project, severity, tags, date, status). No lifecycle data in index. Separate lifecycle index if needed | ~200 entries (index file itself becomes unwieldy to parse) |
+| Signal file per observation | Clean, immutable, one-file-per-event | Monitor total signal count per project; implement archival policy based on reflector processing (archive after lesson distilled) | ~150 signals per project; filesystem scanning slows, glob patterns become expensive |
+| Counter-evidence generation per signal | Epistemic rigor | Tiered rigor: critical=full counter-evidence, notable=brief, trace=none | Immediately if applied uniformly -- token cost is O(n) per signal count |
+| Cross-project pattern detection (scope: all) | Reads ALL signals across ALL projects | Only trigger cross-project mode explicitly; default to project scope | 2+ projects with 50+ signals each; index parsing and file loading exceeds budget |
+| Sensor model spawning | Each sensor spawns as separate agent | Use cheap models for sensors (haiku); only reflector needs full model. But verify cheap models produce useful signals | Immediately if all sensors use opus-class model; 3 sensors x opus = 3x token cost per collection run |
 
-## UX Pitfalls
+## Agent Spec Bloat Trap
 
-Common user experience mistakes in this domain.
+This is a domain-specific performance trap unique to GSD's architecture.
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Backlog becomes a dumping ground with no cleanup | Items accumulate, user stops checking backlog, it becomes noise | Auto-stale after 30 days; periodic prompt during milestone start: "review stale backlog items" |
-| Config migration asks too many questions | User abandons upgrade midway; partially migrated config | Smart defaults with confirmation; batch questions; allow "accept all defaults" |
-| Upgrade shows no diff of what changed | User uncertain what happened to their config | Show before/after diff; log changes to migration-log.md |
-| Feature manifest forces initialization of features user does not use | Unnecessary config bloat; user confused by irrelevant settings | Features declare "required" vs "optional"; optional features initialized on first use, not on upgrade |
-| Agent spec changes happen silently | User notices degraded output quality but cannot identify cause | CHANGELOG entry for any agent spec change; version bump on shared protocol changes |
-| Backlog priority system is too complex | User assigns priorities once, never updates them, priorities become meaningless | Simple three-tier: now / later / someday; or no priorities, just recency |
+| Component | Current Lines | After v1.16 (estimated) | Risk |
+|-----------|--------------|------------------------|------|
+| gsd-signal-collector.md | 213 | 350-450 (multi-sensor orchestration, expanded schema, counter-evidence requirements) | Agent reads its own spec; larger spec = less room for actual work |
+| signal-detection.md | 258 | 400-500 (new sensor rules, recurrence detection, verification checking) | Referenced by collector; loaded into same context |
+| gsd-reflector.md | 278 | 400-550 (lifecycle awareness, confidence weighting, counter-evidence seeking, lesson pipeline fixes) | Already the bottleneck agent; enlarging it makes the bottleneck worse |
+| reflection-patterns.md | 596 | 700-800 (confidence-weighted thresholds, recurrence verification, epistemic rigor) | Largest reference file; loaded entirely by reflector |
+| knowledge-store.md | 367 | 450-550 (lifecycle schema, separate lifecycle records, expanded body templates) | Referenced by collector AND reflector |
+| **Total loaded by reflector** | **~1,241** | **~1,900-2,350** | **Plus 46+ signal files. Context budget pressure is real.** |
+
+**Prevention:** Split reference files. signal-detection.md should NOT contain recurrence logic (that's a reflector concern). lifecycle-schema.md should be a separate reference from knowledge-store.md. Each agent loads only what it needs.
+
+---
 
 ## "Looks Done But Isn't" Checklist
 
 Things that appear complete but are missing critical pieces.
 
-- [ ] **Backlog system:** Often missing STATE.md integration -- verify `/gsd:resume-work` surfaces backlog items
-- [ ] **Config migration:** Often missing migration-log.md entry -- verify every automated config change is logged
-- [ ] **Config migration:** Often missing rollback path -- verify user can revert to pre-migration config
-- [ ] **Feature manifest:** Often missing "unknown field preservation" -- verify custom user config fields survive upgrade
-- [ ] **Feature manifest:** Often missing manifest version tracking -- verify config.json records which manifest version was applied
-- [ ] **Agent extraction:** Often missing baseline comparison testing -- verify each agent's output format matches pre-extraction baseline
-- [ ] **Agent extraction:** Often missing extraction registry -- verify documentation of what moved where
-- [ ] **Backlog cleanup:** Often missing stale item handling -- verify items older than 30 days are flagged or surfaced
-- [ ] **Upgrade UX:** Often missing error recovery -- verify interrupted upgrade leaves config in valid state (not half-migrated)
-- [ ] **Config schema:** Often missing `loadConfig()` default synchronization -- verify schema defaults match `loadConfig()` fallbacks exactly
+- [ ] **Signal schema expansion:** Often missing backward compatibility -- verify old signals parse correctly with new schema code
+- [ ] **Multi-sensor collection:** Often missing synthesizer dedup -- verify that the same issue detected by artifact-sensor AND git-sensor produces 1 signal, not 2
+- [ ] **Recurrence detection:** Often missing temporal context -- verify that "same tags, different root cause" is NOT flagged as recurrence
+- [ ] **Reflector enhancement:** Often missing the actual lesson pipeline -- verify that running reflect on existing 46 signals PRODUCES lessons, not just pattern reports
+- [ ] **Epistemic rigor:** Often missing proportionality -- verify that counter-evidence requirements don't apply to trace-level signals
+- [ ] **Lifecycle tracking:** Often missing concurrency safety -- verify that two agents cannot corrupt a lifecycle record simultaneously
+- [ ] **Spike improvements:** Often missing usage validation -- verify that at least one spike is COMPLETED (not just designed) using the new system
+- [ ] **Verification status:** Often missing positive evidence requirement -- verify that "no recurrence" alone does NOT set status to "confirmed"
+- [ ] **Source/install parity:** Often missing npm pack verification -- verify all new/modified files appear in `npm pack --dry-run` output (this exact bug has occurred THREE times in this project)
+- [ ] **Index rebuild:** Often missing lifecycle state -- if lifecycle data is stored separately, verify the index or a lifecycle index reflects current state
+
+---
 
 ## Recovery Strategies
 
@@ -254,13 +260,16 @@ When pitfalls occur despite prevention, how to recover.
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Backlog migration loses STATE.md bullets | LOW | Git history preserves STATE.md; `git show HEAD~N:.planning/STATE.md` recovers bullets |
-| Config schema validation breaks existing project | MEDIUM | Roll back gsd-tools.js to previous version; restore config.json from git; disable validation |
-| Agent extraction degrades output quality | MEDIUM | Revert shared protocol extraction; re-inline text in affected agents; re-test |
-| Feature manifest deletes custom config fields | HIGH | Restore config.json from git; but changes since last commit are lost; prevention: pre-migration backup |
-| Data loss during backlog migration (v1.14 pattern repeat) | HIGH | If pre-migration backup exists: restore from backup. If not: recover from git history. If data was in STATE.md bullets only (no git commit): likely unrecoverable. |
-| Install path replacement corrupts manifest files | LOW | Re-run installer; manifest files are read-only copies from npm package |
-| Upgrade interrupted mid-migration | MEDIUM | migration-log.md shows what was applied; re-run upgrade to apply remaining migrations; config.json should be valid at every migration step (each step is atomic) |
+| Schema breaks old signals | LOW | Add schema version field; processing code handles all versions; no signal files need modification |
+| Sensor noise overwhelms reflector | MEDIUM | Reduce per-sensor caps; archive low-value signals; run reflector on subset (project + severity filter) |
+| Epistemic rigor kills throughput | LOW | Downgrade counter-evidence from required to optional; add "rigor: light" mode to config |
+| Mutable signals corrupt evidence | HIGH | If detected early: export signals, restore from git history, re-apply lifecycle state to separate records. If detected late: evidence chain is broken, lessons may reference altered signals -- requires manual audit |
+| Recurrence false positives | MEDIUM | Review all "recurrence_of" links manually; tighten matching criteria (add root-cause similarity requirement); re-run reflector with stricter rules |
+| Spike improvements unused | LOW | Delete unused infrastructure; keep lightweight spike as research-only flow; remove ceremony |
+| Context budget exceeded | MEDIUM | Split agent specs and references; implement signal pre-filtering; reduce per-run signal load; consider two-pass reflection (first pass: index scan, second pass: load relevant signals only) |
+| Source/install parity broken (again) | LOW-MEDIUM | Run `node bin/install.js --local` and diff; verify with `npm pack --dry-run`; the bug is well-understood from 3 prior occurrences |
+
+---
 
 ## Pitfall-to-Phase Mapping
 
@@ -268,52 +277,95 @@ How roadmap phases should address these pitfalls.
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Backlog replaces working todo system (#1) | Backlog design phase | `/gsd:add-todo` still works unchanged; STATE.md still has Pending Todos; `/gsd:resume-work` surfaces items |
-| Config schema breaks existing projects (#2) | Config schema phase (must precede feature manifest) | Real project configs from v1.12, v1.13, v1.14 all pass through new `loadConfig()` without error |
-| Data loss during migration (#3) | Backlog migration plan | Pre/post item count verification; migration-log.md entry; rollback test |
-| Feature manifest dual source of truth (#4) | Feature manifest phase | Manifest defaults == `loadConfig()` defaults; unknown fields preserved; manifest version tracked |
-| Agent extraction changes behavior (#5) | Agent extraction phase | Before/after SUMMARY.md comparison for each extracted agent; structured return format validation |
-| Installer scope collision (#6) | Feature manifest phase (scope boundary design) | Installer does NOT read/write `.planning/config.json`; manifest files survive path replacement |
-| Backlog becomes noise (UX) | Backlog cleanup phase or milestone workflow | Stale items flagged; milestone-start includes backlog review prompt |
-| Config migration asks too many questions (UX) | Config migration phase | "Accept all defaults" option works; migration completes in < 30 seconds for typical config |
+| Schema expansion breaks pipeline | Build reflector BEFORE expanding schema; schema expansion is a late phase | Run reflector on existing 46 signals; measure lesson output count > 1 |
+| Sensor noise overwhelms reflector | Fix reflector first; add sensors one-at-a-time in subsequent phases | Measure signal count per phase before/after each sensor; verify reflector can process the volume |
+| Epistemic rigor kills throughput | Implement tiered rigor (critical/notable/trace) in the schema design phase | Measure signal creation time before/after rigor requirements; <50% increase is acceptable |
+| Signal immutability violated | Architectural decision in first phase: separate lifecycle records | Verify no signal file has been modified after creation (git log per signal file) |
+| Spike system infrastructure-without-usage | Verify hypotheses in a single early task; implement only verified fixes | Post-milestone: spike usage count > 0; at least one spike completed end-to-end |
+| Recurrence false positives | Implement recurrence logic after real lifecycle data exists (late phase) | Test recurrence detection against known-different signals that share tags (the installer signals are a good test case) |
+| Context budget explosion | Split references; implement pre-filtering; measure agent spec sizes | Total reflector context load < 50% of window (per agent-protocol.md quality threshold) |
+| Source/install parity regression | Add `npm pack --dry-run` verification to every phase that modifies agent specs or references | Automated check: file count in npm pack matches expected count; content diff between source and installed is only path prefix conversion |
 
-## Phase Ordering Implications
+---
 
-Based on pitfall analysis, the following ordering constraints emerge:
+## Phase-Specific Warnings
 
-1. **Config schema (lenient) must come before feature manifest** -- the manifest depends on a config system that can be extended without breaking; the lenient schema pattern must be established first
-2. **Backlog design must come before backlog migration** -- design the extension to the existing todo system before migrating any data
-3. **Agent extraction must include testing phase** -- extraction without before/after testing risks silent degradation; this should not be rushed
-4. **Feature manifest must establish scope boundary before implementation** -- installer vs. command scope confusion is the #1 integration risk
-5. **Config migration infrastructure must come before any feature that adds new config fields** -- every new feature that touches config.json should use the migration system, not ad-hoc field additions
+Detailed warnings for likely v1.16 phase topics.
+
+### Signal Schema Design Phase
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| Over-specifying lifecycle fields before pipeline exists | HIGH | Wasted design effort; schema changes needed after pipeline reveals actual requirements | Design minimal schema; mark lifecycle fields as "provisional"; iterate after reflector works |
+| Breaking backward compatibility with 46 existing signals | MEDIUM | Old signals rejected; data loss or corrupted index | Schema version field; processing code handles v1 and v2; no migration of existing files |
+| Nested YAML objects (source.sensor, triage.decision) cause parsing issues | MEDIUM | Agent YAML parsing is simplistic (frontmatter extraction via regex in some code paths) | Test nested YAML parsing in gsd-tools.js; if fragile, flatten to `source_sensor`, `triage_decision` |
+
+### Reflector Enhancement Phase
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| Reflector spec grows beyond context budget | HIGH | Agent reads its own spec + reflection-patterns.md + all signals; quality degrades | Split reflection-patterns.md into core (thresholds, clustering) and extended (drift, suggestions); reflector loads only core by default |
+| Confidence-weighted thresholds produce no patterns | MEDIUM | If most signals are LOW confidence, thresholds are never met; no patterns = no lessons | Include a "pattern candidate" tier below threshold that is reported but not auto-distilled; ensures visibility even at low confidence |
+| Counter-evidence seeking in reflector becomes circular | MEDIUM | "Is this pattern real?" leads to reading more signals for counter-evidence, consuming more context, producing less synthesis | Budget counter-evidence seeking: check up to 3 counter-examples per pattern, then decide. Bounded falsification, not exhaustive |
+
+### Multi-Sensor Phase
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| Git-sensor produces high volume of low-value signals | HIGH | "Fix fix fix" commit pattern detection generates noise for normal development iteration | Git-sensor should ONLY emit signals at notable+ severity; "fix" commit patterns are trace-level unless they correlate with verification failures |
+| Log-sensor requires Claude Code session log access (unknown) | HIGH | The deliberation itself notes this is a spike candidate; building a log-sensor without knowing if logs are accessible is waste | Spike or quick research FIRST: where does Claude Code store session logs? Block log-sensor implementation on this answer |
+| Sensors run in parallel but share signal namespace | MEDIUM | Two sensors detect the same issue (e.g., test failure visible in artifacts AND git history); synthesizer must dedup | Synthesizer runs AFTER all sensors; dedup by root-cause similarity (not just tag overlap); synthesizer is the single KB writer |
+
+### Spike System Phase
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| Lightweight spike mode designed but no spike question to test | HIGH | Mode is implemented in the abstract; first real use reveals design gaps | Use a concrete open question from the v1.16 deliberation as the test case during implementation |
+| Integration point wired but nothing triggers it | HIGH | Same failure as original: integration exists but the conditions that trigger it never arise | Verify: does any current RESEARCH.md contain content that would trigger spike integration? If not, the trigger conditions need redesign, not just wiring |
+
+### Verification/Recurrence Phase
+
+| Risk | Likelihood | Impact | Mitigation |
+|------|-----------|--------|------------|
+| Verification runs on every collect-signals, adding latency | MEDIUM | Each collection run must check all remediated signals for recurrence; O(n) check per run | Only check signals remediated in the last 5 phases (rolling window for verification, NOT for signal retention) |
+| Recurrence check requires loading remediated signals from other milestones | LOW-MEDIUM | Cross-milestone recurrence requires reading signals from v1.12-v1.15; volume increases | Only check cross-milestone recurrence during explicit reflect runs, not during per-phase collection |
+
+---
+
+## The Meta-Pitfall: Building a Self-Improvement System That Doesn't Improve Itself
+
+This project has 46 signals, 1 lesson, 1 incomplete spike, and 0 completed verification cycles across 4 milestones and 85 plans. The system was designed to "never make the same mistake twice" but has not yet completed a single signal-to-lesson loop with verified remediation.
+
+The v1.16 milestone risks adding MORE machinery (sensors, lifecycle tracking, recurrence detection, confidence weighting, counter-evidence) to a pipeline that cannot complete its EXISTING cycle. Every new component is another thing that must work for the loop to close.
+
+**The litmus test for v1.16 success is not "did we build all the features?" It is: "Can the system now produce lessons from signals and verify that remediations work?"**
+
+If the answer after v1.16 is still "we have infrastructure but no completed cycles," the milestone has failed regardless of how many sensors, lifecycle fields, or epistemic rigor requirements were implemented.
+
+**Concrete success criteria:**
+1. Reflector produces >5 lessons from existing 46 signals (proving the processing pipeline works)
+2. At least 1 signal has a completed lifecycle: detected -> triaged -> remediated -> verified
+3. At least 1 spike question is answered end-to-end (not just designed)
+4. Signal-to-lesson ratio improves from 46:1 to at most 10:1
+
+---
 
 ## Sources
 
-### Primary (HIGH confidence -- direct codebase analysis)
-
-- `.planning/STATE.md` -- Actual Pending Todos format, dual-storage pattern
-- `.planning/config.json` -- Real config with version drift from template (`1.12.2` vs template `1.13.0`)
-- `get-shit-done/templates/config.json` -- Template config with different shape than project config
-- `get-shit-done/workflows/add-todo.md` -- Current todo capture workflow with frontmatter, area inference
-- `.claude/get-shit-done/bin/gsd-tools.js` -- `loadConfig()` with hardcoded defaults, `init todos` reader, `config-ensure-section`
-- `bin/install.js` -- Two-pass path replacement (lines 609-635), `migrateKB()` with copy-then-symlink, scope boundary
-- `.planning/codebase/CONCERNS.md` -- Documented tech debt: large agent files, path regex fragility, file-based state parsing
-- `.planning/codebase/ARCHITECTURE.md` -- System layers, data flow, scope boundaries
-- `.planning/milestones/v1.15-CANDIDATE.md` -- Pillar 6 feature manifest design, agent boilerplate extraction plan
-- `.planning/phases/14-knowledge-base-migration/14-RESEARCH.md` -- KB migration patterns, copy-then-symlink, verification
-- `.planning/phases/19-kb-infrastructure-data-safety/19-RESEARCH.md` -- Pre-migration backup pattern, script relocation
-- `.planning/migration-log.md` -- Existing migration tracking format
-- `.planning/todos/pending/2026-02-17-feature-manifest-system-for-declarative-feature-initialization.md` -- Feature manifest problem statement
-
-### Secondary (MEDIUM confidence -- ecosystem research)
-
-- [Agilemania: Managing Large Product Backlogs](https://agilemania.com/how-to-manage-large-complex-product-backlog) -- Backlog growth limits (150 items), 2-year retirement rule
-- [Perforce: Backlog Management Techniques](https://www.perforce.com/blog/hns/backlog-management-6-tips-make-your-backlog-lean) -- Lean backlog principles, grooming burden
-- [BayTech: Importance of Backlog Management](https://www.baytechconsulting.com/blog/the-importance-of-backlog-management-from-a-developer) -- Developer perspective on backlog abandonment
-- [json-schema-org: Backward Compatibility](https://github.com/json-schema-org/json-schema-spec/issues/1242) -- JSON Schema evolution challenges
-- [Creek Service: Evolving JSON Schemas](https://www.creekservice.org/articles/2024/01/08/json-schema-evolution-part-1.html) -- Open/closed content models for schema evolution
-- [Nx: Automate Updating Dependencies](https://nx.dev/docs/features/automate-updating-dependencies) -- Automated migration patterns for CLI tools
+- [GSD Knowledge Store specification](/Users/rookslog/Development/get-shit-done-reflect/.claude/agents/knowledge-store.md) -- immutability rules, concurrency model, schema
+- [Signal detection reference](/Users/rookslog/Development/get-shit-done-reflect/get-shit-done/references/signal-detection.md) -- current detection rules, severity classification
+- [Reflection patterns reference](/Users/rookslog/Development/get-shit-done-reflect/get-shit-done/references/reflection-patterns.md) -- threshold model, clustering, anti-patterns
+- [v1.16 deliberation](/Users/rookslog/Development/get-shit-done-reflect/.planning/deliberations/v1.16-signal-lifecycle-and-beyond.md) -- proposed architecture, schema extensions, epistemic rigor principle
+- [Development workflow gaps deliberation](/Users/rookslog/Development/get-shit-done-reflect/.planning/deliberations/development-workflow-gaps.md) -- source/install confusion history, epistemic rigor gap
+- [GSD Agent Protocol](/Users/rookslog/Development/get-shit-done-reflect/.claude/get-shit-done/references/agent-protocol.md) -- context budget rules (Section 11), quality degradation curve
+- KB signal data: 46 active signals, ~95KB total, measured from `~/.gsd/knowledge/signals/get-shit-done-reflect/`
+- KB lesson data: 1 lesson in `~/.gsd/knowledge/lessons/architecture/`
+- KB spike data: 0 completed spikes; 1 spike stuck at "designing" status
+- [Alert Fatigue in DevOps: Moving from Noise to Signal](https://drdroid.io/engineering-tools/alert-fatigue-in-devops-moving-from-noise-to-signal) -- observability best practices for signal-to-noise ratio
+- [Cutting through the noise: Adaptive observability as antidote to alert fatigue](https://www.itrsgroup.com/blog/cutting-through-noise-why-adaptive-observability-antidote-alert-fatigue-0) -- severity stratification, dynamic thresholds
+- [11 Key Observability Best Practices 2026](https://spacelift.io/blog/observability-best-practices) -- SLO-driven alerts, business impact focus
+- [Data Observability Guide 2025](https://www.synq.io/blog/data-observability-guide) -- strategic testing, signal-to-noise ratio optimization
 
 ---
-*Pitfalls research for: GSD Reflect v1.15 Backlog & Update Experience*
-*Researched: 2026-02-16*
+*Pitfalls research for: v1.16 Signal Lifecycle & Reflection Enhancement*
+*Researched: 2026-02-27*
