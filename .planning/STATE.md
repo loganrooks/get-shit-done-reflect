@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-23)
 Phase: None (between milestones)
 Plan: N/A
 Status: v1.15 Backlog & Update Experience shipped. 4 milestones complete.
-Last activity: 2026-02-26 -- Completed quick-9: fix installer local patch detection false positives
+Last activity: 2026-02-27 -- Completed quick-10: fix pre-v1.16 tech debt (agent-protocol refs + kb-templates)
 
 Progress: v1.12 (25) + v1.13 (18) + v1.14 (18) + v1.15 (24) = 85 plans shipped across 30 phases
 
@@ -70,6 +70,7 @@ v1.15 decisions archived in milestones/v1.15-ROADMAP.md.
 | 007 | Dual-install detection/awareness (Phase 1): VERSION comparison, cross-scope warning, description injection, reference doc | 2026-02-25 | 0346ac6 | [7-implement-dual-installation-detection-an](./quick/7-implement-dual-installation-detection-an/) |
 | 008 | Recover lost code: knowledge-store.md + dual-install in resume-project.md to npm source | 2026-02-26 | 9c7e7a9 | [8-recover-lost-code-from-deleted-local-pat](./quick/8-recover-lost-code-from-deleted-local-pat/) |
 | 009 | Fix installer local patch detection false positives (pruneRedundantPatches) | 2026-02-26 | b979680 | [9-fix-installer-local-patch-detection-to-a](./quick/9-fix-installer-local-patch-detection-to-a/) |
+| 010 | Fix pre-v1.16 tech debt: add agent-protocol refs to 5 agents, copy kb-templates to npm source | 2026-02-27 | 824c6c1 | [10-fix-pre-v1-16-tech-debt-add-agent-protoc](./quick/10-fix-pre-v1-16-tech-debt-add-agent-protoc/) |
 
 ### Roadmap Evolution
 
