@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.16 Signal Lifecycle & Reflection -- Phase 31 (Signal Schema Foundation)
+**Current focus:** v1.16 Signal Lifecycle & Reflection -- Phase 32 (Multi-Sensor Orchestrator)
 
 ## Current Position
 
-Phase: 31 of 35 (Signal Schema Foundation)
-Plan: 4 of 4 complete in current phase
-Status: Phase Complete
-Last activity: 2026-02-28 -- Completed 31-04-PLAN.md (backward compat gap closure)
+Phase: 32 of 35 (Multi-Sensor Orchestrator)
+Plan: 3 of 4 complete in current phase
+Status: In Progress
+Last activity: 2026-02-28 -- Completed 32-03-PLAN.md (signal synthesizer agent)
 
-Progress: [##########] 100% (Phase 31)
+Progress: [#######---] 75% (Phase 32)
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Progress: [##########] 100% (Phase 31)
 | 31 | 02 | 4min | 2 | 2 |
 | 31 | 03 | 6min | 2 | 4 |
 | 31 | 04 | 4min | 4 | 4 |
+| 32 | 03 | 2min | 1 | 1 |
 
 ## Accumulated Context
 
@@ -66,6 +67,9 @@ Recent decisions affecting current work:
 - P31-03: Signal schema machine-enforceable via FRONTMATTER_SCHEMAS with conditional validation (critical requires evidence)
 - P31-03: kb-rebuild-index.sh lifecycle_state column with "detected" default for existing signals
 - P31-04: backward_compat keyed on lifecycle_state absence; evidence content validation for empty objects; Phase 33 triage constraint documented
+- P32-03: Synthesizer is sole KB writer; sensors never write directly to KB
+- P32-03: Per-project cap not enforced (documented as future gap); per-phase cap of 10 is primary constraint
+- P32-03: Post-write validation deletes malformed files rather than leaving broken state
 
 ### Pending Todos
 
@@ -113,5 +117,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Phase 31 fully complete (4/4 plans, verified 15/15 must-haves). Ready for Phase 32.
+Stopped at: Completed 32-03-PLAN.md (signal synthesizer agent). 3/4 Phase 32 plans done.
 Resume file: None
