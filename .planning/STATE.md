@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 Phase: 32 of 35 (Multi-Sensor Orchestrator)
 Plan: 3 of 4 complete in current phase
 Status: In Progress
-Last activity: 2026-02-28 -- Completed 32-01-PLAN.md (sensor agent infrastructure)
+Last activity: 2026-02-28 -- Completed 32-02-PLAN.md (git sensor agent)
 
 Progress: [#######---] 75% (Phase 32)
 
@@ -45,6 +45,7 @@ Progress: [#######---] 75% (Phase 32)
 | 31 | 04 | 4min | 4 | 4 |
 | 32 | 01 | 4min | 2 | 6 |
 | 32 | 03 | 2min | 1 | 1 |
+| Phase 32 P02 | 4min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,7 @@ Recent decisions affecting current work:
 - P32-03: Synthesizer is sole KB writer; sensors never write directly to KB
 - P32-03: Per-project cap not enforced (documented as future gap); per-phase cap of 10 is primary constraint
 - P32-03: Post-write validation deletes malformed files rather than leaving broken state
+- [Phase 32]: Git sensor uses expandable commit window (100 then 300) for fix-chain detection
 
 ### Pending Todos
 
@@ -121,5 +123,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 32-01-PLAN.md (sensor agent infrastructure). 3/4 Phase 32 plans done (01, 02, 03 complete; 04 remaining).
+Stopped at: Completed 32-02-PLAN.md (git sensor agent). 3/4 Phase 32 plans done (01, 02, 03 complete; 04 remaining).
 Resume file: None
