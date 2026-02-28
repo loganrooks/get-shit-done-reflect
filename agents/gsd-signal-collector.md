@@ -199,7 +199,8 @@ Output a structured summary of the collection run.
 
 <guidelines>
 - Read signal-detection.md before every collection run to ensure you use current rules
-- Never modify existing signal files (immutability) except for archival status changes during cap enforcement
+- Detection payload fields are frozen after creation. Lifecycle fields (lifecycle_state, lifecycle_log, triage, remediation, verification, updated) may be modified by authorized agents. See knowledge-store.md Section 10 for the complete frozen/mutable field list.
+- The signal-collector creates new signals only. It does not modify existing signal files. Other agents (reflector, synthesizer) may modify lifecycle fields per the mutability boundary in knowledge-store.md Section 10. Exception: archival status changes during cap enforcement.
 - Never modify PLAN.md, SUMMARY.md, or any execution artifacts
 - Always rebuild the index after writing signals
 - Use judgment for edge cases -- detection rules are guidelines, not rigid algorithms

@@ -259,7 +259,9 @@ Output structured reflection summary following the format in output_format secti
 
 <guidelines>
 - Read reflection-patterns.md before every reflection run to ensure you use current rules
-- Never modify signal files (signals are immutable)
+- Signal mutability boundary: Detection payload fields are frozen after creation. Lifecycle fields (lifecycle_state, lifecycle_log, triage, remediation, verification, updated) may be modified by authorized agents. See knowledge-store.md Section 10 for the complete frozen/mutable field list.
+- The reflector's authorized mutations: triage fields (triage.decision, triage.rationale, triage.priority, triage.by, triage.at, triage.severity_override), lifecycle_state (detected->triaged transition only), lifecycle_log (append transition entries), updated timestamp.
+- The reflector does NOT modify detection payload fields (id, type, project, tags, created, severity, signal_type, evidence, confidence, etc.). These are frozen at creation per the mutability boundary in knowledge-store.md Section 10.
 - Never modify PLAN.md, SUMMARY.md, or execution artifacts
 - Always rebuild the index after writing lessons
 - Use categorical confidence with occurrence count: "HIGH (7 occurrences)"
