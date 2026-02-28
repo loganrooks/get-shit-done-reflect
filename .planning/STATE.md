@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 31 of 35 (Signal Schema Foundation)
-Plan: 2 of 3 complete in current phase
-Status: Executing
-Last activity: 2026-02-28 -- Completed 31-01-PLAN.md (signal schema foundation)
+Plan: 3 of 3 complete in current phase
+Status: Phase Complete
+Last activity: 2026-02-28 -- Completed 31-03-PLAN.md (signal schema validation)
 
-Progress: [######....] 66% (Phase 31)
+Progress: [##########] 100% (Phase 31)
 
 ## Performance Metrics
 
@@ -41,6 +41,7 @@ Progress: [######....] 66% (Phase 31)
 |-------|------|----------|-------|-------|
 | 31 | 01 | 4min | 3 | 5 |
 | 31 | 02 | 4min | 2 | 2 |
+| 31 | 03 | 6min | 2 | 4 |
 
 ## Accumulated Context
 
@@ -61,6 +62,8 @@ Recent decisions affecting current work:
 - P31-02: signal_category replaces polarity as primary positive/negative indicator; polarity retained for backward compatibility
 - P31-02: Trace non-persistence enforcement deferred to Phase 32 synthesizer; documented explicitly
 - P31-02: Anti-pattern 10.6 updated to detection-payload-frozen / lifecycle-fields-mutable boundary
+- P31-03: Signal schema machine-enforceable via FRONTMATTER_SCHEMAS with conditional validation (critical requires evidence)
+- P31-03: kb-rebuild-index.sh lifecycle_state column with "detected" default for existing signals
 
 ### Pending Todos
 
@@ -108,5 +111,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 31-01-PLAN.md (signal schema foundation). Plans 31-01 and 31-02 complete; 31-03 remaining.
+Stopped at: Completed 31-03-PLAN.md (signal schema validation). Phase 31 complete (3/3 plans). Ready for Phase 32.
 Resume file: None
