@@ -1,7 +1,7 @@
 ---
 name: knowledge-store
 description: Complete reference specification for the GSD persistent knowledge store. Defines file formats, directory layout, schemas, naming conventions, indexing, lifecycle, and concurrency for all knowledge base operations.
-version: 1.0.0
+version: 2.0.0
 ---
 
 # Knowledge Store Reference
@@ -111,10 +111,24 @@ Added to frontmatter alongside common base fields:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `severity` | enum | yes | `critical` or `notable` |
-| `signal_type` | enum | yes | `deviation`, `struggle`, `config-mismatch`, `capability-gap`, or `custom` |
+| `severity` | enum | yes | `critical`, `notable`, `minor`, or `trace` |
+| `signal_type` | enum | yes | `deviation`, `struggle`, `config-mismatch`, `capability-gap`, `epistemic-gap`, `baseline`, `improvement`, `good-pattern`, or `custom` |
+| `signal_category` | enum | no | `positive` or `negative` (defaults to `negative` for backward compatibility). This is the authoritative field for positive/negative classification. `polarity` is retained for backward compatibility but `signal_category` takes precedence when both are present. New signals MUST set both fields consistently. |
 | `phase` | number | no | Phase number where signal was captured |
 | `plan` | number | no | Plan number where signal was captured |
+| `polarity` | enum | no | `positive`, `negative`, or `neutral` (retained for backward compatibility; see `signal_category`) |
+| `source` | enum | no | `auto` or `manual` |
+| `occurrence_count` | number | no | Times this signal pattern has occurred (default: 1) |
+| `related_signals` | array | no | IDs of related signals for cross-referencing |
+| `lifecycle_state` | enum | no | Current lifecycle state: `detected`, `triaged`, `remediated`, `verified`, or `invalidated` (default: `detected`). Top-level field for index grep compatibility. |
+| `lifecycle_log` | array | no | Array of quoted strings recording state transitions (default: `[]`). Entries MUST be quoted strings in YAML to protect special characters (colons, arrows). Example: `- "detected->triaged by reflector at 2026-02-28T10:00:00Z: rationale"` |
+| `evidence` | object | conditional | Contains `supporting` (array of strings) and `counter` (array of strings). Default: `{}`. REQUIRED when severity is `critical`. RECOMMENDED when severity is `notable`. OPTIONAL for `minor`. Not applicable for `trace` (not persisted to KB). |
+| `confidence` | enum | no | `high`, `medium`, or `low` (default: `medium`) |
+| `confidence_basis` | string | no | Text explaining confidence assessment (default: `""`) |
+| `triage` | object | no | Contains `decision` (address/dismiss/defer/investigate), `rationale`, `priority` (critical/high/medium/low), `by`, `at`, `severity_override`. Default: `{}`. Use empty objects `{}` (NOT null) for unset triage -- `reconstructFrontmatter()` silently drops null values (Pitfall 6). Note: `reconstructFrontmatter()` normalizes `triage: {}` to `triage:` (bare key). This is functionally equivalent -- the bare key re-parses as an empty object. The roundtrip is stable. |
+| `remediation` | object | no | Contains `status` (planned/in-progress/complete), `resolved_by_plan`, `approach`, `at`. Default: `{}`. Same empty-object convention as triage. |
+| `verification` | object | no | Contains `status` (pending/passed/failed), `method` (absence-of-recurrence/active-retest/evidence-review), `evidence_required` (for critical: active-retest), `at`. Default: `{}`. Same empty-object convention as triage. |
+| `recurrence_of` | string | no | Signal ID this is a recurrence of (default: `""` -- use empty string, not null) |
 
 ### Spike Extensions
 
@@ -131,6 +145,118 @@ Added to frontmatter alongside common base fields:
 | `category` | enum | yes | `architecture`, `workflow`, `tooling`, `testing`, `debugging`, `performance`, or `other` |
 | `evidence_count` | number | yes | Number of supporting signals/spikes |
 | `evidence` | array | no | List of entry IDs that support this lesson |
+
+### 4.2 Lifecycle State Machine
+
+Signals follow a lifecycle from detection through resolution. The lifecycle state machine tracks where each signal is in this process.
+
+**State diagram:**
+
+```
+                    +--> invalidated (terminal, with audit)
+                    |
+detected --> triaged --> remediated --> verified
+   ^           |            |              |
+   |           |            |              |
+   +-----------+            +--------------+
+   (regression: recurrence    (regression: recurrence
+    resets to detected)        resets to detected)
+```
+
+**State transitions:**
+
+| From | To | Trigger | Who Can Trigger |
+|------|-----|---------|----------------|
+| (new) | detected | Signal created | signal-collector, human |
+| detected | triaged | Triage decision made | reflector, human |
+| detected | invalidated | Counter-evidence overwhelms supporting | reflector, human |
+| triaged | remediated | Plan with resolves_signals completes | executor (auto), human |
+| triaged | detected | (regression) Recurrence detected | synthesizer |
+| triaged | invalidated | Counter-evidence overwhelms supporting | reflector, human |
+| remediated | verified | Verification criteria met | synthesizer (passive), human |
+| remediated | detected | (regression) Recurrence detected | synthesizer |
+| verified | detected | (regression) Recurrence detected (severity escalated) | synthesizer |
+| any | invalidated | Audit-trailed invalidation | reflector, human |
+
+**Terminal state -- invalidation and archival:** When a signal enters the `invalidated` terminal state, its `status` field is simultaneously set to `archived` to remove it from the active signal pool. The invalidation reason is preserved in `lifecycle_log`. Example lifecycle_log entry: `"triaged->invalidated by reflector at 2026-02-28T10:00:00Z: counter-evidence demonstrates false positive"`.
+
+**Dismissed signals:** Dismissed is a triage decision value (`triage.decision: dismiss`), NOT a lifecycle state. A dismissed signal stays in `triaged` state with `triage.decision: dismiss`. This preserves the four-state lifecycle while recording the dismiss decision.
+
+**Regression paths:** When a signal recurs (a new signal is detected that matches an existing remediated or verified signal), the existing signal regresses to `detected` state. Severity escalation follows the `recurrence_escalation` project setting -- when enabled, recurrence escalates severity (e.g., notable -> critical on second recurrence of a verified signal).
+
+**Skip rules by lifecycle_strictness setting:**
+
+| Setting | Allowed Transitions | Restrictions |
+|---------|-------------------|--------------|
+| `strict` | All states required in order | No skipping; every transition must go through each intermediate state |
+| `flexible` (default) | detected -> remediated allowed (fix without formal triage) | detected -> verified is NOT allowed (must have remediation evidence) |
+| `minimal` | Any forward transition allowed | No restrictions on forward movement |
+
+**Existing signals (backward compatibility):** The 46 existing signals have no `lifecycle_state` field. When absent, `lifecycle_state` defaults to `detected`. Bulk triage of existing signals is deferred to Phase 33 (Enhanced Reflector). Schema validation is opt-in -- agents call `frontmatter validate --schema signal` only on NEW signals they create.
+
+**Backward-compat validation (`backward_compat` in FRONTMATTER_SCHEMAS):** When `lifecycle_state` is absent from a signal, `cmdFrontmatterValidate` downgrades conditional `require` fields to warnings (prefixed `backward_compat:`). This allows the 6 pre-existing critical signals (which lack `evidence`) to pass validation. Signals created from the Phase 31+ template always include `lifecycle_state: detected` and receive full strict enforcement.
+
+**Phase 33 triage constraint:** When bulk triage adds `lifecycle_state` to existing critical signals, it MUST also add `evidence` (with at least one `supporting` entry) or downgrade `severity`. Once `lifecycle_state` is present, the backward-compat exemption no longer applies and the conditional evidence requirement becomes a hard failure.
+
+**Legacy SIG-format signals:** 15 legacy SIG-format signals (SIG-260222-*, SIG-260223-*) predate the standard schema and may contain non-standard field values (e.g., `status: resolved`, `type: positive-pattern`). These are readable via `extractFrontmatter()` but are not subject to formal schema validation.
+
+### 4.3 Epistemic Rigor Requirements
+
+Signal quality depends on epistemic rigor -- the discipline of evidence-based reasoning. The system enforces proportional rigor based on signal severity.
+
+**Five epistemic principles:**
+
+1. **Proportional rigor** -- Stakes determine evidence requirements. Critical signals demand full evidence; trace signals need only detection context.
+2. **Epistemic humility** -- Acknowledge what the system cannot see. Use `epistemic-gap` signal type to flag blind spots.
+3. **Evidence independence** -- Repeated citations of the same fact are NOT corroboration. Independent observations converging on the same conclusion constitute genuine corroboration.
+4. **Mandatory counter-evidence** -- Critical claims must be challenged. The system requires counter-evidence for critical signals as a structural safeguard against confirmation bias.
+5. **Meta-epistemic reflection** -- The system evaluates its own reasoning quality. Evidence quality is annotated in `confidence_basis` so downstream agents can assess whether the evidence supports justified belief.
+
+**Tiered rigor requirements by severity:**
+
+| Severity | Evidence | Counter-evidence | Confidence | Verification |
+|----------|----------|-----------------|------------|--------------|
+| `critical` | REQUIRED (hard fail without `evidence.supporting`) | REQUIRED (hard fail without `evidence.counter`) | `confidence_basis` REQUIRED | Active verification required (`active-retest` or `evidence-review`) |
+| `notable` | RECOMMENDED (warn if missing) | RECOMMENDED (warn if missing) | RECOMMENDED | Passive verification acceptable (`absence-of-recurrence`) |
+| `minor` | Evidence summary sufficient | Not required | OPTIONAL | Evidence summary sufficient |
+| `trace` | Minimal -- detection context only | Not required | Not applicable | Not persisted to KB; logged in collection reports only |
+
+**Rigor enforcement behavior** is determined by the project setting `rigor_enforcement`:
+- `strict`: Missing required evidence blocks signal creation (hard fail)
+- `warn` (default): Missing required evidence produces a warning but allows creation
+- `permissive`: No enforcement; rigor is advisory only
+
+**Epistemic gap signals:** Signals with `signal_type: epistemic-gap` explicitly acknowledge blind spots -- areas where the system suspects an issue but lacks tools or evidence to confirm. These signals use `signal_category: negative` (they represent missing knowledge) and `confidence: low` inherently (the system is flagging what it does NOT know).
+
+**Meta-evidence:** The system annotates evidence quality in `confidence_basis`. This enables downstream agents (reflector, synthesizer) to evaluate not just what was observed but how reliable the observation process was. Example: `"3 auto-fixes detected via SUMMARY.md parsing -- high extraction confidence but root cause assessment is speculative"`.
+
+### 4.4 Positive Signals
+
+Positive signals capture healthy states, improvements, and practices worth repeating. They use the same schema as negative signals with different field values.
+
+**Three types of positive signals:**
+
+| Type | signal_type | Description | Example |
+|------|-------------|-------------|---------|
+| Baseline | `baseline` | Normal/healthy state worth preserving | "All 35 commands have correct path prefixes" |
+| Improvement | `improvement` | Measurable improvement over previous state | "Build time reduced 40% after tree-shaking" |
+| Good pattern | `good-pattern` | Practice worth repeating across projects | "TDD red-green-refactor prevented 3 integration bugs" |
+
+**Field values for positive signals:**
+- `signal_category: positive` (authoritative positive/negative classification)
+- `polarity: positive` (retained for backward compatibility; both fields set consistently)
+- Same severity tiers apply equally (a critical baseline is possible)
+
+**Lifecycle with semantic reinterpretation:** Positive signals follow the same four-state lifecycle with adjusted semantics:
+- `detected` -- Positive pattern observed
+- `triaged` -- Confirmed as meaningful (not noise)
+- `remediated` -- For positives, this means "baseline reinforced" or "improvement sustained" (skip is common under flexible strictness)
+- `verified` -- Baseline confirmed stable over time; improvement confirmed durable
+
+**Triple purpose:**
+1. **Lesson inputs** -- Positive patterns feed into lesson distillation (what to repeat)
+2. **Regression guards** -- Baselines define the good state; future deviations from baseline trigger negative signals
+3. **Cross-project transfer** -- Good patterns that work in one project can be surfaced in others via global promotion
 
 ## 5. Body Templates
 
@@ -258,9 +384,9 @@ The index at `~/.gsd/knowledge/index.md` is auto-generated and never hand-edited
 
 ## Signals (23)
 
-| ID | Project | Severity | Tags | Date | Status |
-|----|---------|----------|------|------|--------|
-| sig-2026-02-02-auth-retry-loop | my-app | high | auth, retry | 2026-02-02 | active |
+| ID | Project | Severity | Lifecycle | Tags | Date | Status |
+|----|---------|----------|-----------|------|------|--------|
+| sig-2026-02-02-auth-retry-loop | my-app | high | detected | auth, retry | 2026-02-02 | active |
 
 ## Spikes (12)
 
@@ -279,9 +405,10 @@ The index at `~/.gsd/knowledge/index.md` is auto-generated and never hand-edited
 - Header includes generation timestamp and total entry count
 - Per-type sections with entry counts in section headers
 - One markdown table per type with one row per entry
-- Signal key field: Severity
+- Signal key fields: Severity, Lifecycle
 - Spike key field: Outcome
 - Lesson key field: Category
+- `lifecycle_state` is a top-level field specifically for index grep compatibility (the `kb-rebuild-index.sh` script uses simple `grep` extraction that only works on top-level fields)
 - Archived entries (status: archived) are excluded from index
 - Files are source of truth; index is a derived cache
 
@@ -304,9 +431,33 @@ The index at `~/.gsd/knowledge/index.md` is auto-generated and never hand-edited
 
 | Type | Mutability | Rationale |
 |------|-----------|-----------|
-| Signal | Immutable after creation | Signals capture a moment in time |
+| Signal | Detection payload frozen after creation; lifecycle fields mutable | Signals capture a moment in time (detection payload) but evolve through lifecycle (triage, remediation, verification) |
 | Spike | Immutable after creation | Spikes capture an experiment and its outcome |
 | Lesson | Update-in-place | Lessons represent current knowledge; update `updated` timestamp on modification |
+
+**Signal mutability boundary (frozen vs mutable fields):**
+
+FROZEN fields (detection payload -- never modified after creation):
+- `id`, `type`, `project`, `tags`, `created`, `durability`
+- `severity` (initial sensor assessment), `signal_type`, `signal_category`
+- `phase`, `plan`, `polarity`, `source`
+- `occurrence_count`, `related_signals`
+- `runtime`, `model`, `gsd_version`
+- `evidence.supporting` (initial), `evidence.counter` (initial)
+- `confidence` (initial), `confidence_basis` (initial)
+- `recurrence_of`
+
+MUTABLE fields (lifecycle -- modified by authorized agents):
+- `lifecycle_state`, `lifecycle_log`
+- `triage.*` (decision, rationale, priority, by, at, severity_override)
+- `remediation.*` (status, resolved_by_plan, approach, at)
+- `verification.*` (status, method, evidence_required, at)
+- `updated` (timestamp, tracks most recent lifecycle change)
+- `status` (active/archived -- set to archived on invalidation)
+
+**Severity disagreement handling:** `triage.severity_override` records disagreement between the sensor's initial severity assessment and the triage agent's assessment. The original `severity` field (frozen) preserves the sensor's view; `triage.severity_override` captures the triage agent's view. The `severity_conflict_handling` project setting determines which takes precedence for downstream behavior.
+
+**Enforcement:** The mutability boundary is enforced by agent instructions (agent specs define which fields each agent may modify), not by file system permissions. Optional validation warning in gsd-tools.js may be added in future phases.
 
 **Archival:**
 - Set `status: archived` in frontmatter
@@ -361,6 +512,7 @@ The index at `~/.gsd/knowledge/index.md` is auto-generated and never hand-edited
 
 ---
 
-*Specification version: 1.0.0*
+*Specification version: 2.0.0*
 *Created: 2026-02-02*
-*Phase: 01-knowledge-store*
+*Updated: 2026-02-28*
+*Phase: 01-knowledge-store (base), 31-signal-schema-foundation (lifecycle, epistemic, mutability, positive signals)*
