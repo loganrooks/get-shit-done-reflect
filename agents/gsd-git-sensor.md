@@ -51,10 +51,12 @@ Store this as the **broad** commit set. Both sets are used by different detectio
 
 ## Step 2: Detect Fix-Fix-Fix Chains (Pattern A)
 
-Analyze the broad commit window (last 100 commits) for consecutive fix commits:
+Analyze the broad commit window for consecutive fix commits. Start with 100 commits; if no chains are found, expand to 300:
 
 ```bash
 git log --oneline --format="%s" -100
+# If no chains found in 100, expand:
+# git log --oneline --format="%s" -300
 ```
 
 Parse the output to find streaks of 3+ consecutive commits where the subject starts with `fix(` or `fix:`. A "streak" means consecutive commits in the log with no non-fix commits between them.
@@ -81,7 +83,7 @@ Analyze a broader window for file modification frequency:
 ```bash
 # Files modified in 5+ of the last 50 commits, excluding planning files
 git log --name-only --format="" -50 \
-  | grep -v '^\\.planning/' \
+  | grep -v '^\.planning/' \
   | grep -v '^$' \
   | sort | uniq -c | sort -rn \
   | awk '$1 >= 5 { print $1, $2 }'
@@ -209,7 +211,11 @@ If no signals are detected for any pattern, return an empty signals array:
 - Keep git commands simple and portable -- avoid platform-specific flags
 - When counting fix-chain streaks, process the git log output line-by-line in bash (use a while-read loop or awk), not external scripting languages
 
-Validated against get-shit-done-reflect repo (1300+ commits, 2026-02-28).
+Validated against get-shit-done-reflect repo (1300+ commits, 2026-02-28):
+- Fix-chain: 7 chains found in full history (longest: 6 consecutive); none in last 100 commits (chains cluster around major fix sessions). Expand to 300 if 100 yields nothing.
+- File churn: CHANGELOG.md flagged at 5 modifications in 50 commits. Expected high-churn exclusions (package.json, STATE.md) work correctly.
+- Scope creep: Plan 31-03 shows 2 extra .claude/ installed copies vs 4 declared files. Pattern correctly detects scope drift from npm-source vs installed-copy commits.
+- Grep filter fix: Use single backslash `^\.planning/` not double `^\\.planning/` for portable .planning/ exclusion.
 </guidelines>
 
 <required_reading>
