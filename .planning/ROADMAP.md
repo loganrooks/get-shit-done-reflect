@@ -56,10 +56,10 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 32-01-PLAN.md -- Sensor foundation: artifact sensor extraction, log sensor stub, feature manifest config, signal-collector deprecation
-- [ ] 32-02-PLAN.md -- Git sensor: commit pattern detection (fix-fix-fix chains, file churn, scope creep) with live validation
-- [ ] 32-03-PLAN.md -- Signal synthesizer: single KB writer with dedup, rigor enforcement, trace filtering, and cap management
-- [ ] 32-04-PLAN.md -- Orchestrator assembly: refactor collect-signals workflow to parallel sensor pattern, update command, installer sync
+- [x] 32-01-PLAN.md -- Sensor foundation: artifact sensor extraction, log sensor stub, feature manifest config, signal-collector deprecation
+- [x] 32-02-PLAN.md -- Git sensor: commit pattern detection (fix-fix-fix chains, file churn, scope creep) with live validation
+- [x] 32-03-PLAN.md -- Signal synthesizer: single KB writer with dedup, rigor enforcement, trace filtering, and cap management
+- [x] 32-04-PLAN.md -- Orchestrator assembly: refactor collect-signals workflow to parallel sensor pattern, update command, installer sync
 
 ### Phase 33: Enhanced Reflector
 **Goal**: The reflector transforms accumulated signals into actionable triage decisions, distilled lessons, and remediation suggestions -- proving it can produce more than 5 lessons from the existing 46 signals
@@ -118,7 +118,7 @@ Phases execute in numeric order: 31 -> 32 -> 33 -> 34 -> 35
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|---------------|--------|-----------|
 | 31. Signal Schema Foundation | v1.16 | 4/4 | Complete | 2026-02-28 |
-| 32. Multi-Sensor Orchestrator | v1.16 | 0/4 | Planned | - |
+| 32. Multi-Sensor Orchestrator | v1.16 | 4/4 | Complete | 2026-02-28 |
 | 33. Enhanced Reflector | v1.16 | 0/TBD | Not started | - |
 | 34. Signal-Plan Linkage | v1.16 | 0/TBD | Not started | - |
 | 35. Spike Audit & Lightweight Mode | v1.16 | 0/TBD | Not started | - |
@@ -131,6 +131,6 @@ Phases execute in numeric order: 31 -> 32 -> 33 -> 34 -> 35
 | 7-12 | v1.13 | 18/18 | Complete | 2026-02-11 |
 | 13-21 | v1.14 | 18/18 | Complete | 2026-02-16 |
 | 22-30 | v1.15 | 24/24 | Complete | 2026-02-23 |
-| 31-35 | v1.16 | 4/TBD | In progress | - |
+| 31-35 | v1.16 | 8/TBD | In progress | - |
 
-**Totals:** 5 milestones, 30 phases complete, 89 plans completed
+**Totals:** 5 milestones, 31 phases complete, 93 plans completed

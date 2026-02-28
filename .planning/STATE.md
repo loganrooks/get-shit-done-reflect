@@ -45,7 +45,7 @@ Progress: [##########] 100% (Phase 32)
 | 31 | 04 | 4min | 4 | 4 |
 | 32 | 01 | 4min | 2 | 6 |
 | 32 | 03 | 2min | 1 | 1 |
-| Phase 32 P02 | 4min | 2 tasks | 1 files |
+| 32 | 02 | 4min | 2 | 1 |
 | 32 | 04 | 4min | 2 | 2 |
 
 ## Accumulated Context
