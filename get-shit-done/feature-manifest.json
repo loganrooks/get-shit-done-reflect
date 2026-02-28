@@ -203,6 +203,43 @@
           "skip_value": "skip"
         }
       ]
+    },
+    "signal_collection": {
+      "scope": "project",
+      "introduced": "1.16.0",
+      "config_key": "signal_collection",
+      "schema": {
+        "sensors": {
+          "type": "object",
+          "default": {
+            "artifact": { "enabled": true, "model": "auto" },
+            "git": { "enabled": true, "model": "auto" },
+            "log": { "enabled": false, "model": "auto" }
+          },
+          "description": "Per-sensor configuration (enabled/disabled, model assignment)"
+        },
+        "synthesizer_model": {
+          "type": "string",
+          "default": "auto",
+          "description": "Model for the signal synthesizer agent"
+        },
+        "per_phase_cap": {
+          "type": "number",
+          "default": 10,
+          "description": "Maximum persistent signals per phase per project"
+        }
+      },
+      "init_prompts": [
+        {
+          "field": "_gate",
+          "question": "Configure signal collection sensors?",
+          "options": [
+            { "value": "skip", "label": "Skip (use defaults)" },
+            { "value": "configure", "label": "Configure now" }
+          ],
+          "skip_value": "skip"
+        }
+      ]
     }
   }
 }

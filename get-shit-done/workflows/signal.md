@@ -16,6 +16,6 @@ The original architecture split signal logic between this workflow file and the 
 
 ## Reference Documents (unchanged)
 
-These reference docs still exist for other consumers (gsd-signal-collector, gsd-spike-runner):
+These reference docs still exist for other consumers (gsd-artifact-sensor, gsd-signal-synthesizer, gsd-spike-runner):
 - `get-shit-done/references/signal-detection.md` -- detection rules for automated signal collection
 - `.claude/agents/knowledge-store.md` -- KB schema for all entry types
