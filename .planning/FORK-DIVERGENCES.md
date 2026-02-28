@@ -4,7 +4,7 @@
 
 | Metric | Value |
 |--------|-------|
-| Modified upstream files | 17 |
+| Modified upstream files | 18 |
 | Added fork-only files | 166 |
 | Fork point | `2347fca` (upstream v1.11.1) |
 | Last sync | 2026-02-10 (v1.18.0 via merge commit f97291a) |
@@ -51,6 +51,14 @@ Changes to template files and reference documentation.
 | `get-shit-done/templates/context.md` | Added `open_questions` section | Fork enhancement | Case-by-case | LOW |
 | `get-shit-done/templates/project.md` | Added `open_questions` section | Fork enhancement | Case-by-case | LOW |
 | `get-shit-done/templates/research.md` | Enhanced `open_questions` with resolved/gaps/spike/still-open structure | Fork enhancement | Case-by-case | LOW (confirmed: auto-resolved) |
+
+### Runtime (1 file)
+
+Files modifying gsd-tools.js runtime behavior.
+
+| File | What Changed | Why | Merge Stance | Conflict Risk |
+|------|-------------|-----|--------------|---------------|
+| `get-shit-done/bin/gsd-tools.js` | Added `signal` key to FRONTMATTER_SCHEMAS with required/conditional/recommended tiered validation; extended `cmdFrontmatterValidate` with conditional requirement and recommended field support | Signal schema enforcement (Phase 31) | keep-fork -- upstream has no signal schema | LOW (additive -- new schema entry and extended function, no upstream overlap) |
 
 ### Build & Config (3 files)
 
