@@ -156,6 +156,53 @@
           { "check": "file_exists", "path": "pyproject.toml", "value": "pyproject.toml" }
         ]
       }
+    },
+    "signal_lifecycle": {
+      "scope": "project",
+      "introduced": "1.16.0",
+      "config_key": "signal_lifecycle",
+      "schema": {
+        "lifecycle_strictness": {
+          "type": "string",
+          "enum": ["strict", "flexible", "minimal"],
+          "default": "flexible",
+          "description": "How strictly lifecycle state transitions are enforced"
+        },
+        "manual_signal_trust": {
+          "type": "string",
+          "enum": ["full", "standard", "cautious"],
+          "default": "standard",
+          "description": "Rigor expected from user-submitted signals"
+        },
+        "rigor_enforcement": {
+          "type": "string",
+          "enum": ["strict", "warn", "permissive"],
+          "default": "warn",
+          "description": "What happens when rigor requirements are not met"
+        },
+        "severity_conflict_handling": {
+          "type": "string",
+          "enum": ["sensor-wins", "triage-wins", "record-both"],
+          "default": "record-both",
+          "description": "How sensor vs triage severity disagreements are handled"
+        },
+        "recurrence_escalation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether signal recurrence automatically escalates severity"
+        }
+      },
+      "init_prompts": [
+        {
+          "field": "_gate",
+          "question": "Configure signal lifecycle settings?",
+          "options": [
+            { "value": "skip", "label": "Skip (use defaults)" },
+            { "value": "configure", "label": "Configure now" }
+          ],
+          "skip_value": "skip"
+        }
+      ]
     }
   }
 }
