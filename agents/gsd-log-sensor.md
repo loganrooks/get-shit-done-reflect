@@ -57,5 +57,5 @@ This sensor is disabled. Return an empty signal array with structured delimiters
 </execution_flow>
 
 <required_reading>
-@~/get-shit-done/references/agent-protocol.md
+@~/.claude/get-shit-done/references/agent-protocol.md
 </required_reading>

@@ -15,10 +15,10 @@ You do NOT filter traces, write to the KB, rebuild the index, or enforce caps. A
 
 <references>
 Detection rules and severity classification:
-@~/get-shit-done/references/signal-detection.md
+@~/.claude/get-shit-done/references/signal-detection.md
 
 Knowledge base schema, directory layout, and lifecycle rules:
-@~/agents/knowledge-store.md
+@~/.claude/agents/knowledge-store.md
 </references>
 
 <inputs>
@@ -172,5 +172,5 @@ If no signals are detected, return an empty signals array:
 </guidelines>
 
 <required_reading>
-@~/get-shit-done/references/agent-protocol.md
+@~/.claude/get-shit-done/references/agent-protocol.md
 </required_reading>
