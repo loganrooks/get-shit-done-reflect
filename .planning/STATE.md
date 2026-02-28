@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 31 of 35 (Signal Schema Foundation)
-Plan: 3 of 3 complete in current phase
+Plan: 4 of 4 complete in current phase
 Status: Phase Complete
-Last activity: 2026-02-28 -- Completed 31-03-PLAN.md (signal schema validation)
+Last activity: 2026-02-28 -- Completed 31-04-PLAN.md (backward compat gap closure)
 
 Progress: [##########] 100% (Phase 31)
 
@@ -42,6 +42,7 @@ Progress: [##########] 100% (Phase 31)
 | 31 | 01 | 4min | 3 | 5 |
 | 31 | 02 | 4min | 2 | 2 |
 | 31 | 03 | 6min | 2 | 4 |
+| 31 | 04 | 4min | 4 | 4 |
 
 ## Accumulated Context
 
@@ -64,6 +65,7 @@ Recent decisions affecting current work:
 - P31-02: Anti-pattern 10.6 updated to detection-payload-frozen / lifecycle-fields-mutable boundary
 - P31-03: Signal schema machine-enforceable via FRONTMATTER_SCHEMAS with conditional validation (critical requires evidence)
 - P31-03: kb-rebuild-index.sh lifecycle_state column with "detected" default for existing signals
+- P31-04: backward_compat keyed on lifecycle_state absence; evidence content validation for empty objects; Phase 33 triage constraint documented
 
 ### Pending Todos
 
@@ -111,5 +113,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 31-03-PLAN.md (signal schema validation). Phase 31 complete (3/3 plans). Ready for Phase 32.
+Stopped at: Completed 31-04-PLAN.md (backward compat gap closure). Phase 31 fully complete (4/4 plans). Ready for Phase 32.
 Resume file: None
