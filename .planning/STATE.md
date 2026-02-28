@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 31 of 35 (Signal Schema Foundation)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-02-27 -- Roadmap created for v1.16
+Plan: 2 of 3 in current phase
+Status: Executing
+Last activity: 2026-02-28 -- Completed 31-02-PLAN.md (reference document updates)
 
-Progress: [..........] 0% (v1.16)
+Progress: [######....] 66% (Phase 31)
 
 ## Performance Metrics
 
@@ -36,7 +36,10 @@ Progress: [..........] 0% (v1.16)
 - Plans completed: 24 (18 initial + 6 gap closure)
 - Timeline: 13 days (2026-02-11 -> 2026-02-23)
 
-**v1.16:** No plans completed yet.
+**v1.16:**
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 31 | 02 | 4min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -49,6 +52,10 @@ Recent decisions affecting current work:
 - v1.16 roadmap: 5 phases derived from 36 requirements across SCHEMA/SENSOR/REFLECT/LIFECYCLE/SPIKE categories
 - v1.16 ordering: Schema first (foundation), then sensors, then reflector (highest value), then linkage (closes loop), spikes last (independent)
 - Critical pitfall: Build reflector BEFORE adding more sensors -- reflector is the bottleneck, not detection
+- P31-02: Moved single auto-fix/minor file differences/task order changes from trace to minor severity (now persisted to KB)
+- P31-02: signal_category replaces polarity as primary positive/negative indicator; polarity retained for backward compatibility
+- P31-02: Trace non-persistence enforcement deferred to Phase 32 synthesizer; documented explicitly
+- P31-02: Anti-pattern 10.6 updated to detection-payload-frozen / lifecycle-fields-mutable boundary
 
 ### Pending Todos
 
@@ -95,6 +102,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-02-27
-Stopped at: v1.16 roadmap created. Ready to plan Phase 31.
+Last session: 2026-02-28
+Stopped at: Completed 31-02-PLAN.md (reference document updates)
 Resume file: None
