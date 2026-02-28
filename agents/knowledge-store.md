@@ -194,6 +194,10 @@ detected --> triaged --> remediated --> verified
 
 **Existing signals (backward compatibility):** The 46 existing signals have no `lifecycle_state` field. When absent, `lifecycle_state` defaults to `detected`. Bulk triage of existing signals is deferred to Phase 33 (Enhanced Reflector). Schema validation is opt-in -- agents call `frontmatter validate --schema signal` only on NEW signals they create.
 
+**Backward-compat validation (`backward_compat` in FRONTMATTER_SCHEMAS):** When `lifecycle_state` is absent from a signal, `cmdFrontmatterValidate` downgrades conditional `require` fields to warnings (prefixed `backward_compat:`). This allows the 6 pre-existing critical signals (which lack `evidence`) to pass validation. Signals created from the Phase 31+ template always include `lifecycle_state: detected` and receive full strict enforcement.
+
+**Phase 33 triage constraint:** When bulk triage adds `lifecycle_state` to existing critical signals, it MUST also add `evidence` (with at least one `supporting` entry) or downgrade `severity`. Once `lifecycle_state` is present, the backward-compat exemption no longer applies and the conditional evidence requirement becomes a hard failure.
+
 **Legacy SIG-format signals:** 15 legacy SIG-format signals (SIG-260222-*, SIG-260223-*) predate the standard schema and may contain non-standard field values (e.g., `status: resolved`, `type: positive-pattern`). These are readable via `extractFrontmatter()` but are not subject to formal schema validation.
 
 ### 4.3 Epistemic Rigor Requirements
