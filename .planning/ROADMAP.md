@@ -71,12 +71,13 @@ Plans:
   3. The reflector produces triage proposals with cluster-level decisions that the user can approve or reject, and generates remediation suggestions for triaged signals
   4. The reflector distills at least 5 lessons from the existing 46 signals, with evidence snapshots included in each lesson
   5. The reflect output includes a lifecycle dashboard (N untriaged / N triaged / N remediated / N verified) and flags low-confidence patterns as spike candidates
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 33-01: TBD
-- [ ] 33-02: TBD
-- [ ] 33-03: TBD
+- [ ] 33-01-PLAN.md -- Detection rules: confidence-weighted scoring, counter-evidence seeking, and reflect-to-spike pipeline in reflection-patterns.md
+- [ ] 33-02-PLAN.md -- Output infrastructure: evidence_snapshots in lesson template, lifecycle dashboard and triage UX in reflect workflow
+- [ ] 33-03-PLAN.md -- Reflector rewrite: lifecycle-aware gsd-reflector.md with all REFLECT-01 through REFLECT-08 capabilities
+- [ ] 33-04-PLAN.md -- Installer sync and human verification: sync .claude/ runtime, verify /gsd:reflect produces lifecycle-aware output
 
 ### Phase 34: Signal-Plan Linkage
 **Goal**: The signal lifecycle closes end-to-end -- plans declare which signals they fix, completion updates remediation status, recurrence is detected passively, and at least one signal completes the full lifecycle
@@ -119,7 +120,7 @@ Phases execute in numeric order: 31 -> 32 -> 33 -> 34 -> 35
 |-------|-----------|---------------|--------|-----------|
 | 31. Signal Schema Foundation | v1.16 | 4/4 | Complete | 2026-02-28 |
 | 32. Multi-Sensor Orchestrator | v1.16 | 4/4 | Complete | 2026-02-28 |
-| 33. Enhanced Reflector | v1.16 | 0/TBD | Not started | - |
+| 33. Enhanced Reflector | v1.16 | 0/4 | Not started | - |
 | 34. Signal-Plan Linkage | v1.16 | 0/TBD | Not started | - |
 | 35. Spike Audit & Lightweight Mode | v1.16 | 0/TBD | Not started | - |
 
