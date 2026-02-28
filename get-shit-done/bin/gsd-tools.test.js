@@ -4372,6 +4372,7 @@ tags: [critical]
 created: 2026-02-28T10:00:00Z
 severity: critical
 signal_type: deviation
+lifecycle_state: detected
 ---
 
 # Critical without evidence
@@ -4380,7 +4381,7 @@ signal_type: deviation
     const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
     assert.ok(result.success, `Command failed: ${result.error}`);
     const output = JSON.parse(result.output);
-    assert.strictEqual(output.valid, false, 'critical signal without evidence should be invalid');
+    assert.strictEqual(output.valid, false, 'new critical signal without evidence should be invalid');
     assert.ok(output.missing.includes('evidence'), 'missing should include evidence');
   });
 
@@ -4412,6 +4413,112 @@ model: claude-opus-4-20250514
     const output = JSON.parse(result.output);
     assert.strictEqual(output.valid, true, 'date-slug format signal should be valid');
     assert.ok(output.warnings.length > 0, 'should warn about missing recommended fields');
+  });
+
+  test('backward compat: critical signal without lifecycle_state downgrades evidence to warning', () => {
+    const signalPath = path.join(tmpDir, 'pre-existing-critical.md');
+    fs.writeFileSync(signalPath, `---
+id: sig-2026-02-11-kb-data-loss-migration-gap
+type: signal
+project: get-shit-done-reflect
+tags: [knowledge-base, migration]
+created: 2026-02-11T10:00:00Z
+severity: critical
+signal_type: deviation
+phase: 25
+polarity: negative
+source: executor
+---
+
+# Pre-existing critical signal without evidence
+`);
+
+    const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, true, 'pre-existing critical signal without lifecycle_state should be valid');
+    assert.strictEqual(output.missing.length, 0, 'no missing fields in backward compat mode');
+    const warningStr = output.warnings.join(',');
+    assert.ok(warningStr.includes('backward_compat: evidence'), 'should include backward_compat warning for evidence');
+  });
+
+  test('new critical signal with lifecycle_state but no evidence fails', () => {
+    const signalPath = path.join(tmpDir, 'new-critical-no-evidence.md');
+    fs.writeFileSync(signalPath, `---
+id: sig-2026-02-28-new-critical
+type: signal
+project: test-project
+tags: [schema]
+created: 2026-02-28T10:00:00Z
+severity: critical
+signal_type: deviation
+lifecycle_state: detected
+signal_category: negative
+---
+
+# New critical signal without evidence
+`);
+
+    const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, false, 'new critical signal with lifecycle_state but no evidence should fail');
+    assert.ok(output.missing.includes('evidence'), 'missing should include evidence');
+  });
+
+  test('new critical signal with empty evidence object fails', () => {
+    const signalPath = path.join(tmpDir, 'critical-empty-evidence.md');
+    fs.writeFileSync(signalPath, `---
+id: sig-2026-02-28-empty-evidence
+type: signal
+project: test-project
+tags: [schema]
+created: 2026-02-28T10:00:00Z
+severity: critical
+signal_type: deviation
+lifecycle_state: detected
+signal_category: negative
+evidence:
+  supporting: []
+  counter: []
+confidence: medium
+confidence_basis: "untested"
+---
+
+# Critical signal with empty evidence
+`);
+
+    const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, false, 'critical signal with empty evidence should be invalid');
+    assert.ok(output.missing.some(m => m.includes('evidence')), 'missing should include evidence (empty)');
+  });
+
+  test('backward compat mode does NOT apply when lifecycle_state is present', () => {
+    const signalPath = path.join(tmpDir, 'triaged-critical-no-evidence.md');
+    fs.writeFileSync(signalPath, `---
+id: sig-2026-02-11-kb-data-loss-migration-gap
+type: signal
+project: get-shit-done-reflect
+tags: [knowledge-base, migration]
+created: 2026-02-11T10:00:00Z
+severity: critical
+signal_type: deviation
+lifecycle_state: triaged
+phase: 25
+polarity: negative
+source: executor
+---
+
+# Triaged critical signal still needs evidence
+`);
+
+    const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, false, 'critical signal with lifecycle_state but no evidence should fail even with old created date');
+    assert.ok(output.missing.includes('evidence'), 'missing should include evidence');
   });
 
   test('warnings for missing recommended fields', () => {
