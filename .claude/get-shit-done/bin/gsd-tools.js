@@ -2228,6 +2228,25 @@ const FRONTMATTER_SCHEMAS = {
   plan: { required: ['phase', 'plan', 'type', 'wave', 'depends_on', 'files_modified', 'autonomous', 'must_haves'] },
   summary: { required: ['phase', 'plan', 'subsystem', 'tags', 'duration', 'completed'] },
   verification: { required: ['phase', 'verified', 'status', 'score'] },
+  signal: {
+    required: ['id', 'type', 'project', 'tags', 'created', 'severity', 'signal_type'],
+    conditional: [
+      {
+        when: { field: 'severity', value: 'critical' },
+        require: ['evidence'],
+        recommend: ['confidence', 'confidence_basis'],
+      },
+      {
+        when: { field: 'severity', value: 'notable' },
+        recommend: ['evidence', 'confidence'],
+      },
+    ],
+    recommended: ['lifecycle_state', 'signal_category', 'confidence', 'confidence_basis'],
+    optional: ['triage', 'remediation', 'verification', 'lifecycle_log',
+               'recurrence_of', 'phase', 'plan', 'polarity', 'source',
+               'occurrence_count', 'related_signals', 'runtime', 'model',
+               'gsd_version', 'durability', 'status'],
+  },
 };
 
 function cmdFrontmatterValidate(cwd, filePath, schemaName, raw) {
@@ -2238,9 +2257,47 @@ function cmdFrontmatterValidate(cwd, filePath, schemaName, raw) {
   const content = safeReadFile(fullPath);
   if (!content) { output({ error: 'File not found', path: filePath }, raw); return; }
   const fm = extractFrontmatter(content);
+
+  // Check required fields
   const missing = schema.required.filter(f => fm[f] === undefined);
   const present = schema.required.filter(f => fm[f] !== undefined);
-  output({ valid: missing.length === 0, missing, present, schema: schemaName }, raw, missing.length === 0 ? 'valid' : 'invalid');
+
+  // Check conditional requirements
+  const conditionalMissing = [];
+  const conditionalWarnings = [];
+  if (schema.conditional) {
+    for (const cond of schema.conditional) {
+      if (fm[cond.when.field] === cond.when.value) {
+        if (cond.require) {
+          for (const f of cond.require) {
+            if (fm[f] === undefined) conditionalMissing.push(f);
+          }
+        }
+        if (cond.recommend) {
+          for (const f of cond.recommend) {
+            if (fm[f] === undefined) conditionalWarnings.push(f);
+          }
+        }
+      }
+    }
+  }
+
+  // Check recommended fields (warnings only)
+  const recommendedMissing = [];
+  if (schema.recommended) {
+    for (const f of schema.recommended) {
+      if (fm[f] === undefined) recommendedMissing.push(f);
+    }
+  }
+
+  const allMissing = [...missing, ...conditionalMissing];
+  output({
+    valid: allMissing.length === 0,
+    missing: allMissing,
+    present,
+    warnings: [...conditionalWarnings, ...recommendedMissing.map(f => `recommended: ${f}`)],
+    schema: schemaName,
+  }, raw, allMissing.length === 0 ? 'valid' : 'invalid');
 }
 
 // ─── Verification Suite ──────────────────────────────────────────────────────

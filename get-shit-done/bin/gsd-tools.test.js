@@ -2411,12 +2411,13 @@ describe('manifest self-test (real manifest)', () => {
     assert.ok(manifest.features, 'should have features object');
     assert.strictEqual(typeof manifest.features, 'object', 'features should be object');
 
-    // Exactly 3 features
+    // Exactly 4 features
     const featureNames = Object.keys(manifest.features);
-    assert.strictEqual(featureNames.length, 3, 'should have exactly 3 features');
+    assert.strictEqual(featureNames.length, 4, 'should have exactly 4 features');
     assert.ok(featureNames.includes('health_check'), 'should have health_check');
     assert.ok(featureNames.includes('devops'), 'should have devops');
     assert.ok(featureNames.includes('release'), 'should have release');
+    assert.ok(featureNames.includes('signal_lifecycle'), 'should have signal_lifecycle');
 
     // Each feature has required top-level fields
     for (const [name, feature] of Object.entries(manifest.features)) {
@@ -4251,5 +4252,190 @@ Minimal todo with only title and area.
     // NO milestone field should exist
     assert.strictEqual(todo.milestone, undefined, 'todo should NOT have milestone field');
     assert.ok(!('milestone' in todo), 'milestone key should not exist in todo object');
+  });
+});
+
+describe('signal frontmatter validation', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('valid critical signal with all fields', () => {
+    const signalPath = path.join(tmpDir, 'critical-signal.md');
+    fs.writeFileSync(signalPath, `---
+id: sig-2026-02-28-test-critical
+type: signal
+project: test-project
+tags: [schema, validation]
+created: 2026-02-28T10:00:00Z
+severity: critical
+signal_type: deviation
+evidence:
+  supporting:
+    - "Build failed 3 times"
+  counter:
+    - "None observed"
+confidence: high
+confidence_basis: "Repeated failures observed"
+lifecycle_state: detected
+signal_category: negative
+---
+
+# Test Critical Signal
+`);
+
+    const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, true, 'critical signal with all fields should be valid');
+    assert.strictEqual(output.schema, 'signal');
+    assert.strictEqual(output.missing.length, 0, 'no missing fields');
+  });
+
+  test('valid notable signal without evidence produces warnings', () => {
+    const signalPath = path.join(tmpDir, 'notable-signal.md');
+    fs.writeFileSync(signalPath, `---
+id: sig-2026-02-28-test-notable
+type: signal
+project: test-project
+tags: [schema]
+created: 2026-02-28T10:00:00Z
+severity: notable
+signal_type: deviation
+---
+
+# Test Notable Signal
+`);
+
+    const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, true, 'notable signal without evidence should be valid');
+    assert.ok(output.warnings.length > 0, 'should have warnings for missing recommended fields');
+  });
+
+  test('valid minor signal with minimal fields', () => {
+    const signalPath = path.join(tmpDir, 'minor-signal.md');
+    fs.writeFileSync(signalPath, `---
+id: sig-2026-02-28-test-minor
+type: signal
+project: test-project
+tags: [minor]
+created: 2026-02-28T10:00:00Z
+severity: minor
+signal_type: deviation
+---
+
+# Test Minor Signal
+`);
+
+    const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, true, 'minor signal with only required fields should be valid');
+  });
+
+  test('invalid signal missing required field signal_type', () => {
+    const signalPath = path.join(tmpDir, 'invalid-signal.md');
+    fs.writeFileSync(signalPath, `---
+id: sig-2026-02-28-test-invalid
+type: signal
+project: test-project
+tags: [test]
+created: 2026-02-28T10:00:00Z
+severity: notable
+---
+
+# Missing signal_type
+`);
+
+    const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, false, 'signal missing signal_type should be invalid');
+    assert.ok(output.missing.includes('signal_type'), 'missing should include signal_type');
+  });
+
+  test('invalid critical signal without evidence', () => {
+    const signalPath = path.join(tmpDir, 'critical-no-evidence.md');
+    fs.writeFileSync(signalPath, `---
+id: sig-2026-02-28-critical-no-ev
+type: signal
+project: test-project
+tags: [critical]
+created: 2026-02-28T10:00:00Z
+severity: critical
+signal_type: deviation
+---
+
+# Critical without evidence
+`);
+
+    const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, false, 'critical signal without evidence should be invalid');
+    assert.ok(output.missing.includes('evidence'), 'missing should include evidence');
+  });
+
+  test('backward compatibility with date-slug format signal', () => {
+    const signalPath = path.join(tmpDir, 'date-slug-signal.md');
+    fs.writeFileSync(signalPath, `---
+id: sig-2026-02-28-example-pattern
+type: signal
+project: get-shit-done-reflect
+tags: [backward-compat, test]
+created: 2026-02-28T10:00:00Z
+severity: notable
+signal_type: deviation
+phase: 31
+plan: 3
+polarity: negative
+source: executor
+occurrence_count: 1
+related_signals: []
+runtime: claude-code
+model: claude-opus-4-20250514
+---
+
+# Date-slug format signal
+`);
+
+    const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, true, 'date-slug format signal should be valid');
+    assert.ok(output.warnings.length > 0, 'should warn about missing recommended fields');
+  });
+
+  test('warnings for missing recommended fields', () => {
+    const signalPath = path.join(tmpDir, 'minimal-valid.md');
+    fs.writeFileSync(signalPath, `---
+id: sig-2026-02-28-minimal
+type: signal
+project: test-project
+tags: [minimal]
+created: 2026-02-28T10:00:00Z
+severity: minor
+signal_type: deviation
+---
+
+# Minimal valid signal
+`);
+
+    const result = runGsdTools(`frontmatter validate ${signalPath} --schema signal`, tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    const output = JSON.parse(result.output);
+    assert.strictEqual(output.valid, true, 'should be valid');
+    assert.ok(output.warnings.length > 0, 'should have warnings');
+    const warningStr = output.warnings.join(',');
+    assert.ok(warningStr.includes('lifecycle_state'), 'should warn about missing lifecycle_state');
+    assert.ok(warningStr.includes('confidence'), 'should warn about missing confidence');
   });
 });

@@ -57,12 +57,14 @@ build_signal_rows() {
     id=$(get_field "$file" "id")
     project=$(get_field "$file" "project")
     severity=$(get_field "$file" "severity")
+    lifecycle_state=$(get_field "$file" "lifecycle_state")
+    [ -z "$lifecycle_state" ] && lifecycle_state="detected"
     tags=$(get_tags "$file")
     created=$(get_field "$file" "created")
     status=$(get_field "$file" "status")
     [ -z "$status" ] && status="active"
     local date_display="${created%%T*}"
-    rows="${rows}| ${id} | ${project} | ${severity} | ${tags} | ${date_display} | ${status} |
+    rows="${rows}| ${id} | ${project} | ${severity} | ${lifecycle_state} | ${tags} | ${date_display} | ${status} |
 "
     count=$((count + 1))
   done < <(collect_entries "$KB_DIR/signals" | sort -t'|' -k1 -r)
@@ -142,8 +144,8 @@ generated=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
   printf '**Generated:** %s\n' "$generated"
   printf '**Total entries:** %s\n\n' "$total"
   printf '## Signals (%s)\n\n' "$signal_count"
-  printf '| ID | Project | Severity | Tags | Date | Status |\n'
-  printf '|----|---------|----------|------|------|--------|\n'
+  printf '| ID | Project | Severity | Lifecycle | Tags | Date | Status |\n'
+  printf '|----|---------|----------|-----------|------|------|--------|\n'
   if [ -n "$signal_rows" ]; then
     printf '%s\n' "$signal_rows"
   fi
