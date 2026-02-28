@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 31 of 35 (Signal Schema Foundation)
-Plan: 2 of 3 in current phase
+Plan: 2 of 3 complete in current phase
 Status: Executing
-Last activity: 2026-02-28 -- Completed 31-02-PLAN.md (reference document updates)
+Last activity: 2026-02-28 -- Completed 31-01-PLAN.md (signal schema foundation)
 
 Progress: [######....] 66% (Phase 31)
 
@@ -39,6 +39,7 @@ Progress: [######....] 66% (Phase 31)
 **v1.16:**
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
+| 31 | 01 | 4min | 3 | 5 |
 | 31 | 02 | 4min | 2 | 2 |
 
 ## Accumulated Context
@@ -52,6 +53,10 @@ Recent decisions affecting current work:
 - v1.16 roadmap: 5 phases derived from 36 requirements across SCHEMA/SENSOR/REFLECT/LIFECYCLE/SPIKE categories
 - v1.16 ordering: Schema first (foundation), then sensors, then reflector (highest value), then linkage (closes loop), spikes last (independent)
 - Critical pitfall: Build reflector BEFORE adding more sensors -- reflector is the bottleneck, not detection
+- P31-01: Four severity tiers (critical/notable/minor/trace) with tiered epistemic rigor
+- P31-01: Lifecycle state machine: detected->triaged->remediated->verified + invalidated terminal
+- P31-01: Mutability boundary: frozen detection payload + mutable lifecycle fields (agent-enforced)
+- P31-01: signal_category authoritative over polarity; dismissed is triage decision, not lifecycle state
 - P31-02: Moved single auto-fix/minor file differences/task order changes from trace to minor severity (now persisted to KB)
 - P31-02: signal_category replaces polarity as primary positive/negative indicator; polarity retained for backward compatibility
 - P31-02: Trace non-persistence enforcement deferred to Phase 32 synthesizer; documented explicitly
@@ -103,5 +108,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 31-02-PLAN.md (reference document updates)
+Stopped at: Completed 31-01-PLAN.md (signal schema foundation). Plans 31-01 and 31-02 complete; 31-03 remaining.
 Resume file: None
