@@ -35,12 +35,12 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The mutability boundary is enforced: detection payload fields cannot be modified after creation, but lifecycle fields can be updated
   4. Counter-evidence fields (evidence.supporting, evidence.counter, confidence, confidence_basis) exist in the schema and tiered rigor is enforced -- critical signals require counter-evidence, trace signals are exempt
   5. A positive signal (baseline, not deviation) can be emitted and stored alongside deviation signals
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 31-01: TBD
-- [ ] 31-02: TBD
-- [ ] 31-03: TBD
+- [ ] 31-01-PLAN.md -- Schema specification: knowledge-store.md lifecycle/epistemic/mutability extensions, signal template, feature manifest settings
+- [ ] 31-02-PLAN.md -- Reference docs: signal-detection.md and reflection-patterns.md updated for four-tier severity and positive signals
+- [ ] 31-03-PLAN.md -- Code implementation: FRONTMATTER_SCHEMAS signal validation in gsd-tools.js, tests, kb-rebuild-index.sh lifecycle column
 
 ### Phase 32: Multi-Sensor Orchestrator
 **Goal**: Signal collection scales beyond a single agent -- multiple sensors run in parallel, a synthesizer deduplicates and caps their output, and the knowledge base has exactly one writer
@@ -115,7 +115,7 @@ Phases execute in numeric order: 31 -> 32 -> 33 -> 34 -> 35
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|---------------|--------|-----------|
-| 31. Signal Schema Foundation | v1.16 | 0/TBD | Not started | - |
+| 31. Signal Schema Foundation | v1.16 | 0/3 | Planned | - |
 | 32. Multi-Sensor Orchestrator | v1.16 | 0/TBD | Not started | - |
 | 33. Enhanced Reflector | v1.16 | 0/TBD | Not started | - |
 | 34. Signal-Plan Linkage | v1.16 | 0/TBD | Not started | - |
