@@ -58,7 +58,7 @@ Files modifying gsd-tools.js runtime behavior.
 
 | File | What Changed | Why | Merge Stance | Conflict Risk |
 |------|-------------|-----|--------------|---------------|
-| `get-shit-done/bin/gsd-tools.js` | Added `signal` key to FRONTMATTER_SCHEMAS with required/conditional/recommended tiered validation; extended `cmdFrontmatterValidate` with conditional requirement and recommended field support | Signal schema enforcement (Phase 31) | keep-fork -- upstream has no signal schema | LOW (additive -- new schema entry and extended function, no upstream overlap) |
+| `get-shit-done/bin/gsd-tools.js` | Added `signal` key to FRONTMATTER_SCHEMAS with required/conditional/recommended tiered validation; extended `cmdFrontmatterValidate` with conditional requirement, recommended field, backward_compat (lifecycle_state indicator), and evidence content validation | Signal schema enforcement (Phase 31) | keep-fork -- upstream has no signal schema | LOW (additive -- new schema entry and extended function, no upstream overlap) |
 
 ### Build & Config (3 files)
 
