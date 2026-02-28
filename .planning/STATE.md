@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 Phase: 32 of 35 (Multi-Sensor Orchestrator)
 Plan: 3 of 4 complete in current phase
 Status: In Progress
-Last activity: 2026-02-28 -- Completed 32-03-PLAN.md (signal synthesizer agent)
+Last activity: 2026-02-28 -- Completed 32-01-PLAN.md (sensor agent infrastructure)
 
 Progress: [#######---] 75% (Phase 32)
 
@@ -43,6 +43,7 @@ Progress: [#######---] 75% (Phase 32)
 | 31 | 02 | 4min | 2 | 2 |
 | 31 | 03 | 6min | 2 | 4 |
 | 31 | 04 | 4min | 4 | 4 |
+| 32 | 01 | 4min | 2 | 6 |
 | 32 | 03 | 2min | 1 | 1 |
 
 ## Accumulated Context
@@ -67,6 +68,9 @@ Recent decisions affecting current work:
 - P31-03: Signal schema machine-enforceable via FRONTMATTER_SCHEMAS with conditional validation (critical requires evidence)
 - P31-03: kb-rebuild-index.sh lifecycle_state column with "detected" default for existing signals
 - P31-04: backward_compat keyed on lifecycle_state absence; evidence content validation for empty objects; Phase 33 triage constraint documented
+- P32-01: Artifact sensor returns ALL candidates including trace -- synthesizer is single enforcement point for trace non-persistence
+- P32-01: Log sensor ships disabled with spike question rather than being omitted -- documents the unknown (SENSOR-07)
+- P32-01: Delimited sensor output format (## SENSOR OUTPUT / ## END SENSOR OUTPUT) with structured JSON
 - P32-03: Synthesizer is sole KB writer; sensors never write directly to KB
 - P32-03: Per-project cap not enforced (documented as future gap); per-phase cap of 10 is primary constraint
 - P32-03: Post-write validation deletes malformed files rather than leaving broken state
@@ -117,5 +121,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 32-03-PLAN.md (signal synthesizer agent). 3/4 Phase 32 plans done.
+Stopped at: Completed 32-01-PLAN.md (sensor agent infrastructure). 3/4 Phase 32 plans done (01, 02, 03 complete; 04 remaining).
 Resume file: None
