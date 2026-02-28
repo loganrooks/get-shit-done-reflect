@@ -2,8 +2,8 @@
 
 Reference specification for pattern detection, lesson distillation, phase-end reflection, and semantic drift detection in the GSD self-improvement loop.
 
-**Version:** 1.0.0
-**Phase:** 04-reflection-engine
+**Version:** 1.1.0
+**Phase:** 04-reflection-engine, 31-signal-schema-foundation
 
 ---
 
@@ -40,20 +40,22 @@ Pattern detection uses severity-weighted occurrence thresholds rather than a sin
 | Signal Severity | Threshold | Rationale |
 |-----------------|-----------|-----------|
 | `critical` | 2 occurrences | Cannot risk missing dangerous patterns |
-| `high` | 2 occurrences | High-impact issues warrant early attention |
-| `medium` | 4 occurrences | Moderate issues need recurrence confirmation |
-| `low` | 5+ occurrences | Must be truly recurring, not noise |
+| `notable` | 3 occurrences | High-impact issues warrant attention |
+| `minor` | 5 occurrences | Must be truly recurring, not noise |
+| `trace` | N/A | Not persisted to KB, not in pattern detection pool |
 
 **Threshold application:**
 ```bash
 # Pseudocode for severity-weighted threshold check
 case "$max_severity" in
-  critical|high)
+  critical)
     [ "$count" -ge 2 ] && emit_pattern ;;
-  medium)
-    [ "$count" -ge 4 ] && emit_pattern ;;
-  low)
+  notable)
+    [ "$count" -ge 3 ] && emit_pattern ;;
+  minor)
     [ "$count" -ge 5 ] && emit_pattern ;;
+  trace)
+    ;; # trace signals are not persisted, skip
 esac
 ```
 
@@ -68,10 +70,15 @@ Signals cluster into patterns based on shared characteristics. Criteria in prior
 | 3 | Cross-project: same tags + same `signal_type` | Moderate | Candidate global pattern |
 
 **Clustering algorithm:**
-1. Group signals by `signal_type` (deviation, struggle, config-mismatch)
+1. Group signals by `signal_type` (deviation, struggle, config-mismatch, epistemic-gap, baseline, improvement, good-pattern)
 2. Within each group, cluster by tag overlap (2+ shared tags)
 3. For each cluster, take the highest severity among members
 4. Apply severity-weighted threshold to cluster count
+
+**Signal category clustering rules:**
+- **Positive and negative signals cluster separately.** A positive baseline and a negative deviation with overlapping tags should NOT cluster together -- they represent fundamentally different observations.
+- **Epistemic gap signals may cluster with related deviation or struggle signals** if tags overlap. An epistemic gap about auth and a deviation about auth are related -- they share the same knowledge domain and the gap may explain the deviation.
+- Clustering respects `signal_category` first, then applies the standard `signal_type` + tag overlap criteria within each category.
 
 **Example clustering:**
 ```bash
@@ -97,7 +104,7 @@ When a pattern qualifies (meets threshold), emit in this structure:
 **Signal type:** {deviation|struggle|config-mismatch}
 **Occurrences:** {count}
 **Severity:** {highest severity among grouped signals}
-**Confidence:** {HIGH|MEDIUM|LOW} ({count} occurrences)
+**Confidence:** {high|medium|low} ({count} occurrences)
 
 **Signals in pattern:**
 
@@ -170,7 +177,7 @@ Compare against VERIFICATION.md success criteria results. Any failed criterion i
 
 **Plan:** {phase}-{plan}-PLAN.md
 **Summary:** {phase}-{plan}-SUMMARY.md
-**Overall alignment:** {HIGH|MEDIUM|LOW}
+**Overall alignment:** {high|medium|low}
 
 ### Deviations Found
 
@@ -357,7 +364,7 @@ No ML required. Track these metrics across phases:
 |--------|--------|------------------|
 | Verification gap rate | VERIFICATION.md `gaps_found` | Are more plans failing verification? |
 | Auto-fix frequency | SUMMARY.md "Deviations" | Are plans needing more corrections? |
-| Signal severity rate | Signal index | Is critical/high proportion increasing? |
+| Signal severity rate | Signal index | Is critical/notable proportion increasing? |
 | Deviation-to-plan ratio | PLAN vs SUMMARY comparison | Are executions deviating more from plans? |
 
 ### 6.2 Detection Algorithm
@@ -425,7 +432,7 @@ Generate actionable improvement suggestions based on recurring signal patterns.
 ### 7.1 Suggestion Triggers
 
 Generate suggestions when:
-- Pattern reaches HIGH confidence (6+ occurrences)
+- Pattern reaches `high` confidence (6+ occurrences)
 - Pattern spans multiple phases or plans
 - Root cause analysis points to workflow issue
 
@@ -502,11 +509,13 @@ Use categorical confidence with occurrence count evidence.
 
 ### 9.1 Confidence Levels
 
+Confidence uses the three-tier categorical model (`high`, `medium`, `low`) matching the signal schema's `confidence` field values.
+
 | Level | Criteria | Expression |
 |-------|----------|------------|
-| **HIGH** | 6+ occurrences, empirical evidence, consistent root cause | "HIGH (7 occurrences across 3 projects)" |
-| **MEDIUM** | 3-5 occurrences, inference from patterns | "MEDIUM (4 occurrences, same root cause)" |
-| **LOW** | 2-3 occurrences, educated guess | "LOW (2 occurrences, similar symptoms)" |
+| `high` | 6+ occurrences, empirical evidence, consistent root cause | "high (7 occurrences across 3 projects)" |
+| `medium` | 3-5 occurrences, inference from patterns | "medium (4 occurrences, same root cause)" |
+| `low` | 2-3 occurrences, educated guess, or epistemic gap | "low (2 occurrences, similar symptoms)" |
 
 ### 9.2 Actionability Levels
 
@@ -514,16 +523,16 @@ Based on confidence, lessons have different actionability:
 
 | Confidence | Actionability | Lesson Framing |
 |------------|--------------|----------------|
-| HIGH | Directive | "Always do X when Y occurs" |
-| MEDIUM | Recommendation | "Consider X when encountering Y" |
-| LOW | Observation | "Pattern observed: X tends to cause Y" |
+| `high` | Directive | "Always do X when Y occurs" |
+| `medium` | Recommendation | "Consider X when encountering Y" |
+| `low` | Observation | "Pattern observed: X tends to cause Y" |
 
 ### 9.3 Confidence in Output
 
 Always include occurrence count when stating confidence:
-- "Confidence: HIGH (12 occurrences, 4 projects)"
-- "Confidence: MEDIUM (4 occurrences, consistent root cause)"
-- "Confidence: LOW (2 occurrences, same tags)"
+- "Confidence: high (12 occurrences, 4 projects)"
+- "Confidence: medium (4 occurrences, consistent root cause)"
+- "Confidence: low (2 occurrences, same tags)"
 
 ---
 
@@ -541,7 +550,7 @@ Common mistakes in reflection implementation.
 
 **Anti-pattern:** Auto-promoting lessons to global scope without user confirmation
 **Problem:** Pollutes global namespace with project-specific noise
-**Correct approach:** In interactive mode, suggest promotion and wait for user confirmation. Auto-promote only in YOLO mode for HIGH confidence lessons.
+**Correct approach:** In interactive mode, suggest promotion and wait for user confirmation. Auto-promote only in YOLO mode for `high` confidence lessons.
 
 ### 10.3 Pattern Detection on Every Signal Write
 
@@ -561,11 +570,11 @@ Common mistakes in reflection implementation.
 **Problem:** Adds dependencies, opacity, unpredictability
 **Correct approach:** Signals have explicit tags and types. String matching on structured frontmatter is sufficient and debuggable.
 
-### 10.6 Modifying Existing Signals
+### 10.6 Modifying Signal Detection Payload
 
-**Anti-pattern:** Editing signal files to update or correct information
-**Problem:** Signals are immutable snapshots of moments in time
-**Correct approach:** Only status field changes are allowed (for archival). Create new signal for new information.
+**Anti-pattern:** Editing signal detection payload fields (id, type, project, tags, created, severity, signal_type, signal_category, phase, plan, polarity, source, evidence, confidence, confidence_basis) after creation.
+**Problem:** Detection payload captures a moment in time -- the original observation. Modifying it destroys the historical record.
+**Correct approach:** Detection payload fields are frozen after creation. Lifecycle fields (`lifecycle_state`, `triage`, `remediation`, `verification`, `lifecycle_log`, `updated`) may be modified as the signal progresses through its lifecycle. See knowledge-store.md Section 10 for the full mutability boundary specification.
 
 ---
 
@@ -591,6 +600,7 @@ Common mistakes in reflection implementation.
 
 ---
 
-*Reference version: 1.0.0*
+*Reference version: 1.1.0*
 *Created: 2026-02-05*
-*Phase: 04-reflection-engine, Plan: 01*
+*Updated: 2026-02-28*
+*Phase: 04-reflection-engine, 31-signal-schema-foundation*
