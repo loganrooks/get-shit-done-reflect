@@ -184,6 +184,43 @@ Time-based windows lose infrequent but persistent issues (e.g., library bug recu
 - Signals remain in pattern detection pool regardless of age
 - Archival (via `status: archived`) is the only exclusion mechanism
 
+### 2.5 Counter-Evidence Seeking (REFLECT-03)
+
+Before confirming a pattern, the reflector actively seeks evidence that contradicts the pattern. This prevents false positives and confirmation bias.
+
+**Counter-evidence sources** (in priority order):
+
+1. **Positive signals with same tags:** Signals with overlapping tags but `signal_category: positive` (positive signals contradict negative patterns). A positive baseline about auth and a negative deviation about auth represent conflicting observations.
+2. **Remediated/verified signals:** Signals where the same issue was resolved (`lifecycle_state: remediated` or `verified`). If the issue has been fixed, the pattern may be stale.
+3. **Time-decay indicator:** If ALL pattern signals are older than 30 days with no recent recurrence, flag as "potentially stale" (advisory only -- does NOT exclude from detection, per Section 2.4).
+
+**Bounded search:** Examine up to 3 potential counter-examples per pattern. This bounds the analysis effort while still checking for obvious contradictions.
+
+**Index-first counter-evidence search:** Counter-evidence candidates may NOT be in qualifying clusters (e.g., a lone positive signal). To avoid breaking the two-pass context budget model, counter-evidence search MUST use index metadata (tags, signal_category, lifecycle_state columns) to identify candidates first. Only read the full signal file for confirmed counter-evidence candidates (max 3 per pattern). This keeps the additional file reads bounded to 3 * N_patterns, not the entire signal corpus.
+
+**Counter-evidence impact:**
+
+| Counter-Examples Found | Impact |
+|----------------------|--------|
+| 0 | Pattern confirmed at current confidence |
+| 1 | Reduce pattern confidence one level (e.g., high -> medium) |
+| 2-3 | Reduce pattern confidence two levels (e.g., high -> low) or flag as "investigate" triage candidate |
+
+Counter-evidence is always cited in the pattern report. The original (pre-adjustment) confidence is preserved alongside the adjusted confidence for transparency.
+
+**Counter-evidence output format:**
+
+```markdown
+**Counter-evidence ({N} found):**
+- {signal-id}: {why it contradicts the pattern}
+- **Impact:** Confidence reduced from {original} to {adjusted}
+```
+
+If no counter-evidence is found:
+```markdown
+**Counter-evidence (0 found):** Pattern confirmed at {confidence} confidence.
+```
+
 ---
 
 ## 3. Phase-End Reflection (RFLC-01)
@@ -652,6 +689,70 @@ Common mistakes in reflection implementation.
 
 - Read from: `.planning/config.json`
 - Fields: `mode` (yolo/interactive), `depth`, cross-project settings
+
+---
+
+## 12. Reflect-to-Spike Pipeline (REFLECT-08)
+
+Patterns that cannot be resolved through analysis alone are formatted as spike candidates for investigation via `/gsd:spike`.
+
+### 12.1 Spike Candidate Triggers
+
+A pattern becomes a spike candidate when any of these conditions is met:
+
+| Trigger | Condition | Why a Spike |
+|---------|-----------|-------------|
+| Investigate triage | `triage.decision = "investigate"` | Pattern exists but root cause is unclear |
+| Low confidence after counter-evidence | Adjusted confidence = `low` after counter-evidence seeking (Section 2.5) | Uncertain whether the pattern is real |
+| Marginal score | Weighted score below threshold but within 20% of threshold | Borderline pattern that needs more data to confirm or reject |
+
+**Marginal score calculation:**
+```
+threshold = { critical: 3.0, notable: 4.0, minor: 5.0 }[max_severity]
+marginal_threshold = threshold * 0.8
+
+# Pattern is a spike candidate if:
+marginal_threshold <= weighted_score < threshold
+```
+
+### 12.2 Spike Candidate Output Format
+
+```markdown
+### Spike Candidate: {pattern-name}
+
+**Trigger:** {investigate triage | low-confidence pattern | marginal score}
+**Question:** {framed as a testable hypothesis}
+**Why a spike:** {why analysis alone is insufficient}
+**Suggested experiment:** {what to test}
+**Related signals:** {signal IDs}
+```
+
+**Example:**
+```markdown
+### Spike Candidate: Context bloat in signal workflow
+
+**Trigger:** marginal score (3.0 weighted, threshold 4.0 for notable, margin 3.2)
+**Question:** Does progressive disclosure (index-first, detail-on-demand) reduce signal workflow context usage below 15%?
+**Suggested experiment:** Implement index-first approach in signal collector, measure context usage across 5 plan executions, compare against current baseline.
+**Related signals:** sig-2026-02-11-signal-workflow-context-bloat, sig-2026-02-18-signal-workflow-context-bloat, sig-2026-02-11-agent-inline-research-context-bloat
+```
+
+### 12.3 Spike vs Lesson Distinction
+
+| Root Cause Known? | Actionable? | Output |
+|-------------------|-------------|--------|
+| Yes | Yes | Lesson (distill into knowledge base) |
+| Yes | No (needs structural change) | Spike candidate with architectural question |
+| No | N/A | Spike candidate with diagnostic question |
+
+**Key principle:** If the root cause is known and actionable, create a lesson. If the root cause is unclear and needs investigation, create a spike candidate. The reflector does NOT create spike files -- it only identifies candidates.
+
+### 12.4 Integration
+
+- Spike candidates appear in the reflection report under a dedicated "Spike Candidates" section
+- Spike candidates can be fed into `/gsd:spike` for investigation
+- The reflector does NOT create spike files -- it only identifies and formats candidates
+- After a spike is completed, its findings may produce new lessons or invalidate the original pattern
 
 ---
 
