@@ -122,6 +122,7 @@ Recent decisions affecting current work:
 | 009 | Fix installer local patch detection false positives (pruneRedundantPatches) | 2026-02-26 | b979680 | [9-fix-installer-local-patch-detection-to-a](./quick/9-fix-installer-local-patch-detection-to-a/) |
 | 010 | Fix pre-v1.16 tech debt: add agent-protocol refs to 5 agents, copy kb-templates to npm source | 2026-02-27 | 824c6c1 | [10-fix-pre-v1-16-tech-debt-add-agent-protoc](./quick/10-fix-pre-v1-16-tech-debt-add-agent-protoc/) |
 | 011 | Add DEV indicator for local dev installs (VERSION+dev suffix, statusline tag, version check fix) | 2026-03-01 | be5a1e4 | [11-add-dev-indicator-to-statusline-when-usi](./quick/11-add-dev-indicator-to-statusline-when-usi/) |
+| 012 | Persist reflection reports to ~/.gsd/knowledge/reflections/ | 2026-03-01 | ea9a758 | [12-add-persistent-report-file-output-to-ref](./quick/12-add-persistent-report-file-output-to-ref/) |
 
 ### Roadmap Evolution
 
