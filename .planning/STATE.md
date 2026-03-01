@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 35 of 35 (Spike Audit & Lightweight Mode)
-Plan: 2 of 4 in current phase
+Plan: 3 of 4 in current phase
 Status: In Progress
-Last activity: 2026-03-01 -- Plan 35-02 complete (lightweight research spike mode)
+Last activity: 2026-03-01 -- Plan 35-03 complete (end-to-end spike execution)
 
-Progress: [█████░░░░░] 50% (Phase 35)
+Progress: [███████░░░] 75% (Phase 35)
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Progress: [█████░░░░░] 50% (Phase 35)
 | 34 | 03 | 3min | 2 | 2 |
 | 34 | 04 | 5min | 3 | 7 |
 | 35 | 02 | 2min | 2 | 3 |
+| 35 | 03 | 4min | 2 | 4 |
 | Phase 35 P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
@@ -115,6 +116,8 @@ Recent decisions affecting current work:
 - [Phase 35]: Step 5.5 advisory-only by default (auto_trigger: false) -- spikes suggested but not auto-executed
 - [Phase 35]: Researcher Open Questions restructured globally (Resolved/Genuine Gaps/Still Open) -- affects all future research
 - [Phase 35]: Config keys use nested spike.sensitivity format (not flat spike_sensitivity) matching manifest schema
+- [Phase 35]: P35-03: Claude Code session data stored at ~/.claude/projects/{dash-encoded-path}/*.jsonl (JSONL) and ~/.claude/debug/*.txt (plain text)
+- [Phase 35]: P35-03: SENSOR-07 should be enabled with streaming reads for recent sessions; format treated as best-effort (no Anthropic stability guarantee)
 
 ### Pending Todos
 
@@ -164,5 +167,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 35-02-PLAN.md (lightweight research spike mode). Plans 01 and 02 done in wave 1.
+Stopped at: Completed 35-03-PLAN.md (end-to-end spike execution). Plans 01-03 done, plan 04 remaining.
 Resume file: None
