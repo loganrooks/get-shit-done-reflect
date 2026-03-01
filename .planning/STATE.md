@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 Phase: 33 of 35 (Enhanced Reflector)
 Plan: 2 of 4 complete in current phase
 Status: In Progress
-Last activity: 2026-02-28 -- Completed 33-02-PLAN.md (lesson template and reflect workflow enhancement)
+Last activity: 2026-02-28 -- Completed 33-01-PLAN.md (confidence-weighted detection rules)
 
 Progress: [#####-----] 50% (Phase 33)
 
@@ -48,6 +48,7 @@ Progress: [#####-----] 50% (Phase 33)
 | 32 | 02 | 4min | 2 | 1 |
 | 32 | 04 | 4min | 2 | 2 |
 | 33 | 02 | 2min | 2 | 2 |
+| 33 | 01 | 4min | 2 | 1 |
 
 ## Accumulated Context
 
@@ -84,6 +85,9 @@ Recent decisions affecting current work:
 - [Phase 33]: P33-02: YOLO triage auto-approve limited to address and dismiss only; defer and investigate always prompt
 - [Phase 33]: P33-02: Per-run triage cap of 10 signals to bound first-run bulk operations
 - [Phase 33]: P33-02: Remediation suggestions are advisory; Phase 34 handles actual lifecycle transitions via resolves_signals
+- [Phase 33]: P33-01: Weighted score thresholds 3.0/4.0/5.0 for critical/notable/minor replace raw count thresholds
+- [Phase 33]: P33-01: Section 8 taxonomy declared authoritative; legacy categories mapped (debugging->testing, performance->architecture, other->workflow)
+- [Phase 33]: P33-01: Counter-evidence bounded to 3 examples per pattern using index-first search; spike candidates triggered by investigate triage, low confidence, or marginal score
 
 ### Pending Todos
 
@@ -131,5 +135,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 33-02-PLAN.md (lesson template and reflect workflow enhancement). Phase 33 in progress (2/4 plans). Next: 33-03 (reflector agent spec).
+Stopped at: Completed 33-01-PLAN.md (confidence-weighted detection rules). Phase 33 in progress (2/4 plans). Next: 33-03 (reflector agent rewrite).
 Resume file: None
