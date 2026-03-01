@@ -89,12 +89,13 @@ Plans:
   3. The synthesizer checks new signals against remediated signals and links recurrences via recurrence_of -- recurrence triggers severity escalation
   4. Passive verification-by-absence works: after a configurable N-phase window (default 3) with no recurrence, remediated signals move toward verified status
   5. At least one signal completes the full lifecycle (detected, triaged, remediated, verified) end-to-end during this phase
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 34-01: TBD
-- [ ] 34-02: TBD
-- [ ] 34-03: TBD
+- [ ] 34-01-PLAN.md -- Schema and manifest foundation: resolves_signals documentation in knowledge-store.md, verification_window in feature manifest
+- [ ] 34-02-PLAN.md -- Planner signal awareness: signal_awareness section in gsd-planner.md, triaged signal loading in plan-phase.md
+- [ ] 34-03-PLAN.md -- Lifecycle transitions: remediation step in execute-plan.md, recurrence detection and passive verification in synthesizer
+- [ ] 34-04-PLAN.md -- Cleanup and demo: remove Phase 34 notes from reflector/workflow, installer sync, end-to-end lifecycle demonstration
 
 ### Phase 35: Spike Audit & Lightweight Mode
 **Goal**: The spike system works in practice -- root cause of non-use is identified and fixed, a lightweight research-only mode reduces ceremony for simple questions, and the reflect-to-spike pipeline produces real spike candidates
@@ -121,7 +122,7 @@ Phases execute in numeric order: 31 -> 32 -> 33 -> 34 -> 35
 | 31. Signal Schema Foundation | v1.16 | 4/4 | Complete | 2026-02-28 |
 | 32. Multi-Sensor Orchestrator | v1.16 | 4/4 | Complete | 2026-02-28 |
 | 33. Enhanced Reflector | v1.16 | 0/4 | Not started | - |
-| 34. Signal-Plan Linkage | v1.16 | 0/TBD | Not started | - |
+| 34. Signal-Plan Linkage | v1.16 | 0/4 | Not started | - |
 | 35. Spike Audit & Lightweight Mode | v1.16 | 0/TBD | Not started | - |
 
 ## Overall Progress
