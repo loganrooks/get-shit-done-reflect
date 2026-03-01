@@ -78,12 +78,25 @@ process.stdin.on('end', () => {
       } catch (e) {}
     }
 
+    // Dev install indicator (VERSION file contains +dev suffix on local installs)
+    let devTag = '';
+    try {
+      const versionFile = path.join(dir, '.claude', 'get-shit-done', 'VERSION');
+      if (fs.existsSync(versionFile)) {
+        const ver = fs.readFileSync(versionFile, 'utf8').trim();
+        if (ver.includes('+dev')) {
+          devTag = '\x1b[43;30m DEV \x1b[0m │ ';
+        }
+      }
+    } catch {}
+
+
     // Output
     const dirname = path.basename(dir);
     if (task) {
-      process.stdout.write(`${gsdUpdate}\x1b[2m${model}\x1b[0m │ \x1b[1m${task}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
+      process.stdout.write(`${devTag}${gsdUpdate}\x1b[2m${model}\x1b[0m │ \x1b[1m${task}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
     } else {
-      process.stdout.write(`${gsdUpdate}\x1b[2m${model}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
+      process.stdout.write(`${devTag}${gsdUpdate}\x1b[2m${model}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
     }
   } catch (e) {
     // Silent fail - don't break statusline on parse errors

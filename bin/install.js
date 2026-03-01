@@ -2178,11 +2178,12 @@ function install(isGlobal, runtime = 'claude') {
     }
   }
 
-  // Write VERSION file
+  // Write VERSION file (local installs get +dev suffix for dogfooding visibility)
   const versionDest = path.join(targetDir, 'get-shit-done', 'VERSION');
-  fs.writeFileSync(versionDest, pkg.version);
+  const versionString = isGlobal ? pkg.version : `${pkg.version}+dev`;
+  fs.writeFileSync(versionDest, versionString);
   if (verifyFileInstalled(versionDest, 'VERSION')) {
-    console.log(`  ${green}✓${reset} Wrote VERSION (${pkg.version})`);
+    console.log(`  ${green}✓${reset} Wrote VERSION (${versionString})`);
   } else {
     failures.push('VERSION');
   }
