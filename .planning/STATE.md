@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 35 of 35 (Spike Audit & Lightweight Mode)
-Plan: 0 of ? in current phase
-Status: Not Started
-Last activity: 2026-03-01 -- Phase 34 verified (5/5 must-haves passed), signal lifecycle closes end-to-end with resolves_signals, recurrence detection, passive verification
+Plan: 2 of 4 in current phase
+Status: In Progress
+Last activity: 2026-03-01 -- Plan 35-02 complete (lightweight research spike mode)
 
-Progress: [░░░░░░░░░░] 0% (Phase 35)
+Progress: [█████░░░░░] 50% (Phase 35)
 
 ## Performance Metrics
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0% (Phase 35)
 | 34 | 02 | 2min | 2 | 2 |
 | 34 | 03 | 3min | 2 | 2 |
 | 34 | 04 | 5min | 3 | 7 |
+| 35 | 02 | 2min | 2 | 3 |
 
 ## Accumulated Context
 
@@ -109,6 +110,7 @@ Recent decisions affecting current work:
 - [Phase 34]: P34-03: Passive verification uses configurable verification_window (default 3 phases)
 - [Phase 34]: P34-03: Recurrence regression resets matched signal to detected state, not triaged
 - [Phase 34]: P34-04: KB signal files are external to repo (~/.gsd/knowledge/) -- lifecycle demo changes persisted but not git-committed
+- [Phase 35]: Research mode handled inline in run-spike.md Step 5b for interactive spikes, and via mode: research in DESIGN.md for runner-invoked spikes
 
 ### Pending Todos
 
@@ -158,5 +160,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Phase 34 verified and closed (5/5 must-haves). Signal lifecycle closes end-to-end: resolves_signals in plans, automatic remediation, recurrence detection, passive verification. Next: Phase 35 (Spike Audit & Lightweight Mode).
+Stopped at: Completed 35-02-PLAN.md (lightweight research spike mode). Plans 01 and 02 done in wave 1.
 Resume file: None
