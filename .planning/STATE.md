@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.16 Signal Lifecycle & Reflection -- Phase 32 (Multi-Sensor Orchestrator)
+**Current focus:** v1.16 Signal Lifecycle & Reflection -- Phase 33 (Enhanced Reflector)
 
 ## Current Position
 
-Phase: 32 of 35 (Multi-Sensor Orchestrator)
-Plan: 4 of 4 complete in current phase
-Status: Phase Complete
-Last activity: 2026-02-28 -- Completed 32-04-PLAN.md (orchestrator integration)
+Phase: 33 of 35 (Enhanced Reflector)
+Plan: 2 of 4 complete in current phase
+Status: In Progress
+Last activity: 2026-02-28 -- Completed 33-02-PLAN.md (lesson template and reflect workflow enhancement)
 
-Progress: [##########] 100% (Phase 32)
+Progress: [#####-----] 50% (Phase 33)
 
 ## Performance Metrics
 
@@ -47,6 +47,7 @@ Progress: [##########] 100% (Phase 32)
 | 32 | 03 | 2min | 1 | 1 |
 | 32 | 02 | 4min | 2 | 1 |
 | 32 | 04 | 4min | 2 | 2 |
+| 33 | 02 | 2min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -79,6 +80,10 @@ Recent decisions affecting current work:
 - [Phase 32]: Git sensor uses expandable commit window (100 then 300) for fix-chain detection
 - P32-04: Orchestrator passes file PATHS to sensors (not CONTENTS) to prevent context bloat
 - P32-04: JSON extraction uses delimiter protocol (## SENSOR OUTPUT) with fenced code block fallback
+- [Phase 33]: P33-02: SIG-format signals counted in separate Legacy row to prevent inflating Untriaged count
+- [Phase 33]: P33-02: YOLO triage auto-approve limited to address and dismiss only; defer and investigate always prompt
+- [Phase 33]: P33-02: Per-run triage cap of 10 signals to bound first-run bulk operations
+- [Phase 33]: P33-02: Remediation suggestions are advisory; Phase 34 handles actual lifecycle transitions via resolves_signals
 
 ### Pending Todos
 
@@ -126,5 +131,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 32-04-PLAN.md (orchestrator integration). Phase 32 complete (4/4 plans). Ready for Phase 33 (Reflector).
+Stopped at: Completed 33-02-PLAN.md (lesson template and reflect workflow enhancement). Phase 33 in progress (2/4 plans). Next: 33-03 (reflector agent spec).
 Resume file: None
