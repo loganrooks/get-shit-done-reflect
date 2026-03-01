@@ -458,10 +458,8 @@ Status: {STABLE|DRIFTING|CONCERNING}
 
 {End for each}
 
-> **Note:** Triaged signals remain at "triaged" status until Phase 34 (Signal-Plan Linkage) ships.
-> Phase 34 enables plans to declare `resolves_signals`, which automatically moves triaged signals
-> to "remediated" when plans complete. Until then, triage decisions are recorded but the full
-> lifecycle pipeline is not yet connected.
+> Triaged signals with `decision: address` will be picked up by the planner during `/gsd:plan-phase`.
+> Plans can declare `resolves_signals` to automatically move signals to "remediated" on completion.
 
 --------------------------------------------------------------
 ```
@@ -591,7 +589,7 @@ Display final completion summary:
 --------------------------------------------------------------
 
 Next: Lessons will surface via /gsd:kb-search during future planning.
-Triaged signals will be linked to plans in Phase 34 (Signal-Plan Linkage).
+Triaged signals with decision "address" will surface during /gsd:plan-phase for resolves_signals linkage.
 
 --------------------------------------------------------------
 ```

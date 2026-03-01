@@ -362,7 +362,7 @@ Generate plan-level remediation suggestions (NOT action-level):
 
 ### 7b. Advisory Only
 
-The reflector does NOT write remediation fields to signals. It only suggests. Phase 34 (Signal-Plan Linkage) handles `resolves_signals` -- the mechanism that moves signals from "triaged" to "remediated" when plans complete.
+The reflector does NOT write remediation fields to signals. It only suggests. Plans declare `resolves_signals` in their frontmatter, and the execute-plan workflow moves referenced signals from "triaged" to "remediated" when plans complete.
 
 ## Step 8: Flag Spike Candidates (REFLECT-08)
 
@@ -524,10 +524,9 @@ High-confidence signals: {N} ({pct}%)
 **Suggested plan scope:** {which phase/plan could address this}
 **Priority:** {from triage.priority}
 
-> **Note:** Triaged signals remain at "triaged" status until Phase 34 (Signal-Plan Linkage) ships.
-> Phase 34 enables plans to declare `resolves_signals`, which automatically moves triaged signals
-> to "remediated" when plans complete. Until then, triage decisions are recorded but the full
-> lifecycle pipeline is not yet connected.
+> Triaged signals with `decision: address` can be resolved by plans that declare `resolves_signals`
+> in their frontmatter. When such plans complete, the execute-plan workflow automatically moves
+> the referenced signals to "remediated" status.
 
 ---
 
@@ -596,9 +595,9 @@ High-confidence signals: {N} ({pct}%)
 - **Per-run triage cap:** Maximum 10 signals triaged per reflect run. Present highest-priority proposals first, queue remainder. This prevents the first-run scenario where 30+ signal files are modified in a single session, producing an unwieldy commit and risking context budget exhaustion.
 - **reconstructFrontmatter() roundtrip validation:** Run once before any bulk triage writes. If the roundtrip fails (triage fields corrupted, frozen fields modified, colons in timestamps lost), halt all triage writes and report the failure. Do NOT proceed with bulk triage if the roundtrip is broken.
 - **Category taxonomy:** Use reflection-patterns.md Section 8 as authoritative. Map legacy categories: `debugging` -> `testing`, `performance` -> `architecture`, `other` -> `workflow`. The reflector must use only the six authoritative categories: tooling, architecture, testing, workflow, external, environment.
-- **Remediation suggestions are plan-level, not action-level:** Suggest which phase/plan could address the root cause, not specific code changes. Phase 34 handles the actual lifecycle transitions via `resolves_signals`.
+- **Remediation suggestions are plan-level, not action-level:** Suggest which phase/plan could address the root cause, not specific code changes. Plans declare `resolves_signals` to link to triaged signals, and the execute-plan workflow handles lifecycle transitions on completion.
 - **Spike candidates are identified, not created:** The reflector reports spike candidates with question, rationale, and suggested experiment. It does NOT create spike files -- the user or spike-runner acts on them.
-- **Phase 34 dependency:** Include note that triaged signals remain at "triaged" until Signal-Plan Linkage (Phase 34) ships. Phase 34 enables plans to declare `resolves_signals`, which automatically moves triaged signals to "remediated" when plans complete. Until then, triage decisions are recorded but the full lifecycle pipeline is not yet connected.
+- **Signal-Plan Linkage:** Plans declare `resolves_signals` in their frontmatter to link to triaged signals. When such plans complete, the execute-plan workflow moves the referenced signals to "remediated" status. The full lifecycle pipeline (detected -> triaged -> remediated -> verified) is connected.
 - Signal mutability boundary: Detection payload fields are frozen after creation. Lifecycle fields (lifecycle_state, lifecycle_log, triage, remediation, verification, updated) may be modified by authorized agents. See knowledge-store.md Section 10 for the complete frozen/mutable field list.
 - Never modify PLAN.md, SUMMARY.md, or execution artifacts
 - Always rebuild the index after writing lessons
