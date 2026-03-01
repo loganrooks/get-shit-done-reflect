@@ -95,6 +95,67 @@ For each remaining candidate signal, check against existing active signals for t
    - Set `occurrence_count` to highest existing `occurrence_count` + 1
 3. Do NOT update existing signals (immutability constraint from knowledge-store.md Section 10)
 
+### Step 4b: Recurrence Detection
+
+After within-KB dedup (Step 4), check for recurrences against remediated and verified signals:
+
+1. Read all remediated and verified signals from the KB index:
+   - Filter: same project, lifecycle_state = "remediated" or "verified", status = "active"
+
+2. For each new candidate signal, check against each remediated/verified signal:
+   - Match criteria: same `signal_type` AND 2+ overlapping tags (same algorithm as cross-sensor dedup in Step 3)
+   - If match found:
+     a. Set candidate's `recurrence_of` to the matched signal's ID
+     b. Read `recurrence_escalation` config:
+        ```bash
+        # Default: true (from feature-manifest.json)
+        ESCALATE=$(node -e "try { const c = require('./.planning/config.json'); console.log(c.signal_lifecycle?.recurrence_escalation !== false) } catch(e) { console.log('true') }")
+        ```
+     c. If recurrence_escalation is enabled:
+        - First recurrence of remediated signal: escalate severity one tier (minor -> notable, notable -> critical, critical stays critical)
+        - Recurrence of verified signal: always escalate to critical
+     d. Log: "Recurrence detected: {new-summary} matches remediated signal {sig-id}"
+     e. Regress the matched remediated/verified signal:
+        - Read the matched signal file
+        - Update lifecycle_state: "detected" (regression from remediated/verified)
+        - If was verified: set verification.status: "failed"
+        - Initialize lifecycle_log as empty array if absent (`lifecycle_log = lifecycle_log || []`), then append: "{previous_state}->detected by synthesizer at {timestamp}: recurrence detected in phase {N}"
+        - Update `updated` timestamp
+        - Write back using spliceFrontmatter approach
+        - Validate with frontmatter validate --schema signal
+        - If validation fails: revert and log warning
+
+3. If any regressions occurred, log count: "Regressed {N} signal(s) due to recurrence"
+
+### Step 4c: Passive Verification Check
+
+After recurrence detection, check if any remediated signals qualify for verification-by-absence:
+
+1. Read verification_window from project config:
+   ```bash
+   # Default: 3 phases (from feature-manifest.json)
+   WINDOW=$(node -e "try { const c = require('./.planning/config.json'); console.log(c.signal_lifecycle?.verification_window || 3) } catch(e) { console.log(3) }")
+   ```
+
+2. Read all remediated signals (lifecycle_state = "remediated", same project, status = "active")
+
+3. For each remediated signal:
+   a. Extract remediation phase number from `remediation.resolved_by_plan` (format: "{phase}-{plan}", extract phase number)
+   b. If `remediation.resolved_by_plan` is missing or unparseable: skip (cannot determine remediation phase)
+   c. Calculate phases_since_remediation = current_phase_number - remediation_phase_number
+   d. If phases_since_remediation >= verification_window:
+      - Check: was this signal regressed in Step 4b? If yes: skip (already handled)
+      - Update signal:
+        - lifecycle_state: "verified"
+        - verification.status: "passed"
+        - verification.method: "absence-of-recurrence"
+        - verification.at: current ISO-8601 timestamp
+        - Initialize lifecycle_log as empty array if absent (`lifecycle_log = lifecycle_log || []`), then append: "remediated->verified by synthesizer at {timestamp}: no recurrence in {N} phases"
+        - Update `updated` timestamp
+      - Write back, validate, revert on failure (same pattern as Step 4b)
+
+4. Log: "Verified {N} signal(s) by absence of recurrence"
+
 ### Step 5: Enforce Epistemic Rigor
 
 For each remaining candidate, enforce Phase 31 tiered rigor (knowledge-store.md Section 4.3):
@@ -247,6 +308,9 @@ Return a structured report to the orchestrator:
 **Rigor rejected:** {N}
 **Cap limited:** {N}
 **Signals written:** {N}
+**Recurrences detected:** {N}
+**Signals regressed:** {N}
+**Signals verified:** {N}
 
 ### Signals Persisted
 | # | Source Sensor | Type | Severity | Category | Description | File |
@@ -259,6 +323,14 @@ Return a structured report to the orchestrator:
 ### Rejected Signals
 | # | Source Sensor | Description | Reason |
 |---|--------------|-------------|--------|
+
+### Recurrences Detected
+| # | New Signal | Matches Remediated | Escalated | Regressed |
+|---|-----------|-------------------|-----------|-----------|
+
+### Signals Verified (by absence)
+| # | Signal ID | Remediated Phase | Phases Elapsed | Status |
+|---|-----------|-----------------|----------------|--------|
 ```
 
 ## Guidelines
@@ -271,9 +343,9 @@ Return a structured report to the orchestrator:
 
 4. **Use `kb-rebuild-index.sh` for index management.** Do not hand-construct the index. The rebuild script handles format, sorting, and archived entry exclusion.
 
-5. **Respect the mutability boundary.** Detection payload fields are FROZEN after creation. Lifecycle fields are mutable. See knowledge-store.md Section 10. The synthesizer creates signals (setting all fields once) but does not modify detection payload fields on existing signals.
+5. **Respect the mutability boundary.** Detection payload fields are FROZEN after creation. Lifecycle fields are mutable. See knowledge-store.md Section 10. The synthesizer creates signals (setting all fields once) but does not modify detection payload fields on existing signals. The synthesizer is also authorized to modify lifecycle fields on existing signals for recurrence regression (Step 4b) and passive verification (Step 4c).
 
-6. **The synthesizer is authorized to modify existing signal files ONLY for archival during cap enforcement** (setting `status: archived`). This is the one exception to immutability documented in signal-detection.md Section 10.
+6. **The synthesizer is authorized to modify existing signal files** for archival during cap enforcement (Step 6), recurrence regression (Step 4b), and passive verification (Step 4c). All modifications are limited to lifecycle fields only (lifecycle_state, lifecycle_log, remediation, verification, updated, status). Detection payload fields remain frozen.
 
 7. **YAML sanitization is mandatory.** Evidence strings from sensors may contain colons, hashes, quotes, or leading dashes. Always quote string values in YAML frontmatter that contain special characters. Validate written files with `frontmatter validate` after writing. If post-write validation fails, delete the malformed file and log the error.
 
