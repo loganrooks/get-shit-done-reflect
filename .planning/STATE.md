@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 34 of 35 (Signal-Plan Linkage)
-Plan: 1 of 4 in current phase
+Plan: 2 of 4 in current phase
 Status: In Progress
-Last activity: 2026-03-01 -- P34-01 complete (schema foundation for signal-plan linkage)
+Last activity: 2026-03-01 -- P34-02 complete (signal awareness in planner and workflow)
 
-Progress: [██░░░░░░░░] 25% (Phase 34)
+Progress: [█████░░░░░] 50% (Phase 34)
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Progress: [██░░░░░░░░] 25% (Phase 34)
 | 33 | 03 | 4min | 1 | 1 |
 | 33 | 04 | 2min | 1 | 4 |
 | 34 | 01 | 2min | 2 | 2 |
+| 34 | 02 | 2min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -97,6 +98,10 @@ Recent decisions affecting current work:
 - P34-01: resolves_signals is documentation-only -- no gsd-tools.js code changes needed (FRONTMATTER_SCHEMAS.plan allows unknown fields)
 - P34-01: Recurrence escalation applies to the new signal, not the original (original severity is frozen detection payload)
 - P34-01: verification_window range 1-10 with default 3 phases
+- P34-02: Signal awareness section placed after knowledge_surfacing in planner agent
+- P34-02: Triaged signal loading skipped for --gaps mode
+- P34-02: Signal context capped at 10 files prioritized by severity
+- P34-02: Triaged signals passed inline in planning_context block
 
 ### Pending Todos
 
@@ -146,5 +151,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 34-01-PLAN.md (schema foundation for signal-plan linkage). Next: 34-02-PLAN.md (remediation transition).
+Stopped at: Completed 34-02-PLAN.md (signal awareness in planner and workflow). Next: 34-03-PLAN.md (executor lifecycle transitions).
 Resume file: None
