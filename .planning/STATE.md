@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 34 of 35 (Signal-Plan Linkage)
-Plan: 3 of 4 in current phase
-Status: In Progress
-Last activity: 2026-03-01 -- P34-03 complete (signal remediation, recurrence detection, passive verification)
+Plan: 4 of 4 in current phase
+Status: Phase Complete
+Last activity: 2026-03-01 -- P34-04 complete (cleanup, sync, end-to-end lifecycle demo)
 
-Progress: [███████░░░] 75% (Phase 34)
+Progress: [██████████] 100% (Phase 34)
 
 ## Performance Metrics
 
@@ -54,6 +54,7 @@ Progress: [███████░░░] 75% (Phase 34)
 | 34 | 01 | 2min | 2 | 2 |
 | 34 | 02 | 2min | 2 | 2 |
 | 34 | 03 | 3min | 2 | 2 |
+| 34 | 04 | 5min | 3 | 7 |
 
 ## Accumulated Context
 
@@ -107,6 +108,7 @@ Recent decisions affecting current work:
 - [Phase 34]: P34-03: Recurrence detection uses same matching algorithm as cross-sensor dedup (signal_type + 2+ tags)
 - [Phase 34]: P34-03: Passive verification uses configurable verification_window (default 3 phases)
 - [Phase 34]: P34-03: Recurrence regression resets matched signal to detected state, not triaged
+- [Phase 34]: P34-04: KB signal files are external to repo (~/.gsd/knowledge/) -- lifecycle demo changes persisted but not git-committed
 
 ### Pending Todos
 
@@ -156,5 +158,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 34-03-PLAN.md (signal remediation, recurrence detection, passive verification). Next: 34-04-PLAN.md.
+Stopped at: Completed 34-04-PLAN.md (cleanup, sync, lifecycle demo). Phase 34 complete. Next: Phase 35 or v1.16 release.
 Resume file: None
