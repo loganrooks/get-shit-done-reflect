@@ -56,6 +56,7 @@ Progress: [█████░░░░░] 50% (Phase 35)
 | 34 | 03 | 3min | 2 | 2 |
 | 34 | 04 | 5min | 3 | 7 |
 | 35 | 02 | 2min | 2 | 3 |
+| Phase 35 P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -111,6 +112,9 @@ Recent decisions affecting current work:
 - [Phase 34]: P34-03: Recurrence regression resets matched signal to detected state, not triaged
 - [Phase 34]: P34-04: KB signal files are external to repo (~/.gsd/knowledge/) -- lifecycle demo changes persisted but not git-committed
 - [Phase 35]: Research mode handled inline in run-spike.md Step 5b for interactive spikes, and via mode: research in DESIGN.md for runner-invoked spikes
+- [Phase 35]: Step 5.5 advisory-only by default (auto_trigger: false) -- spikes suggested but not auto-executed
+- [Phase 35]: Researcher Open Questions restructured globally (Resolved/Genuine Gaps/Still Open) -- affects all future research
+- [Phase 35]: Config keys use nested spike.sensitivity format (not flat spike_sensitivity) matching manifest schema
 
 ### Pending Todos
 
