@@ -2,8 +2,8 @@
 
 Reference specification for pattern detection, lesson distillation, phase-end reflection, and semantic drift detection in the GSD self-improvement loop.
 
-**Version:** 1.1.0
-**Phase:** 04-reflection-engine, 31-signal-schema-foundation
+**Version:** 1.2.0
+**Phase:** 04-reflection-engine, 31-signal-schema-foundation, 33-enhanced-reflector
 
 ---
 
@@ -33,31 +33,66 @@ The Reflection Engine is the closing loop of the GSD self-improvement cycle. It 
 
 ## 2. Pattern Detection Rules
 
-### 2.1 Severity-Weighted Thresholds
+### 2.1 Confidence-Weighted Scoring
 
-Pattern detection uses severity-weighted occurrence thresholds rather than a single number. This catches critical issues early while filtering noise from minor friction.
+Pattern detection uses confidence-weighted scoring rather than raw occurrence counts. This weights high-confidence signals more heavily, so a cluster of 3 high-confidence signals surfaces a pattern that 5 low-confidence signals would not.
 
-| Signal Severity | Threshold | Rationale |
-|-----------------|-----------|-----------|
-| `critical` | 2 occurrences | Cannot risk missing dangerous patterns |
-| `notable` | 3 occurrences | High-impact issues warrant attention |
-| `minor` | 5 occurrences | Must be truly recurring, not noise |
+**Scoring formula:**
+
+```
+weighted_score = sum(weight(signal) for signal in cluster)
+
+weight(signal) = confidence_weight * severity_multiplier
+
+confidence_weight:
+  high   -> 2.0
+  medium -> 1.0
+  low    -> 0.5
+
+severity_multiplier:
+  critical -> 1.5
+  notable  -> 1.0
+  minor    -> 0.7
+```
+
+**Pattern qualification thresholds (by max severity in cluster):**
+
+| Max Severity | Weighted Score Threshold | Rationale |
+|-------------|--------------------------|-----------|
+| `critical` | 3.0 | Cannot risk missing dangerous patterns |
+| `notable` | 4.0 | High-impact issues warrant attention |
+| `minor` | 5.0 | Must be truly recurring, not noise |
 | `trace` | N/A | Not persisted to KB, not in pattern detection pool |
 
+**Default confidence for legacy signals:** Signals missing the `confidence` field default to `medium` (weight 1.0). This gives legacy signals neutral weight -- neither penalized nor boosted -- preserving backward compatibility with pre-Phase 31 signals.
+
 **Threshold application:**
-```bash
-# Pseudocode for severity-weighted threshold check
-case "$max_severity" in
-  critical)
-    [ "$count" -ge 2 ] && emit_pattern ;;
-  notable)
-    [ "$count" -ge 3 ] && emit_pattern ;;
-  minor)
-    [ "$count" -ge 5 ] && emit_pattern ;;
-  trace)
-    ;; # trace signals are not persisted, skip
-esac
 ```
+# Pseudocode for confidence-weighted threshold check
+
+for each cluster:
+  weighted_score = 0
+  for each signal in cluster:
+    confidence = signal.confidence or "medium"  # default for legacy
+    confidence_weight = { high: 2.0, medium: 1.0, low: 0.5 }[confidence]
+    severity_mult = { critical: 1.5, notable: 1.0, minor: 0.7 }[signal.severity]
+    weighted_score += confidence_weight * severity_mult
+
+  max_severity = max(signal.severity for signal in cluster)
+  threshold = { critical: 3.0, notable: 4.0, minor: 5.0 }[max_severity]
+
+  if weighted_score >= threshold:
+    emit_pattern(cluster, weighted_score)
+```
+
+**Worked examples:**
+
+| Scenario | Signals | Calculation | Score | Threshold | Qualifies? |
+|----------|---------|-------------|-------|-----------|------------|
+| 3 high-confidence critical | 3 signals (high, critical) | 3 * 2.0 * 1.5 | 9.0 | 3.0 | YES -- well above threshold |
+| 5 low-confidence minor | 5 signals (low, minor) | 5 * 0.5 * 0.7 | 1.75 | 5.0 | NO -- correctly filters noise |
+| 4 medium-confidence notable | 4 signals (medium, notable) | 4 * 1.0 * 1.0 | 4.0 | 4.0 | YES -- qualifies at boundary |
+| 2 high-confidence notable + 1 low-confidence notable | 3 mixed signals | 2 * 2.0 * 1.0 + 1 * 0.5 * 1.0 | 4.5 | 4.0 | YES -- mixed confidence works |
 
 ### 2.2 Signal Clustering Criteria
 
@@ -69,11 +104,19 @@ Signals cluster into patterns based on shared characteristics. Criteria in prior
 | 2 | Same project + same `signal_type` + similar slug | Strong | Project-specific recurrence |
 | 3 | Cross-project: same tags + same `signal_type` | Moderate | Candidate global pattern |
 
-**Clustering algorithm:**
+**Primary clustering algorithm:**
 1. Group signals by `signal_type` (deviation, struggle, config-mismatch, epistemic-gap, baseline, improvement, good-pattern)
 2. Within each group, cluster by tag overlap (2+ shared tags)
 3. For each cluster, take the highest severity among members
-4. Apply severity-weighted threshold to cluster count
+4. Calculate confidence-weighted score for cluster (see Section 2.1)
+5. Apply weighted score threshold based on cluster's max severity
+
+**Secondary clustering fallback:** When primary clustering yields fewer than 5 qualifying patterns, apply a relaxed mode to catch thematic patterns fragmented across signal types:
+- **Criteria:** Same project + 3+ overlapping tags + any `signal_type`
+- **Constraint:** Positive and negative signals still cluster separately (respects `signal_category`)
+- **Marking:** Secondary clusters are marked as "cross-type" in output
+- **Score penalty:** Secondary clusters receive a 0.8x score multiplier (slightly penalized for weaker `signal_type` coherence)
+- **Rationale:** Signals about the same issue may be typed as `deviation`, `struggle`, and `config-mismatch` depending on context. Without secondary clustering, these related signals fragment into separate under-threshold groups and the pattern is missed
 
 **Signal category clustering rules:**
 - **Positive and negative signals cluster separately.** A positive baseline and a negative deviation with overlapping tags should NOT cluster together -- they represent fundamentally different observations.
@@ -83,35 +126,47 @@ Signals cluster into patterns based on shared characteristics. Criteria in prior
 **Example clustering:**
 ```bash
 # Extract pattern keys from index
-# Pattern key = signal_type + first two tags
+# Primary: Pattern key = signal_type + first two tags
+# Secondary (fallback): Pattern key = project + first three tags (any signal_type)
 extract_patterns() {
   grep "^| sig-" "$KB_DIR/index.md" | while read -r row; do
     signal_type=$(get_signal_type_from_file "$row")
     tags=$(echo "$row" | cut -d'|' -f5 | tr -d ' ')
     primary_tags=$(echo "$tags" | cut -d',' -f1-2)
-    echo "${signal_type}:${primary_tags}"
+    echo "primary:${signal_type}:${primary_tags}"
+  done
+}
+
+extract_secondary_patterns() {
+  grep "^| sig-" "$KB_DIR/index.md" | while read -r row; do
+    project=$(echo "$row" | cut -d'|' -f3 | tr -d ' ')
+    tags=$(echo "$row" | cut -d'|' -f5 | tr -d ' ')
+    top_tags=$(echo "$tags" | cut -d',' -f1-3)
+    echo "secondary:${project}:${top_tags}"
   done
 }
 ```
 
 ### 2.3 Pattern Output Format
 
-When a pattern qualifies (meets threshold), emit in this structure:
+When a pattern qualifies (meets weighted score threshold), emit in this structure:
 
 ```markdown
 ## Pattern: {pattern-name}
 
 **Signal type:** {deviation|struggle|config-mismatch}
+**Cluster type:** {primary | cross-type}
 **Occurrences:** {count}
+**Weighted score:** {score} (threshold: {threshold})
 **Severity:** {highest severity among grouped signals}
-**Confidence:** {high|medium|low} ({count} occurrences)
+**Confidence:** {high|medium|low}
 
 **Signals in pattern:**
 
-| ID | Project | Date | Tags |
-|----|---------|------|------|
-| sig-X | project-a | 2026-02-01 | tag1, tag2 |
-| sig-Y | project-b | 2026-02-03 | tag1, tag3 |
+| ID | Project | Date | Tags | Confidence | Severity |
+|----|---------|------|------|------------|----------|
+| sig-X | project-a | 2026-02-01 | tag1, tag2 | high | critical |
+| sig-Y | project-b | 2026-02-03 | tag1, tag3 | medium | notable |
 
 **Root cause hypothesis:** {Agent's assessment of why this pattern recurs}
 
@@ -469,20 +524,20 @@ Generate suggestions when:
 
 ---
 
-## 8. Category Taxonomy
+## 8. Category Taxonomy (Authoritative)
 
-Predefined top-level categories with emergent subcategories.
+Predefined top-level categories with emergent subcategories. **This taxonomy is authoritative.** The reflector agent and lesson templates use these categories. Legacy categories (`debugging`, `performance`, `other`) from earlier agent spec versions map to: `debugging` -> `testing`, `performance` -> `architecture`, `other` -> `workflow`.
 
 ### 8.1 Top-Level Categories
 
-| Category | Scope | Examples |
-|----------|-------|----------|
-| `tooling` | Build tools, test runners, linters | Vitest, ESLint, Webpack |
-| `architecture` | Code structure, patterns, design | Barrel exports, service layers |
-| `testing` | Test strategies, fixtures, mocking | Snapshot testing, mock setup |
-| `workflow` | GSD workflow, CI/CD, automation | Plan structure, verification |
-| `external` | Third-party services, APIs, libraries | Claude API, npm, OAuth providers |
-| `environment` | OS, runtime, configuration | Node versions, env vars |
+| Category | Scope | Examples | Legacy Mappings |
+|----------|-------|----------|-----------------|
+| `tooling` | Build tools, test runners, linters | Vitest, ESLint, Webpack | -- |
+| `architecture` | Code structure, patterns, design, performance | Barrel exports, service layers | `performance` -> `architecture` |
+| `testing` | Test strategies, fixtures, mocking, debugging | Snapshot testing, mock setup | `debugging` -> `testing` |
+| `workflow` | GSD workflow, CI/CD, automation, uncategorized | Plan structure, verification | `other` -> `workflow` |
+| `external` | Third-party services, APIs, libraries | Claude API, npm, OAuth providers | -- |
+| `environment` | OS, runtime, configuration | Node versions, env vars | -- |
 
 ### 8.2 Subcategory Emergence
 
@@ -509,13 +564,13 @@ Use categorical confidence with occurrence count evidence.
 
 ### 9.1 Confidence Levels
 
-Confidence uses the three-tier categorical model (`high`, `medium`, `low`) matching the signal schema's `confidence` field values.
+Confidence uses the three-tier categorical model (`high`, `medium`, `low`) matching the signal schema's `confidence` field values. Confidence levels now feed into weighted scoring (Section 2.1), not just reporting -- a signal's confidence directly affects whether its cluster qualifies as a pattern.
 
-| Level | Criteria | Expression |
-|-------|----------|------------|
-| `high` | 6+ occurrences, empirical evidence, consistent root cause | "high (7 occurrences across 3 projects)" |
-| `medium` | 3-5 occurrences, inference from patterns | "medium (4 occurrences, same root cause)" |
-| `low` | 2-3 occurrences, educated guess, or epistemic gap | "low (2 occurrences, similar symptoms)" |
+| Level | Criteria | Weighted Score Impact | Expression |
+|-------|----------|----------------------|------------|
+| `high` | 6+ occurrences, empirical evidence, consistent root cause | 2.0x weight per signal | "high (7 occurrences across 3 projects)" |
+| `medium` | 3-5 occurrences, inference from patterns | 1.0x weight per signal (baseline) | "medium (4 occurrences, same root cause)" |
+| `low` | 2-3 occurrences, educated guess, or epistemic gap | 0.5x weight per signal | "low (2 occurrences, similar symptoms)" |
 
 ### 9.2 Actionability Levels
 
@@ -600,7 +655,7 @@ Common mistakes in reflection implementation.
 
 ---
 
-*Reference version: 1.1.0*
+*Reference version: 1.2.0*
 *Created: 2026-02-05*
 *Updated: 2026-02-28*
-*Phase: 04-reflection-engine, 31-signal-schema-foundation*
+*Phase: 04-reflection-engine, 31-signal-schema-foundation, 33-enhanced-reflector*
