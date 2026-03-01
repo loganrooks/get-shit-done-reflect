@@ -190,6 +190,13 @@
           "type": "boolean",
           "default": true,
           "description": "Whether signal recurrence automatically escalates severity"
+        },
+        "verification_window": {
+          "type": "number",
+          "default": 3,
+          "min": 1,
+          "max": 10,
+          "description": "Number of phases with no recurrence before a remediated signal is verified"
         }
       },
       "init_prompts": [
