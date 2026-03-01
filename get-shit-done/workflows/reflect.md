@@ -133,6 +133,81 @@ echo "KB index found with $SIGNAL_COUNT signals"
 
 </step>
 
+<step name="show_lifecycle_dashboard">
+
+Generate and display a lifecycle dashboard at the START of the reflection report. This gives the user immediate context about the KB state before analysis begins.
+
+```bash
+# Count signals by lifecycle state from index
+# SIG-format signals (ID starts with SIG-) are counted separately as Legacy
+UNTRIAGED=0
+TRIAGED=0
+REMEDIATED=0
+VERIFIED=0
+INVALIDATED=0
+LEGACY=0
+WITH_EVIDENCE=0
+HIGH_CONFIDENCE=0
+TOTAL=0
+
+while IFS='|' read -r _ id lifecycle severity tags _rest; do
+  id=$(echo "$id" | tr -d ' ')
+  lifecycle=$(echo "$lifecycle" | tr -d ' ')
+
+  # Skip non-signal rows
+  [[ "$id" =~ ^sig-|^SIG- ]] || continue
+
+  TOTAL=$((TOTAL + 1))
+
+  # SIG-format signals go to Legacy row
+  if [[ "$id" =~ ^SIG- ]]; then
+    LEGACY=$((LEGACY + 1))
+    continue
+  fi
+
+  # Standard-format signals counted by lifecycle_state
+  case "$lifecycle" in
+    triaged) TRIAGED=$((TRIAGED + 1)) ;;
+    remediated) REMEDIATED=$((REMEDIATED + 1)) ;;
+    verified) VERIFIED=$((VERIFIED + 1)) ;;
+    invalidated) INVALIDATED=$((INVALIDATED + 1)) ;;
+    *) UNTRIAGED=$((UNTRIAGED + 1)) ;;  # detected, missing, or empty
+  esac
+done < "$KB_INDEX"
+
+# Count signals with evidence and high confidence from signal files
+for signal_file in "$KB_DIR/signals/$PROJECT_NAME"/*.md; do
+  [ -f "$signal_file" ] || continue
+  grep -q "^evidence:" "$signal_file" && WITH_EVIDENCE=$((WITH_EVIDENCE + 1))
+  grep -q "^confidence: high" "$signal_file" && HIGH_CONFIDENCE=$((HIGH_CONFIDENCE + 1))
+done
+```
+
+**Output the dashboard:**
+
+```markdown
+## Lifecycle Dashboard
+
+| State | Count | Percentage |
+|-------|-------|-----------|
+| Untriaged (detected) | {UNTRIAGED} | {pct}% |
+| Triaged | {TRIAGED} | {pct}% |
+| Remediated | {REMEDIATED} | {pct}% |
+| Verified | {VERIFIED} | {pct}% |
+| Invalidated | {INVALIDATED} | {pct}% |
+| Legacy (read-only) | {LEGACY} | {pct}% |
+| **Total** | **{TOTAL}** | **100%** |
+
+Signals with evidence: {WITH_EVIDENCE}/{TOTAL} ({pct}%)
+High-confidence signals: {HIGH_CONFIDENCE} ({pct}%)
+```
+
+**Legacy row explanation:** SIG-format signals (ID starts with `SIG-`) predate the standard schema and cannot be triaged or modified. They are counted separately to avoid inflating the "Untriaged" count as the project matures. They are still included in pattern detection as read-only data.
+
+The dashboard is informational -- it runs before analysis and does not affect subsequent steps.
+
+</step>
+
 <step name="prepare_context">
 
 Read artifact contents to pass to the agent. The `@` syntax does not work across Task() boundaries.
@@ -215,12 +290,23 @@ Task(
   {CONFIG_CONTENT}
 
   Follow your execution_flow to:
-  1. Load and filter signals
-  2. Detect patterns using severity-weighted thresholds
+  1. Load and filter signals by lifecycle_state:
+     - detected (or missing lifecycle_state for non-SIG signals): Full analysis candidate
+     - triaged: Include in pattern detection and lessons, skip triage proposals
+     - remediated: Lower weight in pattern detection, track for verification
+     - verified: Exclude from active patterns, include in positive pattern analysis
+     - invalidated: Exclude entirely
+     - SIG-format (ID starts with SIG-): Read-only, include in patterns but do not modify
+  2. Detect patterns using confidence-weighted thresholds (not raw counts)
   3. Perform phase-end reflection if phase specified
-  4. Distill lessons (unless patterns-only)
-  5. Check semantic drift (if requested)
-  6. Return the Reflection Report
+  4. Generate triage proposals for untriaged signal clusters with:
+     - Cluster name, signal list, recommended decision, rationale, priority
+     - Decision types: address, dismiss, defer, investigate
+  5. Generate remediation suggestions for clusters with decision: address
+  6. Identify spike candidates (low-confidence patterns or investigate decisions)
+  7. Distill lessons with evidence_snapshots (unless patterns-only)
+  8. Check semantic drift (if requested)
+  9. Return the structured Reflection Report
 
   Return the structured Reflection Report when complete.",
   subagent_type="gsd-reflector"
@@ -234,12 +320,88 @@ The agent performs all analysis logic and returns a structured Reflection Report
 <step name="receive_report">
 
 The reflector agent returns a structured report containing:
-- Patterns detected (with type, severity, confidence)
+- Patterns detected (with type, severity, confidence, weighted score)
+- Triage proposals (for untriaged signal clusters)
+- Remediation suggestions (for clusters with decision: address)
+- Spike candidates (low-confidence patterns or investigate decisions)
 - Phase deviations (if phase-end reflection)
-- Lesson candidates (with evidence and scope)
+- Lesson candidates (with evidence, evidence_snapshots, and scope)
 - Drift assessment (if drift check)
 
-Parse the report for results presentation and lesson handling.
+Parse the report for triage handling, results presentation, and lesson handling.
+
+</step>
+
+<step name="handle_triage_proposals">
+
+Handle triage proposals from the reflector agent. Triage modifies existing signal files (updating lifecycle_state and triage fields), so it requires appropriate confirmation based on autonomy mode.
+
+**Per-run triage cap:** A maximum of 10 signals may be triaged per reflect run. If more than 10 signals would be triaged across all approved proposals, present the highest-priority proposals first and queue the remainder with a note:
+
+```
+Triage cap reached (10 signals). Run /gsd:reflect again to continue triaging remaining clusters.
+```
+
+This prevents the first-run scenario where 30+ signal files are modified in a single session, producing an unwieldy git commit and risking context budget exhaustion in the reflector agent.
+
+**Phase 33 triage constraint reminder:** When triaging critical signals that lack `lifecycle_state`, `evidence.supporting` MUST be added first. Once `lifecycle_state` is present, the backward_compat exemption no longer applies and evidence becomes a hard requirement for critical signals. Reference knowledge-store.md Section 4.2.
+
+<if mode="interactive">
+
+Present each triage proposal for user confirmation:
+
+```markdown
+### Triage Proposal: {cluster-name}
+
+**Signals:** {N} signals
+{list of signal IDs}
+**Recommended decision:** {address|dismiss|defer|investigate}
+**Rationale:** {why this cluster should be triaged this way}
+**Priority:** {critical|high|medium|low}
+
+Approve this triage? (approve / reject / modify)
+```
+
+For each response:
+- **approve**: Instruct reflector to write triage fields to each signal in the cluster
+- **reject**: Skip this cluster (signals remain at detected)
+- **modify**: Allow user to change decision and/or priority before applying
+
+Track approved triage count against per-run cap of 10 signals.
+
+</if>
+
+<if mode="yolo">
+
+**YOLO mode triage has higher blast radius than lessons** -- it modifies existing files, not just creating new ones. Auto-approve is limited to bound the blast radius:
+
+- **Auto-approve `address` and `dismiss` decisions ONLY** (these have clear intent and bounded impact)
+- **Present `defer` decisions for user confirmation** (deferral is a judgment call about timing)
+- **Present `investigate` decisions for user confirmation** (spike candidates need human judgment on resource allocation)
+
+Report all auto-approved decisions in the summary:
+```markdown
+### Auto-Approved Triage (YOLO Mode)
+
+| Cluster | Decision | Signals | Priority |
+|---------|----------|---------|----------|
+| {name}  | address  | {N}     | {priority} |
+| {name}  | dismiss  | {N}     | {priority} |
+
+**Presented for confirmation:**
+- {cluster}: defer ({N} signals) -- deferral requires human judgment
+- {cluster}: investigate ({N} signals) -- spike candidates need human judgment
+```
+
+**Design rationale:** Unlike lesson auto-approve (creates new files), triage auto-approve modifies existing signal files. Limiting auto-approve to `address` and `dismiss` decisions bounds the blast radius of YOLO mode for triage operations.
+
+</if>
+
+**When triage is approved:** The workflow instructs the reflector agent to write triage fields to each signal in the cluster. The workflow itself does NOT write files -- the reflector does. The reflector must:
+1. Read the complete signal file
+2. Modify ONLY mutable fields (lifecycle_state, triage, lifecycle_log, updated)
+3. Keep ALL frozen detection payload fields unchanged
+4. Validate after writing with `frontmatter validate --schema signal`
 
 </step>
 
@@ -282,6 +444,24 @@ Status: {STABLE|DRIFTING|CONCERNING}
 | Metric | Baseline | Recent | Change |
 |--------|----------|--------|--------|
 | {metric} | {value} | {value} | {%} |
+
+### Remediation Suggestions
+
+{For each triaged cluster with decision: address}
+
+#### {cluster-name}
+
+**Signals:** {signal IDs}
+**Suggested approach:** {what to do to address the root cause}
+**Suggested plan scope:** {which phase/plan could address this}
+**Priority:** {from triage.priority}
+
+{End for each}
+
+> **Note:** Triaged signals remain at "triaged" status until Phase 34 (Signal-Plan Linkage) ships.
+> Phase 34 enables plans to declare `resolves_signals`, which automatically moves triaged signals
+> to "remediated" when plans complete. Until then, triage decisions are recorded but the full
+> lifecycle pipeline is not yet connected.
 
 --------------------------------------------------------------
 ```
@@ -367,6 +547,16 @@ Display final completion summary:
 **Signals analyzed:** {count}
 **Patterns detected:** {count}
 **Lessons created:** {count}
+**Signals triaged:** {count}
+**Remediation suggestions:** {count}
+
+### Lifecycle Dashboard Summary
+
+| State | Count |
+|-------|-------|
+| Untriaged | {N} |
+| Triaged | {N} (including {new} from this run) |
+| Legacy (read-only) | {N} |
 
 {If phase-end:}
 **Phase {N} alignment:** {HIGH|MEDIUM|LOW}
@@ -378,7 +568,13 @@ Display final completion summary:
 
 | Pattern | Confidence | Action |
 |---------|------------|--------|
-| {name}  | {level}    | Lesson created / Logged for reference |
+| {name}  | {level}    | Lesson created / Triaged / Logged for reference |
+
+### Triage Results
+
+| Cluster | Decision | Signals | Status |
+|---------|----------|---------|--------|
+| {name}  | {decision} | {N}   | Approved / Rejected / Pending |
 
 ### Lessons Created
 
@@ -386,9 +582,16 @@ Display final completion summary:
 |------|----------|---------|
 | {path} | {category} | {brief} |
 
+### Remediation Suggestions
+
+| Cluster | Priority | Suggested Scope |
+|---------|----------|-----------------|
+| {name}  | {priority} | {phase/plan} |
+
 --------------------------------------------------------------
 
 Next: Lessons will surface via /gsd:kb-search during future planning.
+Triaged signals will be linked to plans in Phase 34 (Signal-Plan Linkage).
 
 --------------------------------------------------------------
 ```
