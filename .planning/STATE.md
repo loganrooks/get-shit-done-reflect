@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-27)
 ## Current Position
 
 Phase: 34 of 35 (Signal-Plan Linkage)
-Plan: 0 of ? in current phase
-Status: Not Started
-Last activity: 2026-03-01 -- Phase 33 verified (25/25 must-haves passed), reflect UAT confirmed lifecycle dashboard, weighted patterns, triage proposals, lessons, remediation, spikes
+Plan: 1 of 4 in current phase
+Status: In Progress
+Last activity: 2026-03-01 -- P34-01 complete (schema foundation for signal-plan linkage)
 
-Progress: [░░░░░░░░░░] 0% (Phase 34)
+Progress: [██░░░░░░░░] 25% (Phase 34)
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0% (Phase 34)
 | 33 | 01 | 4min | 2 | 1 |
 | 33 | 03 | 4min | 1 | 1 |
 | 33 | 04 | 2min | 1 | 4 |
+| 34 | 01 | 2min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -93,6 +94,9 @@ Recent decisions affecting current work:
 - [Phase 33]: P33-03: Two-pass signal reading (index pass via shell commands, detail pass for qualifying clusters only) to manage context budget
 - [Phase 33]: P33-03: Reflector authorized mutations limited to lifecycle fields only; roundtrip validation before bulk triage writes
 - [Phase 33]: P33-03: Spike candidates identified but not created; remediation suggestions are plan-level advisory only
+- P34-01: resolves_signals is documentation-only -- no gsd-tools.js code changes needed (FRONTMATTER_SCHEMAS.plan allows unknown fields)
+- P34-01: Recurrence escalation applies to the new signal, not the original (original severity is frozen detection payload)
+- P34-01: verification_window range 1-10 with default 3 phases
 
 ### Pending Todos
 
@@ -142,5 +146,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Phase 33 verified and closed. Reflect UAT passed (lifecycle dashboard, weighted patterns, 2 lessons, 4 triage proposals deferred, 2 spikes). Quick task 011 (dev install indicator) shipped. Next: Phase 34 (Signal-Plan Linkage) or /gsd:quick for reflect report persistence.
+Stopped at: Completed 34-01-PLAN.md (schema foundation for signal-plan linkage). Next: 34-02-PLAN.md (remediation transition).
 Resume file: None
