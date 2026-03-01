@@ -32,6 +32,9 @@ The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.gsd
 ├── lessons/
 │   └── {category}/
 │       └── {lesson-name}.md
+├── reflections/
+│   └── {project-name}/
+│       └── reflect-{YYYY-MM-DD}.md
 └── index.md
 ```
 
@@ -40,6 +43,7 @@ The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.gsd
 - Project name is derived from the project's root directory name (kebab-case)
 - Global entries (not tied to a specific project) use `_global/` as the project subdirectory name
 - Lessons are organized by category subdirectory, not by project (lessons transcend individual projects)
+- Reflections are stored under project subdirectories, one per reflect run date (latest overwrites same-day runs)
 
 **Directory creation:**
 - Parent directories are created on first write (mkdir -p)
