@@ -1150,9 +1150,9 @@ function injectVersionScope(content, version, _scope) {
   if (endIdx === -1) return content;
   const frontmatter = content.substring(0, endIdx + 3);
   const body = content.substring(endIdx + 3);
-  // Strip any existing version suffix (with or without scope) before adding new one
+  // Strip any existing version suffix (with or without scope/+dev) before adding new one
   const modified = frontmatter.replace(
-    /^(description:\s*)(.+?)(\s*\(v[\d.]+(?:\s+(?:local|global))?\))?$/m,
+    /^(description:\s*)(.+?)(\s*\(v[\d.]+(?:\+\w+)?(?:\s+(?:local|global))?\))?$/m,
     `$1$2 (v${version})`
   );
   return modified + body;
@@ -2044,6 +2044,9 @@ function install(isGlobal, runtime = 'claude') {
   // Track installation failures
   const failures = [];
 
+  // Version string: local installs get +dev suffix for dogfooding visibility
+  const versionString = isGlobal ? pkg.version : `${pkg.version}+dev`;
+
   // Save any locally modified GSD files before they get wiped
   saveLocalPatches(targetDir);
 
@@ -2067,7 +2070,7 @@ function install(isGlobal, runtime = 'claude') {
       failures.push('skills/gsd-*');
     }
     // Inject version/scope into Codex skill descriptions
-    applyVersionScopeToCommands(skillsDir, pkg.version, isGlobal ? 'global' : 'local');
+    applyVersionScopeToCommands(skillsDir, versionString, isGlobal ? 'global' : 'local');
   } else if (isOpencode) {
     // OpenCode: flat structure in command/ directory
     const commandDir = path.join(targetDir, 'command');
@@ -2083,7 +2086,7 @@ function install(isGlobal, runtime = 'claude') {
       failures.push('command/gsd-*');
     }
     // Inject version/scope into OpenCode command descriptions
-    applyVersionScopeToCommands(commandDir, pkg.version, isGlobal ? 'global' : 'local');
+    applyVersionScopeToCommands(commandDir, versionString, isGlobal ? 'global' : 'local');
   } else {
     // Claude Code & Gemini: nested structure in commands/ directory
     const commandsDir = path.join(targetDir, 'commands');
@@ -2098,7 +2101,7 @@ function install(isGlobal, runtime = 'claude') {
       failures.push('commands/gsd');
     }
     // Inject version/scope into Claude/Gemini command descriptions
-    applyVersionScopeToCommands(gsdDest, pkg.version, isGlobal ? 'global' : 'local');
+    applyVersionScopeToCommands(gsdDest, versionString, isGlobal ? 'global' : 'local');
   }
 
   // Copy get-shit-done skill with path replacement
@@ -2178,9 +2181,8 @@ function install(isGlobal, runtime = 'claude') {
     }
   }
 
-  // Write VERSION file (local installs get +dev suffix for dogfooding visibility)
+  // Write VERSION file
   const versionDest = path.join(targetDir, 'get-shit-done', 'VERSION');
-  const versionString = isGlobal ? pkg.version : `${pkg.version}+dev`;
   fs.writeFileSync(versionDest, versionString);
   if (verifyFileInstalled(versionDest, 'VERSION')) {
     console.log(`  ${green}✓${reset} Wrote VERSION (${versionString})`);
