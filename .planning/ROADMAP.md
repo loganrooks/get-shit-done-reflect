@@ -121,8 +121,8 @@ Phases execute in numeric order: 31 -> 32 -> 33 -> 34 -> 35
 |-------|-----------|---------------|--------|-----------|
 | 31. Signal Schema Foundation | v1.16 | 4/4 | Complete | 2026-02-28 |
 | 32. Multi-Sensor Orchestrator | v1.16 | 4/4 | Complete | 2026-02-28 |
-| 33. Enhanced Reflector | v1.16 | 0/4 | Not started | - |
-| 34. Signal-Plan Linkage | v1.16 | 0/4 | Not started | - |
+| 33. Enhanced Reflector | v1.16 | 4/4 | Complete | 2026-03-01 |
+| 34. Signal-Plan Linkage | v1.16 | 4/4 | Complete | 2026-03-01 |
 | 35. Spike Audit & Lightweight Mode | v1.16 | 0/TBD | Not started | - |
 
 ## Overall Progress
@@ -133,6 +133,6 @@ Phases execute in numeric order: 31 -> 32 -> 33 -> 34 -> 35
 | 7-12 | v1.13 | 18/18 | Complete | 2026-02-11 |
 | 13-21 | v1.14 | 18/18 | Complete | 2026-02-16 |
 | 22-30 | v1.15 | 24/24 | Complete | 2026-02-23 |
-| 31-35 | v1.16 | 8/TBD | In progress | - |
+| 31-35 | v1.16 | 16/TBD | In progress | - |
 
-**Totals:** 5 milestones, 31 phases complete, 93 plans completed
+**Totals:** 5 milestones, 33 phases complete, 101 plans completed

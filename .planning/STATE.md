@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-27)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.16 Signal Lifecycle & Reflection -- Phase 34 (Signal-Plan Linkage)
+**Current focus:** v1.16 Signal Lifecycle & Reflection -- Phase 35 (Spike Audit & Lightweight Mode)
 
 ## Current Position
 
-Phase: 34 of 35 (Signal-Plan Linkage)
-Plan: 4 of 4 in current phase
-Status: Phase Complete
-Last activity: 2026-03-01 -- P34-04 complete (cleanup, sync, end-to-end lifecycle demo)
+Phase: 35 of 35 (Spike Audit & Lightweight Mode)
+Plan: 0 of ? in current phase
+Status: Not Started
+Last activity: 2026-03-01 -- Phase 34 verified (5/5 must-haves passed), signal lifecycle closes end-to-end with resolves_signals, recurrence detection, passive verification
 
-Progress: [██████████] 100% (Phase 34)
+Progress: [░░░░░░░░░░] 0% (Phase 35)
 
 ## Performance Metrics
 
@@ -158,5 +158,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Completed 34-04-PLAN.md (cleanup, sync, lifecycle demo). Phase 34 complete. Next: Phase 35 or v1.16 release.
+Stopped at: Phase 34 verified and closed (5/5 must-haves). Signal lifecycle closes end-to-end: resolves_signals in plans, automatic remediation, recurrence detection, passive verification. Next: Phase 35 (Spike Audit & Lightweight Mode).
 Resume file: None
