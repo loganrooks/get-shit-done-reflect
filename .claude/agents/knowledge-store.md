@@ -32,6 +32,9 @@ The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.gsd
 ├── lessons/
 │   └── {category}/
 │       └── {lesson-name}.md
+├── reflections/
+│   └── {project-name}/
+│       └── reflect-{YYYY-MM-DD}.md
 └── index.md
 ```
 
@@ -40,6 +43,7 @@ The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.gsd
 - Project name is derived from the project's root directory name (kebab-case)
 - Global entries (not tied to a specific project) use `_global/` as the project subdirectory name
 - Lessons are organized by category subdirectory, not by project (lessons transcend individual projects)
+- Reflections are stored under project subdirectories, one per reflect run date (latest overwrites same-day runs)
 
 **Directory creation:**
 - Parent directories are created on first write (mkdir -p)
@@ -257,6 +261,78 @@ Positive signals capture healthy states, improvements, and practices worth repea
 1. **Lesson inputs** -- Positive patterns feed into lesson distillation (what to repeat)
 2. **Regression guards** -- Baselines define the good state; future deviations from baseline trigger negative signals
 3. **Cross-project transfer** -- Good patterns that work in one project can be surfaced in others via global promotion
+
+### 4.5 Plan-Signal Linkage
+
+Plans can declare which signals they resolve using the `resolves_signals` frontmatter field. This creates a traceable link from remediation work back to the signals that motivated it.
+
+**`resolves_signals` in PLAN.md frontmatter:**
+
+`resolves_signals` is an optional array field in PLAN.md frontmatter. It contains signal IDs (format: `sig-YYYY-MM-DD-slug`) that the plan's tasks are intended to address.
+
+```yaml
+---
+phase: 12-auth-hardening
+plan: 02
+type: execute
+resolves_signals:
+  - sig-2026-02-15-auth-retry-loop
+  - sig-2026-02-18-token-expiry-race
+---
+```
+
+**How it works:**
+- The planner recommends signal IDs based on active triaged signals with `triage.decision: address`
+- When plan execution completes successfully, referenced signals transition to `remediated` status (lifecycle_state updated, lifecycle_log entry added, remediation.resolved_by_plan set)
+- Non-existent signal IDs produce warnings, not errors (signals may be archived or invalidated between planning and execution)
+- The executor performs the lifecycle transition automatically -- no manual intervention required
+
+**Validation:** The `FRONTMATTER_SCHEMAS.plan` schema validates only required fields and does not reject unknown fields, so `resolves_signals` works without code changes to gsd-tools.js.
+
+### 4.6 Verification by Absence (verification_window)
+
+After remediation, signals are passively verified through absence of recurrence. If no recurrence is detected within a configurable number of phases, the signal automatically transitions from `remediated` to `verified`.
+
+**Configuration:**
+- `verification_window` is a project-level setting in `signal_lifecycle` config (feature-manifest.json)
+- Type: number (integer)
+- Default: 3 phases
+- Range: 1-10 phases
+- Meaning: number of phases with no recurrence before a remediated signal is verified
+
+**How it works:**
+1. A signal is marked `remediated` (e.g., via `resolves_signals` on plan completion)
+2. The `remediation.at` timestamp records when remediation occurred
+3. During each subsequent signal collection run, the synthesizer checks remediated signals
+4. If N phases have elapsed since remediation with no recurrence detected, the signal transitions to `verified`
+5. The verification method is recorded as `absence-of-recurrence` in the `verification` object
+
+**Lifecycle transition:** `remediated` -> `verified` (triggered by synthesizer, passive)
+
+### 4.7 Recurrence Detection
+
+Recurrence detection identifies when a previously remediated or verified signal reappears, indicating the underlying issue was not fully resolved.
+
+**Matching criteria:** A new signal is considered a recurrence of an existing signal when:
+- Same `signal_type` value, AND
+- 2 or more overlapping `tags`
+
+The match is evaluated against signals in `remediated` or `verified` lifecycle states.
+
+**When recurrence is detected:**
+1. The new signal's `recurrence_of` field is set to the matched signal's ID
+2. The matched signal regresses: `lifecycle_state` returns to `detected`
+3. A lifecycle_log entry is added: `"verified->detected by synthesizer at {timestamp}: recurrence detected (new signal: {new-signal-id})"`
+4. The matched signal's `updated` timestamp is refreshed
+
+**Recurrence escalation:** When the project setting `recurrence_escalation` is enabled (default: true), severity increases one tier on recurrence:
+- `minor` -> `notable`
+- `notable` -> `critical`
+- `critical` remains `critical` (ceiling)
+
+The escalation applies to the NEW signal (the recurrence), not the original. The original signal's severity is a frozen detection payload field.
+
+**Synthesizer responsibility:** Recurrence detection is performed by the synthesizer during signal collection runs. Sensors detect raw signals; the synthesizer correlates them against existing KB entries.
 
 ## 5. Body Templates
 
@@ -515,4 +591,4 @@ MUTABLE fields (lifecycle -- modified by authorized agents):
 *Specification version: 2.0.0*
 *Created: 2026-02-02*
 *Updated: 2026-02-28*
-*Phase: 01-knowledge-store (base), 31-signal-schema-foundation (lifecycle, epistemic, mutability, positive signals)*
+*Phase: 01-knowledge-store (base), 31-signal-schema-foundation (lifecycle, epistemic, mutability, positive signals), 34-signal-plan-linkage (resolves_signals, verification_window, recurrence)*

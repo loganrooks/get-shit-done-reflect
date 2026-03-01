@@ -341,6 +341,7 @@ depends_on: []              # Plan IDs this plan requires
 files_modified: []          # Files this plan touches
 autonomous: true            # false if plan has checkpoints
 user_setup: []              # Human-required setup (omit if empty)
+resolves_signals: []          # Optional: signal IDs this plan resolves
 
 must_haves:
   truths: []                # Observable behaviors
@@ -406,6 +407,7 @@ After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 | `files_modified` | Yes | Files this plan touches |
 | `autonomous` | Yes | `true` if no checkpoints |
 | `user_setup` | No | Human-required setup items |
+| `resolves_signals` | No | Signal IDs this plan addresses |
 | `must_haves` | Yes | Goal-backward verification criteria |
 
 Wave numbers are pre-computed during planning. Execute-phase reads `wave` directly from frontmatter.
@@ -872,6 +874,29 @@ Knowledge surfacing for the planner is OPTIONAL, at your discretion. The phase r
 Knowledge the planner applies becomes part of the PLAN.md task instructions. The executor reads PLAN.md and receives knowledge indirectly through the plan's action descriptions, library choices, and architectural guidance. This is the knowledge chain: KB -> researcher -> RESEARCH.md -> planner -> PLAN.md -> executor.
 
 </knowledge_surfacing>
+
+<signal_awareness>
+## Signal Awareness (resolves_signals)
+
+When `<triaged_signals>` context is provided by the plan-phase workflow:
+
+1. Review each triaged signal's root cause and remediation suggestion
+2. For each plan being created, assess: "Does any task in this plan directly address the root cause of a triaged signal?"
+3. If YES: add the signal ID to `resolves_signals` in the plan's frontmatter
+4. In the relevant task's `<action>`, include: "This task addresses signal {sig-id}: {root cause summary}"
+5. In `must_haves.truths`, include a truth that reflects the signal's resolution
+
+**Rules:**
+- Do NOT force-fit signals. Only declare resolves_signals when the plan genuinely addresses the root cause.
+- Do NOT create tasks solely to resolve signals -- the primary planning objective takes precedence.
+- Do NOT add resolves_signals for signals with `triage.decision` other than "address" (skip dismiss/defer/investigate).
+- Maximum 5 signal IDs per plan (focus on the most relevant).
+- If no triaged signals match the current phase's work, omit resolves_signals entirely.
+
+**Validation:** Before including a signal ID, verify it exists in the KB index. Non-existent IDs produce a warning but do not block plan creation (signals could be archived between planning and execution).
+
+**When triaged_signals is empty or not provided:** Omit resolves_signals from plan frontmatter. Do not query the KB independently -- the plan-phase workflow handles signal loading.
+</signal_awareness>
 
 <required_reading>
 @./.claude/get-shit-done/references/agent-protocol.md

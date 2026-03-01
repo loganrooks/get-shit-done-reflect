@@ -458,10 +458,8 @@ Status: {STABLE|DRIFTING|CONCERNING}
 
 {End for each}
 
-> **Note:** Triaged signals remain at "triaged" status until Phase 34 (Signal-Plan Linkage) ships.
-> Phase 34 enables plans to declare `resolves_signals`, which automatically moves triaged signals
-> to "remediated" when plans complete. Until then, triage decisions are recorded but the full
-> lifecycle pipeline is not yet connected.
+> Triaged signals with `decision: address` will be picked up by the planner during `/gsd:plan-phase`.
+> Plans can declare `resolves_signals` to automatically move signals to "remediated" on completion.
 
 --------------------------------------------------------------
 ```
@@ -591,10 +589,75 @@ Display final completion summary:
 --------------------------------------------------------------
 
 Next: Lessons will surface via /gsd:kb-search during future planning.
-Triaged signals will be linked to plans in Phase 34 (Signal-Plan Linkage).
+Triaged signals with decision "address" will surface during /gsd:plan-phase for resolves_signals linkage.
 
 --------------------------------------------------------------
 ```
+
+</step>
+
+<step name="persist_report">
+
+Write the full reflection report to a persistent file in the knowledge base. This preserves the analytical context (patterns, scores, triage decisions, spike candidates) that would otherwise be lost when the session ends.
+
+```bash
+REPORT_DIR="$HOME/.gsd/knowledge/reflections/$PROJECT_NAME"
+mkdir -p "$REPORT_DIR"
+REPORT_FILE="$REPORT_DIR/reflect-$(date +%Y-%m-%d).md"
+```
+
+**Report content:** Write the complete reflection output as a markdown file, including:
+
+```markdown
+---
+project: {PROJECT_NAME}
+date: {YYYY-MM-DD}
+scope: {SCOPE}
+signals_analyzed: {count}
+patterns_detected: {count}
+lessons_created: {count}
+signals_triaged: {count}
+spike_candidates: {count}
+drift_status: {STABLE|DRIFTING|CONCERNING|N/A}
+---
+
+# Reflection Report: {PROJECT_NAME}
+
+Date: {YYYY-MM-DD}
+Scope: {SCOPE}
+
+## Lifecycle Dashboard
+
+{dashboard table from show_lifecycle_dashboard step}
+
+## Patterns Detected
+
+{patterns table and root cause hypotheses from present_results step}
+
+## Triage Results
+
+{triage proposals table with decisions and status from handle_triage_proposals step}
+
+## Lessons Created
+
+{lessons table from handle_lesson_creation step}
+
+## Remediation Suggestions
+
+{remediation suggestions from present_results step}
+
+## Spike Candidates
+
+{spike candidates from reflector output, if any}
+
+## Semantic Drift
+
+{drift assessment if drift check was run, otherwise "Not checked"}
+```
+
+**Same-day overwrites:** If a report for today already exists, overwrite it. Only the latest run per day is preserved.
+
+**Report is informational:** The report file is a historical record. It is NOT indexed in `index.md` (reflections are not KB entries). Other workflows may read it for context (e.g., planning could reference recent reflection findings).
 
 </step>
 
@@ -603,18 +666,31 @@ Triaged signals will be linked to plans in Phase 34 (Signal-Plan Linkage).
 If lessons were written and `COMMIT_PLANNING_DOCS` is true, commit the new lesson files:
 
 ```bash
-if [ "$COMMIT_PLANNING_DOCS" = "true" ] && [ "$LESSONS_CREATED" -gt 0 ]; then
-  # Stage individual lesson files
-  for lesson_file in $(find ~/.gsd/knowledge/lessons/ -name "les-*.md" -newer ~/.gsd/knowledge/index.md 2>/dev/null); do
-    git add "$lesson_file"
-  done
-  # Stage updated index
-  git add ~/.gsd/knowledge/index.md
-  git commit -m "docs(lessons): distill ${LESSONS_CREATED} lessons from reflection
+if [ "$COMMIT_PLANNING_DOCS" = "true" ]; then
+  # Stage reflection report (always written)
+  git add "$REPORT_FILE" 2>/dev/null
 
-- Patterns analyzed: ${PATTERNS_DETECTED}
+  if [ "$LESSONS_CREATED" -gt 0 ]; then
+    # Stage individual lesson files
+    for lesson_file in $(find ~/.gsd/knowledge/lessons/ -name "les-*.md" -newer ~/.gsd/knowledge/index.md 2>/dev/null); do
+      git add "$lesson_file"
+    done
+    # Stage updated index
+    git add ~/.gsd/knowledge/index.md
+    git commit -m "docs(reflect): ${LESSONS_CREATED} lessons, ${PATTERNS_DETECTED} patterns from reflection
+
 - Scope: ${SCOPE}
+- Signals analyzed: ${SIGNAL_COUNT}
+- Report: ${REPORT_FILE}
 - Index rebuilt"
+  else
+    # Commit report only (no lessons this run)
+    git commit -m "docs(reflect): reflection report (${PATTERNS_DETECTED} patterns, 0 lessons)
+
+- Scope: ${SCOPE}
+- Signals analyzed: ${SIGNAL_COUNT}
+- Report: ${REPORT_FILE}"
+  fi
 fi
 ```
 
