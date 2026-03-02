@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-27)
+See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.16 Signal Lifecycle & Reflection -- Phase 35 Complete (Spike Audit & Lightweight Mode)
+**Current focus:** v1.16 complete. Planning next milestone.
 
 ## Current Position
 
-Phase: 35 of 35 (Spike Audit & Lightweight Mode)
-Plan: 4 of 4 in current phase
-Status: Complete
-Last activity: 2026-03-02 -- Plan 35-04 complete (installer sync + phase verification)
+Phase: Between milestones
+Plan: N/A
+Status: Milestone v1.16 shipped 2026-03-02
+Last activity: 2026-03-02 -- v1.16 milestone archived
 
-Progress: [██████████] 100% (Phase 35 -- v1.16 Complete)
+Progress: v1.16 complete. Next: /gsd:new-milestone
 
 ## Performance Metrics
 
@@ -65,61 +65,10 @@ Progress: [██████████] 100% (Phase 35 -- v1.16 Complete)
 ### Decisions
 
 Full decision log in PROJECT.md Key Decisions table.
-v1.13-v1.15 decisions archived in milestones/ directories.
+v1.13-v1.16 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
-- v1.16 roadmap: 5 phases derived from 36 requirements across SCHEMA/SENSOR/REFLECT/LIFECYCLE/SPIKE categories
-- v1.16 ordering: Schema first (foundation), then sensors, then reflector (highest value), then linkage (closes loop), spikes last (independent)
-- Critical pitfall: Build reflector BEFORE adding more sensors -- reflector is the bottleneck, not detection
-- P31-01: Four severity tiers (critical/notable/minor/trace) with tiered epistemic rigor
-- P31-01: Lifecycle state machine: detected->triaged->remediated->verified + invalidated terminal
-- P31-01: Mutability boundary: frozen detection payload + mutable lifecycle fields (agent-enforced)
-- P31-01: signal_category authoritative over polarity; dismissed is triage decision, not lifecycle state
-- P31-02: Moved single auto-fix/minor file differences/task order changes from trace to minor severity (now persisted to KB)
-- P31-02: signal_category replaces polarity as primary positive/negative indicator; polarity retained for backward compatibility
-- P31-02: Trace non-persistence enforcement deferred to Phase 32 synthesizer; documented explicitly
-- P31-02: Anti-pattern 10.6 updated to detection-payload-frozen / lifecycle-fields-mutable boundary
-- P31-03: Signal schema machine-enforceable via FRONTMATTER_SCHEMAS with conditional validation (critical requires evidence)
-- P31-03: kb-rebuild-index.sh lifecycle_state column with "detected" default for existing signals
-- P31-04: backward_compat keyed on lifecycle_state absence; evidence content validation for empty objects; Phase 33 triage constraint documented
-- P32-01: Artifact sensor returns ALL candidates including trace -- synthesizer is single enforcement point for trace non-persistence
-- P32-01: Log sensor ships disabled with spike question rather than being omitted -- documents the unknown (SENSOR-07)
-- P32-01: Delimited sensor output format (## SENSOR OUTPUT / ## END SENSOR OUTPUT) with structured JSON
-- P32-03: Synthesizer is sole KB writer; sensors never write directly to KB
-- P32-03: Per-project cap not enforced (documented as future gap); per-phase cap of 10 is primary constraint
-- P32-03: Post-write validation deletes malformed files rather than leaving broken state
-- [Phase 32]: Git sensor uses expandable commit window (100 then 300) for fix-chain detection
-- P32-04: Orchestrator passes file PATHS to sensors (not CONTENTS) to prevent context bloat
-- P32-04: JSON extraction uses delimiter protocol (## SENSOR OUTPUT) with fenced code block fallback
-- [Phase 33]: P33-02: SIG-format signals counted in separate Legacy row to prevent inflating Untriaged count
-- [Phase 33]: P33-02: YOLO triage auto-approve limited to address and dismiss only; defer and investigate always prompt
-- [Phase 33]: P33-02: Per-run triage cap of 10 signals to bound first-run bulk operations
-- [Phase 33]: P33-02: Remediation suggestions are advisory; Phase 34 handles actual lifecycle transitions via resolves_signals
-- [Phase 33]: P33-01: Weighted score thresholds 3.0/4.0/5.0 for critical/notable/minor replace raw count thresholds
-- [Phase 33]: P33-01: Section 8 taxonomy declared authoritative; legacy categories mapped (debugging->testing, performance->architecture, other->workflow)
-- [Phase 33]: P33-01: Counter-evidence bounded to 3 examples per pattern using index-first search; spike candidates triggered by investigate triage, low confidence, or marginal score
-- [Phase 33]: P33-03: Two-pass signal reading (index pass via shell commands, detail pass for qualifying clusters only) to manage context budget
-- [Phase 33]: P33-03: Reflector authorized mutations limited to lifecycle fields only; roundtrip validation before bulk triage writes
-- [Phase 33]: P33-03: Spike candidates identified but not created; remediation suggestions are plan-level advisory only
-- P34-01: resolves_signals is documentation-only -- no gsd-tools.js code changes needed (FRONTMATTER_SCHEMAS.plan allows unknown fields)
-- P34-01: Recurrence escalation applies to the new signal, not the original (original severity is frozen detection payload)
-- P34-01: verification_window range 1-10 with default 3 phases
-- P34-02: Signal awareness section placed after knowledge_surfacing in planner agent
-- P34-02: Triaged signal loading skipped for --gaps mode
-- P34-02: Signal context capped at 10 files prioritized by severity
-- P34-02: Triaged signals passed inline in planning_context block
-- [Phase 34]: P34-03: Signal remediation happens at workflow level (execute-plan.md), not in executor agent
-- [Phase 34]: P34-03: Recurrence detection uses same matching algorithm as cross-sensor dedup (signal_type + 2+ tags)
-- [Phase 34]: P34-03: Passive verification uses configurable verification_window (default 3 phases)
-- [Phase 34]: P34-03: Recurrence regression resets matched signal to detected state, not triaged
-- [Phase 34]: P34-04: KB signal files are external to repo (~/.gsd/knowledge/) -- lifecycle demo changes persisted but not git-committed
-- [Phase 35]: Research mode handled inline in run-spike.md Step 5b for interactive spikes, and via mode: research in DESIGN.md for runner-invoked spikes
-- [Phase 35]: Step 5.5 advisory-only by default (auto_trigger: false) -- spikes suggested but not auto-executed
-- [Phase 35]: Researcher Open Questions restructured globally (Resolved/Genuine Gaps/Still Open) -- affects all future research
-- [Phase 35]: Config keys use nested spike.sensitivity format (not flat spike_sensitivity) matching manifest schema
-- [Phase 35]: P35-03: Claude Code session data stored at ~/.claude/projects/{dash-encoded-path}/*.jsonl (JSONL) and ~/.claude/debug/*.txt (plain text)
-- [Phase 35]: P35-03: SENSOR-07 should be enabled with streaming reads for recent sessions; format treated as best-effort (no Anthropic stability guarantee)
-- [Phase 35]: P35-04: All 5 SPIKE requirements verified and approved; spike system fully operational in runtime
+(No active milestone — run /gsd:new-milestone to start next cycle)
 
 ### Pending Todos
 
@@ -131,8 +80,8 @@ Recent decisions affecting current work:
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
-- 11 tech debt items from v1.15 audit (0 blockers) -- see milestones/v1.15-MILESTONE-AUDIT.md
-- Nested YAML parsing risk: extractFrontmatter() may not handle deep nesting (triage.decision, evidence.supporting) -- test early in Phase 31
+- 12 tech debt items from v1.16 audit (0 blockers) -- see milestones/v1.16-MILESTONE-AUDIT.md
+- Config key inconsistency: spike_sensitivity (flat) vs spike.sensitivity (nested) -- advisory only
 
 ### Quick Tasks Completed
 
@@ -153,7 +102,7 @@ Recent decisions affecting current work:
 
 ### Roadmap Evolution
 
-v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phases 13-21). v1.15 complete (Phases 22-30). v1.16 complete (Phases 31-35). All planned phases shipped.
+v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phases 13-21). v1.15 complete (Phases 22-30). v1.16 complete (Phases 31-35). All 5 milestones shipped, 105 plans completed.
 
 ### Key Artifacts
 
@@ -161,6 +110,7 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 - Tag `reflect-v1.13.0` -- annotated release tag on commit d6a250b
 - Tag `reflect-v1.14.0` -- annotated release tag for multi-runtime interop
 - Tag `reflect-v1.15.0` -- annotated release tag for backlog & update experience
+- Tag `reflect-v1.16.0` -- annotated release tag for signal lifecycle & reflection
 - **Tag convention:** Fork tags use `reflect-v*` prefix to avoid collision with upstream tags. Upstream remote configured with `--no-tags`.
 - PR #3 -- sync/v1.13-upstream to main (https://github.com/loganrooks/get-shit-done-reflect/pull/3)
 - `.planning/FORK-STRATEGY.md` -- conflict resolution runbook + Merge Decision Log
@@ -169,5 +119,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 35-04-PLAN.md (installer sync + phase verification). Phase 35 complete. v1.16 milestone complete (Phases 31-35).
+Stopped at: v1.16 milestone archived. Ready for /gsd:new-milestone.
 Resume file: None

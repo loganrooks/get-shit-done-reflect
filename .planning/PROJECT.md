@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A self-improving, runtime-agnostic enhancement to the GSD (Get Shit Done) workflow system. Adds signal tracking (automatic detection of workflow deviations, config mismatches, debugging struggles), a structured spike/experiment workflow for resolving design uncertainty empirically, a persistent cross-project knowledge base at `~/.gsd/knowledge/`, a reflection engine that distills signals into actionable lessons, and knowledge surfacing that automatically retrieves relevant lessons during research and planning. Supports 4 runtimes (Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI) with cross-runtime pause/resume, shared state, and per-runtime capability detection. Includes a structured backlog system (per-project + global) for capturing and surfacing ideas across sessions, a declarative feature manifest for config-driven upgrades, and a shared agent protocol for maintainable agent specs. Synchronized with upstream GSD v1.18.0 including the gsd-tools CLI, thin orchestrator architecture, and 11 bug fixes. Includes production tooling: workspace health checks, version migration, DevOps context capture, and installer hardening with safeFs error reporting.
+A self-improving, runtime-agnostic enhancement to the GSD (Get Shit Done) workflow system. Features a complete signal lifecycle (detect, triage, remediate, verify, recurrence check) with multi-sensor collection (artifact + git sensors), confidence-weighted reflection that distills lessons from accumulated signals, and epistemic rigor (counter-evidence seeking, tiered validation) built into every stage. Includes a persistent cross-project knowledge base at `~/.gsd/knowledge/`, a structured spike/experiment workflow for resolving design uncertainty empirically, and knowledge surfacing that retrieves relevant lessons during research and planning. Signal-plan linkage closes the loop: plans declare which signals they fix, completion auto-updates remediation status, and passive verification confirms fixes after configurable phase windows. Supports 4 runtimes (Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI) with cross-runtime pause/resume, shared state, and per-runtime capability detection. Includes a structured backlog system (per-project + global), a declarative feature manifest for config-driven upgrades, and a shared agent protocol for maintainable agent specs. Synchronized with upstream GSD v1.18.0 including the gsd-tools CLI, thin orchestrator architecture, and 11 bug fixes. Includes production tooling: workspace health checks, version migration, DevOps context capture, and installer hardening with safeFs error reporting.
 
 ## Core Value
 
@@ -67,20 +67,18 @@ The system never makes the same mistake twice — signals capture what went wron
 - ✓ Workflow DX: /gsd:quick complexity gate, safeFs() installer hardening, portable shell scripts — v1.15
 - ✓ 256 tests passing (163 gsd-tools + 73 install + 20 wiring) — v1.15
 
+- ✓ Multi-sensor collect-signals orchestrator (artifact, git sensors with synthesizer dedup) — v1.16
+- ✓ Signal lifecycle metadata (triage, remediation tracking, verification, recurrence linking) — v1.16
+- ✓ Enhanced /gsd:reflect with lifecycle awareness, confidence-weighted pattern detection, counter-evidence seeking — v1.16
+- ✓ Signal-plan linkage: resolves_signals, auto-remediation, passive verification-by-absence — v1.16
+- ✓ Spike system: lightweight research mode, end-to-end execution, reflect-to-spike pipeline — v1.16
+- ✓ Epistemic rigor: counter-evidence fields, positive signals, confidence tracking, tiered validation — v1.16
+- ✓ Full signal lifecycle demonstrated end-to-end (detected → triaged → remediated → verified) — v1.16
+- ✓ 329 tests passing (155 fork + 174 upstream) — v1.16
+
 ### Active
 
-## Current Milestone: v1.16 Signal Lifecycle & Reflection
-
-**Goal:** Close the self-improvement loop — from partial signal detection to a complete lifecycle (detect → triage → remediate → verify → recurrence check → lesson) with epistemic rigor built into every stage.
-
-**Target features:**
-- Multi-sensor collect-signals orchestrator (artifact, git, log sensors with extensible plugin pattern)
-- Signal lifecycle metadata (triage, remediation tracking, verification, recurrence linking)
-- Enhanced /gsd:reflect with lifecycle awareness, confidence-weighted pattern detection, counter-evidence seeking
-- Verification as passive recurrence check inside collect-signals
-- Spike system audit and lightweight mode for low-ceremony empirical investigation
-- Epistemic rigor as structural requirement: counter-evidence fields, positive signals, confidence tracking in schemas
-- Prediction mechanism (STRETCH: predicted vs actual outcomes as signal source)
+(Next milestone requirements TBD via `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -102,16 +100,16 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ## Context
 
-Shipped v1.15 Backlog & Update Experience. Starting v1.16 Signal Lifecycle & Reflection. Core problem: 46 signals accumulated, 1 lesson distilled across 4 milestones — the pipeline from detection to actionable lessons is broken.
+Shipped v1.16 Signal Lifecycle & Reflection. The signal-to-lesson pipeline is now operational: 78 signals accumulated, 7 lessons distilled, 10 signals triaged in first reflection run.
 Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, gsd-tools.js CLI (~5,400 lines with backlog + manifest commands).
-Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents (with shared agent-protocol.md), Runtime layer (Node.js) for installation and hooks.
-Knowledge base: `~/.gsd/knowledge/` (runtime-agnostic) with `signals/`, `spikes/`, `lessons/` subdirectories, auto-generated `index.md`, and provenance fields.
+Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents (with shared agent-protocol.md), Runtime layer (Node.js) for installation and hooks. Multi-sensor signal collection (artifact + git sensors → synthesizer → KB).
+Knowledge base: `~/.gsd/knowledge/` (runtime-agnostic) with `signals/`, `spikes/`, `lessons/`, `reflections/` subdirectories, auto-generated `index.md`, lifecycle state machine, and provenance fields.
 Backlog: Two-tier storage (`.planning/backlog/items/` per-project, `~/.gsd/backlog/items/` global) with Markdown+YAML items, 7 CLI subcommands, auto-indexed.
-Test suite: 256 tests (163 gsd-tools + 73 install + 20 wiring), CI/CD via GitHub Actions with branch protection.
-11 tech debt items from v1.15 audit (0 blockers): agent protocol gaps (2), human verification pending (7), restoration inconsistency (2). See v1.15 audit.
+Test suite: 329 tests (155 fork + 174 upstream), CI/CD via GitHub Actions with branch protection.
+12 tech debt items from v1.16 audit (0 blockers): 10 human verification items (agent behaviors needing runtime UAT), 2 advisory issues (config key inconsistency, path prefix). See v1.16 audit.
 
-**Fork status (post v1.15):**
-- Fork at v1.15.0, upstream at v1.18.0
+**Fork status (post v1.16):**
+- Fork at v1.16.0, upstream at v1.18.0
 - Tracked-modifications strategy with FORK-DIVERGENCES.md documenting per-file merge stances
 - 4 runtimes supported: Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI
 - Upstream's reverted GSD Memory vs fork's file-based KB: fork approach validated in production (see KB-COMPARISON.md)
@@ -167,6 +165,12 @@ Test suite: 256 tests (163 gsd-tools + 73 install + 20 wiring), CI/CD via GitHub
 | Backlog review always skippable | Never gate milestone completion on backlog triage | ✓ Good — nudge, don't block |
 | safeFs thunk pattern for installer | Wrapping every fs call individually duplicates API signatures | ✓ Good — lambda-based, logging only, always re-throws |
 | Complexity gate for /gsd:quick | Trivial tasks don't need planner spawn; complex tasks need full flow | ✓ Good — word-boundary matching for multi-step indicators |
+| Frozen detection payload + mutable lifecycle fields | Signal observations are historical facts; lifecycle progression is separate from detection | ✓ Good — mutability boundary enforced by agents, not code |
+| Confidence-weighted pattern detection | Raw occurrence counts miss quality; high-confidence signals should weight more | ✓ Good — 3 high-confidence criticals surface faster than 5 low-confidence minors |
+| Single KB writer (synthesizer) | Multiple sensors writing concurrently causes races and duplicates | ✓ Good — sensors return candidates, synthesizer is sole writer with dedup |
+| Passive verification-by-absence | Requiring explicit verification of every fix is impractical; no recurrence after N phases is strong evidence | ✓ Good — configurable verification_window (default 3 phases) |
+| Lightweight research spike mode | Full BUILD/RUN cycle is overkill for "which format does X use?" questions | ✓ Good — option 4 in run-spike.md, completed Spike 002 end-to-end |
+| Per-run triage cap of 10 signals | First reflection on 78 signals would modify too many files in one session | ✓ Good — bounds blast radius, user can run reflect again |
 
 ---
-*Last updated: 2026-02-27 after v1.16 milestone start*
+*Last updated: 2026-03-02 after v1.16 milestone completion*

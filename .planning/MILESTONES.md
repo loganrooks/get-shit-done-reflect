@@ -1,5 +1,35 @@
 # Project Milestones: GSD Reflect
 
+## v1.16 Signal Lifecycle & Reflection (Shipped: 2026-03-02)
+
+**Delivered:** A complete signal lifecycle system -- from detection through triage, remediation, verification, and recurrence checking -- with multi-sensor collection, confidence-weighted reflection, and epistemic rigor built into every stage. The system now produces actionable lessons from accumulated signals and verifies that remediations work.
+
+**Phases completed:** 31-35 (20 plans total, 5 phases)
+
+**Key accomplishments:**
+
+- Signal schema extended with lifecycle fields (triage, remediation, verification), mutability boundary (frozen detection payload + mutable lifecycle), and tiered epistemic rigor -- all 46 existing signals remain valid without migration
+- Multi-sensor orchestrator: parallel artifact + git sensors with synthesizer deduplication, single KB writer, and per-phase caps -- replaces monolithic signal collector
+- Enhanced reflector: lifecycle-aware triage with confidence-weighted pattern detection, counter-evidence seeking, lesson distillation with evidence snapshots, and remediation suggestions
+- Signal-plan linkage: plans declare resolves_signals, completion auto-updates remediation status, synthesizer detects recurrence and escalates severity, passive verification-by-absence after configurable phase window
+- Spike system operational: lightweight research-only mode, end-to-end spike execution (Spike 002: session log location), reflect-to-spike pipeline with 3 trigger conditions
+- Full signal lifecycle demonstrated end-to-end: detected -> triaged -> remediated -> verified (on sig-2026-02-28-verification-gap)
+
+**Stats:**
+
+- 100 files changed
+- +13,954 / -902 lines (Markdown, JavaScript, Shell)
+- 5 phases, 20 plans, 41 tasks, 36 requirements (all satisfied)
+- 3 days from start to ship (2026-02-28 -> 2026-03-02)
+- 26 feat commits
+- 329 tests passing (155 fork + 174 upstream)
+
+**Git range:** `feat(31-01)` -> `feat(35-04)`
+
+**What's next:** Next milestone TBD via `/gsd:new-milestone`
+
+---
+
 ## v1.15 Backlog & Update Experience (Shipped: 2026-02-23)
 
 **Delivered:** A structured backlog system for capturing and surfacing ideas across sessions, declarative feature configuration with manifest-driven upgrades, and workflow reliability improvements — agent boilerplate extraction, installer hardening, and signal-driven bug fixes.
