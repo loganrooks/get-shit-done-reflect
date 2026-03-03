@@ -8,6 +8,58 @@ import { execSync } from 'node:child_process'
 const GSD_TOOLS = path.resolve(process.cwd(), 'get-shit-done/bin/gsd-tools.js')
 
 /**
+ * Helper: create a temp project with .planning/config.json and run track-event
+ */
+async function setupAndTrackEvent(tmpdir, config, feature, event, reason) {
+  const planningDir = path.join(tmpdir, '.planning')
+  await fs.mkdir(planningDir, { recursive: true })
+  await fs.writeFile(
+    path.join(planningDir, 'config.json'),
+    JSON.stringify(config, null, 2)
+  )
+
+  const args = ['automation', 'track-event', feature, event]
+  if (reason) args.push(reason)
+  args.push('--raw')
+
+  const result = execSync(`node "${GSD_TOOLS}" ${args.join(' ')}`, {
+    cwd: tmpdir,
+    encoding: 'utf-8',
+    timeout: 10000,
+    stdio: ['pipe', 'pipe', 'pipe'],
+  })
+
+  return JSON.parse(result.trim())
+}
+
+/**
+ * Helper: read config.json from tmpdir after track-event
+ */
+async function readConfig(tmpdir) {
+  const configPath = path.join(tmpdir, '.planning', 'config.json')
+  const content = await fs.readFile(configPath, 'utf8')
+  return JSON.parse(content)
+}
+
+/**
+ * Helper: run track-event CLI directly (for sequential calls on same tmpdir)
+ */
+function runTrackEvent(tmpdir, feature, event, reason) {
+  const args = ['automation', 'track-event', feature, event]
+  if (reason) args.push(reason)
+  args.push('--raw')
+
+  const result = execSync(`node "${GSD_TOOLS}" ${args.join(' ')}`, {
+    cwd: tmpdir,
+    encoding: 'utf-8',
+    timeout: 10000,
+    stdio: ['pipe', 'pipe', 'pipe'],
+  })
+
+  return JSON.parse(result.trim())
+}
+
+/**
  * Helper: create a temp project with .planning/config.json and run resolve-level
  */
 async function setupAndResolve(tmpdir, config, feature, extraArgs = []) {
@@ -429,6 +481,148 @@ describe('automation resolve-level', () => {
       expect(result).toHaveProperty('reasons')
       expect(result).toHaveProperty('knobs')
       expect(result).toHaveProperty('level_names')
+    })
+  })
+})
+
+describe('automation track-event', () => {
+  describe('fire events', () => {
+    tmpdirTest('first fire: fires=1, last_triggered is ISO timestamp, skips=0', async ({ tmpdir }) => {
+      const result = await setupAndTrackEvent(tmpdir, { mode: 'yolo' }, 'signal_collection', 'fire')
+      expect(result.feature).toBe('signal_collection')
+      expect(result.event).toBe('fire')
+      expect(result.stats.fires).toBe(1)
+      expect(result.stats.skips).toBe(0)
+      expect(result.stats.last_triggered).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+      expect(result.stats.last_skip_reason).toBeNull()
+    })
+
+    tmpdirTest('multiple fires: fires increments, last_triggered updates', async ({ tmpdir }) => {
+      const result1 = await setupAndTrackEvent(tmpdir, { mode: 'yolo' }, 'signal_collection', 'fire')
+      expect(result1.stats.fires).toBe(1)
+      const ts1 = result1.stats.last_triggered
+
+      // Small delay to ensure different timestamp
+      const result2 = runTrackEvent(tmpdir, 'signal_collection', 'fire')
+      expect(result2.stats.fires).toBe(2)
+      expect(result2.stats.last_triggered).toBeDefined()
+    })
+
+    tmpdirTest('stats section auto-created if not present', async ({ tmpdir }) => {
+      // Config has no automation section at all
+      const result = await setupAndTrackEvent(tmpdir, {}, 'signal_collection', 'fire')
+      expect(result.stats.fires).toBe(1)
+
+      // Verify config.json was updated with automation.stats section
+      const config = await readConfig(tmpdir)
+      expect(config.automation).toBeDefined()
+      expect(config.automation.stats).toBeDefined()
+      expect(config.automation.stats.signal_collection).toBeDefined()
+    })
+  })
+
+  describe('skip events', () => {
+    tmpdirTest('skip with reason: skips=1, last_skip_reason matches', async ({ tmpdir }) => {
+      const result = await setupAndTrackEvent(tmpdir, { mode: 'yolo' }, 'signal_collection', 'skip', 'context_exceeded')
+      expect(result.stats.skips).toBe(1)
+      expect(result.stats.last_skip_reason).toBe('context_exceeded')
+      expect(result.stats.fires).toBe(0)
+    })
+
+    tmpdirTest('skip without reason: last_skip_reason="unknown"', async ({ tmpdir }) => {
+      const result = await setupAndTrackEvent(tmpdir, { mode: 'yolo' }, 'signal_collection', 'skip')
+      expect(result.stats.skips).toBe(1)
+      expect(result.stats.last_skip_reason).toBe('unknown')
+    })
+
+    tmpdirTest('multiple skips: skips increments, last_skip_reason updates to latest', async ({ tmpdir }) => {
+      await setupAndTrackEvent(tmpdir, { mode: 'yolo' }, 'signal_collection', 'skip', 'reason_one')
+      const result2 = runTrackEvent(tmpdir, 'signal_collection', 'skip', 'reason_two')
+      expect(result2.stats.skips).toBe(2)
+      expect(result2.stats.last_skip_reason).toBe('reason_two')
+    })
+  })
+
+  describe('atomic persistence', () => {
+    tmpdirTest('after track-event, config.json contains persisted stats', async ({ tmpdir }) => {
+      await setupAndTrackEvent(tmpdir, { mode: 'yolo' }, 'signal_collection', 'fire')
+
+      const config = await readConfig(tmpdir)
+      expect(config.automation.stats.signal_collection.fires).toBe(1)
+      expect(config.automation.stats.signal_collection.last_triggered).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+    })
+
+    tmpdirTest('stats for different features are independent', async ({ tmpdir }) => {
+      await setupAndTrackEvent(tmpdir, { mode: 'yolo' }, 'signal_collection', 'fire')
+      const result = runTrackEvent(tmpdir, 'reflection', 'skip', 'not_needed')
+
+      const config = await readConfig(tmpdir)
+      expect(config.automation.stats.signal_collection.fires).toBe(1)
+      expect(config.automation.stats.signal_collection.skips).toBe(0)
+      expect(config.automation.stats.reflection.fires).toBe(0)
+      expect(config.automation.stats.reflection.skips).toBe(1)
+      expect(config.automation.stats.reflection.last_skip_reason).toBe('not_needed')
+    })
+  })
+
+  describe('feature name normalization', () => {
+    tmpdirTest('hyphenated feature name normalizes to underscored', async ({ tmpdir }) => {
+      const result = await setupAndTrackEvent(tmpdir, { mode: 'yolo' }, 'signal-collection', 'fire')
+      expect(result.feature).toBe('signal_collection')
+
+      const config = await readConfig(tmpdir)
+      expect(config.automation.stats.signal_collection).toBeDefined()
+      expect(config.automation.stats['signal-collection']).toBeUndefined()
+    })
+  })
+
+  describe('error cases', () => {
+    tmpdirTest('missing feature name: error', async ({ tmpdir }) => {
+      const planningDir = path.join(tmpdir, '.planning')
+      await fs.mkdir(planningDir, { recursive: true })
+      await fs.writeFile(
+        path.join(planningDir, 'config.json'),
+        JSON.stringify({ mode: 'yolo' })
+      )
+
+      expect(() => {
+        execSync(`node "${GSD_TOOLS}" automation track-event --raw`, {
+          cwd: tmpdir,
+          encoding: 'utf-8',
+          timeout: 10000,
+          stdio: ['pipe', 'pipe', 'pipe'],
+        })
+      }).toThrow()
+    })
+
+    tmpdirTest('invalid event type (not fire/skip): error', async ({ tmpdir }) => {
+      const planningDir = path.join(tmpdir, '.planning')
+      await fs.mkdir(planningDir, { recursive: true })
+      await fs.writeFile(
+        path.join(planningDir, 'config.json'),
+        JSON.stringify({ mode: 'yolo' })
+      )
+
+      expect(() => {
+        execSync(`node "${GSD_TOOLS}" automation track-event signal_collection invalid --raw`, {
+          cwd: tmpdir,
+          encoding: 'utf-8',
+          timeout: 10000,
+          stdio: ['pipe', 'pipe', 'pipe'],
+        })
+      }).toThrow()
+    })
+
+    tmpdirTest('missing config.json: error', async ({ tmpdir }) => {
+      // No .planning/config.json created
+      expect(() => {
+        execSync(`node "${GSD_TOOLS}" automation track-event signal_collection fire --raw`, {
+          cwd: tmpdir,
+          encoding: 'utf-8',
+          timeout: 10000,
+          stdio: ['pipe', 'pipe', 'pipe'],
+        })
+      }).toThrow()
     })
   })
 })
