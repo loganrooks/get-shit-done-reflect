@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.17 Automation Loop -- Phase 36: Foundation Fix
+**Current focus:** v1.17 Automation Loop -- Phase 37: Automation Framework
 
 ## Current Position
 
-Phase: 36 of 43 (Foundation Fix)
-Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-03-03 -- Phase 36 Plan 01 executed (fix wiring test assertion paths + meta-test recurrence guard)
+Phase: 37 of 43 (Automation Framework)
+Plan: 1 of 3 in current phase
+Status: In progress
+Last activity: 2026-03-03 -- Phase 37 Plan 01 executed (automation feature manifest + resolve-level subcommand)
 
 Progress: [█░░░░░░░░░] 6%
 
@@ -64,6 +64,7 @@ Progress: [█░░░░░░░░░] 6%
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 36 | 01 | 3min | 2 | 1 |
+| 37 | 01 | 3min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -77,6 +78,7 @@ v1.17: Automation Loop selected as first of 5 post-v1.16 milestones. See .planni
 v1.17: Philosophical foundations established (6 frameworks, 8 documents, ~65 citable principles). `philosophy:` added as motivation type. 6 new requirements from cross-framework convergence. 5 tagged interventions with falsifiable predictions for empirical evaluation.
 v1.17: Roadmap created with 8 phases (36-43), 49 requirements mapped, diverging from research's 6-phase recommendation to separate automation framework (Phase 37) and extensible sensor architecture (Phase 38) as distinct foundational phases.
 v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, path.join, pathExists) rather than broad .claude/ grep. Four exempt files (install, multi-runtime, cross-runtime-kb, kb-infrastructure).
+- [Phase 37]: Automation feature uses manifest config_key detection (not KNOWN_TOP_LEVEL_KEYS), consistent with all other manifest features
 
 ### Pending Todos
 
@@ -129,5 +131,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 36-01-PLAN.md. Phase 36 complete (1/1 plans). Ready for Phase 37.
+Stopped at: Completed 37-01-PLAN.md. Plan 1/3 in Phase 37. Ready for 37-02.
 Resume file: None
