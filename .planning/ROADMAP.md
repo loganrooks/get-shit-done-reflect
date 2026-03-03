@@ -28,8 +28,8 @@ Research SUMMARY.md proposed 6 phases (Foundation Fix → CI Awareness → Plan 
 
 ## Phases
 
-- [ ] **Phase 36: Foundation Fix** - Restore CI trust by fixing the broken wiring test and preventing recurrence
-- [ ] **Phase 37: Automation Framework** - Establish the unified automation level system that all auto-triggering features depend on
+- [x] **Phase 36: Foundation Fix** - Restore CI trust by fixing the broken wiring test and preventing recurrence
+- [x] **Phase 37: Automation Framework** - Establish the unified automation level system that all auto-triggering features depend on
 - [ ] **Phase 38: Extensible Sensor Architecture** - Build the sensor discovery and contract system so new sensors can be added without framework modification
 - [ ] **Phase 39: CI Awareness** - Build the CI sensor under the extensible model and surface CI status at session start
 - [ ] **Phase 40: Signal Collection Automation** - Auto-trigger signal collection after phase execution with reentrancy protection and cross-runtime fallback
@@ -50,7 +50,7 @@ Research SUMMARY.md proposed 6 phases (Foundation Fix → CI Awareness → Plan 
 **Plans**: 1 plan
 
 Plans:
-- [ ] 36-01: Fix wiring test paths and add meta-test for recurrence prevention
+- [x] 36-01: Fix wiring test paths and add meta-test for recurrence prevention
 
 ### Phase 37: Automation Framework
 **Goal**: Users can configure automation behavior at a global level and per-feature, with the system honestly reporting effective levels per runtime
@@ -65,9 +65,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 37-01: Add automation feature to manifest, basic resolve-level subcommand with global level
-- [ ] 37-02: Extend resolve-level with overrides, context deferral, runtime capping, and tests
-- [ ] 37-03: Statistics tracking (track-event), statusline Auto:N(M) indicator, and tests
+- [x] 37-01: Add automation feature to manifest, basic resolve-level subcommand with global level
+- [x] 37-02: Extend resolve-level with overrides, context deferral, runtime capping, and tests
+- [x] 37-03: Statistics tracking (track-event), statusline Auto:N(M) indicator, and tests
 
 ### Phase 38: Extensible Sensor Architecture
 **Goal**: New sensors can be added by dropping a file into the agents directory -- no framework modification required, existing sensors conform to the standard contract
@@ -175,8 +175,8 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 36. Foundation Fix | 0/1 | Not started | - |
-| 37. Automation Framework | 0/3 | Not started | - |
+| 36. Foundation Fix | 1/1 | Complete | 2026-03-03 |
+| 37. Automation Framework | 3/3 | Complete | 2026-03-03 |
 | 38. Extensible Sensor Architecture | 0/2 | Not started | - |
 | 39. CI Awareness | 0/2 | Not started | - |
 | 40. Signal Collection Automation | 0/3 | Not started | - |
@@ -193,6 +193,6 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
 | v1.14 Multi-Runtime | 13-21 | 18 | Complete | 2026-02-16 |
 | v1.15 Backlog & Update | 22-30 | 24 | Complete | 2026-02-23 |
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
-| v1.17 Automation Loop | 36-43 | 0/18 | In progress | - |
+| v1.17 Automation Loop | 36-43 | 4/18 | In progress | - |
 
-**Totals:** 6 milestones, 43 phases, 105 plans completed, 18 planned
+**Totals:** 6 milestones, 43 phases, 109 plans completed, 14 planned
