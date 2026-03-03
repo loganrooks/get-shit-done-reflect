@@ -5208,6 +5208,52 @@ function cmdAutomationResolveLevel(cwd, feature, options, raw) {
   output(result, raw);
 }
 
+function cmdAutomationTrackEvent(cwd, feature, event, reason, raw) {
+  if (!feature || !event) {
+    error('Usage: automation track-event <feature> <fire|skip> [reason]');
+  }
+  if (event !== 'fire' && event !== 'skip') {
+    error('Event must be "fire" or "skip"');
+  }
+
+  const configPath = path.join(cwd, '.planning', 'config.json');
+  if (!fs.existsSync(configPath)) {
+    error('No .planning/config.json found.');
+  }
+
+  // Normalize feature name
+  const normalizedFeature = feature.replace(/-/g, '_');
+
+  // Read-modify-write with atomic write
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  if (!config.automation) config.automation = {};
+  if (!config.automation.stats) config.automation.stats = {};
+  if (!config.automation.stats[normalizedFeature]) {
+    config.automation.stats[normalizedFeature] = {
+      fires: 0,
+      skips: 0,
+      last_triggered: null,
+      last_skip_reason: null,
+    };
+  }
+
+  const stats = config.automation.stats[normalizedFeature];
+  if (event === 'fire') {
+    stats.fires++;
+    stats.last_triggered = new Date().toISOString();
+  } else if (event === 'skip') {
+    stats.skips++;
+    stats.last_skip_reason = reason || 'unknown';
+  }
+
+  // Atomic write: write to tmp, then rename
+  const tmpPath = configPath + '.tmp';
+  fs.writeFileSync(tmpPath, JSON.stringify(config, null, 2) + '\n');
+  fs.renameSync(tmpPath, configPath);
+
+  output({ feature: normalizedFeature, event, stats }, raw);
+}
+
 // ─── CLI Router ───────────────────────────────────────────────────────────────
 
 async function main() {
@@ -5682,8 +5728,13 @@ async function main() {
           runtime: runtimeIdx !== -1 ? args[runtimeIdx + 1] : undefined,
         };
         cmdAutomationResolveLevel(cwd, feature, options, raw);
+      } else if (subcommand === 'track-event') {
+        const feature = args[2];
+        const event = args[3];
+        const reason = args[4] || undefined;
+        cmdAutomationTrackEvent(cwd, feature, event, reason, raw);
       } else {
-        error('Unknown automation subcommand. Available: resolve-level');
+        error('Unknown automation subcommand. Available: resolve-level, track-event');
       }
       break;
     }
