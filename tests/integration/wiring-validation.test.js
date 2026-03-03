@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import path from 'node:path'
 import fs from 'node:fs/promises'
-import { globSync } from 'node:fs'
+import { readdirSync } from 'node:fs'
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..')
 
@@ -407,7 +407,15 @@ describe('wiring validation', () => {
   describe('test hygiene', () => {
     it('no test file uses .claude/ as a primary assertion path', async () => {
       const testDir = path.join(REPO_ROOT, 'tests')
-      const testFiles = globSync('**/*.test.js', { cwd: testDir })
+      const subdirs = readdirSync(testDir, { withFileTypes: true })
+        .filter(d => d.isDirectory())
+        .map(d => d.name)
+      const testFiles = subdirs.flatMap(sub => {
+        const subPath = path.join(testDir, sub)
+        return readdirSync(subPath)
+          .filter(f => f.endsWith('.test.js'))
+          .map(f => path.join(sub, f))
+      })
 
       // Patterns that indicate .claude/ is used as a primary assertion path
       const PRIMARY_ASSERTION_PATTERNS = [
