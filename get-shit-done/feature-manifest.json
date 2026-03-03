@@ -281,6 +281,48 @@
           "skip_value": "skip"
         }
       ]
+    },
+    "automation": {
+      "scope": "project",
+      "introduced": "1.17.0",
+      "config_key": "automation",
+      "schema": {
+        "level": {
+          "type": "number",
+          "enum": [0, 1, 2, 3],
+          "default": 1,
+          "description": "Global automation level: 0=manual, 1=nudge, 2=prompt, 3=auto"
+        },
+        "overrides": {
+          "type": "object",
+          "default": {},
+          "description": "Per-feature level overrides keyed by feature config_key (e.g., {signal_collection: 3})"
+        },
+        "context_threshold_pct": {
+          "type": "number",
+          "default": 60,
+          "min": 20,
+          "max": 90,
+          "description": "Context usage % above which level-3 features downgrade to nudge"
+        },
+        "stats": {
+          "type": "object",
+          "default": {},
+          "description": "Per-feature automation statistics (fires, skips, timestamps). Auto-populated by track-event."
+        }
+      },
+      "init_prompts": [
+        {
+          "field": "level",
+          "question": "What automation level do you want?",
+          "options": [
+            { "value": 0, "label": "Manual (everything requires explicit commands)" },
+            { "value": 1, "label": "Nudge (statusline indicators and suggestions) [default]" },
+            { "value": 2, "label": "Prompt (system asks before auto-triggering)" },
+            { "value": 3, "label": "Auto (system auto-triggers with thresholds)" }
+          ]
+        }
+      ]
     }
   }
 }
