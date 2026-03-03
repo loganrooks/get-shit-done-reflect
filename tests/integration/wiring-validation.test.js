@@ -31,8 +31,8 @@ function extractAtRefs(content) {
   const refs = []
   let match
   while ((match = pattern.exec(content)) !== null) {
-    // Strip trailing markdown punctuation (backticks, periods, commas, colons)
-    const ref = match[1].replace(/[`.,;:]+$/, '')
+    // Strip trailing markdown punctuation (backticks, periods, commas, colons, asterisks)
+    const ref = match[1].replace(/[`.,;:*]+$/, '')
     // Skip .planning references (runtime-dependent)
     if (ref.includes('.planning')) continue
     refs.push(ref)
@@ -46,7 +46,7 @@ function refToRepoPath(ref) {
     return ref.replace('~/.claude/get-shit-done/', 'get-shit-done/')
   }
   if (ref.startsWith('~/.claude/agents/')) {
-    return ref.replace('~/.claude/agents/', '.claude/agents/')
+    return ref.replace('~/.claude/agents/', 'agents/')
   }
   if (ref.startsWith('~/.claude/')) {
     // Other ~/.claude/ paths - map based on content
@@ -141,8 +141,8 @@ describe('wiring validation', () => {
   })
 
   describe('@-references in agents resolve', () => {
-    it('all @-references in .claude/agents/gsd-*.md resolve', async () => {
-      const allAgents = await readMdFiles('.claude/agents')
+    it('all @-references in agents/gsd-*.md resolve', async () => {
+      const allAgents = await readMdFiles('agents')
       const gsdAgents = allAgents.filter(f => f.name.startsWith('gsd-'))
       const broken = []
 
@@ -167,12 +167,12 @@ describe('wiring validation', () => {
   })
 
   describe('subagent_type values match agent files', () => {
-    it('all subagent_type values map to .claude/agents/{value}.md', async () => {
+    it('all subagent_type values map to agents/{value}.md', async () => {
       // Collect all subagent_type values from all .md files
       const dirs = [
         'commands/gsd',
         'get-shit-done/workflows',
-        '.claude/agents',
+        'agents',
         'get-shit-done/templates',
       ]
 
@@ -219,7 +219,7 @@ describe('wiring validation', () => {
   describe('KB templates have required frontmatter fields', () => {
     it('signal template has severity and signal_type', async () => {
       const content = await fs.readFile(
-        path.join(REPO_ROOT, '.claude/agents/kb-templates/signal.md'),
+        path.join(REPO_ROOT, 'agents/kb-templates/signal.md'),
         'utf8'
       )
       expect(content).toContain('severity:')
@@ -228,7 +228,7 @@ describe('wiring validation', () => {
 
     it('spike template has hypothesis and outcome', async () => {
       const content = await fs.readFile(
-        path.join(REPO_ROOT, '.claude/agents/kb-templates/spike.md'),
+        path.join(REPO_ROOT, 'agents/kb-templates/spike.md'),
         'utf8'
       )
       expect(content).toContain('hypothesis:')
@@ -237,7 +237,7 @@ describe('wiring validation', () => {
 
     it('lesson template has category and evidence', async () => {
       const content = await fs.readFile(
-        path.join(REPO_ROOT, '.claude/agents/kb-templates/lesson.md'),
+        path.join(REPO_ROOT, 'agents/kb-templates/lesson.md'),
         'utf8'
       )
       expect(content).toContain('category:')
@@ -248,7 +248,7 @@ describe('wiring validation', () => {
   describe('KB templates have required body sections', () => {
     it('signal template has "What Happened" section', async () => {
       const content = await fs.readFile(
-        path.join(REPO_ROOT, '.claude/agents/kb-templates/signal.md'),
+        path.join(REPO_ROOT, 'agents/kb-templates/signal.md'),
         'utf8'
       )
       expect(content).toContain('## What Happened')
@@ -256,7 +256,7 @@ describe('wiring validation', () => {
 
     it('spike template has "Decision" section', async () => {
       const content = await fs.readFile(
-        path.join(REPO_ROOT, '.claude/agents/kb-templates/spike.md'),
+        path.join(REPO_ROOT, 'agents/kb-templates/spike.md'),
         'utf8'
       )
       expect(content).toContain('## Decision')
@@ -264,7 +264,7 @@ describe('wiring validation', () => {
 
     it('lesson template has "Recommendation" section', async () => {
       const content = await fs.readFile(
-        path.join(REPO_ROOT, '.claude/agents/kb-templates/lesson.md'),
+        path.join(REPO_ROOT, 'agents/kb-templates/lesson.md'),
         'utf8'
       )
       expect(content).toContain('## Recommendation')
@@ -281,35 +281,18 @@ describe('wiring validation', () => {
     })
 
     it('reflect command exists and references reflect workflow', async () => {
-      // reflect command may be in .claude/commands/gsd/ (the fork addition)
-      let content
-      try {
-        content = await fs.readFile(
-          path.join(REPO_ROOT, 'commands/gsd/reflect.md'),
-          'utf8'
-        )
-      } catch {
-        content = await fs.readFile(
-          path.join(REPO_ROOT, '.claude/commands/gsd/reflect.md'),
-          'utf8'
-        )
-      }
+      const content = await fs.readFile(
+        path.join(REPO_ROOT, 'commands/gsd/reflect.md'),
+        'utf8'
+      )
       expect(content).toMatch(/reflect/)
     })
 
     it('spike command exists and references run-spike workflow', async () => {
-      let content
-      try {
-        content = await fs.readFile(
-          path.join(REPO_ROOT, 'commands/gsd/spike.md'),
-          'utf8'
-        )
-      } catch {
-        content = await fs.readFile(
-          path.join(REPO_ROOT, '.claude/commands/gsd/spike.md'),
-          'utf8'
-        )
-      }
+      const content = await fs.readFile(
+        path.join(REPO_ROOT, 'commands/gsd/spike.md'),
+        'utf8'
+      )
       expect(content).toMatch(/spike/)
     })
   })
@@ -401,7 +384,7 @@ describe('wiring validation', () => {
 
   describe('fork-specific files', () => {
     it('KB signal template exists', async () => {
-      const exists = await pathExists('.claude/agents/kb-templates/signal.md')
+      const exists = await pathExists('agents/kb-templates/signal.md')
       expect(exists).toBe(true)
     })
 
