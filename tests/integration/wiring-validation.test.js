@@ -403,4 +403,56 @@ describe('wiring validation', () => {
       expect(exists).toBe(true)
     })
   })
+
+  describe('test hygiene', () => {
+    it('no test file uses .claude/ as a primary assertion path', async () => {
+      const testDir = path.join(REPO_ROOT, 'tests')
+      const testFiles = globSync('**/*.test.js', { cwd: testDir })
+
+      // Patterns that indicate .claude/ is used as a primary assertion path
+      const PRIMARY_ASSERTION_PATTERNS = [
+        /readMdFiles\(\s*['"]\.claude\//,              // Reading from install target
+        /path\.join\(REPO_ROOT,\s*['"]\.claude\//,     // Constructing install target paths
+        /pathExists\(\s*['"]\.claude\//,                // Asserting existence at install target
+      ]
+
+      // Files that legitimately test .claude/ behavior
+      const EXEMPT_FILES = [
+        'unit/install.test.js',                        // Tests installer output to .claude/
+        'integration/multi-runtime.test.js',           // Tests path transformation across runtimes
+        'integration/cross-runtime-kb.test.js',        // Tests KB path handling across runtimes
+        'integration/kb-infrastructure.test.js',       // References shell scripts only in .claude/agents/
+      ]
+
+      const violations = []
+      for (const file of testFiles) {
+        if (EXEMPT_FILES.some(exempt => file.endsWith(exempt))) continue
+        const content = await fs.readFile(path.join(testDir, file), 'utf8')
+        const lines = content.split('\n')
+
+        for (let i = 0; i < lines.length; i++) {
+          for (const pattern of PRIMARY_ASSERTION_PATTERNS) {
+            if (pattern.test(lines[i])) {
+              violations.push({
+                file,
+                line: i + 1,
+                text: lines[i].trim(),
+              })
+            }
+          }
+        }
+      }
+
+      if (violations.length > 0) {
+        const details = violations
+          .map(v => `  ${v.file}:${v.line}: ${v.text}`)
+          .join('\n')
+        expect.fail(
+          `Test files must assert against agents/ (npm source), not .claude/agents/ (install target).\n` +
+          `Violations:\n${details}\n\n` +
+          `If this is a legitimate exception, add the test file to EXEMPT_FILES.`
+        )
+      }
+    })
+  })
 })
