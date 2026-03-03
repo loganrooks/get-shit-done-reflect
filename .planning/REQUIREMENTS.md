@@ -110,6 +110,17 @@ Requirements for v1.17 Automation Loop. Each maps to roadmap phases.
 - [ ] **PLAN-05**: All semantic validation findings are advisory severity (not blocker) — findings carry typed IDs for future correlation with execution signals
   - *Motivation:* `research: PITFALLS.md #5` — semantic checks on current state fail for plans describing future state; advisory prevents false rejections
 
+### Template Traceability
+
+- [ ] **TMPL-01**: Requirements template includes motivation citation field — each requirement cites its source (signal, pattern, lesson, research, deliberation, user request)
+  - *Motivation:* `signal: sig-2026-03-02-requirements-lack-motivation-traceability` — requirements had no formal linkage to motivating evidence
+- [ ] **TMPL-02**: SUMMARY.md template includes `model` field in frontmatter — records which model executed the plan, enabling model-quality correlation
+  - *Motivation:* `signal: sig-2026-03-02-quality-profile-sonnet-executor-mismatch` + `pattern: Config/Model Selection Mismatches` — SUMMARY.md has no model field
+- [ ] **TMPL-03**: SUMMARY.md template includes `context_used_pct` field — records context window usage at plan completion, enabling context efficiency analysis
+  - *Motivation:* `deliberation: design tension #1` — context usage is displayed but never persisted
+- [ ] **TMPL-04**: Reflection report links findings to requirement IDs where applicable — closed-loop traceability from signal → reflection → requirement → phase → verification
+  - *Motivation:* `deliberation: requirement motivation traceability` — the loop needs to close in both directions
+
 ## Future Requirements
 
 Deferred to later milestones. Tracked but not in current roadmap.
@@ -204,11 +215,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAN-03 | — | Pending |
 | PLAN-04 | — | Pending |
 | PLAN-05 | — | Pending |
+| TMPL-01 | — | Pending |
+| TMPL-02 | — | Pending |
+| TMPL-03 | — | Pending |
+| TMPL-04 | — | Pending |
 
 **Coverage:**
-- v1.17 requirements: 39 total
+- v1.17 requirements: 43 total
 - Mapped to phases: 0
-- Unmapped: 39
+- Unmapped: 43
 
 ---
 *Requirements defined: 2026-03-02*
