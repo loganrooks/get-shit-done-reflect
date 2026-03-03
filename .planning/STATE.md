@@ -67,6 +67,7 @@ v1.13-v1.16 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
 v1.17: Automation Loop selected as first of 5 post-v1.16 milestones. See .planning/deliberations/v1.17-plus-roadmap-deliberation.md for full multi-milestone roadmap.
+v1.17: Philosophical foundations established (6 frameworks, 8 documents, ~65 citable principles). `philosophy:` added as motivation type. 6 new requirements from cross-framework convergence. 5 tagged interventions with falsifiable predictions for empirical evaluation.
 
 ### Pending Todos
 
@@ -117,6 +118,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-03-02
-Stopped at: v1.16 milestone archived. Ready for /gsd:new-milestone.
-Resume file: None
+Last session: 2026-03-03
+Stopped at: v1.17 pre-roadmap. Requirements complete (49), philosophical foundations established (8 docs, 65 principles). Pausing to clear context before roadmapper spawn.
+Resume file: .planning/.continue-here.md
