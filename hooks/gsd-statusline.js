@@ -91,12 +91,46 @@ process.stdin.on('end', () => {
     } catch {}
 
 
+    // Automation level indicator
+    let autoTag = '';
+    try {
+      const autoConfigPath = path.join(dir, '.planning', 'config.json');
+      if (fs.existsSync(autoConfigPath)) {
+        const cfg = JSON.parse(fs.readFileSync(autoConfigPath, 'utf8'));
+        if (cfg.automation && cfg.automation.level !== undefined) {
+          const configured = cfg.automation.level;
+          // Runtime cap heuristic: check if hooks are available
+          // If .claude/settings.json has hooks configured, assume full capability
+          let effective = configured;
+          try {
+            const settingsPath = path.join(dir, '.claude', 'settings.json');
+            if (fs.existsSync(settingsPath)) {
+              const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+              if (!settings.hooks || Object.keys(settings.hooks).length === 0) {
+                // No hooks configured -- cap features that need hooks
+                if (configured > 2) effective = 2;
+              }
+            } else {
+              // No settings.json -- assume hookless runtime
+              if (configured > 2) effective = 2;
+            }
+          } catch {}
+
+          if (effective < configured) {
+            autoTag = `\x1b[36mAuto:${configured}(${effective})\x1b[0m │ `;
+          } else {
+            autoTag = `\x1b[36mAuto:${configured}\x1b[0m │ `;
+          }
+        }
+      }
+    } catch {}
+
     // Output
     const dirname = path.basename(dir);
     if (task) {
-      process.stdout.write(`${devTag}${gsdUpdate}\x1b[2m${model}\x1b[0m │ \x1b[1m${task}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
+      process.stdout.write(`${devTag}${gsdUpdate}${autoTag}\x1b[2m${model}\x1b[0m │ \x1b[1m${task}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
     } else {
-      process.stdout.write(`${devTag}${gsdUpdate}\x1b[2m${model}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
+      process.stdout.write(`${devTag}${gsdUpdate}${autoTag}\x1b[2m${model}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
     }
   } catch (e) {
     // Silent fail - don't break statusline on parse errors
