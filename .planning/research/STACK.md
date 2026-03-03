@@ -1,576 +1,571 @@
-# Stack Research: Signal Lifecycle, Multi-Sensor Detection, Epistemic Rigor
+# Technology Stack: v1.17 Automation Loop
 
-**Domain:** Signal lifecycle management, git-based analysis, session log parsing, YAML schema validation, and confidence/evidence tracking -- all within a zero-dependency file-based CLI system
-**Researched:** 2026-02-27
-**Confidence:** HIGH (all recommendations verified against existing codebase patterns; no new dependencies required)
+**Project:** GSD Reflect v1.17
+**Researched:** 2026-03-02
+**Confidence:** HIGH (all recommendations verified against official Claude Code hooks documentation and existing codebase patterns)
 
 ---
 
 ## Executive Summary
 
-The v1.16 signal lifecycle features -- multi-sensor detection (git-sensor, log-sensor), epistemic rigor enforcement, confidence-weighted pattern detection, and signal lifecycle state management -- are achievable with **zero new npm dependencies**. Every capability needed already exists in the Node.js standard library or in git's built-in command-line interface.
+The v1.17 Automation Loop features -- CI sensor via `gh` CLI, hook-based auto-triggering (PostToolUse, Stop), plan checker semantic validation, and auto-reflection scheduling -- require **zero new npm dependencies**. Every capability needed is satisfied by Claude Code's expanded hooks API (17 lifecycle events as of March 2026), the GitHub CLI (`gh` v2.86.0 already installed), and extensions to existing gsd-tools.js commands.
 
-**Core finding:** Git provides structured output formats (`--format`, `--numstat`, `--diff-filter`) that can be parsed with `execSync` and string splitting. Claude Code session logs are JSONL files at `~/.claude/projects/{encoded-path}/{session-id}.jsonl` with typed message objects. YAML frontmatter validation already exists in gsd-tools.js via `FRONTMATTER_SCHEMAS` and `cmdFrontmatterValidate()` -- extending it for epistemic rigor fields is a schema addition, not a new system. Signal lifecycle state management maps cleanly onto the existing mutable-field-on-immutable-entry pattern already used for archival.
+**The key technical unlock for v1.17:** Claude Code hooks now support `PostToolUse` with tool-name matchers and `Stop` with blocking decisions (`decision: "block"` + `reason`). This means hooks can fire after specific tool completions (e.g., after Write creates a SUMMARY.md) and prevent Claude from stopping until conditions are met (e.g., signal collection hasn't run yet). Combined with the existing hook infrastructure (3 hooks in settings.json), this enables fully automated signal collection and reflection triggering without modifying workflow Markdown files.
 
-**The constraint that shapes everything:** Zero external dependencies. The system runs via `npx` on any Node.js installation across 4 runtimes. `child_process.execSync` wrapping git CLI commands is the correct approach for git analysis -- not a git library. Line-by-line JSONL parsing with `JSON.parse()` is the correct approach for session logs -- not a streaming framework.
+**What NOT to add:** No scheduling libraries (cron, node-schedule), no CI API clients (octokit, @actions/github), no JSON schema validators (ajv). The zero-dependency constraint holds.
 
 ---
 
 ## Recommended Stack
 
-### Core Technologies (No Changes from v1.15)
+### Core Framework (No Changes)
 
 | Technology | Version | Purpose | Why Unchanged |
 |------------|---------|---------|---------------|
-| Node.js | >= 18.x (host: 25.2.1) | Runtime for gsd-tools.js | Already in use; built-in `fs`, `path`, `child_process` cover all needs |
-| Markdown + YAML frontmatter | N/A | Data storage format | Zero-dependency, agent-readable, human-readable |
-| Shell scripts (bash) | N/A | KB index rebuild, directory setup | `kb-rebuild-index.sh` already exists at `~/.gsd/bin/` |
-| Git CLI | >= 2.x | Version control + new git-sensor data source | Already available on all target systems; structured output parsing is all we need |
+| Node.js | >= 18.x (host: 25.2.1) | Runtime for hooks and gsd-tools.js | All new hooks are pure Node.js scripts reading JSON from stdin |
+| Markdown + YAML frontmatter | N/A | Data storage, workflow specs, signal files | All config additions use existing frontmatter/JSON patterns |
+| Shell scripts (bash) | N/A | KB index rebuild, hook scripts | Hook commands can invoke bash or node directly |
+| Git CLI | >= 2.x | Version control + sensor data source | Already in use; no changes needed |
 
 ### New Capabilities (Zero New Dependencies)
 
-| Capability | Implementation | Node.js Built-in Used | Why This Approach |
-|------------|----------------|----------------------|-------------------|
-| Git commit analysis | `execSync('git log --format=...')` | `child_process.execSync` | Git's own output formatting is more reliable than any wrapper library; already used in gsd-tools.js (line 4984) |
-| Git file churn detection | `execSync('git log --numstat ...')` | `child_process.execSync` | `--numstat` provides machine-parseable add/delete counts per file per commit |
-| Session log parsing | `fs.readFileSync` + line-by-line `JSON.parse` | `fs`, `JSON` | JSONL is newline-delimited JSON; no streaming library needed for retrospective analysis |
-| Schema validation (epistemic fields) | Extend `FRONTMATTER_SCHEMAS` | None (pure JS object) | Pattern already established at gsd-tools.js line 2227-2231 |
-| Signal lifecycle state | Mutable YAML fields via `frontmatter set` | `fs.readFileSync`, `fs.writeFileSync` | `cmdFrontmatterSet` already supports targeted field updates (gsd-tools.js) |
-| Confidence tracking | New YAML frontmatter fields | None (data format only) | Categorical values (high/medium/low) + basis string; no computation needed |
+| Capability | Technology | Integration Point | Why This Approach |
+|------------|-----------|-------------------|-------------------|
+| CI status querying | `gh run list --json` | New `gsd-ci-sensor.md` agent + `gsd-ci-check.js` hook | `gh` is pre-installed (v2.86.0), returns structured JSON, supports `--workflow` and `--status` filters |
+| Post-execution auto-trigger | Claude Code `PostToolUse` hook | New `gsd-auto-collect.js` hook in `hooks/` | Fires after every Write/Bash; script checks if a SUMMARY.md was just written, then queues signal collection |
+| Stop-gate for signal collection | Claude Code `Stop` hook | New `gsd-stop-gate.js` hook in `hooks/` | Can block Claude from stopping with `decision: "block"` + reason to trigger collection |
+| Auto-reflection scheduling | State file counter + `Stop` hook logic | Counter in `.planning/config.json` or `.gsd/state.json` | Increment counter after each phase; trigger reflection when threshold reached |
+| Plan checker semantic validation | `gsd-tools.js` new subcommands | Extend `verify plan-structure` in gsd-tools.js | Validate tool subcommand names against known API, config keys against manifest schema |
+| CI status at session start | Claude Code `SessionStart` hook | New `gsd-ci-check.js` hook | Queries `gh run list` in background, writes result to cache file for statusline display |
 
 ---
 
-## Detailed Approaches
+## Detailed Technology Decisions
 
-### 1. Git-Sensor: Git Log/Diff Analysis Without External Libraries
+### 1. GitHub CLI (`gh`) for CI Integration
 
-**Confidence:** HIGH (verified against local git installation and gsd-tools.js patterns)
+**Confidence:** HIGH (verified on local machine, tested with actual repo)
 
-#### Approach: Shell out to git CLI via `execSync`
+**Why `gh` CLI, not Octokit or GitHub REST API:**
+- `gh` v2.86.0 is already installed on the development machine
+- Zero dependency -- it's a standalone binary, not an npm package
+- Built-in authentication via `gh auth login` (already configured)
+- `--json` flag provides structured output without parsing HTML/tables
+- Consistent with the zero-dependency constraint
 
-gsd-tools.js already uses `child_process.execSync` for git operations (line 126, 233). The git-sensor extends this pattern with structured output formats.
+**Verified commands for CI sensor:**
 
-#### Git Commands for Signal Detection
-
-**Commit pattern analysis (detect "fix fix fix" patterns):**
 ```bash
-git log --format='%H|%ai|%s' --since='<phase-start>' --until='<phase-end>'
-```
-Returns pipe-delimited rows. Parse with `line.split('|')`. Detect:
-- 3+ commits with "fix" in subject for same file area = struggle signal
-- Commit messages matching frustration patterns from signal-detection.md Section 5
-- Rapid succession commits (< 5 min apart) = potential debugging churn
+# List recent runs with structured JSON output
+gh run list --limit 5 --json conclusion,status,workflowName,headBranch,createdAt,headSha,url
 
-**File churn / scope creep detection:**
-```bash
-git log --numstat --format='%H' -- '<project-paths>'
-```
-`--numstat` outputs `added\tremoved\tfilename` per file per commit. Parse with `line.split('\t')`. Detect:
-- Files modified > N times in a phase = hotspot signal
-- Files outside planned scope appearing in commits = scope creep signal
-- High add/delete ratio on same file = churn signal
+# Filter by branch
+gh run list --branch main --limit 5 --json conclusion,status,workflowName
 
-**Diff-based analysis (what changed in specific commits):**
-```bash
-git diff-tree --no-commit-id -r --numstat <commit-hash>
-```
-Returns per-file change statistics for a single commit. Useful for correlating with SUMMARY.md task commits.
+# Filter by workflow name
+gh run list --workflow CI --limit 3 --json conclusion,status
 
-**Commit filtering by date range (phase boundaries):**
-```bash
-git log --after='2026-02-20' --before='2026-02-27' --oneline
-```
-Phase date boundaries come from PLAN.md `created` and SUMMARY.md `completed` frontmatter fields.
+# Filter by status (failure only)
+gh run list --status failure --limit 5 --json conclusion,workflowName,headBranch,createdAt
 
-#### Integration with gsd-tools.js
-
-Add a new command: `gsd-tools.js git-analysis <phase>` that:
-1. Derives phase date range from plan/summary frontmatter
-2. Runs git log commands within that range
-3. Applies detection heuristics
-4. Returns structured JSON for the sensor agent
-
-**Why NOT use a git library (like `simple-git`, `isomorphic-git`, `nodegit`):**
-- Adds npm dependency, violating zero-dependency constraint
-- Git CLI is universally available where git repos exist
-- `--format` and `--numstat` provide exactly the structured output needed
-- gsd-tools.js already has the `execSync` pattern (line 233: `execSync('git ' + escaped.join(' '), ...)`)
-- Shell-out is ~10ms for these queries; performance is not a concern for retrospective analysis
-
-#### Signal Types from Git Analysis
-
-| Detection | Git Command | Signal Type | Severity Heuristic |
-|-----------|-------------|-------------|-------------------|
-| Fix-fix-fix pattern | `log --format` subject scanning | `struggle` | 3+ fix commits = notable; 5+ = critical |
-| File churn hotspot | `log --numstat` frequency counting | `deviation` | File modified > 5x in phase = notable |
-| Scope creep | `log --numstat` vs `files_modified` frontmatter | `deviation` | > 50% unplanned files = notable |
-| Rapid succession commits | `log --format` timestamp analysis | `struggle` | 3+ commits < 5 min apart = notable |
-| Large commit after many small | `diff-tree --numstat` size analysis | `deviation` | "give up and rewrite" pattern = notable |
-
----
-
-### 2. Log-Sensor: Claude Code Session Log Accessibility
-
-**Confidence:** MEDIUM (verified file locations and structure on local machine; format may change between Claude Code versions; 30-day auto-deletion adds complexity)
-
-#### Session Log Location
-
-Claude Code stores session data at:
-
-```
-~/.claude/
-  history.jsonl              # Global prompt index (all projects)
-  projects/
-    {encoded-path}/          # Per-project directory
-      {session-id}.jsonl     # Full session transcript
-      {session-id}/          # Session subdirectory (subagent data)
-      sessions-index.json    # Session metadata index
+# View specific run details
+gh run view <run-id> --json conclusion,jobs
 ```
 
-**Path encoding:** The project path is encoded by replacing `/` with `-`. For example:
-- `/Users/rookslog/Development/get-shit-done-reflect` becomes
-- `-Users-rookslog-Development-get-shit-done-reflect`
+**Available JSON fields:** attempt, conclusion, createdAt, databaseId, displayTitle, event, headBranch, headSha, name, number, startedAt, status, updatedAt, url, workflowDatabaseId, workflowName
 
-**Derivation in code:**
+**Tested output (2026-03-02):**
+```json
+[
+  {"conclusion":"success","createdAt":"2026-03-03T01:03:18Z","headBranch":"reflect-v1.16.0","status":"completed","workflowName":"Publish to npm"},
+  {"conclusion":"success","createdAt":"2026-03-03T01:02:54Z","headBranch":"main","status":"completed","workflowName":"CI"},
+  {"conclusion":"success","createdAt":"2026-03-02T20:58:56Z","headBranch":"main","status":"completed","workflowName":"CI"}
+]
+```
+
+**Runtime availability check for non-dev machines:**
 ```javascript
-const projectDir = path.join(
-  os.homedir(), '.claude', 'projects',
-  '-' + process.cwd().split(path.sep).join('-')
-);
+const { execSync } = require('child_process');
+try {
+  execSync('gh --version', { stdio: 'ignore' });
+  // gh available
+} catch {
+  // gh not available -- emit capability-gap signal, skip CI sensor
+}
 ```
 
-#### JSONL Message Format (Verified)
+**Cross-runtime consideration:** `gh` CLI works regardless of AI runtime (Claude Code, Codex, Gemini CLI, OpenCode). The CI sensor is a tool-agnostic capability unlike Claude Code-specific hooks.
 
-Each line in a session `.jsonl` file is a JSON object with a `type` field. Observed types:
+### 2. Claude Code PostToolUse Hook for Auto-Triggering Signal Collection
 
-| Type | Count (typical session) | Contains | Useful For |
-|------|------------------------|----------|-----------|
-| `progress` | ~400 | Tool execution progress, `cwd`, `gitBranch`, `timestamp` | Timing analysis, branch tracking |
-| `assistant` | ~45 | Full model response with `content[]`, `usage`, `model`, `stop_reason` | Content analysis, tool use patterns |
-| `user` | ~37 | User messages with `content[]`, `timestamp` | Prompt pattern analysis |
-| `system` | ~9 | System messages | Context setup |
-| `queue-operation` | ~10 | Queue management | Session flow |
-| `file-history-snapshot` | ~8 | File backup snapshots | File change tracking |
+**Confidence:** HIGH (verified against official Claude Code hooks documentation at code.claude.com/docs/en/hooks, March 2026)
 
-**Assistant message structure (verified):**
+**Hook event:** `PostToolUse`
+**Matcher:** `Write` (fires after every file write)
+**Handler type:** `command` (deterministic rule, no LLM judgment needed)
+
+**How it works:**
+1. After every Write tool call, Claude Code passes JSON to the hook on stdin
+2. The JSON includes `tool_input.file_path` (what was written) and `tool_response.success`
+3. The hook checks if the written file matches `*-SUMMARY.md` pattern
+4. If yes, it writes a state marker (e.g., `.planning/.pending-signal-collection`) with the phase number
+5. The state marker is consumed by a Stop hook that prompts Claude to run signal collection
+
+**PostToolUse JSON input (from official docs):**
 ```json
 {
-  "type": "assistant",
-  "message": {
-    "role": "assistant",
-    "model": "claude-opus-4-6",
-    "content": [
-      { "type": "text", "text": "..." },
-      { "type": "tool_use", "name": "Bash", "input": {...} }
-    ],
-    "usage": { "input_tokens": N, "output_tokens": N },
-    "stop_reason": "end_turn"
+  "session_id": "abc123",
+  "transcript_path": "/Users/.../.claude/projects/.../transcript.jsonl",
+  "cwd": "/Users/.../get-shit-done-reflect",
+  "permission_mode": "default",
+  "hook_event_name": "PostToolUse",
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/path/to/35-04-SUMMARY.md",
+    "content": "---\nphase: 35\nplan: 04\n..."
   },
-  "timestamp": "ISO-8601",
-  "sessionId": "uuid",
-  "cwd": "/path/to/project",
-  "gitBranch": "main"
+  "tool_response": {
+    "filePath": "/path/to/35-04-SUMMARY.md",
+    "success": true
+  },
+  "tool_use_id": "toolu_01ABC123..."
 }
 ```
 
-**User message structure (verified):**
+**PostToolUse decision control:**
+- Cannot block (tool already ran), but can provide `additionalContext` to influence Claude's next steps
+- Can return `decision: "block"` with `reason` to prompt Claude about something
+
+**Configuration in settings.json:**
 ```json
 {
-  "type": "user",
-  "message": {
-    "role": "user",
-    "content": [{ "type": "text", "text": "..." }]
-  },
-  "timestamp": "ISO-8601",
-  "sessionId": "uuid"
-}
-```
-
-**Tool use types observed:** `Bash`, `Read`, `Write`, `Edit`, `Task`, `AskUserQuestion`, MCP tools.
-
-#### Log-Sensor Implementation Approach
-
-**Read session files for a given time range:**
-```javascript
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-
-function getProjectSessionDir() {
-  const encoded = '-' + process.cwd().split(path.sep).join('-');
-  return path.join(os.homedir(), '.claude', 'projects', encoded);
-}
-
-function parseSessionFile(filePath) {
-  const content = fs.readFileSync(filePath, 'utf-8');
-  return content.trim().split('\n')
-    .filter(line => line.trim())
-    .map(line => JSON.parse(line));
-}
-```
-
-**What the log-sensor detects:**
-
-| Pattern | Detection Method | Signal Type |
-|---------|-----------------|-------------|
-| Repeated tool failures | Count `tool_result` with error content | `struggle` |
-| Long debugging sequences | Count sequential Bash calls with similar commands | `struggle` |
-| Frustration in user messages | Pattern match from signal-detection.md Section 5 | `struggle` |
-| Unplanned file modifications | Track `Write`/`Edit` tool calls vs plan `files_modified` | `deviation` |
-| Session restarts for same task | Multiple sessions with similar initial prompts | `struggle` |
-| High token consumption | Sum `usage.input_tokens` + `usage.output_tokens` from assistant messages | `deviation` |
-
-#### Critical Caveats
-
-1. **30-day auto-deletion:** Claude Code deletes session logs after 30 days by default. The log-sensor should document this limitation. Users can extend retention via `~/.claude/settings.json`. The sensor should emit a capability-gap signal if no logs are found rather than silently producing no output.
-
-2. **Format instability:** The JSONL format is not documented as a stable API. Claude Code updates may change the structure. The sensor should fail gracefully with informative errors, not crash.
-
-3. **Privacy consideration:** Session logs contain full conversation content. The log-sensor should extract signals (patterns, counts, timing) but NEVER persist raw conversation text to the knowledge base.
-
-4. **Cross-runtime limitation:** This sensor only works for the Claude Code runtime. OpenCode, Gemini CLI, and Codex CLI have different or no session log formats. The sensor must handle the "logs not found" case for non-Claude-Code runtimes.
-
-5. **File size:** Individual session files can be 10+ MB. The sensor should use streaming line-by-line reading (`readline` built-in module) for large files rather than `readFileSync` for the full file.
-
-```javascript
-const readline = require('readline');
-const fs = require('fs');
-
-async function streamSessionFile(filePath, callback) {
-  const rl = readline.createInterface({
-    input: fs.createReadStream(filePath),
-    crlfDelay: Infinity
-  });
-  for await (const line of rl) {
-    if (line.trim()) callback(JSON.parse(line));
-  }
-}
-```
-
----
-
-### 3. YAML Frontmatter Validation for Epistemic Rigor Fields
-
-**Confidence:** HIGH (verified existing validation patterns in gsd-tools.js)
-
-#### Existing Validation Infrastructure
-
-gsd-tools.js already has frontmatter validation at three levels:
-
-1. **Schema-based validation** (`FRONTMATTER_SCHEMAS` at line 2227):
-   ```javascript
-   const FRONTMATTER_SCHEMAS = {
-     plan: { required: ['phase', 'plan', 'type', 'wave', 'depends_on', 'files_modified', 'autonomous', 'must_haves'] },
-     summary: { required: ['phase', 'plan', 'subsystem', 'tags', 'duration', 'completed'] },
-     verification: { required: ['phase', 'verified', 'status', 'score'] },
-   };
-   ```
-
-2. **Structural validation** (`cmdVerifyPlanStructure` at line 2248):
-   - Checks required fields exist
-   - Validates task element structure
-   - Checks wave/depends_on consistency
-
-3. **CRUD operations** (`frontmatter get/set/merge/validate` commands):
-   - Get: Extract specific fields as JSON
-   - Set: Update single field
-   - Merge: Merge JSON object into frontmatter
-   - Validate: Check against named schema
-
-#### Extension for Epistemic Rigor
-
-Add a `signal` schema to `FRONTMATTER_SCHEMAS`:
-
-```javascript
-const FRONTMATTER_SCHEMAS = {
-  // ... existing schemas ...
-  signal: {
-    required: [
-      'id', 'type', 'project', 'tags', 'created', 'updated',
-      'durability', 'status', 'severity', 'signal_type'
-    ],
-    // v1.16 epistemic rigor additions
-    epistemic_required: [
-      'evidence'  // must contain supporting, counter, confidence, confidence_basis
-    ]
-  },
-  lesson: {
-    required: [
-      'id', 'type', 'project', 'tags', 'created', 'updated',
-      'durability', 'status', 'category', 'evidence_count'
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/gsd-auto-collect.js"
+          }
+        ]
+      }
     ]
   }
-};
+}
 ```
 
-**Validation for nested epistemic fields:**
+**Why PostToolUse on Write, not Bash:**
+- SUMMARY.md creation always uses the Write tool (executors write markdown)
+- Matching on Write is more specific than Bash (fewer false fires)
+- The hook script does its own filtering on `file_path` pattern
 
-The existing `extractFrontmatter()` function (line 257) already handles nested YAML objects and arrays. It correctly parses:
-```yaml
-evidence:
-  supporting: ["data point 1", "data point 2"]
-  counter: ["alternative explanation"]
-  confidence: medium
-  confidence_basis: "3 occurrences with consistent root cause"
-```
+**Critical design choice: PostToolUse provides feedback, Stop gates completion.**
+PostToolUse cannot prevent Claude from stopping -- it can only add context. The actual gating requires a Stop hook. PostToolUse's role is to SET a state flag; Stop's role is to CHECK it.
 
-Into:
-```javascript
+### 3. Claude Code Stop Hook for Gating Phase Completion
+
+**Confidence:** HIGH (verified against official docs)
+
+**Hook event:** `Stop`
+**Matcher:** None (Stop does not support matchers -- fires on every stop)
+**Handler type:** `command`
+
+**How it works:**
+1. Claude finishes responding (about to stop)
+2. Stop hook fires, receiving `stop_hook_active`, `last_assistant_message` on stdin
+3. Hook checks for pending state markers (`.planning/.pending-signal-collection`, `.planning/.pending-reflection`)
+4. If marker exists AND `stop_hook_active` is `false` (first check, not already gating):
+   - Return `{"decision": "block", "reason": "Signal collection pending for phase X. Run /gsd:collect-signals X before finishing."}`
+   - Claude receives the reason and continues working
+5. If no markers or `stop_hook_active` is `true`: exit 0 (allow stop)
+
+**Stop JSON input (from official docs):**
+```json
 {
-  evidence: {
-    supporting: ["data point 1", "data point 2"],
-    counter: ["alternative explanation"],
-    confidence: "medium",
-    confidence_basis: "3 occurrences with consistent root cause"
+  "session_id": "abc123",
+  "transcript_path": "~/.claude/projects/.../transcript.jsonl",
+  "cwd": "/Users/.../get-shit-done-reflect",
+  "permission_mode": "default",
+  "hook_event_name": "Stop",
+  "stop_hook_active": false,
+  "last_assistant_message": "Phase 35 execution complete. All 4 plans..."
+}
+```
+
+**Stop decision control:**
+```json
+{
+  "decision": "block",
+  "reason": "Signal collection pending for phase 35. Please run: /gsd:collect-signals 35"
+}
+```
+
+**CRITICAL: Prevent infinite loops.**
+The `stop_hook_active` field is `true` when Claude is already continuing due to a Stop hook. The hook MUST check this and return exit 0 when `stop_hook_active` is true. Without this check, the hook could block indefinitely.
+
+**Configuration in settings.json:**
+```json
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/gsd-stop-gate.js"
+          }
+        ]
+      }
+    ]
   }
 }
 ```
 
-**New validation command:**
-```bash
-node gsd-tools.js frontmatter validate <signal-file> --schema signal --strict
+### 4. CI Sensor Implementation via `gh` CLI
+
+**Confidence:** HIGH (tested gh commands against real repo)
+
+**Architecture:** New agent spec `gsd-ci-sensor.md` following the existing sensor pattern (artifact-sensor, git-sensor).
+
+**What the CI sensor detects:**
+
+| Detection | `gh` Command | Signal Type | Severity |
+|-----------|-------------|-------------|----------|
+| Failed CI run on current branch | `gh run list --branch $(git branch --show-current) --status failure --limit 5 --json ...` | `deviation` | `critical` (CI red) |
+| Bypassed branch protection | `gh api repos/{owner}/{repo}/branches/main/protection` + commit history analysis | `deviation` | `critical` |
+| Test regression (run was green, now red) | Compare consecutive `gh run list` conclusions | `deviation` | `notable` |
+| CI run never triggered (commits without runs) | Compare `git log` commits vs `gh run list` timestamps | `deviation` | `notable` |
+| Consecutive CI failures (N+ in a row) | `gh run list --branch main --limit 10 --json conclusion` | `deviation` | `critical` (3+) |
+
+**Integration with existing sensor framework:**
+- Returns JSON in the same `{ sensor: 'ci', phase: N, signals: [...] }` format
+- Uses `## SENSOR OUTPUT` / `## END SENSOR OUTPUT` delimiters
+- Spawned by `collect-signals.md` orchestrator alongside artifact and git sensors
+- Enabled/disabled via `signal_collection.sensors.ci` config
+
+**Manifest addition:**
+```json
+{
+  "signal_collection": {
+    "sensors": {
+      "ci": { "enabled": true, "model": "auto" }
+    }
+  }
+}
 ```
 
-The `--strict` flag would check epistemic sub-fields (`evidence.supporting`, `evidence.counter`, `evidence.confidence`, `evidence.confidence_basis`). Without `--strict`, only base schema fields are checked (backward compatibility with pre-v1.16 signals).
+### 5. SessionStart Hook for CI Status Warning
 
-#### Why NOT Use a YAML Validation Library (ajv, joi, yup)
+**Confidence:** HIGH (extends existing hook pattern from gsd-check-update.js)
 
-- The existing hand-rolled YAML parser handles all current and proposed structures
-- Adding schema validation libraries would introduce npm dependencies
-- The validation surface is small: ~20 fields across 3 schemas
-- Custom validation functions in gsd-tools.js can provide better error messages for agent consumption
-- Field-level validation with type checking is ~30 lines of additional JavaScript
+**Pattern:** Identical to the existing `gsd-check-update.js` SessionStart hook:
+1. Spawn background child process (`spawn` + `detached: true` + `unref()`)
+2. Child runs `gh run list --branch main --limit 1 --json conclusion,workflowName`
+3. Write result to `~/.claude/cache/gsd-ci-status.json`
+4. Statusline hook reads cache file and displays warning if CI is red
+
+**Cache file format:**
+```json
+{
+  "ci_status": "failure",
+  "workflow": "CI",
+  "branch": "main",
+  "last_run": "2026-03-02T20:58:56Z",
+  "checked": 1709424000
+}
+```
+
+**Statusline integration:**
+Add CI status indicator to existing `gsd-statusline.js`:
+```
+DEV | Claude Opus 4.6 | Phase 35 | get-shit-done-reflect | CI: RED | [progressbar] 45%
+```
+
+### 6. Auto-Reflection Scheduling
+
+**Confidence:** HIGH (pure state management, no new technology)
+
+**Approach:** Counter-based, not time-based. Track phases completed since last reflection in a state file.
+
+**Why counter-based, not cron/timer:**
+- GSD Reflect runs in interactive sessions, not as a daemon
+- Phases are the natural unit of work (1 phase = meaningful analysis unit)
+- No need for `node-cron`, `node-schedule`, or OS-level timers
+- Counter persists across sessions via file (unlike in-memory timers)
+
+**State tracking:**
+```json
+// .planning/config.json (extend existing)
+{
+  "automation": {
+    "auto_collect_signals": true,
+    "auto_reflect": true,
+    "reflect_after_phases": 3,
+    "phases_since_last_reflect": 0
+  }
+}
+```
+
+**How it works:**
+1. PostToolUse hook detects SUMMARY.md write -> increments `phases_since_last_reflect` counter
+2. Stop hook checks: if counter >= `reflect_after_phases` threshold AND `auto_reflect` is true
+3. If threshold met: block stop with reason "Reflection is due after {N} completed phases. Run /gsd:reflect"
+4. After reflection runs, counter resets to 0
+
+**Why NOT use milestone boundaries only:**
+- v1.16 had 5 phases in 20 plans. Reflecting only at milestone end means 20+ plans between reflections.
+- Counter-based allows configurable granularity: every 3 phases (default), every phase, or every 5.
+- Can still trigger at milestone boundaries (count resets naturally).
+
+### 7. Plan Checker Semantic Validation
+
+**Confidence:** HIGH (extends existing gsd-tools.js verify command)
+
+**What the plan checker currently validates (v1.16):**
+- Frontmatter field presence (phase, plan, type, wave, etc.)
+- Task element structure (files, action, verify, done)
+- Dependency graph (cycles, missing references)
+- Scope sanity (tasks/plan, files/plan)
+- Requirement coverage mapping
+
+**What it DOES NOT validate (v1.17 additions):**
+1. Tool subcommand names referenced in plan tasks
+2. Config keys referenced in plan tasks
+3. File paths that should exist before execution
+4. Cross-plan artifact references
+
+**Implementation approach for semantic validation:**
+
+**a) Tool API verification:**
+
+Add `gsd-tools.js verify tool-refs <plan-file>` that:
+1. Extracts bash command references from `<action>` and `<verify>` elements
+2. Matches against known gsd-tools.js subcommands (parsed from gsd-tools.js itself)
+3. Reports unknown subcommands as warnings
+
+```javascript
+// Known gsd-tools.js commands (extract from source at validation time)
+const KNOWN_COMMANDS = [
+  'init', 'commit', 'frontmatter', 'verify', 'roadmap',
+  'phase-plan-index', 'websearch', 'state', 'config'
+];
+// Parse plan action blocks for: node gsd-tools.js <subcommand>
+// Flag unknown subcommands
+```
+
+**b) Config key validation:**
+
+Add `gsd-tools.js verify config-refs <plan-file>` that:
+1. Extracts config.json key references from plan tasks
+2. Validates against `feature-manifest.json` schema
+3. Reports unknown config keys as blockers
+
+```javascript
+// Load manifest, extract all valid config paths
+const manifest = JSON.parse(fs.readFileSync('get-shit-done/feature-manifest.json'));
+const validKeys = extractAllConfigPaths(manifest);
+// Parse plan for config.json references, validate against validKeys
+```
+
+**c) Directory/file existence pre-checks:**
+
+Add `gsd-tools.js verify file-refs <plan-file>` that:
+1. Extracts `files_modified` from plan frontmatter
+2. Checks parent directories exist (warns if creating files in non-existent dirs)
+3. Checks for conflicting paths across plans in the same phase
+
+**Integration with plan checker agent:**
+The plan checker agent already calls `gsd-tools.js verify plan-structure`. The new semantic validation commands are additive -- the agent calls them in sequence:
+
+```bash
+# Existing
+PLAN_STRUCTURE=$(node gsd-tools.js verify plan-structure "$PLAN_PATH")
+# New v1.17
+TOOL_REFS=$(node gsd-tools.js verify tool-refs "$PLAN_PATH")
+CONFIG_REFS=$(node gsd-tools.js verify config-refs "$PLAN_PATH")
+FILE_REFS=$(node gsd-tools.js verify file-refs "$PLAN_PATH")
+```
 
 ---
 
-### 4. Signal Lifecycle State Management
+## Hook Registration Strategy
 
-**Confidence:** HIGH (extends existing immutability exception pattern already established for archival)
+### Current settings.json (3 hooks)
 
-#### Current State Management
-
-Signals are currently immutable with ONE exception: `status: active` can change to `status: archived` for cap management (signal-detection.md Section 10). This is done via direct file editing: read file, update frontmatter, write file.
-
-#### Extended State Model for v1.16
-
-The signal lifecycle adds mutable lifecycle fields to immutable detection data:
-
-```yaml
-# IMMUTABLE after creation (detection data):
-id: sig-2026-02-27-installer-path-bug
-type: signal
-project: get-shit-done-reflect
-tags: [installer, path-conversion]
-created: 2026-02-27T14:30:00Z
-severity: critical
-signal_type: deviation
-evidence:
-  supporting: ["npm pack output missing 3 files"]
-  counter: ["Could be a .npmignore issue, but .npmignore doesn't exist"]
-  confidence: high
-  confidence_basis: "direct observation of npm pack --dry-run output"
-
-# MUTABLE (lifecycle fields):
-status: active | triaged | remediation-planned | remediated | verified | archived
-updated: 2026-02-28T10:00:00Z
-triage:
-  decision: address
-  rationale: "3rd recurrence across milestones"
-  by: human
-  at: 2026-02-28T10:00:00Z
-remediation:
-  ref: { phase: 31, plan: 2, commit: abc123 }
-  approach: "Add kb-templates to installer copy list"
-  expected_outcome: "npm pack includes all 5 template files"
-  status: completed
-verification:
-  status: confirmed
-  method: absence-of-recurrence
-  at: 2026-03-05T14:00:00Z
-recurrence_of: sig-2026-02-15-missing-templates
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "node .claude/hooks/gsd-check-update.js" }] },
+      { "hooks": [{ "type": "command", "command": "node .claude/hooks/gsd-version-check.js" }] }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node .claude/hooks/gsd-statusline.js"
+  }
+}
 ```
 
-#### Implementation via Existing Primitives
+### Proposed settings.json (7 hooks)
 
-**Update lifecycle fields:**
-```bash
-node gsd-tools.js frontmatter set <signal-file> --field status --value triaged
-node gsd-tools.js frontmatter merge <signal-file> --data '{"triage": {"decision": "address", "rationale": "recurring", "by": "human", "at": "2026-02-28T10:00:00Z"}}'
+```json
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [{ "type": "command", "command": "node .claude/hooks/gsd-check-update.js" }] },
+      { "hooks": [{ "type": "command", "command": "node .claude/hooks/gsd-version-check.js" }] },
+      { "hooks": [{ "type": "command", "command": "node .claude/hooks/gsd-ci-check.js" }] }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/gsd-auto-collect.js" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "node .claude/hooks/gsd-stop-gate.js" }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node .claude/hooks/gsd-statusline.js"
+  }
+}
 ```
 
-**Query signals by lifecycle status:**
-The `kb-rebuild-index.sh` script (or a new gsd-tools.js command) can be extended to include lifecycle status in the index, enabling queries like "all triaged but unremediated signals."
+**New hooks added:**
+| Hook | Event | Purpose | Runtime |
+|------|-------|---------|---------|
+| `gsd-ci-check.js` | SessionStart | Background CI status check, writes cache | < 100ms (spawns background process) |
+| `gsd-auto-collect.js` | PostToolUse (Write) | Detects SUMMARY.md writes, sets collection flag | < 10ms (file path check only) |
+| `gsd-stop-gate.js` | Stop | Gates stop until signal collection/reflection runs | < 10ms (file existence check) |
 
-**Lifecycle state transitions:**
-
-```
-                   +--> dismiss --> archived
-                   |
-active --> triaged -+--> defer --> (stays triaged, revisit later)
-                   |
-                   +--> address --> remediation-planned --> remediated --> verified --> archived
-                   |                                                  |
-                   +--> investigate --> spike --> (returns to triaged)  +--> failed --> (back to active)
-```
-
-**Integration with plan frontmatter:**
-Plans declare `resolves_signals: [sig-id-1, sig-id-2]` in frontmatter. When a SUMMARY.md is written for the plan:
-1. Signal collector reads `resolves_signals` from the completed plan
-2. Updates referenced signals' remediation fields
-3. Sets remediation status to `completed`
-
-This piggybacks on the existing post-execution collection flow -- no new workflow hooks needed.
-
----
-
-### 5. Confidence and Evidence Tracking in File-Based Systems
-
-**Confidence:** HIGH (pure data modeling, no technical risk)
-
-#### Confidence Model: Categorical with Basis
-
-The deliberation document (v1.16-signal-lifecycle-and-beyond.md, Section "Design Principle: Epistemic Rigor") asks whether confidence should be categorical (high/medium/low) or numeric (0-1).
-
-**Recommendation: Categorical with explicit basis.** Because:
-
-1. **Agents produce categorical judgments naturally.** An LLM saying "confidence: 0.73" is false precision -- it cannot calibrate numeric probabilities. "confidence: medium" with "confidence_basis: 3 occurrences, consistent root cause, but no counter-evidence tested" is more honest.
-
-2. **Thresholds in reflection-patterns.md are already categorical.** The existing system uses HIGH/MEDIUM/LOW (Section 9.1) with occurrence count evidence. Switching to numeric would require rewriting all threshold logic.
-
-3. **Counter-evidence is the real rigor mechanism.** Numeric confidence creates an illusion of precision. Required counter-evidence fields force actual falsification work, which is what matters.
-
-#### Evidence Structure
-
-```yaml
-evidence:
-  supporting:
-    - "npm pack --dry-run output shows 3 missing files"
-    - "diff between source/ and .claude/ shows content divergence"
-  counter:
-    - "Could be .npmignore exclusion, but .npmignore does not exist"
-    - "Could be stale build cache, but npm cache clean was run"
-  confidence: high
-  confidence_basis: "Direct observation with 2 independent verification methods; counter-explanations eliminated"
-```
-
-**Validation rules:**
-- `evidence.supporting` MUST have >= 1 entry (what triggered the signal)
-- `evidence.counter` MUST have >= 1 entry (what was considered and ruled out, OR "No counter-evidence sought" which is itself a signal of low rigor)
-- `evidence.confidence` MUST be one of: `high`, `medium`, `low`
-- `evidence.confidence_basis` MUST be a non-empty string
-
-**For positive signals** (baselines, "things that work"):
-```yaml
-evidence:
-  supporting:
-    - "All 35 commands present in both source and installed directories"
-    - "Diff shows only expected path prefix conversion"
-  counter:
-    - "Checked both file presence AND content correctness"
-  confidence: high
-  confidence_basis: "Exhaustive check of all items, not sampling"
-```
+**Performance budget:**
+- PostToolUse fires on EVERY Write call. The hook MUST be fast (< 50ms).
+- Stop fires on EVERY stop. The hook MUST be fast (< 50ms).
+- SessionStart hooks already spawn background processes; adding one more is negligible.
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| `execSync('git log ...')` | `simple-git` npm package | Adds dependency; git CLI provides identical data with `--format` |
-| `execSync('git log ...')` | `isomorphic-git` (pure JS) | Much heavier (~2MB); designed for environments without git CLI -- not our case |
-| Line-by-line JSONL parsing | `JSONStream` npm package | Adds dependency; `readline` built-in handles JSONL streaming perfectly |
-| Extend `FRONTMATTER_SCHEMAS` | `ajv` JSON Schema validation | Adds dependency; validation surface is small enough for custom code |
-| Categorical confidence (high/med/low) | Numeric confidence (0.0-1.0) | False precision; agents cannot calibrate probabilities; categorical + basis is more honest |
-| Mutable lifecycle fields on signals | Separate lifecycle tracking file per signal | Splits related data; frontmatter merge already works; single file is atomic |
-| `status` field expansion | Separate state machine file | Over-engineering; YAML enum in frontmatter is simpler and grep-able |
+| Category | Recommended | Alternative | Why Not |
+|----------|-------------|-------------|---------|
+| CI data source | `gh` CLI | Octokit REST client | Adds npm dependency; `gh` is already installed, handles auth |
+| CI data source | `gh` CLI | GitHub MCP server | MCP not available in all runtimes; `gh` is runtime-agnostic |
+| Auto-trigger mechanism | PostToolUse + Stop hooks | Modify execute-phase.md workflow | Workflow changes affect all runtimes; hooks are Claude Code-specific but non-invasive |
+| Auto-trigger mechanism | PostToolUse + Stop hooks | SubagentStop hook on gsd-executor | Could work, but SubagentStop fires inside Task() context, not at orchestrator level |
+| Reflection scheduling | Counter-based in config.json | Time-based (node-cron) | GSD runs in sessions, not as daemon; counter survives session restarts |
+| Reflection scheduling | Counter-based in config.json | SessionStart hook checking time since last reflection | Time-based misses: if no sessions for a week then 5 phases in one session, only the time check fires |
+| Semantic validation | Extend gsd-tools.js | Separate validation tool | Concentrated API surface; existing verify subcommand pattern; no new entrypoints |
+| Config key validation | Parse feature-manifest.json | Hardcode known keys | Manifest is the source of truth; hardcoding drifts |
 
 ---
 
-## What NOT to Use
+## What NOT to Add
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Any npm git library | Violates zero-dependency constraint; git CLI is universally available | `child_process.execSync('git ...')` |
-| Database for signal lifecycle state | Over-engineering; file-based system works at current scale (< 200 signals/project) | YAML frontmatter fields with `frontmatter set/merge` |
-| YAML parsing library (js-yaml, yaml) | gsd-tools.js has a working custom parser; adding a library for marginal benefit adds dependency | Existing `extractFrontmatter()` function |
-| ML/embedding libraries for pattern detection | Violates zero-dependency + no-ML constraint; tag-based clustering with severity weighting is sufficient | String matching on structured frontmatter (per reflection-patterns.md Section 10.5) |
-| Session log streaming frameworks | JSONL is simple enough for `readline` + `JSON.parse` | Node.js built-in `readline` module |
-| External monitoring services | System is local-first, agent-internal only | File-based signals with KB index |
+| `octokit` or `@actions/github` npm package | Violates zero-dependency constraint; `gh` CLI provides same data | `child_process.execSync('gh run list ...')` |
+| `node-cron` or `node-schedule` | System is session-based, not daemon-based; timers don't survive session restarts | Counter in config.json, checked by Stop hook |
+| `ajv` or `joi` for config validation | Validation surface is small (manifest + config keys); custom code is simpler | Pattern matching against manifest schema keys |
+| Prompt-type hooks | LLM judgment adds latency and non-determinism; all GSD hooks are deterministic rules | Command-type hooks with JSON stdin parsing |
+| Agent-type hooks | Agent hooks spawn a full subagent; overkill for file existence checks | Command hooks with Node.js scripts |
+| HTTP hooks | No external service to call; everything is local | Command hooks |
+| Async hooks for PostToolUse | State flag must be set synchronously before Stop hook checks it | Synchronous command hooks (async flag NOT set) |
 
 ---
 
-## Stack Patterns by Feature Area
+## New Files Created by v1.17
 
-**If building the git-sensor:**
-- Use `execSync` for all git commands
-- Parse structured output with `String.split()` on delimiters (`|`, `\t`)
-- Add `gsd-tools.js git-analysis <phase>` command for reusable git queries
-- Cache date ranges from plan/summary frontmatter to scope git queries
-- Handle missing git (bare directory, shallow clone) gracefully
+| File | Type | Purpose |
+|------|------|---------|
+| `hooks/gsd-ci-check.js` | Hook script | SessionStart CI status check (background) |
+| `hooks/gsd-auto-collect.js` | Hook script | PostToolUse SUMMARY.md detection |
+| `hooks/gsd-stop-gate.js` | Hook script | Stop gate for pending collection/reflection |
+| `agents/gsd-ci-sensor.md` | Agent spec | CI sensor (parallel with artifact/git sensors) |
+| `hooks/dist/gsd-ci-check.js` | Built hook | Installed copy of CI check hook |
+| `hooks/dist/gsd-auto-collect.js` | Built hook | Installed copy of auto-collect hook |
+| `hooks/dist/gsd-stop-gate.js` | Built hook | Installed copy of stop-gate hook |
 
-**If building the log-sensor:**
-- Use `readline.createInterface` for large session files (> 1MB)
-- Use `fs.readFileSync` + `split('\n')` for smaller files or `history.jsonl`
-- Derive project session directory from `process.cwd()` path encoding
-- Filter by `type` field first (only `assistant`, `user` messages matter for most signals)
-- Extract tool use patterns from `message.content[]` where `type === 'tool_use'`
-- Handle missing logs gracefully (non-Claude-Code runtimes, expired logs)
+**Modified files:**
+| File | Change |
+|------|--------|
+| `hooks/gsd-statusline.js` | Add CI status indicator from cache |
+| `get-shit-done/feature-manifest.json` | Add `automation` config schema, `ci` sensor config |
+| `get-shit-done/workflows/collect-signals.md` | Add CI sensor to spawn list |
+| `agents/gsd-plan-checker.md` | Add semantic validation dimensions |
+| `get-shit-done/bin/gsd-tools.js` | Add `verify tool-refs`, `verify config-refs`, `verify file-refs` subcommands |
+| `scripts/build-hooks.js` | Add new hooks to `HOOKS_TO_COPY` array |
+| `bin/install.js` | Register new hooks in settings.json during install |
 
-**If extending frontmatter validation:**
-- Add schemas to `FRONTMATTER_SCHEMAS` object in gsd-tools.js
-- Use existing `cmdFrontmatterValidate` for basic field presence
-- Add nested field validation for epistemic sub-fields
-- Maintain backward compatibility: pre-v1.16 signals without epistemic fields should not fail base validation
+---
 
-**If implementing lifecycle state transitions:**
-- Use `cmdFrontmatterSet` for single field updates (e.g., `status`)
-- Use `cmdFrontmatterMerge` for multi-field lifecycle updates (e.g., full triage block)
-- Always update `updated` timestamp on any lifecycle mutation
-- Rebuild KB index after lifecycle state changes that affect indexing
+## Cross-Runtime Compatibility
+
+| Feature | Claude Code | OpenCode | Gemini CLI | Codex CLI |
+|---------|-------------|----------|------------|-----------|
+| CI sensor (gh CLI) | Full | Full | Full | Full |
+| PostToolUse hook | Full | N/A (no hooks) | N/A | N/A |
+| Stop hook | Full | N/A | N/A | N/A |
+| SessionStart CI check | Full | N/A | N/A | N/A |
+| Auto-reflection (counter) | Full (hook-driven) | Manual only | Manual only | Manual only |
+| Plan checker semantic | Full | Full | Full | Full |
+| CI status in statusline | Full | N/A (no statusline) | N/A | N/A |
+
+**Degradation strategy:** For non-Claude-Code runtimes, auto-triggering features degrade to manual invocation. CI sensor and plan checker semantic validation work everywhere because they don't depend on hooks. The capability-gap signal pattern (trace severity, not persisted) from v1.16 handles this.
 
 ---
 
 ## Version Compatibility
 
-| Component | Required Version | Notes |
-|-----------|-----------------|-------|
-| Node.js | >= 18.x | `readline` async iteration requires 18+; `fs.readFileSync` available in all versions |
-| Git | >= 2.x | `--format`, `--numstat`, `--diff-filter` available since git 2.x |
-| Claude Code | Any (session logs observed as of Feb 2026) | JSONL format not a stable API; sensor must handle format changes gracefully |
-| gsd-tools.js | Current (5,472 lines) | All extensions are additive; no breaking changes to existing commands |
+| Component | Required Version | Verified | Notes |
+|-----------|-----------------|----------|-------|
+| Node.js | >= 18.x | v25.2.1 on host | `child_process.spawn` for background, `fs` for state files |
+| Git | >= 2.x | Available | Used by existing sensors |
+| GitHub CLI (`gh`) | >= 2.x | v2.86.0 on host | `--json` flag, `gh run list`, `gh api` |
+| Claude Code | Hooks API v2 (2026) | Current | PostToolUse, Stop, matchers, decision control |
+| jq | >= 1.6 | v1.8.1 on host | Optional: hook scripts can use Node.js JSON parsing instead |
+| gsd-tools.js | Current (~5,400 lines) | v1.16 | All extensions are additive |
 
 ---
 
 ## Installation
 
-No new packages to install. All capabilities use:
+No new npm packages. Build hooks copies new files to dist:
 
 ```bash
-# Already available:
-node          # v18+ (host has v25.2.1)
-git           # v2+ for structured output
-bash          # for kb-rebuild-index.sh
+# After creating new hook scripts:
+node scripts/build-hooks.js    # Copies hooks to hooks/dist/
 
-# Node.js built-ins used:
-# fs, path, os, child_process, readline, JSON (all built-in)
+# After local install:
+node bin/install.js --local    # Copies dist hooks to .claude/hooks/
+                               # Updates .claude/settings.json with new hook registrations
 ```
 
 ---
 
 ## Sources
 
-- **gsd-tools.js** (lines 124-126, 233, 2227-2244, 2248-2307) -- verified existing patterns for `execSync`, frontmatter parsing, schema validation
-- **knowledge-store.md** -- verified signal immutability exception for archival, schema structure
-- **signal-detection.md** -- verified detection types, severity classification, frustration patterns
-- **reflection-patterns.md** -- verified confidence levels (Section 9), anti-patterns (Section 10)
-- **v1.16-signal-lifecycle-and-beyond.md** -- verified architectural decisions, schema proposals, epistemic rigor requirements
-- **Local machine `~/.claude/` directory** -- verified session log location, JSONL structure, message types, and field names via direct inspection
-- [Claude Code session history deep dive](https://kentgigger.com/posts/claude-code-conversation-history) -- MEDIUM confidence, cross-referenced with local file inspection
-- [Claude Code session log auto-deletion warning](https://simonwillison.net/2025/Oct/22/claude-code-logs/) -- MEDIUM confidence, retention behavior noted
-- [Claude Code CLI reference](https://code.claude.com/docs/en/cli-reference) -- official documentation
-- **Git CLI** (`git log --format`, `git log --numstat`, `git diff-tree --numstat`) -- HIGH confidence, tested on local repository
+- [Claude Code Hooks Reference](https://code.claude.com/docs/en/hooks) -- Official documentation, verified 2026-03-02. All 17 hook events, JSON input/output schemas, decision control patterns. HIGH confidence.
+- [GitHub CLI gh run list](https://cli.github.com/manual/gh_run_list) -- Official documentation. JSON output fields, filtering flags. HIGH confidence.
+- [GitHub CLI gh workflow run](https://cli.github.com/manual/gh_workflow_run) -- Official documentation. Workflow dispatch. HIGH confidence.
+- **Local verification:** `gh run list --limit 3 --json conclusion,status,workflowName,headBranch,createdAt` tested against `loganrooks/get-shit-done-reflect` repo, returned valid JSON. HIGH confidence.
+- **Local verification:** `gh --version` returns v2.86.0, `jq --version` returns v1.8.1. HIGH confidence.
+- **Existing codebase:** `hooks/gsd-check-update.js` (SessionStart background spawn pattern), `hooks/gsd-statusline.js` (cache file reading pattern), `.claude/settings.json` (hook registration pattern). HIGH confidence.
+- **Existing codebase:** `agents/gsd-git-sensor.md` (sensor JSON output format), `get-shit-done/workflows/collect-signals.md` (sensor orchestration), `agents/gsd-plan-checker.md` (verification dimensions). HIGH confidence.
+- **Existing codebase:** `get-shit-done/feature-manifest.json` (config schema pattern for new automation feature). HIGH confidence.
+- [Claude Code Hooks Guide](https://claude.com/blog/how-to-configure-hooks) -- Anthropic blog post on hook configuration. MEDIUM confidence (blog vs docs).
 
 ---
-*Stack research for: Signal Lifecycle & Reflection (v1.16)*
-*Researched: 2026-02-27*
+
+*Stack research for: Automation Loop (v1.17)*
+*Researched: 2026-03-02*

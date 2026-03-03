@@ -1,256 +1,411 @@
-# Pitfalls Research: Signal Lifecycle, Multi-Sensor Detection, Epistemic Rigor & Reflection Enhancement
+# Domain Pitfalls: v1.17 Automation Loop
 
-**Domain:** Adding signal lifecycle tracking (triage, remediation, verification, recurrence), multi-sensor detection, epistemic rigor enforcement, and reflection enhancement to an existing file-based AI workflow system
-**Researched:** 2026-02-27
-**Confidence:** HIGH (grounded in actual system analysis -- 46 signals/1 lesson pipeline ratio, 1 spike created/0 completed, specific schema review, real token budget measurements, known confirmation bias incidents from this project)
+**Domain:** Adding CI sensors, hook-based auto-triggering, auto-reflection, health check hooks, and plan checker semantic validation to an existing agentic workflow system (GSD Reflect)
+**Researched:** 2026-03-02
+**Confidence:** HIGH (grounded in codebase analysis of 329 tests, 79 KB signals, 5 completed milestones, known failure patterns from v1.16 CI bypass, wiring-validation.test.js false failures, and dual-directory architecture incidents)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Schema Expansion Breaks the Pipeline It's Supposed to Fix
-
-**What goes wrong:**
-The proposed signal schema expands from ~15 YAML frontmatter fields to ~30+ fields (adding `source.sensor`, `source.evidence`, `triage.decision`, `triage.rationale`, `triage.by`, `triage.at`, `remediation.ref`, `remediation.approach`, `remediation.expected_outcome`, `remediation.status`, `verification.status`, `verification.method`, `verification.at`, `evidence.supporting`, `evidence.counter`, `evidence.confidence`, `evidence.confidence_basis`, `recurrence_of`, `previous_remediations`). The signal collector agent already generates signals with ~1.5-2.8KB each (measured from current KB). With the expanded schema, each signal could reach 4-6KB. The reflector must read ALL active signals -- currently 46 files totaling ~95KB. At the expanded size with lifecycle fields populated across phases, this could reach 200-300KB just for signal data, consuming 10-15% of context window before the agent even starts reasoning.
-
-More critically, the schema expansion makes signal CREATION harder. The current signal collector already has a 213-line agent spec plus ~258-line signal-detection reference. Adding mandatory counter-evidence fields, confidence basis, and source evidence tracing means the collector must do MORE WORK per signal. If the pipeline is broken at 46:1 signal-to-lesson ratio, making each signal more expensive to create does not fix the pipeline -- it makes the input side more fragile while the output side (reflection/lessons) remains the actual bottleneck.
-
-**Why it happens:**
-The deliberation document correctly identifies that "signals are write-once dead letters" -- but the proposed fix adds lifecycle metadata to signals rather than building the processing machinery that consumes them. Schema-first thinking feels like progress because it's concrete and designable, but the system's failure mode is not "signals lack metadata" -- it's "nothing reads signals and produces lessons."
-
-**How to avoid:**
-- Phase the schema expansion: Ship lifecycle fields as OPTIONAL first. Required fields stay as-is (the current ~15 fields). New fields get populated incrementally as the lifecycle machinery comes online.
-- Build the processing pipeline FIRST (reflector enhancement, pattern detection, lesson distillation), THEN add richer schema fields once the pipeline proves it can consume what already exists.
-- Measure: Before expanding the schema, run the reflector on the existing 46 signals and produce lessons. If it cannot produce lessons from existing data, the problem is not schema richness -- it's reflector logic.
-- Schema migration: Use the pattern from v1.15 config migration -- optional fields with defaults, no breaking changes, gradual adoption. Existing signals without new fields remain valid.
-
-**Warning signs:**
-- Schema design takes more than one phase while reflector enhancement is deferred
-- New required fields are added before any agent uses them
-- Signal creation time increases (measurable: agent spec line count, average signal file size)
-- Schema validation rejects old signals
-
-**Phase to address:** Schema expansion should be the LAST phase, not the first. Build the consumer (reflector) before enriching the producer (collector).
+Mistakes that cause rewrites, data corruption, or system instability. Each of these has occurred in analogous systems or has a direct precedent in this codebase.
 
 ---
 
-### Pitfall 2: Multi-Sensor Orchestration Generates Noise Faster Than Reflect Can Process
+### Pitfall 1: Auto-Triggering Creates Feedback Loops That Consume Infinite Context
 
 **What goes wrong:**
-The proposed sensor architecture adds git-sensor, log-sensor, and metrics-sensor alongside the existing artifact-sensor. The artifact sensor currently produces ~10-15 signals per phase (before trace filtering). A git-sensor analyzing commit patterns, churn, and "fix fix fix" sequences could easily double that. A log-sensor reading conversation patterns could triple it again. The per-phase signal cap is currently 10 persistent signals -- but across all sensors, candidates could number 30-50 before filtering.
+Signal collection auto-triggers after phase execution. Reflection auto-triggers after N phases. But reflection can GENERATE signals (it creates lessons, triages signals, persists reports). If reflection output triggers collect-signals (because a new artifact was written), which triggers reflection (because N signals accumulated), the system enters an infinite loop: execute -> collect-signals -> reflect -> collect-signals -> reflect -> ...
 
-The real danger: more sensors = more signals = larger KB = more context for the reflector = less reasoning room for actual pattern detection. The current reflector already has a 278-line agent spec plus ~596-line reflection-patterns reference. If it must also load 100+ active signals (expanded from 46), the context budget for actual reasoning shrinks below the ~50% quality threshold documented in agent-protocol.md Section 11.
+In the current architecture, each of these operations spawns subagents via Task(). Each subagent consumes tokens and time. A feedback loop does not crash the system -- it silently burns through context budget, token quotas, and wall-clock time until the user notices or the context window fills.
 
-From observability engineering: "When alerts become noise, important signals get lost." The parallel is exact. The existing 46-signal backlog already exceeds the reflector's ability to process (1 lesson from 46 signals). Adding more sensors without fixing the processing bottleneck accelerates noise accumulation.
+The specific chain: (1) execute-phase completes, writes SUMMARY.md, (2) PostToolUse hook detects SUMMARY.md write, triggers collect-signals, (3) collect-signals writes signal files to `~/.gsd/knowledge/signals/`, (4) if reflection auto-triggers on signal accumulation, it reads signals, writes lessons/triage updates to KB, (5) KB writes could trigger another collect-signals (new artifacts detected), (6) loop.
 
 **Why it happens:**
-Sensor addition is additive and feels like progress. Each sensor individually seems valuable (git patterns ARE useful information). But the system constraint is not "insufficient detection" -- it's "insufficient synthesis." The signal collector works; the reflector doesn't. Adding more input to a broken pipeline produces a larger pile of unprocessed input, not better output.
+Event-driven systems without loop guards are a known anti-pattern in distributed systems. The browser event model solved this decades ago: event handlers that execute synchronously cannot re-trigger themselves during execution. But GSD's hook system is asynchronous (background processes via hooks), and the signal/reflection system has no reentrancy guard.
 
-**How to avoid:**
-- MANDATORY: Fix the reflector BEFORE adding new sensors. The existing artifact-sensor produces enough signals to test the full pipeline. New sensors add value only AFTER the pipeline can process existing input.
-- When sensors are added, implement a per-sensor-run budget: each sensor emits a maximum of N signal candidates (e.g., 5). The synthesizer picks the highest-severity across all sensors, subject to the existing per-phase cap of 10.
-- Implement severity stratification from observability best practices: "Alert on business impact, not on every error." Git commit pattern anomalies are LOW severity unless they correlate with execution failures (MEDIUM) or verified bugs (HIGH).
-- Run sensors with cheap models (the deliberation correctly identifies this -- `"git": { "model": "haiku" }`). But verify that cheap models produce useful signals before expanding sensor count.
+The v1.17 deliberation identifies this risk ("Auto-triggering reflection could cause feedback loops if reflection generates signals which trigger more reflection") but does not specify the prevention mechanism.
 
-**Warning signs:**
-- Signal count per phase exceeds 20 before filtering
-- Reflector load time (signal reading) exceeds 30% of its context budget
-- New sensors are added before existing signal backlog is processed
-- The "signal synthesis" step becomes the most expensive part of collection
+**Consequences:**
+- Context window fills with auto-triggered operations, degrading quality per agent-protocol.md Section 11 quality curve
+- Token costs spike without user awareness (background operations burning quota)
+- If auto-collect-signals and auto-reflect both run unguarded, they can race against each other modifying the same KB files
+- User loses control of when expensive operations run
 
-**Phase to address:** Reflector enhancement MUST precede sensor expansion. Add one new sensor at a time, with measured impact on signal volume and reflector load.
+**Prevention:**
+1. **Reentrancy guard via lockfile:** Before any auto-triggered operation, check for `~/.gsd/.auto-trigger.lock`. If present, skip. Create the lockfile at start, remove at end. This prevents collect-signals from triggering during reflection and vice versa.
+2. **Source tagging on triggers:** Every auto-triggered operation carries a `trigger_source` tag. Signal collection triggered by "phase-completion" is allowed. Signal collection triggered by "reflection-output" is NOT allowed. Reflection triggered by "phase-count" is allowed. Reflection triggered by "signal-collection" is NOT allowed. This creates a directed acyclic graph of allowed trigger chains.
+3. **Cooldown period:** After any auto-triggered operation completes, enforce a minimum cooldown (e.g., "no auto-trigger within the same session if one already ran"). This is the "Zeno behavior prevention" approach from event-triggered control theory.
+4. **Explicit trigger whitelist in config:** Only allow auto-triggering from specific events, not from any file write. The config should enumerate: `auto_trigger_sources: ["phase-completion", "milestone-boundary"]` -- not pattern-match on file system events.
+
+**Detection:**
+- Context usage spikes unexpectedly during what should be a simple phase execution
+- Multiple collect-signals or reflect operations in git log without user invocation
+- Lockfile left behind from crashed auto-trigger (stale `.auto-trigger.lock`)
+- Signal count jumps by large amounts between phases without corresponding execution activity
 
 ---
 
-### Pitfall 3: Epistemic Rigor Requirements Create a Compliance Tax That Kills Throughput
+### Pitfall 2: CI Sensor Assumes `gh` CLI Authentication That Does Not Exist
 
 **What goes wrong:**
-The epistemic rigor design principle requires structural counter-evidence in every signal (`evidence.counter: ["alternative explanations considered and why rejected"]`), every verification (`Evidence Against` section), and every reflector pattern assessment. This is philosophically correct -- confirmation bias is a real observed problem in this system (the tech debt dismissal incident, the .claude/ directory confusion going undetected for 23 days).
+The CI sensor uses `gh` CLI to detect failed GitHub Actions, bypassed branch protection, and test regressions. But `gh` CLI requires authentication (`gh auth login` or `GITHUB_TOKEN` env var). In several common scenarios, authentication is absent:
 
-But the cost is concrete: every signal now requires the collector to generate BOTH supporting AND counter-evidence. If the collector currently spends ~30 seconds per signal, counter-evidence seeking could double that. Across a phase with 10 signals, that's an extra 5 minutes of token consumption. For the reflector analyzing 46+ signals, actively seeking counter-evidence to each emerging pattern could consume most of the context budget in falsification attempts rather than synthesis.
+1. **First-time users:** `gh` may not be installed at all. The command fails silently or with an unhelpful error.
+2. **CI environment itself:** If the CI sensor runs as part of a GitHub Actions workflow, it needs a `GITHUB_TOKEN` with appropriate scopes. The default `GITHUB_TOKEN` may lack `actions:read` or `checks:read` permissions.
+3. **Private repos:** `gh` requires repo-scoped tokens for private repositories. A user may have `gh` authenticated for public repos but not for the current private repo.
+4. **Token expiration:** Personal access tokens expire. A CI sensor that worked last month may silently fail today.
+5. **Cross-runtime degradation:** On OpenCode or Codex CLI (which lack hooks), the CI sensor cannot auto-trigger at SessionStart. It must be invoked explicitly. But explicit invocation still requires `gh` auth.
 
-The proportionality principle in the deliberation is correct ("falsification effort should scale with cost of being wrong") but is vague enough that agents will either over-apply it (seeking counter-evidence for trivial signals) or under-apply it (generating formulaic "no counter-evidence found" text to satisfy the field requirement).
+The v1.17 deliberation says "CI sensor -- detect failed GitHub Actions, bypassed branch protection, test regressions (uses `gh` CLI)" but does not address the authentication prerequisite.
 
 **Why it happens:**
-Epistemic rigor is a response to real failures. But the response treats the problem as structural when it is partly behavioral. The tech debt dismissal happened because the agent took a literal workflow path, not because the signal schema lacked a counter-evidence field. The .claude/ confusion went undetected because no test existed, not because signals lacked confidence annotations. Structural requirements can enforce the form of rigor without guaranteeing the substance.
+Developers building CI integrations test with their own authenticated `gh` CLI. The "happy path" always works in development. The failure modes (no auth, expired token, insufficient scopes) only surface in other environments or after time passes.
 
-**How to avoid:**
-- Make counter-evidence fields optional-but-flagged: If a signal lacks `evidence.counter`, the reflector should flag it as "unvetted" rather than preventing its creation. This preserves signal throughput while incentivizing rigor where it matters.
-- Implement the proportionality principle as a concrete rule: Counter-evidence is REQUIRED only for `critical` severity signals and for pattern detection in the reflector. For `notable` signals, it is recommended. For `trace`, it is unnecessary.
-- Positive signal emission should be a REFLECTOR responsibility (periodic baseline assertions), not a per-signal-creation requirement for sensors. Sensors detect deviations; baselines are a separate concern.
-- Measure the actual token cost of epistemic rigor in the first phase that implements it. If signal creation time increases >50%, the implementation is too heavy.
+**Consequences:**
+- CI sensor fails on first use for most users, creating a bad first impression of the feature
+- Silent failure means the sensor reports "no CI issues" when it actually could not check
+- If the sensor is auto-triggered at SessionStart, a `gh` auth failure could block or delay session start
+- Error messages from `gh` CLI are not GSD-formatted, confusing users
 
-**Warning signs:**
-- Counter-evidence fields contain formulaic text ("No counter-evidence identified" copy-pasted across signals)
-- Signal creation latency doubles or more
-- Agents spend more context on falsification than on detection
-- Users skip signal collection because it takes too long
+**Prevention:**
+1. **Pre-flight check:** Before running any `gh` command, execute `gh auth status` (non-interactive). If it fails, emit a `notable` severity signal about missing CI sensor capability and skip gracefully. Do NOT block execution.
+2. **Graceful degradation config:** Add `devops.ci_sensor_enabled` (default: false, auto-set to true if `gh auth status` passes during `/gsd:new-project` or first CI sensor invocation). The sensor only runs when explicitly enabled.
+3. **Scope validation:** The sensor should check specific `gh` command feasibility: `gh run list --limit 1` will fail with "insufficient permissions" if token lacks `actions:read`. Test this once and cache the result.
+4. **Offline mode:** If `gh` is unavailable, the sensor can still check local CI config (`.github/workflows/*.yml` exist, branch protection rules in `gh api` cache). Degrade to local-only analysis rather than failing entirely.
+5. **Error formatting:** Wrap all `gh` CLI calls in error handlers that translate `gh` errors into GSD-formatted messages. "gh: not logged in" becomes "CI sensor skipped: GitHub CLI not authenticated. Run `gh auth login` to enable CI monitoring."
 
-**Phase to address:** Implement tiered rigor in the same phase as signal schema expansion. Critical = required counter-evidence. Notable = optional. Trace = none.
+**Detection:**
+- CI sensor reports zero findings but user knows CI has been failing (the v1.16 pattern: 5 CI failures, zero detection)
+- `gh auth status` in session shows "not logged in"
+- CI sensor hook takes >5 seconds at SessionStart (network timeout trying to auth)
 
 ---
 
-### Pitfall 4: Relaxing Signal Immutability Creates Data Integrity Nightmares
+### Pitfall 3: Wiring Validation Tests Check the Wrong Directory (Known Recurring Bug)
 
 **What goes wrong:**
-The deliberation proposes relaxing signal immutability: "Detection data stays frozen, but lifecycle fields (triage, remediation, verification) are mutable." This seems reasonable in isolation, but the current system architecture is built on signal immutability. The knowledge-store.md spec says explicitly: "Signals capture a moment in time" and "Only status field changes are allowed (for archival)." The deduplication system (`related_signals`, `occurrence_count`) depends on signals being stable references. The index rebuild process assumes it can re-derive the index from files at any time.
+The wiring-validation.test.js has a specific known issue: tests for agent `@-references` check `.claude/agents/` (line 144-146: `const allAgents = await readMdFiles('.claude/agents')`), but in CI `.claude/` does not exist because it is gitignored and populated by the installer at runtime. The subagent_type test (line 170-209) was already fixed to check `agents/` (npm source) first, falling back to `.claude/agents/`. But the `@-references in agents` test still reads from `.claude/agents/` directly.
 
-If lifecycle fields are mutable, then:
-1. The index must either include lifecycle state (making it more complex and fragile) or exclude it (making it useless for lifecycle queries)
-2. Concurrent agent access becomes dangerous -- two agents could update the same signal's triage field simultaneously
-3. The "files are source of truth, indexes are derived" principle breaks if lifecycle state changes aren't reflected in the index
-4. Signal files referenced as evidence in lessons could change after the lesson was created, invalidating the evidence chain
-
-The current concurrency model states: "Entry files have unique IDs preventing write collisions" and "Parallel agents writing entries simultaneously write to different files." Mutable signals break this guarantee.
+This is not hypothetical -- this exact pattern caused CI failures throughout v1.16 that were bypassed via admin push. Signal `sig-2026-03-02-ci-failures-ignored-throughout-v116` documents 5 consecutive failures, all ignored.
 
 **Why it happens:**
-The lifecycle needs mutable state somewhere. The instinct is to put it on the signal because the signal is the entity being triaged/remediated/verified. But this conflates the observation (immutable: what was detected) with the response (mutable: what was done about it).
+The dual-directory architecture (agents/ = npm source, .claude/agents/ = install target) creates a cognitive trap. When writing tests, the natural instinct is to test the installed location (`.claude/`) because that is what the runtime reads. But CI does not run the installer -- it runs tests against the source. The CLAUDE.md file warns about this ("Always edit the npm source directories") but the warning applies to test assertions too, not just edits.
 
-**How to avoid:**
-- Keep signals immutable. Store lifecycle state in a SEPARATE file: `{signal-id}-lifecycle.md` adjacent to the signal, or a centralized `lifecycle.yaml` per project.
-- Alternative: A lightweight lifecycle index (not the main index) that maps signal IDs to their current triage/remediation/verification status. This is a derived file like the current index, but focused on lifecycle state.
-- The reflector reads both the signal (what happened) and its lifecycle record (what was done). This preserves the immutability guarantee while enabling the lifecycle tracking.
-- If mutable fields on signals are chosen despite the above, limit mutability to a specific YAML section (`lifecycle:`) that is clearly separated from detection data, and add a write-lock mechanism (`.lock` file or last-write-wins with timestamp checking).
+This is now a three-time recurrence:
+1. v1.15 Phase 22: agent-protocol.md edited in `.claude/agents/` instead of `agents/`, not caught for 23 days
+2. v1.16: wiring-validation.test.js checking `.claude/agents/` causes CI false failures
+3. v1.17 risk: Any NEW test that checks `.claude/` paths will fail in CI
 
-**Warning signs:**
-- Signals referenced in lessons have different content than when the lesson was created
-- Index rebuild produces different results depending on when it runs (lifecycle state changed between rebuilds)
-- Two agents update the same signal and one's changes are lost
-- Debug session trying to trace "what did this signal say when the lesson was created?"
+**Consequences:**
+- CI runs fail, developers push via admin bypass (as happened 5 times in v1.16)
+- False failures erode trust in the test suite -- developers stop investigating CI failures
+- Real failures get masked by expected false failures ("CI always fails, just push it")
+- Signal about CI failures was captured but never acted on (the system failed to improve itself)
 
-**Phase to address:** Address in the schema design phase, BEFORE any lifecycle field implementation. This is an architectural decision that affects every downstream consumer.
+**Prevention:**
+1. **Fix the existing test FIRST:** The `@-references in agents` test must check `agents/` (npm source) as primary, `.claude/agents/` as fallback. This matches the pattern already used in the subagent_type test (lines 200-208).
+2. **Add a CI-specific assertion:** A test that verifies NO test file contains `.claude/` as a primary (non-fallback) path assertion. This prevents future recurrence.
+3. **Test the tests in CI:** Before adding v1.17 features, run CI and verify all 329+ tests pass. If they do not, fix them first. Do not proceed with new features on a broken test suite.
+4. **Codify the rule:** Add a comment block at the top of wiring-validation.test.js: "In CI, only agents/ and get-shit-done/ exist. .claude/ is populated by installer at runtime. All assertions MUST use npm source paths as primary."
+
+**Detection:**
+- CI fails on `@-references in agents resolve` test
+- `gh run list` shows failing runs on main branch
+- New tests added in v1.17 that reference `.claude/` paths
 
 ---
 
-### Pitfall 5: Repeating the Spike System Mistake -- Building Infrastructure Without Usage Pressure
+### Pitfall 4: Hook-Based Auto-Triggers Silently Fail on 2 of 4 Supported Runtimes
 
 **What goes wrong:**
-The spike system is the clearest cautionary tale in this codebase: substantial infrastructure built (agent spec, workflow, templates, integration reference, KB schema), near-zero adoption (1 spike created, stuck at "designing" status, 0 KB entries). The v1.16 deliberation proposes "spike system revisit" with a lightweight mode, proactive surfacing, config additions, and reflect integration. This risks repeating the exact pattern: designing improvements to infrastructure that has no usage pressure to validate the design.
+The v1.17 plan relies heavily on hooks for auto-triggering:
+- **SessionStart hook:** CI status warning, health check (on-resume), auto-collect-signals
+- **PostToolUse hook:** Detect SUMMARY.md writes for auto-collect-signals trigger
+- **execute-phase postlude:** Auto-reflection trigger after N phases
 
-Concrete failure modes:
-- A "lightweight spike" mode is designed, implemented, and never used -- because the original spike system wasn't unused due to weight, it was unused because nothing triggers it
-- Proactive surfacing is implemented, but the prompts are ignored or feel like noise -- because the system doesn't know which questions actually need empirical investigation vs. quick research
-- Config additions (`spike_sensitivity` in feature manifest) are built but never tuned -- because there's no feedback loop from spike outcomes to sensitivity calibration
+But per the capability matrix, hooks are available ONLY in Claude Code and Gemini CLI. OpenCode and Codex CLI have NO hook support. This means:
+- OpenCode users get zero auto-triggering (no SessionStart, no PostToolUse)
+- Codex CLI users get zero auto-triggering AND no parallel execution (no task_tool)
+- Half of the supported runtimes silently lack the headline v1.17 feature
+
+The current capability_check pattern in execute-phase.md handles this for hooks ("Skip hook configuration. Note: Update checks will run on GSD command invocation instead of session start.") but this pattern has NOT been extended to cover auto-triggering of signals, reflection, or health checks. Adding auto-trigger hooks without adding fallback paths creates a feature that only works on Claude Code.
 
 **Why it happens:**
-The spike system has a plausible theory of value ("resolve uncertainty empirically") but no usage data to validate which parts of the theory are correct. The deliberation lists 5 hypotheses for why spikes aren't used but has not verified any of them. Designing improvements to an unused system based on hypotheses about non-usage is designing in the dark.
+Development and testing happen on Claude Code (full capability). The capability matrix is documented but capability checks are only added when someone remembers. The execute-phase workflow has 2 capability_check blocks. But collect-signals, reflect, and health-check workflows have zero capability_check blocks -- they were built assuming manual invocation, not hook-triggered automation.
 
-**How to avoid:**
-- VERIFY the hypotheses FIRST. Before implementing any spike improvements:
-  1. Check if spike-integration.md step 5.5 is actually wired into plan-phase.md (it probably isn't -- the deliberation suspects this)
-  2. Check if any RESEARCH.md files contain "Genuine Gaps" sections (probably none exist)
-  3. Check config defaults for spike_sensitivity (probably not initialized)
-  4. Have the user manually try `/gsd:spike` on an actual open question from the v1.16 deliberation (e.g., "Where does Claude Code store session logs?")
-- If verification shows the problem is "not wired in" (hypothesis 1), the fix is wiring -- not new features. If the problem is ceremony weight (hypothesis 2), test lightweight mode manually before implementing it formally.
-- Implement the smallest possible spike improvement that addresses the verified root cause, then measure whether spikes actually get used before building more.
+**Consequences:**
+- OpenCode and Codex users do not get auto-triggering but have no way to know they are missing it
+- Feature parity claims in capability-matrix.md become incorrect
+- Users who switch runtimes lose auto-triggering silently
+- Tests pass on all runtimes (because tests do not test hook execution, only file wiring)
 
-**Warning signs:**
-- Spike improvement phase is planned before any spike usage verification
-- New spike infrastructure (lightweight mode, config, surfacing) is designed without a concrete spike question to test against
-- Post-milestone, spike usage count is still 0-1
+**Prevention:**
+1. **Capability audit for every auto-trigger:** For each auto-trigger added, document the degraded behavior explicitly. "On runtimes without hooks, auto-collect-signals does not run. Users should invoke `/gsd:collect-signals` manually after phase execution."
+2. **Command-invocation fallback:** For runtimes without hooks, add auto-trigger logic to the COMMAND invocation path. When a user runs `/gsd:execute-phase`, the command itself checks "should I auto-collect-signals?" after phase completion. This works on ALL runtimes because it is in the workflow, not in hooks.
+3. **Health check frequency adaptation:** The feature manifest has `health_check.frequency` with values `on-resume`, `every-phase`, etc. For hook-less runtimes, `on-resume` should trigger on `/gsd:resume-project` command invocation, not on SessionStart hook. Map each frequency value to both a hook trigger AND a command trigger.
+4. **Runtime-aware documentation:** The help text for auto-triggering features should include "Automatic on Claude Code and Gemini CLI. Manual on OpenCode and Codex CLI."
+5. **Test the degraded path:** Add tests that verify the manual invocation fallback path works. Do not only test the hook path.
 
-**Phase to address:** Spike audit should be a SINGLE task within an early phase, not a full phase. The outcome determines whether further spike work is warranted. If verification shows the system just needs wiring, that's a 30-minute fix, not a phase.
+**Detection:**
+- OpenCode user reports that signals are never collected automatically
+- health_check.frequency is set to "on-resume" but health checks never run on OpenCode
+- Capability matrix documentation does not mention auto-trigger limitations
 
 ---
 
-### Pitfall 6: Recurrence Detection False Positives Erode Trust in the Entire System
+### Pitfall 5: Plan Checker Semantic Validation Causes False Rejections That Block Execution
 
 **What goes wrong:**
-The proposed verification model uses "absence of recurrence" as evidence that a fix worked: "When sensors run after a phase, they also check: is this new signal a recurrence of a previously-remediated one? If no recurrence in the relevant area, evidence toward confirmed." This creates a false-positive problem in both directions:
+The plan checker currently validates structural dimensions (requirement coverage, task completeness, dependency correctness, key links, scope sanity, verification derivation, context compliance). v1.17 proposes adding SEMANTIC validation: verify tool API existence, config key validity, directory existence, cross-plan dependencies.
 
-False confirmed: A signal is marked "verified/confirmed" because no recurrence was detected in the next 3 phases. But the root cause only manifests during specific operations (e.g., the .claude/ directory bug only manifested during installer runs, which don't happen every phase). Absence of evidence is not evidence of absence -- especially in a system where triggering conditions are phase-specific.
+Semantic validation has a false positive problem that structural validation does not. Structural checks are deterministic: "does this YAML field exist?" has a clear yes/no answer. Semantic checks are probabilistic: "does this gsd-tools subcommand exist?" requires the checker to query the actual tool, which may change between plan creation and plan execution.
 
-False recurrence: Two signals with overlapping tags (`installer`, `path-resolution`) are flagged as recurrences, but they're actually unrelated issues. The current deduplication uses "same signal_type + 2+ overlapping tags" -- this is too loose for recurrence detection. Signal `sig-2026-02-11-local-install-global-kb-model` (about KB path architecture) and `sig-2026-02-24-local-patches-false-positive-dogfooding` (about installer false positives) share tags like `installer` and `path-resolution` but are completely different bugs.
+Specific false rejection scenarios:
+1. **Tool API existence:** Plan references `node .claude/get-shit-done/bin/gsd-tools.js frontmatter get` -- checker runs the command to verify it exists. But the command may require arguments that the checker does not have. Checker gets an error → false rejection.
+2. **Config key validity:** Plan references `config.signal_collection.sensors.ci.enabled` -- checker verifies this against feature-manifest.json. But the CI sensor is a v1.17 addition. If the plan checker runs BEFORE the sensor config is added to the manifest, it rejects a valid plan.
+3. **Directory existence:** Plan references `.planning/phases/36-ci-sensor/`. The directory does not exist yet (it will be created by the roadmapper). Checker rejects because directory is missing.
+4. **Cross-plan dependencies:** Plan 02 depends on plan 01 creating a file. Checker verifies the file exists. Plan 01 has not run yet. Checker rejects plan 02.
+
+Signal `sig-2026-03-01-plan-checker-misses-tool-api-assumptions` and `sig-2026-03-01-plan-checker-misses-second-order-effects` document the CURRENT problem (checker misses things). But the fix (semantic validation) creates the OPPOSITE problem (checker rejects valid plans).
 
 **Why it happens:**
-Tag-based matching is the only semantic matching available in a zero-dependency system (no embeddings, no ML, no NLP). Tags are assigned by agent judgment, which means two semantically different signals can share surface-level tags. Recurrence detection built on tag matching inherits all the noise of tag assignment.
+The plan checker operates in a pre-execution environment. Plans describe future state. Semantic validation checks CURRENT state. This temporal mismatch means the checker can only validate things that exist RIGHT NOW, not things that WILL exist after execution.
 
-**How to avoid:**
-- Recurrence detection should require MORE than tag overlap: same `signal_type` + 2+ overlapping tags + EXPLICIT `recurrence_of` link set by the reflector (not automatic). The reflector assesses whether signals are truly recurrences, not just tag-similar.
-- "Absence of recurrence" should never produce `confirmed` status. It should produce `no-recurrence-detected` -- a weaker claim. `confirmed` requires POSITIVE evidence (test passes, behavior verified, regression test added).
-- Define a recurrence window per signal type: deviation signals might recur within 3 phases; architectural signals might take 5+ phases. The window should be configurable, not hardcoded.
-- Include recurrence confidence: "2 phases without recurrence" is LOW confidence. "10 phases without recurrence AND a regression test exists" is HIGH confidence.
+**Consequences:**
+- Plans that would succeed get rejected, requiring manual override or weakened checker
+- Developers learn to ignore checker warnings (boy who cried wolf effect)
+- The planner-checker-planner revision loop burns context on false issues
+- Semantic checks that are sometimes wrong are worse than no semantic checks (they add cost without reliable value)
 
-**Warning signs:**
-- Signals marked "confirmed" that later recur (the verification was wrong)
-- Unrelated signals linked as recurrences (false clustering)
-- The "recurrence of" chain grows long without any actual pattern (just tag coincidence)
-- Users lose trust in verification status and ignore it
+**Prevention:**
+1. **Advisory mode only:** Semantic validation findings should be classified as `info` severity, not `blocker`. The checker reports "could not verify config key exists" as advisory, not as a rejection.
+2. **Temporal awareness:** Semantic checks must distinguish between "does not exist now" and "will not exist after execution." If a plan's task 1 creates a directory and task 2 references it, the checker should recognize the intra-plan dependency. Cross-plan: if plan 01 creates a file and plan 02 references it, the checker should recognize the execution-order dependency.
+3. **Allowlist for known-valid patterns:** Maintain a list of known GSD tool subcommands, config keys, and directory patterns. The checker validates AGAINST THE ALLOWLIST, not against the live filesystem/tool. The allowlist is updated when tools change. This makes validation deterministic.
+4. **Progressive rollout:** Ship semantic validation as a reporting feature first (shows findings in checker output but does not affect pass/fail status). After 1-2 milestones of observation, promote reliable checks to warning/blocker severity.
+5. **The "plan checker misses things" signals should be addressed separately:** The fix for "checker misses wrong subcommands" is a curated subcommand allowlist, not dynamic tool invocation. The fix for "checker misses non-existent config keys" is a config key registry derived from feature-manifest.json, not runtime config validation.
 
-**Phase to address:** Verification logic should be implemented alongside sensor expansion, NOT before. It needs real signal flow to test against. Use the existing 46 signals as test data.
+**Detection:**
+- Plan checker rejects plans that would succeed
+- User overrides checker findings repeatedly
+- Checker blocker count increases but actual execution failures do not decrease
+- Planner enters revision loops trying to satisfy checker's false findings
 
 ---
 
-## Technical Debt Patterns
+### Pitfall 6: Context Bloat from Auto-Generated Automation Artifacts
 
-Shortcuts that seem reasonable but create long-term problems.
+**What goes wrong:**
+v1.17 adds several new automatic outputs:
+- CI sensor reports (per-session CI status)
+- Auto-collected signal files (per-phase)
+- Auto-reflection reports (per N phases)
+- Health check reports (per frequency setting)
+- CI status warnings at SessionStart
 
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| All lifecycle fields on signal files (mutable) | Simple data model, everything in one place | Concurrency issues, broken immutability guarantee, evidence chain corruption | Never -- use separate lifecycle records |
-| Counter-evidence as free text | Low implementation cost | Formulaic "none found" responses, no structural benefit | Only for trace-level signals |
-| Per-sensor caps without cross-sensor coordination | Simple to implement per sensor | Sensors independently filter, missing cross-sensor correlations | Only in initial implementation; add synthesizer in next phase |
-| Hardcoded recurrence windows | Quick to ship | Different signal types recur at different rates; false positives for slow-recurring issues | Only as initial default; must be configurable |
-| Loading all signals into reflector context | Simple implementation | Context budget explosion at 100+ signals; quality degradation per agent-protocol.md Section 11 | Acceptable until ~60 signals; after that, must implement pre-filtering |
-| Skip positive signal emission | Faster sensor runs | No baselines for regression detection; verification has nothing to compare against | Never for artifact sensor; acceptable to defer for git/log sensors |
+Each of these generates artifacts that agents may need to read. The current system already has a context bloat history: signal-detection.md was 888 lines before a 7.6x reduction (to ~120 lines). The reflector loads index.md + all signal files + reflection-patterns.md + its own spec. Adding auto-generated CI reports, health check results, and more frequent reflection reports increases the amount of content competing for the agent's context budget.
 
-## Integration Gotchas
+The specific danger: auto-triggering means MORE operations run per session, and each operation leaves artifacts. Over time, the knowledge base grows faster. The index.md file grows. The reflector's context load increases. Quality degrades per the documented quality curve (agent-protocol.md Section 11: 50-70% = DEGRADING, 70%+ = POOR).
 
-Common mistakes when connecting lifecycle components to each other.
+Anthropic's own context engineering guidance says: "Good context engineering means finding the smallest possible set of high-signal tokens." Auto-generated content directly opposes this principle by increasing token count without human curation of signal quality.
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|------------------|
-| Signal schema migration (old signals -> new schema) | Adding required fields that break old signals | All new fields optional with explicit defaults; old signals remain valid; schema version field enables graduated processing |
-| Sensor -> Synthesizer | Each sensor writes signals independently; synthesizer runs after, creating duplicates | Sensors emit CANDIDATES to synthesizer; only synthesizer writes to KB. Single write path prevents duplicates |
-| Plan frontmatter `resolves_signals` -> Signal lifecycle | Plans declare which signals they resolve; nobody checks if the resolution actually worked | Add post-plan verification: after plan completes, check if resolved signals' root cause is addressed. Auto-create verification pending status |
-| Reflector -> Lesson creation | Reflector creates lessons from pattern detection; lessons reference signal IDs that may be archived later | Lessons should snapshot evidence descriptions, not just IDs. If a signal is archived, the lesson's evidence section still makes sense |
-| Signal collector -> Index rebuild | Collector writes signals then rebuilds index; if collector crashes mid-write, index is stale | Write all signals first, rebuild index once at end. If crash occurs, index rebuild on next run catches up (idempotent) |
-| Recurrence checker -> Verification status | Checker updates verification status on old signals; violates immutability | Write a verification event/record, don't modify the original signal. The lifecycle record is the mutable entity |
+**Why it happens:**
+Automation is additive by nature. Each auto-trigger adds output. Nobody removes output. The system has an "append everything" architecture (signals are files, reflections are files, health checks are reports). There is no garbage collection, no archival policy for auto-generated content, no automatic cleanup of stale CI reports.
 
-## Performance Traps
+**Consequences:**
+- Reflector context load exceeds 50% budget threshold, entering quality degradation zone
+- SessionStart hook takes longer as more checks run (CI status + health check + version check)
+- KB index.md grows large enough that parsing it becomes expensive
+- Auto-generated artifacts crowd out human-authored artifacts in relevance
 
-Patterns that work at small scale but fail as the knowledge base grows.
+**Prevention:**
+1. **Token budget per auto-operation:** Each auto-triggered operation has a maximum output size. CI sensor report: max 500 tokens. Health check: max 200 tokens. Auto-collected signals: subject to existing per-phase cap of 10.
+2. **TTL on auto-generated artifacts:** CI status reports expire after 24 hours (or next session). Health check results expire after the stale_threshold_days config value. Auto-reflection reports are overwritten daily (current behavior, good).
+3. **Progressive disclosure for auto-content:** Auto-generated content should be accessible via command (e.g., `/gsd:ci-status`) but NOT auto-loaded into agent context. The CI sensor writes a summary file; agents read it only when relevant.
+4. **Index pruning:** Implement archival policy for signals: signals in `verified` or `invalidated` lifecycle state are moved to an `archived/` directory after 10 phases. Archived signals are excluded from reflector loading but preserved for historical analysis.
+5. **Measure before expanding:** Before adding auto-triggering, measure the current reflector context load (how many tokens does it consume reading 79 signals?). Set a ceiling: auto-triggering cannot increase reflector load beyond 40% of context budget. If it does, reduce auto-trigger frequency or archive old signals first.
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Reflector reads all signals into context | Works fine at 46 signals (~95KB) | Pre-filter by project + status + severity before loading; use index for filtering, load only relevant signal files | ~80-100 signals (~200KB+), consuming >15% of context budget |
-| Index.md as full-text table | Simple grep/parse for queries | Keep index lean (ID, project, severity, tags, date, status). No lifecycle data in index. Separate lifecycle index if needed | ~200 entries (index file itself becomes unwieldy to parse) |
-| Signal file per observation | Clean, immutable, one-file-per-event | Monitor total signal count per project; implement archival policy based on reflector processing (archive after lesson distilled) | ~150 signals per project; filesystem scanning slows, glob patterns become expensive |
-| Counter-evidence generation per signal | Epistemic rigor | Tiered rigor: critical=full counter-evidence, notable=brief, trace=none | Immediately if applied uniformly -- token cost is O(n) per signal count |
-| Cross-project pattern detection (scope: all) | Reads ALL signals across ALL projects | Only trigger cross-project mode explicitly; default to project scope | 2+ projects with 50+ signals each; index parsing and file loading exceeds budget |
-| Sensor model spawning | Each sensor spawns as separate agent | Use cheap models for sensors (haiku); only reflector needs full model. But verify cheap models produce useful signals | Immediately if all sensors use opus-class model; 3 sensors x opus = 3x token cost per collection run |
+**Detection:**
+- Reflector agent's context usage exceeds 50% before it starts reasoning
+- SessionStart takes >10 seconds due to accumulated hook operations
+- KB index.md exceeds 500 lines
+- Signal count per project exceeds 150 without archival
 
-## Agent Spec Bloat Trap
+---
 
-This is a domain-specific performance trap unique to GSD's architecture.
+## Moderate Pitfalls
 
-| Component | Current Lines | After v1.16 (estimated) | Risk |
-|-----------|--------------|------------------------|------|
-| gsd-signal-collector.md | 213 | 350-450 (multi-sensor orchestration, expanded schema, counter-evidence requirements) | Agent reads its own spec; larger spec = less room for actual work |
-| signal-detection.md | 258 | 400-500 (new sensor rules, recurrence detection, verification checking) | Referenced by collector; loaded into same context |
-| gsd-reflector.md | 278 | 400-550 (lifecycle awareness, confidence weighting, counter-evidence seeking, lesson pipeline fixes) | Already the bottleneck agent; enlarging it makes the bottleneck worse |
-| reflection-patterns.md | 596 | 700-800 (confidence-weighted thresholds, recurrence verification, epistemic rigor) | Largest reference file; loaded entirely by reflector |
-| knowledge-store.md | 367 | 450-550 (lifecycle schema, separate lifecycle records, expanded body templates) | Referenced by collector AND reflector |
-| **Total loaded by reflector** | **~1,241** | **~1,900-2,350** | **Plus 46+ signal files. Context budget pressure is real.** |
+---
 
-**Prevention:** Split reference files. signal-detection.md should NOT contain recurrence logic (that's a reflector concern). lifecycle-schema.md should be a separate reference from knowledge-store.md. Each agent loads only what it needs.
+### Pitfall 7: Hook Process Races Between Auto-Trigger and User Commands
+
+**What goes wrong:**
+Auto-triggered operations (collect-signals, health-check, CI sensor) run as background processes via hooks. If a user invokes a GSD command while an auto-triggered operation is still running, they can collide:
+- Two processes writing to the KB simultaneously (signal collection + manual `/gsd:signal`)
+- Health check reading config.json while execute-phase is updating STATE.md
+- CI sensor running `gh` commands while user runs `gh pr create`
+- Index rebuild triggered by auto-collect-signals overlaps with index rebuild triggered by manual reflect
+
+The existing concern from CONCERNS.md: "Orphaned Hook Registration Cleanup Race Condition" -- if install fails mid-process, orphaned entries remain. The same pattern applies to auto-triggered operations that crash mid-execution.
+
+**What goes wrong:**
+Race conditions in file-based systems are subtle. Two processes can both check if a file exists, both see it does not, and both attempt to create it. The knowledge-store.md says "Entry files have unique IDs preventing write collisions" -- but this only prevents two NEW signals from colliding. It does not prevent a signal write and an index rebuild from colliding.
+
+**Prevention:**
+1. **Advisory lockfile for KB operations:** `~/.gsd/.kb-operation.lock` created before any KB write, removed after. Other operations check the lock and retry or skip.
+2. **Background hooks should be non-destructive:** Auto-triggered hooks should READ and REPORT but not WRITE. The actual KB writes happen when the user explicitly confirms or when the session is interactive. This prevents background writes from racing with foreground operations.
+3. **Queue pattern instead of parallel execution:** If multiple auto-triggers fire in sequence (SessionStart triggers CI check AND health check AND version check), they should run SEQUENTIALLY, not in parallel. The hook system should chain them, not fan them out.
+4. **Idempotent operations:** All auto-triggered operations should be idempotent. Running collect-signals twice for the same phase should produce the same result. Running health-check twice should not create duplicate signals.
+
+**Detection:**
+- Corrupted index.md (missing entries, duplicate entries)
+- Signal files partially written (truncated YAML frontmatter)
+- Health check and collect-signals run simultaneously and produce conflicting reports
+- Git status shows unexpected unstaged files from background operations
+
+---
+
+### Pitfall 8: CI Sensor Interprets Bypassed Branch Protection as Always-Wrong
+
+**What goes wrong:**
+The CI sensor is designed to detect "bypassed branch protection" as a signal. But in this project, admin push bypass has been the NORMAL workflow for months (5 consecutive bypasses during v1.16 alone). If the sensor treats every admin bypass as a negative signal, it will generate constant noise for a pattern that the team has accepted as a workflow.
+
+More broadly, the CI sensor needs to distinguish between:
+- **Legitimate bypass:** Hotfix pushed directly to main, admin merge for known-failing CI (the v1.16 pattern where CI was broken by a test bug, not by bad code)
+- **Problematic bypass:** Code pushed without review, skipping failing tests that indicate real bugs
+- **Expected CI failure:** CI fails because tests check `.claude/` which does not exist in CI (a test bug, not a code bug)
+
+Without this distinction, the CI sensor produces signals that say "CI was bypassed" without context about WHY it was bypassed. These signals clutter the KB and erode trust in the sensor.
+
+**Prevention:**
+1. **Configurable bypass policy:** `devops.bypass_policy: ["annotated-ok", "hotfix-ok", "never"]`. If "annotated-ok", bypasses with commit messages containing `[bypass: reason]` are classified as trace (not persisted). Only unexplained bypasses generate notable+ signals.
+2. **CI failure classification:** Before reporting "CI failed," the sensor should check: is the failure in a known-broken test? Is it a new failure? Is it a regression? Only new failures and regressions should generate notable+ signals.
+3. **Rolling CI health window:** The sensor should track CI pass/fail trend over the last N runs, not just the most recent. "CI has been failing for 5 runs" is more informative than "CI failed" repeated 5 times.
+4. **Pair with the wiring test fix:** Fix the `.claude/` test directory issue BEFORE enabling the CI sensor. Otherwise, the sensor's first output will be "CI is failing" -- because of the test bug it was supposed to help detect.
+
+**Detection:**
+- CI sensor generates 5+ identical signals about the same CI failure
+- Bypass signals without actionable information (just "branch protection was bypassed")
+- Team ignores CI sensor output because it is always reporting the same known issue
+
+---
+
+### Pitfall 9: Health Check Hook Frequency Mismatch with Config Expectations
+
+**What goes wrong:**
+The health_check feature manifest defines frequency values: `milestone-only`, `on-resume`, `every-phase`, `explicit-only`. v1.17 proposes implementing `on-resume` via SessionStart hook and `every-phase` via execute-phase workflow postlude.
+
+The mismatch: SessionStart fires at the beginning of every Claude Code session, not just when resuming a project. If a user opens Claude Code to do non-GSD work, the health check still runs. If a user opens multiple sessions (e.g., one for code, one for research), both trigger health checks. The "on-resume" semantic implies "when returning to the project after absence" but SessionStart fires on EVERY session start.
+
+Additionally, "every-phase" as an execute-phase postlude means the health check runs AFTER execution but BEFORE the user can act on the results. If the health check finds issues, the user is informed after their phase is already complete -- not before execution when they could have fixed it.
+
+**Prevention:**
+1. **Session dedup for on-resume:** Check if a health check has already run in the last N hours (configurable, default: 4 hours). If so, skip. This prevents multiple sessions from running redundant checks.
+2. **Pre-execution health check for every-phase:** If frequency is "every-phase", run the health check BEFORE execute-phase, not after. This lets the user address issues before committing to execution.
+3. **Non-GSD session detection:** If `.planning/` does not exist in the current directory, skip health check entirely. This prevents health checks from running in non-project directories.
+4. **Lightweight SessionStart check:** The SessionStart hook should run a MINIMAL health check (KB exists? Config valid?), not the full check suite. Full checks run on explicit invocation or at the appropriate frequency trigger.
+
+**Detection:**
+- Health checks running in non-GSD project directories
+- Duplicate health check signals from multiple sessions on the same day
+- "Every-phase" health check findings that arrive too late to be actionable
+
+---
+
+## Minor Pitfalls
+
+---
+
+### Pitfall 10: New Hook Scripts Not Built Before Testing
+
+**What goes wrong:**
+Hooks in this project use a build step (`npm run build:hooks` compiles `hooks/*.js` to `hooks/dist/*.js`). New hook scripts added for CI sensor or auto-triggering must also be built. If a developer adds a hook source file but forgets to update the build script and CI workflow, the hook works locally (source is used) but fails in CI or after `npm install` (dist is expected).
+
+**Prevention:**
+- Add any new hook to the `build:hooks` script in package.json
+- CI already runs `npm run build:hooks` before tests (line 30 of ci.yml) -- verify new hooks are included
+- Test with `npm run build:hooks && diff hooks/src.js hooks/dist/src.js` pattern
+
+---
+
+### Pitfall 11: Auto-Trigger Config Not Reflected in Feature Manifest
+
+**What goes wrong:**
+New auto-trigger config keys (e.g., `auto_collect_signals: true`, `reflection_frequency: "every-3-phases"`, `ci_sensor_enabled: true`) must be added to both:
+1. `get-shit-done/feature-manifest.json` (schema, defaults, init_prompts)
+2. `.planning/config.json` template (runtime config)
+
+If config keys are added to the code but not the manifest, `/gsd:new-project` will not prompt for them, `/gsd:settings` will not show them, and the plan checker cannot validate them. This is the same pattern as the v1.16 tech debt item: "Config key inconsistency: spike_sensitivity (flat) vs spike.sensitivity (nested)."
+
+**Prevention:**
+- For every new config key, add to feature-manifest.json FIRST, then reference from code
+- The manifest is the schema of truth for all config keys
+- Add a wiring test: "all config keys referenced in workflows exist in feature-manifest.json"
+
+---
+
+### Pitfall 12: `npm pack --dry-run` Misses New Agent/Reference Files
+
+**What goes wrong:**
+This is a three-time recurring bug in this project. New files added to `agents/`, `get-shit-done/references/`, or `hooks/` may not be included in the npm package if the `files` field in package.json does not cover them. The installer then copies nothing for those files, and `.claude/` has stale or missing content.
+
+v1.17 will likely add: a CI sensor agent (`agents/gsd-ci-sensor.md`), new hook scripts, new references, and possibly new workflow files. Each must be covered by package.json `files` patterns.
+
+**Prevention:**
+- After adding any new file to `agents/`, `get-shit-done/`, or `hooks/`, run `npm pack --dry-run` and verify the file appears
+- Add this check to the verification step of every phase that creates new files
+- Consider adding a test: "all .md files in agents/ appear in npm pack output"
+
+---
+
+## Phase-Specific Warnings
+
+| Phase Topic | Likely Pitfall | Mitigation | Severity |
+|-------------|---------------|------------|----------|
+| CI wiring test fix | Fix is trivial but testing it requires CI run | Push fix first, verify CI passes BEFORE starting other phases | Blocker if skipped |
+| CI sensor implementation | `gh` auth missing in user environments | Pre-flight auth check + graceful degradation config | Critical -- first-use experience |
+| Auto-collect-signals hook | Feedback loop with reflection | Reentrancy guard lockfile + source tagging on triggers | Critical -- can burn token quota |
+| Auto-reflection trigger | Runs reflection in wrong context (no signals to analyze) | Check signal count threshold before triggering | Moderate -- wasted tokens |
+| Health check SessionStart hook | Runs in non-GSD directories, runs redundantly | Directory check + session dedup | Moderate -- user annoyance |
+| Plan checker semantic validation | False rejections block valid plans | Advisory mode only, allowlist-based validation | Critical -- blocks execution |
+| Hook cross-runtime degradation | Features silently missing on OpenCode/Codex | Command-invocation fallback paths for all auto-triggers | Moderate -- feature parity |
+| New hook build step | Hook source not compiled to dist | Update build:hooks script, verify in CI | Minor -- caught by CI |
+| Config key additions | Keys not in feature manifest, inconsistent naming | Manifest-first development, naming convention check | Minor -- but compounds |
+| npm pack coverage | New files missing from package | npm pack --dry-run verification per phase | Minor -- but three-time recurrence |
+
+---
+
+## Integration Risk Matrix
+
+How v1.17 components interact and where integration bugs are most likely.
+
+| Component A | Component B | Risk | Specific Concern |
+|-------------|-------------|------|------------------|
+| Auto-collect-signals | Auto-reflect | HIGH | Feedback loop: collect triggers reflect triggers collect |
+| CI sensor | SessionStart hook | MEDIUM | Auth failure blocks session start; timeout on network |
+| Health check hook | execute-phase | MEDIUM | Running order: health check should be PRE-execution, not post |
+| Plan checker semantic | feature-manifest | MEDIUM | Checker validates against manifest; manifest must be updated first |
+| Any auto-trigger | OpenCode/Codex | MEDIUM | Silent degradation; no hook system available |
+| CI sensor | wiring-validation tests | HIGH | If CI is broken when sensor is added, sensor immediately generates noise |
+| Auto-collect-signals | KB index | MEDIUM | Concurrent writes during auto-collection can corrupt index |
+| Multiple SessionStart hooks | User experience | LOW | Cumulative latency: version check + CI check + health check |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-Things that appear complete but are missing critical pieces.
+Things that appear complete in v1.17 but are missing critical pieces.
 
-- [ ] **Signal schema expansion:** Often missing backward compatibility -- verify old signals parse correctly with new schema code
-- [ ] **Multi-sensor collection:** Often missing synthesizer dedup -- verify that the same issue detected by artifact-sensor AND git-sensor produces 1 signal, not 2
-- [ ] **Recurrence detection:** Often missing temporal context -- verify that "same tags, different root cause" is NOT flagged as recurrence
-- [ ] **Reflector enhancement:** Often missing the actual lesson pipeline -- verify that running reflect on existing 46 signals PRODUCES lessons, not just pattern reports
-- [ ] **Epistemic rigor:** Often missing proportionality -- verify that counter-evidence requirements don't apply to trace-level signals
-- [ ] **Lifecycle tracking:** Often missing concurrency safety -- verify that two agents cannot corrupt a lifecycle record simultaneously
-- [ ] **Spike improvements:** Often missing usage validation -- verify that at least one spike is COMPLETED (not just designed) using the new system
-- [ ] **Verification status:** Often missing positive evidence requirement -- verify that "no recurrence" alone does NOT set status to "confirmed"
-- [ ] **Source/install parity:** Often missing npm pack verification -- verify all new/modified files appear in `npm pack --dry-run` output (this exact bug has occurred THREE times in this project)
-- [ ] **Index rebuild:** Often missing lifecycle state -- if lifecycle data is stored separately, verify the index or a lifecycle index reflects current state
+- [ ] **Auto-collect-signals hook:** Often missing reentrancy guard -- verify that reflection output cannot re-trigger collection
+- [ ] **CI sensor:** Often missing `gh` auth pre-flight check -- verify sensor degrades gracefully without authentication
+- [ ] **Wiring test fix:** Often only fixes one test but not the pattern -- verify NO test in the suite uses `.claude/` as primary assertion path
+- [ ] **Health check hook:** Often missing session dedup -- verify health check does not run multiple times per day on same project
+- [ ] **Plan checker semantic validation:** Often missing temporal awareness -- verify checker does not reject plans referencing files that will be created during execution
+- [ ] **Cross-runtime fallback:** Often missing fallback path for hookless runtimes -- verify every auto-trigger has a command-invocation equivalent
+- [ ] **Config additions:** Often missing from feature-manifest.json -- verify every new config key has manifest entry with schema, default, and init_prompt
+- [ ] **npm pack coverage:** Often missing new files -- verify `npm pack --dry-run` includes all new agents, references, hooks, and workflows
+- [ ] **Build step for new hooks:** Often missing from build:hooks script -- verify new hook .js files are compiled to hooks/dist/
+- [ ] **Lockfile cleanup:** Often missing cleanup on crash -- verify `.auto-trigger.lock` has a staleness check (remove if older than 30 minutes)
 
 ---
 
@@ -260,112 +415,53 @@ When pitfalls occur despite prevention, how to recover.
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Schema breaks old signals | LOW | Add schema version field; processing code handles all versions; no signal files need modification |
-| Sensor noise overwhelms reflector | MEDIUM | Reduce per-sensor caps; archive low-value signals; run reflector on subset (project + severity filter) |
-| Epistemic rigor kills throughput | LOW | Downgrade counter-evidence from required to optional; add "rigor: light" mode to config |
-| Mutable signals corrupt evidence | HIGH | If detected early: export signals, restore from git history, re-apply lifecycle state to separate records. If detected late: evidence chain is broken, lessons may reference altered signals -- requires manual audit |
-| Recurrence false positives | MEDIUM | Review all "recurrence_of" links manually; tighten matching criteria (add root-cause similarity requirement); re-run reflector with stricter rules |
-| Spike improvements unused | LOW | Delete unused infrastructure; keep lightweight spike as research-only flow; remove ceremony |
-| Context budget exceeded | MEDIUM | Split agent specs and references; implement signal pre-filtering; reduce per-run signal load; consider two-pass reflection (first pass: index scan, second pass: load relevant signals only) |
-| Source/install parity broken (again) | LOW-MEDIUM | Run `node bin/install.js --local` and diff; verify with `npm pack --dry-run`; the bug is well-understood from 3 prior occurrences |
+| Feedback loop burns context | LOW | Kill the session. Remove `.auto-trigger.lock` if stale. Add reentrancy guard. Restart. |
+| CI sensor auth failure | LOW | Add `gh auth login` to setup docs. Set `ci_sensor_enabled: false` as stopgap. |
+| Wiring test false failure in CI | LOW | Fix test to use `agents/` path. Push fix. Verify CI passes. Known pattern -- 10 minute fix. |
+| Hook-based feature missing on OpenCode | MEDIUM | Add command-invocation fallback. Requires workflow modifications to all auto-triggered features. |
+| Plan checker false rejections | LOW | Downgrade semantic checks from blocker to info severity. Restore checker to structural-only mode. |
+| Context bloat from auto-artifacts | MEDIUM | Implement archival policy. Move old signals to `archived/`. Reduce auto-trigger frequency. Prune index. |
+| Hook race condition corrupts KB | MEDIUM-HIGH | Restore KB from git history. Add lockfile mechanism. Make all auto-triggers idempotent. |
+| Config key not in manifest | LOW | Add key to feature-manifest.json. Run `node bin/install.js --local`. 5-minute fix. |
+| npm pack missing files | LOW | Add file patterns to package.json `files`. Run `npm pack --dry-run`. Known three-time recurrence -- well-understood fix. |
 
 ---
 
-## Pitfall-to-Phase Mapping
+## The Meta-Pitfall: Automating a System That Cannot Observe Its Own Failures
 
-How roadmap phases should address these pitfalls.
+The v1.16 CI failure pattern is the defining cautionary tale for v1.17. The system had tests. The tests failed. CI ran the tests. CI reported failures. Nobody looked. The system's own signals (designed to detect process failures) did not detect the CI failure because signal collection is manual. The fix (auto-triggering) only works if the auto-trigger mechanism itself is monitored.
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Schema expansion breaks pipeline | Build reflector BEFORE expanding schema; schema expansion is a late phase | Run reflector on existing 46 signals; measure lesson output count > 1 |
-| Sensor noise overwhelms reflector | Fix reflector first; add sensors one-at-a-time in subsequent phases | Measure signal count per phase before/after each sensor; verify reflector can process the volume |
-| Epistemic rigor kills throughput | Implement tiered rigor (critical/notable/trace) in the schema design phase | Measure signal creation time before/after rigor requirements; <50% increase is acceptable |
-| Signal immutability violated | Architectural decision in first phase: separate lifecycle records | Verify no signal file has been modified after creation (git log per signal file) |
-| Spike system infrastructure-without-usage | Verify hypotheses in a single early task; implement only verified fixes | Post-milestone: spike usage count > 0; at least one spike completed end-to-end |
-| Recurrence false positives | Implement recurrence logic after real lifecycle data exists (late phase) | Test recurrence detection against known-different signals that share tags (the installer signals are a good test case) |
-| Context budget explosion | Split references; implement pre-filtering; measure agent spec sizes | Total reflector context load < 50% of window (per agent-protocol.md quality threshold) |
-| Source/install parity regression | Add `npm pack --dry-run` verification to every phase that modifies agent specs or references | Automated check: file count in npm pack matches expected count; content diff between source and installed is only path prefix conversion |
+**The recursive problem:** Who monitors the auto-trigger? If the CI sensor detects "CI is failing" but the auto-trigger mechanism itself is broken (hook not registered, auth expired, lockfile stale), the sensor never runs. The system that was built to prevent unobserved failures has an unobserved failure mode.
 
----
+**Concrete mitigation:** The FIRST auto-trigger to implement should be the simplest, most observable one: a SessionStart message that says "Last CI run: [PASS/FAIL/UNKNOWN]." This does not require `gh` auth (it can read a cached file from the last `gh run list`). It does not write to the KB. It does not trigger anything else. It just INFORMS. If this simple observable mechanism works reliably, build more complex auto-triggers on top of it. If it does not work reliably, debug it before adding complexity.
 
-## Phase-Specific Warnings
-
-Detailed warnings for likely v1.16 phase topics.
-
-### Signal Schema Design Phase
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Over-specifying lifecycle fields before pipeline exists | HIGH | Wasted design effort; schema changes needed after pipeline reveals actual requirements | Design minimal schema; mark lifecycle fields as "provisional"; iterate after reflector works |
-| Breaking backward compatibility with 46 existing signals | MEDIUM | Old signals rejected; data loss or corrupted index | Schema version field; processing code handles v1 and v2; no migration of existing files |
-| Nested YAML objects (source.sensor, triage.decision) cause parsing issues | MEDIUM | Agent YAML parsing is simplistic (frontmatter extraction via regex in some code paths) | Test nested YAML parsing in gsd-tools.js; if fragile, flatten to `source_sensor`, `triage_decision` |
-
-### Reflector Enhancement Phase
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Reflector spec grows beyond context budget | HIGH | Agent reads its own spec + reflection-patterns.md + all signals; quality degrades | Split reflection-patterns.md into core (thresholds, clustering) and extended (drift, suggestions); reflector loads only core by default |
-| Confidence-weighted thresholds produce no patterns | MEDIUM | If most signals are LOW confidence, thresholds are never met; no patterns = no lessons | Include a "pattern candidate" tier below threshold that is reported but not auto-distilled; ensures visibility even at low confidence |
-| Counter-evidence seeking in reflector becomes circular | MEDIUM | "Is this pattern real?" leads to reading more signals for counter-evidence, consuming more context, producing less synthesis | Budget counter-evidence seeking: check up to 3 counter-examples per pattern, then decide. Bounded falsification, not exhaustive |
-
-### Multi-Sensor Phase
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Git-sensor produces high volume of low-value signals | HIGH | "Fix fix fix" commit pattern detection generates noise for normal development iteration | Git-sensor should ONLY emit signals at notable+ severity; "fix" commit patterns are trace-level unless they correlate with verification failures |
-| Log-sensor requires Claude Code session log access (unknown) | HIGH | The deliberation itself notes this is a spike candidate; building a log-sensor without knowing if logs are accessible is waste | Spike or quick research FIRST: where does Claude Code store session logs? Block log-sensor implementation on this answer |
-| Sensors run in parallel but share signal namespace | MEDIUM | Two sensors detect the same issue (e.g., test failure visible in artifacts AND git history); synthesizer must dedup | Synthesizer runs AFTER all sensors; dedup by root-cause similarity (not just tag overlap); synthesizer is the single KB writer |
-
-### Spike System Phase
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Lightweight spike mode designed but no spike question to test | HIGH | Mode is implemented in the abstract; first real use reveals design gaps | Use a concrete open question from the v1.16 deliberation as the test case during implementation |
-| Integration point wired but nothing triggers it | HIGH | Same failure as original: integration exists but the conditions that trigger it never arise | Verify: does any current RESEARCH.md contain content that would trigger spike integration? If not, the trigger conditions need redesign, not just wiring |
-
-### Verification/Recurrence Phase
-
-| Risk | Likelihood | Impact | Mitigation |
-|------|-----------|--------|------------|
-| Verification runs on every collect-signals, adding latency | MEDIUM | Each collection run must check all remediated signals for recurrence; O(n) check per run | Only check signals remediated in the last 5 phases (rolling window for verification, NOT for signal retention) |
-| Recurrence check requires loading remediated signals from other milestones | LOW-MEDIUM | Cross-milestone recurrence requires reading signals from v1.12-v1.15; volume increases | Only check cross-milestone recurrence during explicit reflect runs, not during per-phase collection |
-
----
-
-## The Meta-Pitfall: Building a Self-Improvement System That Doesn't Improve Itself
-
-This project has 46 signals, 1 lesson, 1 incomplete spike, and 0 completed verification cycles across 4 milestones and 85 plans. The system was designed to "never make the same mistake twice" but has not yet completed a single signal-to-lesson loop with verified remediation.
-
-The v1.16 milestone risks adding MORE machinery (sensors, lifecycle tracking, recurrence detection, confidence weighting, counter-evidence) to a pipeline that cannot complete its EXISTING cycle. Every new component is another thing that must work for the loop to close.
-
-**The litmus test for v1.16 success is not "did we build all the features?" It is: "Can the system now produce lessons from signals and verify that remediations work?"**
-
-If the answer after v1.16 is still "we have infrastructure but no completed cycles," the milestone has failed regardless of how many sensors, lifecycle fields, or epistemic rigor requirements were implemented.
-
-**Concrete success criteria:**
-1. Reflector produces >5 lessons from existing 46 signals (proving the processing pipeline works)
-2. At least 1 signal has a completed lifecycle: detected -> triaged -> remediated -> verified
-3. At least 1 spike question is answered end-to-end (not just designed)
-4. Signal-to-lesson ratio improves from 46:1 to at most 10:1
+**Litmus test for v1.17 success:**
+1. CI is green on main branch (the wiring test fix worked)
+2. The CI sensor detects at least one CI issue that would have gone unnoticed without it
+3. Auto-collect-signals runs after at least one phase WITHOUT triggering a feedback loop
+4. Health check runs at the configured frequency on Claude Code AND degrades gracefully on OpenCode
+5. Plan checker semantic validation produces zero false rejections across all v1.17 phases
 
 ---
 
 ## Sources
 
-- [GSD Knowledge Store specification](/Users/rookslog/Development/get-shit-done-reflect/.claude/agents/knowledge-store.md) -- immutability rules, concurrency model, schema
-- [Signal detection reference](/Users/rookslog/Development/get-shit-done-reflect/get-shit-done/references/signal-detection.md) -- current detection rules, severity classification
-- [Reflection patterns reference](/Users/rookslog/Development/get-shit-done-reflect/get-shit-done/references/reflection-patterns.md) -- threshold model, clustering, anti-patterns
-- [v1.16 deliberation](/Users/rookslog/Development/get-shit-done-reflect/.planning/deliberations/v1.16-signal-lifecycle-and-beyond.md) -- proposed architecture, schema extensions, epistemic rigor principle
-- [Development workflow gaps deliberation](/Users/rookslog/Development/get-shit-done-reflect/.planning/deliberations/development-workflow-gaps.md) -- source/install confusion history, epistemic rigor gap
-- [GSD Agent Protocol](/Users/rookslog/Development/get-shit-done-reflect/.claude/get-shit-done/references/agent-protocol.md) -- context budget rules (Section 11), quality degradation curve
-- KB signal data: 46 active signals, ~95KB total, measured from `~/.gsd/knowledge/signals/get-shit-done-reflect/`
-- KB lesson data: 1 lesson in `~/.gsd/knowledge/lessons/architecture/`
-- KB spike data: 0 completed spikes; 1 spike stuck at "designing" status
-- [Alert Fatigue in DevOps: Moving from Noise to Signal](https://drdroid.io/engineering-tools/alert-fatigue-in-devops-moving-from-noise-to-signal) -- observability best practices for signal-to-noise ratio
-- [Cutting through the noise: Adaptive observability as antidote to alert fatigue](https://www.itrsgroup.com/blog/cutting-through-noise-why-adaptive-observability-antidote-alert-fatigue-0) -- severity stratification, dynamic thresholds
-- [11 Key Observability Best Practices 2026](https://spacelift.io/blog/observability-best-practices) -- SLO-driven alerts, business impact focus
-- [Data Observability Guide 2025](https://www.synq.io/blog/data-observability-guide) -- strategic testing, signal-to-noise ratio optimization
+- [Event-driven architecture patterns and anti-patterns](https://www.growin.com/blog/event-driven-architecture-scale-systems-2025/) -- loop prevention, event handler isolation [MEDIUM confidence -- industry patterns]
+- [Web browser event loop design](https://www.bennadel.com/blog/2075-learning-event-driven-programming-best-practices-from-web-browsers.htm) -- reentrancy prevention in event handlers [HIGH confidence -- established pattern]
+- [GitHub Agentic Workflows authentication](https://github.github.com/gh-aw/reference/auth/) -- `gh` CLI auth requirements for CI integration [HIGH confidence -- official documentation]
+- [GitHub Agentic Workflows security](https://www.theregister.com/2026/02/17/github_previews_agentic_workflows/) -- risks of giving AI agents repository access [MEDIUM confidence -- industry reporting]
+- [Multi-agent workflow failure modes](https://github.blog/ai-and-ml/generative-ai/multi-agent-workflows-often-fail-heres-how-to-engineer-ones-that-dont/) -- error propagation, schema drift, typed contracts [HIGH confidence -- GitHub Engineering blog]
+- [Anthropic context engineering guide](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents) -- progressive disclosure, context isolation, token-efficient tools [HIGH confidence -- Anthropic official]
+- [Context bloat and compression strategies](https://arxiv.org/abs/2601.07190) -- active context compression, autonomous memory management [MEDIUM confidence -- arxiv preprint]
+- [Sherlock: Reliable agentic workflow execution](https://arxiv.org/pdf/2511.00330) -- verification-aware planning, error propagation in multi-step agents [MEDIUM confidence -- arxiv paper]
+- Existing codebase analysis: wiring-validation.test.js, capability-matrix.md, execute-phase.md, collect-signals.md, reflect.md, health-check.md, feature-manifest.json, install.js, gsd-plan-checker.md [HIGH confidence -- primary source]
+- Signal `sig-2026-03-02-ci-failures-ignored-throughout-v116` -- 5 consecutive CI failures bypassed via admin push [HIGH confidence -- internal signal]
+- Signal `sig-2026-03-01-plan-checker-misses-tool-api-assumptions` -- plan checker passes plans with wrong tool subcommands [HIGH confidence -- internal signal]
+- Signal `sig-2026-03-01-plan-checker-misses-second-order-effects` -- plan checker misses semantic errors [HIGH confidence -- internal signal]
+- v1.17 deliberation document -- proposed features, dependency graph, open questions [HIGH confidence -- primary planning source]
+- CLAUDE.md dual-directory architecture warning -- three-time recurrence of source/install parity bugs [HIGH confidence -- documented pattern]
 
 ---
-*Pitfalls research for: v1.16 Signal Lifecycle & Reflection Enhancement*
-*Researched: 2026-02-27*
+
+*Pitfalls research for: v1.17 Automation Loop*
+*Researched: 2026-03-02*
