@@ -47,7 +47,7 @@ Research SUMMARY.md proposed 6 phases (Foundation Fix → CI Awareness → Plan 
   1. `wiring-validation.test.js` asserts against `agents/` (npm source directory), not `.claude/agents/` (install target)
   2. A meta-test exists that fails if any test file uses `.claude/` as a primary assertion path
   3. CI pipeline passes on main branch without admin bypass
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
 - [ ] 36-01: Fix wiring test paths and add meta-test for recurrence prevention
