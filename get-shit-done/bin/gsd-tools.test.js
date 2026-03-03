@@ -2411,15 +2411,16 @@ describe('manifest self-test (real manifest)', () => {
     assert.ok(manifest.features, 'should have features object');
     assert.strictEqual(typeof manifest.features, 'object', 'features should be object');
 
-    // Exactly 6 features
+    // Exactly 7 features
     const featureNames = Object.keys(manifest.features);
-    assert.strictEqual(featureNames.length, 6, 'should have exactly 6 features');
+    assert.strictEqual(featureNames.length, 7, 'should have exactly 7 features');
     assert.ok(featureNames.includes('health_check'), 'should have health_check');
     assert.ok(featureNames.includes('devops'), 'should have devops');
     assert.ok(featureNames.includes('release'), 'should have release');
     assert.ok(featureNames.includes('signal_lifecycle'), 'should have signal_lifecycle');
     assert.ok(featureNames.includes('signal_collection'), 'should have signal_collection');
     assert.ok(featureNames.includes('spike'), 'should have spike');
+    assert.ok(featureNames.includes('automation'), 'should have automation');
 
     // Each feature has required top-level fields
     for (const [name, feature] of Object.entries(manifest.features)) {
