@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 37 of 43 (Automation Framework)
-Plan: 2 of 3 in current phase
-Status: In progress
-Last activity: 2026-03-03 -- Phase 37 Plan 02 executed (resolve-level full resolution chain)
+Plan: 3 of 3 in current phase
+Status: Phase 37 complete
+Last activity: 2026-03-03 -- Phase 37 Plan 03 executed (track-event subcommand and statusline indicator)
 
-Progress: [█░░░░░░░░░] 6%
+Progress: [██░░░░░░░░] 22%
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Progress: [█░░░░░░░░░] 6%
 | 36 | 01 | 3min | 2 | 1 |
 | 37 | 01 | 3min | 2 | 2 |
 | 37 | 02 | 3min | 2 | 2 |
+| 37 | 03 | 4min | 3 | 3 |
 
 ## Accumulated Context
 
@@ -81,6 +82,7 @@ v1.17: Roadmap created with 8 phases (36-43), 49 requirements mapped, diverging 
 v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, path.join, pathExists) rather than broad .claude/ grep. Four exempt files (install, multi-runtime, cross-runtime-kb, kb-infrastructure).
 - [Phase 37]: Automation feature uses manifest config_key detection (not KNOWN_TOP_LEVEL_KEYS), consistent with all other manifest features
 - [Phase 37]: Resolution chain order: override BEFORE deferral BEFORE runtime cap
+- [Phase 37]: Statistics tracking: 4 lightweight fields per feature (fires, skips, last_triggered, last_skip_reason) -- no arrays or event logs
 
 ### Pending Todos
 
@@ -133,5 +135,5 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 37-02-PLAN.md. Plan 2/3 in Phase 37. Ready for 37-03.
+Stopped at: Completed 37-03-PLAN.md. Phase 37 complete (3/3 plans). Ready for Phase 38 (Extensible Sensors).
 Resume file: None
