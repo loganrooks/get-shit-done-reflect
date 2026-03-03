@@ -5089,6 +5089,36 @@ function cmdManifestAutoDetect(cwd, raw) {
   output({ feature, detected }, raw);
 }
 
+// ─── Automation ───────────────────────────────────────────────────────────────
+
+function cmdAutomationResolveLevel(cwd, feature, options, raw) {
+  if (!feature) {
+    error('Usage: automation resolve-level <feature> [--context-pct N] [--runtime NAME]');
+  }
+
+  const config = loadProjectConfig(cwd);
+  if (!config) {
+    error('No .planning/config.json found.');
+  }
+
+  const automation = config.automation || {};
+  const globalLevel = automation.level ?? 1; // Default: nudge
+
+  // Normalize feature name: hyphens -> underscores
+  const normalizedFeature = feature.replace(/-/g, '_');
+
+  const result = {
+    feature: normalizedFeature,
+    configured: globalLevel,
+    override: null,
+    effective: globalLevel,
+    reasons: [],
+    level_names: { 0: 'manual', 1: 'nudge', 2: 'prompt', 3: 'auto' }
+  };
+
+  output(result, raw);
+}
+
 // ─── CLI Router ───────────────────────────────────────────────────────────────
 
 async function main() {
@@ -5548,6 +5578,23 @@ async function main() {
         cmdBacklogIndex(cwd, globalFlag, raw);
       } else {
         error('Unknown backlog subcommand. Available: add, list, update, stats, group, promote, index');
+      }
+      break;
+    }
+
+    case 'automation': {
+      const subcommand = args[1];
+      if (subcommand === 'resolve-level') {
+        const feature = args[2];
+        const contextPctIdx = args.indexOf('--context-pct');
+        const runtimeIdx = args.indexOf('--runtime');
+        const options = {
+          contextPct: contextPctIdx !== -1 ? parseFloat(args[contextPctIdx + 1]) : undefined,
+          runtime: runtimeIdx !== -1 ? args[runtimeIdx + 1] : undefined,
+        };
+        cmdAutomationResolveLevel(cwd, feature, options, raw);
+      } else {
+        error('Unknown automation subcommand. Available: resolve-level');
       }
       break;
     }
