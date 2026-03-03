@@ -5,16 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.16 complete. Planning next milestone.
+**Current focus:** v1.17 Automation Loop — auto-triggering signals, reflection, CI sensor, health checks
 
 ## Current Position
 
-Phase: Between milestones
-Plan: N/A
-Status: Milestone v1.16 shipped 2026-03-02
-Last activity: 2026-03-02 -- v1.16 milestone archived
-
-Progress: v1.16 complete. Next: /gsd:new-milestone
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-02 — Milestone v1.17 started
 
 ## Performance Metrics
 
@@ -68,13 +66,14 @@ Full decision log in PROJECT.md Key Decisions table.
 v1.13-v1.16 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
-(No active milestone — run /gsd:new-milestone to start next cycle)
+v1.17: Automation Loop selected as first of 5 post-v1.16 milestones. See .planning/deliberations/v1.17-plus-roadmap-deliberation.md for full multi-milestone roadmap.
 
 ### Pending Todos
 
-2 pending:
-- [MEDIUM] Feature manifest system for declarative feature initialization (architecture)
+1 pending:
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
+
+Note: "Feature manifest system" TODO removed — fully built in v1.15/v1.16.
 
 ### Blockers/Concerns
 

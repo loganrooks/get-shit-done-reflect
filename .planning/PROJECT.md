@@ -78,7 +78,19 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ### Active
 
-(Next milestone requirements TBD via `/gsd:new-milestone`)
+## Current Milestone: v1.17 Automation Loop
+
+**Goal:** Make the self-improvement system actually self-triggering — auto-collect signals after phases, detect CI failures, trigger reflection automatically, and close the gap between signal detection and action.
+
+**Target features:**
+- Fix CI wiring test failure (broken throughout v1.16)
+- CI sensor — detect failed GitHub Actions, bypassed branch protection
+- Auto-trigger signal collection after phase execution
+- Auto-trigger reflection after configurable N phases or at milestone boundaries
+- Health check auto-trigger via hooks
+- CI status warning at session start
+- Plan checker enhancements (semantic validation)
+- Clean up stale TODOs and tech debt from v1.16 audit
 
 ### Out of Scope
 
@@ -100,7 +112,8 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ## Context
 
-Shipped v1.16 Signal Lifecycle & Reflection. The signal-to-lesson pipeline is now operational: 78 signals accumulated, 7 lessons distilled, 10 signals triaged in first reflection run.
+Shipped v1.16 Signal Lifecycle & Reflection. The signal-to-lesson pipeline is operational: 79 signals accumulated, 7 lessons distilled, 10 signals triaged in first reflection run. v1.17 focuses on closing the automation gap — signals are collected and reflection is run manually today; the system should trigger these automatically.
+5 milestone themes identified for post-v1.16 roadmap (see `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`): Automation Loop (v1.17), Meta-Observability, Deliberation Intelligence, Cross-Platform Parity, Parallelization.
 Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, gsd-tools.js CLI (~5,400 lines with backlog + manifest commands).
 Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents (with shared agent-protocol.md), Runtime layer (Node.js) for installation and hooks. Multi-sensor signal collection (artifact + git sensors → synthesizer → KB).
 Knowledge base: `~/.gsd/knowledge/` (runtime-agnostic) with `signals/`, `spikes/`, `lessons/`, `reflections/` subdirectories, auto-generated `index.md`, lifecycle state machine, and provenance fields.
@@ -172,5 +185,7 @@ Test suite: 329 tests (155 fork + 174 upstream), CI/CD via GitHub Actions with b
 | Lightweight research spike mode | Full BUILD/RUN cycle is overkill for "which format does X use?" questions | ✓ Good — option 4 in run-spike.md, completed Spike 002 end-to-end |
 | Per-run triage cap of 10 signals | First reflection on 78 signals would modify too many files in one session | ✓ Good — bounds blast radius, user can run reflect again |
 
+| 5 milestone themes from post-v1.16 deliberation | Sequential analysis of dependency graph identified M-A (Automation Loop) as foundational | — Pending — v1.17 is first, M-B through M-E follow |
+
 ---
-*Last updated: 2026-03-02 after v1.16 milestone completion*
+*Last updated: 2026-03-02 after v1.17 milestone start*
