@@ -535,6 +535,25 @@ const KNOWN_TOP_LEVEL_KEYS = new Set([
   'gsd_reflect_version', 'manifest_version', 'brave_search',
 ]);
 
+const FEATURE_CAPABILITY_MAP = {
+  signal_collection: {
+    hook_dependent_above: null,  // workflow postlude, not hook-based
+    task_tool_dependent: false,
+  },
+  reflection: {
+    hook_dependent_above: null,  // counter-based in workflow
+    task_tool_dependent: true,   // spawns reflector as subagent
+  },
+  health_check: {
+    hook_dependent_above: 2,     // session-start nudge needs hooks above level 2
+    task_tool_dependent: false,
+  },
+  ci_status: {
+    hook_dependent_above: 1,     // session-start display needs hooks above level 1
+    task_tool_dependent: false,
+  },
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function coerceValue(value, schema) {
@@ -5107,12 +5126,82 @@ function cmdAutomationResolveLevel(cwd, feature, options, raw) {
   // Normalize feature name: hyphens -> underscores
   const normalizedFeature = feature.replace(/-/g, '_');
 
+  let effectiveLevel = globalLevel;
+  let overrideValue = null;
+  const reasons = [];
+
+  // Step 2: Per-feature override (AUTO-02)
+  const overrides = automation.overrides || {};
+  if (overrides[normalizedFeature] !== undefined) {
+    overrideValue = overrides[normalizedFeature];
+    effectiveLevel = overrideValue;
+    reasons.push(`override: ${normalizedFeature}=${overrideValue}`);
+  }
+
+  // Step 3: Context-aware deferral (AUTO-04)
+  // Only applies to level 3 (auto) -- levels 0-2 are not context-sensitive
+  if (options.contextPct !== undefined) {
+    const threshold = automation.context_threshold_pct ?? 60;
+    if (options.contextPct > threshold && effectiveLevel >= 3) {
+      effectiveLevel = 1; // Downgrade to nudge
+      reasons.push(`context_deferred: ${options.contextPct}% > ${threshold}% threshold`);
+    }
+  }
+
+  // Step 4: Runtime capability cap
+  const capEntry = FEATURE_CAPABILITY_MAP[normalizedFeature];
+  if (capEntry) {
+    // Determine runtime capabilities
+    let hasHooks = false;
+    let hasTaskTool = false;
+
+    if (options.runtime) {
+      // Explicit runtime flag
+      hasHooks = options.runtime === 'claude-code' || options.runtime === 'full';
+      hasTaskTool = options.runtime === 'claude-code' || options.runtime === 'full';
+    } else {
+      // Heuristic: check for .claude/settings.json with hooks
+      try {
+        const settingsPath = path.join(cwd, '.claude', 'settings.json');
+        if (fs.existsSync(settingsPath)) {
+          const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+          hasHooks = settings.hooks !== undefined;
+          hasTaskTool = true; // Claude Code has task tool if settings exist
+        }
+      } catch {
+        // settings.json not found or invalid -- assume constrained
+      }
+    }
+
+    // Cap based on hook dependency
+    if (capEntry.hook_dependent_above !== null && !hasHooks) {
+      const cap = capEntry.hook_dependent_above;
+      if (effectiveLevel > cap) {
+        reasons.push(`runtime_capped: ${normalizedFeature} needs hooks above level ${cap}`);
+        effectiveLevel = cap;
+      }
+    }
+
+    // Cap based on task_tool dependency
+    if (capEntry.task_tool_dependent && !hasTaskTool) {
+      const taskToolCap = 2;
+      if (effectiveLevel > taskToolCap) {
+        reasons.push(`runtime_capped: ${normalizedFeature} needs task_tool above level ${taskToolCap}`);
+        effectiveLevel = taskToolCap;
+      }
+    }
+  }
+
+  // Step 5: Fine-grained knobs (AUTO-03)
+  const knobs = automation[normalizedFeature] || {};
+
   const result = {
     feature: normalizedFeature,
     configured: globalLevel,
-    override: null,
-    effective: globalLevel,
-    reasons: [],
+    override: overrideValue,
+    effective: effectiveLevel,
+    reasons,
+    knobs,
     level_names: { 0: 'manual', 1: 'nudge', 2: 'prompt', 3: 'auto' }
   };
 
