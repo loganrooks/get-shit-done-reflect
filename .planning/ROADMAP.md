@@ -62,12 +62,12 @@ Plans:
   3. Fine-grained knobs (thresholds, frequencies, intervals) are configurable per feature regardless of automation level
   4. When context usage exceeds threshold, level-3 features automatically downgrade to nudge for that session
   5. Statusline shows effective automation level accounting for runtime capabilities (e.g., "Level 3 (eff: 2)" on Codex where hooks are unavailable)
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 37-01: Automation level config schema, manifest declaration, and level resolution logic
-- [ ] 37-02: Per-feature overrides, fine-grained knobs, and context-aware deferral
-- [ ] 37-03: Runtime-aware effective levels, automation statistics tracking, and statusline display
+- [ ] 37-01: Add automation feature to manifest, basic resolve-level subcommand with global level
+- [ ] 37-02: Extend resolve-level with overrides, context deferral, runtime capping, and tests
+- [ ] 37-03: Statistics tracking (track-event), statusline Auto:N(M) indicator, and tests
 
 ### Phase 38: Extensible Sensor Architecture
 **Goal**: New sensors can be added by dropping a file into the agents directory -- no framework modification required, existing sensors conform to the standard contract
