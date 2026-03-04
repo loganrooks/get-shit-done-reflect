@@ -16,14 +16,15 @@ allowed-tools:
 <objective>
 Create or continue a structured deliberation document in `.planning/deliberations/`.
 
-Deliberations are the structured thinking between "we detected a problem" and "here's what we'll do about it." They link signals to interventions, record falsifiable predictions, and enable meta-evaluation of whether our design decisions actually worked.
+Deliberations are the structured thinking between "something seems off" and "here's what we'll do about it." They can be triggered by formal signals, but equally by conversation observations, user questions, or intuitions that haven't yet crystallized into named problems.
 
 **How it integrates with the pipeline:**
 ```
-Signals (detect) → Deliberation (think) → Planning (plan) → Execution (build) → Verification (check) → Signal Collection (observe) → Evaluation (compare predictions vs outcomes)
+Observation (any source) → Deliberation (think) → Planning (plan) → Execution (build) →
+Verification (check) → Signal Collection (observe) → Evaluation (compare predictions vs outcomes)
 ```
 
-Deliberations sit between signal collection and planning. They consume signals and produce design decisions that planning consumes.
+Deliberations can enter the pipeline at any point — they don't require upstream signals. A user noticing "why are all signals active?" is a valid trigger, even though no signal says "signals are all active." The deliberation process itself may discover or create signals as a byproduct.
 </objective>
 
 <execution_context>
@@ -54,13 +55,12 @@ Parse arguments to determine mode:
    - `evaluated` → present evaluation, offer supersession or closure
 4. Skip to Step 6 (the conversational loop)
 
-**New mode** (topic string or no arguments):
-1. If no arguments, ask: "What design question or observation do you want to deliberate on?"
-2. Continue to Step 1
+**New mode** (topic string, no arguments, or mid-conversation):
+1. If no arguments: check the current conversation for context first. The user may have been discussing something that naturally led here. Summarize what you understand the topic to be and confirm.
+2. If arguments provided: use the topic string as the starting point.
+3. Continue to Step 1.
 
-## Step 1: Surface Context
-
-Before creating the file, gather relevant context automatically:
+## Step 1: Identify the Trigger
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -68,32 +68,62 @@ Before creating the file, gather relevant context automatically:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-**Scan for related signals:**
-- Read `~/.gsd/knowledge/index.md`
-- Search for signals related to the topic (keyword match against signal summaries)
-- List top 5 related active signals with IDs
+Deliberations can be triggered by many things. Identify which applies:
 
-**Scan for prior deliberations:**
+| Trigger Type | Example | How to handle |
+|-------------|---------|---------------|
+| **Conversation observation** | "Why are all signals active?" / "I noticed X seems odd" | Extract the observation from conversation context. The deliberation IS the investigation. |
+| **Formal signal** | "Signal sig-2026-03-04-X needs a design response" | Link signal IDs directly. |
+| **Question about the system** | "How does X work? Should it work differently?" | The deliberation explores current state and whether change is warranted. |
+| **Post-execution reflection** | "Phase N revealed that our approach to X isn't working" | Ground in execution artifacts. |
+| **Intuition or unease** | "Something feels wrong about how we handle Y" | Valid trigger. Name the unease, then investigate. |
+
+**Capture the trigger** as a 1-2 sentence statement. This goes into the template's Trigger field.
+
+If the trigger came from conversation (not explicit arguments), summarize what the conversation revealed and confirm with the user: "It sounds like the deliberation topic is: {summary}. Is that right?"
+
+## Step 2: Surface Related Context
+
+Gather relevant context — but treat each source as optional. Not every deliberation has related signals, prior deliberations, or relevant philosophy.
+
+**Scan for related signals** (best-effort):
+- Read `~/.gsd/knowledge/index.md` if it exists
+- Search for signals related to the topic (keyword match against signal summaries)
+- If matches found: list top 5. If none: report "No directly related signals found" and move on.
+- **Important:** The absence of signals can itself be informative. If the user noticed a systemic issue that no sensor detected, that's an epistemic gap worth noting.
+
+**Scan for prior deliberations** (best-effort):
 - `ls .planning/deliberations/*.md` (exclude philosophy/ subdirectory)
 - Check if any existing deliberation covers overlapping territory
+- If none: move on.
 
-**Scan for relevant philosophy:**
+**Scan for relevant philosophy** (best-effort):
 - Read `.planning/deliberations/philosophy/INDEX.md` if it exists
-- List 2-3 most relevant philosophical principles for the topic
+- List 2-3 most relevant philosophical principles. If no philosophy files exist: skip entirely.
 
-Present findings:
+**Investigate the observation** (when trigger is conversation/intuition):
+- If the user observed something about the system's state (e.g., "all signals are active"), verify it. Run queries, read files, count things. Ground the observation in data before deliberating about it.
+- Present what you found: "You noticed X. I checked, and here's what the data shows: {findings}"
+
+Present findings (only sections that have content):
 
 ```
 ## Related Context
 
-### Active Signals ({N} related)
+{### Observation Verified — if trigger was conversation/intuition}
+{What was checked and what the data shows}
+
+{### Active Signals ({N} related) — if any found}
 {Table: ID | Severity | Summary}
 
-### Prior Deliberations
+{### Prior Deliberations — if any found}
 {List: filename | status | relevance}
 
-### Philosophical Principles
+{### Philosophical Principles — if any found}
 {List: cite key | principle | relevance}
+
+{### Epistemic Note — if no signals/deliberations found}
+{Note what the absence means: "No sensors have detected this pattern, suggesting it falls outside current sensor coverage."}
 ```
 
 ## Step 2: Frame the Question
@@ -226,10 +256,12 @@ This closes the loop: signals → deliberation → intervention → prediction �
 - `/gsd:reflect` — reflector can reference deliberation predictions when evaluating signal patterns
 
 **Downstream triggers (what triggers deliberation):**
-- Signal collection reveals recurring patterns with no existing response
-- User conversation surfaces a design question
-- Phase verification finds gaps that need design thinking before gap closure
-- Reflection produces lessons that suggest architectural changes
+- **Conversation observation:** User notices something odd, asks a question, or expresses unease about system behavior — no formal signal required
+- **Signal accumulation:** Signal collection reveals recurring patterns with no existing response
+- **Verification gaps:** Phase verification finds gaps that need design thinking before gap closure
+- **Reflection output:** Reflector produces lessons that suggest architectural changes
+- **Intuition:** "Something feels wrong about X" — valid trigger, investigation happens during deliberation
+- **Post-execution:** Phase outcomes reveal that an approach isn't working as expected
 
 **State tracking:**
 - STATE.md `Deliberation context:` field links to active deliberations

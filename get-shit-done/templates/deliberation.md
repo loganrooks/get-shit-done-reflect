@@ -12,20 +12,20 @@ Lifecycle: open → concluded → adopted → evaluated → superseded
 
 **Date:** {YYYY-MM-DD}
 **Status:** Open
-**Trigger:** {What prompted this — signal IDs, conversation observations, phase outcomes, user request}
+**Trigger:** {What prompted this — conversation observation, user question, signal IDs, phase outcomes, intuition, post-execution reflection}
 **Affects:** {Phases, requirements, or milestones this deliberation may influence}
 **Related:**
 - {Links to signals, prior deliberations, philosophy files, requirements}
 
 ## Situation
 
-{What is happening that warrants deliberation? Ground in observable evidence — signal IDs, KB data, codebase state, conversation observations. This is Dewey's "indeterminate situation" made explicit.}
+{What is happening that warrants deliberation? This is Dewey's "indeterminate situation" made explicit. Ground in whatever evidence is available — this may be formal (signal IDs, KB data, codebase state) or informal (conversation observations, user intuitions, "something feels off"). Both are valid starting points. If the trigger was informal, include the investigation that verified or clarified the observation.}
 
 ### Evidence Base
 
 | Source | What it shows |
 |--------|--------------|
-| {signal ID / file / observation} | {what it tells us} |
+| {signal ID / KB query / codebase check / conversation observation} | {what it tells us} |
 
 ## Framing
 
