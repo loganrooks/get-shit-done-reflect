@@ -535,6 +535,25 @@ const KNOWN_TOP_LEVEL_KEYS = new Set([
   'gsd_reflect_version', 'manifest_version', 'brave_search',
 ]);
 
+const FEATURE_CAPABILITY_MAP = {
+  signal_collection: {
+    hook_dependent_above: null,  // workflow postlude, not hook-based
+    task_tool_dependent: false,
+  },
+  reflection: {
+    hook_dependent_above: null,  // counter-based in workflow
+    task_tool_dependent: true,   // spawns reflector as subagent
+  },
+  health_check: {
+    hook_dependent_above: 2,     // session-start nudge needs hooks above level 2
+    task_tool_dependent: false,
+  },
+  ci_status: {
+    hook_dependent_above: 1,     // session-start display needs hooks above level 1
+    task_tool_dependent: false,
+  },
+};
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function coerceValue(value, schema) {
@@ -5089,6 +5108,152 @@ function cmdManifestAutoDetect(cwd, raw) {
   output({ feature, detected }, raw);
 }
 
+// ─── Automation ───────────────────────────────────────────────────────────────
+
+function cmdAutomationResolveLevel(cwd, feature, options, raw) {
+  if (!feature) {
+    error('Usage: automation resolve-level <feature> [--context-pct N] [--runtime NAME]');
+  }
+
+  const config = loadProjectConfig(cwd);
+  if (!config) {
+    error('No .planning/config.json found.');
+  }
+
+  const automation = config.automation || {};
+  const globalLevel = automation.level ?? 1; // Default: nudge
+
+  // Normalize feature name: hyphens -> underscores
+  const normalizedFeature = feature.replace(/-/g, '_');
+
+  let effectiveLevel = globalLevel;
+  let overrideValue = null;
+  const reasons = [];
+
+  // Step 2: Per-feature override (AUTO-02)
+  const overrides = automation.overrides || {};
+  if (overrides[normalizedFeature] !== undefined) {
+    overrideValue = overrides[normalizedFeature];
+    effectiveLevel = overrideValue;
+    reasons.push(`override: ${normalizedFeature}=${overrideValue}`);
+  }
+
+  // Step 3: Context-aware deferral (AUTO-04)
+  // Only applies to level 3 (auto) -- levels 0-2 are not context-sensitive
+  if (options.contextPct !== undefined) {
+    const threshold = automation.context_threshold_pct ?? 60;
+    if (options.contextPct > threshold && effectiveLevel >= 3) {
+      effectiveLevel = 1; // Downgrade to nudge
+      reasons.push(`context_deferred: ${options.contextPct}% > ${threshold}% threshold`);
+    }
+  }
+
+  // Step 4: Runtime capability cap
+  const capEntry = FEATURE_CAPABILITY_MAP[normalizedFeature];
+  if (capEntry) {
+    // Determine runtime capabilities
+    let hasHooks = false;
+    let hasTaskTool = false;
+
+    if (options.runtime) {
+      // Explicit runtime flag
+      hasHooks = options.runtime === 'claude-code' || options.runtime === 'full';
+      hasTaskTool = options.runtime === 'claude-code' || options.runtime === 'full';
+    } else {
+      // Heuristic: check for .claude/settings.json with hooks
+      try {
+        const settingsPath = path.join(cwd, '.claude', 'settings.json');
+        if (fs.existsSync(settingsPath)) {
+          const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+          hasHooks = settings.hooks !== undefined;
+          hasTaskTool = true; // Claude Code has task tool if settings exist
+        }
+      } catch {
+        // settings.json not found or invalid -- assume constrained
+      }
+    }
+
+    // Cap based on hook dependency
+    if (capEntry.hook_dependent_above !== null && !hasHooks) {
+      const cap = capEntry.hook_dependent_above;
+      if (effectiveLevel > cap) {
+        reasons.push(`runtime_capped: ${normalizedFeature} needs hooks above level ${cap}`);
+        effectiveLevel = cap;
+      }
+    }
+
+    // Cap based on task_tool dependency
+    if (capEntry.task_tool_dependent && !hasTaskTool) {
+      const taskToolCap = 2;
+      if (effectiveLevel > taskToolCap) {
+        reasons.push(`runtime_capped: ${normalizedFeature} needs task_tool above level ${taskToolCap}`);
+        effectiveLevel = taskToolCap;
+      }
+    }
+  }
+
+  // Step 5: Fine-grained knobs (AUTO-03)
+  const knobs = automation[normalizedFeature] || {};
+
+  const result = {
+    feature: normalizedFeature,
+    configured: globalLevel,
+    override: overrideValue,
+    effective: effectiveLevel,
+    reasons,
+    knobs,
+    level_names: { 0: 'manual', 1: 'nudge', 2: 'prompt', 3: 'auto' }
+  };
+
+  output(result, raw);
+}
+
+function cmdAutomationTrackEvent(cwd, feature, event, reason, raw) {
+  if (!feature || !event) {
+    error('Usage: automation track-event <feature> <fire|skip> [reason]');
+  }
+  if (event !== 'fire' && event !== 'skip') {
+    error('Event must be "fire" or "skip"');
+  }
+
+  const configPath = path.join(cwd, '.planning', 'config.json');
+  if (!fs.existsSync(configPath)) {
+    error('No .planning/config.json found.');
+  }
+
+  // Normalize feature name
+  const normalizedFeature = feature.replace(/-/g, '_');
+
+  // Read-modify-write with atomic write
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  if (!config.automation) config.automation = {};
+  if (!config.automation.stats) config.automation.stats = {};
+  if (!config.automation.stats[normalizedFeature]) {
+    config.automation.stats[normalizedFeature] = {
+      fires: 0,
+      skips: 0,
+      last_triggered: null,
+      last_skip_reason: null,
+    };
+  }
+
+  const stats = config.automation.stats[normalizedFeature];
+  if (event === 'fire') {
+    stats.fires++;
+    stats.last_triggered = new Date().toISOString();
+  } else if (event === 'skip') {
+    stats.skips++;
+    stats.last_skip_reason = reason || 'unknown';
+  }
+
+  // Atomic write: write to tmp, then rename
+  const tmpPath = configPath + '.tmp';
+  fs.writeFileSync(tmpPath, JSON.stringify(config, null, 2) + '\n');
+  fs.renameSync(tmpPath, configPath);
+
+  output({ feature: normalizedFeature, event, stats }, raw);
+}
+
 // ─── CLI Router ───────────────────────────────────────────────────────────────
 
 async function main() {
@@ -5548,6 +5713,28 @@ async function main() {
         cmdBacklogIndex(cwd, globalFlag, raw);
       } else {
         error('Unknown backlog subcommand. Available: add, list, update, stats, group, promote, index');
+      }
+      break;
+    }
+
+    case 'automation': {
+      const subcommand = args[1];
+      if (subcommand === 'resolve-level') {
+        const feature = args[2];
+        const contextPctIdx = args.indexOf('--context-pct');
+        const runtimeIdx = args.indexOf('--runtime');
+        const options = {
+          contextPct: contextPctIdx !== -1 ? parseFloat(args[contextPctIdx + 1]) : undefined,
+          runtime: runtimeIdx !== -1 ? args[runtimeIdx + 1] : undefined,
+        };
+        cmdAutomationResolveLevel(cwd, feature, options, raw);
+      } else if (subcommand === 'track-event') {
+        const feature = args[2];
+        const event = args[3];
+        const reason = args[4] || undefined;
+        cmdAutomationTrackEvent(cwd, feature, event, reason, raw);
+      } else {
+        error('Unknown automation subcommand. Available: resolve-level, track-event');
       }
       break;
     }
