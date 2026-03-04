@@ -25,6 +25,10 @@ Example:
 | [bayesian-epistemology.md](bayesian-epistemology.md) | Formal Epistemology (Bayes, Jeffrey) | How should confidence in lessons update with evidence? |
 | [cybernetics.md](cybernetics.md) | Systems Theory (Wiener, Ashby, von Foerster) | What happens when the system observes itself? |
 | [dialectics.md](dialectics.md) | German Idealism / Critical Theory (Hegel, Marx, Adorno) | How do improvements create new contradictions? |
+| [toulmin.md](toulmin.md) | Argumentation Theory (Toulmin) | What makes an argument well-formed, and how do we evaluate competing claims? |
+| [habermas.md](habermas.md) | Discourse Ethics (Habermas) | Under what conditions is automated deliberation legitimate? |
+| [gadamer.md](gadamer.md) | Philosophical Hermeneutics (Gadamer) | How do we understand across contexts without losing situatedness? |
+| [aristotle.md](aristotle.md) | Practical Philosophy (Aristotle) | What are the limits of formalizing good judgment? |
 | [praxis-meta.md](praxis-meta.md) | Cross-cutting (meta-methodology) | How does philosophical thinking become technical design? |
 | [contradictions-in-v17-requirements.md](contradictions-in-v17-requirements.md) | Multi-framework analysis (Adorno, Lakatos, Dewey) | What contradictions in the requirements resist resolution? |
 
@@ -92,6 +96,46 @@ Example:
 - `dialectics/master-slave`
 - `dialectics/base-superstructure`
 
+### Toulmin
+- `toulmin/explicit-warrants`
+- `toulmin/rebuttal-conditions`
+- `toulmin/field-dependence`
+- `toulmin/qualifier-precision`
+- `toulmin/warrant-comparison`
+- `toulmin/graduated-formality`
+- `toulmin/backing-depth`
+- `toulmin/presumption-transparency`
+
+### Habermas
+- `habermas/communicative-vs-strategic`
+- `habermas/validity-claims`
+- `habermas/ideal-speech`
+- `habermas/discourse-ethics`
+- `habermas/colonization`
+- `habermas/informed-consent`
+- `habermas/lifeworld-system`
+- `habermas/monological-limitation`
+
+### Gadamer
+- `gadamer/hermeneutic-circle`
+- `gadamer/prejudice-as-condition`
+- `gadamer/fusion-of-horizons`
+- `gadamer/effective-historical-consciousness`
+- `gadamer/question-and-answer`
+- `gadamer/application`
+- `gadamer/distanciation`
+- `gadamer/horizon-as-limit`
+
+### Aristotle
+- `aristotle/phronesis`
+- `aristotle/euboulia`
+- `aristotle/deliberative-syllogism`
+- `aristotle/mesotes`
+- `aristotle/poiesis-praxis`
+- `aristotle/hexis`
+- `aristotle/techne-phronesis-distinction`
+- `aristotle/formalization-limits`
+
 ### Praxis (Meta)
 - `praxis/theory-practice-unity`
 - `praxis/generative-deviation`
@@ -106,4 +150,4 @@ Example:
 - `contradictions/measure-with-humility`
 
 ---
-*Index generated 2026-03-03. Updated after contradictions analysis.*
+*Index generated 2026-03-03. Updated after Toulmin, Habermas, Gadamer, Aristotle additions.*
