@@ -218,12 +218,8 @@
       "schema": {
         "sensors": {
           "type": "object",
-          "default": {
-            "artifact": { "enabled": true, "model": "auto" },
-            "git": { "enabled": true, "model": "auto" },
-            "log": { "enabled": false, "model": "auto" }
-          },
-          "description": "Per-sensor configuration (enabled/disabled, model assignment)"
+          "default": {},
+          "description": "Per-sensor overrides (enabled/disabled, model). Discovered sensors not listed here default to enabled with model 'auto'. To disable a sensor, add \"sensor_name\": {\"enabled\": false}. Note: projects upgrading from pre-v1.17 that had the log sensor disabled should add \"log\": {\"enabled\": false} to preserve that behavior."
         },
         "synthesizer_model": {
           "type": "string",
