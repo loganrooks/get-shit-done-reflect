@@ -243,11 +243,12 @@ for ENTRY in ENABLED_SENSORS:
   TIMEOUT = ENTRY.timeout_seconds
   MODEL = resolve_model(ENTRY.model)
 
+  # subagent_type is dynamically constructed: "gsd-" + NAME + "-sensor"
   Task(
-    subagent_type="gsd-{NAME}-sensor",
-    model="{MODEL}",
+    subagent_type=SENSOR_AGENT_TYPE,
+    model=RESOLVED_MODEL,
     run_in_background=true,
-    description="Collect {NAME} signals for phase {PADDED_PHASE}",
+    description="Collect signals for phase {PADDED_PHASE}",
     prompt="Analyze phase {PADDED_PHASE} execution artifacts.
       Phase directory: {PHASE_DIR}
       Project name: {PROJECT_NAME}
