@@ -29,6 +29,7 @@ Example:
 | [habermas.md](habermas.md) | Discourse Ethics (Habermas) | Under what conditions is automated deliberation legitimate? |
 | [gadamer.md](gadamer.md) | Philosophical Hermeneutics (Gadamer) | How do we understand across contexts without losing situatedness? |
 | [aristotle.md](aristotle.md) | Practical Philosophy (Aristotle) | What are the limits of formalizing good judgment? |
+| [error-statistics.md](error-statistics.md) | Post-Popperian Philosophy of Experiment (Mayo) | How do we assess whether our tests are actually probative? |
 | [praxis-meta.md](praxis-meta.md) | Cross-cutting (meta-methodology) | How does philosophical thinking become technical design? |
 | [contradictions-in-v17-requirements.md](contradictions-in-v17-requirements.md) | Multi-framework analysis (Adorno, Lakatos, Dewey) | What contradictions in the requirements resist resolution? |
 
@@ -136,6 +137,14 @@ Example:
 - `aristotle/techne-phronesis-distinction`
 - `aristotle/formalization-limits`
 
+### Error Statistics (Mayo)
+- `error-statistics/severity-principle`
+- `error-statistics/test-severity-gradient`
+- `error-statistics/content-increasing-inference`
+- `error-statistics/error-probability-awareness`
+- `error-statistics/minimal-severity-threshold`
+- `error-statistics/probe-the-weakest-point`
+
 ### Praxis (Meta)
 - `praxis/theory-practice-unity`
 - `praxis/generative-deviation`
@@ -150,4 +159,4 @@ Example:
 - `contradictions/measure-with-humility`
 
 ---
-*Index generated 2026-03-03. Updated after Toulmin, Habermas, Gadamer, Aristotle additions.*
+*Index generated 2026-03-03. Updated 2026-03-04 after Error Statistics (Mayo) addition and falsificationism contemporary status update.*

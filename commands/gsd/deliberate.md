@@ -167,8 +167,16 @@ Present findings (only sections that have content):
 ## Step 2.5: Severe Testing
 
 <!--
-Grounded in: philosophy: falsificationism/severe-tests
-"A severe test is one where the theory would likely fail if it were false."
+Grounded pluralistically in:
+- philosophy: error-statistics/severity-principle — a test is severe when it would
+  probably detect the error if present (Mayo)
+- philosophy: pragmatism/warranted-assertibility — claims are warranted through
+  well-conducted inquiry, not through certainty (Dewey)
+- philosophy: pragmatism/fallibilism — all claims are provisional and subject to
+  revision (Peirce)
+- Falsificationism contributes the asymmetry insight: look for disconfirming
+  evidence specifically (Popper) — but the full Popperian programme is not
+  required or assumed
 
 This step exists because the first dog-food of this skill (2026-03-04) produced
 two false factual claims that went unchallenged into the Analysis section. The
@@ -176,7 +184,7 @@ claims would have been caught by reading two files. See:
 sig-2026-03-04-deliberation-skill-lacks-epistemic-verification
 -->
 
-**Purpose:** Before the Situation section becomes the basis for analysis, attempt to falsify every factual claim in it. This is not verification (which implies certainty) but severe testing (which implies honest attempt to disprove). Claims that survive are corroborated, not confirmed.
+**Purpose:** Before the Situation section becomes the basis for analysis, subject every factual claim to inquiry that would probably detect errors if present (Mayo's severity principle). This is not verification (which implies certainty no finite process can establish) but inquiry into whether claims are warranted (Dewey) — with specific attention to disconfirming evidence (Popper's asymmetry insight). Claims that survive are provisionally warranted, not confirmed.
 
 **Process:**
 
@@ -199,7 +207,9 @@ sig-2026-03-04-deliberation-skill-lacks-epistemic-verification
 
 **The Evidence Base table uses "Corroborated?" not "Verified?"** — because corroboration is provisional ("survived our best attempt to falsify") while verification implies certainty. Per Popper: no finite number of checks can verify a universal claim. See `philosophy: falsificationism/corroboration-not-confirmation`.
 
-**Anti-pattern to avoid:** Reading one file that supports the claim and stopping. This is confirmation bias — finding one supporting datum and treating it as sufficient. The falsification test should look for the evidence that would *disprove* the claim, not evidence that would *support* it.
+**Anti-pattern to avoid:** Reading one file that supports the claim and stopping. This is confirmation bias — finding one supporting datum and treating it as sufficient. Per Mayo: a test with low severity (the claim would probably pass even if false) provides no evidence. Design tests that probe the claim's weakest point — where it is most likely to be wrong.
+
+**What makes a test severe (Mayo):** A test is severe when the probability of the claim passing it, given that the claim is false, is low. "Grep found nothing" is moderately severe (the feature would likely use the expected name). "Code exists in the workflow spec" is less severe for the claim "the automation works" (code existing doesn't mean it executes). "The output artifact shows the state change" is more severe (directly probes whether the transition fired).
 
 ## Step 3: Frame the Question
 
