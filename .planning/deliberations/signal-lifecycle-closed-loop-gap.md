@@ -71,17 +71,23 @@ This reveals a gap in the deliberation skill itself: no epistemic verification s
 
 ### Evidence Base
 
-| Source | What it shows | Verified? | Signal ID |
-|--------|--------------|-----------|-----------|
+<!--
+Evidence Base uses "Corroborated?" rather than "Verified?" — per Popper, no finite
+number of checks can verify a universal claim. Corroboration means "survived our best
+attempt to falsify it." See philosophy: falsificationism/corroboration-not-confirmation.
+-->
+
+| Source | What it shows | Corroborated? | Signal ID |
+|--------|--------------|---------------|-----------|
 | KB index: 89 detected, 10 triaged, 0 remediated/verified | Lifecycle state machine never exercises past triage | Yes (KB query) | sig-2026-03-04-signal-lifecycle-representation-gap |
-| execute-plan.md `update_resolved_signals` step | Remediation automation EXISTS in workflow spec | Yes (code read) | — |
-| gsd-signal-synthesizer.md Step 4c | Passive verification EXISTS in agent spec | Yes (code read) | — |
+| execute-plan.md `update_resolved_signals` step | Remediation automation EXISTS in workflow spec | Yes (code read) — falsified initial claim that "no automation exists" | — |
+| gsd-signal-synthesizer.md Step 4c | Passive verification-by-absence EXISTS in agent spec | Yes (code read) — falsified initial claim | — |
 | gsd-planner.md `<signal_awareness>` section | Planner CAN populate resolves_signals | Yes (code read) | — |
 | Plan 36-01 declares resolves_signals with sig-2026-03-02-ci-failures-ignored-throughout-v116 | Machinery WAS invoked at least once | Yes (file read) | — |
 | sig-2026-03-02-ci-failures-ignored-throughout-v116 lifecycle_state = "detected" | Despite plan completion, signal was NOT updated | Yes (file read) | — |
 | AskUserQuestion phantom answer during this session | Known failure mode recurred without KB consultation | Yes (observed) | sig-2026-03-05-askuserquestion-phantom-answers |
 | 3 prior deliberations designed lifecycle solutions | This problem was already identified and addressed (in spec) | Yes (file read) | — |
-| Deliberation skill has no verification step | False claims entered the analysis unchecked | Yes (observed) | sig-2026-03-04-deliberation-skill-lacks-epistemic-verification |
+| Deliberation skill has no falsification step | False claims entered the analysis unchecked | Yes (observed) | sig-2026-03-04-deliberation-skill-lacks-epistemic-verification |
 
 ## Framing
 

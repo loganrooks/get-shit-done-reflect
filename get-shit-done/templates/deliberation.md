@@ -24,6 +24,11 @@ Lifecycle: open → concluded → adopted → evaluated → superseded
 ### Evidence Base
 
 <!--
+Corroborated? column tracks whether claims survived falsification attempts (Step 2.5).
+Per falsificationism: corroboration is provisional ("survived our best attempt to falsify"),
+not verification (which implies certainty no finite number of checks can establish).
+See philosophy: falsificationism/corroboration-not-confirmation.
+
 Signal ID column tracks whether evidence has been formalized as a KB signal.
 - Formal signal: use the sig-YYYY-MM-DD-slug ID
 - Created during deliberation: signal with source: deliberation-trigger
@@ -32,9 +37,9 @@ Formalizing evidence as signals makes it traceable, detectable for recurrence,
 and referenceable by the remediation pipeline.
 -->
 
-| Source | What it shows | Signal ID |
-|--------|--------------|-----------|
-| {KB query / codebase check / conversation observation} | {what it tells us} | {sig-ID or "informal"} |
+| Source | What it shows | Corroborated? | Signal ID |
+|--------|--------------|---------------|-----------|
+| {KB query / codebase check / conversation observation} | {what it tells us} | {Yes (how) / Falsified / Untested} | {sig-ID or "informal"} |
 
 ## Framing
 

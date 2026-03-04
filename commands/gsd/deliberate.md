@@ -104,6 +104,8 @@ If the trigger came from conversation (not explicit arguments), summarize what t
 
    Create signal for: *'{observation summary}'*?"
 
+   **AskUserQuestion guard:** If using AskUserQuestion for this offer, inspect the response for actual answer content. If the response contains no visible selection (e.g., "User answered:" with no option text), do NOT assume "yes." Ask again in plain text or default to "no" (informal reference). See sig-2026-03-05-askuserquestion-phantom-answers for the known failure mode.
+
 3. If yes:
    - Write the signal file directly to `~/.gsd/knowledge/signals/{project}/` using the standard signal schema
    - Use `source: deliberation-trigger` to distinguish from sensor-detected or manual signals
@@ -138,7 +140,7 @@ Gather relevant context — but treat each source as optional. Not every deliber
 - List 2-3 most relevant philosophical principles. If no philosophy files exist: skip entirely.
 
 **Investigate the observation** (when trigger is conversation/intuition):
-- If the user observed something about the system's state (e.g., "all signals are active"), verify it. Run queries, read files, count things. Ground the observation in data before deliberating about it.
+- If the user observed something about the system's state (e.g., "all signals are active"), investigate it. Run queries, read files, count things. Ground the observation in data before deliberating about it.
 - Present what you found: "You noticed X. I checked, and here's what the data shows: {findings}"
 
 Present findings (only sections that have content):
@@ -146,7 +148,7 @@ Present findings (only sections that have content):
 ```
 ## Related Context
 
-{### Observation Verified — if trigger was conversation/intuition}
+{### Observation Investigated — if trigger was conversation/intuition}
 {What was checked and what the data shows}
 
 {### Active Signals ({N} related) — if any found}
@@ -162,7 +164,44 @@ Present findings (only sections that have content):
 {Note what the absence means: "No sensors have detected this pattern, suggesting it falls outside current sensor coverage."}
 ```
 
-## Step 2: Frame the Question
+## Step 2.5: Severe Testing
+
+<!--
+Grounded in: philosophy: falsificationism/severe-tests
+"A severe test is one where the theory would likely fail if it were false."
+
+This step exists because the first dog-food of this skill (2026-03-04) produced
+two false factual claims that went unchallenged into the Analysis section. The
+claims would have been caught by reading two files. See:
+sig-2026-03-04-deliberation-skill-lacks-epistemic-verification
+-->
+
+**Purpose:** Before the Situation section becomes the basis for analysis, attempt to falsify every factual claim in it. This is not verification (which implies certainty) but severe testing (which implies honest attempt to disprove). Claims that survive are corroborated, not confirmed.
+
+**Process:**
+
+1. **Extract claims.** List every factual claim in the Situation section that asserts something about the codebase, system state, or history. Include claims inherited from the trigger or from prior deliberation summaries.
+
+2. **For each claim, formulate the most direct falsification test:**
+   - "No automation exists for X" → Search for code that does X (`Grep` for key terms, `Read` relevant workflow/agent files)
+   - "Feature Y was never built" → Search for feature Y in the codebase
+   - "N things are in state Z" → Query the data source directly
+   - "Previous deliberation concluded W" → Read the deliberation file
+
+3. **Execute the test** using tool calls (Grep, Read, Bash). Do not reason about whether the claim is probably true — check.
+
+4. **Record the result** in the Evidence Base table:
+   - **Corroborated:** The claim survived the falsification attempt. Note what was checked.
+   - **Falsified:** The claim was disproven. Correct the Situation section immediately. Note what the evidence actually shows and how the initial claim was wrong.
+   - **Inconclusive:** The test didn't definitively support or refute the claim. Note the ambiguity.
+
+5. **If any claims are falsified:** Pause and re-examine the framing. False premises may have shaped the core question. The corrected understanding may point to a different — and more precise — problem.
+
+**The Evidence Base table uses "Corroborated?" not "Verified?"** — because corroboration is provisional ("survived our best attempt to falsify") while verification implies certainty. Per Popper: no finite number of checks can verify a universal claim. See `philosophy: falsificationism/corroboration-not-confirmation`.
+
+**Anti-pattern to avoid:** Reading one file that supports the claim and stopping. This is confirmation bias — finding one supporting datum and treating it as sufficient. The falsification test should look for the evidence that would *disprove* the claim, not evidence that would *support* it.
+
+## Step 3: Frame the Question
 
 Ask the user to refine the framing:
 
@@ -177,51 +216,64 @@ Use AskUserQuestion with options:
 - "The real question is..." (refine)
 - "Let me explain more context first" (gather more)
 
-## Step 3: Create the File
+## Step 4: Create the File
 
 Generate the deliberation file from the template:
 - **Filename:** `.planning/deliberations/{slug}.md` where slug is kebab-case from topic
 - **Populate:** Date, trigger (from conversation context), affects (from related phases/requirements), related (from context scan)
-- **Fill Situation section** with the evidence base from Step 1
+- **Fill Situation section** with the corroborated evidence base from Steps 2-2.5
 - **Fill Framing section** with the agreed core question
+- **Note any falsified claims** in the Situation section with corrections
 
 Write the file. Report:
 ```
 Created: .planning/deliberations/{slug}.md
 Status: Open
+Claims tested: {N tested}, {N corroborated}, {N falsified}
 ```
 
-## Step 4: Explore the Design Space
+## Step 5: Explore the Design Space
 
-This is the core deliberation loop. For each option worth considering:
+This is the core deliberation loop.
+
+**Before proposing options, check prior deliberations:**
+- Re-read the prior deliberations surfaced in Step 2
+- For each one that covers overlapping territory, extract: what was already designed, what was already built, what gaps remain
+- Present a summary: "Prior deliberations have already addressed aspects of this problem: {summary}. The remaining gap is: {gap}."
+- This prevents re-exploring design space that has already been covered — and prevents making claims about what exists without checking (the failure mode this step was created to prevent)
+
+For each option worth considering:
 
 1. **Present the option** with Toulmin structure (claim, grounds, warrant, rebuttal)
-2. **Ask the user** to react — agree, challenge, propose alternative
-3. **Record tensions** — where do options conflict? What trade-offs exist?
+2. **Ensure the grounds are corroborated** — if an option's grounds include factual claims about the codebase, check them (Step 2.5 discipline applies throughout, not just at the start)
+3. **Ask the user** to react — agree, challenge, propose alternative
+4. **Record tensions** — where do options conflict? What trade-offs exist?
 
 Use AskUserQuestion for structured choices. Use open conversation for nuanced discussion.
 
 **Important:** Do NOT converge too quickly. The value of deliberation is exploring the space, not rushing to a conclusion. Present at least 2 substantively different options before asking which direction to take.
 
-## Step 5: Record Predictions
+## Step 6: Record Predictions
 
-Before concluding, record falsifiable predictions:
+Before concluding, record falsifiable predictions (per `philosophy: falsificationism/falsifiable-predictions`):
 
 "If we go with Option {X}, what should we observe? Let me propose some predictions — tell me which are right and what I'm missing."
 
 Present 2-4 candidate predictions with:
-- What should happen
-- When/how we'd check
-- What would prove the prediction wrong
+- What should happen (the bold conjecture)
+- When/how we'd check (the severe test)
+- What would prove the prediction wrong (the falsification condition)
 
-## Step 6: Conclude or Leave Open
+**Predictions must be specific enough to be falsifiable.** "Things will improve" is not a prediction. "The number of signals stuck in 'detected' state will decrease by >50% within 2 phases" is. Per Popper: bold conjectures that risk being wrong carry more epistemic content than timid ones that are compatible with any outcome.
+
+## Step 7: Conclude or Leave Open
 
 Ask the user:
 - "Ready to conclude with a recommendation?" → Fill Recommendation section, set status to `concluded`
 - "Leave open for more thinking" → Save current state, status stays `open`
 - "Need to investigate further first" → Note open questions, suggest next steps (spike, research, etc.)
 
-## Step 7: Link to Pipeline
+## Step 8: Link to Pipeline
 
 If concluded, offer integration points:
 
@@ -233,7 +285,7 @@ If concluded, offer integration points:
 
 If the deliberation responds to specific signals, note the signal IDs in the Decision Record section.
 
-## Step 8: Save and Report
+## Step 9: Save and Report
 
 Update the file with all content from the conversation. Commit if `commit_docs` is true:
 
@@ -310,7 +362,10 @@ This closes the loop: signals → deliberation → intervention → prediction �
 - Deliberations are human-driven, system-supported (per deliberation-system-design.md)
 - The system surfaces context and structures conversation; the human deliberates
 - Template sections map to philosophical frameworks (noted in HTML comments)
-- Predictions are the key innovation: they make deliberations falsifiable
+- Predictions are the key innovation: they make deliberations falsifiable (Lakatos)
 - Evaluation mode enables meta-learning about deliberation quality itself
-- This is v1 — deliberately minimal. The convention will evolve through use.
+- Step 2.5 (Severe Testing) structurally embodies falsificationism — not advisory ("be rigorous") but procedural ("attempt to falsify each claim before proceeding"). Added after first dog-food revealed false claims entering the analysis unchecked (sig-2026-03-04-deliberation-skill-lacks-epistemic-verification)
+- Evidence Base uses "Corroborated?" not "Verified?" — verification implies certainty; corroboration is provisional (philosophy: falsificationism/corroboration-not-confirmation)
+- Prior Deliberation Check in Step 5 prevents re-exploring already-covered design space
+- AskUserQuestion phantom answer guard in Signal Gate prevents acting on empty tool responses
 </design_notes>
