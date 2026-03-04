@@ -354,6 +354,20 @@ Also: `/gsd:verify-work {X}` — manual testing first
 Gap closure cycle: `/gsd:plan-phase {X} --gaps` reads VERIFICATION.md → creates gap plans with `gap_closure: true` → user runs `/gsd:execute-phase {X} --gaps-only` → verifier re-runs.
 </step>
 
+<step name="reconcile_signal_lifecycle">
+Reconcile signal lifecycle states after successful verification. This step is best-effort -- failures do not block phase completion.
+
+Only runs if verification passed (`passed` or `human_needed` that was approved).
+
+```bash
+# Reconcile signal lifecycle: update signals declared in resolves_signals
+# from detected/triaged to remediated
+bash ~/.claude/get-shit-done/bin/reconcile-signal-lifecycle.sh "${PHASE_DIR}" 2>&1 || echo "Warning: Signal lifecycle reconciliation failed (non-blocking)"
+```
+
+This programmatic reconciliation replaces agent-instruction-based lifecycle transitions, which were unreliable in long execution sequences.
+</step>
+
 <step name="update_roadmap">
 Mark phase complete in ROADMAP.md (date, status).
 
