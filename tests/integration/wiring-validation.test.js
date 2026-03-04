@@ -339,6 +339,9 @@ describe('wiring validation', () => {
         const hasExecutionContext = file.content.includes('<execution_context>')
         if (!hasExecutionContext) continue
 
+        // deliberate.md is self-contained (references templates/references, not a workflow)
+        if (file.name === 'deliberate.md') continue
+
         const hasWorkflowRef = file.content.includes('get-shit-done/workflows/')
         if (!hasWorkflowRef) {
           missingDelegation.push(file.name)
