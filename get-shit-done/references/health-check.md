@@ -14,7 +14,7 @@ Defines check definitions, thresholds, output format, repair rules, and signal i
 
 | Mode | Flag | Checks Included | Expected Duration |
 |------|------|-----------------|-------------------|
-| Default (quick) | (none) | KB Integrity, Config Validity, Stale Artifacts | <5s |
+| Default (quick) | (none) | KB Integrity, Config Validity, Stale Artifacts, Signal Lifecycle Consistency | <5s |
 | Full | `--full` | Default + Planning Consistency, Config Drift | <15s |
 | Focused KB | `--focus kb` | KB Integrity only | <3s |
 | Focused Planning | `--focus planning` | Planning Consistency only | <3s |
@@ -253,6 +253,54 @@ PROJECT=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8
 [ "$INSTALLED" = "$PROJECT" ] && echo "PASS: Version $INSTALLED matches" || echo "WARNING: Installed $INSTALLED vs project $PROJECT"
 ```
 
+### 2.6 Signal Lifecycle Consistency (Default Tier)
+
+Validates that signal lifecycle states are consistent with plan declarations.
+
+| # | Check | Pass Condition | Fail Severity |
+|---|-------|----------------|---------------|
+| SIG-01 | Resolved signals updated | For each plan with `resolves_signals`, referenced signals have `lifecycle_state: remediated` or later | WARNING |
+| SIG-02 | No orphaned resolutions | No plan references a signal ID that doesn't exist in the KB | WARNING |
+
+**Shell patterns:**
+
+```bash
+# SIG-01: Resolved signals updated
+# Find all PLAN.md files with resolves_signals declarations
+inconsistencies=0
+while IFS= read -r plan; do
+  raw=$(node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter get "$plan" --field resolves_signals --raw 2>/dev/null || echo "")
+  # Skip if not a valid array
+  echo "$raw" | grep -q '^\[' || continue
+  # Parse signal IDs
+  for sig_id in $(echo "$raw" | node -e "process.stdin.on('data',d=>{try{JSON.parse(d).forEach(s=>console.log(s))}catch{}})" 2>/dev/null); do
+    sig_file=$(find ~/.gsd/knowledge/signals -name "${sig_id}.md" 2>/dev/null | head -1)
+    [ -z "$sig_file" ] && continue
+    state=$(grep "^lifecycle_state:" "$sig_file" 2>/dev/null | head -1 | sed 's/^lifecycle_state:[[:space:]]*//')
+    if [ "$state" = "detected" ] || [ "$state" = "triaged" ]; then
+      echo "  WARNING: Plan $(basename "$plan") declares it resolves $sig_id, but signal is still in '$state' state"
+      inconsistencies=$((inconsistencies + 1))
+    fi
+  done
+done < <(find .planning/phases -name '*-PLAN.md' 2>/dev/null)
+[ "$inconsistencies" -eq 0 ] && echo "PASS: All declared signal resolutions are consistent" || echo "WARNING: $inconsistencies lifecycle inconsistencies found"
+
+# SIG-02: No orphaned resolutions
+orphans=0
+while IFS= read -r plan; do
+  raw=$(node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter get "$plan" --field resolves_signals --raw 2>/dev/null || echo "")
+  echo "$raw" | grep -q '^\[' || continue
+  for sig_id in $(echo "$raw" | node -e "process.stdin.on('data',d=>{try{JSON.parse(d).forEach(s=>console.log(s))}catch{}})" 2>/dev/null); do
+    sig_file=$(find ~/.gsd/knowledge/signals -name "${sig_id}.md" 2>/dev/null | head -1)
+    if [ -z "$sig_file" ]; then
+      echo "  WARNING: Plan $(basename "$plan") references signal $sig_id which does not exist in KB"
+      orphans=$((orphans + 1))
+    fi
+  done
+done < <(find .planning/phases -name '*-PLAN.md' 2>/dev/null)
+[ "$orphans" -eq 0 ] && echo "PASS: No orphaned signal references" || echo "WARNING: $orphans orphaned signal references found"
+```
+
 ## 3. Focused Modes
 
 Focused modes run a single check category, regardless of its tier.
@@ -330,6 +378,7 @@ The `--fix` flag enables repair mode for repairable issues.
 | Missing `health_check` section (CFG-06) | Add default health_check config to config.json | None -- additive section |
 | Missing config template fields (DRIFT-01) | Add missing fields with template defaults | Low -- additive fields with safe defaults |
 | Orphaned `.continue-here` files (STALE-01) | Delete the stale files | Low -- files are past their useful life |
+| Signal lifecycle mismatch (SIG-01) | Run `reconcile-signal-lifecycle.sh` on affected phase directories | Low -- updates lifecycle metadata only |
 
 **Repair execution pattern:**
 

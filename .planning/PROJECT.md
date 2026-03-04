@@ -186,6 +186,7 @@ Test suite: 329 tests (155 fork + 174 upstream), CI/CD via GitHub Actions with b
 | Per-run triage cap of 10 signals | First reflection on 78 signals would modify too many files in one session | ✓ Good — bounds blast radius, user can run reflect again |
 
 | 5 milestone themes from post-v1.16 deliberation | Sequential analysis of dependency graph identified M-A (Automation Loop) as foundational | — Pending — v1.17 is first, M-B through M-E follow |
+| Critical state transitions must be programmatic (scripts/hooks), not agent instructions | Agent instructions are unreliable at ensuring every step fires in long sequences -- executor skipped update_resolved_signals despite code existing in execute-plan.md | Deliberation concluded -- reconcile-signal-lifecycle.sh replaces agent-instruction-based transitions |
 
 ---
 *Last updated: 2026-03-02 after v1.17 milestone start*

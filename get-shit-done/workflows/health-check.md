@@ -91,7 +91,7 @@ Else if FOCUS_MODE == "planning":
 Else if FULL_MODE:
   categories = [KB Integrity, Config Validity, Stale Artifacts, Planning Consistency, Config Drift]
 Else (default):
-  categories = [KB Integrity, Config Validity, Stale Artifacts]
+  categories = [KB Integrity, Config Validity, Stale Artifacts, Signal Lifecycle Consistency]
 ```
 
 Report scope to user:
@@ -123,8 +123,9 @@ For each category in scope, execute the checks defined in the reference specific
 1. KB Integrity (KB-01 through KB-06) -- if in scope
 2. Config Validity (CFG-01 through CFG-06) -- if in scope
 3. Stale Artifacts (STALE-01 through STALE-03) -- if in scope
-4. Planning Consistency (PLAN-01 through PLAN-03) -- if in scope (full/focus only)
-5. Config Drift (DRIFT-01 through DRIFT-02) -- if in scope (full only)
+4. Signal Lifecycle Consistency (SIG-01 through SIG-02) -- if in scope
+5. Planning Consistency (PLAN-01 through PLAN-03) -- if in scope (full/focus only)
+6. Config Drift (DRIFT-01 through DRIFT-02) -- if in scope (full only)
 
 **For each check:**
 1. Run the shell pattern from the reference specification
