@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 38 of 43 (Extensible Sensor Architecture)
-Plan: 0 of 2 in current phase
-Status: Ready for planning
-Last activity: 2026-03-03 -- Phase 37 complete (3/3 plans, verified 12/12 must-haves)
+Plan: 1 of 2 in current phase
+Status: Executing
+Last activity: 2026-03-04 -- Completed 38-01-PLAN.md (sensor auto-discovery and contract definition)
 
 Progress: [██░░░░░░░░] 22%
 
@@ -67,6 +67,7 @@ Progress: [██░░░░░░░░] 22%
 | 37 | 01 | 3min | 2 | 2 |
 | 37 | 02 | 3min | 2 | 2 |
 | 37 | 03 | 4min | 3 | 3 |
+| 38 | 01 | 3min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -83,13 +84,15 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 37]: Automation feature uses manifest config_key detection (not KNOWN_TOP_LEVEL_KEYS), consistent with all other manifest features
 - [Phase 37]: Resolution chain order: override BEFORE deferral BEFORE runtime cap
 - [Phase 37]: Statistics tracking: 4 lightweight fields per feature (fires, skips, last_triggered, last_skip_reason) -- no arrays or event logs
+- [Phase 38]: File system is sole source of truth for sensor existence; config provides overrides only (sensors default to enabled)
+- [Phase 38]: Sensor contract: input (phase, dir, project, model_profile), output (JSON in SENSOR OUTPUT delimiters), timeout via frontmatter, config_schema optional
 
 ### Pending Todos
 
 1 pending:
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 
-Note: "Feature manifest system" TODO removed -- fully built in v1.15/v1.16.
+Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16.
 
 ### Blockers/Concerns
 
@@ -134,6 +137,7 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: Phase 37 verified and complete. Ready for Phase 38 planning.
+Last session: 2026-03-04
+Stopped at: Completed 38-01-PLAN.md (sensor auto-discovery and contract definition). Ready for 38-02.
 Resume file: None
+Deliberation context: .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
