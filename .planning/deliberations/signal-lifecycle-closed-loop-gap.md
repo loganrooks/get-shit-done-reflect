@@ -11,7 +11,7 @@ Lifecycle: open → concluded → adopted → evaluated → superseded
 -->
 
 **Date:** 2026-03-04
-**Status:** Open
+**Status:** Concluded
 **Trigger:** Conversation observation — during Phase 38 signal collection, observed that all 127 signals remain in detected/triaged state despite interventions having been implemented across 5 milestones. The system's self-model diverges from reality.
 **Affects:** v1.17 Automation Loop (Phases 39-43), signal lifecycle architecture, reflection quality, knowledge base integrity, deliberation skill design
 **Related:**
@@ -159,29 +159,76 @@ Three layers were proposed: representation gap, meta-observability, knowledge-ac
 
 ## Recommendation
 
-**Current leaning:** Options A + C as minimum viable fix, with B as the meta-observability layer.
+**Recommendation:** Options A + C + B, adopted in sequence. Option D deferred until forward fix is working.
 
-- **Option A (programmatic remediation):** Move the `update_resolved_signals` logic from execute-plan.md agent instructions to a gsd-tools.js subcommand or post-execution hook that fires deterministically. This is the highest-impact, narrowest fix.
-- **Option C (deliberation epistemic hardening):** Add a verification step to the deliberation skill between Situation and Analysis. Require that factual claims about the codebase are verified with tool calls and that prior deliberations are checked before exploring the design space.
-- **Option B (KB health watchdog):** Add signal lifecycle health metrics to `/gsd:health-check` — e.g., "N plans with resolves_signals where referenced signals remain detected."
+### Option C — Deliberation Epistemic Hardening ✓ (already adopted)
 
-**Defer Option D (backfill):** The manual reconciliation of 101 signals is labor-intensive and premature until the forward fix is in place. Once transitions work reliably, a reflection run can assess the backlog.
+Implemented 2026-03-04 on phase-38 branch:
+- Step 2.5 (Severe Testing) added between Situation and Analysis — pluralist epistemological grounding (Mayo severity, Dewey warranted assertibility, Peirce fallibilism, Popper asymmetry insight)
+- Prior Deliberation Check added to Step 5 — prevents re-exploring already-covered design space
+- AskUserQuestion phantom answer guard added to Signal Gate
+- "Corroborated?" replaces "Verified?" in Evidence Base (corroboration is provisional, verification implies certainty)
 
-**Open questions blocking conclusion:**
-1. Is Option A feasible within gsd-tools.js (upstream file, fork shouldn't modify) or does it need a hook/separate script?
-2. For Option C, what specific structural changes to the deliberation skill would work? (Not just "add a verification step" but what exactly does it check?)
-3. Should the deliberation skill also guard against AskUserQuestion phantom answers?
+### Option A — Programmatic Signal Lifecycle Reconciliation (quick task)
+
+A shell script `get-shit-done/bin/reconcile-signal-lifecycle.sh`:
+1. Input: phase directory path
+2. Finds all `*-PLAN.md` files in the directory
+3. Extracts `resolves_signals` via `gsd-tools.js frontmatter get`
+4. For each signal ID, updates the signal file: `lifecycle_state: "remediated"`, appends `lifecycle_log` entry with resolved_by_plan, approach, timestamp
+5. Rebuilds KB index via `kb-rebuild-index.sh`
+
+**Integration:** One line in `execute-phase.md` after the verification step (post-verifier, pre-"phase complete" declaration). At that point the orchestrator is already making Bash calls — one more is high-reliability. This is fundamentally different from the current approach (executor agent following step 12 of 15 in a long workflow doc).
+
+**Why a script, not gsd-tools.js:** gsd-tools.js is upstream; fork must not modify it (CLAUDE.md constraint). The script is standalone, ~30 lines of bash, and also runnable manually for backfill.
+
+**Why per-phase, not per-plan:** One call vs. N calls = fewer opportunities for the orchestrator to skip. The phase boundary is a natural integration point alongside signal collection and verification.
+
+### Option B — KB Health Watchdog (quick task)
+
+Add a lifecycle consistency check to `health-check.md`:
+- Cross-reference plans with `resolves_signals` declarations against referenced signals' `lifecycle_state`
+- Flag inconsistencies: "Plan X-Y declared it resolves sig-Z, but sig-Z is still in `detected` state"
+- Severity: warning (not blocking)
+
+### Option D — Backfill (deferred)
+
+After Option A is working, run the reconciliation script against past phases to catch signals effectively addressed but never marked. Then a reflection run can triage the remainder. Premature until the forward fix proves reliable.
+
+### Design Principle (add to PROJECT.md)
+
+Meta-lesson from this deliberation: *Critical state transitions should be programmatic (scripts/hooks), not agent instructions. Agent instructions are unreliable at ensuring every step fires in a long sequence.* This should inform Phases 39-43 automation design.
+
+### Adoption Sequence
+
+1. Merge phase-38 PR → Option C goes live
+2. Quick task: reconciliation script + execute-phase integration (Option A)
+3. Quick task: health check addition (Option B)
+4. Add design principle to PROJECT.md Key Decisions
 
 ## Predictions
 
-<!-- To be filled before concluding -->
+<!--
+Predictions make the deliberation falsifiable (Lakatos). If adopted, what should we
+observe? If we don't observe it, the deliberation's reasoning was flawed.
+Recorded BEFORE implementation so they can't be retrofitted.
+-->
+
+**If adopted, we predict:**
+
+| ID | Prediction | Observable by | Falsified if |
+|----|-----------|---------------|-------------|
+| P1 | After implementing programmatic remediation (Option A), plans with `resolves_signals` will transition referenced signals to `lifecycle_state: "remediated"` within the same session — no manual intervention needed | Next plan that declares `resolves_signals` (likely Phase 39+) | Signal remains in `detected` or `triaged` state after the plan's phase completes |
+| P2 | After implementing the KB health watchdog (Option B), `/gsd:health-check` will detect existing lifecycle inconsistencies (plans with `resolves_signals` where referenced signals are still `detected`) | First health check run after implementation | Health check passes clean when known inconsistencies exist (e.g., Plan 36-01 vs sig-2026-03-02-ci-failures) |
+| P3 | Step 2.5 (Severe Testing, Option C — already implemented) will catch at least one false factual claim in the next 3 deliberations | Next 3 deliberation sessions | All claims in 3 consecutive deliberations pass without correction |
+| P4 | The number of signals stuck in `detected` state will decrease by >30% within 2 milestones of the forward fix being in place (via programmatic transitions + passive verification-by-absence finally having remediated signals to check) | End of v1.18 | >70% of signals remain in `detected` state at v1.18 end |
 
 ## Decision Record
 
-**Decision:** TBD
-**Decided:** TBD
-**Implemented via:** TBD
-**Signals addressed:** sig-2026-03-04-signal-lifecycle-representation-gap, sig-2026-03-04-deliberation-skill-lacks-epistemic-verification
+**Decision:** Adopt A+C+B in sequence. Programmatic reconciliation script (A) replaces agent-instruction-based lifecycle transitions. Deliberation skill hardened with severe testing step (C, already done). KB health watchdog (B) detects when transitions fail silently. Design principle added: critical state transitions must be programmatic, not agent instructions.
+**Decided:** 2026-03-04
+**Implemented via:** Option C: phase-38 branch (pending merge). Options A, B: quick tasks (pending). Design principle: PROJECT.md update (pending).
+**Signals addressed:** sig-2026-03-04-signal-lifecycle-representation-gap, sig-2026-03-04-deliberation-skill-lacks-epistemic-verification, sig-2026-03-05-askuserquestion-phantom-answers
 
 ## Evaluation
 
