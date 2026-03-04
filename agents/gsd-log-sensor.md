@@ -3,6 +3,10 @@ name: gsd-log-sensor
 description: "[DISABLED] Placeholder for future session log analysis -- requires spike to determine log location"
 tools: Read, Bash
 color: gray
+# === Sensor Contract (EXT-02) ===
+sensor_name: log
+timeout_seconds: 30
+config_schema: null
 ---
 
 <role>
@@ -55,6 +59,17 @@ This sensor is disabled. Return an empty signal array with structured delimiters
 ```
 
 </execution_flow>
+
+<blind_spots>
+## Blind Spots
+
+This sensor is a disabled stub. When eventually enabled, it would analyze session logs. Known structural limitations:
+
+- **Log availability:** Session log location and format vary by runtime. Logs may not exist or may be inaccessible.
+- **Privacy boundaries:** Session logs may contain sensitive user content. Analysis must respect consent boundaries.
+- **Interpretation ambiguity:** Repeated tool calls or long sessions may indicate struggle, exploration, or thoroughness -- the sensor cannot distinguish intent.
+- **Runtime coverage:** Each runtime stores logs differently. The sensor may only work on some runtimes.
+</blind_spots>
 
 <required_reading>
 @~/.claude/get-shit-done/references/agent-protocol.md

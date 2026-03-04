@@ -3,6 +3,10 @@ name: gsd-artifact-sensor
 description: Analyzes execution artifacts (PLAN.md, SUMMARY.md, VERIFICATION.md) and returns raw signal candidates as structured JSON
 tools: Read, Bash, Glob, Grep
 color: yellow
+# === Sensor Contract (EXT-02) ===
+sensor_name: artifact
+timeout_seconds: 45
+config_schema: null
 ---
 
 <role>
@@ -170,6 +174,18 @@ If no signals are detected, return an empty signals array:
 - When in doubt about severity, prefer notable over trace (err toward persisting)
 - Include runtime and model provenance in every signal candidate when available
 </guidelines>
+
+<blind_spots>
+## Blind Spots
+
+This sensor analyzes execution artifacts (PLAN.md, SUMMARY.md, VERIFICATION.md). It is structurally unable to detect:
+
+- **Runtime behavior issues:** Reads static files only. If deployed features behave differently than plan descriptions, this sensor cannot detect the discrepancy.
+- **Omitted work:** If an executor silently skipped a task without recording a deviation, the sensor sees a "clean" execution.
+- **Cross-phase regressions:** Analyzes one phase at a time. A change in phase N that breaks phase N-1's output is invisible.
+- **Undocumented side effects:** If the executor modified files not mentioned in the plan or summary, the artifact sensor will not detect them (the git sensor may).
+- **Quality of implementation:** Can detect that work was done but not whether it was done well. Passing verification checks say nothing about code quality, performance, or maintainability.
+</blind_spots>
 
 <required_reading>
 @~/.claude/get-shit-done/references/agent-protocol.md
