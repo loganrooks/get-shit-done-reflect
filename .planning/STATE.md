@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.17 Automation Loop -- Phase 38: Extensible Sensor Architecture
+**Current focus:** v1.17 Automation Loop -- Phase 39: CI Awareness
 
 ## Current Position
 
-Phase: 38 of 43 (Extensible Sensor Architecture)
+Phase: 39 of 43 (CI Awareness)
 Plan: 0 of 2 in current phase
 Status: Ready for planning
-Last activity: 2026-03-03 -- Phase 37 complete (3/3 plans, verified 12/12 must-haves)
+Last activity: 2026-03-04 -- Phase 38 complete, verified 10/10 must-haves
 
-Progress: [██░░░░░░░░] 22%
+Progress: [███░░░░░░░] 33%
 
 ## Performance Metrics
 
@@ -67,6 +67,8 @@ Progress: [██░░░░░░░░] 22%
 | 37 | 01 | 3min | 2 | 2 |
 | 37 | 02 | 3min | 2 | 2 |
 | 37 | 03 | 4min | 3 | 3 |
+| 38 | 01 | 3min | 2 | 2 |
+| 38 | 02 | 3min | 2 | 5 |
 
 ## Accumulated Context
 
@@ -83,13 +85,16 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 37]: Automation feature uses manifest config_key detection (not KNOWN_TOP_LEVEL_KEYS), consistent with all other manifest features
 - [Phase 37]: Resolution chain order: override BEFORE deferral BEFORE runtime cap
 - [Phase 37]: Statistics tracking: 4 lightweight fields per feature (fires, skips, last_triggered, last_skip_reason) -- no arrays or event logs
+- [Phase 38]: File system is sole source of truth for sensor existence; config provides overrides only (sensors default to enabled)
+- [Phase 38]: Sensor contract: input (phase, dir, project, model_profile), output (JSON in SENSOR OUTPUT delimiters), timeout via frontmatter, config_schema optional
+- [Phase 38]: Sensor discovery tries .claude/agents/ first, falls back to agents/ for dev environments
 
 ### Pending Todos
 
 1 pending:
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 
-Note: "Feature manifest system" TODO removed -- fully built in v1.15/v1.16.
+Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16.
 
 ### Blockers/Concerns
 
@@ -134,6 +139,7 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: Phase 37 verified and complete. Ready for Phase 38 planning.
+Last session: 2026-03-04
+Stopped at: Phase 38 complete (2/2 plans, 10/10 must-haves verified). Ready for Phase 39 planning.
 Resume file: None
+Deliberation context: .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)

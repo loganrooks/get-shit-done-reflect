@@ -79,11 +79,11 @@ Plans:
   3. Each sensor can be enabled or disabled via config toggle; disabled sensors are discovered but not spawned
   4. `gsd-tools.js sensors list` shows discovered sensors with enabled/disabled status, last run time, and signal count
   5. Existing artifact and git sensors conform to the standardized contract
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 38-01: Sensor contract definition, auto-discovery in collect-signals, and enable/disable config
-- [ ] 38-02: Retrofit existing sensors to contract, sensors list CLI command, blind spots documentation
+- [x] 38-01: Sensor contract definition, auto-discovery in collect-signals, and enable/disable config
+- [x] 38-02: Retrofit existing sensors to contract, sensors list CLI command, blind spots documentation
 
 ### Phase 39: CI Awareness
 **Goal**: CI failures are detected automatically by the new CI sensor and surfaced to the user at session start before more work is committed on a broken build
@@ -177,7 +177,7 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
 |-------|----------------|--------|-----------|
 | 36. Foundation Fix | 1/1 | Complete | 2026-03-03 |
 | 37. Automation Framework | 3/3 | Complete | 2026-03-03 |
-| 38. Extensible Sensor Architecture | 0/2 | Not started | - |
+| 38. Extensible Sensor Architecture | 2/2 | Complete | 2026-03-04 |
 | 39. CI Awareness | 0/2 | Not started | - |
 | 40. Signal Collection Automation | 0/3 | Not started | - |
 | 41. Health Score & Automation | 0/3 | Not started | - |
@@ -193,6 +193,6 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
 | v1.14 Multi-Runtime | 13-21 | 18 | Complete | 2026-02-16 |
 | v1.15 Backlog & Update | 22-30 | 24 | Complete | 2026-02-23 |
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
-| v1.17 Automation Loop | 36-43 | 4/18 | In progress | - |
+| v1.17 Automation Loop | 36-43 | 6/18 | In progress | - |
 
-**Totals:** 6 milestones, 43 phases, 109 plans completed, 14 planned
+**Totals:** 6 milestones, 43 phases, 111 plans completed, 12 planned

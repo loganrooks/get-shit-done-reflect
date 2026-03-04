@@ -158,6 +158,55 @@ If the system demands severe tests for every lesson and refuses to act on uncorr
 
 - **falsificationism/auxiliary-assumptions**: When attributing a signal's resolution to a specific intervention, record the auxiliary assumptions held constant; when remediation appears to fail, check the auxiliary assumptions before abandoning the primary hypothesis.
 
+## Contemporary Status and Critiques
+
+**Added:** 2026-03-04, during deliberation on epistemological grounding of the deliberation skill itself.
+
+Falsificationism occupies a paradoxical position: enormously influential in popular scientific culture (most scientists would cite Popper if asked about methodology), but substantially critiqued within philosophy of science since the 1960s. There is no consensus successor, but the field has moved beyond naive falsificationism in several important ways.
+
+### Major Critiques
+
+**Duhem-Quine holism** (already discussed above): You cannot falsify a single hypothesis in isolation. Any test involves auxiliary assumptions. When a prediction fails, you can save the hypothesis by rejecting an auxiliary assumption. Popper acknowledged this but never satisfactorily resolved it. This is the most technically devastating critique.
+
+**Kuhn's paradigm shifts** (1962): Science doesn't progress primarily by falsification but by paradigm exhaustion and revolution. Normal science involves puzzle-solving within a paradigm; anomalies accumulate until a crisis triggers a shift. Falsification is not the mechanism of scientific progress — paradigm exhaustion is.
+
+**Norton's argument** (2021): Falsifiability "fails now, has always failed and will always fail" to demarcate science from pseudoscience. It is the wrong criterion. The actual distinction rests on the inductive strength of empirical support — which Popper explicitly rejected.
+
+**Feyerabend's methodological anarchism** (1975): No single methodological rule (including falsification) has been consistently followed in successful science. Scientists sometimes productively hold onto falsified theories.
+
+### Post-Popperian Developments
+
+**Lakatos's sophisticated falsificationism** (already a separate framework in this project): Evaluates research programmes rather than individual theories. More practical than Popper but still faces the question of when a programme is "degenerating" enough to abandon.
+
+**Deborah Mayo's error statistics** (1996, 2018): Operationalizes "severe tests" using error-statistical methods. Goes beyond Popper in crucial ways: embraces inductive inference (which Popper rejected), provides operational detail about how to construct and assess test severity, and introduces a graduated rather than binary assessment of evidence. See `error-statistics.md` for full treatment. Mayo's framework is arguably what Popper was reaching for but never adequately formalized.
+
+**Bayesian epistemology** (already a separate framework): Replaces binary falsification with probabilistic updating. More graduated and more formally tractable, but requires specifying priors.
+
+**Pragmatist inquiry** (already a separate framework): Dewey's warranted assertibility provides a non-foundationalist account of knowledge that is compatible with the practice of testing claims without committing to Popper's specific philosophical machinery. Fallibilism (Peirce) is broader than falsificationism — it holds that all claims are revisable without requiring the specific logic of falsification as the mechanism.
+
+### What Falsificationism Still Contributes
+
+Despite the critiques, Popper's framework contributes insights that remain valuable even within a pluralist epistemology:
+
+1. **The asymmetry insight**: It IS easier to disprove than prove. Looking for disconfirming evidence is a productive epistemic strategy even if it's not the whole story.
+
+2. **The demarcation question** (even if his answer is wrong): Asking "what would prove this wrong?" is useful for exposing vague, unfalsifiable claims — even if falsifiability isn't the correct criterion for scientific demarcation.
+
+3. **Corroboration as a concept**: The idea that surviving tests is different from confirmation remains useful. We use the term even as we acknowledge it's embedded in a broader pluralist practice.
+
+4. **Bold conjectures**: The preference for specific, risky predictions over vague, safe ones is sound epistemic practice regardless of one's broader philosophy.
+
+### Implications for GSD Reflect
+
+The deliberation skill's "Severe Testing" step (Step 2.5) was initially framed in purely falsificationist terms but was reframed after this analysis to draw on multiple traditions:
+
+- **Fallibilism** (Peirce): All claims are provisional — the broadest and most defensible grounding
+- **Mayo's severity**: Design tests that would probably detect errors if present — the most operationally useful
+- **Pragmatist inquiry** (Dewey): Investigate whether claims hold up through inquiry — describes the actual practice
+- **Falsificationism** contributes the asymmetry insight (look for disconfirming evidence specifically) without requiring commitment to the full Popperian programme
+
+This pluralism is not eclecticism — each tradition contributes a distinct and operationally relevant insight. The practice of checking claims against the codebase is grounded in all four; no single tradition is sufficient.
+
 ---
 
-*This deliberation draws on Karl Popper's The Logic of Scientific Discovery (1959), Conjectures and Refutations (1963), and Objective Knowledge (1972), as well as Imre Lakatos's refinements in The Methodology of Scientific Research Programmes (1978). The Duhem-Quine problem is discussed in Pierre Duhem's The Aim and Structure of Physical Theory (1906/1954) and W.V.O. Quine's "Two Dogmas of Empiricism" (1951).*
+*This deliberation draws on Karl Popper's The Logic of Scientific Discovery (1959), Conjectures and Refutations (1963), and Objective Knowledge (1972), as well as Imre Lakatos's refinements in The Methodology of Scientific Research Programmes (1978). The Duhem-Quine problem is discussed in Pierre Duhem's The Aim and Structure of Physical Theory (1906/1954) and W.V.O. Quine's "Two Dogmas of Empiricism" (1951). The contemporary status section draws on Deborah Mayo's Statistical Inference as Severe Testing (2018), John D. Norton's "Why falsifiability does not demarcate science from pseudoscience" (2021), and Robert Archer's "Retiring Popper" (2024).*

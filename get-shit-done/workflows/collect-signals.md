@@ -1,7 +1,23 @@
 <purpose>
-Orchestrate multi-sensor signal collection for a completed phase. Spawns enabled sensor agents in parallel, collects their structured JSON output, and passes it to the signal synthesizer for quality-gated KB persistence.
+Orchestrate multi-sensor signal collection for a completed phase. Discovers sensor agents dynamically from the file system, spawns enabled sensors in parallel, collects their structured JSON output, and passes it to the signal synthesizer for quality-gated KB persistence.
 
 <!-- Architecture notes:
+  - SENSOR CONTRACT: Defines the interface between the orchestrator and sensor agents.
+    - Input: Sensor receives phase number, phase directory path, project name, model profile
+    - Output: JSON wrapped in ## SENSOR OUTPUT / ## END SENSOR OUTPUT delimiters
+      with structure { sensor: string, phase: number, signals: array }
+    - Error handling: On failure, return empty signals array -- never crash or return non-JSON
+    - Timeout: Declared via `timeout_seconds` frontmatter field (default 45s); orchestrator
+      enforces; on timeout, treated as empty array with inline warning
+    - Config: `config_schema` frontmatter field (optional, null for current sensors;
+      Phase 39 CI sensor expected to be first sensor that actually declares config knobs)
+    - Blind spots: `<blind_spots>` section in agent spec body (prose documentation,
+      not structured data -- makes theory-ladenness visible)
+
+  - AUTO-DISCOVERY: Sensors are discovered by scanning for gsd-*-sensor.md files in the
+    agents directory. Adding a new sensor is a single-file operation: create
+    agents/gsd-{name}-sensor.md conforming to the contract above.
+
   - Sensors return JSON to orchestrator -- they do NOT write to KB (single-writer principle)
   - Sensor model selection: auto = derive from model_profile; explicit = use specified model
   - The orchestrator passes file PATHS to sensors, not file CONTENTS (prevents context bloat)
@@ -11,7 +27,7 @@ Orchestrate multi-sensor signal collection for a completed phase. Spawns enabled
 </purpose>
 
 <core_principle>
-Signal collection is a retrospective pass -- it reads execution artifacts (PLANs, SUMMARYs, VERIFICATION) without modifying them. The workflow validates prerequisites, reads sensor configuration, spawns enabled sensors in parallel via Task(), collects their JSON output, and delegates synthesis to the signal synthesizer agent.
+Signal collection is a retrospective pass -- it reads execution artifacts (PLANs, SUMMARYs, VERIFICATION) without modifying them. The workflow validates prerequisites, discovers available sensors from the file system, reads sensor configuration, spawns enabled sensors in parallel via Task(), collects their JSON output with timeout enforcement, tracks per-sensor stats, and delegates synthesis to the signal synthesizer agent.
 </core_principle>
 
 <required_reading>
@@ -89,27 +105,106 @@ PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]
 Store `MODEL_PROFILE`, `COMMIT_PLANNING_DOCS`, and `PROJECT_NAME` for use in agent spawn.
 </step>
 
-<step name="load_sensor_config">
-Read sensor configuration from the project config, falling back to feature manifest defaults:
+<step name="discover_sensors">
+Scan the agents directory for sensor agent specs matching the `gsd-*-sensor.md` naming convention. This is the auto-discovery mechanism that eliminates hardcoded sensor spawning.
 
 ```bash
-# Read sensor config -- check project config first, fall back to manifest defaults
+# Discover all sensor agent specs from the file system
+SENSOR_FILES=$(ls -1 ~/.claude/agents/gsd-*-sensor.md 2>/dev/null)
+
+if [ -z "$SENSOR_FILES" ]; then
+  echo "WARNING: No sensor agent specs found in ~/.claude/agents/"
+  echo "Expected files matching pattern: gsd-*-sensor.md"
+  exit 1
+fi
+
+DISCOVERED_SENSORS=""
+for SENSOR_FILE in $SENSOR_FILES; do
+  # Extract sensor name from filename: gsd-{name}-sensor.md -> {name}
+  SENSOR_NAME=$(basename "$SENSOR_FILE" | sed 's/^gsd-//' | sed 's/-sensor\.md$//')
+
+  # Parse frontmatter for contract fields
+  # Extract timeout_seconds (default 45 if not declared)
+  TIMEOUT=$(grep -m1 'timeout_seconds:' "$SENSOR_FILE" | grep -o '[0-9]*' || echo "45")
+  [ -z "$TIMEOUT" ] && TIMEOUT=45
+
+  # Extract config_schema presence (optional)
+  HAS_CONFIG_SCHEMA=$(grep -c 'config_schema:' "$SENSOR_FILE" 2>/dev/null || echo "0")
+
+  # Build discovered sensor entry: name|spec_path|timeout_seconds
+  DISCOVERED_SENSORS="${DISCOVERED_SENSORS}${SENSOR_NAME}|${SENSOR_FILE}|${TIMEOUT}\n"
+done
+
+# Report discovery results
+SENSOR_COUNT=$(echo -e "$DISCOVERED_SENSORS" | grep -c '|' 2>/dev/null || echo 0)
+SENSOR_NAMES=$(echo -e "$DISCOVERED_SENSORS" | grep '|' | cut -d'|' -f1 | tr '\n' ', ' | sed 's/,$//')
+echo "Discovered ${SENSOR_COUNT} sensors: ${SENSOR_NAMES}"
+```
+
+For each discovered sensor, the entry contains: name, spec_path, timeout_seconds.
+If frontmatter parsing fails for a sensor, log a warning, skip that sensor, and continue with the rest.
+</step>
+
+<step name="load_sensor_config">
+For each discovered sensor, check config for enable/disable overrides. Sensors not listed in config default to enabled -- this is the "drop a file" design: adding a new sensor agent spec automatically makes it active without config changes.
+
+```bash
+# Read sensor config overrides from project config
 SENSOR_CONFIG=$(cat .planning/config.json 2>/dev/null | node -e "
   const c = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
   const sc = c.signal_collection || {};
-  const sensors = sc.sensors || {
-    artifact: { enabled: true, model: 'auto' },
-    git: { enabled: true, model: 'auto' },
-    log: { enabled: false, model: 'auto' }
-  };
+  const sensors = sc.sensors || {};
   console.log(JSON.stringify(sensors));
-" 2>/dev/null || echo '{"artifact":{"enabled":true,"model":"auto"},"git":{"enabled":true,"model":"auto"},"log":{"enabled":false,"model":"auto"}}')
+" 2>/dev/null || echo '{}')
 
 SYNTHESIZER_MODEL=$(cat .planning/config.json 2>/dev/null | node -e "
   const c = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
   const sc = c.signal_collection || {};
   console.log(sc.synthesizer_model || 'auto');
 " 2>/dev/null || echo 'auto')
+```
+
+For each discovered sensor, cross-reference with config:
+- If `config.signal_collection.sensors[name]` exists: use its `enabled` and `model` values
+- If no config entry exists for a sensor: default to `{enabled: true, model: "auto"}`
+- To disable a sensor, user adds explicit `"sensor_name": {"enabled": false}` to config
+
+Build `ENABLED_SENSORS` and `DISABLED_SENSORS` lists from cross-referencing discovery with config.
+
+```bash
+# Cross-reference discovered sensors with config
+ENABLED_SENSORS=""
+DISABLED_SENSORS=""
+
+for ENTRY in $(echo -e "$DISCOVERED_SENSORS" | grep '|'); do
+  NAME=$(echo "$ENTRY" | cut -d'|' -f1)
+  SPEC_PATH=$(echo "$ENTRY" | cut -d'|' -f2)
+  TIMEOUT=$(echo "$ENTRY" | cut -d'|' -f3)
+
+  # Check if config has an entry for this sensor
+  SENSOR_ENABLED=$(echo "$SENSOR_CONFIG" | node -e "
+    const cfg = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+    const entry = cfg['${NAME}'];
+    // No config entry = default enabled; explicit enabled field controls override
+    console.log(entry && entry.enabled === false ? 'false' : 'true');
+  " 2>/dev/null || echo 'true')
+
+  SENSOR_MODEL=$(echo "$SENSOR_CONFIG" | node -e "
+    const cfg = JSON.parse(require('fs').readFileSync('/dev/stdin','utf8'));
+    const entry = cfg['${NAME}'];
+    console.log((entry && entry.model) || 'auto');
+  " 2>/dev/null || echo 'auto')
+
+  if [ "$SENSOR_ENABLED" = "true" ]; then
+    ENABLED_SENSORS="${ENABLED_SENSORS}${NAME}|${SPEC_PATH}|${TIMEOUT}|${SENSOR_MODEL}\n"
+  else
+    DISABLED_SENSORS="${DISABLED_SENSORS}${NAME}\n"
+  fi
+done
+
+ENABLED_NAMES=$(echo -e "$ENABLED_SENSORS" | grep '|' | cut -d'|' -f1 | tr '\n' ', ' | sed 's/,$//')
+DISABLED_NAMES=$(echo -e "$DISABLED_SENSORS" | grep -v '^$' | tr '\n' ', ' | sed 's/,$//')
+echo "Enabled: ${ENABLED_NAMES:-none}. Disabled: ${DISABLED_NAMES:-none}."
 ```
 
 Determine model for each sensor based on the `model` field:
@@ -133,77 +228,75 @@ resolve_model() {
   fi
 }
 ```
-
-Parse enabled sensors from SENSOR_CONFIG and store the enabled sensor list for spawning.
 </step>
 
 <step name="spawn_sensors">
-For each ENABLED sensor, spawn a Task() with `run_in_background=true`:
+For each ENABLED sensor, spawn a Task() with `run_in_background=true`. This is a dynamic loop -- no sensor names are hardcoded in the spawning logic.
 
-**Artifact Sensor** (if enabled):
 ```
-Task(
-  subagent_type="gsd-artifact-sensor",
-  model="{sensor_model}",
-  run_in_background=true,
-  description="Collect artifact signals for phase {PADDED_PHASE}",
-  prompt="Analyze phase {PADDED_PHASE} execution artifacts.
-    Phase directory: {PHASE_DIR}
-    Project name: {PROJECT_NAME}
-    Model profile: {MODEL_PROFILE}
+# Record spawn timestamps for timeout tracking
+SPAWN_TIME=$(date +%s)
 
-    Read PLAN.md and SUMMARY.md files from the phase directory.
-    Read VERIFICATION.md if it exists.
-    Read .planning/config.json for model_profile.
-    Apply signal-detection.md rules.
-    Return your results as a JSON object with format:
-    { sensor: 'artifact', phase: N, signals: [...] }
-    Each signal needs: summary, signal_type, signal_category, severity, tags, evidence, confidence, confidence_basis, context."
-)
+for ENTRY in ENABLED_SENSORS:
+  NAME = ENTRY.name
+  SPEC_PATH = ENTRY.spec_path
+  TIMEOUT = ENTRY.timeout_seconds
+  MODEL = resolve_model(ENTRY.model)
+
+  # subagent_type is dynamically constructed: "gsd-" + NAME + "-sensor"
+  Task(
+    subagent_type=SENSOR_AGENT_TYPE,
+    model=RESOLVED_MODEL,
+    run_in_background=true,
+    description="Collect signals for phase {PADDED_PHASE}",
+    prompt="Analyze phase {PADDED_PHASE} execution artifacts.
+      Phase directory: {PHASE_DIR}
+      Project name: {PROJECT_NAME}
+      Model profile: {MODEL_PROFILE}
+
+      Read the relevant files from the phase directory.
+      Apply signal-detection.md rules.
+      Return your results as a JSON object with format:
+      { sensor: '{NAME}', phase: N, signals: [...] }
+      Each signal needs: summary, signal_type, signal_category, severity, tags, evidence, confidence, confidence_basis, context."
+  )
 ```
 
 Note: Pass FILE PATHS and let the sensor read them itself. Do NOT read artifact contents into variables and pass them in the prompt. This prevents orchestrator context bloat (sensors have Read/Bash/Glob/Grep tools).
 
-**Git Sensor** (if enabled):
-```
-Task(
-  subagent_type="gsd-git-sensor",
-  model="{sensor_model}",
-  run_in_background=true,
-  description="Collect git signals for phase {PADDED_PHASE}",
-  prompt="Analyze git history for phase {PADDED_PHASE} patterns.
-    Phase directory: {PHASE_DIR}
-    Project name: {PROJECT_NAME}
-
-    Detect fix-fix-fix chains, file churn, and scope creep.
-    Return your results as a JSON object with format:
-    { sensor: 'git', phase: N, signals: [...] }"
-)
-```
-
-**Log Sensor** (if enabled -- disabled by default):
-```
-Task(
-  subagent_type="gsd-log-sensor",
-  model="{sensor_model}",
-  run_in_background=true,
-  description="Collect log signals for phase {PADDED_PHASE}",
-  prompt="Phase {PADDED_PHASE}. Return empty results.
-    { sensor: 'log', phase: N, signals: [] }"
-)
-```
-
-Track which sensors were spawned: `SENSORS_SPAWNED` (list of names).
+Track spawned sensor names and spawn timestamps for output collection and timeout enforcement.
 </step>
 
 <step name="collect_sensor_outputs">
-Wait for all background tasks to complete. For each sensor's response, extract JSON using the structured delimiter protocol:
+Wait for all background tasks to complete. For each sensor's response, extract JSON using the structured delimiter protocol. Enforce per-sensor timeouts and track execution stats.
 
 1. Look for `## SENSOR OUTPUT` and `## END SENSOR OUTPUT` markers in the agent response
 2. Extract the JSON block between these markers (specifically the ```json...``` fenced code block)
 3. Parse the JSON into a structured object: `{ sensor: string, phase: number, signals: array }`
 4. **Fallback:** If delimiters are not found, attempt to find a ```json...``` code block containing `"sensor"` as a fallback. Log a warning: "Sensor {name} response missing structured delimiters -- using fallback JSON extraction"
 5. **Failure:** If no JSON can be extracted, log the failure: "Sensor {name} returned unparseable output -- skipping" and continue with other sensors
+
+**Per-sensor timeout tracking:**
+- Record spawn timestamp at spawn time
+- When collecting output, compare elapsed time against the sensor's declared `timeout_seconds`
+- If a sensor's output is not received within its timeout: treat as returning empty array
+- Log inline warning: "WARNING: {name}-sensor timed out ({timeout}s), signals may be incomplete"
+
+**Per-sensor stats tracking via Phase 37 mechanism:**
+After each sensor output is collected (success or failure), track stats:
+
+```bash
+# On successful sensor output collection:
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event "sensor_{NAME}" fire
+
+# On sensor failure (parse error, agent error):
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event "sensor_{NAME}" skip "parse-error"
+# or
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event "sensor_{NAME}" skip "agent-error"
+
+# On sensor timeout:
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event "sensor_{NAME}" skip "timeout"
+```
 
 Collect all successfully parsed sensor JSON arrays into a merged list: `MERGED_SENSOR_JSON`.
 
@@ -212,6 +305,7 @@ Track counts:
 - `SENSORS_COMPLETED`: Number of sensors that returned valid JSON
 - `SENSORS_FAILED`: Number of sensors that failed or returned unparseable output
 - `SENSORS_FALLBACK`: Number of sensors that required fallback extraction (missing delimiters)
+- `SENSORS_TIMED_OUT`: Number of sensors that exceeded their declared timeout
 </step>
 
 <step name="spawn_synthesizer">
@@ -259,13 +353,12 @@ GSD > SIGNAL COLLECTION COMPLETE
 
 Phase {X}: {Name}
 Plans analyzed: {N}
-Sensors run: {artifact, git} (log: disabled)
+Sensors run: {enabled_list} ({disabled_list}: disabled)
 
 ### Per-Sensor Results
 | Sensor | Candidates | Merged | Written |
 |--------|------------|--------|---------|
-| artifact | N | N | N |
-| git | N | N | N |
+| {name} | N | N | N |
 
 ### Synthesizer Summary
 {synthesizer report content}
@@ -279,6 +372,10 @@ No signals detected for phase {X}. Clean execution.
 Include sensor health notes:
 - If any sensors used fallback extraction: "Note: {N} sensor(s) used fallback JSON extraction"
 - If any sensors failed: "Warning: {N} sensor(s) failed -- results may be incomplete"
+- If any sensors timed out: "Warning: {N} sensor(s) timed out -- results may be incomplete"
+
+Include standing caveat at end of collection output:
+"Sensors: {enabled_list}. For sensor limitations, see agent specs or run `gsd sensors blind-spots`."
 </step>
 
 <step name="rebuild_index">
@@ -318,9 +415,12 @@ Skip if `COMMIT_PLANNING_DOCS` is false or no signals were written.
 <error_handling>
 **No phase directory:** Report error with available phases and exit.
 **No summaries:** Report "no completed plans" and exit cleanly (not an error).
-**Single sensor failure:** Log the failure, continue with remaining sensors. Only fail the whole workflow if ALL sensors fail.
+**No sensors discovered:** Report error -- at least one sensor agent spec must exist.
+**Single sensor failure:** Log the failure, track via track-event with skip reason, continue with remaining sensors. Only fail the whole workflow if ALL sensors fail.
+**Single sensor timeout:** Log inline warning, track via track-event with "timeout" skip reason, treat as empty array, continue with remaining sensors.
 **All sensors failed:** Report "all sensors failed" with error details. Suggest manual `/gsd:signal` for individual entries.
 **Synthesizer failure:** Report what was attempted and suggest manual `/gsd:signal` for individual entries.
 **KB directory missing:** Synthesizer creates it (mkdir -p) during signal write step.
 **JSON extraction failure:** Use fallback extraction (fenced code block search). If fallback also fails, skip that sensor and continue.
+**Frontmatter parse failure:** Log warning "Sensor {name} has malformed frontmatter -- skipping", continue with remaining sensors.
 </error_handling>

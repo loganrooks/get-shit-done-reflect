@@ -3,6 +3,10 @@ name: gsd-git-sensor
 description: Analyzes git commit history to detect fix-fix-fix chains, file churn hotspots, and scope creep patterns, returning raw signal candidates as structured JSON
 tools: Read, Bash, Glob, Grep
 color: blue
+# === Sensor Contract (EXT-02) ===
+sensor_name: git
+timeout_seconds: 30
+config_schema: null
 ---
 
 <role>
@@ -217,6 +221,18 @@ Validated against get-shit-done-reflect repo (1300+ commits, 2026-02-28):
 - Scope creep: Plan 31-03 shows 2 extra .claude/ installed copies vs 4 declared files. Pattern correctly detects scope drift from npm-source vs installed-copy commits.
 - Grep filter fix: Use single backslash `^\.planning/` not double `^\\.planning/` for portable .planning/ exclusion.
 </guidelines>
+
+<blind_spots>
+## Blind Spots
+
+This sensor analyzes git commit history for structural patterns. It is structurally unable to detect:
+
+- **Squashed or rebased history:** If commits were squashed before analysis, fix-chains and scope creep patterns are hidden.
+- **Uncommitted changes:** Only analyzes committed history. Work in progress or stashed changes are invisible.
+- **Semantic correctness:** Can detect that files changed frequently (churn) but not whether the changes were bugs, features, or improvements.
+- **Cross-repository effects:** Analyzes only the current repository. Changes in dependent packages or upstream repos are invisible.
+- **Commit message accuracy:** Relies on conventional commit prefixes (fix, feat) being accurate. Mislabeled commits produce false positives or negatives.
+</blind_spots>
 
 <required_reading>
 @~/.claude/get-shit-done/references/agent-protocol.md
