@@ -94,11 +94,11 @@ Plans:
   2. CI sensor runs `gh auth status` pre-flight and degrades gracefully when unauthenticated -- empty signals plus a human-readable warning, never a silent false-negative
   3. CI sensor detects branch protection bypass (commits pushed without passing CI) and test regression (test count drops between runs)
   4. CI status is displayed at session start via SessionStart hook, showing the latest run status before the user begins work
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 39-01: CI sensor agent spec with gh auth pre-flight, failure detection, and graceful degradation
-- [ ] 39-02: Branch protection bypass detection, test regression detection, and SessionStart hook for CI status display
+- [ ] 39-01-PLAN.md -- CI sensor agent spec with pre-flight, failure detection, graceful degradation (EXT-06 validation)
+- [ ] 39-02-PLAN.md -- Branch protection bypass, test regression detection, and SessionStart hook for CI status display
 
 ### Phase 40: Signal Collection Automation
 **Goal**: Signal collection runs automatically after every phase execution without manual invocation, with reentrancy protection preventing feedback loops and cross-runtime fallback ensuring all 4 runtimes are covered
