@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 38 of 43 (Extensible Sensor Architecture)
-Plan: 1 of 2 in current phase
-Status: Executing
-Last activity: 2026-03-04 -- Completed 38-01-PLAN.md (sensor auto-discovery and contract definition)
+Plan: 2 of 2 in current phase
+Status: Phase Complete
+Last activity: 2026-03-04 -- Completed 38-02-PLAN.md (sensor contract retrofit and CLI observability)
 
 Progress: [██░░░░░░░░] 22%
 
@@ -68,6 +68,7 @@ Progress: [██░░░░░░░░] 22%
 | 37 | 02 | 3min | 2 | 2 |
 | 37 | 03 | 4min | 3 | 3 |
 | 38 | 01 | 3min | 2 | 2 |
+| 38 | 02 | 3min | 2 | 5 |
 
 ## Accumulated Context
 
@@ -86,6 +87,7 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 37]: Statistics tracking: 4 lightweight fields per feature (fires, skips, last_triggered, last_skip_reason) -- no arrays or event logs
 - [Phase 38]: File system is sole source of truth for sensor existence; config provides overrides only (sensors default to enabled)
 - [Phase 38]: Sensor contract: input (phase, dir, project, model_profile), output (JSON in SENSOR OUTPUT delimiters), timeout via frontmatter, config_schema optional
+- [Phase 38]: Sensor discovery tries .claude/agents/ first, falls back to agents/ for dev environments
 
 ### Pending Todos
 
@@ -138,6 +140,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 38-01-PLAN.md (sensor auto-discovery and contract definition). Ready for 38-02.
+Stopped at: Completed 38-02-PLAN.md (sensor contract retrofit and CLI observability). Phase 38 complete.
 Resume file: None
 Deliberation context: .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
