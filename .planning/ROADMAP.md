@@ -79,7 +79,7 @@ Plans:
   3. Each sensor can be enabled or disabled via config toggle; disabled sensors are discovered but not spawned
   4. `gsd-tools.js sensors list` shows discovered sensors with enabled/disabled status, last run time, and signal count
   5. Existing artifact and git sensors conform to the standardized contract
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 38-01: Sensor contract definition, auto-discovery in collect-signals, and enable/disable config
