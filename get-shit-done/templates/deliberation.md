@@ -23,9 +23,18 @@ Lifecycle: open → concluded → adopted → evaluated → superseded
 
 ### Evidence Base
 
-| Source | What it shows |
-|--------|--------------|
-| {signal ID / KB query / codebase check / conversation observation} | {what it tells us} |
+<!--
+Signal ID column tracks whether evidence has been formalized as a KB signal.
+- Formal signal: use the sig-YYYY-MM-DD-slug ID
+- Created during deliberation: signal with source: deliberation-trigger
+- Not formalized: "informal" — the evidence exists only in this document
+Formalizing evidence as signals makes it traceable, detectable for recurrence,
+and referenceable by the remediation pipeline.
+-->
+
+| Source | What it shows | Signal ID |
+|--------|--------------|-----------|
+| {KB query / codebase check / conversation observation} | {what it tells us} | {sig-ID or "informal"} |
 
 ## Framing
 

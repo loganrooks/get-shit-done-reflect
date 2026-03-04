@@ -82,6 +82,42 @@ Deliberations can be triggered by many things. Identify which applies:
 
 If the trigger came from conversation (not explicit arguments), summarize what the conversation revealed and confirm with the user: "It sounds like the deliberation topic is: {summary}. Is that right?"
 
+## Step 1.5: Signal Gate
+
+**Purpose:** Observations that trigger deliberations are often signal-worthy themselves. Capturing them as formal signals before deliberating makes them traceable, referenceable by ID, and measurable for recurrence after intervention.
+
+**When this gate fires:** Trigger types: conversation observation, question about the system, intuition, or post-execution reflection. Skip for formal signal triggers (signals already exist).
+
+**How it works:**
+
+1. After the trigger is identified and (if applicable) verified against data in Step 2, assess whether the observation is signal-worthy. An observation is signal-worthy if it:
+   - Reveals a systemic gap (not a one-off issue)
+   - Would be valuable to track for recurrence after intervention
+   - Could be missed by existing sensors (the user noticed it, the system didn't)
+
+2. If signal-worthy, offer to capture it:
+
+   "This observation is worth tracking formally. Creating a signal makes it:
+   - **Traceable** — future sessions can find it by ID
+   - **Referenceable** — the deliberation links to it, not to ephemeral conversation
+   - **Measurable** — we can check if it recurs after we address it
+
+   Create signal for: *'{observation summary}'*?"
+
+3. If yes:
+   - Write the signal file directly to `~/.gsd/knowledge/signals/{project}/` using the standard signal schema
+   - Use `source: deliberation-trigger` to distinguish from sensor-detected or manual signals
+   - Use appropriate `signal_type`: `capability-gap`, `epistemic-gap`, `deviation`, etc.
+   - Rebuild index: `bash ~/.gsd/bin/kb-rebuild-index.sh`
+   - Reference the signal ID in the deliberation's Evidence Base table (Signal ID column)
+
+4. If no: proceed with informal reference. Note `informal` in the Evidence Base Signal ID column.
+
+**During deliberation** (not just at entry):
+As the investigation in Steps 2-4 reveals additional findings, offer to capture those too. The deliberation process often discovers things the sensors missed. Batch if multiple: "Investigation uncovered {N} additional findings worth tracking. Want me to create signals for them?"
+
+Each signal created during deliberation gets `source: deliberation-trigger` and a tag linking it to the deliberation slug (e.g., `deliberation:signal-lifecycle-gap`).
+
 ## Step 2: Surface Related Context
 
 Gather relevant context — but treat each source as optional. Not every deliberation has related signals, prior deliberations, or relevant philosophy.
