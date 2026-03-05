@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 39 of 43 (CI Awareness)
-Plan: 1 of 2 in current phase
-Status: Plan 01 complete, Plan 02 pending
-Last activity: 2026-03-05 -- Phase 39 Plan 01 complete (CI sensor agent spec)
+Plan: 2 of 2 in current phase
+Status: All plans complete, ready for verification
+Last activity: 2026-03-05 -- Phase 39 complete (CI sensor + SessionStart hook + statusline + installer)
 
-Progress: [███░░░░░░░] 33%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -73,6 +73,7 @@ Progress: [███░░░░░░░] 33%
 | 38.1 | 02 | 7min | 3 | 10 |
 | 38.1 | 03 | 2min | 1 | 2 |
 | 39 | 01 | 3min | 1 | 1 |
+| 39 | 02 | 4min | 2 | 3 |
 
 ## Accumulated Context
 
@@ -98,6 +99,8 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 39]: CI sensor is first with non-null config_schema (repo + workflow overrides), validating Phase 38 extensibility
 - [Phase 39]: Pre-flight checks return degraded:true with warning, never clean empty signals (CI-04)
 - [Phase 39]: Test regression detection marked LOW confidence due to log-parsing fragility
+- [Phase 39]: CI status hook uses background spawn + cache file pattern (matching gsd-check-update.js), never blocks session start
+- [Phase 39]: Cache staleness threshold 1 hour; only show CI FAIL for conclusion=failure (not cancelled/skipped)
 
 ### Pending Todos
 
@@ -152,6 +155,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Completed 39-01-PLAN.md (CI sensor agent spec). Ready for 39-02.
+Stopped at: Phase 39 complete (all plans executed). Ready for verification.
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
