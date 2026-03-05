@@ -390,6 +390,31 @@ function installKBScripts(gsdHome) {
 }
 
 /**
+ * Create project-local KB directories when .planning/ exists.
+ * This enables project-local knowledge storage as primary KB location.
+ * Creates .planning/knowledge/{signals,reflections,spikes} directories.
+ * Does NOT create lessons/ (lessons are deprecated).
+ */
+function createProjectLocalKB() {
+  const planningDir = path.join(process.cwd(), '.planning');
+  if (!fs.existsSync(planningDir)) {
+    return;
+  }
+
+  const kbDir = path.join(planningDir, 'knowledge');
+  const subdirs = ['signals', 'reflections', 'spikes'];
+
+  for (const sub of subdirs) {
+    const subPath = path.join(kbDir, sub);
+    if (!fs.existsSync(subPath)) {
+      safeFs('mkdirSync', () => fs.mkdirSync(subPath, { recursive: true }), subPath);
+    }
+  }
+
+  console.log(`  ${green}+${reset} Project-local KB at .planning/knowledge/`);
+}
+
+/**
  * Build a hook command path using forward slashes for cross-platform compatibility.
  * On Windows, $HOME is not expanded by cmd.exe/PowerShell, so we use the actual path.
  */
@@ -2487,6 +2512,9 @@ function installAllRuntimes(runtimes, isGlobal, isInteractive) {
   migrateKB(gsdHome, runtimes);
   installKBScripts(gsdHome);
 
+  // Create project-local KB directories when .planning/ exists
+  createProjectLocalKB();
+
   const results = [];
 
   for (const runtime of runtimes) {
@@ -2578,4 +2606,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs };
