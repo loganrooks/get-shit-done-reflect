@@ -11,7 +11,7 @@ Lifecycle: open → concluded → adopted → evaluated → superseded
 -->
 
 **Date:** 2026-03-05
-**Status:** Open
+**Status:** Adopted
 **Trigger:** Conversation observation during Phase 39 CI awareness execution. While reviewing CI test coverage, investigation revealed multi-runtime tests verify installation layout and path transformation but use low assertion bars that wouldn't catch silent feature gaps across runtimes. Further investigation uncovered a real shipping bug (gsd-ci-status.js missing from build-hooks.js hardcoded list).
 **Affects:** All future phases that add hooks, agents, workflows, or commands; multi-runtime test infrastructure
 **Related:**
@@ -155,9 +155,9 @@ Filled when status moves to `concluded` or `adopted`.
 Links the deliberation to the intervention that implements it.
 -->
 
-**Decision:** {pending}
-**Decided:** {pending}
-**Implemented via:** {pending}
+**Decision:** Adopt Option B (name parity) + targeted Option C (all-agent Gemini tool check, hook registration sync) + Option D (glob build-hooks.js). This combination eliminates the hardcoded hook list sync point, adds structural parity tests across all runtimes, and extends Gemini tool name validation to all agents.
+**Decided:** 2026-03-05
+**Implemented via:** Quick task 15 (cross-runtime parity testing)
 **Signals addressed:** sig-2026-03-05-multi-runtime-parity-testing-gap
 
 ## Evaluation
