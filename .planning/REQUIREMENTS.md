@@ -115,6 +115,26 @@ Requirements for v1.17 Automation Loop. Each maps to roadmap phases.
 - [ ] **HEALTH-09**: Signal density trend tracked within observation regime — signals-per-phase computed and compared to rolling average within current regime, with upward trend flagged as health finding
   - *Motivation:* `philosophy: cybernetics/observer-effect` — trend analysis only valid within stable observation regimes; requires SIG-06 regime boundaries
   - *Motivation:* `philosophy: lakatos/degeneration-detection` — increasing signal density within a stable regime suggests remediation is not preventing recurrence (degenerating); decreasing density suggests the improvement loop is working (progressive)
+- [ ] **HEALTH-10**: Rogue file detection — health check identifies files in `.planning/` that don't match expected directory patterns (phases, deliberations, research, quick tasks, etc.) or persist beyond their workflow lifecycle (e.g., `.continue-here.md` still present after `resume-work` completed)
+  - *Motivation:* `user: observation about rogue files` — agents sometimes write files outside formal workflow structure, either from ignorance of correct location or genuine workflow gaps
+  - *Motivation:* `philosophy: cybernetics/requisite-variety` — rogue files are a signal that the system's variety (formal workflow categories) is less than the variety of what agents need to produce; detecting them makes the gap measurable
+- [ ] **HEALTH-11**: Rogue file context extraction — for each detected rogue file, extract creation context via `git log` (when created, which phase was active, commit message) and categorize as agent-ignorance (system has a correct location, agent didn't route there) or workflow-gap (no formal place exists for this artifact type), with workflow-gap findings surfaced as capability-gap signals
+  - *Motivation:* `user: "whatever prompted the need for the creation of such a file, we can consider addressing the need more formally"` — rogue files from workflow gaps are evidence that the system needs a new formalized workflow, similar to how stray deliberation files led to `/gsd:deliberate`
+  - *Motivation:* `philosophy: pragmatism/do-not-block-inquiry` — agent-ignorance rogue files indicate the system is blocking its own inquiry by failing to route agents to existing infrastructure; workflow-gap rogue files indicate the system lacks a category for a genuine kind of output
+
+### Project-Local Knowledge Base
+
+- [ ] **KB-01**: `.planning/knowledge/` as primary KB location for all agent read/write operations — signals, lessons, spikes, and reflections written to project-local path, enabling version control and remote execution
+  - *Motivation:* `deliberation: project-local-knowledge-base` — KB at `~/.gsd/knowledge/` is inaccessible in remote execution environments and invisible to version control
+  - *Motivation:* `signal: sig-2026-02-11-local-install-global-kb-model` — tension between local install and global KB has been a known issue since v1.12
+- [ ] **KB-02**: Fallback to `~/.gsd/knowledge/` when `.planning/knowledge/` doesn't exist — ensures npm users without `gsd:new-project` can still use KB features
+  - *Motivation:* `deliberation: project-local-knowledge-base` — fallback preserves backward compatibility for users who haven't migrated
+- [ ] **KB-03**: Agent specs use unified KB access pattern — single reference pattern for KB path resolution with fallback, replacing per-agent ad-hoc path references
+  - *Motivation:* `deliberation: project-local-knowledge-base` — 19 files currently reference KB paths independently; unified pattern reduces drift risk
+- [ ] **KB-04**: Project-local kb-rebuild-index capability — index rebuild works without depending on `~/.gsd/bin/` scripts
+  - *Motivation:* `deliberation: project-local-knowledge-base` — remote environments don't have `~/.gsd/bin/`; index management must be self-contained
+- [ ] **KB-05**: All existing KB-related tests pass with project-local KB as primary — 5 test files updated to validate `.planning/knowledge/` as primary with fallback behavior
+  - *Motivation:* `deliberation: project-local-knowledge-base` — migration must not break CI (ironic given Phase 36/39 focus on CI trust)
 
 ### Extensible Sensor Architecture
 
@@ -285,6 +305,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HEALTH-07 | Phase 41 | Pending |
 | HEALTH-08 | Phase 41 | Pending |
 | HEALTH-09 | Phase 41 | Pending |
+| HEALTH-10 | Phase 41 | Pending |
+| HEALTH-11 | Phase 41 | Pending |
+| KB-01 | Phase 38.1 | Pending |
+| KB-02 | Phase 38.1 | Pending |
+| KB-03 | Phase 38.1 | Pending |
+| KB-04 | Phase 38.1 | Pending |
+| KB-05 | Phase 38.1 | Pending |
 | EXT-01 | Phase 38 | Pending |
 | EXT-02 | Phase 38 | Pending |
 | EXT-03 | Phase 38 | Pending |
@@ -304,10 +331,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TMPL-05 | Phase 43 | Pending |
 
 **Coverage:**
-- v1.17 requirements: 49 total (43 original + 6 philosophically-motivated)
-- Mapped to phases: 49
+- v1.17 requirements: 56 total (43 original + 6 philosophically-motivated + 5 KB + 2 rogue-file)
+- Mapped to phases: 56
 - Unmapped: 0
-- Requirements with philosophical annotations: 26 of 49
+- Requirements with philosophical annotations: 28 of 56
 
 ## Philosophical Interventions
 

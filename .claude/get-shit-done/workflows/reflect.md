@@ -15,7 +15,6 @@ Reflection is retrospective analysis. It reads signals, phase artifacts, and KB 
 Read these references for pattern detection rules and distillation criteria:
 - get-shit-done/references/reflection-patterns.md
 - .claude/agents/knowledge-store.md
-- .claude/agents/kb-templates/lesson.md
 
 Read STATE.md before any operation to load project context.
 Read config.json for mode and depth settings.
@@ -113,7 +112,12 @@ If `SCOPE="all"`, depth is effectively comprehensive regardless of setting.
 Check that the knowledge base exists and has content:
 
 ```bash
-KB_DIR="$HOME/.gsd/knowledge"
+# KB path resolution -- project-local primary, user-global fallback
+if [ -d ".planning/knowledge" ]; then
+  KB_DIR=".planning/knowledge"
+else
+  KB_DIR="$HOME/.gsd/knowledge"
+fi
 KB_INDEX="$KB_DIR/index.md"
 
 if [ ! -f "$KB_INDEX" ]; then
@@ -466,68 +470,18 @@ Status: {STABLE|DRIFTING|CONCERNING}
 
 </step>
 
-<step name="handle_lesson_creation">
+<step name="handle_lesson_candidates">
 
-Based on autonomy mode, handle lesson candidates from the report.
+**DEPRECATED:** Lesson file writing is no longer performed. Lesson candidates are documented in the reflection report only (output by the reflector agent in its report). The workflow displays them as part of the report but does not write lesson files.
 
-<if mode="yolo">
-
-Auto-approve lessons based on confidence:
+Display lesson candidates from the report for informational purposes only:
 
 ```
-### Lesson Creation (YOLO Mode)
+### Lesson Candidates (Documented in Report Only)
 
-HIGH confidence lessons (6+ evidence) auto-approved:
-- {lesson-1}: written to {path}
-- {lesson-2}: written to {path}
+{lesson candidates from reflector report, if any}
 
-MEDIUM/LOW confidence lessons:
-- {lesson-3}: written to {path} (project scope)
-- {lesson-4}: written to {path} (project scope)
-
-{count} lessons created automatically.
-```
-
-Write lesson files using kb-templates/lesson.md format.
-
-</if>
-
-<if mode="interactive">
-
-Present each lesson candidate for confirmation:
-
-```
-### Lesson Candidates
-
-**Lesson 1:**
-- Category: {category}
-- Confidence: {level} ({count} supporting signals)
-- Insight: {one-sentence lesson}
-- Scope: {project|_global}
-
-Create this lesson? (yes / no / edit)
-```
-
-For each response:
-- **yes**: Write lesson file
-- **no**: Skip
-- **edit**: Allow user to modify insight before writing
-
-</if>
-
-Track lessons created for the completion report.
-
-</step>
-
-<step name="rebuild_index">
-
-After any lesson writes, rebuild the KB index:
-
-```bash
-if [ "$LESSONS_CREATED" -gt 0 ]; then
-  bash ~/.gsd/bin/kb-rebuild-index.sh
-  echo "Index rebuilt after creating $LESSONS_CREATED lessons"
-fi
+Note: Lessons are no longer written as individual KB files. Candidates are preserved in the reflection report at {REPORT_FILE}.
 ```
 
 </step>
@@ -601,7 +555,7 @@ Triaged signals with decision "address" will surface during /gsd:plan-phase for 
 Write the full reflection report to a persistent file in the knowledge base. This preserves the analytical context (patterns, scores, triage decisions, spike candidates) that would otherwise be lost when the session ends.
 
 ```bash
-REPORT_DIR="$HOME/.gsd/knowledge/reflections/$PROJECT_NAME"
+REPORT_DIR="$KB_DIR/reflections/$PROJECT_NAME"
 mkdir -p "$REPORT_DIR"
 REPORT_FILE="$REPORT_DIR/reflect-$(date +%Y-%m-%d).md"
 ```
@@ -661,40 +615,24 @@ Scope: {SCOPE}
 
 </step>
 
-<step name="commit_lessons">
+<step name="commit_report">
 
-If lessons were written and `COMMIT_PLANNING_DOCS` is true, commit the new lesson files:
+If `COMMIT_PLANNING_DOCS` is true, commit the reflection report:
 
 ```bash
 if [ "$COMMIT_PLANNING_DOCS" = "true" ]; then
   # Stage reflection report (always written)
   git add "$REPORT_FILE" 2>/dev/null
 
-  if [ "$LESSONS_CREATED" -gt 0 ]; then
-    # Stage individual lesson files
-    for lesson_file in $(find ~/.gsd/knowledge/lessons/ -name "les-*.md" -newer ~/.gsd/knowledge/index.md 2>/dev/null); do
-      git add "$lesson_file"
-    done
-    # Stage updated index
-    git add ~/.gsd/knowledge/index.md
-    git commit -m "docs(reflect): ${LESSONS_CREATED} lessons, ${PATTERNS_DETECTED} patterns from reflection
-
-- Scope: ${SCOPE}
-- Signals analyzed: ${SIGNAL_COUNT}
-- Report: ${REPORT_FILE}
-- Index rebuilt"
-  else
-    # Commit report only (no lessons this run)
-    git commit -m "docs(reflect): reflection report (${PATTERNS_DETECTED} patterns, 0 lessons)
+  git commit -m "docs(reflect): reflection report (${PATTERNS_DETECTED} patterns)
 
 - Scope: ${SCOPE}
 - Signals analyzed: ${SIGNAL_COUNT}
 - Report: ${REPORT_FILE}"
-  fi
 fi
 ```
 
-Skip if `COMMIT_PLANNING_DOCS` is false or no lessons were created.
+Skip if `COMMIT_PLANNING_DOCS` is false.
 
 </step>
 
@@ -704,7 +642,7 @@ Skip if `COMMIT_PLANNING_DOCS` is false or no lessons were created.
 
 **No KB:**
 ```
-No knowledge base found at ~/.gsd/knowledge/index.md
+No knowledge base found (checked .planning/knowledge/index.md and ~/.gsd/knowledge/index.md)
 Run /gsd:collect-signals first to create the KB and collect signals.
 ```
 

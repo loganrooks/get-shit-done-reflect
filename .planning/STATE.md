@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.17 Automation Loop -- Phase 39: CI Awareness
+**Current focus:** v1.17 Automation Loop -- Phase 38.1 complete, ready for Phase 39
 
 ## Current Position
 
-Phase: 39 of 43 (CI Awareness)
-Plan: 0 of 2 in current phase
-Status: Ready for planning
-Last activity: 2026-03-04 -- Completed quick task 13: signal lifecycle reconciliation script, health check watchdog, design principle
+Phase: 38.1 of 43 (Project-Local Knowledge Base) -- COMPLETE
+Plan: 3 of 3 in current phase
+Status: Phase complete, verified (12/12 must-haves)
+Last activity: 2026-03-05 -- Phase 38.1 execution complete, verification passed
 
 Progress: [███░░░░░░░] 33%
 
@@ -69,6 +69,9 @@ Progress: [███░░░░░░░] 33%
 | 37 | 03 | 4min | 3 | 3 |
 | 38 | 01 | 3min | 2 | 2 |
 | 38 | 02 | 3min | 2 | 5 |
+| 38.1 | 01 | 3min | 2 | 20 |
+| 38.1 | 02 | 7min | 3 | 10 |
+| 38.1 | 03 | 2min | 1 | 2 |
 
 ## Accumulated Context
 
@@ -88,6 +91,9 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 38]: File system is sole source of truth for sensor existence; config provides overrides only (sensors default to enabled)
 - [Phase 38]: Sensor contract: input (phase, dir, project, model_profile), output (JSON in SENSOR OUTPUT delimiters), timeout via frontmatter, config_schema optional
 - [Phase 38]: Sensor discovery tries .claude/agents/ first, falls back to agents/ for dev environments
+- [Phase 38.1]: KB path fallback pattern: .planning/knowledge/ primary, ~/.gsd/knowledge/ fallback. Lessons deprecated; KB is 3-type (signals, reflections, spikes)
+- [Phase 38.1]: kb-rebuild-index.sh conditionally omits Lessons section when lessons/ dir does not exist
+- [Phase 38.1]: Signal enrichment uses origin: local naming to avoid collision with existing source: auto|manual detection-method field
 
 ### Pending Todos
 
@@ -121,6 +127,7 @@ Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16
 | 011 | Add DEV indicator for local dev installs (VERSION+dev suffix, statusline tag, version check fix) | 2026-03-01 | be5a1e4 | [11-add-dev-indicator-to-statusline-when-usi](./quick/11-add-dev-indicator-to-statusline-when-usi/) |
 | 012 | Persist reflection reports to ~/.gsd/knowledge/reflections/ | 2026-03-01 | ea9a758 | [12-add-persistent-report-file-output-to-ref](./quick/12-add-persistent-report-file-output-to-ref/) |
 | 013 | Signal lifecycle reconciliation script, health check watchdog, design principle | 2026-03-04 | bb26acc | [13-implement-signal-lifecycle-deliberation-](./quick/13-implement-signal-lifecycle-deliberation-/) |
+| 014 | Update collect-signals.md rebuild_index to use project-local kb-rebuild-index.sh | 2026-03-05 | ae40d86 | [14-update-collect-signals-md-to-use-plannin](./quick/14-update-collect-signals-md-to-use-plannin/) |
 
 ### Roadmap Evolution
 
@@ -140,7 +147,7 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-03-04
-Stopped at: Quick task 13 complete (signal lifecycle reconciliation). Ready for Phase 39 planning.
+Last session: 2026-03-05
+Stopped at: Phase 38.1 complete (3/3 plans, verification passed 12/12). Ready for Phase 39 planning.
 Resume file: None
-Deliberation context: .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
+Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)

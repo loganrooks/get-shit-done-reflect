@@ -22,7 +22,7 @@ Pattern detection rules, severity thresholds, confidence-weighted scoring, count
 Knowledge base schema, directory layout, lifecycle rules, and mutability boundary:
 @.claude/agents/knowledge-store.md
 
-Lesson entry template (copy-and-fill for new lessons, includes evidence_snapshots and confidence fields):
+Lesson entry template (reference only -- lessons are deprecated, use for report formatting):
 @~/.claude/agents/kb-templates/lesson.md
 </references>
 
@@ -39,7 +39,7 @@ You receive these inputs from the spawning workflow:
 
 **Derived:**
 - Project name: from current working directory (kebab-case)
-- KB path: `~/.gsd/knowledge/`
+- KB path: `.planning/knowledge/` (or `~/.gsd/knowledge/` fallback)
 - Config: `.planning/config.json` for mode (yolo/interactive)
 </inputs>
 
@@ -57,7 +57,7 @@ Two-pass signal loading to manage context budget. **Index pass first, detail pas
 
 ### Pass 1: Index Pass
 
-Read `~/.gsd/knowledge/index.md` and parse the markdown table using shell commands (grep/awk). **IMPORTANT: The index is a markdown table, NOT YAML frontmatter -- do NOT use extractFrontmatter() for this.** The table has columns: `| ID | Project | Severity | Lifecycle | Tags | Date | Status |`.
+Read `.planning/knowledge/index.md` (or `~/.gsd/knowledge/index.md` fallback) and parse the markdown table using shell commands (grep/awk). **IMPORTANT: The index is a markdown table, NOT YAML frontmatter -- do NOT use extractFrontmatter() for this.** The table has columns: `| ID | Project | Severity | Lifecycle | Tags | Date | Status |`.
 
 For each signal row matching scope:
 - Extract columns by splitting on `|` delimiters using awk
@@ -326,22 +326,14 @@ Using heuristics from reflection-patterns.md Section 4.3:
 - YOLO mode + MEDIUM/LOW confidence: Auto-write lesson (project scope only)
 - Interactive mode: Present lesson candidates for user confirmation
 
-### 6e. Write Lesson
+### 6e. Record Lesson Candidates (Do NOT Write Lesson Files)
 
-If writing:
-- Generate lesson ID: `les-{YYYY-MM-DD}-{slug}`
-- Use kb-templates/lesson.md as template (includes evidence_snapshots and confidence fields)
-- Write to `~/.gsd/knowledge/lessons/{category}/`
-- **Provenance fields:** When creating KB entries, populate:
-  - `runtime`: Detect from installed path prefix (~/.claude/ = claude-code, ~/.config/opencode/ = opencode, ~/.gemini/ = gemini-cli, ~/.codex/ = codex-cli)
-  - `model`: Use the current model identifier (available from session context)
-  - `gsd_version`: Read from VERSION file at the current runtime's install directory. Fallback: read `gsd_reflect_version` from `.planning/config.json`. If neither available, use "unknown".
+**DEPRECATED:** The reflector no longer writes individual lesson files to the KB. The KB uses a 3-type structure: signals, reflections, spikes. Lesson candidates are documented in the reflection report only.
 
-### 6f. Rebuild Index
-
-```bash
-bash ~/.gsd/bin/kb-rebuild-index.sh
-```
+If a pattern qualifies for lesson distillation:
+- Record it in the reflection report under "Lessons Suggested" with full detail (category, insight, evidence snapshots, confidence, durability)
+- Do NOT generate lesson files or write to any `lessons/` directory
+- Existing lessons at `~/.gsd/knowledge/lessons/` remain as historical artifacts and may still be read for backward compatibility
 
 ## Step 7: Generate Remediation Suggestions (REFLECT-06)
 
@@ -600,11 +592,9 @@ High-confidence signals: {N} ({pct}%)
 - **Signal-Plan Linkage:** Plans declare `resolves_signals` in their frontmatter to link to triaged signals. When such plans complete, the execute-plan workflow moves the referenced signals to "remediated" status. The full lifecycle pipeline (detected -> triaged -> remediated -> verified) is connected.
 - Signal mutability boundary: Detection payload fields are frozen after creation. Lifecycle fields (lifecycle_state, lifecycle_log, triage, remediation, verification, updated) may be modified by authorized agents. See knowledge-store.md Section 10 for the complete frozen/mutable field list.
 - Never modify PLAN.md, SUMMARY.md, or execution artifacts
-- Always rebuild the index after writing lessons
 - Use categorical confidence with occurrence count: "HIGH (7 occurrences)"
-- Default to project scope for lessons when uncertain
-- In YOLO mode: auto-approve HIGH confidence lessons; write MEDIUM/LOW with project scope
-- In interactive mode: present all lesson candidates for user confirmation
+- Lesson candidates are documented in the reflection report only -- do NOT write lesson files to the KB
+- Default to project scope for lesson candidates when uncertain
 - Respect cross-project settings from config.json
 - Derive slugs from the key concept (kebab-case, max 50 chars)
 - Pattern detection should cluster by meaning, not just exact tag match

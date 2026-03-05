@@ -22,8 +22,23 @@ if [ ! -d "$PHASE_DIR" ]; then
 fi
 
 GSD_TOOLS="$HOME/.claude/get-shit-done/bin/gsd-tools.js"
-KB_SIGNALS="$HOME/.gsd/knowledge/signals"
-KB_REBUILD="$HOME/.gsd/bin/kb-rebuild-index.sh"
+
+# KB path resolution -- project-local primary, GSD_HOME middle tier, user-global fallback
+if [ -d ".planning/knowledge" ]; then
+  KB_DIR=".planning/knowledge"
+elif [ -n "${GSD_HOME:-}" ] && [ -d "$GSD_HOME/knowledge" ]; then
+  KB_DIR="$GSD_HOME/knowledge"
+else
+  KB_DIR="$HOME/.gsd/knowledge"
+fi
+KB_SIGNALS="$KB_DIR/signals"
+
+# Rebuild script path follows GSD_HOME or user-global
+if [ -n "${GSD_HOME:-}" ] && [ -x "$GSD_HOME/bin/kb-rebuild-index.sh" ]; then
+  KB_REBUILD="$GSD_HOME/bin/kb-rebuild-index.sh"
+else
+  KB_REBUILD="$HOME/.gsd/bin/kb-rebuild-index.sh"
+fi
 
 reconciled=0
 plans_processed=0

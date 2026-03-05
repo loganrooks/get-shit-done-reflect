@@ -8,7 +8,9 @@ version: 2.0.0
 
 ## 1. Overview
 
-The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.gsd/knowledge/`. It stores signals (workflow deviations and struggles), spikes (structured experiments and decisions), and lessons (distilled wisdom from patterns).
+The GSD Knowledge Store is a persistent knowledge base. The primary location is `.planning/knowledge/` (project-local, version-controlled). When `.planning/knowledge/` does not exist, agents fall back to `~/.gsd/knowledge/` (user-global). It stores three entry types: signals (workflow deviations and struggles), reflections (analysis reports), and spikes (structured experiments and decisions).
+
+**Note:** Lessons are deprecated. Existing lesson files remain at `~/.gsd/knowledge/lessons/` as historical artifacts and may still be read for backward compatibility, but no new lesson files are created. Lesson candidates are documented in reflection reports instead.
 
 **Consumers:** GSD-internal agents only. No external tool integration required.
 
@@ -21,21 +23,44 @@ The GSD Knowledge Store is a persistent, cross-project knowledge base at `~/.gsd
 
 ## 2. Directory Structure
 
+**Primary location (project-local, version-controlled):**
 ```
-~/.gsd/knowledge/
+.planning/knowledge/
 ├── signals/
 │   └── {project-name}/
 │       └── {YYYY-MM-DD}-{slug}.md
 ├── spikes/
 │   └── {project-name}/
 │       └── {spike-name}.md
-├── lessons/
-│   └── {category}/
-│       └── {lesson-name}.md
 ├── reflections/
 │   └── {project-name}/
 │       └── reflect-{YYYY-MM-DD}.md
 └── index.md
+```
+
+**Fallback location (user-global, when `.planning/knowledge/` does not exist):**
+```
+~/.gsd/knowledge/
+├── signals/
+│   └── ...
+├── spikes/
+│   └── ...
+├── reflections/
+│   └── ...
+├── lessons/          # DEPRECATED -- historical artifacts only
+│   └── {category}/
+│       └── {lesson-name}.md
+└── index.md
+```
+
+**KB path resolution pattern (for agents and scripts):**
+```bash
+# KB path resolution -- project-local primary, user-global fallback
+if [ -d ".planning/knowledge" ]; then
+  KB_DIR=".planning/knowledge"
+else
+  KB_DIR="$HOME/.gsd/knowledge"
+fi
 ```
 
 **Project scoping:**
@@ -450,7 +475,7 @@ Initial tags organized by concern. Agents may create new tags freely; these prov
 
 ## 9. Index Format
 
-The index at `~/.gsd/knowledge/index.md` is auto-generated and never hand-edited.
+The index at `.planning/knowledge/index.md` (or `~/.gsd/knowledge/index.md` fallback) is auto-generated and never hand-edited.
 
 ```markdown
 # Knowledge Store Index

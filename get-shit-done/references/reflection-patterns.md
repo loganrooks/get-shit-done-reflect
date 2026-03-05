@@ -330,9 +330,8 @@ A pattern qualifies for lesson distillation when ALL of:
    - Apply heuristics (see 4.3)
        |
        v
-4. Write lesson file
-   - Use kb-templates/lesson.md
-   - Write to ~/.gsd/knowledge/lessons/{category}/
+4. Document in reflection report
+   - Lesson candidates are recorded in the reflection report only (lesson files deprecated)
        |
        v
 5. Rebuild index
@@ -423,7 +422,9 @@ A pattern qualifies as global lesson when:
 # Query index for cross-project patterns
 # Group by signal_type + tags, ignoring project column
 
-KB_INDEX="$HOME/.gsd/knowledge/index.md"
+# KB path resolution -- project-local primary, user-global fallback
+if [ -d ".planning/knowledge" ]; then KB_DIR=".planning/knowledge"; else KB_DIR="$HOME/.gsd/knowledge"; fi
+KB_INDEX="$KB_DIR/index.md"
 
 # Extract all signal rows
 grep "^| sig-" "$KB_INDEX" | while read row; do
@@ -674,9 +675,9 @@ Common mistakes in reflection implementation.
 
 ### 11.1 Knowledge Store Integration
 
-- Read from: `~/.gsd/knowledge/index.md` (signal listing)
-- Read from: `~/.gsd/knowledge/signals/{project}/` (signal details)
-- Write to: `~/.gsd/knowledge/lessons/{category}/` (new lessons)
+- Read from: `.planning/knowledge/index.md` (or `~/.gsd/knowledge/index.md` fallback) (signal listing)
+- Read from: `.planning/knowledge/signals/{project}/` (or `~/.gsd/knowledge/signals/{project}/` fallback) (signal details)
+- Lesson files deprecated -- lesson candidates documented in reflection report only
 - Execute: `~/.gsd/bin/kb-rebuild-index.sh` (after writes)
 
 ### 11.2 Phase Artifact Integration

@@ -259,7 +259,11 @@ Create spike entry in the Knowledge Base.
    - Use project name from context
    - Or derive from current directory name (kebab-case)
 
-2. **Create KB entry** at `~/.gsd/knowledge/spikes/{project}/{spike-slug}.md`:
+2. **Create KB entry** at `.planning/knowledge/spikes/{project}/{spike-slug}.md` (or `~/.gsd/knowledge/spikes/{project}/{spike-slug}.md` fallback):
+   ```bash
+   # KB path resolution -- project-local primary, user-global fallback
+   if [ -d ".planning/knowledge" ]; then KB_DIR=".planning/knowledge"; else KB_DIR="$HOME/.gsd/knowledge"; fi
+   ```
 
 ```yaml
 ---

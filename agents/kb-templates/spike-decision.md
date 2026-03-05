@@ -94,6 +94,6 @@ iterations: {1|2}
 ## KB Entry Reference
 
 {After spike completes, the spike-runner agent creates a KB entry at:}
-{~/.gsd/knowledge/spikes/{project}/{spike-name}.md}
+{.planning/knowledge/spikes/{project}/{spike-name}.md} (or {~/.gsd/knowledge/spikes/{project}/{spike-name}.md} fallback)
 
 {The KB entry contains a condensed version of this decision for cross-project querying.}

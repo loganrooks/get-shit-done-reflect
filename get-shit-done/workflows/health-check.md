@@ -203,7 +203,7 @@ If findings include WARNING or FAIL results, optionally persist a health-check s
 - Interactive mode: ask user via AskUserQuestion
 
 **Signal creation (if persisting):**
-Write a signal file to `~/.gsd/knowledge/signals/{project-name}/` following the signal schema from knowledge-store.md.
+Write a signal file to `.planning/knowledge/signals/{project-name}/` (or `~/.gsd/knowledge/signals/{project-name}/` fallback) following the signal schema from knowledge-store.md.
 
 Signal fields:
 - `type: signal`

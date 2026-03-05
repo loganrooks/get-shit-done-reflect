@@ -144,7 +144,7 @@ async function verifyNoLeakedPaths(runtimeDir, runtime) {
 
 /**
  * Scan installed files for any reference to 'knowledge' and verify they
- * use ~/.gsd/knowledge/ (shared path).
+ * use .planning/knowledge/ (project-local primary) or ~/.gsd/knowledge/ (fallback).
  */
 async function verifyKBPathsShared(runtimeDir) {
   const allFiles = await fs.readdir(runtimeDir, { recursive: true })
@@ -158,11 +158,11 @@ async function verifyKBPathsShared(runtimeDir) {
 
     const content = await fs.readFile(filePath, 'utf8')
 
-    // If file references 'gsd-knowledge' or 'gsd_knowledge', it should use ~/.gsd/knowledge/
+    // If file references 'gsd-knowledge' or 'gsd_knowledge', it should use
+    // .planning/knowledge (project-local) or .gsd/knowledge (user-global fallback)
     if (content.includes('gsd-knowledge') || content.includes('gsd_knowledge')) {
-      // Allow only the pattern ~/.gsd/knowledge or $HOME/.gsd/knowledge
-      if (!content.includes('.gsd/knowledge')) {
-        violations.push({ file, issue: 'references gsd-knowledge but not via ~/.gsd/knowledge/' })
+      if (!content.includes('.gsd/knowledge') && !content.includes('.planning/knowledge')) {
+        violations.push({ file, issue: 'references gsd-knowledge but not via .planning/knowledge/ or .gsd/knowledge/' })
       }
     }
   }
@@ -230,7 +230,7 @@ describe('multi-runtime validation', () => {
       }
     })
 
-    tmpdirTest('OpenCode: KB paths reference shared ~/.gsd/knowledge/', async ({ tmpdir }) => {
+    tmpdirTest('OpenCode: KB paths reference .planning/knowledge/ (primary) or ~/.gsd/knowledge/ (fallback)', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
       execSync(`node "${installScript}" --opencode --global`, {
@@ -296,7 +296,7 @@ describe('multi-runtime validation', () => {
       expect(sampleToml).toContain('prompt = ')
     })
 
-    tmpdirTest('Gemini: KB paths reference shared ~/.gsd/knowledge/', async ({ tmpdir }) => {
+    tmpdirTest('Gemini: KB paths reference .planning/knowledge/ (primary) or ~/.gsd/knowledge/ (fallback)', async ({ tmpdir }) => {
       execSync(`node "${installScript}" --gemini --global`, {
         env: { ...process.env, HOME: tmpdir },
         cwd: tmpdir,
