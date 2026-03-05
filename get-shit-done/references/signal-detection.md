@@ -194,6 +194,21 @@ These optional fields extend the Phase 1 signal schema defined in `knowledge-sto
 
 **Runtime/model field note:** These fields are optional. Existing signals without runtime/model fields remain valid. Agents that do not recognize these fields can safely ignore them.
 
+### 8.1 Signal Enrichment Fields (Cross-Project Readiness)
+
+These optional fields provide environment context for future cross-project signal sharing. They are auto-populated from the runtime environment and added to new signals only -- do NOT backfill existing signals.
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `source` | enum: local, external | local | Whether the signal originated from the local project KB or was shared from another project. The `source` field defaults to `local`. Future cross-project signal sharing will use `source: external`. |
+| `environment.os` | string | (auto) | Operating system, auto-populated via `uname -s` |
+| `environment.node_version` | string | (auto) | Node.js version, auto-populated via `node --version` |
+| `environment.config_profile` | string | (auto) | Model profile from `.planning/config.json`, auto-populated |
+
+**Note on `source` field naming:** The enrichment `source` field (`local`/`external`) tracks signal origin location for cross-project sharing. This is distinct from the existing `source` field in Section 8 (`auto`/`manual`) which tracks detection method. In signal frontmatter, the enrichment field uses `origin: local` to avoid collision with the detection-method `source` field.
+
+**Environment field purpose:** The `environment` fields help diagnose whether a signal is environment-specific (e.g., macOS-only build failure) or universal (e.g., logic error independent of OS). This context is essential for cross-project signal sharing where signals from different environments may have different relevance.
+
 ## 9. Deduplication Rules (SGNL-05)
 
 Before writing a new signal, check for related existing signals to avoid redundant entries.

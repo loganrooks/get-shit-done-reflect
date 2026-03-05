@@ -308,6 +308,26 @@ Track counts:
 - `SENSORS_TIMED_OUT`: Number of sensors that exceeded their declared timeout
 </step>
 
+<step name="enrich_signal_metadata">
+New signals SHOULD include enrichment fields auto-populated from the runtime environment. These fields support future cross-project signal sharing by providing environment context.
+
+**Enrichment fields for new signals:**
+
+```yaml
+source: local
+environment:
+  os: "$(uname -s | tr '[:upper:]' '[:lower:]')"
+  node_version: "$(node --version 2>/dev/null || echo 'unknown')"
+  config_profile: "$(node -e \"try{console.log(JSON.parse(require('fs').readFileSync('.planning/config.json','utf8')).model_profile||'unknown')}catch{console.log('unknown')}\" 2>/dev/null || echo 'unknown')"
+```
+
+- `source: local` indicates the signal was generated from the local project KB. Future cross-project signal sharing will use `source: external`.
+- `environment` fields are auto-populated and help diagnose whether a signal is environment-specific or universal.
+- Do NOT backfill existing signals with these fields -- only new signals carry enrichment metadata.
+
+Note: The `source` enrichment field (`local`/`external`) is distinct from the existing signal schema `source` field (`auto`/`manual`) which tracks detection method. In signal frontmatter, use `origin: local` to avoid collision with the detection-method `source` field.
+</step>
+
 <step name="spawn_synthesizer">
 Spawn the synthesizer as a foreground Task() (NOT background -- we need its report):
 
@@ -322,9 +342,9 @@ Task(
     Raw signal candidates from sensors:
     {MERGED_SENSOR_JSON}
 
-    Read the KB index at ~/.gsd/knowledge/index.md for dedup checking.
+    Read the KB index (at .planning/knowledge/index.md or ~/.gsd/knowledge/index.md fallback) for dedup checking.
     Apply all quality gates: trace filter, cross-sensor dedup, KB dedup, rigor enforcement, per-phase cap.
-    Write qualifying signals to ~/.gsd/knowledge/signals/{PROJECT_NAME}/.
+    Write qualifying signals to the KB signals directory (.planning/knowledge/signals/{PROJECT_NAME}/ or ~/.gsd/knowledge/signals/{PROJECT_NAME}/ fallback).
     Rebuild index with: bash ~/.gsd/bin/kb-rebuild-index.sh
     Return your Synthesizer Report when complete."
 )
@@ -394,11 +414,13 @@ If signals were written and `COMMIT_PLANNING_DOCS` is true, commit the new signa
 ```bash
 if [ "$COMMIT_PLANNING_DOCS" = "true" ] && [ "$SIGNALS_WRITTEN" -gt 0 ]; then
   # Stage individual signal files
-  for signal_file in $(ls ~/.gsd/knowledge/signals/${PROJECT_NAME}/*.md 2>/dev/null); do
+  # KB path resolution -- project-local primary, user-global fallback
+  if [ -d ".planning/knowledge" ]; then KB_DIR=".planning/knowledge"; else KB_DIR="$HOME/.gsd/knowledge"; fi
+  for signal_file in $(ls $KB_DIR/signals/${PROJECT_NAME}/*.md 2>/dev/null); do
     git add "$signal_file"
   done
   # Stage updated index
-  git add ~/.gsd/knowledge/index.md
+  git add $KB_DIR/index.md
   git commit -m "docs(signals): collect phase ${PADDED_PHASE} signals
 
 - ${SIGNALS_WRITTEN} signals persisted
