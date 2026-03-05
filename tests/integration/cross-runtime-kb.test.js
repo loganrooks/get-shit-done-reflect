@@ -264,7 +264,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
   })
 
   describe('KB path references in installed workflow files', () => {
-    tmpdirTest('installed workflow files reference ~/.gsd/knowledge/ not ~/.claude/gsd-knowledge/', async ({ tmpdir }) => {
+    tmpdirTest('installed workflow files reference .planning/knowledge/ (primary) or ~/.gsd/knowledge/ (fallback), not ~/.claude/gsd-knowledge/', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
       execSync(`node "${installScript}" --all --global`, {
@@ -293,16 +293,49 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
 
           const content = await fs.readFile(filePath, 'utf8')
 
-          // If the file mentions "knowledge", it should reference ~/.gsd/knowledge/
+          // If the file mentions "knowledge", it should reference .planning/knowledge/
+          // (project-local primary) or .gsd/knowledge/ (user-global fallback),
           // and NOT ~/.claude/gsd-knowledge/ (the old, pre-migration path)
-          if (content.includes('gsd-knowledge') && !content.includes('.gsd/knowledge')) {
+          if (content.includes('gsd-knowledge') && !content.includes('.gsd/knowledge') && !content.includes('.planning/knowledge')) {
             expect.fail(
               `${name}: ${file} references old KB path ~/.claude/gsd-knowledge/ ` +
-              `instead of ~/.gsd/knowledge/`
+              `instead of .planning/knowledge/ or ~/.gsd/knowledge/`
             )
           }
         }
       }
+    })
+  })
+
+  describe('project-local KB paths in installed files', () => {
+    tmpdirTest('installed agent/workflow files contain .planning/knowledge references', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // Check Claude runtime for .planning/knowledge references
+      const claudeDir = path.join(tmpdir, '.claude')
+      const allFiles = await fs.readdir(claudeDir, { recursive: true })
+      const textFiles = allFiles.filter(f => f.endsWith('.md'))
+
+      let filesWithProjectLocalKB = 0
+      for (const file of textFiles) {
+        const filePath = path.join(claudeDir, file)
+        const stat = await fs.stat(filePath)
+        if (!stat.isFile()) continue
+        const content = await fs.readFile(filePath, 'utf8')
+        if (content.includes('.planning/knowledge')) {
+          filesWithProjectLocalKB++
+        }
+      }
+
+      // Plan 01 updated 20 source files with .planning/knowledge references
+      expect(filesWithProjectLocalKB).toBeGreaterThanOrEqual(10)
     })
   })
 

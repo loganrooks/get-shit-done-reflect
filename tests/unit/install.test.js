@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -236,6 +236,91 @@ describe('install script', () => {
         const input = '~/.claude/get-shit-done/VERSION'
         const result = replacePathsInContent(input, '~/.config/opencode/')
         expect(result).toBe('~/.config/opencode/get-shit-done/VERSION')
+      })
+    })
+
+    describe('project-local KB path passthrough', () => {
+      it('.planning/knowledge/ paths pass through replacePathsInContent unchanged', () => {
+        const input = 'Read KB at .planning/knowledge/index.md'
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toBe('Read KB at .planning/knowledge/index.md')
+      })
+
+      it('.planning/knowledge/ with fallback pattern passes through unchanged', () => {
+        const input = [
+          'if [ -d ".planning/knowledge" ]; then',
+          '  KB_DIR=".planning/knowledge"',
+          'else',
+          '  KB_DIR="$HOME/.gsd/knowledge"',
+          'fi'
+        ].join('\n')
+        const result = replacePathsInContent(input, '~/.config/opencode/')
+        expect(result).toContain('.planning/knowledge')
+        expect(result).toContain('$HOME/.gsd/knowledge')
+      })
+    })
+
+    describe('createProjectLocalKB', () => {
+      tmpdirTest('creates .planning/knowledge/{signals,reflections,spikes} when .planning/ exists', async ({ tmpdir }) => {
+        const planningDir = path.join(tmpdir, '.planning')
+        fsSync.mkdirSync(planningDir, { recursive: true })
+
+        const originalCwd = process.cwd()
+        process.chdir(tmpdir)
+        try {
+          createProjectLocalKB()
+        } finally {
+          process.chdir(originalCwd)
+        }
+
+        expect(fsSync.existsSync(path.join(planningDir, 'knowledge', 'signals'))).toBe(true)
+        expect(fsSync.existsSync(path.join(planningDir, 'knowledge', 'reflections'))).toBe(true)
+        expect(fsSync.existsSync(path.join(planningDir, 'knowledge', 'spikes'))).toBe(true)
+      })
+
+      tmpdirTest('does NOT create .planning/knowledge/lessons/ (lessons deprecated)', async ({ tmpdir }) => {
+        const planningDir = path.join(tmpdir, '.planning')
+        fsSync.mkdirSync(planningDir, { recursive: true })
+
+        const originalCwd = process.cwd()
+        process.chdir(tmpdir)
+        try {
+          createProjectLocalKB()
+        } finally {
+          process.chdir(originalCwd)
+        }
+
+        expect(fsSync.existsSync(path.join(planningDir, 'knowledge', 'lessons'))).toBe(false)
+      })
+
+      tmpdirTest('does nothing when .planning/ does not exist', async ({ tmpdir }) => {
+        const originalCwd = process.cwd()
+        process.chdir(tmpdir)
+        try {
+          createProjectLocalKB()
+        } finally {
+          process.chdir(originalCwd)
+        }
+
+        expect(fsSync.existsSync(path.join(tmpdir, '.planning', 'knowledge'))).toBe(false)
+      })
+
+      tmpdirTest('is idempotent (safe to run twice)', async ({ tmpdir }) => {
+        const planningDir = path.join(tmpdir, '.planning')
+        fsSync.mkdirSync(planningDir, { recursive: true })
+
+        const originalCwd = process.cwd()
+        process.chdir(tmpdir)
+        try {
+          createProjectLocalKB()
+          createProjectLocalKB()
+        } finally {
+          process.chdir(originalCwd)
+        }
+
+        expect(fsSync.existsSync(path.join(planningDir, 'knowledge', 'signals'))).toBe(true)
+        expect(fsSync.existsSync(path.join(planningDir, 'knowledge', 'reflections'))).toBe(true)
+        expect(fsSync.existsSync(path.join(planningDir, 'knowledge', 'spikes'))).toBe(true)
       })
     })
 

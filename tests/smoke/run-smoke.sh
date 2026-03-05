@@ -28,7 +28,12 @@ KEEP_WORK_DIR="${KEEP_WORK_DIR:-false}"
 
 # Unique project name for KB isolation
 RUN_ID="smoke-$$-$(date +%s)"
-KB_DIR="${GSD_HOME:-$HOME/.gsd}/knowledge"
+# Project-local KB takes priority, then GSD_HOME, then user-global
+if [ -d ".planning/knowledge" ]; then
+  KB_DIR=".planning/knowledge"
+else
+  KB_DIR="${GSD_HOME:-$HOME/.gsd}/knowledge"
+fi
 
 # Source verify helpers
 source "$SCRIPT_DIR/verify-kb.sh"
@@ -76,9 +81,16 @@ cleanup() {
   if [ -n "${RUN_ID:-}" ]; then
     rm -rf "$KB_DIR/signals/$RUN_ID" 2>/dev/null || true
     rm -rf "$KB_DIR/spikes/$RUN_ID" 2>/dev/null || true
-    rm -rf "$KB_DIR/lessons/$RUN_ID" 2>/dev/null || true
+    rm -rf "$KB_DIR/reflections/$RUN_ID" 2>/dev/null || true
+    # Also clean user-global KB if project-local was used
+    if [ -d ".planning/knowledge" ]; then
+      local global_kb="${GSD_HOME:-$HOME/.gsd}/knowledge"
+      rm -rf "$global_kb/signals/$RUN_ID" 2>/dev/null || true
+      rm -rf "$global_kb/spikes/$RUN_ID" 2>/dev/null || true
+      rm -rf "$global_kb/reflections/$RUN_ID" 2>/dev/null || true
+    fi
     # Rebuild index to remove test entries
-    bash "$REPO_DIR/.claude/agents/kb-rebuild-index.sh" >/dev/null 2>&1 || true
+    bash "$REPO_DIR/get-shit-done/bin/kb-rebuild-index.sh" >/dev/null 2>&1 || true
   fi
 
   if [ "$KEEP_WORK_DIR" = "true" ]; then

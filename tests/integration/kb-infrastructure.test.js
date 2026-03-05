@@ -11,12 +11,13 @@ const { installKBScripts, migrateKB, countKBEntries } = require('../../bin/insta
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..')
 const KB_CREATE_DIRS = path.join(REPO_ROOT, '.claude/agents/kb-create-dirs.sh')
-const KB_REBUILD_INDEX = path.join(REPO_ROOT, '.claude/agents/kb-rebuild-index.sh')
+const KB_REBUILD_INDEX = path.join(REPO_ROOT, 'get-shit-done/bin/kb-rebuild-index.sh')
 
-/** Run a KB shell script with HOME overridden to tmpdir */
+/** Run a KB shell script with HOME overridden to tmpdir and cwd set to tmpdir */
 function runKbScript(script, homeDir) {
   return execSync(`bash "${script}"`, {
     env: { ...process.env, HOME: homeDir },
+    cwd: homeDir,
     encoding: 'utf8',
     timeout: 10000,
   })
@@ -337,6 +338,31 @@ Signal without explicit status field.
     expect(index).toContain('## Signals (2)')
     expect(index).toContain('## Spikes (1)')
     expect(index).toContain('## Lessons (3)')
+  })
+
+  tmpdirTest('project-local KB (no lessons dir) omits Lessons section from index', async ({ tmpdir }) => {
+    // Simulate project-local KB structure: signals, reflections, spikes (no lessons)
+    const kbDir = path.join(tmpdir, '.planning', 'knowledge')
+    await fs.mkdir(path.join(kbDir, 'signals'), { recursive: true })
+    await fs.mkdir(path.join(kbDir, 'reflections'), { recursive: true })
+    await fs.mkdir(path.join(kbDir, 'spikes'), { recursive: true })
+    // Deliberately NOT creating lessons/
+
+    await writeSignal(kbDir, 'local-sig.md', { id: 'sig-2026-01-15-local' })
+
+    // Run kb-rebuild-index.sh from the tmpdir so it finds .planning/knowledge
+    execSync(`bash "${KB_REBUILD_INDEX}"`, {
+      env: { ...process.env, HOME: tmpdir },
+      cwd: tmpdir,
+      encoding: 'utf8',
+      timeout: 10000,
+    })
+
+    const index = await fs.readFile(path.join(kbDir, 'index.md'), 'utf8')
+    expect(index).toContain('## Signals (1)')
+    expect(index).toContain('## Spikes (0)')
+    expect(index).not.toContain('## Lessons')
+    expect(index).toContain('**Total entries:** 1')
   })
 })
 
