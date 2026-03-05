@@ -24,7 +24,7 @@ The synthesizer receives from the orchestrator:
 - **Merged raw signal candidates** from ALL sensors (JSON arrays, one per sensor)
 - **Phase number** -- the phase being analyzed
 - **Project name** -- derived from the project root directory name
-- **Existing KB index content** -- path to `~/.gsd/knowledge/index.md` or its content
+- **Existing KB index content** -- path to `.planning/knowledge/index.md` (or `~/.gsd/knowledge/index.md` fallback) or its content
 
 Each sensor output has the format:
 ```json
@@ -84,7 +84,13 @@ Apply deduplication across sensors following signal-detection.md Section 9 rules
 
 Read the existing KB index:
 ```bash
-cat ~/.gsd/knowledge/index.md
+# KB path resolution -- project-local primary, user-global fallback
+if [ -d ".planning/knowledge" ]; then
+  KB_DIR=".planning/knowledge"
+else
+  KB_DIR="$HOME/.gsd/knowledge"
+fi
+cat $KB_DIR/index.md
 ```
 
 For each remaining candidate signal, check against existing active signals for the same project:
@@ -269,7 +275,7 @@ For each signal that passed all gates (trace filter, dedup, rigor, cap):
 
 7. **Ensure directory exists:**
    ```bash
-   mkdir -p ~/.gsd/knowledge/signals/{project}/
+   mkdir -p $KB_DIR/signals/{project}/
    ```
 
 8. **Write the file**
@@ -291,7 +297,7 @@ After all signals are written:
 bash ~/.gsd/bin/kb-rebuild-index.sh
 ```
 
-This rebuilds `~/.gsd/knowledge/index.md` from all signal files on disk, excluding archived entries.
+This rebuilds the KB `index.md` (at `.planning/knowledge/index.md` or `~/.gsd/knowledge/index.md` fallback) from all signal files on disk, excluding archived entries.
 
 ### Step 9: Generate Report
 
@@ -335,7 +341,7 @@ Return a structured report to the orchestrator:
 
 ## Guidelines
 
-1. **You are the ONLY writer to `~/.gsd/knowledge/signals/`.** No other agent should write signal files. If you detect that another agent has written signals directly, log a warning.
+1. **You are the ONLY writer to the KB `signals/` directory** (`.planning/knowledge/signals/` or `~/.gsd/knowledge/signals/` fallback). No other agent should write signal files. If you detect that another agent has written signals directly, log a warning.
 
 2. **Trust sensor classifications.** Trust severity, signal_type, and tags from sensors -- your job is quality gating, not re-analyzing artifacts. Do not re-derive severity or re-classify signal types.
 
