@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.17 Automation Loop -- Phase 38.1 complete, ready for Phase 39
+**Current focus:** v1.17 Automation Loop -- Phase 39 CI Awareness in progress
 
 ## Current Position
 
-Phase: 38.1 of 43 (Project-Local Knowledge Base) -- COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase complete, verified (12/12 must-haves)
-Last activity: 2026-03-05 -- Phase 38.1 execution complete, verification passed
+Phase: 39 of 43 (CI Awareness)
+Plan: 2 of 2 in current phase
+Status: All plans complete, ready for verification
+Last activity: 2026-03-05 - Completed quick task 15: Implement cross-runtime parity testing (Option B+C+D)
 
-Progress: [███░░░░░░░] 33%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -72,6 +72,8 @@ Progress: [███░░░░░░░] 33%
 | 38.1 | 01 | 3min | 2 | 20 |
 | 38.1 | 02 | 7min | 3 | 10 |
 | 38.1 | 03 | 2min | 1 | 2 |
+| 39 | 01 | 3min | 1 | 1 |
+| 39 | 02 | 4min | 2 | 3 |
 
 ## Accumulated Context
 
@@ -94,6 +96,11 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 38.1]: KB path fallback pattern: .planning/knowledge/ primary, ~/.gsd/knowledge/ fallback. Lessons deprecated; KB is 3-type (signals, reflections, spikes)
 - [Phase 38.1]: kb-rebuild-index.sh conditionally omits Lessons section when lessons/ dir does not exist
 - [Phase 38.1]: Signal enrichment uses origin: local naming to avoid collision with existing source: auto|manual detection-method field
+- [Phase 39]: CI sensor is first with non-null config_schema (repo + workflow overrides), validating Phase 38 extensibility
+- [Phase 39]: Pre-flight checks return degraded:true with warning, never clean empty signals (CI-04)
+- [Phase 39]: Test regression detection marked LOW confidence due to log-parsing fragility
+- [Phase 39]: CI status hook uses background spawn + cache file pattern (matching gsd-check-update.js), never blocks session start
+- [Phase 39]: Cache staleness threshold 1 hour; only show CI FAIL for conclusion=failure (not cancelled/skipped)
 
 ### Pending Todos
 
@@ -128,6 +135,7 @@ Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16
 | 012 | Persist reflection reports to ~/.gsd/knowledge/reflections/ | 2026-03-01 | ea9a758 | [12-add-persistent-report-file-output-to-ref](./quick/12-add-persistent-report-file-output-to-ref/) |
 | 013 | Signal lifecycle reconciliation script, health check watchdog, design principle | 2026-03-04 | bb26acc | [13-implement-signal-lifecycle-deliberation-](./quick/13-implement-signal-lifecycle-deliberation-/) |
 | 014 | Update collect-signals.md rebuild_index to use project-local kb-rebuild-index.sh | 2026-03-05 | ae40d86 | [14-update-collect-signals-md-to-use-plannin](./quick/14-update-collect-signals-md-to-use-plannin/) |
+| 015 | Cross-runtime parity testing: glob hook discovery, name parity, Gemini tool names, hook registration sync | 2026-03-05 | d1f2e2f | [15-implement-cross-runtime-parity-testing-o](./quick/15-implement-cross-runtime-parity-testing-o/) |
 
 ### Roadmap Evolution
 
@@ -148,6 +156,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Phase 38.1 complete (3/3 plans, verification passed 12/12). Ready for Phase 39 planning.
+Stopped at: Phase 39 complete (all plans executed). Ready for verification.
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)

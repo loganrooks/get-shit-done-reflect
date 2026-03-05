@@ -78,6 +78,20 @@ process.stdin.on('end', () => {
       } catch (e) {}
     }
 
+    // CI status from SessionStart hook cache
+    let ciStatus = '';
+    const ciCacheFile = path.join(homeDir, '.claude', 'cache', 'gsd-ci-status.json');
+    if (fs.existsSync(ciCacheFile)) {
+      try {
+        const ciCache = JSON.parse(fs.readFileSync(ciCacheFile, 'utf8'));
+        // Only show if cache is less than 1 hour old and not degraded
+        const age = Math.floor(Date.now() / 1000) - (ciCache.checked || 0);
+        if (age < 3600 && ciCache.latest_run && ciCache.latest_run.conclusion === 'failure') {
+          ciStatus = '\x1b[31mCI FAIL\x1b[0m | ';
+        }
+      } catch (e) {}
+    }
+
     // Dev install indicator (VERSION file contains +dev suffix on local installs)
     let devTag = '';
     try {
@@ -128,9 +142,9 @@ process.stdin.on('end', () => {
     // Output
     const dirname = path.basename(dir);
     if (task) {
-      process.stdout.write(`${devTag}${gsdUpdate}${autoTag}\x1b[2m${model}\x1b[0m │ \x1b[1m${task}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
+      process.stdout.write(`${devTag}${gsdUpdate}${ciStatus}${autoTag}\x1b[2m${model}\x1b[0m │ \x1b[1m${task}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
     } else {
-      process.stdout.write(`${devTag}${gsdUpdate}${autoTag}\x1b[2m${model}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
+      process.stdout.write(`${devTag}${gsdUpdate}${ciStatus}${autoTag}\x1b[2m${model}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
     }
   } catch (e) {
     // Silent fail - don't break statusline on parse errors
