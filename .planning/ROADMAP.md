@@ -96,7 +96,7 @@ Plans:
   3. `npm test` passes with project-local KB as primary (all 5 KB-related test files updated)
   4. Installer creates `.planning/knowledge/` during project setup alongside `~/.gsd/knowledge/`
   5. Project-local kb-rebuild-index works without depending on `~/.gsd/bin/`
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 38.1-01: Migrate agent specs and workflow references to project-local KB with fallback pattern
@@ -128,7 +128,7 @@ Plans:
   3. On runtimes without hooks (OpenCode, Codex CLI), the workflow postlude fallback delivers the same auto-collection behavior
   4. When context exceeds threshold, auto-collection defers with a nudge message instead of executing
   5. When auto-collection is enabled or observation conditions change, a `regime_change` entry is written to the KB with timestamp and expected baseline impact
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 40-01: Execute-phase postlude for auto-collection with CI sensor in parallel spawn
@@ -146,7 +146,7 @@ Plans:
   4. Reactive health check triggers on fresh session start when health score drops below configurable threshold
   5. Health check verifies automation system is functioning by checking `last_triggered` timestamps against expected cadence
   6. Health check detects rogue files — artifacts that don't match expected directory patterns or persist beyond their workflow lifecycle — and extracts creation context via git log to categorize them as agent-ignorance (system has a place, agent didn't know) or workflow-gap (no formal place exists)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 41-01: Health score model -- infrastructure and workflow dimensions with weighted signal accumulation
@@ -165,7 +165,7 @@ Plans:
   3. Auto-reflection only fires when accumulated untriaged signals exceed configurable minimum (default 5), preventing reflection on insufficient data
   4. Maximum one auto-reflection per session (session-scoped cooldown) to prevent context exhaustion
   5. Lesson confidence updates directionally -- signals matching predictions increase confidence one step, contradictions decrease confidence one step, with changes recorded in `confidence_history`
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 42-01: Counter-based reflection scheduling with config persistence and threshold gating
@@ -181,7 +181,7 @@ Plans:
   3. Requirements template includes motivation citation field, SUMMARY.md template includes model and context_used_pct fields
   4. Reflection reports link findings to requirement IDs for closed-loop traceability
   5. Architecturally significant feature specs include an "Internal Tensions" section identifying what contradiction the feature introduces, applied selectively (not to wiring or infrastructure requirements)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 43-01: Plan checker semantic dimensions -- tool refs, config refs, directory refs, signal refs (all advisory)
