@@ -30,11 +30,11 @@ Defines check definitions, thresholds, output format, repair rules, and signal i
 
 ### 2.1 KB Integrity (Default Tier)
 
-Validates the knowledge base at `~/.gsd/knowledge/` is structurally sound.
+Validates the knowledge base at `.planning/knowledge/` (or `~/.gsd/knowledge/` fallback) is structurally sound.
 
 | # | Check | Pass Condition | Fail Severity |
 |---|-------|----------------|---------------|
-| KB-01 | Index file exists | `~/.gsd/knowledge/index.md` exists | FAIL |
+| KB-01 | Index file exists | `.planning/knowledge/index.md` or `~/.gsd/knowledge/index.md` exists | FAIL |
 | KB-02 | Index is parseable | Index contains `## Signals`, `## Spikes`, `## Lessons` table headers | FAIL |
 | KB-03 | Signal count matches | Index entries match filesystem files (non-archived) | WARNING |
 | KB-04 | Spike count matches | Index entries match filesystem files (non-archived) | WARNING |
@@ -44,7 +44,12 @@ Validates the knowledge base at `~/.gsd/knowledge/` is structurally sound.
 **Shell patterns for KB checks:**
 
 ```bash
-KB_DIR="$HOME/.gsd/knowledge"
+# KB path resolution -- project-local primary, user-global fallback
+if [ -d ".planning/knowledge" ]; then
+  KB_DIR=".planning/knowledge"
+else
+  KB_DIR="$HOME/.gsd/knowledge"
+fi
 INDEX="$KB_DIR/index.md"
 
 # KB-01: Index exists
@@ -93,7 +98,7 @@ done < <(find "$KB_DIR" -name '*.md' ! -name 'index.md' -print 2>/dev/null | shu
 [ "$errors" -eq 0 ] && echo "PASS: No frontmatter errors in sampled files" || echo "WARNING: $errors files with frontmatter issues"
 ```
 
-**Edge case:** If `~/.gsd/knowledge/` directory does not exist at all, KB-01 through KB-06 all FAIL. Report as "KB not initialized" and suggest user runs initialization.
+**Edge case:** If neither `.planning/knowledge/` nor `~/.gsd/knowledge/` directory exists, KB-01 through KB-06 all FAIL. Report as "KB not initialized" and suggest user runs initialization.
 
 ### 2.2 Config Validity (Default Tier)
 
@@ -274,7 +279,7 @@ while IFS= read -r plan; do
   echo "$raw" | grep -q '^\[' || continue
   # Parse signal IDs
   for sig_id in $(echo "$raw" | node -e "process.stdin.on('data',d=>{try{JSON.parse(d).forEach(s=>console.log(s))}catch{}})" 2>/dev/null); do
-    sig_file=$(find ~/.gsd/knowledge/signals -name "${sig_id}.md" 2>/dev/null | head -1)
+    sig_file=$(find "$KB_DIR/signals" -name "${sig_id}.md" 2>/dev/null | head -1)
     [ -z "$sig_file" ] && continue
     state=$(grep "^lifecycle_state:" "$sig_file" 2>/dev/null | head -1 | sed 's/^lifecycle_state:[[:space:]]*//')
     if [ "$state" = "detected" ] || [ "$state" = "triaged" ]; then
@@ -291,7 +296,7 @@ while IFS= read -r plan; do
   raw=$(node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter get "$plan" --field resolves_signals --raw 2>/dev/null || echo "")
   echo "$raw" | grep -q '^\[' || continue
   for sig_id in $(echo "$raw" | node -e "process.stdin.on('data',d=>{try{JSON.parse(d).forEach(s=>console.log(s))}catch{}})" 2>/dev/null); do
-    sig_file=$(find ~/.gsd/knowledge/signals -name "${sig_id}.md" 2>/dev/null | head -1)
+    sig_file=$(find "$KB_DIR/signals" -name "${sig_id}.md" 2>/dev/null | head -1)
     if [ -z "$sig_file" ]; then
       echo "  WARNING: Plan $(basename "$plan") references signal $sig_id which does not exist in KB"
       orphans=$((orphans + 1))

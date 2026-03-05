@@ -362,7 +362,7 @@ If `RESOLVES` is a valid non-empty JSON array:
    STRICTNESS=$(node -e "try { const c = require('./.planning/config.json'); console.log(c.signal_lifecycle?.lifecycle_strictness || 'flexible') } catch(e) { console.log('flexible') }")
    ```
 3. For each signal ID:
-   a. Locate the signal file in `~/.gsd/knowledge/signals/{project}/`
+   a. Locate the signal file in `.planning/knowledge/signals/{project}/` (or `~/.gsd/knowledge/signals/{project}/` fallback)
    b. If file not found: log warning "Signal {sig-id} not found or archived, skipping remediation update" and continue
    c. Read the signal file content
    d. Parse frontmatter with `extractFrontmatter()` (conceptually -- the workflow instructs the executor to use gsd-tools.js or direct file manipulation)

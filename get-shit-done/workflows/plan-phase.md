@@ -238,14 +238,16 @@ CONTEXT_CONTENT=$(echo "$INIT" | jq -r '.context_content // empty')
 
 **Skip if:** `--gaps` flag is set (gap closure mode does not use signal awareness).
 
-**Skip if:** KB index does not exist (`~/.gsd/knowledge/index.md` missing -- project may not have run signal collection yet). Set `TRIAGED_SIGNALS=""` and continue.
+**Skip if:** KB index does not exist (`.planning/knowledge/index.md` and `~/.gsd/knowledge/index.md` both missing -- project may not have run signal collection yet). Set `TRIAGED_SIGNALS=""` and continue.
 
 Load active triaged signals for the current project to pass to the planner:
 
 ```bash
 # Read KB index and filter for triaged "address" signals
 # Guard against missing KB -- not all projects use signal collection
-KB_INDEX=$(cat ~/.gsd/knowledge/index.md 2>/dev/null)
+# KB path resolution -- project-local primary, user-global fallback
+if [ -d ".planning/knowledge" ]; then KB_DIR=".planning/knowledge"; else KB_DIR="$HOME/.gsd/knowledge"; fi
+KB_INDEX=$(cat $KB_DIR/index.md 2>/dev/null)
 if [ -z "$KB_INDEX" ]; then
   TRIAGED_SIGNALS=""
   # Skip signal loading -- no KB index exists
@@ -262,7 +264,7 @@ fi
 2. For matching signals, read the full signal files (max 10, prioritized by severity: critical > notable > minor):
    ```bash
    # Example: read top signal files
-   cat ~/.gsd/knowledge/signals/{project}/{date}-{slug}.md
+   cat $KB_DIR/signals/{project}/{date}-{slug}.md
    ```
 3. From each signal file, extract: `id`, `severity`, `signal_type`, `tags`, `triage.decision`, `triage.remediation_suggestion`
 4. Filter to signals with `triage.decision: address` only (skip dismiss/defer/investigate)

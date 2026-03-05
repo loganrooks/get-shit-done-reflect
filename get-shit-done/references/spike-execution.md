@@ -258,7 +258,7 @@ After spike completion, persist results to the Knowledge Base.
 
 **Steps:**
 
-1. **Create spike entry** at `~/.gsd/knowledge/spikes/{project}/`
+1. **Create spike entry** at `.planning/knowledge/spikes/{project}/` (or `~/.gsd/knowledge/spikes/{project}/` fallback)
 
 2. **Use spike body template** from knowledge-store.md:
    ```yaml

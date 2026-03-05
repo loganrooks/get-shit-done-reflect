@@ -322,9 +322,9 @@ Task(
     Raw signal candidates from sensors:
     {MERGED_SENSOR_JSON}
 
-    Read the KB index at ~/.gsd/knowledge/index.md for dedup checking.
+    Read the KB index (at .planning/knowledge/index.md or ~/.gsd/knowledge/index.md fallback) for dedup checking.
     Apply all quality gates: trace filter, cross-sensor dedup, KB dedup, rigor enforcement, per-phase cap.
-    Write qualifying signals to ~/.gsd/knowledge/signals/{PROJECT_NAME}/.
+    Write qualifying signals to the KB signals directory (.planning/knowledge/signals/{PROJECT_NAME}/ or ~/.gsd/knowledge/signals/{PROJECT_NAME}/ fallback).
     Rebuild index with: bash ~/.gsd/bin/kb-rebuild-index.sh
     Return your Synthesizer Report when complete."
 )
@@ -394,11 +394,13 @@ If signals were written and `COMMIT_PLANNING_DOCS` is true, commit the new signa
 ```bash
 if [ "$COMMIT_PLANNING_DOCS" = "true" ] && [ "$SIGNALS_WRITTEN" -gt 0 ]; then
   # Stage individual signal files
-  for signal_file in $(ls ~/.gsd/knowledge/signals/${PROJECT_NAME}/*.md 2>/dev/null); do
+  # KB path resolution -- project-local primary, user-global fallback
+  if [ -d ".planning/knowledge" ]; then KB_DIR=".planning/knowledge"; else KB_DIR="$HOME/.gsd/knowledge"; fi
+  for signal_file in $(ls $KB_DIR/signals/${PROJECT_NAME}/*.md 2>/dev/null); do
     git add "$signal_file"
   done
   # Stage updated index
-  git add ~/.gsd/knowledge/index.md
+  git add $KB_DIR/index.md
   git commit -m "docs(signals): collect phase ${PADDED_PHASE} signals
 
 - ${SIGNALS_WRITTEN} signals persisted
