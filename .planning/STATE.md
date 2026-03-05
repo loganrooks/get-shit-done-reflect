@@ -127,6 +127,7 @@ Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16
 | 011 | Add DEV indicator for local dev installs (VERSION+dev suffix, statusline tag, version check fix) | 2026-03-01 | be5a1e4 | [11-add-dev-indicator-to-statusline-when-usi](./quick/11-add-dev-indicator-to-statusline-when-usi/) |
 | 012 | Persist reflection reports to ~/.gsd/knowledge/reflections/ | 2026-03-01 | ea9a758 | [12-add-persistent-report-file-output-to-ref](./quick/12-add-persistent-report-file-output-to-ref/) |
 | 013 | Signal lifecycle reconciliation script, health check watchdog, design principle | 2026-03-04 | bb26acc | [13-implement-signal-lifecycle-deliberation-](./quick/13-implement-signal-lifecycle-deliberation-/) |
+| 014 | Update collect-signals.md rebuild_index to use project-local kb-rebuild-index.sh | 2026-03-05 | ae40d86 | [14-update-collect-signals-md-to-use-plannin](./quick/14-update-collect-signals-md-to-use-plannin/) |
 
 ### Roadmap Evolution
 
