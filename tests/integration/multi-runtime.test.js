@@ -324,6 +324,33 @@ describe('multi-runtime validation', () => {
       expect(content).toContain('mcp__context7')
     })
 
+    tmpdirTest('Gemini: ALL agent body text uses Gemini-native tool names', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --gemini --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const agentsDir = path.join(tmpdir, '.gemini', 'agents')
+      const agentFiles = (await fs.readdir(agentsDir)).filter(f => f.startsWith('gsd-') && f.endsWith('.md'))
+
+      expect(agentFiles.length, 'should have multiple agent files').toBeGreaterThanOrEqual(3)
+
+      for (const agentFile of agentFiles) {
+        const content = await fs.readFile(path.join(agentsDir, agentFile), 'utf8')
+        const parts = content.split('---')
+        const body = parts.slice(2).join('---')
+
+        // Body text should NOT contain Claude tool names (word-boundary match)
+        expect(body, `${agentFile}: should not contain \\bRead\\b`).not.toMatch(/\bRead\b/)
+        expect(body, `${agentFile}: should not contain \\bBash\\b`).not.toMatch(/\bBash\b/)
+        expect(body, `${agentFile}: should not contain \\bWrite\\b`).not.toMatch(/\bWrite\b/)
+        expect(body, `${agentFile}: should not contain \\bGlob\\b`).not.toMatch(/\bGlob\b/)
+        expect(body, `${agentFile}: should not contain \\bGrep\\b`).not.toMatch(/\bGrep\b/)
+      }
+    })
+
     tmpdirTest('Gemini: agent body text uses Gemini-native tool names after install', async ({ tmpdir }) => {
       execSync(`node "${installScript}" --gemini --global`, {
         env: { ...process.env, HOME: tmpdir },
@@ -533,6 +560,159 @@ describe('multi-runtime validation', () => {
 
       const target = await fs.readlink(claudeSymlink)
       expect(target).toBe(kbDir)
+    })
+
+    tmpdirTest('--all install: file name parity across runtimes per category', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      /**
+       * Helper: read directory, filter by pattern, strip extensions, return sorted Set.
+       */
+      function getNameSet(dir, prefix, suffix) {
+        if (!fsSync.existsSync(dir)) return new Set()
+        const entries = fsSync.readdirSync(dir)
+        const matched = entries.filter(f => f.startsWith(prefix) && f.endsWith(suffix))
+        return new Set(matched.map(f => {
+          // Strip extension (last .xxx)
+          const lastDot = f.lastIndexOf('.')
+          return lastDot > 0 ? f.substring(0, lastDot) : f
+        }))
+      }
+
+      /**
+       * Helper: get directory names matching prefix.
+       */
+      function getDirNameSet(dir, prefix) {
+        if (!fsSync.existsSync(dir)) return new Set()
+        const entries = fsSync.readdirSync(dir, { withFileTypes: true })
+        return new Set(
+          entries.filter(e => e.isDirectory() && e.name.startsWith(prefix)).map(e => e.name)
+        )
+      }
+
+      // Known intentional divergences (empty = no exceptions expected)
+      const exceptions = {
+        agents: [],
+        commands: [],
+        workflows: [],
+        hooks: []
+      }
+
+      // --- Agents: Claude, OpenCode, Gemini (Codex excluded — uses AGENTS.md composite) ---
+      const claudeAgents = getNameSet(path.join(tmpdir, '.claude', 'agents'), 'gsd-', '.md')
+      const opcodeAgents = getNameSet(path.join(configHome, 'opencode', 'agents'), 'gsd-', '.md')
+      const geminiAgents = getNameSet(path.join(tmpdir, '.gemini', 'agents'), 'gsd-', '.md')
+
+      expect([...claudeAgents].sort(), 'Agent parity: Claude vs OpenCode').toEqual([...opcodeAgents].sort())
+      expect([...claudeAgents].sort(), 'Agent parity: Claude vs Gemini').toEqual([...geminiAgents].sort())
+
+      // --- Workflows: All 4 runtimes (Gemini uses .toml, others use .md) ---
+      const claudeWorkflows = getNameSet(path.join(tmpdir, '.claude', 'get-shit-done', 'workflows'), '', '.md')
+      const opcodeWorkflows = getNameSet(path.join(configHome, 'opencode', 'get-shit-done', 'workflows'), '', '.md')
+      const geminiWorkflows = getNameSet(path.join(tmpdir, '.gemini', 'get-shit-done', 'workflows'), '', '.toml')
+      const codexWorkflows = getNameSet(path.join(tmpdir, '.codex', 'get-shit-done', 'workflows'), '', '.md')
+
+      expect([...claudeWorkflows].sort(), 'Workflow parity: Claude vs OpenCode').toEqual([...opcodeWorkflows].sort())
+      expect([...claudeWorkflows].sort(), 'Workflow parity: Claude vs Gemini').toEqual([...geminiWorkflows].sort())
+      expect([...claudeWorkflows].sort(), 'Workflow parity: Claude vs Codex').toEqual([...codexWorkflows].sort())
+
+      // --- Commands: different naming per runtime, compare extension-stripped ---
+      // Claude: commands/gsd/*.md (strip leading path, keep name only)
+      const claudeCommands = getNameSet(path.join(tmpdir, '.claude', 'commands', 'gsd'), '', '.md')
+      // OpenCode: command/gsd-*.md
+      const opcodeCommands = getNameSet(path.join(configHome, 'opencode', 'command'), 'gsd-', '.md')
+      // Gemini: commands/gsd/*.toml
+      const geminiCommands = getNameSet(path.join(tmpdir, '.gemini', 'commands', 'gsd'), '', '.toml')
+      // Codex: skills/gsd-*/ (directory names)
+      const codexCommands = getDirNameSet(path.join(tmpdir, '.codex', 'skills'), 'gsd-')
+
+      // Normalize: Claude and Gemini commands lack gsd- prefix (nested in gsd/ subdir),
+      // while OpenCode and Codex have gsd- prefix (flat naming). Add gsd- prefix to normalize.
+      function addGsdPrefix(nameSet) {
+        return new Set([...nameSet].map(n => n.startsWith('gsd-') ? n : `gsd-${n}`))
+      }
+      const claudeNorm = addGsdPrefix(claudeCommands)
+      const geminiNorm = addGsdPrefix(geminiCommands)
+
+      expect([...claudeNorm].sort(), 'Command parity: Claude vs OpenCode').toEqual([...opcodeCommands].sort())
+      expect([...claudeNorm].sort(), 'Command parity: Claude vs Gemini').toEqual([...geminiNorm].sort())
+      expect([...claudeNorm].sort(), 'Command parity: Claude vs Codex').toEqual([...codexCommands].sort())
+
+      // --- Hooks: Claude, OpenCode, Gemini (Codex excluded — no hooks) ---
+      const claudeHooks = getNameSet(path.join(tmpdir, '.claude', 'hooks'), 'gsd-', '.js')
+      const opcodeHooks = getNameSet(path.join(configHome, 'opencode', 'hooks'), 'gsd-', '.js')
+      const geminiHooks = getNameSet(path.join(tmpdir, '.gemini', 'hooks'), 'gsd-', '.js')
+
+      expect([...claudeHooks].sort(), 'Hook parity: Claude vs OpenCode').toEqual([...opcodeHooks].sort())
+      expect([...claudeHooks].sort(), 'Hook parity: Claude vs Gemini').toEqual([...geminiHooks].sort())
+    })
+
+    tmpdirTest('--all install: hook files match hook registrations in settings.json', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // For Claude and Gemini: validate settings.json hook registrations match actual hook files
+      const runtimes = [
+        { name: 'Claude', settingsPath: path.join(tmpdir, '.claude', 'settings.json'), hooksDir: path.join(tmpdir, '.claude', 'hooks') },
+        { name: 'Gemini', settingsPath: path.join(tmpdir, '.gemini', 'settings.json'), hooksDir: path.join(tmpdir, '.gemini', 'hooks') },
+      ]
+
+      for (const rt of runtimes) {
+        const settings = JSON.parse(await fs.readFile(rt.settingsPath, 'utf8'))
+
+        // Extract hook filenames from settings.json hook commands
+        // Structure: hooks.EventType[] -> { hooks: [{ type, command }] }
+        const registeredHooks = new Set()
+        const hooks = settings.hooks || {}
+        for (const eventType of Object.keys(hooks)) {
+          const eventHooks = hooks[eventType]
+          if (!Array.isArray(eventHooks)) continue
+          for (const hookEntry of eventHooks) {
+            // Each hookEntry has a nested hooks array with {type, command}
+            const innerHooks = hookEntry.hooks || []
+            for (const inner of innerHooks) {
+              const command = inner.command || ''
+              const match = command.match(/gsd-[\w-]+\.js/)
+              if (match) registeredHooks.add(match[0])
+            }
+            // Also check direct command (in case structure varies)
+            const directCommand = hookEntry.command || ''
+            const directMatch = directCommand.match(/gsd-[\w-]+\.js/)
+            if (directMatch) registeredHooks.add(directMatch[0])
+          }
+        }
+
+        // Collect actual hook files
+        const actualHookFiles = (await fs.readdir(rt.hooksDir))
+          .filter(f => f.startsWith('gsd-') && f.endsWith('.js'))
+        const actualHookSet = new Set(actualHookFiles)
+
+        // Every registered hook must have a corresponding file
+        // (catches: settings.json references a hook that wasn't built/copied)
+        for (const registered of registeredHooks) {
+          expect(actualHookSet.has(registered), `${rt.name}: registered hook ${registered} should have corresponding file`).toBe(true)
+        }
+
+        // At least one hook should be registered (sanity check)
+        expect(registeredHooks.size, `${rt.name}: should have at least 1 registered hook`).toBeGreaterThanOrEqual(1)
+
+        // Note: not all hook files need settings.json registration (e.g., gsd-statusline.js
+        // is a notification hook invoked via a different mechanism). We only assert the
+        // "registered -> file exists" direction to catch the build-hooks.js sync bug class.
+      }
     })
 
     tmpdirTest('--all install: VERSION files present in all runtimes', async ({ tmpdir }) => {

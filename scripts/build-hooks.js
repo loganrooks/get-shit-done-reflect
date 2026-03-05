@@ -9,12 +9,9 @@ const path = require('path');
 const HOOKS_DIR = path.join(__dirname, '..', 'hooks');
 const DIST_DIR = path.join(HOOKS_DIR, 'dist');
 
-// Hooks to copy (pure Node.js, no bundling needed)
-const HOOKS_TO_COPY = [
-  'gsd-check-update.js',
-  'gsd-statusline.js',
-  'gsd-version-check.js'
-];
+// Discover hooks dynamically — any gsd-*.js file in hooks/ is shipped
+const allFiles = fs.readdirSync(HOOKS_DIR);
+const hooksToCopy = allFiles.filter(f => f.startsWith('gsd-') && f.endsWith('.js'));
 
 function build() {
   // Ensure dist directory exists
@@ -23,7 +20,7 @@ function build() {
   }
 
   // Copy hooks to dist
-  for (const hook of HOOKS_TO_COPY) {
+  for (const hook of hooksToCopy) {
     const src = path.join(HOOKS_DIR, hook);
     const dest = path.join(DIST_DIR, hook);
 
