@@ -99,9 +99,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 38.1-01: Migrate agent specs and workflow references to project-local KB with fallback pattern
-- [ ] 38.1-02: Update installer, all 5 test files, and KB scripts for project-local primary
-- [ ] 38.1-03: Signal schema enrichment with environment fields (COULD tier)
+- [x] 38.1-01: Migrate agent specs and workflow references to project-local KB with fallback pattern
+- [x] 38.1-02: Update installer, all 5 test files, and KB scripts for project-local primary
+- [x] 38.1-03: Signal schema enrichment with environment fields (COULD tier)
 
 ### Phase 39: CI Awareness
 **Goal**: CI failures are detected automatically by the new CI sensor and surfaced to the user at session start before more work is committed on a broken build
@@ -198,6 +198,7 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
 | 36. Foundation Fix | 1/1 | Complete | 2026-03-03 |
 | 37. Automation Framework | 3/3 | Complete | 2026-03-03 |
 | 38. Extensible Sensor Architecture | 2/2 | Complete | 2026-03-04 |
+| 38.1. Project-Local Knowledge Base | 3/3 | Complete | 2026-03-05 |
 | 39. CI Awareness | 0/2 | Not started | - |
 | 40. Signal Collection Automation | 0/3 | Not started | - |
 | 41. Health Score & Automation | 0/3 | Not started | - |
@@ -213,6 +214,6 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
 | v1.14 Multi-Runtime | 13-21 | 18 | Complete | 2026-02-16 |
 | v1.15 Backlog & Update | 22-30 | 24 | Complete | 2026-02-23 |
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
-| v1.17 Automation Loop | 36-43 | 6/19 | In progress | - |
+| v1.17 Automation Loop | 36-43 | 9/19 | In progress | - |
 
-**Totals:** 6 milestones, 43 phases, 111 plans completed, 13 planned
+**Totals:** 6 milestones, 43 phases, 114 plans completed, 10 planned
