@@ -1543,7 +1543,7 @@ function uninstall(isGlobal, runtime = 'claude') {
   if (!isCodex) {
     const hooksDir = path.join(targetDir, 'hooks');
     if (fs.existsSync(hooksDir)) {
-      const gsdHooks = ['gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js'];
+      const gsdHooks = ['gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js', 'gsd-ci-status.js'];
       let hookCount = 0;
       for (const hook of gsdHooks) {
         const hookPath = path.join(hooksDir, hook);
@@ -1580,7 +1580,7 @@ function uninstall(isGlobal, runtime = 'claude') {
         if (entry.hooks && Array.isArray(entry.hooks)) {
           // Filter out GSD hooks
           const hasGsdHook = entry.hooks.some(h =>
-            h.command && (h.command.includes('gsd-check-update') || h.command.includes('gsd-statusline') || h.command.includes('gsd-version-check'))
+            h.command && (h.command.includes('gsd-check-update') || h.command.includes('gsd-statusline') || h.command.includes('gsd-version-check') || h.command.includes('gsd-ci-status'))
           );
           return !hasGsdHook;
         }
@@ -2262,6 +2262,9 @@ function install(isGlobal, runtime = 'claude') {
   const versionCheckCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsd-version-check.js')
     : 'node ' + dirName + '/hooks/gsd-version-check.js';
+  const ciStatusCommand = isGlobal
+    ? buildHookCommand(targetDir, 'gsd-ci-status.js')
+    : 'node ' + dirName + '/hooks/gsd-ci-status.js';
 
   // Enable experimental agents for Gemini CLI (required for custom sub-agents)
   if (isGemini) {
@@ -2313,6 +2316,22 @@ function install(isGlobal, runtime = 'claude') {
         ]
       });
       console.log(`  ${green}✓${reset} Configured version check hook`);
+    }
+
+    const hasGsdCiHook = settings.hooks.SessionStart.some(entry =>
+      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsd-ci-status'))
+    );
+
+    if (!hasGsdCiHook) {
+      settings.hooks.SessionStart.push({
+        hooks: [
+          {
+            type: 'command',
+            command: ciStatusCommand
+          }
+        ]
+      });
+      console.log(`  ${green}✓${reset} Configured CI status hook`);
     }
   }
 
