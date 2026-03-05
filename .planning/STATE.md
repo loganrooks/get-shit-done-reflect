@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 38.1 of 43 (Project-Local Knowledge Base)
-Plan: 0 of 2 in current phase
-Status: Ready for planning
-Last activity: 2026-03-04 -- Phase 38.1 inserted; deliberation concluded (project-local-knowledge-base.md)
+Plan: 1 of 3 in current phase
+Status: Executing
+Last activity: 2026-03-05 -- Completed 38.1-01-PLAN.md (project-local KB path migration)
 
 Progress: [███░░░░░░░] 33%
 
@@ -69,6 +69,7 @@ Progress: [███░░░░░░░] 33%
 | 37 | 03 | 4min | 3 | 3 |
 | 38 | 01 | 3min | 2 | 2 |
 | 38 | 02 | 3min | 2 | 5 |
+| 38.1 | 01 | 3min | 2 | 20 |
 
 ## Accumulated Context
 
@@ -88,6 +89,7 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 38]: File system is sole source of truth for sensor existence; config provides overrides only (sensors default to enabled)
 - [Phase 38]: Sensor contract: input (phase, dir, project, model_profile), output (JSON in SENSOR OUTPUT delimiters), timeout via frontmatter, config_schema optional
 - [Phase 38]: Sensor discovery tries .claude/agents/ first, falls back to agents/ for dev environments
+- [Phase 38.1]: KB path fallback pattern: .planning/knowledge/ primary, ~/.gsd/knowledge/ fallback. Lessons deprecated; KB is 3-type (signals, reflections, spikes)
 
 ### Pending Todos
 
@@ -140,7 +142,7 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-03-04
-Stopped at: Quick task 13 complete (signal lifecycle reconciliation). Ready for Phase 39 planning.
+Last session: 2026-03-05
+Stopped at: Completed 38.1-01-PLAN.md (project-local KB path migration). Ready for 38.1-02.
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
