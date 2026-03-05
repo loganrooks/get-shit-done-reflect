@@ -92,15 +92,16 @@ Plans:
 **Requirements**: KB-01, KB-02, KB-03, KB-04, KB-05
 **Success Criteria** (what must be TRUE):
   1. All agents read from `.planning/knowledge/` as primary KB location, falling back to `~/.gsd/knowledge/` only when project-local KB doesn't exist
-  2. All agents write signals, lessons, spikes, and reflections to `.planning/knowledge/`
+  2. All agents write signals, spikes, and reflections to `.planning/knowledge/` (lessons deprecated)
   3. `npm test` passes with project-local KB as primary (all 5 KB-related test files updated)
   4. Installer creates `.planning/knowledge/` during project setup alongside `~/.gsd/knowledge/`
   5. Project-local kb-rebuild-index works without depending on `~/.gsd/bin/`
-**Plans**: 2 plans
+**Plans**: 3 plans
 
 Plans:
 - [ ] 38.1-01: Migrate agent specs and workflow references to project-local KB with fallback pattern
-- [ ] 38.1-02: Update installer, tests, and KB scripts for project-local primary
+- [ ] 38.1-02: Update installer, all 5 test files, and KB scripts for project-local primary
+- [ ] 38.1-03: Signal schema enrichment with environment fields (COULD tier)
 
 ### Phase 39: CI Awareness
 **Goal**: CI failures are detected automatically by the new CI sensor and surfaced to the user at session start before more work is committed on a broken build
@@ -212,6 +213,6 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
 | v1.14 Multi-Runtime | 13-21 | 18 | Complete | 2026-02-16 |
 | v1.15 Backlog & Update | 22-30 | 24 | Complete | 2026-02-23 |
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
-| v1.17 Automation Loop | 36-43 | 6/18 | In progress | - |
+| v1.17 Automation Loop | 36-43 | 6/19 | In progress | - |
 
-**Totals:** 6 milestones, 43 phases, 111 plans completed, 12 planned
+**Totals:** 6 milestones, 43 phases, 111 plans completed, 13 planned
