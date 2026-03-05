@@ -30,7 +30,8 @@ Research SUMMARY.md proposed 6 phases (Foundation Fix → CI Awareness → Plan 
 
 - [x] **Phase 36: Foundation Fix** - Restore CI trust by fixing the broken wiring test and preventing recurrence
 - [x] **Phase 37: Automation Framework** - Establish the unified automation level system that all auto-triggering features depend on
-- [ ] **Phase 38: Extensible Sensor Architecture** - Build the sensor discovery and contract system so new sensors can be added without framework modification
+- [x] **Phase 38: Extensible Sensor Architecture** - Build the sensor discovery and contract system so new sensors can be added without framework modification
+- [ ] **Phase 38.1: Project-Local Knowledge Base** - INSERTED: Migrate KB primary location to .planning/knowledge/ for version control and remote execution access
 - [ ] **Phase 39: CI Awareness** - Build the CI sensor under the extensible model and surface CI status at session start
 - [ ] **Phase 40: Signal Collection Automation** - Auto-trigger signal collection after phase execution with reentrancy protection and cross-runtime fallback
 - [ ] **Phase 41: Health Score & Automation** - Compute and display health score, auto-trigger health checks, and track signal resolution metrics
@@ -85,6 +86,22 @@ Plans:
 - [x] 38-01: Sensor contract definition, auto-discovery in collect-signals, and enable/disable config
 - [x] 38-02: Retrofit existing sensors to contract, sensors list CLI command, blind spots documentation
 
+### Phase 38.1: Project-Local Knowledge Base
+**Goal**: Knowledge base is a version-controlled project artifact at `.planning/knowledge/`, enabling remote execution and knowledge auditability, with graceful fallback to `~/.gsd/knowledge/` for environments without project-local KB
+**Depends on**: Phase 38 (sensor contract references KB for signal writing)
+**Requirements**: KB-01, KB-02, KB-03, KB-04, KB-05
+**Success Criteria** (what must be TRUE):
+  1. All agents read from `.planning/knowledge/` as primary KB location, falling back to `~/.gsd/knowledge/` only when project-local KB doesn't exist
+  2. All agents write signals, lessons, spikes, and reflections to `.planning/knowledge/`
+  3. `npm test` passes with project-local KB as primary (all 5 KB-related test files updated)
+  4. Installer creates `.planning/knowledge/` during project setup alongside `~/.gsd/knowledge/`
+  5. Project-local kb-rebuild-index works without depending on `~/.gsd/bin/`
+**Plans**: TBD
+
+Plans:
+- [ ] 38.1-01: Migrate agent specs and workflow references to project-local KB with fallback pattern
+- [ ] 38.1-02: Update installer, tests, and KB scripts for project-local primary
+
 ### Phase 39: CI Awareness
 **Goal**: CI failures are detected automatically by the new CI sensor and surfaced to the user at session start before more work is committed on a broken build
 **Depends on**: Phase 38 (CI sensor is the first sensor built under the extensible model)
@@ -119,21 +136,23 @@ Plans:
 - [ ] 40-03: Cross-runtime fallback, context-aware deferral, and observation regime tracking
 
 ### Phase 41: Health Score & Automation
-**Goal**: Health is computed as a two-dimensional score (infrastructure + workflow), displayed as a traffic light in the statusline, and auto-triggered at session start and per-phase -- with signal resolution metrics tracking whether the automation loop is actually completing
+**Goal**: Health is computed as a two-dimensional score (infrastructure + workflow), displayed as a traffic light in the statusline, and auto-triggered at session start and per-phase -- with signal resolution metrics tracking whether the automation loop is actually completing, and rogue file detection identifying artifacts that fall outside formal workflow structure
 **Depends on**: Phase 40 (SIG-06 regime boundaries needed for HEALTH-08, HEALTH-09), Phase 37 (automation levels)
-**Requirements**: HEALTH-01, HEALTH-02, HEALTH-03, HEALTH-04, HEALTH-05, HEALTH-06, HEALTH-07, HEALTH-08, HEALTH-09
+**Requirements**: HEALTH-01, HEALTH-02, HEALTH-03, HEALTH-04, HEALTH-05, HEALTH-06, HEALTH-07, HEALTH-08, HEALTH-09, HEALTH-10, HEALTH-11
 **Success Criteria** (what must be TRUE):
   1. Health score combines infrastructure health (binary: CI, config, KB, state freshness) and workflow health (weighted signal accumulation with pattern deduplication) into a composite indicator
   2. Health score displayed in statusline as traffic light (green/yellow/red) with standing caveat: "Health checks measure known categories. Absence of findings does not mean absence of problems."
   3. Health check auto-triggers at session start when frequency is `on-resume` and as an execute-phase workflow step when frequency is `every-phase`, with session dedup via timestamp
   4. Reactive health check triggers on fresh session start when health score drops below configurable threshold
   5. Health check verifies automation system is functioning by checking `last_triggered` timestamps against expected cadence
+  6. Health check detects rogue files — artifacts that don't match expected directory patterns or persist beyond their workflow lifecycle — and extracts creation context via git log to categorize them as agent-ignorance (system has a place, agent didn't know) or workflow-gap (no formal place exists)
 **Plans**: TBD
 
 Plans:
 - [ ] 41-01: Health score model -- infrastructure and workflow dimensions with weighted signal accumulation
 - [ ] 41-02: Health display (statusline traffic light with caveat) and auto-trigger wiring (session start, per-phase)
 - [ ] 41-03: Reactive triggers, automation watchdog, signal-to-resolution ratio, and signal density trend
+- [ ] 41-04: Rogue file detection with pattern registry, lifecycle awareness, and context extraction
 
 ### Phase 42: Reflection Automation
 **Goal**: Reflection triggers automatically after a configurable number of phases, with lesson confidence evolving through evidence rather than remaining static labels

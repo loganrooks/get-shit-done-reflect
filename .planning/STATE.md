@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.17 Automation Loop -- Phase 39: CI Awareness
+**Current focus:** v1.17 Automation Loop -- Phase 38.1: Project-Local Knowledge Base
 
 ## Current Position
 
-Phase: 39 of 43 (CI Awareness)
+Phase: 38.1 of 43 (Project-Local Knowledge Base)
 Plan: 0 of 2 in current phase
 Status: Ready for planning
-Last activity: 2026-03-04 -- Completed quick task 13: signal lifecycle reconciliation script, health check watchdog, design principle
+Last activity: 2026-03-04 -- Phase 38.1 inserted; deliberation concluded (project-local-knowledge-base.md)
 
 Progress: [███░░░░░░░] 33%
 
@@ -143,4 +143,4 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 Last session: 2026-03-04
 Stopped at: Quick task 13 complete (signal lifecycle reconciliation). Ready for Phase 39 planning.
 Resume file: None
-Deliberation context: .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
+Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
