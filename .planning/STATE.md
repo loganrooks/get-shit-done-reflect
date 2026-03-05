@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.17 Automation Loop -- Phase 38.1 complete, ready for Phase 39
+**Current focus:** v1.17 Automation Loop -- Phase 39 CI Awareness in progress
 
 ## Current Position
 
-Phase: 38.1 of 43 (Project-Local Knowledge Base) -- COMPLETE
-Plan: 3 of 3 in current phase
-Status: Phase complete, verified (12/12 must-haves)
-Last activity: 2026-03-05 -- Phase 38.1 execution complete, verification passed
+Phase: 39 of 43 (CI Awareness)
+Plan: 1 of 2 in current phase
+Status: Plan 01 complete, Plan 02 pending
+Last activity: 2026-03-05 -- Phase 39 Plan 01 complete (CI sensor agent spec)
 
 Progress: [███░░░░░░░] 33%
 
@@ -72,6 +72,7 @@ Progress: [███░░░░░░░] 33%
 | 38.1 | 01 | 3min | 2 | 20 |
 | 38.1 | 02 | 7min | 3 | 10 |
 | 38.1 | 03 | 2min | 1 | 2 |
+| 39 | 01 | 3min | 1 | 1 |
 
 ## Accumulated Context
 
@@ -94,6 +95,9 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 38.1]: KB path fallback pattern: .planning/knowledge/ primary, ~/.gsd/knowledge/ fallback. Lessons deprecated; KB is 3-type (signals, reflections, spikes)
 - [Phase 38.1]: kb-rebuild-index.sh conditionally omits Lessons section when lessons/ dir does not exist
 - [Phase 38.1]: Signal enrichment uses origin: local naming to avoid collision with existing source: auto|manual detection-method field
+- [Phase 39]: CI sensor is first with non-null config_schema (repo + workflow overrides), validating Phase 38 extensibility
+- [Phase 39]: Pre-flight checks return degraded:true with warning, never clean empty signals (CI-04)
+- [Phase 39]: Test regression detection marked LOW confidence due to log-parsing fragility
 
 ### Pending Todos
 
@@ -148,6 +152,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Phase 38.1 complete (3/3 plans, verification passed 12/12). Ready for Phase 39 planning.
+Stopped at: Completed 39-01-PLAN.md (CI sensor agent spec). Ready for 39-02.
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
