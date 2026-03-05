@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 38.1 of 43 (Project-Local Knowledge Base)
-Plan: 3 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: Executing
-Last activity: 2026-03-05 -- Completed 38.1-03-PLAN.md (signal schema enrichment)
+Last activity: 2026-03-05 -- Completed 38.1-02-PLAN.md (project-local KB infrastructure)
 
-Progress: [██████████] 100%
+Progress: [██████░░░░] 67%
 
 ## Performance Metrics
 
@@ -70,7 +70,7 @@ Progress: [██████████] 100%
 | 38 | 01 | 3min | 2 | 2 |
 | 38 | 02 | 3min | 2 | 5 |
 | 38.1 | 01 | 3min | 2 | 20 |
-| 38.1 | 03 | 2min | 1 | 2 |
+| 38.1 | 02 | 7min | 3 | 10 |
 
 ## Accumulated Context
 
@@ -91,6 +91,7 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 38]: Sensor contract: input (phase, dir, project, model_profile), output (JSON in SENSOR OUTPUT delimiters), timeout via frontmatter, config_schema optional
 - [Phase 38]: Sensor discovery tries .claude/agents/ first, falls back to agents/ for dev environments
 - [Phase 38.1]: KB path fallback pattern: .planning/knowledge/ primary, ~/.gsd/knowledge/ fallback. Lessons deprecated; KB is 3-type (signals, reflections, spikes)
+- [Phase 38.1]: kb-rebuild-index.sh conditionally omits Lessons section when lessons/ dir does not exist
 - [Phase 38.1]: Signal enrichment uses origin: local naming to avoid collision with existing source: auto|manual detection-method field
 
 ### Pending Todos
@@ -145,6 +146,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-05
-Stopped at: Completed 38.1-03-PLAN.md (signal schema enrichment). Phase 38.1 plans 01 and 03 complete. Plan 02 (test coverage) not yet executed.
+Stopped at: Completed 38.1-02-PLAN.md (project-local KB infrastructure). Ready for 38.1-03.
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)

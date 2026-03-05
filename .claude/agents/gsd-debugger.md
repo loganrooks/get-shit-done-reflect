@@ -850,11 +850,13 @@ Query for **both lessons AND spikes equally**. Unlike the planner (lessons only)
 
 ### Query Pattern
 
-1. Read `~/.gsd/knowledge/index.md`
+1. Read `.planning/knowledge/index.md` (or `~/.gsd/knowledge/index.md` fallback)
 2. Grep for error-related keywords in both the Lessons and Spikes tables:
    ```bash
-   grep -i "{error-keyword}" ~/.gsd/knowledge/index.md
-   grep -i "{technology}" ~/.gsd/knowledge/index.md
+   # KB path resolution -- project-local primary, user-global fallback
+   if [ -d ".planning/knowledge" ]; then KB_DIR=".planning/knowledge"; else KB_DIR="$HOME/.gsd/knowledge"; fi
+   grep -i "{error-keyword}" $KB_DIR/index.md
+   grep -i "{technology}" $KB_DIR/index.md
    ```
 3. Read the top 2-3 matching entries (full entry files)
 4. Check freshness via `depends_on` if present in the entry frontmatter
