@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-06T01:23:41Z
-**Total entries:** 109
+**Generated:** 2026-03-06T18:19:00Z
+**Total entries:** 110
 
-## Signals (108)
+## Signals (109)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -114,6 +114,7 @@
 | SIG-260223-013 |  | notable | detected | testing,isolation,environment |  | open |
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-02-requirements-lack-motivation-traceability | get-shit-done-reflect | notable | detected | requirements,traceability,signal-lifecycle,template |  | detected |
+|  | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | path-resolution,installer,source-repo,plan-spec-gap,auto-fix |  | active |
 
 ## Spikes (1)
