@@ -1156,6 +1156,24 @@ function replacePathsInContent(content, runtimePathPrefix) {
   }
   result = result.replace(/\$HOME\/\.claude\/(?!gsd-knowledge)(?! )/g, '$HOME/' + runtimeSuffix);
 
+  // Pass 3: GSDR namespace rewriting (install-time co-installation isolation)
+  // Order: 3a before 3c to avoid partial matches on directory path
+  // Safety: (?!tools) in 3c preserves gsd-tools.js filename (237 occurrences)
+  //
+  // Double-replacement safety (proven by deliberation):
+  // - get-shit-done/ requires /. get-shit-done-reflect/ has - not /. No match.
+  // - /gsd: requires :. /gsdr: has r not :. No match.
+  // - gsd- requires -. gsdr- has r not -. No match.
+
+  // 3a: Runtime directory in remaining path refs
+  result = result.replace(/get-shit-done\//g, 'get-shit-done-reflect/');
+  // 3b: Command prefix
+  result = result.replace(/\/gsd:/g, '/gsdr:');
+  // 3c: Agent/hook/subagent_type prefix — exclude gsd-tools (filename, not namespace)
+  result = result.replace(/\bgsd-(?!tools)/g, 'gsdr-');
+  // 3d: UI banner prefix
+  result = result.replace(/GSD ►/g, 'GSDR ►');
+
   return result;
 }
 
