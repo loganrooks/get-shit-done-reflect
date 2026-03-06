@@ -1,12 +1,13 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-06T18:19:00Z
-**Total entries:** 110
+**Generated:** 2026-03-06T20:17:08Z
+**Total entries:** 111
 
-## Signals (109)
+## Signals (110)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-03-06-planner-deliberation-auto-reference-gap | get-shit-done-reflect | notable | detected | tags: | "2026-03-06 | active |
 | sig-2026-03-05-phase40-plan-gaps-pre-execution-review | get-shit-done-reflect | critical | detected | plan-accuracy,pre-execution-review,reentrancy,double-fire,output-corruption,context-estimation,test-coverage,phase-40 | "2026-03-05 | active |
 | sig-2026-03-05-undeclared-claude-dir-scope-creep-plan02 | get-shit-done-reflect | notable | detected | scope-creep,plan-accuracy,dual-directory | 2026-03-05 | active |
 | sig-2026-03-05-test-count-discrepancy-parallel-wave2 | get-shit-done-reflect | minor | detected | test-count,parallel-execution,wave-dependency | 2026-03-05 | active |
