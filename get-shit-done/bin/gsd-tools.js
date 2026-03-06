@@ -5351,6 +5351,92 @@ function cmdAutomationCheckLock(cwd, feature, options, raw) {
   }
 }
 
+// ─── Automation Regime Change ────────────────────────────────────────────────
+
+function cmdAutomationRegimeChange(cwd, description, options, raw) {
+  if (!description) {
+    error('Usage: automation regime-change <description> [--impact <impact>] [--prior <prior-regime>]');
+  }
+
+  // KB path resolution: project-local primary, ~/.gsd/ fallback
+  let kbDir = path.join(cwd, '.planning', 'knowledge');
+  if (!fs.existsSync(kbDir)) {
+    const globalKbDir = path.join(require('os').homedir(), '.gsd', 'knowledge');
+    if (fs.existsSync(globalKbDir)) {
+      kbDir = globalKbDir;
+    }
+    // If neither exists, use project-local and create it
+  }
+
+  // Build entry ID
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const slug = description.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 40).replace(/-$/, '');
+  const entryId = `regime-${dateStr}-${slug}`;
+
+  // Project name from cwd basename
+  const projectName = path.basename(cwd).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+  // Signal directory
+  const signalDir = path.join(kbDir, 'signals', projectName);
+  fs.mkdirSync(signalDir, { recursive: true });
+
+  const filePath = path.join(signalDir, `${entryId}.md`);
+  const isoTimestamp = now.toISOString();
+  const impact = options.impact || 'Not assessed';
+  const prior = options.prior || 'Not recorded';
+
+  const content = `---
+id: ${entryId}
+type: regime_change
+project: ${projectName}
+tags: [observation-regime, signal-collection, automation]
+created: ${isoTimestamp}
+status: active
+---
+
+# Regime Change: ${description}
+
+## Change
+
+${description}
+
+## Expected Impact
+
+${impact}
+
+## Timestamp
+
+${isoTimestamp}
+
+## Prior Regime
+
+${prior}
+`;
+
+  fs.writeFileSync(filePath, content);
+
+  // Attempt to rebuild KB index
+  try {
+    const projectLocalScript = path.join(cwd, 'get-shit-done', 'bin', 'kb-rebuild-index.sh');
+    const globalScript = path.join(require('os').homedir(), '.gsd', 'bin', 'kb-rebuild-index.sh');
+    let rebuildScript = null;
+    if (fs.existsSync(projectLocalScript)) {
+      rebuildScript = projectLocalScript;
+    } else if (fs.existsSync(globalScript)) {
+      rebuildScript = globalScript;
+    }
+    if (rebuildScript) {
+      execSync(`bash "${rebuildScript}"`, { cwd: cwd, timeout: 10000, stdio: 'pipe' });
+    }
+  } catch (e) {
+    // Non-blocking: warn but don't fail
+    process.stderr.write(`Warning: KB index rebuild failed: ${e.message}\n`);
+  }
+
+  output({ written: true, path: filePath, id: entryId }, raw);
+}
+
 // ─── Sensors ──────────────────────────────────────────────────────────────────
 
 function cmdSensorsList(cwd, raw) {
@@ -5983,6 +6069,15 @@ async function main() {
           ttl: ttlIdx !== -1 ? parseInt(args[ttlIdx + 1], 10) : undefined,
         };
         cmdAutomationCheckLock(cwd, feature, options, raw);
+      } else if (subcommand === 'regime-change') {
+        const desc = args[2];
+        const impactIdx = args.indexOf('--impact');
+        const priorIdx = args.indexOf('--prior');
+        const options = {
+          impact: impactIdx !== -1 ? args[impactIdx + 1] : 'Not assessed',
+          prior: priorIdx !== -1 ? args[priorIdx + 1] : 'Not recorded',
+        };
+        cmdAutomationRegimeChange(cwd, desc, options, raw);
       } else {
         error('Unknown automation subcommand. Available: resolve-level, track-event, lock, unlock, check-lock, regime-change');
       }
