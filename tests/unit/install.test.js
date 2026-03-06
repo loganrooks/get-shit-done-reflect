@@ -1013,21 +1013,22 @@ Use Write to create new files.`
         expect(result).not.toMatch(/\bBash\b/)
       })
 
-      it('replaces /gsd:command with $gsd-command for skill mention syntax', () => {
+      it('replaces /gsdr:command with $gsdr-command for skill mention syntax', () => {
+        // In real flow, replacePathsInContent runs first and transforms /gsd: to /gsdr:
         const input = `---
 name: help
 description: Help command
 ---
 
-Run /gsd:plan-phase to plan. Use /gsd:execute-phase to execute.
-Also try /gsd:signal for insights.`
+Run /gsdr:plan-phase to plan. Use /gsdr:execute-phase to execute.
+Also try /gsdr:signal for insights.`
 
-        const result = convertClaudeToCodexSkill(input, 'gsd-help')
+        const result = convertClaudeToCodexSkill(input, 'gsdr-help')
 
-        expect(result).toContain('$gsd-plan-phase')
-        expect(result).toContain('$gsd-execute-phase')
-        expect(result).toContain('$gsd-signal')
-        expect(result).not.toContain('/gsd:')
+        expect(result).toContain('$gsdr-plan-phase')
+        expect(result).toContain('$gsdr-execute-phase')
+        expect(result).toContain('$gsdr-signal')
+        expect(result).not.toContain('/gsdr:')
       })
 
       it('wraps content without frontmatter in minimal SKILL.md frontmatter', () => {
@@ -1087,16 +1088,17 @@ Body.`
       })
 
       it('converts @~/.codex/ file references to explicit read instructions', () => {
+        // Input simulates post-replacePathsInContent state (get-shit-done-reflect)
         const input = `---
 name: test
 description: test
 ---
 
-Read @~/.codex/get-shit-done/workflows/signal.md for workflow details.`
+Read @~/.codex/get-shit-done-reflect/workflows/signal.md for workflow details.`
 
-        const result = convertClaudeToCodexSkill(input, 'gsd-test')
+        const result = convertClaudeToCodexSkill(input, 'gsdr-test', '~/.codex/')
 
-        expect(result).toContain('Read the file at `~/.codex/get-shit-done/workflows/signal.md`')
+        expect(result).toContain('Read the file at `~/.codex/get-shit-done-reflect/workflows/signal.md`')
         expect(result).not.toContain('@~/.codex/')
       })
 
@@ -1128,7 +1130,7 @@ Use WebFetch and Task and SlashCommand for these features.`
         const content = await fs.readFile(agentsMdPath, 'utf8')
         expect(content).toContain('<!-- GSD:BEGIN (get-shit-done-reflect-cc) -->')
         expect(content).toContain('<!-- GSD:END (get-shit-done-reflect-cc) -->')
-        expect(content).toContain('$gsd-help')
+        expect(content).toContain('$gsdr-help')
         expect(content).toContain('~/.gsd/knowledge')
         expect(content).toContain('codex exec')
         expect(content).toContain('No Task tool support')
@@ -1158,7 +1160,7 @@ Use WebFetch and Task and SlashCommand for these features.`
         expect(content).toContain('# My Project')
         expect(content).toContain('# Other Section')
         expect(content).not.toContain('Old content.')
-        expect(content).toContain('$gsd-help')
+        expect(content).toContain('$gsdr-help')
 
         // Verify exactly one GSD:BEGIN marker (idempotent)
         const beginCount = (content.match(/GSD:BEGIN/g) || []).length
@@ -1176,7 +1178,7 @@ Use WebFetch and Task and SlashCommand for these features.`
         generateCodexAgentsMd(tmpdir, '~/.codex/')
 
         const content = await fs.readFile(path.join(tmpdir, 'AGENTS.md'), 'utf8')
-        expect(content).toContain('~/.codex/get-shit-done/references/capability-matrix.md')
+        expect(content).toContain('~/.codex/get-shit-done-reflect/references/capability-matrix.md')
       })
     })
 

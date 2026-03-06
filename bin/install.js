@@ -862,7 +862,7 @@ function convertClaudeToGeminiToml(content) {
 /**
  * Convert a Claude Code command markdown into Codex SKILL.md format.
  * - Replaces tool name references in body text using word-boundary regex
- * - Replaces /gsd:command-name with $gsd-command-name for Codex skill mention syntax
+ * - Replaces /gsdr:command-name with $gsdr-command-name for Codex skill mention syntax
  * - Converts @~/.codex/ file references to explicit read instructions
  * - Parses frontmatter: keeps only name (rewritten) and description (truncated to 1024 chars)
  * - Drops allowed-tools, argument-hint, color fields
@@ -879,8 +879,8 @@ function convertClaudeToCodexSkill(content, commandName, pathPrefix) {
     converted = converted.replace(new RegExp(`\\b${claudeTool}\\b`, 'g'), codexTool);
   }
 
-  // Step 2: Replace /gsd:command with $gsd-command for Codex skill mention
-  converted = converted.replace(/\/gsd:([a-z0-9-]+)/g, '\\$gsd-$1');
+  // Step 2: Replace /gsdr:command with $gsdr-command for Codex skill mention
+  converted = converted.replace(/\/gsdr:([a-z0-9-]+)/g, '\\$gsdr-$1');
 
   // Step 3: Convert @ file references to explicit read instructions
   // (After path replacement has already changed ~/.claude/ to the runtime prefix)
@@ -1010,18 +1010,18 @@ GSD (Get Shit Done) is installed as Codex skills for structured project planning
 
 ## Available Commands
 
-Use \`/skills\` or type \`$gsd-\` to discover GSD commands:
+Use \`/skills\` or type \`$gsdr-\` to discover GSD commands:
 
 | Command | Purpose |
 |---------|---------|
-| \`$gsd-help\` | Show all commands and usage |
-| \`$gsd-new-project\` | Initialize a new project |
-| \`$gsd-plan-phase\` | Plan a project phase |
-| \`$gsd-execute-phase\` | Execute a planned phase |
-| \`$gsd-resume-work\` | Resume from last session |
-| \`$gsd-pause-work\` | Save state for later |
-| \`$gsd-progress\` | Show project progress |
-| \`$gsd-signal\` | Record a signal (insight, mistake, etc.) |
+| \`$gsdr-help\` | Show all commands and usage |
+| \`$gsdr-new-project\` | Initialize a new project |
+| \`$gsdr-plan-phase\` | Plan a project phase |
+| \`$gsdr-execute-phase\` | Execute a planned phase |
+| \`$gsdr-resume-work\` | Resume from last session |
+| \`$gsdr-pause-work\` | Save state for later |
+| \`$gsdr-progress\` | Show project progress |
+| \`$gsdr-signal\` | Record a signal (insight, mistake, etc.) |
 
 ## Workflow Conventions
 
@@ -1038,15 +1038,15 @@ This runtime operates with limited capabilities compared to Claude Code:
 - **No hooks support** -- pre-commit hooks and other lifecycle hooks are unavailable in Codex
 - **No tool restrictions** -- Codex does not support allowed-tools filtering, so all tools are always available to skills
 
-For full runtime comparison, read the file at \`${pathPrefix}get-shit-done/references/capability-matrix.md\`.
+For full runtime comparison, read the file at \`${pathPrefix}get-shit-done-reflect/references/capability-matrix.md\`.
 
 ## Non-interactive Usage (codex exec)
 
 For scripted or CI environments, use \`codex exec\` to run GSD skills non-interactively:
 
 \`\`\`
-codex exec "Run $gsd-progress to show current project status"
-codex exec "Run $gsd-execute-phase 3"
+codex exec "Run $gsdr-progress to show current project status"
+codex exec "Run $gsdr-execute-phase 3"
 \`\`\`
 
 This bypasses the interactive prompt and executes directly.
@@ -2645,7 +2645,7 @@ function installAllRuntimes(runtimes, isGlobal, isInteractive) {
 
       const codexResult = results.find(r => r.runtime === 'codex');
       if (codexResult) {
-        console.log(`\n  ${green}Done!${reset} Launch Codex CLI and run ${cyan}$gsd-help${reset}.\n`);
+        console.log(`\n  ${green}Done!${reset} Launch Codex CLI and run ${cyan}$gsdr-help${reset}.\n`);
       }
     });
   } else {
@@ -2657,7 +2657,7 @@ function installAllRuntimes(runtimes, isGlobal, isInteractive) {
 
     const codexResult = results.find(r => r.runtime === 'codex');
     if (codexResult) {
-      console.log(`\n  ${green}Done!${reset} Launch Codex CLI and run ${cyan}$gsd-help${reset}.\n`);
+      console.log(`\n  ${green}Done!${reset} Launch Codex CLI and run ${cyan}$gsdr-help${reset}.\n`);
     }
   }
 }

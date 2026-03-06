@@ -137,6 +137,20 @@ async function verifyNoLeakedPaths(runtimeDir, runtime) {
     if (content.includes('gsd-knowledge') && !content.includes('.gsd/knowledge')) {
       violations.push({ file, issue: 'uses old gsd-knowledge path instead of .gsd/knowledge' })
     }
+
+    // Check for stale gsd- references that should be gsdr- in installed output
+    // Exempt: gsd-tools.js (filename preserved), gsd-knowledge (legacy KB path),
+    //         CHANGELOG.md (historical references to old agent names),
+    //         gsd-test (temp directory names from test harness),
+    //         gsd-build (upstream GitHub org name)
+    if (!file.endsWith('CHANGELOG.md') && content.match(/\bgsd-(?!tools|knowledge|test|build)/)) {
+      const lines = content.split('\n')
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i].match(/\bgsd-(?!tools|knowledge|test|build)/) && !lines[i].includes('gsdr-')) {
+          violations.push({ file, line: i + 1, issue: 'stale gsd- reference (should be gsdr-)', text: lines[i].trim() })
+        }
+      }
+    }
   }
 
   expect(violations, `Path leakage violations in ${runtime}:\n${JSON.stringify(violations, null, 2)}`).toHaveLength(0)
