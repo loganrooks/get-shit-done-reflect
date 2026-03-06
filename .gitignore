@@ -18,6 +18,9 @@ animation/
 # Benchmark results
 tests/benchmarks/results.json
 
+# Reentrancy lockfiles
+.planning/.*.lock
+
 # Internal planning documents
 reports/
 RAILROAD_ARCHITECTURE.md
