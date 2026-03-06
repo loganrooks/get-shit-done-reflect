@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 41 (Health Score & Automation)
-Plan: 0 of 4 in current phase
-Status: Planning
-Last activity: 2026-03-06 - Completed quick task 19: Fix co-installation namespace safety
+Plan: 1 of 4 in current phase
+Status: Executing
+Last activity: 2026-03-06 - Completed 41-01-PLAN.md (health score foundation)
 
 Progress: [███████░░░] 78% (7/9 phases: 36, 37, 38, 38.1, 39, 40, 44 done — 41, 42, 43 remaining)
 
@@ -84,6 +84,11 @@ Progress: [███████░░░] 78% (7/9 phases: 36, 37, 38, 38.1, 39
 | 44 | 02 | 3min | 2 | 1 |
 | 44 | 03 | 23min | 3 | 3 |
 
+**Phase 41:**
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 41 | 01 | 3min | 3 | 8 |
+
 ## Accumulated Context
 
 ### Decisions
@@ -116,6 +121,9 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 44]: Uninstall handles both gsdr-* and gsd-* patterns for upgrade path
 - [Phase 44]: writeManifest tracks only gsdr-* agents; upgrade cleanup in install() removes old dirs
 - [Phase 44]: Stale gsd- detection exempts CHANGELOG.md, gsd-test, gsd-build, gsd-tools, gsd-knowledge
+- [Phase 41]: Probe frontmatter contract: probe_id, category, tier, dimension, execution, depends_on
+- [Phase 41]: Signal weights locked at critical=1.0, notable=0.3, minor=0.1
+- [Phase 41]: Reactive threshold defaults to RED (only trigger on critical composite)
 
 ### Pending Todos
 
@@ -176,6 +184,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 44-03-PLAN.md (test assertions + verification). Phase 44 complete.
+Stopped at: Completed 41-01-PLAN.md (health score foundation probes, scoring model, config schema).
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
