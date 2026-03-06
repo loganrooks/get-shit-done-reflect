@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 44 (GSDR Namespace Co-Installation)
-Plan: 2 of 3 in current phase
-Status: Plan 02 Complete
-Last activity: 2026-03-06 - Completed 44-02: Peripheral function GSDR namespace
+Plan: 3 of 3 in current phase
+Status: Phase 44 Complete
+Last activity: 2026-03-06 - Completed 44-03: Test assertions + verification
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -82,6 +82,7 @@ Progress: [█████████░] 90%
 |-------|------|----------|-------|-------|
 | 44 | 01 | 14min | 3 | 4 |
 | 44 | 02 | 3min | 2 | 1 |
+| 44 | 03 | 23min | 3 | 3 |
 
 ## Accumulated Context
 
@@ -114,6 +115,7 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 44]: Install-time namespace rewriting via replacePathsInContent() Pass 3a-3d; (?!tools) lookahead protects gsd-tools.js
 - [Phase 44]: Uninstall handles both gsdr-* and gsd-* patterns for upgrade path
 - [Phase 44]: writeManifest tracks only gsdr-* agents; upgrade cleanup in install() removes old dirs
+- [Phase 44]: Stale gsd- detection exempts CHANGELOG.md, gsd-test, gsd-build, gsd-tools, gsd-knowledge
 
 ### Pending Todos
 
@@ -173,6 +175,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 44-02-PLAN.md (peripheral function GSDR namespace). Plan 03 remains.
+Stopped at: Completed 44-03-PLAN.md (test assertions + verification). Phase 44 complete.
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
