@@ -489,6 +489,70 @@ This step is best-effort -- failures do not block phase completion. If any comma
 log a warning and continue to update_roadmap.
 </step>
 
+<!-- HEALTH-05: per-phase health check postlude -->
+<step name="health_check_postlude">
+Auto-trigger health check after successful phase execution when frequency is `every-phase`.
+This is a workflow postlude -- same cross-runtime pattern as auto_collect_signals.
+
+Only runs if verification passed AND auto_collect_signals completed (or was skipped).
+
+**1. Check config frequency:**
+
+```bash
+HC_FREQ=$(node -e "try{const c=JSON.parse(require('fs').readFileSync('.planning/config.json','utf8'));console.log((c.health_check||{}).frequency||'milestone-only')}catch{console.log('milestone-only')}")
+```
+
+If HC_FREQ is not 'every-phase', skip this step entirely.
+
+**2. Check reentrancy guard:**
+
+```bash
+LOCK_STATUS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation check-lock health_check --raw 2>/dev/null)
+```
+
+If locked and not stale: skip. Track: `track-event health_check skip "reentrancy"`
+
+**3. Resolve automation level:**
+
+```bash
+LEVEL=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation resolve-level health_check --context-pct {EST_CONTEXT_PCT} --raw 2>/dev/null)
+```
+
+Use same wave-based context estimation as auto_collect_signals: `min(40 + (WAVES_COMPLETED * 10), 80)`
+
+**4. Branch on effective level:**
+
+| Level | Name | Behavior |
+|-------|------|----------|
+| 0 | manual | Skip. Track: `track-event health_check skip "level-0"` |
+| 1 | nudge | Display: "Health check available. Run `/gsd:health-check` to check workspace health." Track skip. |
+| 2 | prompt | Ask user: "Run health check for phase {PHASE_NUMBER}? [y/n]". If yes, proceed. |
+| 3 | auto | Proceed to health check. |
+
+Context-deferred message: "Context usage high. Health check deferred. Run `/gsd:health-check` in a fresh session."
+
+**5. If proceeding:**
+
+```bash
+# Acquire lock
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation lock health_check --source "postlude" --ttl 300
+```
+
+Invoke the health check workflow inline (same as how execute-phase invokes other workflows).
+The workflow reads probes, computes score, writes cache.
+
+```bash
+# Release lock
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation unlock health_check
+
+# Track event (exactly once -- Pitfall 5 from research)
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event health_check fire
+```
+
+This step is best-effort -- failures do not block phase completion. If any command fails,
+log a warning and continue to update_roadmap.
+</step>
+
 <step name="update_roadmap">
 Mark phase complete in ROADMAP.md (date, status).
 
