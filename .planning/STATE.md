@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 Phase: 39 of 43 (CI Awareness)
 Plan: 2 of 2 in current phase
 Status: All plans complete, ready for verification
-Last activity: 2026-03-05 - Completed quick task 15: Implement cross-runtime parity testing (Option B+C+D)
+Last activity: 2026-03-06 - Completed quick task 16: Auto-run hooks build in installer if hooks/dist/ missing
 
 Progress: [██████████] 100%
 
@@ -136,6 +136,7 @@ Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16
 | 013 | Signal lifecycle reconciliation script, health check watchdog, design principle | 2026-03-04 | bb26acc | [13-implement-signal-lifecycle-deliberation-](./quick/13-implement-signal-lifecycle-deliberation-/) |
 | 014 | Update collect-signals.md rebuild_index to use project-local kb-rebuild-index.sh | 2026-03-05 | ae40d86 | [14-update-collect-signals-md-to-use-plannin](./quick/14-update-collect-signals-md-to-use-plannin/) |
 | 015 | Cross-runtime parity testing: glob hook discovery, name parity, Gemini tool names, hook registration sync | 2026-03-05 | d1f2e2f | [15-implement-cross-runtime-parity-testing-o](./quick/15-implement-cross-runtime-parity-testing-o/) |
+| 016 | Auto-run hooks build in installer if hooks/dist/ missing | 2026-03-06 | 76c0175 | [16-auto-run-hooks-build-in-installer-if-hoo](./quick/16-auto-run-hooks-build-in-installer-if-hoo/) |
 
 ### Roadmap Evolution
 
