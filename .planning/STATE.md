@@ -142,6 +142,7 @@ Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16
 | 015 | Cross-runtime parity testing: glob hook discovery, name parity, Gemini tool names, hook registration sync | 2026-03-05 | d1f2e2f | [15-implement-cross-runtime-parity-testing-o](./quick/15-implement-cross-runtime-parity-testing-o/) |
 | 016 | Auto-run hooks build in installer if hooks/dist/ missing | 2026-03-06 | 76c0175 | [16-auto-run-hooks-build-in-installer-if-hoo](./quick/16-auto-run-hooks-build-in-installer-if-hoo/) |
 | 017 | Fix stale gsd_reflect_version in config template (1.13.0 -> 1.16.0), add stamp-version.js automation | 2026-03-06 | 52411c9 | [17-fix-stale-gsd-reflect-version-in-config-](./quick/17-fix-stale-gsd-reflect-version-in-config-/) |
+| 018 | Fix +dev suffix to apply when installing from git repo, not just --local | 2026-03-06 | 8232508 | [18-fix-dev-suffix-to-apply-when-installing-](./quick/18-fix-dev-suffix-to-apply-when-installing-/) |
 
 ### Roadmap Evolution
 
