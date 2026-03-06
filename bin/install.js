@@ -2070,8 +2070,8 @@ function install(isGlobal, runtime = 'claude') {
 
   // Cross-scope detection: warn if the other scope already has GSD installed
   const otherScopeVersionPath = isGlobal
-    ? path.join(process.cwd(), dirName, 'get-shit-done', 'VERSION')
-    : path.join(getGlobalDir(runtime, explicitConfigDir), 'get-shit-done', 'VERSION');
+    ? path.join(process.cwd(), dirName, 'get-shit-done-reflect', 'VERSION')
+    : path.join(getGlobalDir(runtime, explicitConfigDir), 'get-shit-done-reflect', 'VERSION');
   if (fs.existsSync(otherScopeVersionPath)) {
     try {
       const otherVersion = fs.readFileSync(otherScopeVersionPath, 'utf8').trim();
@@ -2079,7 +2079,7 @@ function install(isGlobal, runtime = 'claude') {
       console.log(`  ${yellow}Note:${reset} GSD is also installed ${otherLabel} (v${otherVersion}).`);
       console.log(`  You will have dual installations after this install.`);
       console.log(`  ${dim}Local always takes precedence. Commands may appear twice in autocomplete.${reset}`);
-      console.log(`  ${dim}See: .claude/get-shit-done/references/dual-installation.md${reset}\n`);
+      console.log(`  ${dim}See: .claude/get-shit-done-reflect/references/dual-installation.md${reset}\n`);
     } catch {
       // Ignore read errors — non-critical informational warning
     }
@@ -2106,14 +2106,14 @@ function install(isGlobal, runtime = 'claude') {
     const skillsDir = path.join(targetDir, 'skills');
     safeFs('mkdirSync', () => fs.mkdirSync(skillsDir, { recursive: true }), skillsDir);
     const gsdSrc = path.join(src, 'commands', 'gsd');
-    copyCodexSkills(gsdSrc, skillsDir, 'gsd', pathPrefix);
-    if (verifyInstalled(skillsDir, 'skills/gsd-*')) {
+    copyCodexSkills(gsdSrc, skillsDir, 'gsdr', pathPrefix);
+    if (verifyInstalled(skillsDir, 'skills/gsdr-*')) {
       const count = fs.readdirSync(skillsDir).filter(d =>
-        d.startsWith('gsd-') && fs.statSync(path.join(skillsDir, d)).isDirectory()
+        d.startsWith('gsdr-') && fs.statSync(path.join(skillsDir, d)).isDirectory()
       ).length;
       console.log(`  ${green}+${reset} Installed ${count} skills to skills/`);
     } else {
-      failures.push('skills/gsd-*');
+      failures.push('skills/gsdr-*');
     }
     // Inject version/scope into Codex skill descriptions
     applyVersionScopeToCommands(skillsDir, versionString, isGlobal ? 'global' : 'local');
@@ -2122,14 +2122,14 @@ function install(isGlobal, runtime = 'claude') {
     const commandDir = path.join(targetDir, 'command');
     safeFs('mkdirSync', () => fs.mkdirSync(commandDir, { recursive: true }), commandDir);
 
-    // Copy commands/gsd/*.md as command/gsd-*.md (flatten structure)
+    // Copy commands/gsd/*.md as command/gsdr-*.md (flatten structure)
     const gsdSrc = path.join(src, 'commands', 'gsd');
-    copyFlattenedCommands(gsdSrc, commandDir, 'gsd', pathPrefix, runtime);
-    if (verifyInstalled(commandDir, 'command/gsd-*')) {
-      const count = fs.readdirSync(commandDir).filter(f => f.startsWith('gsd-')).length;
+    copyFlattenedCommands(gsdSrc, commandDir, 'gsdr', pathPrefix, runtime);
+    if (verifyInstalled(commandDir, 'command/gsdr-*')) {
+      const count = fs.readdirSync(commandDir).filter(f => f.startsWith('gsdr-')).length;
       console.log(`  ${green}✓${reset} Installed ${count} commands to command/`);
     } else {
-      failures.push('command/gsd-*');
+      failures.push('command/gsdr-*');
     }
     // Inject version/scope into OpenCode command descriptions
     applyVersionScopeToCommands(commandDir, versionString, isGlobal ? 'global' : 'local');
@@ -2139,12 +2139,12 @@ function install(isGlobal, runtime = 'claude') {
     safeFs('mkdirSync', () => fs.mkdirSync(commandsDir, { recursive: true }), commandsDir);
 
     const gsdSrc = path.join(src, 'commands', 'gsd');
-    const gsdDest = path.join(commandsDir, 'gsd');
+    const gsdDest = path.join(commandsDir, 'gsdr');
     copyWithPathReplacement(gsdSrc, gsdDest, pathPrefix, runtime);
-    if (verifyInstalled(gsdDest, 'commands/gsd')) {
-      console.log(`  ${green}✓${reset} Installed commands/gsd`);
+    if (verifyInstalled(gsdDest, 'commands/gsdr')) {
+      console.log(`  ${green}✓${reset} Installed commands/gsdr`);
     } else {
-      failures.push('commands/gsd');
+      failures.push('commands/gsdr');
     }
     // Inject version/scope into Claude/Gemini command descriptions
     applyVersionScopeToCommands(gsdDest, versionString, isGlobal ? 'global' : 'local');
@@ -2152,12 +2152,12 @@ function install(isGlobal, runtime = 'claude') {
 
   // Copy get-shit-done skill with path replacement
   const skillSrc = path.join(src, 'get-shit-done');
-  const skillDest = path.join(targetDir, 'get-shit-done');
+  const skillDest = path.join(targetDir, 'get-shit-done-reflect');
   copyWithPathReplacement(skillSrc, skillDest, pathPrefix, runtime);
-  if (verifyInstalled(skillDest, 'get-shit-done')) {
-    console.log(`  ${green}✓${reset} Installed get-shit-done`);
+  if (verifyInstalled(skillDest, 'get-shit-done-reflect')) {
+    console.log(`  ${green}✓${reset} Installed get-shit-done-reflect`);
   } else {
-    failures.push('get-shit-done');
+    failures.push('get-shit-done-reflect');
   }
 
   // Verify feature manifest was installed
@@ -2174,10 +2174,10 @@ function install(isGlobal, runtime = 'claude') {
     const agentsDest = path.join(targetDir, 'agents');
     safeFs('mkdirSync', () => fs.mkdirSync(agentsDest, { recursive: true }), agentsDest);
 
-    // Remove old GSD agents (gsd-*.md) before copying new ones
+    // Remove old GSD agents (gsd-*.md for upgrade path, gsdr-*.md for reinstall)
     if (fs.existsSync(agentsDest)) {
       for (const file of fs.readdirSync(agentsDest)) {
-        if (file.startsWith('gsd-') && file.endsWith('.md')) {
+        if ((file.startsWith('gsd-') || file.startsWith('gsdr-')) && file.endsWith('.md')) {
           fs.unlinkSync(path.join(agentsDest, file));
         }
       }
@@ -2197,7 +2197,11 @@ function install(isGlobal, runtime = 'claude') {
         } else if (isGemini) {
           content = convertClaudeToGeminiAgent(content);
         }
-        fs.writeFileSync(path.join(agentsDest, entry.name), content);
+        // Rename gsd-*.md -> gsdr-*.md (preserves knowledge-store.md, kb-templates/)
+        const destName = entry.name.startsWith('gsd-')
+          ? entry.name.replace(/^gsd-/, 'gsdr-')
+          : entry.name;
+        fs.writeFileSync(path.join(agentsDest, destName), content);
       }
     }
     if (verifyInstalled(agentsDest, 'agents')) {
@@ -2217,7 +2221,7 @@ function install(isGlobal, runtime = 'claude') {
 
   // Copy CHANGELOG.md
   const changelogSrc = path.join(src, 'CHANGELOG.md');
-  const changelogDest = path.join(targetDir, 'get-shit-done', 'CHANGELOG.md');
+  const changelogDest = path.join(targetDir, 'get-shit-done-reflect', 'CHANGELOG.md');
   if (fs.existsSync(changelogSrc)) {
     fs.copyFileSync(changelogSrc, changelogDest);
     if (verifyFileInstalled(changelogDest, 'CHANGELOG.md')) {
@@ -2228,7 +2232,7 @@ function install(isGlobal, runtime = 'claude') {
   }
 
   // Write VERSION file
-  const versionDest = path.join(targetDir, 'get-shit-done', 'VERSION');
+  const versionDest = path.join(targetDir, 'get-shit-done-reflect', 'VERSION');
   fs.writeFileSync(versionDest, versionString);
   if (verifyFileInstalled(versionDest, 'VERSION')) {
     console.log(`  ${green}✓${reset} Wrote VERSION (${versionString})`);
@@ -2253,8 +2257,14 @@ function install(isGlobal, runtime = 'claude') {
     for (const entry of hookEntries) {
       const srcFile = path.join(hooksSrc, entry);
       if (fs.statSync(srcFile).isFile()) {
-        const destFile = path.join(hooksDest, entry);
-        fs.copyFileSync(srcFile, destFile);
+        const destName = entry.startsWith('gsd-')
+          ? entry.replace(/^gsd-/, 'gsdr-')
+          : entry;
+        const destFile = path.join(hooksDest, destName);
+        let content = fs.readFileSync(srcFile, 'utf8');
+        content = content.replace(/get-shit-done\//g, 'get-shit-done-reflect/');
+        content = content.replace(/\bgsd-(?!tools)/g, 'gsdr-');
+        fs.writeFileSync(destFile, content);
       }
     }
     if (verifyInstalled(hooksDest, 'hooks')) {
@@ -2283,17 +2293,17 @@ function install(isGlobal, runtime = 'claude') {
   const settingsPath = path.join(targetDir, 'settings.json');
   const settings = cleanupOrphanedHooks(readSettings(settingsPath));
   const statuslineCommand = isGlobal
-    ? buildHookCommand(targetDir, 'gsd-statusline.js')
-    : 'node ' + dirName + '/hooks/gsd-statusline.js';
+    ? buildHookCommand(targetDir, 'gsdr-statusline.js')
+    : 'node ' + dirName + '/hooks/gsdr-statusline.js';
   const updateCheckCommand = isGlobal
-    ? buildHookCommand(targetDir, 'gsd-check-update.js')
-    : 'node ' + dirName + '/hooks/gsd-check-update.js';
+    ? buildHookCommand(targetDir, 'gsdr-check-update.js')
+    : 'node ' + dirName + '/hooks/gsdr-check-update.js';
   const versionCheckCommand = isGlobal
-    ? buildHookCommand(targetDir, 'gsd-version-check.js')
-    : 'node ' + dirName + '/hooks/gsd-version-check.js';
+    ? buildHookCommand(targetDir, 'gsdr-version-check.js')
+    : 'node ' + dirName + '/hooks/gsdr-version-check.js';
   const ciStatusCommand = isGlobal
-    ? buildHookCommand(targetDir, 'gsd-ci-status.js')
-    : 'node ' + dirName + '/hooks/gsd-ci-status.js';
+    ? buildHookCommand(targetDir, 'gsdr-ci-status.js')
+    : 'node ' + dirName + '/hooks/gsdr-ci-status.js';
 
   // Enable experimental agents for Gemini CLI (required for custom sub-agents)
   if (isGemini) {
@@ -2316,7 +2326,7 @@ function install(isGlobal, runtime = 'claude') {
     }
 
     const hasGsdUpdateHook = settings.hooks.SessionStart.some(entry =>
-      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsd-check-update'))
+      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-check-update'))
     );
 
     if (!hasGsdUpdateHook) {
@@ -2332,7 +2342,7 @@ function install(isGlobal, runtime = 'claude') {
     }
 
     const hasGsdVersionHook = settings.hooks.SessionStart.some(entry =>
-      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsd-version-check'))
+      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-version-check'))
     );
 
     if (!hasGsdVersionHook) {
@@ -2348,7 +2358,7 @@ function install(isGlobal, runtime = 'claude') {
     }
 
     const hasGsdCiHook = settings.hooks.SessionStart.some(entry =>
-      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsd-ci-status'))
+      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-ci-status'))
     );
 
     if (!hasGsdCiHook) {
@@ -2403,7 +2413,7 @@ function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallS
   if (runtime === 'opencode') program = 'OpenCode';
   if (runtime === 'gemini') program = 'Gemini';
 
-  const command = isOpencode ? '/gsd-help' : '/gsd:help';
+  const command = isOpencode ? '/gsdr-help' : '/gsdr:help';
   console.log(`
   ${green}Done!${reset} Launch ${program} and run ${cyan}${command}${reset}.
 
