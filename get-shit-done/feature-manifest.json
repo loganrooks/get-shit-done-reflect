@@ -230,6 +230,23 @@
           "type": "number",
           "default": 10,
           "description": "Maximum persistent signals per phase per project"
+        },
+        "auto_collect": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether signal collection auto-triggers after phase execution via workflow postlude"
+        },
+        "reentrancy": {
+          "type": "object",
+          "default": {},
+          "description": "Reentrancy lock settings for auto-collection",
+          "properties": {
+            "ttl_seconds": {
+              "type": "number",
+              "default": 300,
+              "description": "Time-to-live for reentrancy lock before it is considered stale"
+            }
+          }
         }
       },
       "init_prompts": [

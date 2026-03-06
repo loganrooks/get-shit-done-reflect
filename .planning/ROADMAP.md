@@ -33,7 +33,7 @@ Research SUMMARY.md proposed 6 phases (Foundation Fix → CI Awareness → Plan 
 - [x] **Phase 38: Extensible Sensor Architecture** - Build the sensor discovery and contract system so new sensors can be added without framework modification
 - [ ] **Phase 38.1: Project-Local Knowledge Base** - INSERTED: Migrate KB primary location to .planning/knowledge/ for version control and remote execution access
 - [ ] **Phase 39: CI Awareness** - Build the CI sensor under the extensible model and surface CI status at session start
-- [ ] **Phase 40: Signal Collection Automation** - Auto-trigger signal collection after phase execution with reentrancy protection and cross-runtime fallback
+- [x] **Phase 40: Signal Collection Automation** - Auto-trigger signal collection after phase execution with reentrancy protection and cross-runtime fallback
 - [ ] **Phase 41: Health Score & Automation** - Compute and display health score, auto-trigger health checks, and track signal resolution metrics
 - [ ] **Phase 42: Reflection Automation** - Auto-trigger reflection after configurable phase count with confidence updates on lessons
 - [ ] **Phase 43: Plan Intelligence & Templates** - Semantic plan validation and template improvements for closed-loop traceability
@@ -132,9 +132,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 40-01: Execute-phase postlude for auto-collection with CI sensor in parallel spawn
-- [ ] 40-02: Reentrancy lockfile, source-tagged triggers, reflection artifact exclusion
-- [ ] 40-03: Cross-runtime fallback, context-aware deferral, and observation regime tracking
+- [ ] 40-01-PLAN.md -- Reentrancy lockfile commands, regime change KB entry command, and auto_collect manifest config
+- [ ] 40-02-PLAN.md -- Execute-phase postlude step wiring auto-collection with level branching, lock/unlock, and regime tracking
 
 ### Phase 41: Health Score & Automation
 **Goal**: Health is computed as a two-dimensional score (infrastructure + workflow), displayed as a traffic light in the statusline, and auto-triggered at session start and per-phase -- with signal resolution metrics tracking whether the automation loop is actually completing, and rogue file detection identifying artifacts that fall outside formal workflow structure
@@ -200,7 +199,7 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
 | 38. Extensible Sensor Architecture | 2/2 | Complete | 2026-03-04 |
 | 38.1. Project-Local Knowledge Base | 3/3 | Complete | 2026-03-05 |
 | 39. CI Awareness | 0/2 | Not started | - |
-| 40. Signal Collection Automation | 0/3 | Not started | - |
+| 40. Signal Collection Automation | 0/2 | Not started | - |
 | 41. Health Score & Automation | 0/3 | Not started | - |
 | 42. Reflection Automation | 0/2 | Not started | - |
 | 43. Plan Intelligence & Templates | 0/2 | Not started | - |
@@ -214,6 +213,6 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
 | v1.14 Multi-Runtime | 13-21 | 18 | Complete | 2026-02-16 |
 | v1.15 Backlog & Update | 22-30 | 24 | Complete | 2026-02-23 |
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
-| v1.17 Automation Loop | 36-43 | 9/19 | In progress | - |
+| v1.17 Automation Loop | 36-43 | 9/18 | In progress | - |
 
-**Totals:** 6 milestones, 43 phases, 114 plans completed, 10 planned
+**Totals:** 6 milestones, 43 phases, 114 plans completed, 9 planned

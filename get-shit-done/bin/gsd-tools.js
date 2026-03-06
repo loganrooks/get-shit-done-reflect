@@ -5254,6 +5254,189 @@ function cmdAutomationTrackEvent(cwd, feature, event, reason, raw) {
   output({ feature: normalizedFeature, event, stats }, raw);
 }
 
+// ─── Automation Lock/Unlock ──────────────────────────────────────────────────
+
+function cmdAutomationLock(cwd, feature, options, raw) {
+  if (!feature) {
+    error('Usage: automation lock <feature> [--source <source>] [--ttl <seconds>]');
+  }
+
+  const normalizedFeature = feature.replace(/-/g, '_');
+  const lockPath = path.join(cwd, '.planning', `.${normalizedFeature}.lock`);
+  const ttl = options.ttl || 300;
+
+  // Check for existing lock
+  if (fs.existsSync(lockPath)) {
+    const stat = fs.statSync(lockPath);
+    const ageSeconds = Math.floor((Date.now() - stat.mtimeMs) / 1000);
+
+    if (ageSeconds > ttl) {
+      // Stale lock — remove and proceed to acquire
+      fs.unlinkSync(lockPath);
+      const lockContent = {
+        pid: process.pid,
+        timestamp: new Date().toISOString(),
+        trigger_source: options.source || 'unknown',
+        ttl_seconds: ttl,
+      };
+      fs.writeFileSync(lockPath, JSON.stringify(lockContent, null, 2));
+      output({ locked: false, acquired: true, stale_removed: true, stale_age_seconds: ageSeconds }, raw);
+    } else {
+      // Active lock — report it
+      let holder = {};
+      try {
+        holder = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+      } catch (e) {
+        holder = { error: 'could not parse lock file' };
+      }
+      output({ locked: true, holder, age_seconds: ageSeconds }, raw);
+    }
+  } else {
+    // No lock exists — acquire
+    const lockContent = {
+      pid: process.pid,
+      timestamp: new Date().toISOString(),
+      trigger_source: options.source || 'unknown',
+      ttl_seconds: ttl,
+    };
+    fs.writeFileSync(lockPath, JSON.stringify(lockContent, null, 2));
+    output({ locked: false, acquired: true }, raw);
+  }
+}
+
+function cmdAutomationUnlock(cwd, feature, raw) {
+  if (!feature) {
+    error('Usage: automation unlock <feature>');
+  }
+
+  const normalizedFeature = feature.replace(/-/g, '_');
+  const lockPath = path.join(cwd, '.planning', `.${normalizedFeature}.lock`);
+
+  if (fs.existsSync(lockPath)) {
+    fs.unlinkSync(lockPath);
+    output({ released: true }, raw);
+  } else {
+    output({ released: false, reason: 'no_lock_found' }, raw);
+  }
+}
+
+function cmdAutomationCheckLock(cwd, feature, options, raw) {
+  if (!feature) {
+    error('Usage: automation check-lock <feature> [--ttl <seconds>]');
+  }
+
+  const normalizedFeature = feature.replace(/-/g, '_');
+  const lockPath = path.join(cwd, '.planning', `.${normalizedFeature}.lock`);
+  const ttl = options.ttl || 300;
+
+  if (!fs.existsSync(lockPath)) {
+    output({ locked: false }, raw);
+    return;
+  }
+
+  const stat = fs.statSync(lockPath);
+  const ageSeconds = Math.floor((Date.now() - stat.mtimeMs) / 1000);
+
+  let holder = {};
+  try {
+    holder = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+  } catch (e) {
+    holder = { error: 'could not parse lock file' };
+  }
+
+  if (ageSeconds > ttl) {
+    output({ locked: true, stale: true, age_seconds: ageSeconds, holder }, raw);
+  } else {
+    output({ locked: true, stale: false, age_seconds: ageSeconds, holder }, raw);
+  }
+}
+
+// ─── Automation Regime Change ────────────────────────────────────────────────
+
+function cmdAutomationRegimeChange(cwd, description, options, raw) {
+  if (!description) {
+    error('Usage: automation regime-change <description> [--impact <impact>] [--prior <prior-regime>]');
+  }
+
+  // KB path resolution: project-local primary, ~/.gsd/ fallback
+  let kbDir = path.join(cwd, '.planning', 'knowledge');
+  if (!fs.existsSync(kbDir)) {
+    const globalKbDir = path.join(require('os').homedir(), '.gsd', 'knowledge');
+    if (fs.existsSync(globalKbDir)) {
+      kbDir = globalKbDir;
+    }
+    // If neither exists, use project-local and create it
+  }
+
+  // Build entry ID
+  const now = new Date();
+  const dateStr = now.toISOString().split('T')[0];
+  const slug = description.toLowerCase().replace(/[^a-z0-9]+/g, '-').substring(0, 40).replace(/-$/, '');
+  const entryId = `regime-${dateStr}-${slug}`;
+
+  // Project name from cwd basename
+  const projectName = path.basename(cwd).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+
+  // Signal directory
+  const signalDir = path.join(kbDir, 'signals', projectName);
+  fs.mkdirSync(signalDir, { recursive: true });
+
+  const filePath = path.join(signalDir, `${entryId}.md`);
+  const isoTimestamp = now.toISOString();
+  const impact = options.impact || 'Not assessed';
+  const prior = options.prior || 'Not recorded';
+
+  const content = `---
+id: ${entryId}
+type: regime_change
+project: ${projectName}
+tags: [observation-regime, signal-collection, automation]
+created: ${isoTimestamp}
+status: active
+---
+
+# Regime Change: ${description}
+
+## Change
+
+${description}
+
+## Expected Impact
+
+${impact}
+
+## Timestamp
+
+${isoTimestamp}
+
+## Prior Regime
+
+${prior}
+`;
+
+  fs.writeFileSync(filePath, content);
+
+  // Attempt to rebuild KB index
+  try {
+    const projectLocalScript = path.join(cwd, 'get-shit-done', 'bin', 'kb-rebuild-index.sh');
+    const globalScript = path.join(require('os').homedir(), '.gsd', 'bin', 'kb-rebuild-index.sh');
+    let rebuildScript = null;
+    if (fs.existsSync(projectLocalScript)) {
+      rebuildScript = projectLocalScript;
+    } else if (fs.existsSync(globalScript)) {
+      rebuildScript = globalScript;
+    }
+    if (rebuildScript) {
+      execSync(`bash "${rebuildScript}"`, { cwd: cwd, timeout: 10000, stdio: 'pipe' });
+    }
+  } catch (e) {
+    // Non-blocking: warn but don't fail
+    process.stderr.write(`Warning: KB index rebuild failed: ${e.message}\n`);
+  }
+
+  output({ written: true, path: filePath, id: entryId }, raw);
+}
+
 // ─── Sensors ──────────────────────────────────────────────────────────────────
 
 function cmdSensorsList(cwd, raw) {
@@ -5867,8 +6050,36 @@ async function main() {
         const event = args[3];
         const reason = args[4] || undefined;
         cmdAutomationTrackEvent(cwd, feature, event, reason, raw);
+      } else if (subcommand === 'lock') {
+        const feature = args[2];
+        const sourceIdx = args.indexOf('--source');
+        const ttlIdx = args.indexOf('--ttl');
+        const options = {
+          source: sourceIdx !== -1 ? args[sourceIdx + 1] : undefined,
+          ttl: ttlIdx !== -1 ? parseInt(args[ttlIdx + 1], 10) : undefined,
+        };
+        cmdAutomationLock(cwd, feature, options, raw);
+      } else if (subcommand === 'unlock') {
+        const feature = args[2];
+        cmdAutomationUnlock(cwd, feature, raw);
+      } else if (subcommand === 'check-lock') {
+        const feature = args[2];
+        const ttlIdx = args.indexOf('--ttl');
+        const options = {
+          ttl: ttlIdx !== -1 ? parseInt(args[ttlIdx + 1], 10) : undefined,
+        };
+        cmdAutomationCheckLock(cwd, feature, options, raw);
+      } else if (subcommand === 'regime-change') {
+        const desc = args[2];
+        const impactIdx = args.indexOf('--impact');
+        const priorIdx = args.indexOf('--prior');
+        const options = {
+          impact: impactIdx !== -1 ? args[impactIdx + 1] : 'Not assessed',
+          prior: priorIdx !== -1 ? args[priorIdx + 1] : 'Not recorded',
+        };
+        cmdAutomationRegimeChange(cwd, desc, options, raw);
       } else {
-        error('Unknown automation subcommand. Available: resolve-level, track-event');
+        error('Unknown automation subcommand. Available: resolve-level, track-event, lock, unlock, check-lock, regime-change');
       }
       break;
     }

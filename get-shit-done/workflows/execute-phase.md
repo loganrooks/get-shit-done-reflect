@@ -368,6 +368,127 @@ bash ~/.claude/get-shit-done/bin/reconcile-signal-lifecycle.sh "${PHASE_DIR}" 2>
 This programmatic reconciliation replaces agent-instruction-based lifecycle transitions, which were unreliable in long execution sequences.
 </step>
 
+<!-- SIG-01, SIG-02, SIG-04, SIG-05: auto-collection postlude -->
+<step name="auto_collect_signals">
+Auto-collect signals after successful phase execution. This is a workflow postlude --
+it runs as part of the orchestrator on all runtimes (Claude Code, OpenCode, Gemini CLI,
+Codex CLI), not as a hook. Cross-runtime compatibility is inherent because all runtimes
+read this workflow file.
+
+Only runs if verification passed (`passed` or `human_needed` that was approved).
+
+**1. Check reentrancy guard:**
+
+```bash
+LOCK_STATUS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation check-lock signal_collection --raw 2>/dev/null)
+```
+
+Parse `LOCK_STATUS`. If `locked: true` (and not stale): skip auto-collection silently.
+This prevents feedback loops if signal collection is already running (SIG-03).
+
+```bash
+# Track the skip
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event signal_collection skip "reentrancy"
+```
+
+**2. Resolve automation level:**
+
+```bash
+LEVEL=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation resolve-level signal_collection --context-pct {EST_CONTEXT_PCT} --raw 2>/dev/null)
+```
+
+Estimate context percentage using wave count as proxy:
+- Default: `min(40 + (WAVES_COMPLETED * 10), 80)`
+- 1-wave phase: ~50%, 2-wave: ~60%, 3-wave: ~70%, 4+: ~80%
+- This is approximate but functional. A static value of 40 would make SIG-05
+  deferral non-functional (40 < 60 threshold always). The wave-based proxy
+  ensures multi-wave phases trigger deferral appropriately.
+- See sig-2026-03-05-phase40-plan-gaps-pre-execution-review for analysis.
+
+Parse `LEVEL.effective` to determine behavior.
+
+**3. Branch on effective level:**
+
+| Level | Name | Behavior |
+|-------|------|----------|
+| 0 | manual | Skip entirely. Track: `track-event signal_collection skip "level-0"` |
+| 1 | nudge | Display nudge message and skip. Track: `track-event signal_collection skip "level-1"` |
+| 2 | prompt | Ask user "Collect signals for phase {PHASE_NUMBER}? [y/n]". If yes, proceed. If no, track skip. |
+| 3 | auto | Proceed to collection. |
+
+**Nudge message (level 1 or context-deferred):**
+```
+Signal collection available for phase {PHASE_NUMBER}.
+Run `/gsd:collect-signals {PHASE_NUMBER}` to collect signals.
+```
+
+**Context-deferred message (level 3 downgraded to 1 by resolve-level):**
+If `LEVEL.reasons` contains "context_deferred":
+```
+Context usage high. Signal collection deferred.
+Run `/gsd:collect-signals {PHASE_NUMBER}` in a fresh session.
+```
+
+**4. If proceeding (level 2 approved or level 3):**
+
+Acquire the reentrancy lock:
+```bash
+LOCK=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation lock signal_collection --source phase-completion --raw 2>/dev/null)
+```
+
+If `LOCK.locked` is true (another process acquired between check and lock -- race condition):
+skip and track `track-event signal_collection skip "lock-race"`.
+
+If lock acquired, invoke the collect-signals workflow for the current phase:
+
+```
+Follow the collect-signals.md workflow for phase {PADDED_PHASE}.
+This workflow handles:
+- Sensor discovery (auto-discovers gsd-*-sensor.md files including the CI sensor)
+- Parallel sensor spawning (SIG-02: CI sensor runs alongside artifact and git sensors)
+- Output collection and synthesis
+- KB persistence and index rebuild
+```
+
+The CI sensor inclusion (SIG-02) is automatic -- the collect-signals workflow uses
+auto-discovery, so any sensor agent spec matching `gsd-*-sensor.md` (including
+`gsd-ci-sensor.md`) is discovered and spawned in parallel.
+
+**5. Release lock, track event, and detect first-run:**
+
+After collection completes (success or failure), release the lock first:
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation unlock signal_collection --raw 2>/dev/null
+```
+
+On success, track the fire event and capture the returned stats:
+```bash
+FIRE_STATS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event signal_collection fire --raw 2>/dev/null)
+```
+
+On failure, still release lock but track as skip:
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event signal_collection skip "collection-error" --raw 2>/dev/null
+```
+
+**6. First-run regime change detection:**
+
+Parse `FIRE_STATS` from step 5 (the track-event fire response already contains the updated
+stats). Check if `stats.fires` is 1.
+
+IMPORTANT: Do NOT call `track-event fire` again here. Step 5 already incremented the
+counter. Calling it again would double-fire (0->1->2), making the `fires === 1` check
+always fail. See sig-2026-03-05-phase40-plan-gaps-pre-execution-review.
+
+If `fires` is 1 (first fire): write a regime_change entry:
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation regime-change "Auto-collection enabled" --impact "Signal count per phase expected to increase as automated detection catches issues previously missed" --prior "Manual /gsd:collect-signals invocation only" --raw 2>/dev/null
+```
+
+This step is best-effort -- failures do not block phase completion. If any command fails,
+log a warning and continue to update_roadmap.
+</step>
+
 <step name="update_roadmap">
 Mark phase complete in ROADMAP.md (date, status).
 

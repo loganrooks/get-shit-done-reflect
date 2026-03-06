@@ -1,12 +1,13 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-05T14:38:05Z
-**Total entries:** 108
+**Generated:** 2026-03-06T01:23:41Z
+**Total entries:** 109
 
-## Signals (107)
+## Signals (108)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-03-05-phase40-plan-gaps-pre-execution-review | get-shit-done-reflect | critical | detected | plan-accuracy,pre-execution-review,reentrancy,double-fire,output-corruption,context-estimation,test-coverage,phase-40 | "2026-03-05 | active |
 | sig-2026-03-05-undeclared-claude-dir-scope-creep-plan02 | get-shit-done-reflect | notable | detected | scope-creep,plan-accuracy,dual-directory | 2026-03-05 | active |
 | sig-2026-03-05-test-count-discrepancy-parallel-wave2 | get-shit-done-reflect | minor | detected | test-count,parallel-execution,wave-dependency | 2026-03-05 | active |
 | sig-2026-03-05-plan02-files-modified-omits-created-files | get-shit-done-reflect | minor | detected | plan-accuracy,frontmatter,files-modified | 2026-03-05 | active |
@@ -108,11 +109,11 @@
 | sig-2026-02-11-premature-spiking-no-research-gate | get-shit-done-reflect | notable | detected | spike-workflow,research-gate,workflow-ordering | 2026-02-11 | active |
 | sig-2026-02-11-spike-design-missing-feasibility | get-shit-done-reflect | notable | detected | spike-workflow,experimental-design,feasibility,template-gap | 2026-02-11 | active |
 |  |  | medium | detected | plan-quality,tdd,race-condition,human-intervention,workflow-improvement |  | open |
-| sig-2026-03-02-requirements-lack-motivation-traceability | get-shit-done-reflect | notable | detected | requirements,traceability,signal-lifecycle,template |  | detected |
 | SIG-260223-015 |  | notable | detected | planning,tdd,pitfall-mitigation |  | resolved |
 | SIG-260223-014 |  | notable | detected | heuristics,natural-language,complexity-detection |  | resolved |
 | SIG-260223-013 |  | notable | detected | testing,isolation,environment |  | open |
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
+| sig-2026-03-02-requirements-lack-motivation-traceability | get-shit-done-reflect | notable | detected | requirements,traceability,signal-lifecycle,template |  | detected |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | path-resolution,installer,source-repo,plan-spec-gap,auto-fix |  | active |
 
 ## Spikes (1)

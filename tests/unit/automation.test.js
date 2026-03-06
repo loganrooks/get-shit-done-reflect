@@ -626,3 +626,273 @@ describe('automation track-event', () => {
     })
   })
 })
+
+// ─── Lock / Unlock / Check-Lock Tests ─────────────────────────────────────────
+
+/**
+ * Helper: run an automation subcommand and return parsed JSON
+ */
+function runAutomation(tmpdir, subArgs) {
+  const quotedArgs = subArgs.map(a => a.includes(' ') ? `"${a}"` : a)
+  const result = execSync(`node "${GSD_TOOLS}" automation ${quotedArgs.join(' ')} --raw`, {
+    cwd: tmpdir,
+    encoding: 'utf-8',
+    timeout: 10000,
+    stdio: ['pipe', 'pipe', 'pipe'],
+  })
+  return JSON.parse(result.trim())
+}
+
+/**
+ * Helper: set up a tmpdir with .planning directory (and optionally config.json)
+ */
+async function setupLockProject(tmpdir) {
+  const planningDir = path.join(tmpdir, '.planning')
+  await fs.mkdir(planningDir, { recursive: true })
+  await fs.writeFile(
+    path.join(planningDir, 'config.json'),
+    JSON.stringify({ mode: 'yolo' }, null, 2)
+  )
+  return planningDir
+}
+
+describe('automation lock/unlock/check-lock', () => {
+  describe('lock acquisition', () => {
+    tmpdirTest('acquires lock when none exists', async ({ tmpdir }) => {
+      await setupLockProject(tmpdir)
+      const result = runAutomation(tmpdir, ['lock', 'signal_collection', '--source', 'phase-completion'])
+      expect(result.locked).toBe(false)
+      expect(result.acquired).toBe(true)
+
+      // Verify lockfile exists with correct content
+      const lockPath = path.join(tmpdir, '.planning', '.signal_collection.lock')
+      const lockContent = JSON.parse(await fs.readFile(lockPath, 'utf8'))
+      expect(lockContent.trigger_source).toBe('phase-completion')
+      expect(lockContent.pid).toBeTypeOf('number')
+      expect(lockContent.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+      expect(lockContent.ttl_seconds).toBe(300)
+    })
+
+    tmpdirTest('reports locked when active lock exists', async ({ tmpdir }) => {
+      await setupLockProject(tmpdir)
+      // First lock
+      runAutomation(tmpdir, ['lock', 'signal_collection', '--source', 'phase-completion'])
+      // Second lock attempt
+      const result = runAutomation(tmpdir, ['lock', 'signal_collection', '--source', 'manual'])
+      expect(result.locked).toBe(true)
+      expect(result.holder).toBeDefined()
+      expect(result.holder.trigger_source).toBe('phase-completion')
+      expect(result.age_seconds).toBeTypeOf('number')
+    })
+
+    tmpdirTest('removes stale lock and acquires', async ({ tmpdir }) => {
+      await setupLockProject(tmpdir)
+      // Create a lock file
+      const lockPath = path.join(tmpdir, '.planning', '.signal_collection.lock')
+      const lockContent = {
+        pid: 99999,
+        timestamp: new Date(Date.now() - 600000).toISOString(),
+        trigger_source: 'old-run',
+        ttl_seconds: 5,
+      }
+      await fs.writeFile(lockPath, JSON.stringify(lockContent))
+      // Backdate mtime to > TTL
+      const past = new Date(Date.now() - 600000)
+      fsSync.utimesSync(lockPath, past, past)
+
+      const result = runAutomation(tmpdir, ['lock', 'signal_collection', '--ttl', '1', '--source', 'new-run'])
+      expect(result.locked).toBe(false)
+      expect(result.acquired).toBe(true)
+      expect(result.stale_removed).toBe(true)
+      expect(result.stale_age_seconds).toBeGreaterThan(0)
+    })
+
+    tmpdirTest('includes trigger_source in lock content', async ({ tmpdir }) => {
+      await setupLockProject(tmpdir)
+      runAutomation(tmpdir, ['lock', 'signal_collection', '--source', 'phase-completion'])
+      const lockPath = path.join(tmpdir, '.planning', '.signal_collection.lock')
+      const lockContent = JSON.parse(await fs.readFile(lockPath, 'utf8'))
+      expect(lockContent.trigger_source).toBe('phase-completion')
+    })
+
+    tmpdirTest('defaults trigger_source to unknown when --source not provided', async ({ tmpdir }) => {
+      await setupLockProject(tmpdir)
+      runAutomation(tmpdir, ['lock', 'signal_collection'])
+      const lockPath = path.join(tmpdir, '.planning', '.signal_collection.lock')
+      const lockContent = JSON.parse(await fs.readFile(lockPath, 'utf8'))
+      expect(lockContent.trigger_source).toBe('unknown')
+    })
+
+    tmpdirTest('normalizes hyphenated feature name', async ({ tmpdir }) => {
+      await setupLockProject(tmpdir)
+      runAutomation(tmpdir, ['lock', 'signal-collection', '--source', 'test'])
+      const lockPath = path.join(tmpdir, '.planning', '.signal_collection.lock')
+      const exists = fsSync.existsSync(lockPath)
+      expect(exists).toBe(true)
+    })
+  })
+
+  describe('unlock', () => {
+    tmpdirTest('releases existing lock', async ({ tmpdir }) => {
+      await setupLockProject(tmpdir)
+      runAutomation(tmpdir, ['lock', 'signal_collection', '--source', 'test'])
+      const result = runAutomation(tmpdir, ['unlock', 'signal_collection'])
+      expect(result.released).toBe(true)
+
+      // Verify file removed
+      const lockPath = path.join(tmpdir, '.planning', '.signal_collection.lock')
+      expect(fsSync.existsSync(lockPath)).toBe(false)
+    })
+
+    tmpdirTest('reports no lock found when none exists', async ({ tmpdir }) => {
+      await setupLockProject(tmpdir)
+      const result = runAutomation(tmpdir, ['unlock', 'signal_collection'])
+      expect(result.released).toBe(false)
+      expect(result.reason).toBe('no_lock_found')
+    })
+  })
+
+  describe('check-lock', () => {
+    tmpdirTest('reports unlocked when no lock exists', async ({ tmpdir }) => {
+      await setupLockProject(tmpdir)
+      const result = runAutomation(tmpdir, ['check-lock', 'signal_collection'])
+      expect(result.locked).toBe(false)
+    })
+
+    tmpdirTest('reports locked when lock exists', async ({ tmpdir }) => {
+      await setupLockProject(tmpdir)
+      runAutomation(tmpdir, ['lock', 'signal_collection', '--source', 'test'])
+      const result = runAutomation(tmpdir, ['check-lock', 'signal_collection'])
+      expect(result.locked).toBe(true)
+      expect(result.stale).toBe(false)
+      expect(result.age_seconds).toBeTypeOf('number')
+      expect(result.holder).toBeDefined()
+      expect(result.holder.trigger_source).toBe('test')
+    })
+
+    tmpdirTest('reports stale when lock exceeds TTL', async ({ tmpdir }) => {
+      await setupLockProject(tmpdir)
+      // Create and backdate lock
+      const lockPath = path.join(tmpdir, '.planning', '.signal_collection.lock')
+      const lockContent = {
+        pid: 99999,
+        timestamp: new Date(Date.now() - 600000).toISOString(),
+        trigger_source: 'old-run',
+        ttl_seconds: 5,
+      }
+      await fs.writeFile(lockPath, JSON.stringify(lockContent))
+      const past = new Date(Date.now() - 600000)
+      fsSync.utimesSync(lockPath, past, past)
+
+      const result = runAutomation(tmpdir, ['check-lock', 'signal_collection', '--ttl', '1'])
+      expect(result.locked).toBe(true)
+      expect(result.stale).toBe(true)
+      expect(result.age_seconds).toBeGreaterThan(0)
+    })
+  })
+})
+
+// ─── Regime Change Tests ────────────────────────────────────────────────────
+
+describe('automation regime-change', () => {
+  tmpdirTest('writes regime_change entry to KB signals directory', async ({ tmpdir }) => {
+    // Set up project with .planning/knowledge/
+    const planningDir = path.join(tmpdir, '.planning')
+    await fs.mkdir(path.join(planningDir, 'knowledge'), { recursive: true })
+    await fs.writeFile(
+      path.join(planningDir, 'config.json'),
+      JSON.stringify({ mode: 'yolo' }, null, 2)
+    )
+
+    const result = runAutomation(tmpdir, [
+      'regime-change', 'Auto-collection enabled',
+      '--impact', 'More signals',
+      '--prior', 'Manual only'
+    ])
+
+    expect(result.written).toBe(true)
+    expect(result.id).toMatch(/^regime-\d{4}-\d{2}-\d{2}-.+$/)
+    expect(result.path).toContain('signals/')
+
+    // Verify file content
+    const content = await fs.readFile(result.path, 'utf8')
+    expect(content).toContain('type: regime_change')
+    expect(content).toContain('tags: [observation-regime, signal-collection, automation]')
+    expect(content).toContain('## Change')
+    expect(content).toContain('Auto-collection enabled')
+    expect(content).toContain('## Expected Impact')
+    expect(content).toContain('More signals')
+    expect(content).toContain('## Prior Regime')
+    expect(content).toContain('Manual only')
+  })
+
+  tmpdirTest('uses project-local KB path when available', async ({ tmpdir }) => {
+    const planningDir = path.join(tmpdir, '.planning')
+    await fs.mkdir(path.join(planningDir, 'knowledge'), { recursive: true })
+    await fs.writeFile(
+      path.join(planningDir, 'config.json'),
+      JSON.stringify({ mode: 'yolo' }, null, 2)
+    )
+
+    const result = runAutomation(tmpdir, [
+      'regime-change', 'Test entry',
+      '--impact', 'None',
+      '--prior', 'None'
+    ])
+
+    expect(result.written).toBe(true)
+    // Path should be under .planning/knowledge/signals/
+    expect(result.path).toContain(path.join('.planning', 'knowledge', 'signals'))
+  })
+
+  tmpdirTest('generates valid ID format', async ({ tmpdir }) => {
+    const planningDir = path.join(tmpdir, '.planning')
+    await fs.mkdir(path.join(planningDir, 'knowledge'), { recursive: true })
+    await fs.writeFile(
+      path.join(planningDir, 'config.json'),
+      JSON.stringify({ mode: 'yolo' }, null, 2)
+    )
+
+    const result = runAutomation(tmpdir, [
+      'regime-change', 'Test description for ID validation'
+    ])
+
+    expect(result.id).toMatch(/^regime-\d{4}-\d{2}-\d{2}-[a-z0-9-]+$/)
+    // ID slug should be truncated to 40 chars
+    const slug = result.id.replace(/^regime-\d{4}-\d{2}-\d{2}-/, '')
+    expect(slug.length).toBeLessThanOrEqual(40)
+  })
+
+  tmpdirTest('creates directory structure if not exists', async ({ tmpdir }) => {
+    const planningDir = path.join(tmpdir, '.planning')
+    // Only create .planning, NOT .planning/knowledge
+    await fs.mkdir(planningDir, { recursive: true })
+    await fs.writeFile(
+      path.join(planningDir, 'config.json'),
+      JSON.stringify({ mode: 'yolo' }, null, 2)
+    )
+
+    const result = runAutomation(tmpdir, [
+      'regime-change', 'First regime change'
+    ])
+
+    expect(result.written).toBe(true)
+    // File should exist even though knowledge/signals/ didn't exist before
+    const exists = fsSync.existsSync(result.path)
+    expect(exists).toBe(true)
+  })
+
+  tmpdirTest('defaults impact and prior when not provided', async ({ tmpdir }) => {
+    const planningDir = path.join(tmpdir, '.planning')
+    await fs.mkdir(path.join(planningDir, 'knowledge'), { recursive: true })
+    await fs.writeFile(
+      path.join(planningDir, 'config.json'),
+      JSON.stringify({ mode: 'yolo' }, null, 2)
+    )
+
+    const result = runAutomation(tmpdir, ['regime-change', 'Minimal entry'])
+    const content = await fs.readFile(result.path, 'utf8')
+    expect(content).toContain('Not assessed')
+    expect(content).toContain('Not recorded')
+  })
+})
