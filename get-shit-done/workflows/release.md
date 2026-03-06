@@ -122,6 +122,13 @@ node -p "require('./package.json').version"
 ```
 
 The output must match `NEW_VERSION`. If it does not, abort with an error.
+
+Then stamp the version into the config template:
+```bash
+node scripts/stamp-version.js
+```
+
+This ensures the template's `gsd_reflect_version` matches the new version before the release commit.
 </step>
 
 <step name="update-changelog">
@@ -151,7 +158,7 @@ If the unreleased content is empty (no changes listed between `[Unreleased]` and
 
 Stage the modified files:
 ```bash
-git add package.json CHANGELOG.md
+git add package.json CHANGELOG.md get-shit-done/templates/config.json
 ```
 
 Create the release commit:

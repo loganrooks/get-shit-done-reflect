@@ -141,6 +141,7 @@ Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16
 | 014 | Update collect-signals.md rebuild_index to use project-local kb-rebuild-index.sh | 2026-03-05 | ae40d86 | [14-update-collect-signals-md-to-use-plannin](./quick/14-update-collect-signals-md-to-use-plannin/) |
 | 015 | Cross-runtime parity testing: glob hook discovery, name parity, Gemini tool names, hook registration sync | 2026-03-05 | d1f2e2f | [15-implement-cross-runtime-parity-testing-o](./quick/15-implement-cross-runtime-parity-testing-o/) |
 | 016 | Auto-run hooks build in installer if hooks/dist/ missing | 2026-03-06 | 76c0175 | [16-auto-run-hooks-build-in-installer-if-hoo](./quick/16-auto-run-hooks-build-in-installer-if-hoo/) |
+| 017 | Fix stale gsd_reflect_version in config template (1.13.0 -> 1.16.0), add stamp-version.js automation | 2026-03-06 | 52411c9 | [17-fix-stale-gsd-reflect-version-in-config-](./quick/17-fix-stale-gsd-reflect-version-in-config-/) |
 
 ### Roadmap Evolution
 
