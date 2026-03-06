@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.17 Automation Loop -- Phase 40 complete, Phase 41 next
+**Current focus:** Phase 44 GSDR Namespace Co-Installation
 
 ## Current Position
 
-Phase: 40 of 43 (Signal Collection Automation)
-Plan: 2 of 2 in current phase
-Status: Phase Complete
-Last activity: 2026-03-06 - Completed quick task 18: Fix +dev suffix for git repo installs
+Phase: 44 (GSDR Namespace Co-Installation)
+Plan: 1 of 3 in current phase
+Status: Plan 01 Complete
+Last activity: 2026-03-06 - Completed 44-01: Install path namespace rewriting
 
 Progress: [█████████░] 90%
 
@@ -77,6 +77,11 @@ Progress: [█████████░] 90%
 | 40 | 01 | 8min | 3 | 4 |
 | 40 | 02 | 4min | 2 | 3 |
 
+**Phase 44:**
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 44 | 01 | 14min | 3 | 4 |
+
 ## Accumulated Context
 
 ### Decisions
@@ -105,6 +110,8 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 39]: Cache staleness threshold 1 hour; only show CI FAIL for conclusion=failure (not cancelled/skipped)
 - [Phase 40]: Lock stale detection uses file mtime comparison, single JSON output per invocation
 - [Phase 40]: Postlude pattern (workflow step) instead of hook-based triggering for cross-runtime signal auto-collection
+- [Phase 44]: Install-time namespace rewriting via replacePathsInContent() Pass 3a-3d; (?!tools) lookahead protects gsd-tools.js
+- [Phase 44]: Uninstall handles both gsdr-* and gsd-* patterns for upgrade path
 
 ### Pending Todos
 
@@ -147,6 +154,7 @@ Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16
 ### Roadmap Evolution
 
 v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phases 13-21). v1.15 complete (Phases 22-30). v1.16 complete (Phases 31-35). All 5 milestones shipped, 105 plans completed. v1.17 roadmap created (Phases 36-43, 18 plans estimated).
+- Phase 44 added: GSDR Namespace Co-Installation (install-time namespace rewriting for co-installation with upstream GSD)
 
 ### Key Artifacts
 
@@ -163,6 +171,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Phase 40 complete. Quick tasks 17-18 (version stamp fix, +dev suffix).
+Stopped at: Completed 44-01-PLAN.md (install path namespace rewriting). Plans 02-03 remain.
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
