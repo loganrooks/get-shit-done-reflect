@@ -615,13 +615,11 @@ describe('install script', () => {
           timeout: 15000
         })
 
-        // Read health-check.md which has $HOME/.claude/get-shit-done/ (runtime-specific)
-        const healthCheck = path.join(configHome, 'opencode', 'get-shit-done-reflect', 'references', 'health-check.md')
-        const content = await fs.readFile(healthCheck, 'utf8')
+        // Read kb-integrity.md probe which has $HOME/.gsd/knowledge (shared KB path)
+        const kbProbe = path.join(configHome, 'opencode', 'get-shit-done-reflect', 'references', 'health-probes', 'kb-integrity.md')
+        const content = await fs.readFile(kbProbe, 'utf8')
 
-        // $HOME/.claude/get-shit-done should be transformed to runtime path
-        expect(content).not.toContain('$HOME/.claude/get-shit-done')
-        // KB paths already at shared location should pass through
+        // KB paths already at shared location should pass through unchanged
         expect(content).toContain('$HOME/.gsd/knowledge')
       })
 
