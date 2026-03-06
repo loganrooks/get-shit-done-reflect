@@ -1633,4 +1633,141 @@ Also use the Read tool to read files and Bash to run commands.`
       expect(errors.every(line => !line.includes('Hint:'))).toBe(true);
     });
   });
+
+  describe('upgrade path: gsd to gsdr namespace', () => {
+    const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+    tmpdirTest('upgrade removes old gsd-namespaced dirs and installs gsdr-namespaced', async ({ tmpdir }) => {
+      // Pre-populate with old gsd-namespaced structure
+      const claudeDir = path.join(tmpdir, '.claude')
+      const oldGsdDir = path.join(claudeDir, 'get-shit-done')
+      const oldCmdDir = path.join(claudeDir, 'commands', 'gsd')
+      const oldAgentsDir = path.join(claudeDir, 'agents')
+
+      fsSync.mkdirSync(oldGsdDir, { recursive: true })
+      fsSync.mkdirSync(oldCmdDir, { recursive: true })
+      fsSync.mkdirSync(oldAgentsDir, { recursive: true })
+      fsSync.writeFileSync(path.join(oldGsdDir, 'VERSION'), '1.16.0')
+      fsSync.writeFileSync(path.join(oldCmdDir, 'help.md'), '# old')
+      fsSync.writeFileSync(path.join(oldAgentsDir, 'gsd-executor.md'), '# old')
+
+      // Run upgrade install
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      // New gsdr-namespaced dirs exist
+      expect(fsSync.existsSync(path.join(claudeDir, 'get-shit-done-reflect', 'VERSION'))).toBe(true)
+      expect(fsSync.existsSync(path.join(claudeDir, 'commands', 'gsdr'))).toBe(true)
+
+      // Old gsd-namespaced dirs removed
+      expect(fsSync.existsSync(oldGsdDir)).toBe(false)
+      expect(fsSync.existsSync(oldCmdDir)).toBe(false)
+
+      // Old agents cleaned, new agents present
+      const agentFiles = fsSync.readdirSync(oldAgentsDir)
+      expect(agentFiles.filter(f => f.startsWith('gsd-') && f.endsWith('.md')).length).toBe(0)
+      expect(agentFiles.filter(f => f.startsWith('gsdr-') && f.endsWith('.md')).length).toBeGreaterThan(0)
+    })
+
+    tmpdirTest('fresh install has no old gsd dirs', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const claudeDir = path.join(tmpdir, '.claude')
+      expect(fsSync.existsSync(path.join(claudeDir, 'get-shit-done-reflect', 'VERSION'))).toBe(true)
+      expect(fsSync.existsSync(path.join(claudeDir, 'get-shit-done'))).toBe(false)
+      expect(fsSync.existsSync(path.join(claudeDir, 'commands', 'gsd'))).toBe(false)
+    })
+  })
+
+  describe('installed content namespace verification', () => {
+    const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+    tmpdirTest('installed agents have gsdr- subagent_types, not stale gsd-', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const agentsDir = path.join(tmpdir, '.claude', 'agents')
+      const files = fsSync.readdirSync(agentsDir).filter(f => f.endsWith('.md'))
+
+      for (const file of files) {
+        const content = fsSync.readFileSync(path.join(agentsDir, file), 'utf8')
+        const staleMatches = content.match(/subagent_type[=:]\s*"?gsd-(?!tools)/g)
+        expect(staleMatches, `${file} has stale gsd- subagent_type`).toBeNull()
+      }
+    })
+
+    tmpdirTest('installed workflows use /gsdr: commands', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const workflowsDir = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'workflows')
+      const files = fsSync.readdirSync(workflowsDir).filter(f => f.endsWith('.md'))
+
+      for (const file of files) {
+        const content = fsSync.readFileSync(path.join(workflowsDir, file), 'utf8')
+        const staleCommands = content.match(/\/gsd:/g)
+        expect(staleCommands, `${file} has stale /gsd: refs`).toBeNull()
+      }
+    })
+
+    tmpdirTest('installed files preserve gsd-tools.js filename', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const workflowsDir = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'workflows')
+      const files = fsSync.readdirSync(workflowsDir).filter(f => f.endsWith('.md'))
+
+      let foundGsdTools = false
+      for (const file of files) {
+        const content = fsSync.readFileSync(path.join(workflowsDir, file), 'utf8')
+        if (content.includes('gsd-tools')) {
+          foundGsdTools = true
+          expect(content, `${file} incorrectly rewrote gsd-tools`).not.toContain('gsdr-tools')
+        }
+      }
+      expect(foundGsdTools, 'At least one workflow should reference gsd-tools.js').toBe(true)
+    })
+
+    tmpdirTest('installed hooks have gsdr- prefix and correct paths', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const hooksDir = path.join(tmpdir, '.claude', 'hooks')
+      const hookFiles = fsSync.readdirSync(hooksDir).filter(f => f.endsWith('.js'))
+
+      expect(hookFiles.filter(f => f.startsWith('gsdr-')).length).toBeGreaterThanOrEqual(1)
+      expect(hookFiles.filter(f => f.startsWith('gsd-')).length, 'Old gsd-* hooks should not exist').toBe(0)
+
+      for (const hook of hookFiles.filter(f => f.startsWith('gsdr-'))) {
+        const content = fsSync.readFileSync(path.join(hooksDir, hook), 'utf8')
+        const staleRefs = content.match(/get-shit-done\/(?!reflect)/g)
+        expect(staleRefs, `${hook} has stale get-shit-done/ refs`).toBeNull()
+      }
+    })
+  })
 })
