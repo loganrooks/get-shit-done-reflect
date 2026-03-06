@@ -147,13 +147,13 @@ Plans:
   4. Reactive health check triggers on fresh session start when health score drops below configurable threshold
   5. Health check verifies automation system is functioning by checking `last_triggered` timestamps against expected cadence
   6. Health check detects rogue files -- artifacts that don't match expected directory patterns or persist beyond their workflow lifecycle -- and extracts creation context via git log to categorize them as agent-ignorance (system has a place, agent didn't know) or workflow-gap (no formal place exists)
-**Plans**: 2 plans
+**Plans**: 4 plans
 
 Plans:
-- [ ] 41-01: Health score model -- infrastructure and workflow dimensions with weighted signal accumulation
-- [ ] 41-02: Health display (statusline traffic light with caveat) and auto-trigger wiring (session start, per-phase)
-- [ ] 41-03: Reactive triggers, automation watchdog, signal-to-resolution ratio, and signal density trend
-- [ ] 41-04: Rogue file detection with pattern registry, lifecycle awareness, and context extraction
+- [ ] 41-01: Probe files (6 migrated infra checks), health-scoring.md reference, feature-manifest.json expansion
+- [ ] 41-02: health-probe gsd-tools.js subcommand, workflow-dimension probes, and refactored health-check workflow
+- [ ] 41-03: SessionStart hook, statusline health traffic light, and execute-phase health check postlude
+- [ ] 41-04: Rogue file detection probe and rogue context extraction agent probe
 
 ### Phase 42: Reflection Automation
 **Goal**: Reflection triggers automatically after a configurable number of phases, with lesson confidence evolving through evidence rather than remaining static labels
@@ -218,9 +218,9 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43 ->
 | 37. Automation Framework | 3/3 | Complete | 2026-03-03 |
 | 38. Extensible Sensor Architecture | 2/2 | Complete | 2026-03-04 |
 | 38.1. Project-Local Knowledge Base | 3/3 | Complete | 2026-03-05 |
-| 39. CI Awareness | 0/2 | Not started | - |
-| 40. Signal Collection Automation | 0/2 | Not started | - |
-| 41. Health Score & Automation | 0/3 | Not started | - |
+| 39. CI Awareness | 2/2 | Complete | 2026-03-05 |
+| 40. Signal Collection Automation | 2/2 | Complete | 2026-03-06 |
+| 41. Health Score & Automation | 0/4 | Not started | - |
 | 42. Reflection Automation | 0/2 | Not started | - |
 | 43. Plan Intelligence & Templates | 0/2 | Not started | - |
 | 44. GSDR Namespace Co-Installation | 3/3 | Complete | 2026-03-06 |
