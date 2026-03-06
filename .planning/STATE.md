@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 Phase: 40 of 43 (Signal Collection Automation)
 Plan: 2 of 2 in current phase
 Status: Phase Complete
-Last activity: 2026-03-06 - Completed 40-02: Auto-collection postlude integration
+Last activity: 2026-03-06 - Completed quick task 18: Fix +dev suffix for git repo installs
 
 Progress: [█████████░] 90%
 
@@ -162,6 +162,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Phase 40 executed and verified (7/7 must-haves). Next: Phase 41.
+Stopped at: Phase 40 complete. Quick tasks 17-18 (version stamp fix, +dev suffix).
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
