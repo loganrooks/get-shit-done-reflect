@@ -1349,6 +1349,7 @@ function cleanupOrphanedFiles(configDir) {
     'hooks/gsd-check-update.js',   // Renamed to gsdr-check-update.js
     'hooks/gsd-version-check.js',  // Renamed to gsdr-version-check.js
     'hooks/gsd-ci-status.js',      // Renamed to gsdr-ci-status.js
+    'hooks/gsd-health-check.js',   // Renamed to gsdr-health-check.js
   ];
 
   for (const relPath of orphanedFiles) {
@@ -1374,6 +1375,7 @@ function cleanupOrphanedHooks(settings) {
     'gsd-check-update.js',     // Renamed to gsdr-check-update.js
     'gsd-version-check.js',    // Renamed to gsdr-version-check.js
     'gsd-ci-status.js',        // Renamed to gsdr-ci-status.js
+    'gsd-health-check.js',     // Renamed to gsdr-health-check.js
   ];
 
   let cleanedHooks = false;
@@ -1598,8 +1600,8 @@ function uninstall(isGlobal, runtime = 'claude') {
     const hooksDir = path.join(targetDir, 'hooks');
     if (fs.existsSync(hooksDir)) {
       const gsdHooks = [
-        'gsdr-statusline.js', 'gsdr-check-update.js', 'gsdr-version-check.js', 'gsdr-ci-status.js',
-        'gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js', 'gsd-ci-status.js'
+        'gsdr-statusline.js', 'gsdr-check-update.js', 'gsdr-version-check.js', 'gsdr-ci-status.js', 'gsdr-health-check.js',
+        'gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js', 'gsd-ci-status.js', 'gsd-health-check.js'
       ];
       let hookCount = 0;
       for (const hook of gsdHooks) {
@@ -1638,8 +1640,8 @@ function uninstall(isGlobal, runtime = 'claude') {
           // Filter out GSD hooks
           const hasGsdHook = entry.hooks.some(h =>
             h.command && (
-              h.command.includes('gsdr-check-update') || h.command.includes('gsdr-statusline') || h.command.includes('gsdr-version-check') || h.command.includes('gsdr-ci-status') ||
-              h.command.includes('gsd-check-update') || h.command.includes('gsd-statusline') || h.command.includes('gsd-version-check') || h.command.includes('gsd-ci-status')
+              h.command.includes('gsdr-check-update') || h.command.includes('gsdr-statusline') || h.command.includes('gsdr-version-check') || h.command.includes('gsdr-ci-status') || h.command.includes('gsdr-health-check') ||
+              h.command.includes('gsd-check-update') || h.command.includes('gsd-statusline') || h.command.includes('gsd-version-check') || h.command.includes('gsd-ci-status') || h.command.includes('gsd-health-check')
             )
           );
           return !hasGsdHook;
@@ -2382,6 +2384,9 @@ function install(isGlobal, runtime = 'claude') {
   const ciStatusCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-ci-status.js')
     : 'node ' + dirName + '/hooks/gsdr-ci-status.js';
+  const healthCheckCommand = isGlobal
+    ? buildHookCommand(targetDir, 'gsdr-health-check.js')
+    : 'node ' + dirName + '/hooks/gsdr-health-check.js';
 
   // Enable experimental agents for Gemini CLI (required for custom sub-agents)
   if (isGemini) {
@@ -2449,6 +2454,22 @@ function install(isGlobal, runtime = 'claude') {
         ]
       });
       console.log(`  ${green}✓${reset} Configured CI status hook`);
+    }
+
+    const hasGsdHealthHook = settings.hooks.SessionStart.some(entry =>
+      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-health-check'))
+    );
+
+    if (!hasGsdHealthHook) {
+      settings.hooks.SessionStart.push({
+        hooks: [
+          {
+            type: 'command',
+            command: healthCheckCommand
+          }
+        ]
+      });
+      console.log(`  ${green}+${reset} Configured health check hook`);
     }
   }
 
