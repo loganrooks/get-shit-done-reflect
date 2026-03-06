@@ -49,7 +49,7 @@
   },
   "scripts": {
     "build:hooks": "node scripts/build-hooks.js",
-    "prepublishOnly": "npm run build:hooks",
+    "prepublishOnly": "node scripts/stamp-version.js && npm run build:hooks",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
