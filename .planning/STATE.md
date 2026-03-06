@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 41 (Health Score & Automation)
-Plan: 3 of 4 in current phase
-Status: Executing
-Last activity: 2026-03-06 - Completed 41-03-PLAN.md (session hooks, statusline, and workflow integration)
+Plan: 4 of 4 in current phase (COMPLETE)
+Status: Phase Complete
+Last activity: 2026-03-06 - Completed 41-04-PLAN.md (rogue file detection and context extraction probes)
 
 Progress: [███████░░░] 78% (7/9 phases: 36, 37, 38, 38.1, 39, 40, 44 done — 41, 42, 43 remaining)
 
@@ -90,6 +90,7 @@ Progress: [███████░░░] 78% (7/9 phases: 36, 37, 38, 38.1, 39
 | 41 | 01 | 3min | 3 | 8 |
 | 41 | 02 | 9min | 2 | 8 |
 | 41 | 03 | 4min | 3 | 4 |
+| 41 | 04 | 2min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -129,6 +130,8 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 41]: Regime boundary resolution: no regime_change entries means all signal history is one regime
 - [Phase 41]: H? is a passive indicator (marker-file pattern) -- hooks cannot invoke full health check workflow
 - [Phase 41]: Session dedup uses 1-hour threshold to prevent re-triggering on rapid session restarts
+- [Phase 41]: Generous allowlist approach for rogue detection -- expand registry on false positives rather than weakening detection
+- [Phase 41]: Rogue context probe is tier:full only -- git log queries are too slow for default health checks
 
 ### Pending Todos
 
@@ -189,6 +192,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 41-03-PLAN.md (session hooks, statusline, and workflow integration).
+Stopped at: Completed 41-04-PLAN.md (rogue file detection and context extraction probes). Phase 41 complete (4/4 plans).
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
