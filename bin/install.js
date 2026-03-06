@@ -1458,78 +1458,92 @@ function uninstall(isGlobal, runtime = 'claude') {
 
   let removedCount = 0;
 
-  // 1. Remove GSD commands directory
+  // Co-installation safety: only touch gsd namespace if it's a legacy Reflect install
+  const cleanLegacy = isLegacyReflectInstall(targetDir);
+
+  // 1. Remove GSDR commands (and legacy gsd commands only if from Reflect)
   if (isCodex) {
-    // Codex: remove skill directories (gsdr-*/SKILL.md, also gsd-* for upgrade path)
     const skillsDir = path.join(targetDir, 'skills');
     if (fs.existsSync(skillsDir)) {
       for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
-        if (entry.isDirectory() && (entry.name.startsWith('gsdr-') || entry.name.startsWith('gsd-'))) {
+        if (entry.isDirectory() && entry.name.startsWith('gsdr-')) {
+          fs.rmSync(path.join(skillsDir, entry.name), { recursive: true });
+          removedCount++;
+        } else if (cleanLegacy && entry.isDirectory() && entry.name.startsWith('gsd-')) {
           fs.rmSync(path.join(skillsDir, entry.name), { recursive: true });
           removedCount++;
         }
       }
       if (removedCount > 0) {
-        console.log(`  ${green}✓${reset} Removed GSD skills`);
+        console.log(`  ${green}✓${reset} Removed GSDR skills`);
       }
     }
   } else if (isOpencode) {
-    // OpenCode: remove command/gsdr-*.md files (also gsd-* for upgrade path)
     const commandDir = path.join(targetDir, 'command');
     if (fs.existsSync(commandDir)) {
       const files = fs.readdirSync(commandDir);
       for (const file of files) {
-        if ((file.startsWith('gsdr-') || file.startsWith('gsd-')) && file.endsWith('.md')) {
+        if (file.startsWith('gsdr-') && file.endsWith('.md')) {
+          fs.unlinkSync(path.join(commandDir, file));
+          removedCount++;
+        } else if (cleanLegacy && file.startsWith('gsd-') && file.endsWith('.md')) {
           fs.unlinkSync(path.join(commandDir, file));
           removedCount++;
         }
       }
-      console.log(`  ${green}✓${reset} Removed GSD commands from command/`);
+      console.log(`  ${green}✓${reset} Removed GSDR commands from command/`);
     }
   } else {
-    // Claude Code & Gemini: remove commands/gsdr/ directory (also commands/gsd/ for upgrade path)
+    // Claude Code & Gemini: remove commands/gsdr/ (and commands/gsd/ only if legacy Reflect)
     const gsdrCommandsDir = path.join(targetDir, 'commands', 'gsdr');
     if (fs.existsSync(gsdrCommandsDir)) {
       fs.rmSync(gsdrCommandsDir, { recursive: true });
       removedCount++;
       console.log(`  ${green}✓${reset} Removed commands/gsdr/`);
     }
-    const gsdCommandsDir = path.join(targetDir, 'commands', 'gsd');
-    if (fs.existsSync(gsdCommandsDir)) {
-      fs.rmSync(gsdCommandsDir, { recursive: true });
-      removedCount++;
-      console.log(`  ${green}✓${reset} Removed commands/gsd/ (upgrade cleanup)`);
+    if (cleanLegacy) {
+      const gsdCommandsDir = path.join(targetDir, 'commands', 'gsd');
+      if (fs.existsSync(gsdCommandsDir)) {
+        fs.rmSync(gsdCommandsDir, { recursive: true });
+        removedCount++;
+        console.log(`  ${green}✓${reset} Removed commands/gsd/ (legacy Reflect cleanup)`);
+      }
     }
   }
 
-  // 2. Remove get-shit-done-reflect directory (also get-shit-done for upgrade path)
+  // 2. Remove get-shit-done-reflect/ (and get-shit-done/ only if legacy Reflect)
   const gsdrDir = path.join(targetDir, 'get-shit-done-reflect');
   if (fs.existsSync(gsdrDir)) {
     fs.rmSync(gsdrDir, { recursive: true });
     removedCount++;
     console.log(`  ${green}✓${reset} Removed get-shit-done-reflect/`);
   }
-  const gsdDir = path.join(targetDir, 'get-shit-done');
-  if (fs.existsSync(gsdDir)) {
-    fs.rmSync(gsdDir, { recursive: true });
-    removedCount++;
-    console.log(`  ${green}✓${reset} Removed get-shit-done/ (upgrade cleanup)`);
+  if (cleanLegacy) {
+    const gsdDir = path.join(targetDir, 'get-shit-done');
+    if (fs.existsSync(gsdDir)) {
+      fs.rmSync(gsdDir, { recursive: true });
+      removedCount++;
+      console.log(`  ${green}✓${reset} Removed get-shit-done/ (legacy Reflect cleanup)`);
+    }
   }
 
-  // 3. Remove GSD agents (gsdr-*.md and gsd-*.md files) -- skip for Codex
+  // 3. Remove GSDR agents (and gsd-*.md only if legacy Reflect) -- skip for Codex
   const agentsDir = path.join(targetDir, 'agents');
   if (fs.existsSync(agentsDir) && !isCodex) {
     const files = fs.readdirSync(agentsDir);
     let agentCount = 0;
     for (const file of files) {
-      if ((file.startsWith('gsdr-') || file.startsWith('gsd-')) && file.endsWith('.md')) {
+      if (file.startsWith('gsdr-') && file.endsWith('.md')) {
+        fs.unlinkSync(path.join(agentsDir, file));
+        agentCount++;
+      } else if (cleanLegacy && file.startsWith('gsd-') && file.endsWith('.md')) {
         fs.unlinkSync(path.join(agentsDir, file));
         agentCount++;
       }
     }
     if (agentCount > 0) {
       removedCount++;
-      console.log(`  ${green}✓${reset} Removed ${agentCount} GSD agents`);
+      console.log(`  ${green}✓${reset} Removed ${agentCount} GSDR agents`);
     }
   }
 
@@ -1879,6 +1893,25 @@ const PATCHES_DIR_NAME = 'gsd-local-patches';
 const MANIFEST_NAME = 'gsd-file-manifest.json';
 
 /**
+ * Detect whether the gsd namespace in a config directory belongs to a pre-Phase-44
+ * GSD Reflect installation (safe to clean up) vs upstream GSD (must not touch).
+ *
+ * Detection: gsd-file-manifest.json is Reflect-only. If it exists and contains
+ * get-shit-done/ paths, this is a pre-Phase-44 Reflect install.
+ */
+function isLegacyReflectInstall(configDir) {
+  const manifestPath = path.join(configDir, MANIFEST_NAME);
+  if (!fs.existsSync(manifestPath)) return false;
+  try {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    // Pre-Phase-44 manifests have get-shit-done/ paths (not get-shit-done-reflect/)
+    return Object.keys(manifest.files || {}).some(f => f.startsWith('get-shit-done/'));
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Compute SHA256 hash of file contents
  */
 function fileHash(filePath) {
@@ -2201,10 +2234,13 @@ function install(isGlobal, runtime = 'claude') {
     const agentsDest = path.join(targetDir, 'agents');
     safeFs('mkdirSync', () => fs.mkdirSync(agentsDest, { recursive: true }), agentsDest);
 
-    // Remove old GSD agents (gsd-*.md for upgrade path, gsdr-*.md for reinstall)
+    // Remove gsdr-*.md agents (our namespace). Only remove gsd-*.md if legacy Reflect install.
+    const cleanLegacyAgents = isLegacyReflectInstall(targetDir);
     if (fs.existsSync(agentsDest)) {
       for (const file of fs.readdirSync(agentsDest)) {
-        if ((file.startsWith('gsd-') || file.startsWith('gsdr-')) && file.endsWith('.md')) {
+        if (file.startsWith('gsdr-') && file.endsWith('.md')) {
+          fs.unlinkSync(path.join(agentsDest, file));
+        } else if (cleanLegacyAgents && file.startsWith('gsd-') && file.endsWith('.md')) {
           fs.unlinkSync(path.join(agentsDest, file));
         }
       }
@@ -2306,16 +2342,19 @@ function install(isGlobal, runtime = 'claude') {
     process.exit(1);
   }
 
-  // Upgrade cleanup: remove old gsd-namespaced directories from pre-Phase-44 installs
-  const oldGsdDir = path.join(targetDir, 'get-shit-done');
-  if (fs.existsSync(oldGsdDir)) {
-    fs.rmSync(oldGsdDir, { recursive: true });
-    console.log(`  ${green}✓${reset} Removed old get-shit-done/ (upgrade cleanup)`);
-  }
-  const oldCommandsDir = path.join(targetDir, 'commands', 'gsd');
-  if (fs.existsSync(oldCommandsDir)) {
-    fs.rmSync(oldCommandsDir, { recursive: true });
-    console.log(`  ${green}✓${reset} Removed old commands/gsd/ (upgrade cleanup)`);
+  // Upgrade cleanup: only remove old gsd namespace if it's a pre-Phase-44 Reflect install.
+  // Never remove upstream GSD's namespace — co-installation must be preserved.
+  if (isLegacyReflectInstall(targetDir)) {
+    const oldGsdDir = path.join(targetDir, 'get-shit-done');
+    if (fs.existsSync(oldGsdDir)) {
+      fs.rmSync(oldGsdDir, { recursive: true });
+      console.log(`  ${green}✓${reset} Removed old get-shit-done/ (legacy Reflect upgrade)`);
+    }
+    const oldCommandsDir = path.join(targetDir, 'commands', 'gsd');
+    if (fs.existsSync(oldCommandsDir)) {
+      fs.rmSync(oldCommandsDir, { recursive: true });
+      console.log(`  ${green}✓${reset} Removed old commands/gsd/ (legacy Reflect upgrade)`);
+    }
   }
 
   // Codex: no settings.json, hooks, or statusline -- write manifest and return

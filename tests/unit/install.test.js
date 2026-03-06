@@ -1650,6 +1650,10 @@ Also use the Read tool to read files and Bash to run commands.`
       fsSync.writeFileSync(path.join(oldGsdDir, 'VERSION'), '1.16.0')
       fsSync.writeFileSync(path.join(oldCmdDir, 'help.md'), '# old')
       fsSync.writeFileSync(path.join(oldAgentsDir, 'gsd-executor.md'), '# old')
+      // Legacy Reflect installs have a manifest with get-shit-done/ paths
+      fsSync.writeFileSync(path.join(claudeDir, 'gsd-file-manifest.json'), JSON.stringify({
+        version: '1.15.0', files: { 'get-shit-done/VERSION': 'abc123' }
+      }))
 
       // Run upgrade install
       execSync(`node "${installScript}" --claude --global`, {
@@ -1685,6 +1689,47 @@ Also use the Read tool to read files and Bash to run commands.`
       expect(fsSync.existsSync(path.join(claudeDir, 'get-shit-done-reflect', 'VERSION'))).toBe(true)
       expect(fsSync.existsSync(path.join(claudeDir, 'get-shit-done'))).toBe(false)
       expect(fsSync.existsSync(path.join(claudeDir, 'commands', 'gsd'))).toBe(false)
+    })
+
+    tmpdirTest('co-installation preserves upstream GSD namespace', async ({ tmpdir }) => {
+      // Simulate upstream GSD already installed (no gsd-file-manifest.json)
+      const claudeDir = path.join(tmpdir, '.claude')
+      const upstreamGsdDir = path.join(claudeDir, 'get-shit-done')
+      const upstreamCmdDir = path.join(claudeDir, 'commands', 'gsd')
+      const agentsDir = path.join(claudeDir, 'agents')
+
+      fsSync.mkdirSync(upstreamGsdDir, { recursive: true })
+      fsSync.mkdirSync(upstreamCmdDir, { recursive: true })
+      fsSync.mkdirSync(agentsDir, { recursive: true })
+      fsSync.writeFileSync(path.join(upstreamGsdDir, 'VERSION'), '2.0.0')
+      fsSync.writeFileSync(path.join(upstreamCmdDir, 'help.md'), '# upstream GSD help')
+      fsSync.writeFileSync(path.join(agentsDir, 'gsd-executor.md'), '# upstream agent')
+
+      // Install GSD Reflect alongside upstream GSD
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      // GSDR namespace installed
+      expect(fsSync.existsSync(path.join(claudeDir, 'get-shit-done-reflect', 'VERSION'))).toBe(true)
+      expect(fsSync.existsSync(path.join(claudeDir, 'commands', 'gsdr'))).toBe(true)
+
+      // Upstream GSD namespace preserved (not deleted)
+      expect(fsSync.existsSync(upstreamGsdDir)).toBe(true)
+      expect(fsSync.readFileSync(path.join(upstreamGsdDir, 'VERSION'), 'utf8')).toBe('2.0.0')
+      expect(fsSync.existsSync(upstreamCmdDir)).toBe(true)
+      expect(fsSync.readFileSync(path.join(upstreamCmdDir, 'help.md'), 'utf8')).toBe('# upstream GSD help')
+
+      // Upstream agents preserved
+      expect(fsSync.existsSync(path.join(agentsDir, 'gsd-executor.md'))).toBe(true)
+      expect(fsSync.readFileSync(path.join(agentsDir, 'gsd-executor.md'), 'utf8')).toBe('# upstream agent')
+
+      // GSDR agents also present
+      const agentFiles = fsSync.readdirSync(agentsDir)
+      expect(agentFiles.filter(f => f.startsWith('gsdr-') && f.endsWith('.md')).length).toBeGreaterThan(0)
     })
   })
 
