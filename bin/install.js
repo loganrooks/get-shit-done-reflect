@@ -1345,6 +1345,10 @@ function cleanupOrphanedFiles(configDir) {
   const orphanedFiles = [
     'hooks/gsd-notify.sh',  // Removed in v1.6.x
     'hooks/statusline.js',  // Renamed to gsd-statusline.js in v1.9.0
+    'hooks/gsd-statusline.js',     // Renamed to gsdr-statusline.js (co-installation namespace)
+    'hooks/gsd-check-update.js',   // Renamed to gsdr-check-update.js
+    'hooks/gsd-version-check.js',  // Renamed to gsdr-version-check.js
+    'hooks/gsd-ci-status.js',      // Renamed to gsdr-ci-status.js
   ];
 
   for (const relPath of orphanedFiles) {
@@ -1366,6 +1370,10 @@ function cleanupOrphanedHooks(settings) {
     'gsd-intel-index.js',  // Removed in v1.9.2
     'gsd-intel-session.js',  // Removed in v1.9.2
     'gsd-intel-prune.js',  // Removed in v1.9.2
+    'gsd-statusline.js',       // Renamed to gsdr-statusline.js (co-installation namespace)
+    'gsd-check-update.js',     // Renamed to gsdr-check-update.js
+    'gsd-version-check.js',    // Renamed to gsdr-version-check.js
+    'gsd-ci-status.js',        // Renamed to gsdr-ci-status.js
   ];
 
   let cleanedHooks = false;
@@ -1439,7 +1447,7 @@ function uninstall(isGlobal, runtime = 'claude') {
   if (runtime === 'gemini') runtimeLabel = 'Gemini';
   if (runtime === 'codex') runtimeLabel = 'Codex CLI';
 
-  console.log(`  Uninstalling GSD from ${cyan}${runtimeLabel}${reset} at ${cyan}${locationLabel}${reset}\n`);
+  console.log(`  Uninstalling GSDR from ${cyan}${runtimeLabel}${reset} at ${cyan}${locationLabel}${reset}\n`);
 
   // Check if target directory exists
   if (!fs.existsSync(targetDir)) {
