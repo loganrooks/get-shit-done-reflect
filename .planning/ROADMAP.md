@@ -31,13 +31,13 @@ Research SUMMARY.md proposed 6 phases (Foundation Fix -> CI Awareness -> Plan In
 - [x] **Phase 36: Foundation Fix** - Restore CI trust by fixing the broken wiring test and preventing recurrence
 - [x] **Phase 37: Automation Framework** - Establish the unified automation level system that all auto-triggering features depend on
 - [x] **Phase 38: Extensible Sensor Architecture** - Build the sensor discovery and contract system so new sensors can be added without framework modification
-- [ ] **Phase 38.1: Project-Local Knowledge Base** - INSERTED: Migrate KB primary location to .planning/knowledge/ for version control and remote execution access
-- [ ] **Phase 39: CI Awareness** - Build the CI sensor under the extensible model and surface CI status at session start
+- [x] **Phase 38.1: Project-Local Knowledge Base** - INSERTED: Migrate KB primary location to .planning/knowledge/ for version control and remote execution access
+- [x] **Phase 39: CI Awareness** - Build the CI sensor under the extensible model and surface CI status at session start
 - [x] **Phase 40: Signal Collection Automation** - Auto-trigger signal collection after phase execution with reentrancy protection and cross-runtime fallback
 - [ ] **Phase 41: Health Score & Automation** - Compute and display health score, auto-trigger health checks, and track signal resolution metrics
 - [ ] **Phase 42: Reflection Automation** - Auto-trigger reflection after configurable phase count with confidence updates on lessons
 - [ ] **Phase 43: Plan Intelligence & Templates** - Semantic plan validation and template improvements for closed-loop traceability
-- [ ] **Phase 44: GSDR Namespace Co-Installation** - Install-time namespace rewriting so GSD Reflect installs to separate paths from upstream GSD
+- [x] **Phase 44: GSDR Namespace Co-Installation** - Install-time namespace rewriting so GSD Reflect installs to separate paths from upstream GSD
 
 ## Phase Details
 
@@ -116,8 +116,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 39-01-PLAN.md -- CI sensor agent spec with pre-flight, failure detection, graceful degradation (EXT-06 validation)
-- [ ] 39-02-PLAN.md -- Branch protection bypass, test regression detection, and SessionStart hook for CI status display
+- [x] 39-01-PLAN.md -- CI sensor agent spec with pre-flight, failure detection, graceful degradation (EXT-06 validation)
+- [x] 39-02-PLAN.md -- Branch protection bypass, test regression detection, and SessionStart hook for CI status display
 
 ### Phase 40: Signal Collection Automation
 **Goal**: Signal collection runs automatically after every phase execution without manual invocation, with reentrancy protection preventing feedback loops and cross-runtime fallback ensuring all 4 runtimes are covered
@@ -133,8 +133,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 40-01-PLAN.md -- Reentrancy lockfile commands, regime change KB entry command, and auto_collect manifest config
-- [ ] 40-02-PLAN.md -- Execute-phase postlude step wiring auto-collection with level branching, lock/unlock, and regime tracking
+- [x] 40-01-PLAN.md -- Reentrancy lockfile commands, regime change KB entry command, and auto_collect manifest config
+- [x] 40-02-PLAN.md -- Execute-phase postlude step wiring auto-collection with level branching, lock/unlock, and regime tracking
 
 ### Phase 41: Health Score & Automation
 **Goal**: Health is computed as a two-dimensional score (infrastructure + workflow), displayed as a traffic light in the statusline, and auto-triggered at session start and per-phase -- with signal resolution metrics tracking whether the automation loop is actually completing, and rogue file detection identifying artifacts that fall outside formal workflow structure
