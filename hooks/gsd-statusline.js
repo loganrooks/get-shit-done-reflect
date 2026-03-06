@@ -92,6 +92,43 @@ process.stdin.on('end', () => {
       } catch (e) {}
     }
 
+    // Health score traffic light from cached health check
+    let healthTag = '';
+    const healthCacheFile = path.join(homeDir, '.claude', 'cache', 'gsd-health-score.json');
+    if (fs.existsSync(healthCacheFile)) {
+      try {
+        const healthCache = JSON.parse(fs.readFileSync(healthCacheFile, 'utf8'));
+        const age = Math.floor(Date.now() / 1000) - (healthCache.checked || 0);
+        if (age < 86400) { // Less than 24 hours old
+          const composite = healthCache.composite;
+          if (composite === 'GREEN') {
+            healthTag = '\x1b[32mH\x1b[0m | ';
+          } else if (composite === 'YELLOW') {
+            healthTag = '\x1b[33mH!\x1b[0m | ';
+          } else if (composite === 'RED') {
+            healthTag = '\x1b[31mH!!\x1b[0m | ';
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Health check needed marker (from SessionStart hook)
+    // H? is a PASSIVE indicator -- it tells the user "run /gsd:health-check".
+    // The marker is cleaned up by the health check workflow's cleanup_marker step
+    // (Plan 02) after any health check run completes, at which point the statusline
+    // transitions from H? to H/H!/H!! based on the fresh cached score.
+    const healthMarkerFile = path.join(homeDir, '.claude', 'cache', 'gsd-health-check-needed');
+    if (fs.existsSync(healthMarkerFile)) {
+      try {
+        const marker = JSON.parse(fs.readFileSync(healthMarkerFile, 'utf8'));
+        const age = Math.floor(Date.now() / 1000) - (marker.requested || 0);
+        if (age < 3600) { // Marker less than 1 hour old
+          // Override health tag with "check needed" indicator
+          healthTag = '\x1b[33mH?\x1b[0m | ';
+        }
+      } catch (e) {}
+    }
+
     // Dev install indicator (VERSION file contains +dev suffix on local installs)
     let devTag = '';
     try {
@@ -142,9 +179,9 @@ process.stdin.on('end', () => {
     // Output
     const dirname = path.basename(dir);
     if (task) {
-      process.stdout.write(`${devTag}${gsdUpdate}${ciStatus}${autoTag}\x1b[2m${model}\x1b[0m │ \x1b[1m${task}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
+      process.stdout.write(`${devTag}${gsdUpdate}${ciStatus}${healthTag}${autoTag}\x1b[2m${model}\x1b[0m │ \x1b[1m${task}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
     } else {
-      process.stdout.write(`${devTag}${gsdUpdate}${ciStatus}${autoTag}\x1b[2m${model}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
+      process.stdout.write(`${devTag}${gsdUpdate}${ciStatus}${healthTag}${autoTag}\x1b[2m${model}\x1b[0m │ \x1b[2m${dirname}\x1b[0m${ctx}`);
     }
   } catch (e) {
     // Silent fail - don't break statusline on parse errors
