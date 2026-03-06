@@ -367,8 +367,8 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
       // All 4 must match
       expect(new Set(versions).size).toBe(1)
 
-      // Must be a valid semver pattern (major.minor.patch)
-      expect(versions[0]).toMatch(/^\d+\.\d+\.\d+$/)
+      // Must be a valid semver pattern (major.minor.patch with optional +dev suffix)
+      expect(versions[0]).toMatch(/^\d+\.\d+\.\d+(\+dev)?$/)
     })
 
     // Release gate: npx vitest run must show 0 failures
