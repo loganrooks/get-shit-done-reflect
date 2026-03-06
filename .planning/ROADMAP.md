@@ -20,11 +20,11 @@
 Decimal phases appear between their surrounding integers in numeric order.
 
 **Divergences from research recommendation:**
-Research SUMMARY.md proposed 6 phases (Foundation Fix → CI Awareness → Plan Intelligence → Health Check Wiring → Auto-Collection Loop → Auto-Reflection). This roadmap expands to 8 phases with two structural changes:
+Research SUMMARY.md proposed 6 phases (Foundation Fix -> CI Awareness -> Plan Intelligence -> Health Check Wiring -> Auto-Collection Loop -> Auto-Reflection). This roadmap expands to 8 phases with two structural changes:
 
 1. **Phase 37 (Automation Framework) inserted before CI work.** The 7 AUTO-* requirements define a coherent subsystem (unified levels, per-feature overrides, context-aware deferral, effective level display) that every subsequent auto-triggering phase references ("respecting automation level"). Building it once, early, prevents scattered config wiring across later phases and avoids the research's implicit assumption that automation config would be built incrementally alongside features.
 
-2. **Phase 38 (Extensible Sensor Architecture) separated from CI sensor.** Research bundled sensor architecture with the CI sensor in a single phase. But EXT-01 through EXT-07 define a framework (auto-discovery, contract, enable/disable, CLI observability, blind spots) that must exist before CI sensor is built under it — EXT-06 explicitly requires "built as first sensor under the new extensible model." Separating them validates the architecture before depending on it.
+2. **Phase 38 (Extensible Sensor Architecture) separated from CI sensor.** Research bundled sensor architecture with the CI sensor in a single phase. But EXT-01 through EXT-07 define a framework (auto-discovery, contract, enable/disable, CLI observability, blind spots) that must exist before CI sensor is built under it -- EXT-06 explicitly requires "built as first sensor under the new extensible model." Separating them validates the architecture before depending on it.
 
 ## Phases
 
@@ -37,6 +37,7 @@ Research SUMMARY.md proposed 6 phases (Foundation Fix → CI Awareness → Plan 
 - [ ] **Phase 41: Health Score & Automation** - Compute and display health score, auto-trigger health checks, and track signal resolution metrics
 - [ ] **Phase 42: Reflection Automation** - Auto-trigger reflection after configurable phase count with confidence updates on lessons
 - [ ] **Phase 43: Plan Intelligence & Templates** - Semantic plan validation and template improvements for closed-loop traceability
+- [ ] **Phase 44: GSDR Namespace Co-Installation** - Install-time namespace rewriting so GSD Reflect installs to separate paths from upstream GSD
 
 ## Phase Details
 
@@ -145,7 +146,7 @@ Plans:
   3. Health check auto-triggers at session start when frequency is `on-resume` and as an execute-phase workflow step when frequency is `every-phase`, with session dedup via timestamp
   4. Reactive health check triggers on fresh session start when health score drops below configurable threshold
   5. Health check verifies automation system is functioning by checking `last_triggered` timestamps against expected cadence
-  6. Health check detects rogue files — artifacts that don't match expected directory patterns or persist beyond their workflow lifecycle — and extracts creation context via git log to categorize them as agent-ignorance (system has a place, agent didn't know) or workflow-gap (no formal place exists)
+  6. Health check detects rogue files -- artifacts that don't match expected directory patterns or persist beyond their workflow lifecycle -- and extracts creation context via git log to categorize them as agent-ignorance (system has a place, agent didn't know) or workflow-gap (no formal place exists)
 **Plans**: 2 plans
 
 Plans:
@@ -187,10 +188,29 @@ Plans:
 - [ ] 43-01: Plan checker semantic dimensions -- tool refs, config refs, directory refs, signal refs (all advisory)
 - [ ] 43-02: Template enhancements -- motivation field, model/context fields, reflection-to-requirement linkage, internal tensions section
 
+### Phase 44: GSDR Namespace Co-Installation
+**Goal**: GSD Reflect installs to separate paths from upstream GSD, enabling co-installation on the same machine without overwriting. Source files unchanged (preserving upstream merge compatibility); all namespace differentiation happens at install time via extended `replacePathsInContent()`.
+**Depends on**: None (can be executed independently; only touches installer and installed output)
+**Deliberation**: .planning/deliberations/gsdr-namespace-co-installation.md
+**Success Criteria** (what must be TRUE):
+  1. Both GSD and GSD Reflect can be installed simultaneously -- `~/.claude/get-shit-done/VERSION` and `~/.claude/get-shit-done-reflect/VERSION` coexist
+  2. All `/gsdr:` commands functional with no stale `get-shit-done/` path references in installed `get-shit-done-reflect/` files
+  3. Agent files installed as `gsdr-*.md` with matching `subagent_type` values in content
+  4. Commands installed to `commands/gsdr/` with `/gsdr:` prefix in all cross-references
+  5. Hook files installed as `gsdr-*.js` with correct path references
+  6. Source files unchanged from `gsd` naming -- `npm test` passes without modification
+  7. Upstream merge conflict surface unchanged (~18 files)
+**Plans**: 3 plans
+
+Plans:
+- [ ] 44-01-PLAN.md -- Core installer rewriting: replacePathsInContent() namespace passes + install() destination dirs, agent/hook rename, hook content replacement, settings.json registration
+- [ ] 44-02-PLAN.md -- Peripheral installer functions: uninstall(), writeManifest(), configureOpencodePermissions(), finishInstall(), orphan cleanup for gsdr namespace
+- [ ] 44-03-PLAN.md -- Test updates for gsdr namespace assertions + full verification (npm test, source unchanged, merge surface unchanged)
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
+Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43 -> 44
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -203,6 +223,7 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
 | 41. Health Score & Automation | 0/3 | Not started | - |
 | 42. Reflection Automation | 0/2 | Not started | - |
 | 43. Plan Intelligence & Templates | 0/2 | Not started | - |
+| 44. GSDR Namespace Co-Installation | 0/3 | Not started | - |
 
 ## Overall Progress
 
@@ -213,6 +234,6 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43
 | v1.14 Multi-Runtime | 13-21 | 18 | Complete | 2026-02-16 |
 | v1.15 Backlog & Update | 22-30 | 24 | Complete | 2026-02-23 |
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
-| v1.17 Automation Loop | 36-43 | 9/18 | In progress | - |
+| v1.17 Automation Loop | 36-44 | 9/18+ | In progress | - |
 
-**Totals:** 6 milestones, 43 phases, 114 plans completed, 9 planned
+**Totals:** 6 milestones, 44 phases, 114 plans completed, 9+ planned
