@@ -21,6 +21,27 @@
           "type": "boolean",
           "default": false,
           "description": "Whether health warnings block execution"
+        },
+        "workflow_thresholds": {
+          "type": "object",
+          "default": {"low": 2.0, "high": 5.0},
+          "description": "Weighted sum thresholds for workflow health LOW/MED/HIGH boundaries"
+        },
+        "resolution_ratio_threshold": {
+          "type": "number",
+          "default": 5.0,
+          "description": "Signal-to-resolution ratio above which a WARNING is surfaced (HEALTH-08)"
+        },
+        "reactive_threshold": {
+          "type": "string",
+          "enum": ["GREEN", "YELLOW", "RED", "disabled"],
+          "default": "RED",
+          "description": "Composite score at or above which reactive session-start trigger fires (HEALTH-06)"
+        },
+        "cache_staleness_hours": {
+          "type": "number",
+          "default": 24,
+          "description": "Hours after which cached health score is considered stale and triggers fresh check"
         }
       },
       "init_prompts": [
