@@ -203,9 +203,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 44-01-PLAN.md -- Core installer rewriting: replacePathsInContent() namespace passes + install() destination dirs, agent/hook rename, hook content replacement, settings.json registration
-- [ ] 44-02-PLAN.md -- Peripheral installer functions: uninstall(), writeManifest(), configureOpencodePermissions(), finishInstall(), orphan cleanup for gsdr namespace
-- [ ] 44-03-PLAN.md -- Test updates for gsdr namespace assertions + full verification (npm test, source unchanged, merge surface unchanged)
+- [x] 44-01-PLAN.md -- Core installer rewriting: replacePathsInContent() namespace passes + install() destination dirs, agent/hook rename, hook content replacement, settings.json registration
+- [x] 44-02-PLAN.md -- Peripheral installer functions: uninstall(), writeManifest(), configureOpencodePermissions(), finishInstall(), orphan cleanup for gsdr namespace
+- [x] 44-03-PLAN.md -- Test updates for gsdr namespace assertions + full verification (npm test, source unchanged, merge surface unchanged)
 
 ## Progress
 
@@ -223,7 +223,7 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43 ->
 | 41. Health Score & Automation | 0/3 | Not started | - |
 | 42. Reflection Automation | 0/2 | Not started | - |
 | 43. Plan Intelligence & Templates | 0/2 | Not started | - |
-| 44. GSDR Namespace Co-Installation | 0/3 | Not started | - |
+| 44. GSDR Namespace Co-Installation | 3/3 | Complete | 2026-03-06 |
 
 ## Overall Progress
 
