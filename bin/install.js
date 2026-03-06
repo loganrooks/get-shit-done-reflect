@@ -1927,7 +1927,7 @@ function writeManifest(configDir) {
   }
   if (fs.existsSync(agentsDir)) {
     for (const file of fs.readdirSync(agentsDir)) {
-      if ((file.startsWith('gsdr-') || file.startsWith('gsd-')) && file.endsWith('.md')) {
+      if (file.startsWith('gsdr-') && file.endsWith('.md')) {
         manifest.files['agents/' + file] = fileHash(path.join(agentsDir, file));
       }
     }
@@ -2304,6 +2304,18 @@ function install(isGlobal, runtime = 'claude') {
   if (failures.length > 0) {
     console.error(`\n  ${yellow}Installation incomplete!${reset} Failed: ${failures.join(', ')}`);
     process.exit(1);
+  }
+
+  // Upgrade cleanup: remove old gsd-namespaced directories from pre-Phase-44 installs
+  const oldGsdDir = path.join(targetDir, 'get-shit-done');
+  if (fs.existsSync(oldGsdDir)) {
+    fs.rmSync(oldGsdDir, { recursive: true });
+    console.log(`  ${green}✓${reset} Removed old get-shit-done/ (upgrade cleanup)`);
+  }
+  const oldCommandsDir = path.join(targetDir, 'commands', 'gsd');
+  if (fs.existsSync(oldCommandsDir)) {
+    fs.rmSync(oldCommandsDir, { recursive: true });
+    console.log(`  ${green}✓${reset} Removed old commands/gsd/ (upgrade cleanup)`);
   }
 
   // Codex: no settings.json, hooks, or statusline -- write manifest and return
