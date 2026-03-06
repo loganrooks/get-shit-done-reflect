@@ -150,10 +150,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 41-01: Probe files (6 migrated infra checks), health-scoring.md reference, feature-manifest.json expansion
-- [ ] 41-02: health-probe gsd-tools.js subcommand, workflow-dimension probes, and refactored health-check workflow
-- [ ] 41-03: SessionStart hook, statusline health traffic light, and execute-phase health check postlude
-- [ ] 41-04: Rogue file detection probe and rogue context extraction agent probe
+- [x] 41-01: Probe files (6 migrated infra checks), health-scoring.md reference, feature-manifest.json expansion
+- [x] 41-02: health-probe gsd-tools.js subcommand, workflow-dimension probes, and refactored health-check workflow
+- [x] 41-03: SessionStart hook, statusline health traffic light, and execute-phase health check postlude
+- [x] 41-04: Rogue file detection probe and rogue context extraction agent probe
 
 ### Phase 42: Reflection Automation
 **Goal**: Reflection triggers automatically after a configurable number of phases, with lesson confidence evolving through evidence rather than remaining static labels
@@ -220,7 +220,7 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43 ->
 | 38.1. Project-Local Knowledge Base | 3/3 | Complete | 2026-03-05 |
 | 39. CI Awareness | 2/2 | Complete | 2026-03-05 |
 | 40. Signal Collection Automation | 2/2 | Complete | 2026-03-06 |
-| 41. Health Score & Automation | 0/4 | Not started | - |
+| 41. Health Score & Automation | 4/4 | Complete | 2026-03-06 |
 | 42. Reflection Automation | 0/2 | Not started | - |
 | 43. Plan Intelligence & Templates | 0/2 | Not started | - |
 | 44. GSDR Namespace Co-Installation | 3/3 | Complete | 2026-03-06 |
