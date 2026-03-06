@@ -33,7 +33,7 @@ Research SUMMARY.md proposed 6 phases (Foundation Fix → CI Awareness → Plan 
 - [x] **Phase 38: Extensible Sensor Architecture** - Build the sensor discovery and contract system so new sensors can be added without framework modification
 - [ ] **Phase 38.1: Project-Local Knowledge Base** - INSERTED: Migrate KB primary location to .planning/knowledge/ for version control and remote execution access
 - [ ] **Phase 39: CI Awareness** - Build the CI sensor under the extensible model and surface CI status at session start
-- [ ] **Phase 40: Signal Collection Automation** - Auto-trigger signal collection after phase execution with reentrancy protection and cross-runtime fallback
+- [x] **Phase 40: Signal Collection Automation** - Auto-trigger signal collection after phase execution with reentrancy protection and cross-runtime fallback
 - [ ] **Phase 41: Health Score & Automation** - Compute and display health score, auto-trigger health checks, and track signal resolution metrics
 - [ ] **Phase 42: Reflection Automation** - Auto-trigger reflection after configurable phase count with confidence updates on lessons
 - [ ] **Phase 43: Plan Intelligence & Templates** - Semantic plan validation and template improvements for closed-loop traceability

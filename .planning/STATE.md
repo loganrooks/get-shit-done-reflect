@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.17 Automation Loop -- Phase 40 Signal Collection Automation in progress
+**Current focus:** v1.17 Automation Loop -- Phase 40 complete, Phase 41 next
 
 ## Current Position
 
@@ -161,6 +161,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-06
-Stopped at: Completed 40-02-PLAN.md. Phase 40 complete. Next: Phase 41.
+Stopped at: Phase 40 executed and verified (7/7 must-haves). Next: Phase 41.
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
