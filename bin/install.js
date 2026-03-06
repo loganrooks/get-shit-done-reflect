@@ -5,6 +5,7 @@ const path = require('path');
 const os = require('os');
 const readline = require('readline');
 const crypto = require('crypto');
+const { execSync } = require('child_process');
 
 // Colors
 const cyan = '\x1b[36m';
@@ -2217,6 +2218,14 @@ function install(isGlobal, runtime = 'claude') {
 
   // Copy hooks from dist/ (bundled with dependencies) -- skip for Codex (no hook system)
   const hooksSrc = path.join(src, 'hooks', 'dist');
+  if (!fs.existsSync(hooksSrc) && !isCodex) {
+    const buildScript = path.join(src, 'scripts', 'build-hooks.js');
+    if (fs.existsSync(buildScript)) {
+      console.log(`  Building hooks...`);
+      execSync(`node ${JSON.stringify(buildScript)}`, { cwd: src, stdio: 'pipe' });
+      console.log(`  ${green}✓${reset} Hooks built`);
+    }
+  }
   if (fs.existsSync(hooksSrc) && !isCodex) {
     const hooksDest = path.join(targetDir, 'hooks');
     safeFs('mkdirSync', () => fs.mkdirSync(hooksDest, { recursive: true }), hooksDest);
