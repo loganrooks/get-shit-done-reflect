@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-03-02)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.17 Automation Loop -- Phase 39 CI Awareness in progress
+**Current focus:** v1.17 Automation Loop -- Phase 40 Signal Collection Automation in progress
 
 ## Current Position
 
-Phase: 39 of 43 (CI Awareness)
-Plan: 2 of 2 in current phase
-Status: All plans complete, ready for verification
-Last activity: 2026-03-06 - Completed quick task 16: Auto-run hooks build in installer if hooks/dist/ missing
+Phase: 40 of 43 (Signal Collection Automation)
+Plan: 1 of 2 in current phase
+Status: Executing
+Last activity: 2026-03-06 - Completed 40-01: Reentrancy lockfile and regime change CLI primitives
 
-Progress: [██████████] 100%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Progress: [██████████] 100%
 | 38.1 | 03 | 2min | 1 | 2 |
 | 39 | 01 | 3min | 1 | 1 |
 | 39 | 02 | 4min | 2 | 3 |
+| 40 | 01 | 8min | 3 | 4 |
 
 ## Accumulated Context
 
@@ -101,6 +102,7 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 39]: Test regression detection marked LOW confidence due to log-parsing fragility
 - [Phase 39]: CI status hook uses background spawn + cache file pattern (matching gsd-check-update.js), never blocks session start
 - [Phase 39]: Cache staleness threshold 1 hour; only show CI FAIL for conclusion=failure (not cancelled/skipped)
+- [Phase 40]: Lock stale detection uses file mtime comparison, single JSON output per invocation
 
 ### Pending Todos
 
@@ -156,7 +158,7 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-03-05
-Stopped at: Phase 39 complete (all plans executed). Ready for verification.
+Last session: 2026-03-06
+Stopped at: Completed 40-01-PLAN.md. Phase 40 plan 02 next.
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
