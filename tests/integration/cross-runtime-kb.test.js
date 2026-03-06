@@ -274,12 +274,12 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
         timeout: 30000
       })
 
-      // Check each runtime's installed get-shit-done/ reference docs
+      // Check each runtime's installed get-shit-done-reflect/ reference docs
       const runtimeDirs = [
-        { name: 'claude', dir: path.join(tmpdir, '.claude', 'get-shit-done') },
-        { name: 'opencode', dir: path.join(configHome, 'opencode', 'get-shit-done') },
-        { name: 'gemini', dir: path.join(tmpdir, '.gemini', 'get-shit-done') },
-        { name: 'codex', dir: path.join(tmpdir, '.codex', 'get-shit-done') },
+        { name: 'claude', dir: path.join(tmpdir, '.claude', 'get-shit-done-reflect') },
+        { name: 'opencode', dir: path.join(configHome, 'opencode', 'get-shit-done-reflect') },
+        { name: 'gemini', dir: path.join(tmpdir, '.gemini', 'get-shit-done-reflect') },
+        { name: 'codex', dir: path.join(tmpdir, '.codex', 'get-shit-done-reflect') },
       ]
 
       for (const { name, dir } of runtimeDirs) {
@@ -352,10 +352,10 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
 
       // Read VERSION file from each runtime
       const versionPaths = [
-        path.join(tmpdir, '.claude', 'get-shit-done', 'VERSION'),
-        path.join(configHome, 'opencode', 'get-shit-done', 'VERSION'),
-        path.join(tmpdir, '.gemini', 'get-shit-done', 'VERSION'),
-        path.join(tmpdir, '.codex', 'get-shit-done', 'VERSION'),
+        path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'VERSION'),
+        path.join(configHome, 'opencode', 'get-shit-done-reflect', 'VERSION'),
+        path.join(tmpdir, '.gemini', 'get-shit-done-reflect', 'VERSION'),
+        path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'VERSION'),
       ]
 
       const versions = []

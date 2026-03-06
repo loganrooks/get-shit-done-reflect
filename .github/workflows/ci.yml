@@ -48,24 +48,24 @@ jobs:
           HOME="$INSTALL_DIR" node bin/install.js --claude 2>&1 || true
 
           # Verify expected directories were created
-          if [ -d "$INSTALL_DIR/.claude/commands/gsd" ]; then
-            echo "Install verification: PASS - commands/gsd directory created"
+          if [ -d "$INSTALL_DIR/.claude/commands/gsdr" ]; then
+            echo "Install verification: PASS - commands/gsdr directory created"
           else
-            echo "Install verification: FAIL - commands/gsd directory not found"
+            echo "Install verification: FAIL - commands/gsdr directory not found"
             ls -la "$INSTALL_DIR/.claude/" 2>/dev/null || echo "No .claude directory at all"
             exit 1
           fi
 
-          if [ -d "$INSTALL_DIR/.claude/get-shit-done" ]; then
-            echo "Install verification: PASS - get-shit-done directory created"
+          if [ -d "$INSTALL_DIR/.claude/get-shit-done-reflect" ]; then
+            echo "Install verification: PASS - get-shit-done-reflect directory created"
           else
-            echo "Install verification: FAIL - get-shit-done directory not found"
+            echo "Install verification: FAIL - get-shit-done-reflect directory not found"
             exit 1
           fi
 
           # Check VERSION file was written
-          if [ -f "$INSTALL_DIR/.claude/get-shit-done/VERSION" ]; then
-            VERSION=$(cat "$INSTALL_DIR/.claude/get-shit-done/VERSION")
+          if [ -f "$INSTALL_DIR/.claude/get-shit-done-reflect/VERSION" ]; then
+            VERSION=$(cat "$INSTALL_DIR/.claude/get-shit-done-reflect/VERSION")
             PKG_VERSION=$(node -p "require('./package.json').version")
             echo "Install verification: PASS - VERSION file exists ($VERSION)"
             if [ "$VERSION" = "$PKG_VERSION" ]; then
