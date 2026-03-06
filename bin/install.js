@@ -1401,13 +1401,14 @@ function cleanupOrphanedHooks(settings) {
   // Fix #330: Update statusLine if it points to old statusline.js path
   if (settings.statusLine && settings.statusLine.command &&
       settings.statusLine.command.includes('statusline.js') &&
+      !settings.statusLine.command.includes('gsdr-statusline.js') &&
       !settings.statusLine.command.includes('gsd-statusline.js')) {
     // Replace old path with new path
     settings.statusLine.command = settings.statusLine.command.replace(
       /statusline\.js/,
-      'gsd-statusline.js'
+      'gsdr-statusline.js'
     );
-    console.log(`  ${green}✓${reset} Updated statusline path (statusline.js → gsd-statusline.js)`);
+    console.log(`  ${green}✓${reset} Updated statusline path (statusline.js → gsdr-statusline.js)`);
   }
 
   return settings;
@@ -1451,11 +1452,11 @@ function uninstall(isGlobal, runtime = 'claude') {
 
   // 1. Remove GSD commands directory
   if (isCodex) {
-    // Codex: remove skill directories (gsd-*/SKILL.md)
+    // Codex: remove skill directories (gsdr-*/SKILL.md, also gsd-* for upgrade path)
     const skillsDir = path.join(targetDir, 'skills');
     if (fs.existsSync(skillsDir)) {
       for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
-        if (entry.isDirectory() && entry.name.startsWith('gsd-')) {
+        if (entry.isDirectory() && (entry.name.startsWith('gsdr-') || entry.name.startsWith('gsd-'))) {
           fs.rmSync(path.join(skillsDir, entry.name), { recursive: true });
           removedCount++;
         }
@@ -1465,12 +1466,12 @@ function uninstall(isGlobal, runtime = 'claude') {
       }
     }
   } else if (isOpencode) {
-    // OpenCode: remove command/gsd-*.md files
+    // OpenCode: remove command/gsdr-*.md files (also gsd-* for upgrade path)
     const commandDir = path.join(targetDir, 'command');
     if (fs.existsSync(commandDir)) {
       const files = fs.readdirSync(commandDir);
       for (const file of files) {
-        if (file.startsWith('gsd-') && file.endsWith('.md')) {
+        if ((file.startsWith('gsdr-') || file.startsWith('gsd-')) && file.endsWith('.md')) {
           fs.unlinkSync(path.join(commandDir, file));
           removedCount++;
         }
@@ -1478,30 +1479,42 @@ function uninstall(isGlobal, runtime = 'claude') {
       console.log(`  ${green}✓${reset} Removed GSD commands from command/`);
     }
   } else {
-    // Claude Code & Gemini: remove commands/gsd/ directory
+    // Claude Code & Gemini: remove commands/gsdr/ directory (also commands/gsd/ for upgrade path)
+    const gsdrCommandsDir = path.join(targetDir, 'commands', 'gsdr');
+    if (fs.existsSync(gsdrCommandsDir)) {
+      fs.rmSync(gsdrCommandsDir, { recursive: true });
+      removedCount++;
+      console.log(`  ${green}✓${reset} Removed commands/gsdr/`);
+    }
     const gsdCommandsDir = path.join(targetDir, 'commands', 'gsd');
     if (fs.existsSync(gsdCommandsDir)) {
       fs.rmSync(gsdCommandsDir, { recursive: true });
       removedCount++;
-      console.log(`  ${green}✓${reset} Removed commands/gsd/`);
+      console.log(`  ${green}✓${reset} Removed commands/gsd/ (upgrade cleanup)`);
     }
   }
 
-  // 2. Remove get-shit-done directory
+  // 2. Remove get-shit-done-reflect directory (also get-shit-done for upgrade path)
+  const gsdrDir = path.join(targetDir, 'get-shit-done-reflect');
+  if (fs.existsSync(gsdrDir)) {
+    fs.rmSync(gsdrDir, { recursive: true });
+    removedCount++;
+    console.log(`  ${green}✓${reset} Removed get-shit-done-reflect/`);
+  }
   const gsdDir = path.join(targetDir, 'get-shit-done');
   if (fs.existsSync(gsdDir)) {
     fs.rmSync(gsdDir, { recursive: true });
     removedCount++;
-    console.log(`  ${green}✓${reset} Removed get-shit-done/`);
+    console.log(`  ${green}✓${reset} Removed get-shit-done/ (upgrade cleanup)`);
   }
 
-  // 3. Remove GSD agents (gsd-*.md files only) -- skip for Codex
+  // 3. Remove GSD agents (gsdr-*.md and gsd-*.md files) -- skip for Codex
   const agentsDir = path.join(targetDir, 'agents');
   if (fs.existsSync(agentsDir) && !isCodex) {
     const files = fs.readdirSync(agentsDir);
     let agentCount = 0;
     for (const file of files) {
-      if (file.startsWith('gsd-') && file.endsWith('.md')) {
+      if ((file.startsWith('gsdr-') || file.startsWith('gsd-')) && file.endsWith('.md')) {
         fs.unlinkSync(path.join(agentsDir, file));
         agentCount++;
       }
@@ -1562,7 +1575,10 @@ function uninstall(isGlobal, runtime = 'claude') {
   if (!isCodex) {
     const hooksDir = path.join(targetDir, 'hooks');
     if (fs.existsSync(hooksDir)) {
-      const gsdHooks = ['gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js', 'gsd-ci-status.js'];
+      const gsdHooks = [
+        'gsdr-statusline.js', 'gsdr-check-update.js', 'gsdr-version-check.js', 'gsdr-ci-status.js',
+        'gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js', 'gsd-ci-status.js'
+      ];
       let hookCount = 0;
       for (const hook of gsdHooks) {
         const hookPath = path.join(hooksDir, hook);
@@ -1586,7 +1602,7 @@ function uninstall(isGlobal, runtime = 'claude') {
 
     // Remove GSD statusline if it references our hook
     if (settings.statusLine && settings.statusLine.command &&
-        settings.statusLine.command.includes('gsd-statusline')) {
+        (settings.statusLine.command.includes('gsdr-statusline') || settings.statusLine.command.includes('gsd-statusline'))) {
       delete settings.statusLine;
       settingsModified = true;
       console.log(`  ${green}✓${reset} Removed GSD statusline from settings`);
@@ -1599,7 +1615,10 @@ function uninstall(isGlobal, runtime = 'claude') {
         if (entry.hooks && Array.isArray(entry.hooks)) {
           // Filter out GSD hooks
           const hasGsdHook = entry.hooks.some(h =>
-            h.command && (h.command.includes('gsd-check-update') || h.command.includes('gsd-statusline') || h.command.includes('gsd-version-check') || h.command.includes('gsd-ci-status'))
+            h.command && (
+              h.command.includes('gsdr-check-update') || h.command.includes('gsdr-statusline') || h.command.includes('gsdr-version-check') || h.command.includes('gsdr-ci-status') ||
+              h.command.includes('gsd-check-update') || h.command.includes('gsd-statusline') || h.command.includes('gsd-version-check') || h.command.includes('gsd-ci-status')
+            )
           );
           return !hasGsdHook;
         }
@@ -1774,8 +1793,8 @@ function configureOpencodePermissions() {
   // Use ~ shorthand if it's in the default location, otherwise use full path
   const defaultConfigDir = path.join(os.homedir(), '.config', 'opencode');
   const gsdPath = opencodeConfigDir === defaultConfigDir
-    ? '~/.config/opencode/get-shit-done/*'
-    : `${opencodeConfigDir.replace(/\\/g, '/')}/get-shit-done/*`;
+    ? '~/.config/opencode/get-shit-done-reflect/*'
+    : `${opencodeConfigDir.replace(/\\/g, '/')}/get-shit-done-reflect/*`;
   
   let modified = false;
 
@@ -1883,24 +1902,24 @@ function generateManifest(dir, baseDir) {
  * Write file manifest after installation for future modification detection
  */
 function writeManifest(configDir) {
-  const gsdDir = path.join(configDir, 'get-shit-done');
-  const commandsDir = path.join(configDir, 'commands', 'gsd');
+  const gsdDir = path.join(configDir, 'get-shit-done-reflect');
+  const commandsDir = path.join(configDir, 'commands', 'gsdr');
   const agentsDir = path.join(configDir, 'agents');
   const manifest = { version: pkg.version, timestamp: new Date().toISOString(), files: {} };
 
   const gsdHashes = generateManifest(gsdDir);
   for (const [rel, hash] of Object.entries(gsdHashes)) {
-    manifest.files['get-shit-done/' + rel] = hash;
+    manifest.files['get-shit-done-reflect/' + rel] = hash;
   }
   if (fs.existsSync(commandsDir)) {
     const cmdHashes = generateManifest(commandsDir);
     for (const [rel, hash] of Object.entries(cmdHashes)) {
-      manifest.files['commands/gsd/' + rel] = hash;
+      manifest.files['commands/gsdr/' + rel] = hash;
     }
   }
   if (fs.existsSync(agentsDir)) {
     for (const file of fs.readdirSync(agentsDir)) {
-      if (file.startsWith('gsd-') && file.endsWith('.md')) {
+      if ((file.startsWith('gsdr-') || file.startsWith('gsd-')) && file.endsWith('.md')) {
         manifest.files['agents/' + file] = fileHash(path.join(agentsDir, file));
       }
     }

@@ -27,8 +27,8 @@ describe('install script', () => {
         timeout: 15000
       })
 
-      // Verify commands/gsd directory exists and contains .md files
-      const commandsDir = path.join(tmpdir, '.claude', 'commands', 'gsd')
+      // Verify commands/gsdr directory exists and contains .md files
+      const commandsDir = path.join(tmpdir, '.claude', 'commands', 'gsdr')
       const commandsExist = await fs.access(commandsDir).then(() => true).catch(() => false)
       expect(commandsExist).toBe(true)
 
@@ -36,8 +36,8 @@ describe('install script', () => {
       const mdFiles = commandFiles.filter(f => f.endsWith('.md'))
       expect(mdFiles.length).toBeGreaterThan(0)
 
-      // Verify get-shit-done directory exists
-      const gsdDir = path.join(tmpdir, '.claude', 'get-shit-done')
+      // Verify get-shit-done-reflect directory exists
+      const gsdDir = path.join(tmpdir, '.claude', 'get-shit-done-reflect')
       const gsdExist = await fs.access(gsdDir).then(() => true).catch(() => false)
       expect(gsdExist).toBe(true)
 
@@ -57,17 +57,17 @@ describe('install script', () => {
         timeout: 15000
       })
 
-      // Verify opencode command directory with flattened gsd-*.md files
+      // Verify opencode command directory with flattened gsdr-*.md files
       const commandDir = path.join(configHome, 'opencode', 'command')
       const commandExist = await fs.access(commandDir).then(() => true).catch(() => false)
       expect(commandExist).toBe(true)
 
       const commandFiles = await fs.readdir(commandDir)
-      const gsdFiles = commandFiles.filter(f => f.startsWith('gsd-') && f.endsWith('.md'))
+      const gsdFiles = commandFiles.filter(f => f.startsWith('gsdr-') && f.endsWith('.md'))
       expect(gsdFiles.length).toBeGreaterThan(0)
 
-      // Verify get-shit-done directory exists
-      const gsdDir = path.join(configHome, 'opencode', 'get-shit-done')
+      // Verify get-shit-done-reflect directory exists
+      const gsdDir = path.join(configHome, 'opencode', 'get-shit-done-reflect')
       const gsdExist = await fs.access(gsdDir).then(() => true).catch(() => false)
       expect(gsdExist).toBe(true)
     })
@@ -83,7 +83,7 @@ describe('install script', () => {
       })
 
       // Verify Claude directory populated
-      const claudeCommandsDir = path.join(tmpdir, '.claude', 'commands', 'gsd')
+      const claudeCommandsDir = path.join(tmpdir, '.claude', 'commands', 'gsdr')
       const claudeExist = await fs.access(claudeCommandsDir).then(() => true).catch(() => false)
       expect(claudeExist).toBe(true)
 
@@ -104,7 +104,7 @@ describe('install script', () => {
       })
 
       // Should default to Claude global install
-      const claudeDir = path.join(tmpdir, '.claude', 'commands', 'gsd')
+      const claudeDir = path.join(tmpdir, '.claude', 'commands', 'gsdr')
       const exists = await fs.access(claudeDir).then(() => true).catch(() => false)
       expect(exists).toBe(true)
     })
@@ -141,13 +141,13 @@ describe('install script', () => {
       it('replaces runtime-specific tilde paths with runtime prefix', () => {
         const input = 'Reference: ~/.claude/get-shit-done/workflows/signal.md'
         const result = replacePathsInContent(input, '~/.config/opencode/')
-        expect(result).toBe('Reference: ~/.config/opencode/get-shit-done/workflows/signal.md')
+        expect(result).toBe('Reference: ~/.config/opencode/get-shit-done-reflect/workflows/signal.md')
       })
 
       it('replaces runtime-specific $HOME paths with runtime prefix', () => {
         const input = 'TEMPLATE="$HOME/.claude/get-shit-done/templates/config.json"'
         const result = replacePathsInContent(input, '~/.config/opencode/')
-        expect(result).toBe('TEMPLATE="$HOME/.config/opencode/get-shit-done/templates/config.json"')
+        expect(result).toBe('TEMPLATE="$HOME/.config/opencode/get-shit-done-reflect/templates/config.json"')
       })
 
       it('handles mixed KB and runtime-specific paths in same content', () => {
@@ -159,9 +159,9 @@ describe('install script', () => {
         ].join('\n')
         const result = replacePathsInContent(input, '~/.config/opencode/')
         expect(result).toContain('~/.gsd/knowledge/index.md')
-        expect(result).toContain('~/.config/opencode/get-shit-done/workflows/signal.md')
+        expect(result).toContain('~/.config/opencode/get-shit-done-reflect/workflows/signal.md')
         expect(result).toContain('$HOME/.gsd/knowledge/signals/')
-        expect(result).toContain('$HOME/.config/opencode/get-shit-done/VERSION')
+        expect(result).toContain('$HOME/.config/opencode/get-shit-done-reflect/VERSION')
         // Must NOT have these incorrect transformations
         expect(result).not.toContain('~/.config/opencode/gsd-knowledge')
         expect(result).not.toContain('$HOME/.config/opencode/gsd-knowledge')
@@ -170,7 +170,7 @@ describe('install script', () => {
       it('handles Gemini runtime paths with already-migrated KB paths', () => {
         const input = 'Reference: ~/.claude/get-shit-done/workflows/signal.md and ~/.gsd/knowledge/index.md'
         const result = replacePathsInContent(input, '~/.gemini/')
-        expect(result).toContain('~/.gemini/get-shit-done/workflows/signal.md')
+        expect(result).toContain('~/.gemini/get-shit-done-reflect/workflows/signal.md')
         expect(result).toContain('~/.gsd/knowledge/index.md')
         expect(result).not.toContain('~/.gemini/gsd-knowledge')
       })
@@ -181,8 +181,9 @@ describe('install script', () => {
           'KB at ~/.gsd/knowledge/index.md'
         ].join('\n')
         const result = replacePathsInContent(input, '~/.claude/')
-        // Runtime-specific paths remain ~/.claude/ (identity transform)
-        expect(result).toContain('~/.claude/get-shit-done/workflows/signal.md')
+        // Runtime-specific paths remain ~/.claude/ (identity transform for prefix)
+        // but get-shit-done/ is still rewritten to get-shit-done-reflect/ (Pass 3a)
+        expect(result).toContain('~/.claude/get-shit-done-reflect/workflows/signal.md')
         // KB paths already at shared location, pass through unchanged
         expect(result).toContain('~/.gsd/knowledge/index.md')
       })
@@ -196,9 +197,9 @@ describe('install script', () => {
         const homeDir = require('os').homedir()
         const absPrefix = homeDir + '/.config/opencode/'
         const result = replacePathsInContent(input, absPrefix)
-        expect(result).toContain(absPrefix + 'get-shit-done/test.md')
+        expect(result).toContain(absPrefix + 'get-shit-done-reflect/test.md')
         expect(result).toContain('~/.gsd/knowledge/index.md')
-        expect(result).toContain('$HOME/.config/opencode/get-shit-done/VERSION')
+        expect(result).toContain('$HOME/.config/opencode/get-shit-done-reflect/VERSION')
       })
 
       it('handles already-migrated KB path without trailing slash (no-op)', () => {
@@ -217,7 +218,7 @@ describe('install script', () => {
         // The @ prefix is not part of the matched pattern, so it works naturally
         const input = '@~/.claude/get-shit-done/workflows/signal.md'
         const result = replacePathsInContent(input, '~/.config/opencode/')
-        expect(result).toBe('@~/.config/opencode/get-shit-done/workflows/signal.md')
+        expect(result).toBe('@~/.config/opencode/get-shit-done-reflect/workflows/signal.md')
       })
 
       it('preserves bare ~/.claude/ in documentation text (space after slash)', () => {
@@ -235,7 +236,7 @@ describe('install script', () => {
       it('still replaces ~/.claude/ followed by path component', () => {
         const input = '~/.claude/get-shit-done/VERSION'
         const result = replacePathsInContent(input, '~/.config/opencode/')
-        expect(result).toBe('~/.config/opencode/get-shit-done/VERSION')
+        expect(result).toBe('~/.config/opencode/get-shit-done-reflect/VERSION')
       })
     })
 
@@ -257,6 +258,193 @@ describe('install script', () => {
         const result = replacePathsInContent(input, '~/.config/opencode/')
         expect(result).toContain('.planning/knowledge')
         expect(result).toContain('$HOME/.gsd/knowledge')
+      })
+    })
+
+    describe('gsdr namespace rewriting', () => {
+      // Tests proving Pass 3a-3d edge case handling in replacePathsInContent()
+
+      describe('correct rewrites', () => {
+        it('rewrites get-shit-done/ to get-shit-done-reflect/ in paths', () => {
+          const input = 'Read ./.claude/get-shit-done/workflows/signal.md'
+          const result = replacePathsInContent(input, './.claude/')
+          expect(result).toContain('get-shit-done-reflect/workflows/signal.md')
+        })
+
+        it('rewrites /gsd: to /gsdr: command prefix', () => {
+          const input = 'Run /gsd:help for usage'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('Run /gsdr:help for usage')
+        })
+
+        it('rewrites gsd-executor to gsdr-executor (agent/subagent_type prefix)', () => {
+          const input = 'subagent_type="gsd-executor"'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('subagent_type="gsdr-executor"')
+        })
+
+        it('rewrites GSD > to GSDR > (banner)', () => {
+          const input = 'GSD ► Phase 3 Plan 1'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('GSDR ► Phase 3 Plan 1')
+        })
+
+        it('rewrites multiple gsd- prefixed names in same content', () => {
+          const input = 'Use gsd-planner for planning and gsd-researcher for research'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('Use gsdr-planner for planning and gsdr-researcher for research')
+        })
+      })
+
+      describe('false positive protection', () => {
+        it('preserves gsd-tools.js via (?!tools) lookahead', () => {
+          const input = 'node get-shit-done/bin/gsd-tools.js state advance-plan'
+          const result = replacePathsInContent(input, './.claude/')
+          expect(result).toContain('gsd-tools.js')
+          expect(result).not.toContain('gsdr-tools.js')
+        })
+
+        it('preserves gsd-tools in prose text', () => {
+          const input = 'The gsd-tools binary handles CLI operations'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toContain('gsd-tools')
+          expect(result).not.toContain('gsdr-tools')
+        })
+
+        it('does not double-rewrite get-shit-done-reflect-cc (no trailing /)', () => {
+          const input = 'npm install get-shit-done-reflect-cc'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('npm install get-shit-done-reflect-cc')
+          expect(result).not.toContain('reflect-reflect')
+        })
+
+        it('does not rewrite get-shit-done-cc (no trailing /)', () => {
+          const input = 'npm install get-shit-done-cc'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('npm install get-shit-done-cc')
+        })
+
+        it('does not rewrite GSD_HOME (underscore not hyphen)', () => {
+          const input = 'export GSD_HOME=~/.gsd'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('export GSD_HOME=~/.gsd')
+        })
+
+        it('does not rewrite gsd_reflect_version (underscore not hyphen)', () => {
+          const input = '"gsd_reflect_version": "1.16.0"'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('"gsd_reflect_version": "1.16.0"')
+        })
+
+        it('does not rewrite prose "GSD Reflect" or "GSD workflow" (no > match)', () => {
+          const input = 'GSD Reflect is a fork of GSD workflow system'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('GSD Reflect is a fork of GSD workflow system')
+        })
+
+        it('does not rewrite ~/.gsd/ KB root', () => {
+          const input = 'KB at ~/.gsd/knowledge/index.md'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('KB at ~/.gsd/knowledge/index.md')
+        })
+
+        it('does not rewrite knowledge-store.md (no gsd- prefix)', () => {
+          const input = 'See agents/knowledge-store.md for KB management'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('See agents/knowledge-store.md for KB management')
+        })
+
+        it('does not rewrite kb-templates/ (no gsd- prefix)', () => {
+          const input = 'Templates at agents/kb-templates/'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('Templates at agents/kb-templates/')
+        })
+
+        it('does not rewrite subagent_type="general-purpose" (no gsd- prefix)', () => {
+          const input = 'subagent_type="general-purpose"'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('subagent_type="general-purpose"')
+        })
+      })
+
+      describe('double-replacement safety', () => {
+        it('gsdr-executor does NOT become gsdrr-executor', () => {
+          // Simulate: first pass produces gsdr-executor, second pass should not re-match
+          const input = 'subagent_type="gsd-executor"'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('subagent_type="gsdr-executor"')
+          expect(result).not.toContain('gsdrr-')
+        })
+
+        it('get-shit-done-reflect/ does NOT become get-shit-done-reflect-reflect/', () => {
+          const input = '~/.claude/get-shit-done/VERSION'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('~/.claude/get-shit-done-reflect/VERSION')
+          expect(result).not.toContain('reflect-reflect')
+        })
+
+        it('/gsdr: does NOT become /gsdrr:', () => {
+          const input = 'Use /gsd:help for commands'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toBe('Use /gsdr:help for commands')
+          expect(result).not.toContain('/gsdrr:')
+        })
+      })
+
+      describe('cross-runtime interaction', () => {
+        it('OpenCode prefix composes correctly with namespace rewriting', () => {
+          const input = '~/.claude/get-shit-done/workflows/signal.md'
+          const result = replacePathsInContent(input, '~/.config/opencode/')
+          expect(result).toBe('~/.config/opencode/get-shit-done-reflect/workflows/signal.md')
+        })
+
+        it('local install prefix composes correctly', () => {
+          const input = '~/.claude/get-shit-done/bin/gsd-tools.js'
+          const result = replacePathsInContent(input, './.claude/')
+          expect(result).toBe('./.claude/get-shit-done-reflect/bin/gsd-tools.js')
+        })
+
+        it('combined realistic agent file content: all rules compose without interference', () => {
+          const input = [
+            '---',
+            'name: Test Agent',
+            '---',
+            '',
+            'Read @~/.claude/get-shit-done/references/agent-protocol.md',
+            'Use /gsd:help for commands.',
+            'subagent_type="gsd-executor"',
+            'Run: node get-shit-done/bin/gsd-tools.js init',
+            'GSD ► Phase 1',
+            'KB: ~/.gsd/knowledge/index.md',
+            'Package: get-shit-done-reflect-cc',
+            'Config: "gsd_reflect_version": "1.16.0"'
+          ].join('\n')
+          const result = replacePathsInContent(input, '~/.claude/')
+
+          // Correctly rewritten
+          expect(result).toContain('get-shit-done-reflect/references/agent-protocol.md')
+          expect(result).toContain('/gsdr:help')
+          expect(result).toContain('gsdr-executor')
+          expect(result).toContain('get-shit-done-reflect/bin/gsd-tools.js')
+          expect(result).toContain('GSDR ►')
+
+          // Correctly preserved
+          expect(result).toContain('gsd-tools.js')
+          expect(result).not.toContain('gsdr-tools.js')
+          expect(result).toContain('~/.gsd/knowledge/index.md')
+          expect(result).toContain('get-shit-done-reflect-cc')
+          expect(result).not.toContain('reflect-reflect')
+          expect(result).toContain('"gsd_reflect_version"')
+        })
+      })
+
+      describe('GitHub URL behavior (accepted)', () => {
+        it('rewrites github.com/gsd-build/get-shit-done/ (has trailing /, accepted behavior)', () => {
+          const input = 'See https://github.com/gsd-build/get-shit-done/discussions'
+          const result = replacePathsInContent(input, '~/.claude/')
+          expect(result).toContain('get-shit-done-reflect/discussions')
+          // This is accepted behavior -- installed output points to fork URLs
+        })
       })
     })
 
@@ -384,7 +572,7 @@ describe('install script', () => {
         })
 
         // Read reflect.md which contains KB paths (already ~/.gsd/knowledge/ in source)
-        const reflectWorkflow = path.join(configHome, 'opencode', 'get-shit-done', 'workflows', 'reflect.md')
+        const reflectWorkflow = path.join(configHome, 'opencode', 'get-shit-done-reflect', 'workflows', 'reflect.md')
         const content = await fs.readFile(reflectWorkflow, 'utf8')
 
         // KB paths should remain at shared location (no-op for Pass 1)
@@ -406,7 +594,7 @@ describe('install script', () => {
         })
 
         // Read reflect.md which has $HOME/.gsd/knowledge (already migrated in source)
-        const reflectWorkflow = path.join(configHome, 'opencode', 'get-shit-done', 'workflows', 'reflect.md')
+        const reflectWorkflow = path.join(configHome, 'opencode', 'get-shit-done-reflect', 'workflows', 'reflect.md')
         const content = await fs.readFile(reflectWorkflow, 'utf8')
 
         // $HOME/.gsd/knowledge should pass through unchanged
@@ -428,7 +616,7 @@ describe('install script', () => {
         })
 
         // Read health-check.md which has $HOME/.claude/get-shit-done/ (runtime-specific)
-        const healthCheck = path.join(configHome, 'opencode', 'get-shit-done', 'references', 'health-check.md')
+        const healthCheck = path.join(configHome, 'opencode', 'get-shit-done-reflect', 'references', 'health-check.md')
         const content = await fs.readFile(healthCheck, 'utf8')
 
         // $HOME/.claude/get-shit-done should be transformed to runtime path
@@ -446,7 +634,7 @@ describe('install script', () => {
         })
 
         // Read reflect.md from Claude install
-        const reflectWorkflow = path.join(tmpdir, '.claude', 'get-shit-done', 'workflows', 'reflect.md')
+        const reflectWorkflow = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'workflows', 'reflect.md')
         const content = await fs.readFile(reflectWorkflow, 'utf8')
 
         // KB paths already at shared location pass through unchanged
@@ -1009,16 +1197,16 @@ Use WebFetch and Task and SlashCommand for these features.`
         expect(skillsDirExists).toBe(true)
 
         const skillEntries = await fs.readdir(skillsDir)
-        const gsdSkills = skillEntries.filter(e => e.startsWith('gsd-'))
-        expect(gsdSkills.length).toBeGreaterThanOrEqual(3) // At least gsd-help, gsd-new-project, gsd-plan-phase
+        const gsdSkills = skillEntries.filter(e => e.startsWith('gsdr-'))
+        expect(gsdSkills.length).toBeGreaterThanOrEqual(3) // At least gsdr-help, gsdr-new-project, gsdr-plan-phase
 
         // Verify specific expected skills exist
-        expect(gsdSkills).toContain('gsd-help')
-        expect(gsdSkills).toContain('gsd-new-project')
-        expect(gsdSkills).toContain('gsd-plan-phase')
+        expect(gsdSkills).toContain('gsdr-help')
+        expect(gsdSkills).toContain('gsdr-new-project')
+        expect(gsdSkills).toContain('gsdr-plan-phase')
 
         // Verify SKILL.md files have correct frontmatter
-        for (const skill of ['gsd-help', 'gsd-new-project', 'gsd-plan-phase']) {
+        for (const skill of ['gsdr-help', 'gsdr-new-project', 'gsdr-plan-phase']) {
           const skillMd = await fs.readFile(path.join(skillsDir, skill, 'SKILL.md'), 'utf8')
           expect(skillMd).toContain(`name: ${skill}`)
           expect(skillMd).toContain('description:')
@@ -1027,11 +1215,11 @@ Use WebFetch and Task and SlashCommand for these features.`
         }
 
         // Verify paths in SKILL.md use ~/.codex/ not ~/.claude/
-        const helpSkill = await fs.readFile(path.join(skillsDir, 'gsd-help', 'SKILL.md'), 'utf8')
+        const helpSkill = await fs.readFile(path.join(skillsDir, 'gsdr-help', 'SKILL.md'), 'utf8')
         expect(helpSkill).not.toContain('~/.claude/')
 
-        // Verify get-shit-done reference docs exist
-        const gsdDir = path.join(tmpdir, '.codex', 'get-shit-done')
+        // Verify get-shit-done-reflect reference docs exist
+        const gsdDir = path.join(tmpdir, '.codex', 'get-shit-done-reflect')
         const gsdDirExists = await fs.access(gsdDir).then(() => true).catch(() => false)
         expect(gsdDirExists).toBe(true)
 
@@ -1064,7 +1252,7 @@ Use WebFetch and Task and SlashCommand for these features.`
         // Verify install succeeded
         const skillsDir = path.join(tmpdir, '.codex', 'skills')
         const preUninstallSkills = await fs.readdir(skillsDir)
-        expect(preUninstallSkills.filter(e => e.startsWith('gsd-')).length).toBeGreaterThan(0)
+        expect(preUninstallSkills.filter(e => e.startsWith('gsdr-')).length).toBeGreaterThan(0)
 
         // Uninstall
         execSync(`node "${installScript}" --codex --global --uninstall`, {
@@ -1074,9 +1262,9 @@ Use WebFetch and Task and SlashCommand for these features.`
           timeout: 15000
         })
 
-        // Verify gsd-* skill directories removed
+        // Verify gsdr-* skill directories removed
         const postSkills = await fs.readdir(skillsDir)
-        const remainingGsd = postSkills.filter(e => e.startsWith('gsd-'))
+        const remainingGsd = postSkills.filter(e => e.startsWith('gsdr-'))
         expect(remainingGsd.length).toBe(0)
 
         // Verify GSD section removed from AGENTS.md
@@ -1109,7 +1297,7 @@ Use WebFetch and Task and SlashCommand for these features.`
         expect(codexSkillsExists).toBe(true)
 
         // Verify Claude installed
-        const claudeDir = path.join(tmpdir, '.claude', 'commands', 'gsd')
+        const claudeDir = path.join(tmpdir, '.claude', 'commands', 'gsdr')
         const claudeExists = await fs.access(claudeDir).then(() => true).catch(() => false)
         expect(claudeExists).toBe(true)
 
@@ -1119,7 +1307,7 @@ Use WebFetch and Task and SlashCommand for these features.`
         expect(opcodeExists).toBe(true)
 
         // Verify Gemini installed
-        const geminiDir = path.join(tmpdir, '.gemini', 'commands', 'gsd')
+        const geminiDir = path.join(tmpdir, '.gemini', 'commands', 'gsdr')
         const geminiExists = await fs.access(geminiDir).then(() => true).catch(() => false)
         expect(geminiExists).toBe(true)
       })
@@ -1132,8 +1320,8 @@ Use WebFetch and Task and SlashCommand for these features.`
           timeout: 15000
         })
 
-        // Read a get-shit-done reference doc that contains ~/.claude/ paths in source
-        const gsdDir = path.join(tmpdir, '.codex', 'get-shit-done')
+        // Read a get-shit-done-reflect reference doc that contains ~/.claude/ paths in source
+        const gsdDir = path.join(tmpdir, '.codex', 'get-shit-done-reflect')
         const gsdFiles = await fs.readdir(gsdDir, { recursive: true })
         const mdFiles = gsdFiles.filter(f => f.endsWith('.md'))
 

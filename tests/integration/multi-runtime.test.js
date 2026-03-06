@@ -68,34 +68,34 @@ async function fileNotExists(filePath) {
 async function verifyRuntimeLayout(rootDir, runtime, configHome) {
   if (runtime === 'claude') {
     const base = path.join(rootDir, '.claude')
-    await dirHasFiles(path.join(base, 'commands', 'gsd'), '.md', 3)
-    await dirHasFiles(path.join(base, 'get-shit-done'), null, 1)
-    await dirHasGlobFiles(path.join(base, 'agents'), 'gsd-*.md', 1)
+    await dirHasFiles(path.join(base, 'commands', 'gsdr'), '.md', 3)
+    await dirHasFiles(path.join(base, 'get-shit-done-reflect'), null, 1)
+    await dirHasGlobFiles(path.join(base, 'agents'), 'gsdr-*.md', 1)
     await dirHasFiles(path.join(base, 'hooks'), '.js', 1)
-    await fileExists(path.join(base, 'get-shit-done', 'VERSION'))
+    await fileExists(path.join(base, 'get-shit-done-reflect', 'VERSION'))
     await fileExists(path.join(base, 'settings.json'))
   } else if (runtime === 'opencode') {
     const base = configHome
       ? path.join(configHome, 'opencode')
       : path.join(rootDir, '.config', 'opencode')
-    await dirHasGlobFiles(path.join(base, 'command'), 'gsd-*.md', 3)
-    await dirHasFiles(path.join(base, 'get-shit-done'), null, 1)
-    await dirHasGlobFiles(path.join(base, 'agents'), 'gsd-*.md', 1)
-    await fileExists(path.join(base, 'get-shit-done', 'VERSION'))
+    await dirHasGlobFiles(path.join(base, 'command'), 'gsdr-*.md', 3)
+    await dirHasFiles(path.join(base, 'get-shit-done-reflect'), null, 1)
+    await dirHasGlobFiles(path.join(base, 'agents'), 'gsdr-*.md', 1)
+    await fileExists(path.join(base, 'get-shit-done-reflect', 'VERSION'))
   } else if (runtime === 'gemini') {
     const base = path.join(rootDir, '.gemini')
-    await dirHasFiles(path.join(base, 'commands', 'gsd'), '.toml', 3)
-    await dirHasFiles(path.join(base, 'get-shit-done'), null, 1)
-    await dirHasGlobFiles(path.join(base, 'agents'), 'gsd-*.md', 1)
+    await dirHasFiles(path.join(base, 'commands', 'gsdr'), '.toml', 3)
+    await dirHasFiles(path.join(base, 'get-shit-done-reflect'), null, 1)
+    await dirHasGlobFiles(path.join(base, 'agents'), 'gsdr-*.md', 1)
     await dirHasFiles(path.join(base, 'hooks'), '.js', 1)
-    await fileExists(path.join(base, 'get-shit-done', 'VERSION'))
+    await fileExists(path.join(base, 'get-shit-done-reflect', 'VERSION'))
     await fileExists(path.join(base, 'settings.json'))
   } else if (runtime === 'codex') {
     const base = path.join(rootDir, '.codex')
-    await dirHasGlobDirs(path.join(base, 'skills'), 'gsd-*', 3)
-    await dirHasFiles(path.join(base, 'get-shit-done'), null, 1)
+    await dirHasGlobDirs(path.join(base, 'skills'), 'gsdr-*', 3)
+    await dirHasFiles(path.join(base, 'get-shit-done-reflect'), null, 1)
     await fileExists(path.join(base, 'AGENTS.md'))
-    await fileExists(path.join(base, 'get-shit-done', 'VERSION'))
+    await fileExists(path.join(base, 'get-shit-done-reflect', 'VERSION'))
     // Codex should NOT have these:
     await fileNotExists(path.join(base, 'agents'))
     await fileNotExists(path.join(base, 'hooks'))
@@ -203,7 +203,7 @@ describe('multi-runtime validation', () => {
       await verifyNoLeakedPaths(opcodeDir, 'opencode')
     })
 
-    tmpdirTest('OpenCode: command files use flat gsd-*.md naming', async ({ tmpdir }) => {
+    tmpdirTest('OpenCode: command files use flat gsdr-*.md naming', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
       execSync(`node "${installScript}" --opencode --global`, {
@@ -216,17 +216,17 @@ describe('multi-runtime validation', () => {
       const commandDir = path.join(configHome, 'opencode', 'command')
       const files = await fs.readdir(commandDir)
 
-      // All GSD command files should be gsd-*.md (flat, no nested gsd/ subdirectory)
-      const gsdFiles = files.filter(f => f.startsWith('gsd-') && f.endsWith('.md'))
+      // All GSD command files should be gsdr-*.md (flat, no nested gsdr/ subdirectory)
+      const gsdFiles = files.filter(f => f.startsWith('gsdr-') && f.endsWith('.md'))
       expect(gsdFiles.length).toBeGreaterThanOrEqual(3)
 
-      // There should be NO gsd/ subdirectory inside command/
-      const gsdSubdir = await fs.access(path.join(commandDir, 'gsd')).then(() => true).catch(() => false)
-      expect(gsdSubdir, 'command/gsd/ subdirectory should NOT exist (flat structure)').toBe(false)
+      // There should be NO gsdr/ subdirectory inside command/
+      const gsdSubdir = await fs.access(path.join(commandDir, 'gsdr')).then(() => true).catch(() => false)
+      expect(gsdSubdir, 'command/gsdr/ subdirectory should NOT exist (flat structure)').toBe(false)
 
-      // Every file in the command dir that starts with gsd- should be .md
+      // Every file in the command dir that starts with gsdr- should be .md
       for (const file of gsdFiles) {
-        expect(file).toMatch(/^gsd-.*\.md$/)
+        expect(file).toMatch(/^gsdr-.*\.md$/)
       }
     })
 
@@ -281,7 +281,7 @@ describe('multi-runtime validation', () => {
         timeout: 15000
       })
 
-      const commandsDir = path.join(tmpdir, '.gemini', 'commands', 'gsd')
+      const commandsDir = path.join(tmpdir, '.gemini', 'commands', 'gsdr')
       const files = await fs.readdir(commandsDir)
 
       // All command files should be .toml, NOT .md
@@ -289,7 +289,7 @@ describe('multi-runtime validation', () => {
       const mdFiles = files.filter(f => f.endsWith('.md'))
 
       expect(tomlFiles.length).toBeGreaterThanOrEqual(3)
-      expect(mdFiles.length, 'no .md files should be in Gemini commands/gsd/').toBe(0)
+      expect(mdFiles.length, 'no .md files should be in Gemini commands/gsdr/').toBe(0)
 
       // Verify at least one .toml file has valid TOML-like content
       const sampleToml = await fs.readFile(path.join(commandsDir, tomlFiles[0]), 'utf8')
@@ -317,7 +317,7 @@ describe('multi-runtime validation', () => {
       })
 
       // Read the installed planner agent (source has mcp__context7__* in tools)
-      const plannerAgent = path.join(tmpdir, '.gemini', 'agents', 'gsd-planner.md')
+      const plannerAgent = path.join(tmpdir, '.gemini', 'agents', 'gsdr-planner.md')
       const content = await fs.readFile(plannerAgent, 'utf8')
 
       // MCP tool reference should be preserved, not stripped
@@ -333,7 +333,7 @@ describe('multi-runtime validation', () => {
       })
 
       const agentsDir = path.join(tmpdir, '.gemini', 'agents')
-      const agentFiles = (await fs.readdir(agentsDir)).filter(f => f.startsWith('gsd-') && f.endsWith('.md'))
+      const agentFiles = (await fs.readdir(agentsDir)).filter(f => f.startsWith('gsdr-') && f.endsWith('.md'))
 
       expect(agentFiles.length, 'should have multiple agent files').toBeGreaterThanOrEqual(3)
 
@@ -360,7 +360,7 @@ describe('multi-runtime validation', () => {
       })
 
       // Read the installed planner agent (body references Read, Write, Bash, Glob, Grep)
-      const plannerAgent = path.join(tmpdir, '.gemini', 'agents', 'gsd-planner.md')
+      const plannerAgent = path.join(tmpdir, '.gemini', 'agents', 'gsdr-planner.md')
       const content = await fs.readFile(plannerAgent, 'utf8')
 
       // Separate frontmatter from body for body-only assertions
@@ -449,7 +449,7 @@ describe('multi-runtime validation', () => {
 
       // Verify each runtime's installed files reference the correct runtime-specific prefix
       // OpenCode: should use ~/.config/opencode/
-      const opcodeGsd = path.join(opcodeDir, 'get-shit-done')
+      const opcodeGsd = path.join(opcodeDir, 'get-shit-done-reflect')
       const opcodeFiles = await fs.readdir(opcodeGsd, { recursive: true })
       const opcodeMdFiles = opcodeFiles.filter(f => f.endsWith('.md'))
       for (const file of opcodeMdFiles) {
@@ -458,13 +458,13 @@ describe('multi-runtime validation', () => {
         if (!stat.isFile()) continue
         const content = await fs.readFile(filePath, 'utf8')
         // If file references get-shit-done paths, they should use opencode path
-        if (content.includes('/get-shit-done/') && !content.includes('.gsd/knowledge')) {
+        if (content.includes('/get-shit-done-reflect/') && !content.includes('.gsd/knowledge')) {
           expect(content).not.toContain('~/.claude/get-shit-done')
         }
       }
 
       // Gemini: should use ~/.gemini/
-      const geminiGsd = path.join(geminiDir, 'get-shit-done')
+      const geminiGsd = path.join(geminiDir, 'get-shit-done-reflect')
       const geminiFiles = await fs.readdir(geminiGsd, { recursive: true })
       const geminiMdFiles = geminiFiles.filter(f => f.endsWith('.md'))
       for (const file of geminiMdFiles) {
@@ -472,13 +472,13 @@ describe('multi-runtime validation', () => {
         const stat = await fs.stat(filePath)
         if (!stat.isFile()) continue
         const content = await fs.readFile(filePath, 'utf8')
-        if (content.includes('/get-shit-done/') && !content.includes('.gsd/knowledge')) {
+        if (content.includes('/get-shit-done-reflect/') && !content.includes('.gsd/knowledge')) {
           expect(content).not.toContain('~/.claude/get-shit-done')
         }
       }
 
       // Codex: should use ~/.codex/
-      const codexGsd = path.join(codexDir, 'get-shit-done')
+      const codexGsd = path.join(codexDir, 'get-shit-done-reflect')
       const codexFiles = await fs.readdir(codexGsd, { recursive: true })
       const codexMdFiles = codexFiles.filter(f => f.endsWith('.md'))
       for (const file of codexMdFiles) {
@@ -486,7 +486,7 @@ describe('multi-runtime validation', () => {
         const stat = await fs.stat(filePath)
         if (!stat.isFile()) continue
         const content = await fs.readFile(filePath, 'utf8')
-        if (content.includes('/get-shit-done/') && !content.includes('.gsd/knowledge')) {
+        if (content.includes('/get-shit-done-reflect/') && !content.includes('.gsd/knowledge')) {
           expect(content).not.toContain('~/.claude/get-shit-done')
         }
       }
@@ -502,20 +502,20 @@ describe('multi-runtime validation', () => {
         timeout: 30000
       })
 
-      // Claude: .md files in commands/gsd/
-      const claudeCommandsDir = path.join(tmpdir, '.claude', 'commands', 'gsd')
+      // Claude: .md files in commands/gsdr/
+      const claudeCommandsDir = path.join(tmpdir, '.claude', 'commands', 'gsdr')
       const claudeFiles = await fs.readdir(claudeCommandsDir)
       const claudeMdFiles = claudeFiles.filter(f => f.endsWith('.md'))
       expect(claudeMdFiles.length).toBeGreaterThanOrEqual(3)
 
-      // OpenCode: .md files matching gsd-*.md in command/ (flat)
+      // OpenCode: .md files matching gsdr-*.md in command/ (flat)
       const opcodeCommandDir = path.join(configHome, 'opencode', 'command')
       const opcodeFiles = await fs.readdir(opcodeCommandDir)
-      const opcodeGsdFiles = opcodeFiles.filter(f => f.startsWith('gsd-') && f.endsWith('.md'))
+      const opcodeGsdFiles = opcodeFiles.filter(f => f.startsWith('gsdr-') && f.endsWith('.md'))
       expect(opcodeGsdFiles.length).toBeGreaterThanOrEqual(3)
 
-      // Gemini: .toml files in commands/gsd/
-      const geminiCommandsDir = path.join(tmpdir, '.gemini', 'commands', 'gsd')
+      // Gemini: .toml files in commands/gsdr/
+      const geminiCommandsDir = path.join(tmpdir, '.gemini', 'commands', 'gsdr')
       const geminiFiles = await fs.readdir(geminiCommandsDir)
       const geminiTomlFiles = geminiFiles.filter(f => f.endsWith('.toml'))
       expect(geminiTomlFiles.length).toBeGreaterThanOrEqual(3)
@@ -523,10 +523,10 @@ describe('multi-runtime validation', () => {
       const geminiMdFiles = geminiFiles.filter(f => f.endsWith('.md'))
       expect(geminiMdFiles.length).toBe(0)
 
-      // Codex: SKILL.md files in skills/gsd-*/
+      // Codex: SKILL.md files in skills/gsdr-*/
       const codexSkillsDir = path.join(tmpdir, '.codex', 'skills')
       const codexEntries = await fs.readdir(codexSkillsDir, { withFileTypes: true })
-      const codexSkillDirs = codexEntries.filter(e => e.isDirectory() && e.name.startsWith('gsd-'))
+      const codexSkillDirs = codexEntries.filter(e => e.isDirectory() && e.name.startsWith('gsdr-'))
       expect(codexSkillDirs.length).toBeGreaterThanOrEqual(3)
 
       // Verify each Codex skill has a SKILL.md
@@ -606,37 +606,37 @@ describe('multi-runtime validation', () => {
       }
 
       // --- Agents: Claude, OpenCode, Gemini (Codex excluded — uses AGENTS.md composite) ---
-      const claudeAgents = getNameSet(path.join(tmpdir, '.claude', 'agents'), 'gsd-', '.md')
-      const opcodeAgents = getNameSet(path.join(configHome, 'opencode', 'agents'), 'gsd-', '.md')
-      const geminiAgents = getNameSet(path.join(tmpdir, '.gemini', 'agents'), 'gsd-', '.md')
+      const claudeAgents = getNameSet(path.join(tmpdir, '.claude', 'agents'), 'gsdr-', '.md')
+      const opcodeAgents = getNameSet(path.join(configHome, 'opencode', 'agents'), 'gsdr-', '.md')
+      const geminiAgents = getNameSet(path.join(tmpdir, '.gemini', 'agents'), 'gsdr-', '.md')
 
       expect([...claudeAgents].sort(), 'Agent parity: Claude vs OpenCode').toEqual([...opcodeAgents].sort())
       expect([...claudeAgents].sort(), 'Agent parity: Claude vs Gemini').toEqual([...geminiAgents].sort())
 
       // --- Workflows: All 4 runtimes (Gemini uses .toml, others use .md) ---
-      const claudeWorkflows = getNameSet(path.join(tmpdir, '.claude', 'get-shit-done', 'workflows'), '', '.md')
-      const opcodeWorkflows = getNameSet(path.join(configHome, 'opencode', 'get-shit-done', 'workflows'), '', '.md')
-      const geminiWorkflows = getNameSet(path.join(tmpdir, '.gemini', 'get-shit-done', 'workflows'), '', '.toml')
-      const codexWorkflows = getNameSet(path.join(tmpdir, '.codex', 'get-shit-done', 'workflows'), '', '.md')
+      const claudeWorkflows = getNameSet(path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'workflows'), '', '.md')
+      const opcodeWorkflows = getNameSet(path.join(configHome, 'opencode', 'get-shit-done-reflect', 'workflows'), '', '.md')
+      const geminiWorkflows = getNameSet(path.join(tmpdir, '.gemini', 'get-shit-done-reflect', 'workflows'), '', '.toml')
+      const codexWorkflows = getNameSet(path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'workflows'), '', '.md')
 
       expect([...claudeWorkflows].sort(), 'Workflow parity: Claude vs OpenCode').toEqual([...opcodeWorkflows].sort())
       expect([...claudeWorkflows].sort(), 'Workflow parity: Claude vs Gemini').toEqual([...geminiWorkflows].sort())
       expect([...claudeWorkflows].sort(), 'Workflow parity: Claude vs Codex').toEqual([...codexWorkflows].sort())
 
       // --- Commands: different naming per runtime, compare extension-stripped ---
-      // Claude: commands/gsd/*.md (strip leading path, keep name only)
-      const claudeCommands = getNameSet(path.join(tmpdir, '.claude', 'commands', 'gsd'), '', '.md')
-      // OpenCode: command/gsd-*.md
-      const opcodeCommands = getNameSet(path.join(configHome, 'opencode', 'command'), 'gsd-', '.md')
-      // Gemini: commands/gsd/*.toml
-      const geminiCommands = getNameSet(path.join(tmpdir, '.gemini', 'commands', 'gsd'), '', '.toml')
-      // Codex: skills/gsd-*/ (directory names)
-      const codexCommands = getDirNameSet(path.join(tmpdir, '.codex', 'skills'), 'gsd-')
+      // Claude: commands/gsdr/*.md (strip leading path, keep name only)
+      const claudeCommands = getNameSet(path.join(tmpdir, '.claude', 'commands', 'gsdr'), '', '.md')
+      // OpenCode: command/gsdr-*.md
+      const opcodeCommands = getNameSet(path.join(configHome, 'opencode', 'command'), 'gsdr-', '.md')
+      // Gemini: commands/gsdr/*.toml
+      const geminiCommands = getNameSet(path.join(tmpdir, '.gemini', 'commands', 'gsdr'), '', '.toml')
+      // Codex: skills/gsdr-*/ (directory names)
+      const codexCommands = getDirNameSet(path.join(tmpdir, '.codex', 'skills'), 'gsdr-')
 
-      // Normalize: Claude and Gemini commands lack gsd- prefix (nested in gsd/ subdir),
-      // while OpenCode and Codex have gsd- prefix (flat naming). Add gsd- prefix to normalize.
+      // Normalize: Claude and Gemini commands lack gsdr- prefix (nested in gsdr/ subdir),
+      // while OpenCode and Codex have gsdr- prefix (flat naming). Add gsdr- prefix to normalize.
       function addGsdPrefix(nameSet) {
-        return new Set([...nameSet].map(n => n.startsWith('gsd-') ? n : `gsd-${n}`))
+        return new Set([...nameSet].map(n => n.startsWith('gsdr-') ? n : `gsdr-${n}`))
       }
       const claudeNorm = addGsdPrefix(claudeCommands)
       const geminiNorm = addGsdPrefix(geminiCommands)
@@ -645,10 +645,10 @@ describe('multi-runtime validation', () => {
       expect([...claudeNorm].sort(), 'Command parity: Claude vs Gemini').toEqual([...geminiNorm].sort())
       expect([...claudeNorm].sort(), 'Command parity: Claude vs Codex').toEqual([...codexCommands].sort())
 
-      // --- Hooks: Claude, OpenCode, Gemini (Codex excluded — no hooks) ---
-      const claudeHooks = getNameSet(path.join(tmpdir, '.claude', 'hooks'), 'gsd-', '.js')
-      const opcodeHooks = getNameSet(path.join(configHome, 'opencode', 'hooks'), 'gsd-', '.js')
-      const geminiHooks = getNameSet(path.join(tmpdir, '.gemini', 'hooks'), 'gsd-', '.js')
+      // --- Hooks: Claude, OpenCode, Gemini (Codex excluded -- no hooks) ---
+      const claudeHooks = getNameSet(path.join(tmpdir, '.claude', 'hooks'), 'gsdr-', '.js')
+      const opcodeHooks = getNameSet(path.join(configHome, 'opencode', 'hooks'), 'gsdr-', '.js')
+      const geminiHooks = getNameSet(path.join(tmpdir, '.gemini', 'hooks'), 'gsdr-', '.js')
 
       expect([...claudeHooks].sort(), 'Hook parity: Claude vs OpenCode').toEqual([...opcodeHooks].sort())
       expect([...claudeHooks].sort(), 'Hook parity: Claude vs Gemini').toEqual([...geminiHooks].sort())
@@ -685,19 +685,19 @@ describe('multi-runtime validation', () => {
             const innerHooks = hookEntry.hooks || []
             for (const inner of innerHooks) {
               const command = inner.command || ''
-              const match = command.match(/gsd-[\w-]+\.js/)
+              const match = command.match(/gsdr-[\w-]+\.js/)
               if (match) registeredHooks.add(match[0])
             }
             // Also check direct command (in case structure varies)
             const directCommand = hookEntry.command || ''
-            const directMatch = directCommand.match(/gsd-[\w-]+\.js/)
+            const directMatch = directCommand.match(/gsdr-[\w-]+\.js/)
             if (directMatch) registeredHooks.add(directMatch[0])
           }
         }
 
         // Collect actual hook files
         const actualHookFiles = (await fs.readdir(rt.hooksDir))
-          .filter(f => f.startsWith('gsd-') && f.endsWith('.js'))
+          .filter(f => f.startsWith('gsdr-') && f.endsWith('.js'))
         const actualHookSet = new Set(actualHookFiles)
 
         // Every registered hook must have a corresponding file
@@ -727,10 +727,10 @@ describe('multi-runtime validation', () => {
 
       // Collect VERSION file contents from all 4 runtimes
       const versionPaths = [
-        path.join(tmpdir, '.claude', 'get-shit-done', 'VERSION'),
-        path.join(configHome, 'opencode', 'get-shit-done', 'VERSION'),
-        path.join(tmpdir, '.gemini', 'get-shit-done', 'VERSION'),
-        path.join(tmpdir, '.codex', 'get-shit-done', 'VERSION'),
+        path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'VERSION'),
+        path.join(configHome, 'opencode', 'get-shit-done-reflect', 'VERSION'),
+        path.join(tmpdir, '.gemini', 'get-shit-done-reflect', 'VERSION'),
+        path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'VERSION'),
       ]
 
       const versions = []
