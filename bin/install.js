@@ -2070,8 +2070,10 @@ function install(isGlobal, runtime = 'claude') {
   // Track installation failures
   const failures = [];
 
-  // Version string: local installs get +dev suffix for dogfooding visibility
-  const versionString = isGlobal ? pkg.version : `${pkg.version}+dev`;
+  // Version string: +dev suffix for dogfooding visibility
+  // Applied when: local installs (always dev), or global installs from git repo (not from npm)
+  const isFromGitRepo = fs.existsSync(path.join(src, '.git'));
+  const versionString = (!isGlobal || isFromGitRepo) ? `${pkg.version}+dev` : pkg.version;
 
   // Save any locally modified GSD files before they get wiped
   saveLocalPatches(targetDir);
