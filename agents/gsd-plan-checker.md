@@ -293,6 +293,125 @@ issue:
 
 </verification_dimensions>
 
+<advisory_semantic_dimensions>
+
+## Advisory Severity Policy (PLAN-05)
+
+Dimensions 8-11 are **semantic validation** dimensions. Unlike structural Dimensions 1-7, all semantic findings use `severity: advisory` -- never blocker or warning.
+
+**Why advisory-only:** Plans describe *future state*. A plan that creates directory `src/new-module/` in Task 1 and references `src/new-module/index.ts` in Task 2 would incorrectly fail strict directory validation at plan-check time. Similarly, a plan may reference a gsd-tools subcommand that will be added in the same milestone, or a signal ID that has not yet been collected. Advisory findings surface information for human review without blocking execution.
+
+**When semantic findings matter:** Advisory findings become actionable when they indicate a likely typo, stale reference, or misunderstanding -- not when they reflect temporal ordering within the plan. The executor and verifier provide stronger guarantees at their respective stages.
+
+## Finding ID Schema
+
+All semantic findings use typed IDs with format `[TYPE]-[NNN]`:
+
+| Type | Dimension | Example |
+|------|-----------|---------|
+| TOOL | 8 (Tool Subcommand) | TOOL-001 |
+| CFG  | 9 (Config Key) | CFG-001 |
+| DIR  | 10 (Directory Existence) | DIR-001 |
+| SIG  | 11 (Signal Reference) | SIG-001 |
+
+Sequential numbering per dimension per plan-check run (TOOL-001, TOOL-002, etc.). These typed IDs enable future correlation with execution signals -- if a TOOL-001 advisory is ignored and execution fails on the same command, the signal can reference the original finding.
+
+## Finding Output Format
+
+All semantic dimension findings use this structure:
+
+```yaml
+issue:
+  dimension: "[dimension_name]"
+  severity: advisory
+  finding_id: "[TYPE]-[NNN]"
+  description: "..."
+  plan: "[plan-id]"
+  task: [N]
+  resolution_hint: "..."
+```
+
+## Dimension 8: Tool Subcommand Validation
+
+**Question:** Do plan actions reference valid gsd-tools.js subcommands?
+
+**Severity:** advisory
+
+**Process:**
+1. Scan all `<action>` blocks for patterns matching `gsd-tools.js <command> [<subcommand>]` or `node .*/gsd-tools.js <command> [<subcommand>]`
+2. Check `<command>` against the top-level command allowlist
+3. If command has subcommands, check `<subcommand>` against the subcommand allowlist
+4. Report unmatched commands/subcommands as advisory findings with TOOL-NNN IDs
+
+**Tool Command Allowlist** (verified from gsd-tools.js source 2026-03-06):
+
+```
+Top-level commands:
+  state, resolve-model, find-phase, commit, verify-summary, template,
+  frontmatter, verify, generate-slug, current-timestamp, list-todos,
+  verify-path-exists, config-ensure-section, config-set, history-digest,
+  phases, roadmap, phase, milestone, validate, progress, todo, scaffold,
+  init, phase-plan-index, state-snapshot, summary-extract, websearch,
+  manifest, backlog, automation, sensors, health-probe
+
+Subcommand trees:
+  frontmatter: get, set, merge, validate
+  verify: plan-structure, phase-completeness, references, commits, artifacts, key-links
+  automation: resolve-level, track-event, lock, unlock, check-lock, regime-change, reflection-counter
+  sensors: list, blind-spots
+  health-probe: signal-metrics, signal-density, automation-watchdog
+  init: execute-phase, plan-phase, new-project, new-milestone, quick, resume, verify-work, phase-op, todos, milestone-op, map-codebase, progress
+  template: (accepts template name arg)
+  roadmap: get-phase
+  manifest: selftest, describe
+```
+
+**Maintenance note:** This allowlist must be updated when gsd-tools.js adds new subcommands. When you encounter an unrecognized top-level command, issue a TOOL finding -- do not silently ignore.
+
+**Example finding:**
+```yaml
+issue:
+  dimension: tool_subcommand
+  severity: advisory
+  finding_id: "TOOL-001"
+  description: "Plan references 'frontmatter extract' -- valid subcommands are: get, set, merge, validate"
+  plan: "43-01"
+  task: 1
+  resolution_hint: "Did you mean 'frontmatter get'?"
+```
+
+## Dimension 9: Config Key Validation
+
+**Question:** Do plan actions reference valid config keys from feature-manifest.json?
+
+**Severity:** advisory
+
+**Process:**
+1. Read `get-shit-done/feature-manifest.json` (or `~/.claude/get-shit-done/feature-manifest.json` at runtime)
+2. Build valid key set by walking schema: for each feature, `config_key + "." + schema_field`; for nested objects, `config_key + "." + field + "." + nested_field`
+3. Scan `<action>` blocks for config key references: after `config-set` commands, dotted paths near "config", "config.json", "feature-manifest" context
+4. Validate extracted keys against valid set
+5. Advisory finding for unrecognized keys with CFG-NNN IDs
+
+**Extraction guidance:** Narrow extraction to context where config is being discussed to avoid false positives on version numbers (e.g., "v1.17.0"), file paths (e.g., "path.to.file.ts"), or code references (e.g., "object.property"). Look for dotted paths that appear:
+- After `config-set` or `config-ensure-section` commands
+- In proximity to words like "config", "config.json", "feature-manifest", "schema"
+- As YAML keys under config-related frontmatter fields
+
+**Example finding:**
+```yaml
+issue:
+  dimension: config_key
+  severity: advisory
+  finding_id: "CFG-001"
+  description: "Plan references config key 'spike_sensitivity' -- manifest uses nested path 'spike.sensitivity'"
+  plan: "35-02"
+  task: 1
+  resolution_hint: "Use 'spike.sensitivity' (nested under spike config_key) not 'spike_sensitivity' (flat key)"
+```
+
+</advisory_semantic_dimensions>
+
 <verification_process>
 
 ## Step 1: Load Context
