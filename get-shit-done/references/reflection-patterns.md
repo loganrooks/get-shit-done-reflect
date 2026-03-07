@@ -757,7 +757,73 @@ marginal_threshold <= weighted_score < threshold
 
 ---
 
-*Reference version: 1.2.0*
+## 13. Lesson Confidence Evolution (REFL-05)
+
+### 13.1 Confidence Step Ladder
+
+Lesson confidence moves directionally based on signal evidence:
+
+```
+low <-> medium <-> high
+```
+
+- **One step up:** low -> medium, medium -> high, high -> high (ceiling)
+- **One step down:** high -> medium, medium -> low, low -> low (floor)
+
+### 13.2 Update Triggers
+
+| Trigger | Direction | Description |
+|---------|-----------|-------------|
+| Corroborating signals | +1 step | New signals match the lesson's predicted pattern (same tags, same signal_type, recurring as expected) |
+| Contradicting signals | -1 step | New signals show the predicted problem is resolved or reversed (positive category where lesson predicted negative recurrence) |
+| Irrelevant signals | No change | Signals unrelated to the lesson's domain. Confidence does NOT decay due to irrelevance ("untestable milestone" rule) |
+| No new signals in domain | No change | Absence of evidence is not evidence of absence |
+
+### 13.3 Initial Confidence Assignment
+
+New lesson candidates (first appearance, not in any prior report):
+
+| Evidence Signals | Initial Confidence |
+|------------------|--------------------|
+| 4+ signals | medium |
+| 1-3 signals | low |
+
+No lesson starts at high confidence. High is earned through corroboration across reflections.
+
+### 13.4 confidence_history Schema
+
+Each lesson candidate in a reflection report includes a cumulative confidence_history:
+
+```markdown
+### Lesson: {title}
+**Prior confidence:** {level} (from reflect-{YYYY-MM-DD}.md)
+**New evidence:** {N} {corroborating|contradicting} signal(s) ({sig-IDs})
+**Update:** {from} -> {to} ({reason})
+**Confidence history:**
+| Date | From | To | Evidence | Reason |
+|------|------|----|----------|--------|
+| 2026-03-06 | medium | high | sig-A, sig-B, sig-C | 3 signals match predicted pattern |
+| 2026-03-04 | low | medium | sig-X, sig-Y, sig-Z, sig-W | Initial distillation (4 evidence) |
+```
+
+The history table is cumulative -- each reflection appends a new row and carries forward
+all prior rows from the previous report.
+
+### 13.5 Report-to-Report Chaining
+
+Confidence state is tracked across reflection reports, not in individual lesson files
+(lessons are deprecated as standalone KB entries per knowledge-store.md).
+
+The reflector reads the most recent reflection report to find:
+1. Which lesson candidates exist and their current confidence level
+2. The full confidence_history to carry forward
+3. Which signal patterns were previously associated with each lesson
+
+Reports are stored at `.planning/knowledge/reflections/{project}/reflect-YYYY-MM-DDTHHMMSS.md`.
+
+---
+
+*Reference version: 1.3.0*
 *Created: 2026-02-05*
-*Updated: 2026-02-28*
-*Phase: 04-reflection-engine, 31-signal-schema-foundation, 33-enhanced-reflector*
+*Updated: 2026-03-07*
+*Phase: 04-reflection-engine, 31-signal-schema-foundation, 33-enhanced-reflector, 42-reflection-automation*
