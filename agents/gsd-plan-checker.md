@@ -410,6 +410,62 @@ issue:
   resolution_hint: "Use 'spike.sensitivity' (nested under spike config_key) not 'spike_sensitivity' (flat key)"
 ```
 
+## Dimension 10: Directory Existence Validation
+
+**Question:** Do `files_modified` paths in plan frontmatter have valid parent directories?
+
+**Severity:** advisory
+
+**Process:**
+1. Parse `files_modified` from plan frontmatter
+2. For each path, extract parent directory
+3. Build a "will exist" set from task `<files>` and `<action>` blocks (directories explicitly created via mkdir -p or listed as directory creates)
+4. Also build a "dependency creates" set: if plan depends on earlier plans, include directories those plans create (from their `files_modified`)
+5. Check: does the parent directory exist on disk OR appear in the "will exist" set OR appear in the "dependency creates" set?
+6. Advisory finding for missing directories with DIR-NNN IDs
+
+**Temporal awareness is critical:** A plan that creates `src/new-feature/` in Task 1 and references `src/new-feature/component.ts` in Task 2 should NOT produce a finding for the parent directory. Build the "will exist" set by scanning tasks in order -- if Task 1 creates a directory, Task 2's references to files within that directory are valid.
+
+**When checking disk:** Use simple path existence check (`test -d` or `ls`), not recursive search. Only check parent directories, not the files themselves (files are expected to not exist yet -- they are being created by the plan).
+
+**Example finding:**
+```yaml
+issue:
+  dimension: directory_existence
+  severity: advisory
+  finding_id: "DIR-001"
+  description: "files_modified includes 'src/new-module/index.ts' but parent 'src/new-module/' does not exist on disk and is not created by any task in this plan or its dependencies"
+  plan: "43-02"
+  task: 2
+  resolution_hint: "Add directory creation to an earlier task or verify the path is correct"
+```
+
+## Dimension 11: Signal Reference Validation
+
+**Question:** Do `resolves_signals` IDs in plan frontmatter exist in the KB signal index?
+
+**Severity:** advisory
+
+**Process:**
+1. Parse `resolves_signals` from plan frontmatter (YAML list of signal IDs)
+2. Read `.planning/knowledge/index.md` (project-local primary, `~/.gsd/knowledge/index.md` fallback per Phase 38.1 convention)
+3. Extract all signal IDs from the index (both `sig-*` and legacy `SIG-*` format)
+4. For each `resolves_signals` ID, check if it appears in the index
+5. Advisory finding for unmatched IDs with SIG-NNN IDs -- signal may not yet have been collected
+
+**Note:** Signals may be collected after plan creation. An unmatched ID is an advisory note, not a definitive error. The signal collection workflow runs after phase execution, so a plan created before signal collection may reference IDs that will exist by execution time.
+
+**Example finding:**
+```yaml
+issue:
+  dimension: signal_reference
+  severity: advisory
+  finding_id: "SIG-001"
+  description: "resolves_signals includes 'sig-2026-03-10-missing-signal' which is not found in KB index"
+  plan: "43-01"
+  resolution_hint: "Verify signal ID exists in .planning/knowledge/index.md -- signal may not yet be collected"
+```
+
 </advisory_semantic_dimensions>
 
 <verification_process>
@@ -546,6 +602,17 @@ grep "files_modified:" "$PHASE_DIR"/$PHASE-01-PLAN.md
 
 Thresholds: 2-3 tasks/plan good, 4 warning, 5+ blocker (split required).
 
+## Step 8.5: Semantic Validation
+
+Run advisory semantic Dimensions 8-11 against all plans:
+
+1. **Dimension 8 (Tool Subcommand):** Scan `<action>` blocks for gsd-tools.js command references, validate against embedded allowlist
+2. **Dimension 9 (Config Key):** Scan `<action>` blocks for config key references, validate against feature-manifest.json schema
+3. **Dimension 10 (Directory Existence):** Parse `files_modified` paths, check parent directory existence with temporal awareness
+4. **Dimension 11 (Signal Reference):** Parse `resolves_signals` IDs, check against KB signal index
+
+Collect all advisory findings with typed IDs (TOOL-NNN, CFG-NNN, DIR-NNN, SIG-NNN). These are reported in the output but do NOT affect the passed/issues_found determination (see Step 10).
+
 ## Step 9: Verify must_haves Derivation
 
 **Truths:** user-observable (not "bcrypt installed" but "passwords are secure"), testable, specific.
@@ -561,6 +628,8 @@ Thresholds: 2-3 tasks/plan good, 4 warning, 5+ blocker (split required).
 **issues_found:** One or more blockers or warnings. Plans need revision.
 
 Severities: `blocker` (must fix), `warning` (should fix), `info` (suggestions).
+
+**Advisory findings from semantic validation (Dimensions 8-11) are reported in the output but do NOT affect the passed/issues_found determination.** Only blocker and warning severity issues from Dimensions 1-7 determine status. Advisory findings are informational -- they surface potential issues for human review without blocking plan execution.
 
 </verification_process>
 
@@ -734,6 +803,7 @@ Plan verification complete when:
   - [ ] Locked decisions have implementing tasks
   - [ ] No tasks contradict locked decisions
   - [ ] Deferred ideas not included in plans
+- [ ] Semantic validation dimensions checked (Dimensions 8-11, advisory only)
 - [ ] Overall status determined (passed | issues_found)
 - [ ] Structured issues returned (if any found)
 - [ ] Result returned to orchestrator
