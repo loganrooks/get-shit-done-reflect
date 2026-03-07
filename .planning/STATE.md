@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 42 (Reflection Automation)
-Plan: 1 of 2 in current phase
-Status: In progress
-Last activity: 2026-03-06 - Completed 42-01-PLAN.md (reflection counter + auto_reflect postlude)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-03-07 - Completed 42-02-PLAN.md (counter reset + confidence evolution)
 
-Progress: [████████░░] 89% (8/9 phases: 36, 37, 38, 38.1, 39, 40, 41, 44 done — 42, 43 remaining)
+Progress: [█████████░] 90% (9/10 phases: 36, 37, 38, 38.1, 39, 40, 41, 44, 42 done — 43 remaining)
 
 ## Performance Metrics
 
@@ -96,6 +96,7 @@ Progress: [████████░░] 89% (8/9 phases: 36, 37, 38, 38.1, 39
 | Phase | Plan | Duration | Tasks | Files |
 |-------|------|----------|-------|-------|
 | 42 | 01 | 4min | 2 | 4 |
+| 42 | 02 | 3min | 2 | 2 |
 
 ## Accumulated Context
 
@@ -137,6 +138,10 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 41]: Session dedup uses 1-hour threshold to prevent re-triggering on rapid session restarts
 - [Phase 41]: Generous allowlist approach for rogue detection -- expand registry on false positives rather than weakening detection
 - [Phase 41]: Rogue context probe is tier:full only -- git log queries are too slow for default health checks
+- [Phase 42]: Report filenames use datetime (HHMMSS) to prevent auto-reflect/manual collision on same day
+- [Phase 42]: Counter reset is best-effort in reflect.md -- failure does not break reflection
+- [Phase 42]: Lesson confidence never starts at high -- earned through corroboration across reflections
+- [Phase 42]: Confidence state lives in reflection reports via report-to-report chaining, not deprecated lesson files
 
 ### Pending Todos
 
@@ -196,7 +201,7 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-03-06
-Stopped at: Completed 42-01-PLAN.md (reflection counter subcommand, manifest schema, auto_reflect postlude). Phase 42 in progress (1/2 plans).
+Last session: 2026-03-07
+Stopped at: Completed 42-02-PLAN.md (counter reset in reflect.md, confidence evolution schema). Phase 42 complete (2/2 plans).
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
