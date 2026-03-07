@@ -312,6 +312,50 @@ Task(
   8. Check semantic drift (if requested)
   9. Return the structured Reflection Report
 
+  **Lesson Confidence Updates (REFL-05):**
+
+  After pattern detection and triage, update confidence on existing lesson candidates:
+
+  1. Read the most recent reflection report from `.planning/knowledge/reflections/{project}/`
+     (the `persist_report` step writes reports as `reflect-YYYY-MM-DDTHHMMSS.md`). If no prior
+     report exists, skip confidence updates -- all lessons are new.
+
+  2. For each lesson candidate in the PREVIOUS report that also appears in the current
+     analysis (matched by lesson title or topic):
+     - **Corroborating signals:** New signals that match the lesson's predicted pattern
+       (same tags, same signal_type, recurring in the expected direction) increase
+       confidence one step: low -> medium, medium -> high, high -> high (ceiling).
+     - **Contradicting signals:** New signals showing the problem is resolved (positive
+       signal_category where the lesson predicted negative recurrence) decrease confidence
+       one step: high -> medium, medium -> low, low -> low (floor).
+     - **Irrelevant signals:** Signals unrelated to the lesson's domain produce no update.
+       Do NOT decay confidence due to irrelevance ('untestable milestone' rule).
+
+  3. Include a `## Lesson Confidence Updates` section in the reflection report with:
+
+  ```
+  ## Lesson Confidence Updates
+
+  ### Lesson: {title}
+  **Prior confidence:** {level} (from reflect-{date}.md)
+  **New evidence:** {N} {corroborating|contradicting} signal(s) ({sig-IDs})
+  **Update:** {from} -> {to} ({reason})
+  **Confidence history:**
+  | Date | From | To | Evidence | Reason |
+  |------|------|----|----------|--------|
+  | {date} | {from} | {to} | {sig-IDs} | {reason} |
+  | ... prior entries from previous report ... |
+  ```
+
+  4. If a lesson candidate appears for the first time (not in any prior report), set
+     initial confidence based on evidence strength:
+     - 4+ evidence signals: medium
+     - 1-3 evidence signals: low
+     No initial confidence starts at high -- high is earned through corroboration.
+
+  5. Carry forward the full confidence_history from the prior report for each lesson,
+     appending the new entry. This creates a complete audit trail across reflections.
+
   Return the structured Reflection Report when complete.",
   subagent_type="gsd-reflector"
 )
@@ -557,7 +601,7 @@ Write the full reflection report to a persistent file in the knowledge base. Thi
 ```bash
 REPORT_DIR="$KB_DIR/reflections/$PROJECT_NAME"
 mkdir -p "$REPORT_DIR"
-REPORT_FILE="$REPORT_DIR/reflect-$(date +%Y-%m-%d).md"
+REPORT_FILE="$REPORT_DIR/reflect-$(date +%Y-%m-%dT%H%M%S).md"
 ```
 
 **Report content:** Write the complete reflection output as a markdown file, including:
@@ -609,7 +653,7 @@ Scope: {SCOPE}
 {drift assessment if drift check was run, otherwise "Not checked"}
 ```
 
-**Same-day overwrites:** If a report for today already exists, overwrite it. Only the latest run per day is preserved.
+**Datetime filenames:** Reports use second-precision timestamps (`reflect-YYYY-MM-DDTHHMMSS.md`) to prevent collisions when auto-reflection and manual `/gsd:reflect` run the same day. Each run produces a distinct file.
 
 **Report is informational:** The report file is a historical record. It is NOT indexed in `index.md` (reflections are not KB entries). Other workflows may read it for context (e.g., planning could reference recent reflection findings).
 
@@ -633,6 +677,22 @@ fi
 ```
 
 Skip if `COMMIT_PLANNING_DOCS` is false.
+
+</step>
+
+<step name="reset_reflection_counter">
+
+Reset the reflection phase counter after successful reflection completion. This ensures
+both manual (`/gsd:reflect`) and auto-triggered reflections reset the counter, so the
+next auto-reflection is scheduled correctly.
+
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation reflection-counter reset --raw 2>/dev/null || echo "Warning: Counter reset failed (non-blocking)"
+```
+
+This step is best-effort. If it fails (e.g., no config.json), reflection still completes
+successfully. The counter will be stale but will not cause incorrect behavior -- the
+auto_reflect postlude re-reads the counter from config each time.
 
 </step>
 
