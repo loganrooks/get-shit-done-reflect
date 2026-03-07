@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-03-02)
 ## Current Position
 
 Phase: 43 (Plan Intelligence & Templates)
-Plan: 0 of 2 in current phase
-Status: Not started
-Last activity: 2026-03-06 - Completed Phase 42 Reflection Automation (2/2 plans, verified passed)
+Plan: 2 of 2 in current phase
+Status: Phase complete
+Last activity: 2026-03-07 - Completed Phase 43 Plan Intelligence & Templates (2/2 plans)
 
-Progress: [█████████░] 90% (9/10 phases: 36, 37, 38, 38.1, 39, 40, 41, 42, 44 done — 43 remaining)
+Progress: [██████████] 100% (10/10 phases: 36, 37, 38, 38.1, 39, 40, 41, 42, 43, 44 done)
 
 ## Performance Metrics
 
@@ -98,6 +98,12 @@ Progress: [█████████░] 90% (9/10 phases: 36, 37, 38, 38.1, 3
 | 42 | 01 | 4min | 2 | 4 |
 | 42 | 02 | 3min | 2 | 2 |
 
+**Phase 43:**
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 43 | 01 | 3min | 2 | 1 |
+| 43 | 02 | 2min | 2 | 7 |
+
 ## Accumulated Context
 
 ### Decisions
@@ -142,6 +148,12 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 42]: Counter reset is best-effort in reflect.md -- failure does not break reflection
 - [Phase 42]: Lesson confidence never starts at high -- earned through corroboration across reflections
 - [Phase 42]: Confidence state lives in reflection reports via report-to-report chaining, not deprecated lesson files
+- [Phase 43]: TMPL-01 (requirements motivation) already present in template -- no change needed
+- [Phase 43]: Executor spec updated to instruct filling model/context_used_pct (closes producer-consumer loop)
+- [Phase 43]: Reflector and reflect workflow updated in tandem for requirement linkage (avoids Pitfall 6)
+- [Phase 43]: REQUIREMENTS.md pre-loaded in prepare_context to avoid reflector context budget cost
+- [Phase 43]: All semantic validation findings use advisory severity -- plans describe future state
+- [Phase 43]: Typed finding IDs (TOOL/CFG/DIR/SIG) enable future correlation between plan-check findings and execution signals
 
 ### Pending Todos
 
@@ -202,6 +214,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-07
-Stopped at: Completed 42-02-PLAN.md (counter reset in reflect.md, confidence evolution schema). Phase 42 complete (2/2 plans).
+Stopped at: Completed 43-02-PLAN.md (template traceability and provenance). Phase 43 complete (2/2 plans). All v1.17 phases done.
 Resume file: None
 Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
