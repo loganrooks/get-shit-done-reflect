@@ -12,7 +12,7 @@ allowed-tools:
 ---
 
 <objective>
-Create a manual signal entry in the knowledge base capturing an observation from the current conversation. Write a signal file to ~/.gsd/knowledge/signals/{project}/ and rebuild the index.
+Create a manual signal entry in the knowledge base capturing an observation from the current conversation. Write a signal file to the project's KB signals directory and rebuild the index.
 </objective>
 
 <context>
@@ -26,7 +26,7 @@ Arguments: $ARGUMENTS
 
 ## Signal Schema
 
-File path: `~/.gsd/knowledge/signals/{project}/{YYYY-MM-DD}-{slug}.md`
+File path: `{KB_DIR}/signals/{project}/{YYYY-MM-DD}-{slug}.md`
 ID pattern: `sig-{YYYY-MM-DD}-{slug}`
 Slug: kebab-case, max 50 chars, derived from description.
 
@@ -61,7 +61,7 @@ Threshold: 2+ patterns detected. Detection is suggestive -- mention to user and 
 
 ## Dedup Logic (SGNL-05)
 
-1. Read index at `~/.gsd/knowledge/index.md` (if exists)
+1. Read index at `{KB_DIR}/index.md` (if exists)
 2. For each existing active signal, check match criteria:
    - Same `signal_type` AND same `project` AND 2+ shared tags
 3. If match found: add matched IDs to `related_signals`, set `occurrence_count` = max(matched counts) + 1
@@ -77,11 +77,23 @@ Max 10 active signals per phase per project.
   - new < lowest: inform user, offer override
 Severity ordering: critical > notable.
 
-## KB Paths
+## KB Path Resolution
 
-KB root: `~/.gsd/knowledge/`
-Index: `~/.gsd/knowledge/index.md`
-Rebuild: `bash ~/.gsd/bin/kb-rebuild-index.sh`
+Resolve KB location before any read/write operations:
+
+```bash
+if [ -d ".planning/knowledge" ]; then
+  KB_DIR=".planning/knowledge"
+  KB_REBUILD="bash get-shit-done/bin/kb-rebuild-index.sh"
+else
+  KB_DIR="$HOME/.gsd/knowledge"
+  KB_REBUILD="bash $HOME/.gsd/bin/kb-rebuild-index.sh"
+fi
+```
+
+KB root: `{KB_DIR}/`
+Index: `{KB_DIR}/index.md`
+Rebuild: `{KB_REBUILD}`
 
 </signal_rules>
 
@@ -147,12 +159,12 @@ Apply SGNL-09 cap enforcement above. Handle cap exceeded scenario.
 
 ## Step 7: Write Signal File
 
-Write to `~/.gsd/knowledge/signals/{project}/{YYYY-MM-DD}-{slug}.md` using schema above. Create parent directories with `mkdir -p`. Include all frontmatter fields and body sections (What Happened, Context, Potential Cause).
+Write to `{KB_DIR}/signals/{project}/{YYYY-MM-DD}-{slug}.md` using schema above. Create parent directories with `mkdir -p`. Include all frontmatter fields and body sections (What Happened, Context, Potential Cause).
 
 ## Step 8: Rebuild Index
 
 ```bash
-bash ~/.gsd/bin/kb-rebuild-index.sh
+$KB_REBUILD
 ```
 
 ## Step 9: Git Commit (Conditional)
@@ -168,7 +180,7 @@ If false: skip git, inform user signal saved but not committed.
 
 ```
 Signal created: {id}
-File: ~/.gsd/knowledge/signals/{project}/{filename}
+File: {KB_DIR}/signals/{project}/{filename}
 Index rebuilt.
 ```
 
