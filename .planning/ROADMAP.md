@@ -36,7 +36,7 @@ Research SUMMARY.md proposed 6 phases (Foundation Fix -> CI Awareness -> Plan In
 - [x] **Phase 40: Signal Collection Automation** - Auto-trigger signal collection after phase execution with reentrancy protection and cross-runtime fallback
 - [ ] **Phase 41: Health Score & Automation** - Compute and display health score, auto-trigger health checks, and track signal resolution metrics
 - [x] **Phase 42: Reflection Automation** - Auto-trigger reflection after configurable phase count with confidence updates on lessons
-- [ ] **Phase 43: Plan Intelligence & Templates** - Semantic plan validation and template improvements for closed-loop traceability
+- [x] **Phase 43: Plan Intelligence & Templates** - Semantic plan validation and template improvements for closed-loop traceability (completed 2026-03-07)
 - [x] **Phase 44: GSDR Namespace Co-Installation** - Install-time namespace rewriting so GSD Reflect installs to separate paths from upstream GSD
 
 ## Phase Details
@@ -222,7 +222,7 @@ Phases execute in numeric order: 36 -> 37 -> 38 -> 39 -> 40 -> 41 -> 42 -> 43 ->
 | 40. Signal Collection Automation | 2/2 | Complete | 2026-03-06 |
 | 41. Health Score & Automation | 4/4 | Complete | 2026-03-06 |
 | 42. Reflection Automation | 2/2 | Complete | 2026-03-06 |
-| 43. Plan Intelligence & Templates | 0/2 | Not started | - |
+| 43. Plan Intelligence & Templates | 0/2 | Complete    | 2026-03-07 |
 | 44. GSDR Namespace Co-Installation | 3/3 | Complete | 2026-03-06 |
 
 ## Overall Progress
