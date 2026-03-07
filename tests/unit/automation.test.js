@@ -896,3 +896,99 @@ describe('automation regime-change', () => {
     expect(content).toContain('Not recorded')
   })
 })
+
+// ─── Reflection Counter Tests ────────────────────────────────────────────────
+
+/**
+ * Helper: set up a tmpdir with .planning/config.json and run reflection-counter
+ */
+async function setupAndRunReflectionCounter(tmpdir, config, action) {
+  const planningDir = path.join(tmpdir, '.planning')
+  await fs.mkdir(planningDir, { recursive: true })
+  await fs.writeFile(
+    path.join(planningDir, 'config.json'),
+    JSON.stringify(config, null, 2)
+  )
+
+  const result = execSync(`node "${GSD_TOOLS}" automation reflection-counter ${action} --raw`, {
+    cwd: tmpdir,
+    encoding: 'utf-8',
+    timeout: 10000,
+    stdio: ['pipe', 'pipe', 'pipe'],
+  })
+
+  return JSON.parse(result.trim())
+}
+
+describe('automation reflection-counter', () => {
+  tmpdirTest('increment increases counter from 0 to 1', async ({ tmpdir }) => {
+    const result = await setupAndRunReflectionCounter(tmpdir, { mode: 'yolo' }, 'increment')
+    expect(result.action).toBe('increment')
+    expect(result.phases_since_last_reflect).toBe(1)
+  })
+
+  tmpdirTest('increment increases counter from existing value', async ({ tmpdir }) => {
+    const result = await setupAndRunReflectionCounter(tmpdir, {
+      mode: 'yolo',
+      automation: {
+        reflection: {
+          auto_reflect: true,
+          threshold_phases: 3,
+          min_signals: 5,
+          phases_since_last_reflect: 5,
+          last_reflect_at: null
+        }
+      }
+    }, 'increment')
+    expect(result.phases_since_last_reflect).toBe(6)
+  })
+
+  tmpdirTest('check does not mutate counter', async ({ tmpdir }) => {
+    const config = {
+      mode: 'yolo',
+      automation: {
+        reflection: {
+          auto_reflect: false,
+          threshold_phases: 3,
+          min_signals: 5,
+          phases_since_last_reflect: 3,
+          last_reflect_at: null
+        }
+      }
+    }
+    const result = await setupAndRunReflectionCounter(tmpdir, config, 'check')
+    expect(result.phases_since_last_reflect).toBe(3)
+
+    // Verify config file was not mutated
+    const configContent = JSON.parse(await fs.readFile(path.join(tmpdir, '.planning', 'config.json'), 'utf8'))
+    expect(configContent.automation.reflection.phases_since_last_reflect).toBe(3)
+  })
+
+  tmpdirTest('reset sets counter to 0 and writes last_reflect_at', async ({ tmpdir }) => {
+    const result = await setupAndRunReflectionCounter(tmpdir, {
+      mode: 'yolo',
+      automation: {
+        reflection: {
+          auto_reflect: true,
+          threshold_phases: 3,
+          min_signals: 5,
+          phases_since_last_reflect: 7,
+          last_reflect_at: null
+        }
+      }
+    }, 'reset')
+    expect(result.phases_since_last_reflect).toBe(0)
+    expect(result.last_reflect_at).toMatch(/^\d{4}-\d{2}-\d{2}T/)
+  })
+
+  tmpdirTest('initializes defaults when automation.reflection missing', async ({ tmpdir }) => {
+    const result = await setupAndRunReflectionCounter(tmpdir, {
+      mode: 'yolo',
+      automation: {}
+    }, 'increment')
+    expect(result.auto_reflect).toBe(false)
+    expect(result.threshold_phases).toBe(3)
+    expect(result.min_signals).toBe(5)
+    expect(result.phases_since_last_reflect).toBe(1)
+  })
+})

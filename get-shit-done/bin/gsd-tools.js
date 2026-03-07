@@ -5437,6 +5437,56 @@ ${prior}
   output({ written: true, path: filePath, id: entryId }, raw);
 }
 
+// ─── Reflection Counter ──────────────────────────────────────────────────────
+
+function cmdAutomationReflectionCounter(cwd, action, raw) {
+  if (!action || !['increment', 'check', 'reset'].includes(action)) {
+    error('Usage: automation reflection-counter <increment|check|reset>');
+  }
+
+  const configPath = path.join(cwd, '.planning', 'config.json');
+  if (!fs.existsSync(configPath)) {
+    error('No .planning/config.json found.');
+  }
+
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  if (!config.automation) config.automation = {};
+  if (!config.automation.reflection) {
+    config.automation.reflection = {
+      auto_reflect: false,
+      threshold_phases: 3,
+      min_signals: 5,
+      phases_since_last_reflect: 0,
+      last_reflect_at: null
+    };
+  }
+
+  const reflection = config.automation.reflection;
+
+  if (action === 'increment') {
+    reflection.phases_since_last_reflect =
+      (reflection.phases_since_last_reflect || 0) + 1;
+  } else if (action === 'reset') {
+    reflection.phases_since_last_reflect = 0;
+    reflection.last_reflect_at = new Date().toISOString();
+  }
+  // 'check' action reads only -- no mutations
+
+  // Atomic write (same pattern as track-event)
+  const tmpPath = configPath + '.tmp';
+  fs.writeFileSync(tmpPath, JSON.stringify(config, null, 2) + '\n');
+  fs.renameSync(tmpPath, configPath);
+
+  output({
+    action,
+    phases_since_last_reflect: reflection.phases_since_last_reflect,
+    threshold_phases: reflection.threshold_phases || 3,
+    min_signals: reflection.min_signals || 5,
+    auto_reflect: reflection.auto_reflect || false,
+    last_reflect_at: reflection.last_reflect_at
+  }, raw);
+}
+
 // ─── Health Probes ────────────────────────────────────────────────────────────
 
 /**
@@ -6557,8 +6607,11 @@ async function main() {
           prior: priorIdx !== -1 ? args[priorIdx + 1] : 'Not recorded',
         };
         cmdAutomationRegimeChange(cwd, desc, options, raw);
+      } else if (subcommand === 'reflection-counter') {
+        const action = args[2];
+        cmdAutomationReflectionCounter(cwd, action, raw);
       } else {
-        error('Unknown automation subcommand. Available: resolve-level, track-event, lock, unlock, check-lock, regime-change');
+        error('Unknown automation subcommand. Available: resolve-level, track-event, lock, unlock, check-lock, regime-change, reflection-counter');
       }
       break;
     }
