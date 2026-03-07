@@ -185,8 +185,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 43-01: Plan checker semantic dimensions -- tool refs, config refs, directory refs, signal refs (all advisory)
-- [ ] 43-02: Template enhancements -- motivation field, model/context fields, reflection-to-requirement linkage, internal tensions section
+- [x] 43-01: Plan checker semantic dimensions -- tool refs, config refs, directory refs, signal refs (all advisory)
+- [x] 43-02: Template enhancements -- motivation field, model/context fields, reflection-to-requirement linkage, internal tensions section
 
 ### Phase 44: GSDR Namespace Co-Installation
 **Goal**: GSD Reflect installs to separate paths from upstream GSD, enabling co-installation on the same machine without overwriting. Source files unchanged (preserving upstream merge compatibility); all namespace differentiation happens at install time via extended `replacePathsInContent()`.
