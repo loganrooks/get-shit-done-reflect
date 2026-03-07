@@ -553,6 +553,172 @@ This step is best-effort -- failures do not block phase completion. If any comma
 log a warning and continue to update_roadmap.
 </step>
 
+<!-- REFL-01, REFL-02, REFL-03: auto-reflection postlude -->
+<step name="auto_reflect">
+Auto-trigger reflection after successful phase execution when counter and threshold
+conditions are met. This is a workflow postlude -- same cross-runtime pattern as
+auto_collect_signals and health_check_postlude.
+
+Only runs if verification passed AND prior postludes completed (or were skipped).
+
+**1. Increment phase counter (ALWAYS, regardless of auto_reflect setting):**
+
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation reflection-counter increment --raw 2>/dev/null
+```
+
+This counter tracks "phases since last reflection" independent of whether auto-reflection
+is enabled. See Pitfall 2 in research: if counter only increments when enabled, disabling
+then re-enabling causes immediate trigger.
+
+**2. Read reflection config:**
+
+```bash
+REFLECT_CONFIG=$(node -e "try{const c=JSON.parse(require('fs').readFileSync('.planning/config.json','utf8'));const r=(c.automation||{}).reflection||{};console.log(JSON.stringify({auto_reflect:r.auto_reflect||false,threshold:r.threshold_phases||3,min_signals:r.min_signals||5,counter:r.phases_since_last_reflect||0}))}catch{console.log(JSON.stringify({auto_reflect:false}))}")
+```
+
+**3. Check auto_reflect enabled:**
+
+If `auto_reflect` is false: skip entire step.
+Track: `node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event reflection skip "disabled" --raw 2>/dev/null`
+
+**4. Check phase counter threshold (REFL-02):**
+
+Parse REFLECT_CONFIG. If `counter < threshold`: skip.
+Track: `node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event reflection skip "threshold-not-met" --raw 2>/dev/null`
+
+**5. Check minimum signal threshold (REFL-03):**
+
+```bash
+UNTRIAGED=$(awk -F'|' '/^\| sig-/ && $5 ~ /detected/' .planning/knowledge/index.md 2>/dev/null | wc -l || echo 0)
+```
+
+IMPORTANT: Use column-aware awk (column 5 = Lifecycle), NOT `grep "detected"`.
+A naive `grep "detected"` would match signal slugs containing "detected" (e.g.,
+`sig-2026-04-01-rogue-files-detected-late`) even if their lifecycle is `triaged`.
+The awk pattern checks only the Lifecycle column (field 5 in pipe-delimited index).
+
+Count only standard-format signals (`sig-` lowercase prefix, not legacy `SIG-` format)
+with `detected` lifecycle state. See Pitfall 4 in research.
+
+If UNTRIAGED < min_signals: skip.
+Track: `node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event reflection skip "insufficient-signals" --raw 2>/dev/null`
+
+**6. Check session cooldown (REFL-04):**
+
+If `session_reflection_fired` is true (set by a prior auto_reflect invocation in this
+execute-phase session): skip.
+Track: `node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event reflection skip "session-cooldown" --raw 2>/dev/null`
+
+Note: `session_reflection_fired` is an in-memory boolean held by the execute-phase
+orchestrator. It resets naturally when the session ends. Manual `/gsd:reflect` does NOT
+set this flag -- it bypasses session cooldown entirely.
+
+**6b. Check if signal collection ran (stale-signal guard):**
+
+If auto_collect_signals was skipped or deferred earlier in this postlude chain, the reflector
+would analyze stale signals (from previous phases, not the current one). This is not a blocker
+but must be communicated:
+
+- If signal collection was skipped (any reason): append to the nudge/reflection context:
+  `"Note: Signal collection was skipped for this phase. Reflection will analyze signals from previous phases only."`
+- This is informational only -- do NOT block reflection. Stale signals are still valid for
+  pattern detection; the user just needs to know the current phase's signals aren't included.
+
+**7. Check reentrancy guard:**
+
+```bash
+LOCK_STATUS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation check-lock reflection --raw 2>/dev/null)
+```
+
+If locked and not stale: skip. Track: `track-event reflection skip "reentrancy"`
+
+**8. Resolve automation level:**
+
+```bash
+LEVEL=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation resolve-level reflection --context-pct {EST_CONTEXT_PCT} --raw 2>/dev/null)
+```
+
+Use wave-based context estimation with a HIGHER base than prior postludes to account for
+cumulative postlude cost (signal collection + health check already ran): `min(55 + (WAVES_COMPLETED * 10), 90)`
+
+The prior postludes use `min(40 + (WAVES * 10), 80)`. By the time auto_reflect runs, two
+prior postludes have consumed additional context. The +15 base offset and +10 cap increase
+ensure context deferral triggers appropriately for the most expensive postlude (reflection
+spawns a Task subagent).
+
+Note: On runtimes without task_tool (OpenCode, Codex CLI), reflection is capped to level 2
+(prompt) by FEATURE_CAPABILITY_MAP because reflection spawns a gsd-reflector subagent via
+Task(). This is handled automatically by resolve-level.
+
+**9. Branch on effective level:**
+
+| Level | Name | Behavior |
+|-------|------|----------|
+| 0 | manual | Skip. Track: `track-event reflection skip "level-0"` |
+| 1 | nudge | Display nudge and skip. Track skip. |
+| 2 | prompt | Ask user. If yes, proceed. If no, track skip. |
+| 3 | auto | Proceed to reflection. |
+
+**Nudge message:**
+```
+Reflection available ({UNTRIAGED} untriaged signals, {COUNTER} phases since last reflect).
+Run `/gsd:reflect` to analyze patterns.
+```
+
+**Context-deferred message (if LEVEL.reasons contains "context_deferred"):**
+```
+Context usage high. Reflection deferred.
+Run `/gsd:reflect` in a fresh session.
+```
+
+**10. If proceeding (level 2 approved or level 3):**
+
+Acquire lock:
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation lock reflection --source "phase-completion" --ttl 600 --raw 2>/dev/null
+```
+
+Use TTL 600 (10 min) because reflection is expensive -- longer than signal collection's 300s.
+
+Invoke the reflect workflow for the current phase. The workflow handles all analysis
+(pattern detection, triage proposals, lesson candidates, report writing):
+```
+Follow the reflect.md workflow for phase {PADDED_PHASE}.
+```
+
+Release lock:
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation unlock reflection --raw 2>/dev/null
+```
+
+Track event (exactly ONCE -- see Pitfall 5 from research, Phase 40 double-fire bug):
+```bash
+FIRE_STATS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event reflection fire --raw 2>/dev/null)
+```
+
+NOTE: Do NOT reset the counter here. The reflect.md workflow (Plan 02) adds a
+`reset_reflection_counter` step that resets the counter on completion. This covers
+both auto-triggered AND manual reflections. Resetting here would be redundant and
+would write `last_reflect_at` twice (double-write of config.json).
+
+Set session cooldown:
+```
+session_reflection_fired = true
+```
+
+**11. First-run regime change detection:**
+
+Parse FIRE_STATS from step 10. If `stats.fires` is 1 (first fire ever):
+
+```bash
+node ~/.claude/get-shit-done/bin/gsd-tools.js automation regime-change "Auto-reflection enabled" --impact "Reflection frequency expected to increase; pattern detection and triage will run automatically every N phases" --prior "Manual /gsd:reflect invocation only" --raw 2>/dev/null
+```
+
+This step is best-effort -- failures do not block phase completion. If any command fails,
+log a warning and continue to update_roadmap.
+</step>
+
 <step name="update_roadmap">
 Mark phase complete in ROADMAP.md (date, status).
 
