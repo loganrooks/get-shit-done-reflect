@@ -1,12 +1,18 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-07T00:41:42Z
-**Total entries:** 120
+**Generated:** 2026-03-07T05:16:47Z
+**Total entries:** 126
 
-## Signals (119)
+## Signals (125)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-03-07-plan-checker-misses-producer-consumer-gaps | get-shit-done-reflect | notable | detected | plan-checker,producer-consumer,cross-workflow,implicit-dependencies,second-order-effects,template-consumer-gap | "2026-03-07 | active |
+| sig-2026-03-07-research-driven-planning-zero-deviations | get-shit-done-reflect | minor | detected | plan-quality,research-driven,execution-efficiency | 2026-03-07 | active |
+| sig-2026-03-07-producer-consumer-gap-remediated-phase43 | get-shit-done-reflect | minor | detected | producer-consumer,traceability,templates,provenance | 2026-03-07 | active |
+| sig-2026-03-07-plan-files-modified-lists-unnecessary-change | get-shit-done-reflect | minor | detected | deviation,plan-accuracy,files-modified,templates | 2026-03-07 | active |
+| sig-2026-03-07-plan-checker-semantic-dimensions-systematic | get-shit-done-reflect | notable | detected | plan-checker,recurring-pattern,systematic-remediation,semantic-validation | 2026-03-07 | active |
+| sig-2026-03-07-plan-checker-allowlist-static-drift-risk | get-shit-done-reflect | minor | detected | plan-checker,maintenance-burden,allowlist,drift-risk | 2026-03-07 | active |
 | sig-2026-03-06-reflection-counter-comment-code-mismatch | get-shit-done-reflect | minor | detected | code-quality,comment-accuracy,gsd-tools,reflection-counter | 2026-03-06 | active |
 | sig-2026-03-06-phase42-rapid-execution-7min-total | get-shit-done-reflect | notable | detected | execution-speed,plan-quality,ahead-of-schedule | 2026-03-06 | active |
 | sig-2026-03-06-phase42-human-verification-gaps | get-shit-done-reflect | notable | detected | verification-gap,human-testing,runtime-behavior,reflection-automation | 2026-03-06 | active |
