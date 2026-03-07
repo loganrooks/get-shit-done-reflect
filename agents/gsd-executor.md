@@ -330,7 +330,11 @@ After all tasks complete, create `{phase}-{plan}-SUMMARY.md` at `.planning/phase
 
 **Use template:** @~/.claude/get-shit-done/templates/summary-standard.md (or summary-minimal.md / summary-complex.md based on plan complexity)
 
-**Frontmatter:** phase, plan, subsystem, tags, dependency graph (requires/provides/affects), tech-stack (added/patterns), key-files (created/modified), decisions, metrics (duration, completed date).
+**Frontmatter:** phase, plan, model (your model identifier, e.g. "claude-opus-4-6"), context_used_pct (estimated context window usage as integer 0-100), subsystem, tags, dependency graph (requires/provides/affects), tech-stack (added/patterns), key-files (created/modified), decisions, metrics (duration, completed date).
+
+**Provenance fields:**
+- `model:` — Fill with your model identifier (e.g., "claude-opus-4-6"). Use self-knowledge of your model name.
+- `context_used_pct:` — Estimate your context window usage at plan completion as an integer percentage (0-100). Consider: number of files read, plan complexity, tool calls made. This is inherently approximate.
 
 **Title:** `# Phase [X] Plan [Y]: [Name] Summary`
 
