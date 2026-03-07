@@ -1,12 +1,20 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-07T00:06:19Z
-**Total entries:** 112
+**Generated:** 2026-03-07T00:41:42Z
+**Total entries:** 120
 
-## Signals (111)
+## Signals (119)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-03-06-reflection-counter-comment-code-mismatch | get-shit-done-reflect | minor | detected | code-quality,comment-accuracy,gsd-tools,reflection-counter | 2026-03-06 | active |
+| sig-2026-03-06-phase42-rapid-execution-7min-total | get-shit-done-reflect | notable | detected | execution-speed,plan-quality,ahead-of-schedule | 2026-03-06 | active |
+| sig-2026-03-06-phase42-human-verification-gaps | get-shit-done-reflect | notable | detected | verification-gap,human-testing,runtime-behavior,reflection-automation | 2026-03-06 | active |
+| sig-2026-03-06-phase42-clean-execution-zero-deviations | get-shit-done-reflect | minor | detected | plan-quality,clean-execution,zero-deviation,reflection-automation | 2026-03-06 | active |
+| sig-2026-03-06-no-ci-runs-phase42-unpushed-work | get-shit-done-reflect | notable | detected | ci,unpushed-work,no-ci-coverage | 2026-03-06 | active |
+| sig-2026-03-06-installer-file-churn-hotspot | get-shit-done-reflect | notable | detected | file-churn,hotspot,installer,testing | 2026-03-06 | active |
+| sig-2026-03-06-ci-test-regression-parse-inconclusive | get-shit-done-reflect | minor | detected | ci,test-regression,parsing-limitation | 2026-03-06 | active |
+| sig-2026-03-06-branch-protection-bypass-three-commits | get-shit-done-reflect | critical | detected | ci,branch-protection,bypass,main-branch,test-failure | 2026-03-06 | active |
 | sig-2026-03-06-phase42-plan-gaps-pre-execution-review | get-shit-done-reflect | notable | detected | plan-accuracy,pre-execution-review,plan-checker,second-order-effects,assumption-verification,capability-gap,phase-42 | 2026-03-06 | active |
 | sig-2026-03-06-planner-deliberation-auto-reference-gap | get-shit-done-reflect | notable | detected | tags: | "2026-03-06 | active |
 | sig-2026-03-05-phase40-plan-gaps-pre-execution-review | get-shit-done-reflect | critical | detected | plan-accuracy,pre-execution-review,reentrancy,double-fire,output-corruption,context-estimation,test-coverage,phase-40 | "2026-03-05 | active |
