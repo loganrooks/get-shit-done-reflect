@@ -104,6 +104,16 @@ Features to defer until product-market fit is established.
 | [feature] | [how they do it] | [how they do it] | [our plan] |
 | [feature] | [how they do it] | [how they do it] | [our plan] |
 
+## Internal Tensions
+
+<!-- Include for architecturally significant features only.
+     Skip for wiring, infrastructure, or straightforward requirements.
+     If a tension resists template capture, record it in a deliberation document instead. -->
+
+| Feature | Tension Introduced | Constraint Mechanism | Residual Risk |
+|---------|--------------------|---------------------|---------------|
+| [Feature name] | [What contradiction or new problem does this feature create?] | [What constraint addresses it?] | [What remains unresolved?] |
+
 ## Sources
 
 - [Competitor products analyzed]
@@ -143,5 +153,12 @@ Features to defer until product-market fit is established.
 - Be ruthless about what's truly minimum
 - "Nice to have" is not MVP
 - Launch with less, validate, then expand
+
+**Internal Tensions:**
+- Only include for architecturally significant features (not wiring or infrastructure)
+- A tension is a contradiction the feature introduces to the system's design principles
+- Constraint mechanism documents what guardrail addresses the tension
+- Residual risk documents what remains unresolved despite the constraint
+- If you can't articulate a tension, the feature may not be architecturally significant enough to warrant this section
 
 </guidelines>

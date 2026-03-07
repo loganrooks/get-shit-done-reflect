@@ -240,6 +240,9 @@ fi
 
 # Read config for agent
 CONFIG_CONTENT=$(cat .planning/config.json 2>/dev/null)
+
+# Read REQUIREMENTS.md for requirement linkage (if exists)
+REQUIREMENTS_CONTENT=$(cat .planning/REQUIREMENTS.md 2>/dev/null || echo "")
 ```
 
 For cross-project scope, also read signal files from all project directories:
@@ -293,6 +296,11 @@ Task(
   Config:
   {CONFIG_CONTENT}
 
+  {If REQUIREMENTS_CONTENT is not empty:}
+  <requirements_content>
+  ${REQUIREMENTS_CONTENT}
+  </requirements_content>
+
   Follow your execution_flow to:
   1. Load and filter signals by lifecycle_state:
      - detected (or missing lifecycle_state for non-SIG signals): Full analysis candidate
@@ -310,6 +318,7 @@ Task(
   6. Identify spike candidates (low-confidence patterns or investigate decisions)
   7. Distill lessons with evidence_snapshots (unless patterns-only)
   8. Check semantic drift (if requested)
+  8.5. Map findings to requirement IDs (use the REQUIREMENTS.md content provided above, link patterns/triage to requirement IDs where clear relationships exist; skip if no REQUIREMENTS.md content was provided)
   9. Return the structured Reflection Report
 
   **Lesson Confidence Updates (REFL-05):**
@@ -372,6 +381,7 @@ The reflector agent returns a structured report containing:
 - Triage proposals (for untriaged signal clusters)
 - Remediation suggestions (for clusters with decision: address)
 - Spike candidates (low-confidence patterns or investigate decisions)
+- Requirement linkage (findings mapped to requirement IDs)
 - Phase deviations (if phase-end reflection)
 - Lesson candidates (with evidence, evidence_snapshots, and scope)
 - Drift assessment (if drift check)
@@ -509,6 +519,11 @@ Status: {STABLE|DRIFTING|CONCERNING}
 > Triaged signals with `decision: address` will be picked up by the planner during `/gsd:plan-phase`.
 > Plans can declare `resolves_signals` to automatically move signals to "remediated" on completion.
 
+### Requirement Linkage
+
+{requirement linkage table from reflector output, if any}
+{Or "No requirement linkage produced" if REQUIREMENTS.md was absent}
+
 --------------------------------------------------------------
 ```
 
@@ -643,6 +658,10 @@ Scope: {SCOPE}
 ## Remediation Suggestions
 
 {remediation suggestions from present_results step}
+
+## Requirement Linkage
+
+{requirement linkage table from reflector output}
 
 ## Spike Candidates
 
