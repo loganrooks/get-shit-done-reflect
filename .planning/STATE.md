@@ -209,6 +209,7 @@ Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16
 | 017 | Fix stale gsd_reflect_version in config template (1.13.0 -> 1.16.0), add stamp-version.js automation | 2026-03-06 | 52411c9 | [17-fix-stale-gsd-reflect-version-in-config-](./quick/17-fix-stale-gsd-reflect-version-in-config-/) |
 | 018 | Fix +dev suffix to apply when installing from git repo, not just --local | 2026-03-06 | 8232508 | [18-fix-dev-suffix-to-apply-when-installing-](./quick/18-fix-dev-suffix-to-apply-when-installing-/) |
 | 019 | Fix co-installation namespace safety: preserve upstream GSD during Reflect install/uninstall | 2026-03-06 | 842887f | [19-fix-co-installation-namespace-safety-ins](./quick/19-fix-co-installation-namespace-safety-ins/) |
+| 020 | Fix hooks failing in git worktrees (shell existence guards) | 2026-03-08 | 617483a | [20-fix-hooks-failing-in-git-worktrees](./quick/20-fix-hooks-failing-in-git-worktrees/) |
 
 ### Roadmap Evolution
 
