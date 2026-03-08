@@ -2420,69 +2420,32 @@ function install(isGlobal, runtime = 'claude') {
       settings.hooks.SessionStart = [];
     }
 
-    const hasGsdUpdateHook = settings.hooks.SessionStart.some(entry =>
-      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-check-update'))
-    );
+    // Helper: add hook if missing, or upgrade unguarded command to guarded version
+    function ensureHook(hookSubstring, newCommand, label) {
+      const existingEntry = settings.hooks.SessionStart.find(entry =>
+        entry.hooks && entry.hooks.some(h => h.command && h.command.includes(hookSubstring))
+      );
 
-    if (!hasGsdUpdateHook) {
-      settings.hooks.SessionStart.push({
-        hooks: [
-          {
-            type: 'command',
-            command: updateCheckCommand
-          }
-        ]
-      });
-      console.log(`  ${green}✓${reset} Configured update check hook`);
+      if (!existingEntry) {
+        // Hook not present -- add it
+        settings.hooks.SessionStart.push({
+          hooks: [{ type: 'command', command: newCommand }]
+        });
+        console.log(`  ${green}✓${reset} Configured ${label} hook`);
+      } else if (!isGlobal) {
+        // Hook exists -- upgrade to guarded command if not already guarded
+        const hook = existingEntry.hooks.find(h => h.command && h.command.includes(hookSubstring));
+        if (hook && !hook.command.includes('test -f')) {
+          hook.command = newCommand;
+          console.log(`  ${green}✓${reset} Upgraded ${label} hook (worktree-safe guard)`);
+        }
+      }
     }
 
-    const hasGsdVersionHook = settings.hooks.SessionStart.some(entry =>
-      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-version-check'))
-    );
-
-    if (!hasGsdVersionHook) {
-      settings.hooks.SessionStart.push({
-        hooks: [
-          {
-            type: 'command',
-            command: versionCheckCommand
-          }
-        ]
-      });
-      console.log(`  ${green}✓${reset} Configured version check hook`);
-    }
-
-    const hasGsdCiHook = settings.hooks.SessionStart.some(entry =>
-      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-ci-status'))
-    );
-
-    if (!hasGsdCiHook) {
-      settings.hooks.SessionStart.push({
-        hooks: [
-          {
-            type: 'command',
-            command: ciStatusCommand
-          }
-        ]
-      });
-      console.log(`  ${green}✓${reset} Configured CI status hook`);
-    }
-
-    const hasGsdHealthHook = settings.hooks.SessionStart.some(entry =>
-      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-health-check'))
-    );
-
-    if (!hasGsdHealthHook) {
-      settings.hooks.SessionStart.push({
-        hooks: [
-          {
-            type: 'command',
-            command: healthCheckCommand
-          }
-        ]
-      });
-      console.log(`  ${green}+${reset} Configured health check hook`);
-    }
+    ensureHook('gsdr-check-update', updateCheckCommand, 'update check');
+    ensureHook('gsdr-version-check', versionCheckCommand, 'version check');
+    ensureHook('gsdr-ci-status', ciStatusCommand, 'CI status');
+    ensureHook('gsdr-health-check', healthCheckCommand, 'health check');
   }
 
   // Write file manifest for future modification detection
@@ -2510,6 +2473,13 @@ function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallS
       command: statuslineCommand
     };
     console.log(`  ${green}✓${reset} Configured statusline`);
+  } else if (!isOpencode && settings.statusLine && settings.statusLine.command &&
+             settings.statusLine.command.includes('statusline') &&
+             !settings.statusLine.command.includes('test -f') &&
+             statuslineCommand && statuslineCommand.includes('test -f')) {
+    // Upgrade existing statusline to worktree-safe guarded command
+    settings.statusLine.command = statuslineCommand;
+    console.log(`  ${green}✓${reset} Upgraded statusline (worktree-safe guard)`);
   }
 
   // Always write settings
