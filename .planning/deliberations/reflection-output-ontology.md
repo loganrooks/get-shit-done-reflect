@@ -17,6 +17,7 @@ Lifecycle: open -> concluded -> adopted -> evaluated -> superseded
 **Related:**
 - .planning/deliberations/signal-lifecycle-closed-loop-gap.md (concluded — addresses lifecycle transitions but not output ontology)
 - .planning/deliberations/v1.16-signal-lifecycle-and-beyond.md (designed the pipeline architecture)
+- .planning/deliberations/deliberative-council-and-epistemic-framework.md (spawned from this deliberation — council of agents proposal for structured multi-perspective deliberation)
 - .planning/knowledge/reflections/get-shit-done-reflect/reflect-2026-03-07T053824.md (reflection that triggered this)
 - sig-2026-03-04-signal-lifecycle-representation-gap (0 remediated signals after 5 milestones)
 - philosophy: aristotle/phronesis — practical wisdom vs theoretical knowledge
@@ -28,6 +29,16 @@ Lifecycle: open -> concluded -> adopted -> evaluated -> superseded
 - philosophy: cybernetics/second-order-observation — system observing its own observation
 - philosophy: gadamer/application — understanding always involves applying to one's own situation
 - philosophy: habermas/colonization — when system logic overrides lifeworld concerns
+- philosophy: millikan/producer-consumer — outputs need designed consumers to have content
+- philosophy: polanyi/from-to-structure — outputs as subsidiaries for developer's focal judgment
+- philosophy: sellars-brandom/deontic-scorekeeping — accountability through commitment tracking
+- philosophy: cartwright/scope-conditions — experience carries scope conditions or it's unwarranted
+- philosophy: simondon/individuation — process ontology vs artifact ontology for output design
+- philosophy: dreyfus/sedimented-techne — rules enriched by accumulated situated cases
+- philosophy: schon/reflection-in-action — temporal distinction in reflection quality
+- philosophy: ryle/regress — rules for applying rules require judgment, infinite regress
+- philosophy: dennett/intentional-stance — competence without comprehension as design license
+- philosophy: stiegler/proletarianization — autonomy risks deskilling the developer
 
 ## Situation
 
@@ -91,13 +102,58 @@ Section A4 defined reflect's purpose as "what does it mean" (cross-phase interpr
 - What would Dewey's pragmatism say about knowledge that doesn't change practice? Is the cash-value of a "lesson" zero if it never modifies behavior?
 - Does B1's "patches" mechanism apply here — could reflection produce file overlays that modify agent behavior, and if so, what's the boundary between helpful adaptation and Habermas's "colonization" (system logic overriding user judgment)?
 
+## Philosophical Challenges to Proposed Framings (2026-03-08)
+
+The 9 new philosophy files (dreyfus, schon, ryle, polanyi, sellars-brandom, dennett, millikan, cartwright, philosophy-of-technology) were brought to bear on both proposed framings. Several challenge the framing itself rather than answering the question it poses.
+
+### Challenges
+
+**Millikan's Inversion:** The framing asks "what should reflection produce?" but the deeper question is "who/what consumes it?" Without a designed consumer that changes behavior based on the output, the output is semantically empty (producer-consumer semantics). Reframes the deliberation from output form to consumer design.
+
+**Cartwright's Scope Conditions:** "Accumulated experience" is not homogeneous. What works in one project may not work in another. Every output should carry scope conditions or it's an unwarranted generalization.
+
+**Ryle's Regress:** Rules for applying lessons require judgment about whether the current situation matches the lesson's conditions. That judgment can't be captured in further rules. The framing may be too ambitious — not "how should experience change practice" but "what forms of presentation make prior cases most available for current practical judgment?"
+
+### Refinements
+
+**Schon's Temporal Distinction:** The framing elides the difference between reflection-on-action (retrospective) and reflection-in-action (mid-practice adjustment). These produce fundamentally different outputs.
+
+**Polanyi's Subsidiary Functioning:** The best accumulated experience should function subsidiarily — enriching perception without demanding focal attention. Like fluency, not a reference manual.
+
+**Sellars-Brandom's Inferential Articulation:** "Connected to action" needs precision — every output must specify what follows from it, what supports it, and what it rules out (the "therefore test"). Without this, outputs are descriptions, not knowledge.
+
+### Dissolutions
+
+**Dennett:** The phenomenological concerns (Dreyfus, Polanyi) may import worries about consciousness and embodiment that don't constrain functional design. BUT: the concerns reappear as structural (attention allocation), predictive (failure mode theory), and empirical (skill atrophy) constraints that survive deflationary moves.
+
+**Simondon:** The "output ontology" framing may be a category error. If the system undergoes individuation (ongoing becoming), discrete artifacts are artificial discretizations of a continuous process. The question should be how reflection contributes to system concretization, not what artifacts it produces.
+
+### Key Tensions Deepened
+
+**Millikan-Dewey Antinomy:** Millikan says production without consumption is semantically empty. Dewey says consumption can't be designed before production reveals what's worth consuming. The antinomy is not resolvable at the level of principle — it defines a design corridor: build provisional consumers with clear hypotheses, observe, revise. Content *accrues* through cooperative history between producer and consumer, it's not binary.
+
+**Polanyi vs. Sellars-Brandom:** Subsidiary functioning (transparent, enriching perception) vs. inferential articulation (explicit, challengeable, accountable). Tentative composition: "subsidiary by default, focal on breakdown" — accumulated experience functions transparently in normal operation, becomes explicitly articulable when something fails. BUT: this may paper over a genuine disagreement about what knowledge IS.
+
+Three-layer composition explored:
+- Layer 1: Rich case material (Polanyi's subsidiaries)
+- Layer 2: Inferential connections between cases (Sellars-Brandom's articulation)
+- Layer 3: Developer's tacit integration (not captured, not capturable)
+
+Neither philosopher would fully accept this composition. Polanyi: layer 2 pre-structures perception and may distort integration. Sellars-Brandom: if layer 2 is "optional," it has no normative force. The honest position: the system is genuinely uncertain about the epistemic status of its own outputs, and that uncertainty should be visible.
+
+### Status
+
+Framing NOT yet agreed. The philosophical challenges suggest the unified framing needs revision — particularly to accommodate Millikan's consumer-first inversion and Cartwright's scope conditions. A revised framing should be attempted after the council deliberation matures, as the council may itself be the mechanism through which the framing question resolves.
+
+See also: .planning/deliberations/deliberative-council-and-epistemic-framework.md (spawned from this session)
+
 ## Analysis
 
-**PENDING — requires severe testing of claims and question framing first.**
+**PENDING — framing must be agreed before analysis proceeds.**
 
 ## Tensions
 
-**PENDING**
+See "Key Tensions Deepened" above and the council deliberation for the Millikan-Dewey and Polanyi/Sellars-Brandom tensions in full.
 
 ## Recommendation
 

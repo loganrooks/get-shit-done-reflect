@@ -58,6 +58,13 @@
         "last_triggered": "2026-03-07T05:12:07.659Z",
         "last_skip_reason": null
       }
+    },
+    "reflection": {
+      "auto_reflect": false,
+      "threshold_phases": 3,
+      "min_signals": 5,
+      "phases_since_last_reflect": 0,
+      "last_reflect_at": "2026-03-07T05:46:29.846Z"
     }
   },
   "granularity": "fine"
