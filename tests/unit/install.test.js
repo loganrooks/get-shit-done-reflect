@@ -1813,4 +1813,86 @@ Also use the Read tool to read files and Bash to run commands.`
       }
     })
   })
+
+  describe('worktree-safe hook commands (buildLocalHookCommand)', () => {
+    // Import buildLocalHookCommand from install.js
+    const { buildLocalHookCommand } = require('../../bin/install.js')
+    const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+    it('returns a shell guard with test -f, &&, and || true', () => {
+      const cmd = buildLocalHookCommand('.claude', 'gsdr-statusline.js')
+      expect(cmd).toContain('test -f')
+      expect(cmd).toContain('&&')
+      expect(cmd).toContain('|| true')
+    })
+
+    it('produces correct guarded command for statusline', () => {
+      const cmd = buildLocalHookCommand('.claude', 'gsdr-statusline.js')
+      expect(cmd).toBe('test -f .claude/hooks/gsdr-statusline.js && node .claude/hooks/gsdr-statusline.js || true')
+    })
+
+    it('produces correct guarded command for all 5 hooks', () => {
+      const hooks = [
+        'gsdr-statusline.js',
+        'gsdr-check-update.js',
+        'gsdr-version-check.js',
+        'gsdr-ci-status.js',
+        'gsdr-health-check.js'
+      ]
+      for (const hookName of hooks) {
+        const cmd = buildLocalHookCommand('.claude', hookName)
+        const expectedPath = '.claude/hooks/' + hookName
+        expect(cmd).toBe(`test -f ${expectedPath} && node ${expectedPath} || true`)
+      }
+    })
+
+    it('works with different dirName values (e.g. .gemini)', () => {
+      const cmd = buildLocalHookCommand('.gemini', 'gsdr-statusline.js')
+      expect(cmd).toBe('test -f .gemini/hooks/gsdr-statusline.js && node .gemini/hooks/gsdr-statusline.js || true')
+    })
+
+    tmpdirTest('local install generates guarded hook commands in settings.json', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --local`, {
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const settingsPath = path.join(tmpdir, '.claude', 'settings.json')
+      const settingsExist = fsSync.existsSync(settingsPath)
+      expect(settingsExist).toBe(true)
+
+      const settings = JSON.parse(fsSync.readFileSync(settingsPath, 'utf8'))
+
+      // statusLine command should be guarded
+      expect(settings.statusLine.command).toContain('test -f')
+      expect(settings.statusLine.command).toContain('|| true')
+
+      // All SessionStart hook commands should be guarded
+      if (settings.hooks && settings.hooks.SessionStart) {
+        for (const entry of settings.hooks.SessionStart) {
+          for (const hook of entry.hooks) {
+            expect(hook.command, `Hook command should be guarded: ${hook.command}`).toContain('test -f')
+            expect(hook.command, `Hook command should exit 0 on missing: ${hook.command}`).toContain('|| true')
+          }
+        }
+      }
+    })
+
+    tmpdirTest('global install does NOT use shell guards (uses buildHookCommand)', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const settingsPath = path.join(tmpdir, '.claude', 'settings.json')
+      const settings = JSON.parse(fsSync.readFileSync(settingsPath, 'utf8'))
+
+      // Global commands use buildHookCommand with quoted absolute paths, no test -f guard
+      expect(settings.statusLine.command).not.toContain('test -f')
+      expect(settings.statusLine.command).toContain('node "')
+    })
+  })
 })
