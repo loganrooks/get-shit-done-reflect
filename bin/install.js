@@ -426,6 +426,16 @@ function buildHookCommand(configDir, hookName) {
 }
 
 /**
+ * Build a worktree-safe hook command for local/project installs.
+ * Wraps with shell existence guard so hooks exit 0 silently when .claude/ is absent
+ * (e.g., in git worktrees where .claude/ is gitignored and not present).
+ */
+function buildLocalHookCommand(dirName, hookName) {
+  const hookPath = dirName + '/hooks/' + hookName;
+  return 'test -f ' + hookPath + ' && node ' + hookPath + ' || true';
+}
+
+/**
  * Read and parse settings.json, returning empty object if it doesn't exist
  */
 function readSettings(settingsPath) {
@@ -2128,6 +2138,9 @@ function install(isGlobal, runtime = 'claude') {
   if (isGemini) runtimeLabel = 'Gemini';
   if (isCodex) runtimeLabel = 'Codex CLI';
 
+  // Cache legacy detection once — reads and parses gsd-file-manifest.json
+  const cleanLegacy = isLegacyReflectInstall(targetDir);
+
   console.log(`  Installing for ${cyan}${runtimeLabel}${reset} to ${cyan}${locationLabel}${reset}\n`);
 
   // Cross-scope detection: warn if the other scope already has GSD installed
@@ -2237,12 +2250,11 @@ function install(isGlobal, runtime = 'claude') {
     safeFs('mkdirSync', () => fs.mkdirSync(agentsDest, { recursive: true }), agentsDest);
 
     // Remove gsdr-*.md agents (our namespace). Only remove gsd-*.md if legacy Reflect install.
-    const cleanLegacyAgents = isLegacyReflectInstall(targetDir);
     if (fs.existsSync(agentsDest)) {
       for (const file of fs.readdirSync(agentsDest)) {
         if (file.startsWith('gsdr-') && file.endsWith('.md')) {
           fs.unlinkSync(path.join(agentsDest, file));
-        } else if (cleanLegacyAgents && file.startsWith('gsd-') && file.endsWith('.md')) {
+        } else if (cleanLegacy && file.startsWith('gsd-') && file.endsWith('.md')) {
           fs.unlinkSync(path.join(agentsDest, file));
         }
       }
@@ -2346,7 +2358,7 @@ function install(isGlobal, runtime = 'claude') {
 
   // Upgrade cleanup: only remove old gsd namespace if it's a pre-Phase-44 Reflect install.
   // Never remove upstream GSD's namespace — co-installation must be preserved.
-  if (isLegacyReflectInstall(targetDir)) {
+  if (cleanLegacy) {
     const oldGsdDir = path.join(targetDir, 'get-shit-done');
     if (fs.existsSync(oldGsdDir)) {
       fs.rmSync(oldGsdDir, { recursive: true });
@@ -2374,19 +2386,19 @@ function install(isGlobal, runtime = 'claude') {
   const settings = cleanupOrphanedHooks(readSettings(settingsPath));
   const statuslineCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-statusline.js')
-    : 'node ' + dirName + '/hooks/gsdr-statusline.js';
+    : buildLocalHookCommand(dirName, 'gsdr-statusline.js');
   const updateCheckCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-check-update.js')
-    : 'node ' + dirName + '/hooks/gsdr-check-update.js';
+    : buildLocalHookCommand(dirName, 'gsdr-check-update.js');
   const versionCheckCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-version-check.js')
-    : 'node ' + dirName + '/hooks/gsdr-version-check.js';
+    : buildLocalHookCommand(dirName, 'gsdr-version-check.js');
   const ciStatusCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-ci-status.js')
-    : 'node ' + dirName + '/hooks/gsdr-ci-status.js';
+    : buildLocalHookCommand(dirName, 'gsdr-ci-status.js');
   const healthCheckCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-health-check.js')
-    : 'node ' + dirName + '/hooks/gsdr-health-check.js';
+    : buildLocalHookCommand(dirName, 'gsdr-health-check.js');
 
   // Enable experimental agents for Gemini CLI (required for custom sub-agents)
   if (isGemini) {
@@ -2763,4 +2775,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand };
