@@ -33,12 +33,13 @@ Lifecycle: open -> concluded -> adopted -> evaluated -> superseded
 
 ### The Observation
 
-After 5 milestones (v1.12-v1.17), 123 signals, 13 detected patterns, 6 lesson candidates, and 2 reflection runs:
-- **97 signals stuck at "detected"** — raw observations with no action taken
+After 5 milestones (v1.12-v1.17), ~124 signals, 13 detected patterns, 0 formal lesson entries, and 2 reflection runs:
+- **~114 signals untriaged** (53 lack lifecycle_state entirely, 61 explicitly "detected") — raw observations with no action taken
+- **10 signals triaged** — the only lifecycle progression achieved
 - **0 signals remediated** — despite phases actively addressing signal-identified issues
 - **0 signals verified** — the system cannot confirm whether interventions worked
-- **Lessons are declarative knowledge** ("X causes Y, do Z") that don't change agent behavior
-- **The self-improvement loop is open** — knowledge accumulates but practice doesn't change
+- **0 lesson files in KB** — reflection reports *propose* lessons (4 confidence updates, 2 new candidates in the latest run) but `lessons_created: 0` — they exist only as prose sections within reports, never formalized as standalone KB entries
+- **The self-improvement loop is open** — knowledge accumulates but practice doesn't change. The situation is worse than "wrong kind of knowledge" — the pipeline doesn't reliably produce even the knowledge it claims to
 
 ### The User's Deeper Question
 
@@ -63,31 +64,32 @@ The **v1.16-signal-lifecycle-and-beyond** deliberation (2026-02-25) designed the
 DETECT -> TRIAGE -> REMEDIATE -> VERIFY -> RECURRENCE CHECK -> LESSON
 ```
 
-Section A4 defined reflect's purpose as "what does it mean" (cross-phase interpretation) with output as "REFLECTION.md artifact + updated lesson entries + triage decisions." Section B1 described "Workflow Intelligence & Adaptive Customization" as a future milestone — but framed it as observation of user interaction patterns, not as reflection output that changes workflows.
+Section A4 defined reflect's purpose as "what does it mean" (cross-phase interpretation) with output as "REFLECTION.md artifact + updated lesson entries + triage decisions." Section B1 described "Workflow Introspection & Adaptive Customization" as a future milestone — framed primarily as observation of *user interaction patterns* (command frequency, skipped steps, interruptions), not as reflection output that changes workflows. However, B1 introduced the **"patches" metaphor**: "User-specific overlays on `.claude/` files. Runtime customizations for a given user." This mechanism — modifying system files based on observed patterns — is conceptually adjacent to what this deliberation explores, but B1's *source* was user behavior observation while ours is reflection/signal analysis. The mechanism was envisioned; the connection to reflection output was not.
 
 ### Evidence Base
 
 | Source | What it shows | Corroborated? | Signal ID |
 |--------|--------------|---------------|-----------|
-| KB index: 97 detected, 10 triaged, 0 remediated | Pipeline produces knowledge but no behavioral change | Untested (needs Step 2.5) | sig-2026-03-04-signal-lifecycle-representation-gap |
-| Reflection report: 6 lessons, all declarative | Lessons are episteme (knowing-that), not phronesis (knowing-how) | Untested | informal |
-| v1.16 deliberation Section B1 | Workflow adaptation was envisioned but deferred and not connected to reflection output | Untested | informal |
-| Prior closed-loop deliberation | Concluded that execution is broken but didn't question whether output type is correct | Yes (file read) | — |
+| KB signal files: 124 files, ~114 untriaged, 10 triaged, 0 remediated, 0 verified | Pipeline produces observations but no behavioral change; lifecycle never progresses beyond triage | Yes — grepped lifecycle_state across all 124 files (53 lack field entirely, 61 explicit "detected", 10 "triaged") | sig-2026-03-04-signal-lifecycle-representation-gap |
+| Reflection report: `lessons_created: 0`, KB index: Lessons (0) | **No lesson files exist.** Lessons proposed in report prose (4 updates, 2 candidates) but never written as KB entries. Pipeline doesn't produce even the knowledge it claims to. | Yes — checked KB index, global+local lesson dirs, report frontmatter. **Original claim "6 lessons" falsified → corrected to "0 formal lessons, 6 lesson activities in report prose"** | informal |
+| v1.16 deliberation Section B1 (line 250) | Workflow adaptation envisioned for *user* interaction patterns; introduced "patches" metaphor (file overlays). Mechanism relevant, but source (user behavior) differs from this deliberation (reflection/signal analysis) | Yes — read B1 directly. **Nuanced: patches concept is relevant, connection to reflection was not made** | informal |
+| Prior closed-loop deliberation | Concluded that execution is broken (agent instructions unreliable → programmatic automation) but didn't question whether output type is correct | Yes (file read) | — |
 | Conversation: user raised two-audience problem | Developer needs differ from end-user needs | Informal (conversation) | informal |
 | Conversation: user requested philosophical grounding | Pragmatism, phronesis, dialectics explicitly invoked | Informal (conversation) | informal |
 
 ## Framing
 
-**PENDING — Step 2.5 (Severe Testing) and Step 3 (Question Framing) not yet completed.**
+**Step 2.5 complete.** Severe testing revealed the situation is worse than initially framed: lessons don't even exist as formal KB entries (0 files), only as prose in reflection reports. The pipeline's output problem is not "wrong kind of knowledge" but "knowledge that doesn't materialize into any actionable form."
 
-**Draft core question:** What should reflection produce — and how should its output close the self-improvement loop differently for GSD developers (who build the system) and end users (who use the system in their own projects)?
+**Core question:** Given that the reflection pipeline currently produces prose reports that don't materialize as formal artifacts, don't change agent behavior, and don't close the loop for either developers or users — what should reflection *concretely produce*, and through what mechanism should that output change how the system works?
 
 **Adjacent questions:**
 - Is the lesson→retrieval model (produce knowledge, surface it later) fundamentally adequate, or do we need a lesson→patch model (produce behavioral changes directly)?
-- What is the Aristotelian distinction between phronesis and techne saying about our system's limits?
+- What is the Aristotelian distinction between phronesis and techne saying about our system's limits? Can a rule-based system achieve phronesis, or only approximate techne?
 - How does Gadamer's concept of application (understanding always involves applying to one's situation) reshape what "local supplementation" means?
 - Is the two-audience split real, or does it collapse under examination? (GSD developers ARE end users during dogfooding)
-- What would Dewey's pragmatism say about knowledge that doesn't change practice?
+- What would Dewey's pragmatism say about knowledge that doesn't change practice? Is the cash-value of a "lesson" zero if it never modifies behavior?
+- Does B1's "patches" mechanism apply here — could reflection produce file overlays that modify agent behavior, and if so, what's the boundary between helpful adaptation and Habermas's "colonization" (system logic overriding user judgment)?
 
 ## Analysis
 
