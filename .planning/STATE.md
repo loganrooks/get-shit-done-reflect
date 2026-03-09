@@ -29,7 +29,7 @@ Milestone: v1.17 Automation Loop — SHIPPED 2026-03-09
 Status: Milestone complete, awaiting next milestone
 Last activity: 2026-03-09 - Completed v1.17 Automation Loop milestone
 
-Progress: [██████████] 100% — 10 phases, 24 plans, 20 quick tasks
+Progress: [██████████] 100% — 10 phases, 24 plans, 21 quick tasks
 
 ## Performance Metrics
 
@@ -209,6 +209,7 @@ Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16
 | 018 | Fix +dev suffix to apply when installing from git repo, not just --local | 2026-03-06 | 8232508 | [18-fix-dev-suffix-to-apply-when-installing-](./quick/18-fix-dev-suffix-to-apply-when-installing-/) |
 | 019 | Fix co-installation namespace safety: preserve upstream GSD during Reflect install/uninstall | 2026-03-06 | 842887f | [19-fix-co-installation-namespace-safety-ins](./quick/19-fix-co-installation-namespace-safety-ins/) |
 | 020 | Fix hooks failing in git worktrees (shell existence guards) | 2026-03-08 | 617483a | [20-fix-hooks-failing-in-git-worktrees](./quick/20-fix-hooks-failing-in-git-worktrees/) |
+| 021 | Fix hook installer to apply full content transforms (/gsd: prefix, quoted path.join args) | 2026-03-09 | 5ce01d6 | [21-fix-hook-installer-to-apply-full-content](./quick/21-fix-hook-installer-to-apply-full-content/) |
 
 ### Roadmap Evolution
 
@@ -230,6 +231,6 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 ## Session Continuity
 
 Last session: 2026-03-09
-Stopped at: v1.17 Automation Loop milestone completed and archived. Ready for next milestone.
+Stopped at: Completed quick-21 (fix hook installer content transforms). Ready for next task.
 Resume file: None
 Deliberation context: .planning/deliberations/v1.17-plus-roadmap-deliberation.md (M-B through M-E themes for future milestones)
