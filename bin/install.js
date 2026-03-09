@@ -2341,6 +2341,8 @@ function install(isGlobal, runtime = 'claude') {
         let content = fs.readFileSync(srcFile, 'utf8');
         content = content.replace(/get-shit-done\//g, 'get-shit-done-reflect/');
         content = content.replace(/\bgsd-(?!tools)/g, 'gsdr-');
+        content = content.replace(/\/gsd:/g, '/gsdr:');
+        content = content.replace(/'get-shit-done'/g, "'get-shit-done-reflect'");
         fs.writeFileSync(destFile, content);
       }
     }
