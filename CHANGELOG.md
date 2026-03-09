@@ -6,6 +6,41 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-03-09
+
+### Added
+- **Automation framework** (Phase 37): `resolve-level` and `track-event` subcommands with manifest-driven config detection, `FEATURE_CAPABILITY_MAP`, resolution chain (override → deferral → runtime cap), per-feature statistics tracking, and automation level statusline indicator
+- **Extensible sensor architecture** (Phase 38): file-system-based sensor discovery, sensor contract (`input`/`output`/`timeout` via frontmatter), config_schema support, `.claude/agents/` primary with `agents/` fallback for dev environments
+- **Project-local knowledge base** (Phase 38.1): `.planning/knowledge/` primary with `~/.gsd/knowledge/` fallback, `kb-rebuild-index.sh` for project-local index, signal schema enrichment fields for cross-project readiness, lessons deprecated in favor of 3-type KB (signals, reflections, spikes)
+- **CI sensor** (Phase 39): `gsdr-ci-sensor` agent spec with `gh` CLI integration, SessionStart hook for CI status caching (background spawn, 1hr staleness), statusline CI indicator, pre-flight degraded mode
+- **Signal collection automation** (Phase 40): lock stale detection via file mtime, postlude-based triggering in execute-phase workflow
+- **Health score system** (Phase 41): two-dimensional scoring model (`health-scoring.md`), 6 infrastructure probes, `health-probe` subcommand with signal-metrics/signal-density/automation-watchdog, SessionStart health check hook with traffic light statusline indicator, rogue-files probe with pattern registry, rogue-context agent probe
+- **Reflection automation** (Phase 42): `reflection-counter` subcommand and manifest schema, auto-reflect postlude step in execute-phase, lesson confidence evolution schema, counter reset in reflect workflow
+- **Plan intelligence & templates** (Phase 43): semantic validation Dimensions 8-11 in plan checker, advisory severity policy, requirement linkage in reflector/reflect workflow, model and context_used_pct in summary templates and executor spec
+- **GSDR namespace co-installation** (Phase 44): install-time namespace rewriting via `replacePathsInContent()` Pass 3a-3d, `(?!tools)` lookahead protects gsd-tools.js, uninstall handles both `gsdr-*` and `gsd-*` patterns, upgrade path cleanup
+- Meta-test detection with targeted regex patterns and exempt file list (Phase 36)
+- Worktree-safe hook commands with `test -f` shell guards for local installs (Quick 20)
+- Co-installation namespace safety: preserve upstream GSD during Reflect install/uninstall (Quick 19)
+- Auto-build hooks when `hooks/dist/` missing during install (Quick 16)
+- Stamp-version.js automation for config template version (Quick 17)
+- `+dev` suffix for git repo installs (Quick 18)
+- Signal lifecycle reconciliation script and execute-phase integration (Quick 13)
+- Cross-runtime parity testing with glob-based hook discovery (Quick 15)
+
+### Changed
+- Health-check workflow refactored to generic probe executor pattern
+- Collect-signals `rebuild_index` updated to use project-local `kb-rebuild-index.sh`
+- Manifest self-test updated for 7 features (automation added)
+
+### Fixed
+- Co-installation: upstream GSD namespace preserved during Reflect install/uninstall
+- CI install verification updated for gsdr namespace paths
+- `+dev` suffix applies to git repo installs, not just `--local`
+- Config template version stamped automatically during release
+- Plan checker feedback integration for Phases 37, 38.1, 41
+- Node 20 compatibility: replaced `node:fs` `globSync` with `readdirSync` in wiring tests
+- Wiring tests target `agents/` (npm source) instead of `.claude/agents/` (install target)
+
 ## [1.16.0] - 2026-03-02
 
 ### Added
