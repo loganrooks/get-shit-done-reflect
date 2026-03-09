@@ -1,6 +1,5 @@
 {
   "mode": "yolo",
-  "depth": "comprehensive",
   "parallelization": true,
   "commit_docs": true,
   "model_profile": "quality",
@@ -32,5 +31,41 @@
     "ci_trigger": "none",
     "registry": "none",
     "branch": "main"
-  }
+  },
+  "automation": {
+    "stats": {
+      "signal_collection": {
+        "fires": 0,
+        "skips": 1,
+        "last_triggered": null,
+        "last_skip_reason": "level-1"
+      },
+      "sensor_artifact": {
+        "fires": 2,
+        "skips": 0,
+        "last_triggered": "2026-03-07T05:12:07.528Z",
+        "last_skip_reason": null
+      },
+      "sensor_ci": {
+        "fires": 2,
+        "skips": 0,
+        "last_triggered": "2026-03-07T05:12:07.820Z",
+        "last_skip_reason": null
+      },
+      "sensor_git": {
+        "fires": 2,
+        "skips": 0,
+        "last_triggered": "2026-03-07T05:12:07.659Z",
+        "last_skip_reason": null
+      }
+    },
+    "reflection": {
+      "auto_reflect": false,
+      "threshold_phases": 3,
+      "min_signals": 5,
+      "phases_since_last_reflect": 0,
+      "last_reflect_at": "2026-03-07T05:46:29.846Z"
+    }
+  },
+  "granularity": "fine"
 }

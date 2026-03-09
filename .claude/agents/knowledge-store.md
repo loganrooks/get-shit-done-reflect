@@ -120,7 +120,7 @@ These fields support future pruning design. Agents should increment `retrieval_c
 |-------|------|-------------|
 | `depends_on` | array | Conditions that could invalidate this entry. Each element is a human-readable string describing a dependency (e.g., `"prisma >= 4.0"`, `"src/lib/auth.ts exists"`, `"NOT monorepo"`). Agents read these and use judgment to assess whether the entry is still valid. |
 
-The `depends_on` field supports the knowledge surfacing system's freshness model. When agents retrieve an entry, they check `depends_on` conditions against the current codebase. If conditions no longer hold, the entry is surfaced with a staleness caveat. If `depends_on` is absent, agents fall back to temporal decay heuristics. See `get-shit-done/references/knowledge-surfacing.md` Section 4 for the full freshness checking specification.
+The `depends_on` field supports the knowledge surfacing system's freshness model. When agents retrieve an entry, they check `depends_on` conditions against the current codebase. If conditions no longer hold, the entry is surfaced with a staleness caveat. If `depends_on` is absent, agents fall back to temporal decay heuristics. See `get-shit-done-reflect/references/knowledge-surfacing.md` Section 4 for the full freshness checking specification.
 
 **Optional provenance fields:**
 

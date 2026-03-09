@@ -1,20 +1,35 @@
+---
+gsd_state_version: 1.0
+milestone: v1.17
+milestone_name: Automation Loop
+status: completed
+stopped_at: v1.17 Automation Loop milestone completed. All 10 phases (36-44) and 24 plans done. 20 quick tasks completed.
+last_updated: "2026-03-09T14:30:00.000Z"
+last_activity: 2026-03-09 - Completed v1.17 Automation Loop milestone
+progress:
+  total_phases: 10
+  completed_phases: 10
+  total_plans: 24
+  completed_plans: 24
+  percent: 100
+---
+
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-02)
+See: .planning/PROJECT.md (updated 2026-03-09)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 44 GSDR Namespace Co-Installation
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 44 (GSDR Namespace Co-Installation)
-Plan: 3 of 3 in current phase
-Status: Phase 44 Complete
-Last activity: 2026-03-06 - Completed 44-03: Test assertions + verification
+Milestone: v1.17 Automation Loop — SHIPPED 2026-03-09
+Status: Milestone complete, awaiting next milestone
+Last activity: 2026-03-09 - Completed v1.17 Automation Loop milestone
 
-Progress: [██████████] 100%
+Progress: [██████████] 100% — 10 phases, 24 plans, 20 quick tasks
 
 ## Performance Metrics
 
@@ -84,6 +99,26 @@ Progress: [██████████] 100%
 | 44 | 02 | 3min | 2 | 1 |
 | 44 | 03 | 23min | 3 | 3 |
 
+**Phase 41:**
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 41 | 01 | 3min | 3 | 8 |
+| 41 | 02 | 9min | 2 | 8 |
+| 41 | 03 | 4min | 3 | 4 |
+| 41 | 04 | 2min | 2 | 2 |
+
+**Phase 42:**
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 42 | 01 | 4min | 2 | 4 |
+| 42 | 02 | 3min | 2 | 2 |
+
+**Phase 43:**
+| Phase | Plan | Duration | Tasks | Files |
+|-------|------|----------|-------|-------|
+| 43 | 01 | 3min | 2 | 1 |
+| 43 | 02 | 2min | 2 | 7 |
+
 ## Accumulated Context
 
 ### Decisions
@@ -116,6 +151,24 @@ v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, p
 - [Phase 44]: Uninstall handles both gsdr-* and gsd-* patterns for upgrade path
 - [Phase 44]: writeManifest tracks only gsdr-* agents; upgrade cleanup in install() removes old dirs
 - [Phase 44]: Stale gsd- detection exempts CHANGELOG.md, gsd-test, gsd-build, gsd-tools, gsd-knowledge
+- [Phase 41]: Probe frontmatter contract: probe_id, category, tier, dimension, execution, depends_on
+- [Phase 41]: Signal weights locked at critical=1.0, notable=0.3, minor=0.1
+- [Phase 41]: Reactive threshold defaults to RED (only trigger on critical composite)
+- [Phase 41]: Regime boundary resolution: no regime_change entries means all signal history is one regime
+- [Phase 41]: H? is a passive indicator (marker-file pattern) -- hooks cannot invoke full health check workflow
+- [Phase 41]: Session dedup uses 1-hour threshold to prevent re-triggering on rapid session restarts
+- [Phase 41]: Generous allowlist approach for rogue detection -- expand registry on false positives rather than weakening detection
+- [Phase 41]: Rogue context probe is tier:full only -- git log queries are too slow for default health checks
+- [Phase 42]: Report filenames use datetime (HHMMSS) to prevent auto-reflect/manual collision on same day
+- [Phase 42]: Counter reset is best-effort in reflect.md -- failure does not break reflection
+- [Phase 42]: Lesson confidence never starts at high -- earned through corroboration across reflections
+- [Phase 42]: Confidence state lives in reflection reports via report-to-report chaining, not deprecated lesson files
+- [Phase 43]: TMPL-01 (requirements motivation) already present in template -- no change needed
+- [Phase 43]: Executor spec updated to instruct filling model/context_used_pct (closes producer-consumer loop)
+- [Phase 43]: Reflector and reflect workflow updated in tandem for requirement linkage (avoids Pitfall 6)
+- [Phase 43]: REQUIREMENTS.md pre-loaded in prepare_context to avoid reflector context budget cost
+- [Phase 43]: All semantic validation findings use advisory severity -- plans describe future state
+- [Phase 43]: Typed finding IDs (TOOL/CFG/DIR/SIG) enable future correlation between plan-check findings and execution signals
 
 ### Pending Todos
 
@@ -154,6 +207,8 @@ Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16
 | 016 | Auto-run hooks build in installer if hooks/dist/ missing | 2026-03-06 | 76c0175 | [16-auto-run-hooks-build-in-installer-if-hoo](./quick/16-auto-run-hooks-build-in-installer-if-hoo/) |
 | 017 | Fix stale gsd_reflect_version in config template (1.13.0 -> 1.16.0), add stamp-version.js automation | 2026-03-06 | 52411c9 | [17-fix-stale-gsd-reflect-version-in-config-](./quick/17-fix-stale-gsd-reflect-version-in-config-/) |
 | 018 | Fix +dev suffix to apply when installing from git repo, not just --local | 2026-03-06 | 8232508 | [18-fix-dev-suffix-to-apply-when-installing-](./quick/18-fix-dev-suffix-to-apply-when-installing-/) |
+| 019 | Fix co-installation namespace safety: preserve upstream GSD during Reflect install/uninstall | 2026-03-06 | 842887f | [19-fix-co-installation-namespace-safety-ins](./quick/19-fix-co-installation-namespace-safety-ins/) |
+| 020 | Fix hooks failing in git worktrees (shell existence guards) | 2026-03-08 | 617483a | [20-fix-hooks-failing-in-git-worktrees](./quick/20-fix-hooks-failing-in-git-worktrees/) |
 
 ### Roadmap Evolution
 
@@ -174,7 +229,7 @@ v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phase
 
 ## Session Continuity
 
-Last session: 2026-03-06
-Stopped at: Completed 44-03-PLAN.md (test assertions + verification). Phase 44 complete.
+Last session: 2026-03-09
+Stopped at: v1.17 Automation Loop milestone completed and archived. Ready for next milestone.
 Resume file: None
-Deliberation context: .planning/deliberations/project-local-knowledge-base.md (Phase 38.1), .planning/deliberations/deliberation-system-design.md (affects Phase 38+ planning)
+Deliberation context: .planning/deliberations/v1.17-plus-roadmap-deliberation.md (M-B through M-E themes for future milestones)

@@ -1,12 +1,28 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-06T01:23:41Z
-**Total entries:** 109
+**Generated:** 2026-03-07T05:16:47Z
+**Total entries:** 126
 
-## Signals (108)
+## Signals (125)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-03-07-plan-checker-misses-producer-consumer-gaps | get-shit-done-reflect | notable | detected | plan-checker,producer-consumer,cross-workflow,implicit-dependencies,second-order-effects,template-consumer-gap | "2026-03-07 | active |
+| sig-2026-03-07-research-driven-planning-zero-deviations | get-shit-done-reflect | minor | detected | plan-quality,research-driven,execution-efficiency | 2026-03-07 | active |
+| sig-2026-03-07-producer-consumer-gap-remediated-phase43 | get-shit-done-reflect | minor | detected | producer-consumer,traceability,templates,provenance | 2026-03-07 | active |
+| sig-2026-03-07-plan-files-modified-lists-unnecessary-change | get-shit-done-reflect | minor | detected | deviation,plan-accuracy,files-modified,templates | 2026-03-07 | active |
+| sig-2026-03-07-plan-checker-semantic-dimensions-systematic | get-shit-done-reflect | notable | detected | plan-checker,recurring-pattern,systematic-remediation,semantic-validation | 2026-03-07 | active |
+| sig-2026-03-07-plan-checker-allowlist-static-drift-risk | get-shit-done-reflect | minor | detected | plan-checker,maintenance-burden,allowlist,drift-risk | 2026-03-07 | active |
+| sig-2026-03-06-reflection-counter-comment-code-mismatch | get-shit-done-reflect | minor | detected | code-quality,comment-accuracy,gsd-tools,reflection-counter | 2026-03-06 | active |
+| sig-2026-03-06-phase42-rapid-execution-7min-total | get-shit-done-reflect | notable | detected | execution-speed,plan-quality,ahead-of-schedule | 2026-03-06 | active |
+| sig-2026-03-06-phase42-human-verification-gaps | get-shit-done-reflect | notable | detected | verification-gap,human-testing,runtime-behavior,reflection-automation | 2026-03-06 | active |
+| sig-2026-03-06-phase42-clean-execution-zero-deviations | get-shit-done-reflect | minor | detected | plan-quality,clean-execution,zero-deviation,reflection-automation | 2026-03-06 | active |
+| sig-2026-03-06-no-ci-runs-phase42-unpushed-work | get-shit-done-reflect | notable | detected | ci,unpushed-work,no-ci-coverage | 2026-03-06 | active |
+| sig-2026-03-06-installer-file-churn-hotspot | get-shit-done-reflect | notable | detected | file-churn,hotspot,installer,testing | 2026-03-06 | active |
+| sig-2026-03-06-ci-test-regression-parse-inconclusive | get-shit-done-reflect | minor | detected | ci,test-regression,parsing-limitation | 2026-03-06 | active |
+| sig-2026-03-06-branch-protection-bypass-three-commits | get-shit-done-reflect | critical | detected | ci,branch-protection,bypass,main-branch,test-failure | 2026-03-06 | active |
+| sig-2026-03-06-phase42-plan-gaps-pre-execution-review | get-shit-done-reflect | notable | detected | plan-accuracy,pre-execution-review,plan-checker,second-order-effects,assumption-verification,capability-gap,phase-42 | 2026-03-06 | active |
+| sig-2026-03-06-planner-deliberation-auto-reference-gap | get-shit-done-reflect | notable | detected | tags: | "2026-03-06 | active |
 | sig-2026-03-05-phase40-plan-gaps-pre-execution-review | get-shit-done-reflect | critical | detected | plan-accuracy,pre-execution-review,reentrancy,double-fire,output-corruption,context-estimation,test-coverage,phase-40 | "2026-03-05 | active |
 | sig-2026-03-05-undeclared-claude-dir-scope-creep-plan02 | get-shit-done-reflect | notable | detected | scope-creep,plan-accuracy,dual-directory | 2026-03-05 | active |
 | sig-2026-03-05-test-count-discrepancy-parallel-wave2 | get-shit-done-reflect | minor | detected | test-count,parallel-execution,wave-dependency | 2026-03-05 | active |
@@ -114,6 +130,7 @@
 | SIG-260223-013 |  | notable | detected | testing,isolation,environment |  | open |
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-02-requirements-lack-motivation-traceability | get-shit-done-reflect | notable | detected | requirements,traceability,signal-lifecycle,template |  | detected |
+|  | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | path-resolution,installer,source-repo,plan-spec-gap,auto-fix |  | active |
 
 ## Spikes (1)

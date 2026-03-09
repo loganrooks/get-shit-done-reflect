@@ -1,6 +1,8 @@
 ---
 phase: XX-name
 plan: YY
+model: [model-identifier]
+context_used_pct: [0-100]
 subsystem: [primary category]
 tags: [searchable tech]
 requires:

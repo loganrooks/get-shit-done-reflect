@@ -2,9 +2,22 @@
 
 ## 1. Overview
 
-Defines check definitions, thresholds, output format, repair rules, and signal integration for workspace validation via `/gsd:health-check`.
+Defines output format, repair rules, and signal integration for workspace validation via `/gsd:health-check`.
 
-**Purpose:** Validate workspace state and report actionable findings. The health check is the primary workspace maintenance tool -- the first thing users reach for when something seems wrong.
+**Architecture:** The health check system uses a probe-based architecture. Check definitions have been migrated to individual probe files in `references/health-probes/`. See each probe file for check IDs, shell patterns, and blocking rules.
+
+**Key references:**
+- **Probe files:** `get-shit-done/references/health-probes/*.md` -- individual check definitions with YAML frontmatter contract
+- **Scoring model:** `get-shit-done/references/health-scoring.md` -- two-dimensional scoring (infrastructure + workflow), composite matrix, cache format
+- **Workflow:** `get-shit-done/workflows/health-check.md` -- probe discovery, filtering, execution, and reporting orchestration
+
+**Probe contract:** Each probe file declares:
+- `probe_id` -- unique identifier
+- `category` -- human-readable category name
+- `tier` -- `default` (always runs) or `full` (only with `--full`)
+- `dimension` -- `infrastructure` (binary) or `workflow` (weighted)
+- `execution` -- `inline` (bash checks), `subcommand` (gsd-tools.js), or `agent` (subagent)
+- `depends_on` -- list of probe_ids that must pass before this probe runs
 
 **Consumers:**
 - `/gsd:health-check` command (user-facing entry point)
@@ -14,10 +27,10 @@ Defines check definitions, thresholds, output format, repair rules, and signal i
 
 | Mode | Flag | Checks Included | Expected Duration |
 |------|------|-----------------|-------------------|
-| Default (quick) | (none) | KB Integrity, Config Validity, Stale Artifacts, Signal Lifecycle Consistency | <5s |
-| Full | `--full` | Default + Planning Consistency, Config Drift | <15s |
-| Focused KB | `--focus kb` | KB Integrity only | <3s |
-| Focused Planning | `--focus planning` | Planning Consistency only | <3s |
+| Default (quick) | (none) | All default-tier probes | <5s |
+| Full | `--full` | Default + full-tier probes | <15s |
+| Focused KB | `--focus kb` | KB Integrity probes only | <3s |
+| Focused Planning | `--focus planning` | Planning Consistency probes only | <3s |
 
 **Flags:**
 - `--full` -- Run all check categories including full-tier checks
@@ -26,335 +39,24 @@ Defines check definitions, thresholds, output format, repair rules, and signal i
 - `--fix` -- Enable repair mode (auto in YOLO, prompt in interactive)
 - `--stale-days N` -- Override configured staleness threshold (default: 7 days)
 
-## 2. Check Categories
-
-### 2.1 KB Integrity (Default Tier)
-
-Validates the knowledge base at `.planning/knowledge/` (or `~/.gsd/knowledge/` fallback) is structurally sound.
-
-| # | Check | Pass Condition | Fail Severity |
-|---|-------|----------------|---------------|
-| KB-01 | Index file exists | `.planning/knowledge/index.md` or `~/.gsd/knowledge/index.md` exists | FAIL |
-| KB-02 | Index is parseable | Index contains `## Signals`, `## Spikes`, `## Lessons` table headers | FAIL |
-| KB-03 | Signal count matches | Index entries match filesystem files (non-archived) | WARNING |
-| KB-04 | Spike count matches | Index entries match filesystem files (non-archived) | WARNING |
-| KB-05 | Lesson count matches | Index entries match filesystem files (non-archived) | WARNING |
-| KB-06 | No frontmatter errors | 5 random entry files parse without YAML errors | WARNING |
-
-**Shell patterns for KB checks:**
-
-```bash
-# KB path resolution -- project-local primary, user-global fallback
-if [ -d ".planning/knowledge" ]; then
-  KB_DIR=".planning/knowledge"
-else
-  KB_DIR="$HOME/.gsd/knowledge"
-fi
-INDEX="$KB_DIR/index.md"
-
-# KB-01: Index exists
-test -f "$INDEX" && echo "PASS" || echo "FAIL"
-
-# KB-02: Index parseable (has required section headers)
-grep -q "## Signals" "$INDEX" && grep -q "## Spikes" "$INDEX" && grep -q "## Lessons" "$INDEX" && echo "PASS" || echo "FAIL"
-
-# KB-03: Signal count match
-index_signals=$(grep -c "^| sig-" "$INDEX" 2>/dev/null || echo "0")
-actual_signals=0
-while IFS= read -r -d '' file; do
-  status=$(grep "^status:" "$file" 2>/dev/null | head -1 | sed 's/^status:[[:space:]]*//')
-  [ "$status" != "archived" ] && actual_signals=$((actual_signals + 1))
-done < <(find "$KB_DIR/signals" -name '*.md' -print0 2>/dev/null)
-[ "$index_signals" -eq "$actual_signals" ] && echo "PASS: $index_signals indexed, $actual_signals on disk" || echo "WARNING: $index_signals indexed, $actual_signals on disk"
-
-# KB-04: Spike count match
-index_spikes=$(grep -c "^| spk-" "$INDEX" 2>/dev/null || echo "0")
-actual_spikes=0
-while IFS= read -r -d '' file; do
-  status=$(grep "^status:" "$file" 2>/dev/null | head -1 | sed 's/^status:[[:space:]]*//')
-  [ "$status" != "archived" ] && actual_spikes=$((actual_spikes + 1))
-done < <(find "$KB_DIR/spikes" -name '*.md' -print0 2>/dev/null)
-[ "$index_spikes" -eq "$actual_spikes" ] && echo "PASS: $index_spikes indexed, $actual_spikes on disk" || echo "WARNING: $index_spikes indexed, $actual_spikes on disk"
-
-# KB-05: Lesson count match
-index_lessons=$(grep -c "^| les-" "$INDEX" 2>/dev/null || echo "0")
-actual_lessons=0
-while IFS= read -r -d '' file; do
-  status=$(grep "^status:" "$file" 2>/dev/null | head -1 | sed 's/^status:[[:space:]]*//')
-  [ "$status" != "archived" ] && actual_lessons=$((actual_lessons + 1))
-done < <(find "$KB_DIR/lessons" -name '*.md' -print0 2>/dev/null)
-[ "$index_lessons" -eq "$actual_lessons" ] && echo "PASS: $index_lessons indexed, $actual_lessons on disk" || echo "WARNING: $index_lessons indexed, $actual_lessons on disk"
-
-# KB-06: Frontmatter parse check (sample 5 random files)
-errors=0
-while IFS= read -r file; do
-  # Check that frontmatter delimiters exist (--- ... ---)
-  head_lines=$(head -20 "$file" 2>/dev/null)
-  first_line=$(echo "$head_lines" | head -1)
-  if [ "$first_line" != "---" ]; then
-    errors=$((errors + 1))
-  fi
-done < <(find "$KB_DIR" -name '*.md' ! -name 'index.md' -print 2>/dev/null | shuf -n 5 2>/dev/null || find "$KB_DIR" -name '*.md' ! -name 'index.md' -print 2>/dev/null | head -5)
-[ "$errors" -eq 0 ] && echo "PASS: No frontmatter errors in sampled files" || echo "WARNING: $errors files with frontmatter issues"
-```
-
-**Edge case:** If neither `.planning/knowledge/` nor `~/.gsd/knowledge/` directory exists, KB-01 through KB-06 all FAIL. Report as "KB not initialized" and suggest user runs initialization.
-
-### 2.2 Config Validity (Default Tier)
-
-Validates `.planning/config.json` structure and required fields.
-
-| # | Check | Pass Condition | Fail Severity |
-|---|-------|----------------|---------------|
-| CFG-01 | Config file exists | `.planning/config.json` exists | FAIL |
-| CFG-02 | JSON is parseable | `node -e "JSON.parse(...)"` succeeds | FAIL |
-| CFG-03 | Required fields present | `mode` and `depth` fields exist | FAIL |
-| CFG-04 | Field values valid | `mode` is `yolo\|interactive`, `depth` is `quick\|standard\|comprehensive` | WARNING |
-| CFG-05 | Version tracking exists | `gsd_reflect_version` field exists | WARNING |
-| CFG-06 | Health check config exists | `health_check` section exists | WARNING |
-
-**Shell patterns for config checks:**
-
-```bash
-CONFIG=".planning/config.json"
-
-# CFG-01: Config exists
-test -f "$CONFIG" && echo "PASS" || echo "FAIL"
-
-# CFG-02: JSON parseable
-node -e "JSON.parse(require('fs').readFileSync('$CONFIG','utf8'))" 2>/dev/null && echo "PASS" || echo "FAIL"
-
-# CFG-03: Required fields
-for field in mode depth; do
-  node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8')); if(!c.$field) process.exit(1)" 2>/dev/null && echo "PASS: $field present" || echo "FAIL: $field missing"
-done
-
-# CFG-04: Field values valid
-MODE=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8')); console.log(c.mode||'')" 2>/dev/null)
-DEPTH=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8')); console.log(c.depth||'')" 2>/dev/null)
-echo "$MODE" | grep -qE "^(yolo|interactive)$" && echo "PASS: mode=$MODE" || echo "WARNING: mode=$MODE is not yolo|interactive"
-echo "$DEPTH" | grep -qE "^(quick|standard|comprehensive)$" && echo "PASS: depth=$DEPTH" || echo "WARNING: depth=$DEPTH is not quick|standard|comprehensive"
-
-# CFG-05: Version tracking
-node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8')); if(!c.gsd_reflect_version) process.exit(1)" 2>/dev/null && echo "PASS" || echo "WARNING: Missing gsd_reflect_version (pre-version-tracking project)"
-
-# CFG-06: Health check config
-node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8')); if(!c.health_check) process.exit(1)" 2>/dev/null && echo "PASS" || echo "WARNING: Missing health_check section (use --fix to add defaults)"
-```
-
-**Edge case:** If `.planning/config.json` does not exist, CFG-01 FAILs and CFG-02 through CFG-06 are skipped. Report "No config found -- run `/gsd:new-project` to initialize."
-
-### 2.3 Stale Artifacts (Default Tier)
-
-Detects orphaned, abandoned, or incomplete workspace artifacts.
-
-| # | Check | Detection Rule | Fail Severity |
-|---|-------|---------------|---------------|
-| STALE-01 | Orphaned .continue-here files | `.continue-here.md` files older than threshold | WARNING |
-| STALE-02 | Abandoned debug sessions | Files in `.planning/debug/` without `status:.*resolved`, older than threshold | WARNING |
-| STALE-03 | Incomplete spikes | Directories in `.planning/spikes/` with `DESIGN.md` but no `DECISION.md` | WARNING |
-
-**Staleness threshold:** Configurable via `health_check.stale_threshold_days` in config.json (default: 7 days). Override with `--stale-days N` flag.
-
-**Shell patterns for stale artifact detection:**
-
-```bash
-STALE_THRESHOLD_DAYS=${STALE_DAYS_FLAG:-${CONFIG_STALE_THRESHOLD:-7}}
-
-# STALE-01: Orphaned .continue-here files
-stale_continue=0
-while IFS= read -r file; do
-  stale_continue=$((stale_continue + 1))
-  age_days=$(( ($(date +%s) - $(stat -f %m "$file" 2>/dev/null || stat -c %Y "$file" 2>/dev/null || echo "0")) / 86400 ))
-  echo "  - $file (${age_days} days old)"
-done < <(find .planning/phases -name '.continue-here.md' -mtime +$STALE_THRESHOLD_DAYS 2>/dev/null)
-[ "$stale_continue" -eq 0 ] && echo "PASS: No orphaned .continue-here files" || echo "WARNING: $stale_continue orphaned .continue-here files"
-
-# STALE-02: Abandoned debug sessions
-stale_debug=0
-while IFS= read -r file; do
-  if ! grep -q "status:.*resolved" "$file" 2>/dev/null; then
-    stale_debug=$((stale_debug + 1))
-    echo "  - $file (no resolution marker)"
-  fi
-done < <(find .planning/debug -name '*.md' -mtime +$STALE_THRESHOLD_DAYS 2>/dev/null)
-[ "$stale_debug" -eq 0 ] && echo "PASS: No abandoned debug sessions" || echo "WARNING: $stale_debug abandoned debug sessions"
-
-# STALE-03: Incomplete spikes
-incomplete_spikes=0
-while IFS= read -r file; do
-  dir=$(dirname "$file")
-  if [ ! -f "$dir/DECISION.md" ]; then
-    incomplete_spikes=$((incomplete_spikes + 1))
-    echo "  - $dir (DESIGN.md present, no DECISION.md)"
-  fi
-done < <(find .planning/spikes -name 'DESIGN.md' 2>/dev/null)
-[ "$incomplete_spikes" -eq 0 ] && echo "PASS: No incomplete spikes" || echo "WARNING: $incomplete_spikes incomplete spikes"
-```
-
-### 2.4 Planning Consistency (Full Tier)
-
-Validates planning artifact consistency across the project. Only runs with `--full` or `--focus planning`.
-
-| # | Check | Pass Condition | Fail Severity |
-|---|-------|----------------|---------------|
-| PLAN-01 | Phase directories exist | Every phase in ROADMAP.md has a directory in `.planning/phases/` | WARNING |
-| PLAN-02 | Completed plans have summaries | Every PLAN.md has a SUMMARY.md for completed phases | WARNING |
-| PLAN-03 | STATE.md exists | `.planning/STATE.md` file exists and has "Current Position" section | FAIL |
-
-**Shell patterns:**
-
-```bash
-# PLAN-01: Phase directories match ROADMAP.md
-# Extract phase numbers from ROADMAP.md, check each has a directory
-grep -oE "Phase [0-9]+" .planning/ROADMAP.md 2>/dev/null | sort -u | while read -r line; do
-  phase_num=$(echo "$line" | grep -oE "[0-9]+")
-  padded=$(printf "%02d" "$phase_num")
-  dir_match=$(ls -d .planning/phases/${padded}-* 2>/dev/null | head -1)
-  [ -n "$dir_match" ] && echo "PASS: Phase $phase_num -> $dir_match" || echo "WARNING: Phase $phase_num has no directory"
-done
-
-# PLAN-02: Completed plans have summaries
-find .planning/phases -name '*-PLAN.md' 2>/dev/null | while read -r plan; do
-  summary="${plan/PLAN.md/SUMMARY.md}"
-  # Only check if the phase appears completed (has at least one SUMMARY.md in directory)
-  dir=$(dirname "$plan")
-  has_any_summary=$(ls "$dir"/*-SUMMARY.md 2>/dev/null | head -1)
-  if [ -n "$has_any_summary" ]; then
-    [ -f "$summary" ] && echo "PASS: $plan has summary" || echo "WARNING: $plan missing summary (phase has other summaries)"
-  fi
-done
-
-# PLAN-03: STATE.md exists
-test -f .planning/STATE.md && grep -q "Current Position" .planning/STATE.md && echo "PASS" || echo "FAIL: STATE.md missing or malformed"
-```
-
-### 2.5 Config Drift (Full Tier)
-
-Detects when a project config is behind the current template. Only runs with `--full`.
-
-| # | Check | Pass Condition | Fail Severity |
-|---|-------|----------------|---------------|
-| DRIFT-01 | Template field coverage | All fields in config template exist in project config | WARNING |
-| DRIFT-02 | Version compatibility | `gsd_reflect_version` in config matches installed VERSION | WARNING |
-
-**Shell patterns:**
-
-```bash
-TEMPLATE="$HOME/.claude/get-shit-done/templates/config.json"
-CONFIG=".planning/config.json"
-
-# DRIFT-01: Template field coverage
-if [ -f "$TEMPLATE" ] && [ -f "$CONFIG" ]; then
-  template_fields=$(node -e "const t=JSON.parse(require('fs').readFileSync('$TEMPLATE','utf8')); console.log(Object.keys(t).sort().join('\n'))" 2>/dev/null)
-  config_fields=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8')); console.log(Object.keys(c).sort().join('\n'))" 2>/dev/null)
-  missing=$(comm -23 <(echo "$template_fields") <(echo "$config_fields") 2>/dev/null)
-  [ -z "$missing" ] && echo "PASS: All template fields present" || echo "WARNING: Missing fields from template: $missing"
-fi
-
-# DRIFT-02: Version compatibility
-INSTALLED=$(cat "$HOME/.claude/get-shit-done/VERSION" 2>/dev/null || echo "unknown")
-PROJECT=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8')); console.log(c.gsd_reflect_version||'none')" 2>/dev/null)
-[ "$INSTALLED" = "$PROJECT" ] && echo "PASS: Version $INSTALLED matches" || echo "WARNING: Installed $INSTALLED vs project $PROJECT"
-```
-
-### 2.6 Signal Lifecycle Consistency (Default Tier)
-
-Validates that signal lifecycle states are consistent with plan declarations.
-
-| # | Check | Pass Condition | Fail Severity |
-|---|-------|----------------|---------------|
-| SIG-01 | Resolved signals updated | For each plan with `resolves_signals`, referenced signals have `lifecycle_state: remediated` or later | WARNING |
-| SIG-02 | No orphaned resolutions | No plan references a signal ID that doesn't exist in the KB | WARNING |
-
-**Shell patterns:**
-
-```bash
-# SIG-01: Resolved signals updated
-# Find all PLAN.md files with resolves_signals declarations
-inconsistencies=0
-while IFS= read -r plan; do
-  raw=$(node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter get "$plan" --field resolves_signals --raw 2>/dev/null || echo "")
-  # Skip if not a valid array
-  echo "$raw" | grep -q '^\[' || continue
-  # Parse signal IDs
-  for sig_id in $(echo "$raw" | node -e "process.stdin.on('data',d=>{try{JSON.parse(d).forEach(s=>console.log(s))}catch{}})" 2>/dev/null); do
-    sig_file=$(find "$KB_DIR/signals" -name "${sig_id}.md" 2>/dev/null | head -1)
-    [ -z "$sig_file" ] && continue
-    state=$(grep "^lifecycle_state:" "$sig_file" 2>/dev/null | head -1 | sed 's/^lifecycle_state:[[:space:]]*//')
-    if [ "$state" = "detected" ] || [ "$state" = "triaged" ]; then
-      echo "  WARNING: Plan $(basename "$plan") declares it resolves $sig_id, but signal is still in '$state' state"
-      inconsistencies=$((inconsistencies + 1))
-    fi
-  done
-done < <(find .planning/phases -name '*-PLAN.md' 2>/dev/null)
-[ "$inconsistencies" -eq 0 ] && echo "PASS: All declared signal resolutions are consistent" || echo "WARNING: $inconsistencies lifecycle inconsistencies found"
-
-# SIG-02: No orphaned resolutions
-orphans=0
-while IFS= read -r plan; do
-  raw=$(node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter get "$plan" --field resolves_signals --raw 2>/dev/null || echo "")
-  echo "$raw" | grep -q '^\[' || continue
-  for sig_id in $(echo "$raw" | node -e "process.stdin.on('data',d=>{try{JSON.parse(d).forEach(s=>console.log(s))}catch{}})" 2>/dev/null); do
-    sig_file=$(find "$KB_DIR/signals" -name "${sig_id}.md" 2>/dev/null | head -1)
-    if [ -z "$sig_file" ]; then
-      echo "  WARNING: Plan $(basename "$plan") references signal $sig_id which does not exist in KB"
-      orphans=$((orphans + 1))
-    fi
-  done
-done < <(find .planning/phases -name '*-PLAN.md' 2>/dev/null)
-[ "$orphans" -eq 0 ] && echo "PASS: No orphaned signal references" || echo "WARNING: $orphans orphaned signal references found"
-```
-
-## 3. Focused Modes
-
-Focused modes run a single check category, regardless of its tier.
-
-**`--focus kb`:**
-- Runs only KB Integrity checks (KB-01 through KB-06)
-- Useful for quick validation before knowledge surfacing operations
-- Skips all other categories
-
-**`--focus planning`:**
-- Runs only Planning Consistency checks (PLAN-01 through PLAN-03)
-- Implies full-tier scope for that category (planning checks are normally full-tier only)
-- Useful for validating planning artifacts before phase execution
-
-**Flag precedence:**
-- `--focus` takes priority over `--full`
-- `--focus kb --full` is the same as `--focus kb` (focus overrides full)
-- `--focus` and `--fix` are compatible (repairs run within the focused category)
-
-## 4. Output Format
+## 2. Output Format
 
 Health check results use a hybrid categorized checklist format.
 
 ```markdown
 ## Workspace Health Report
-**Project:** {project-name} | **Version:** {gsd_reflect_version|unknown} | **Date:** {YYYY-MM-DD}
+**Project:** {project-name} | **Health:** {composite} | **Date:** {YYYY-MM-DD}
 
-### KB Integrity [{PASS|WARNING|FAIL}]
-- [x] Index exists and is parseable ({N} entries)
-- [x] Signal count matches: {N} indexed, {N} on disk
-- [x] Spike count matches: {N} indexed, {N} on disk
-- [x] Lesson count matches: {N} indexed, {N} on disk
-- [x] No frontmatter parse errors in sampled files
+Standing caveat: "Health checks measure known categories. Absence of findings does not mean absence of problems."
 
-### Config Validity [{PASS|WARNING|FAIL}]
-- [x] config.json exists and is valid JSON
-- [x] Required fields present (mode, depth)
-- [x] Field values valid (mode={value}, depth={value})
-- [ ] Missing gsd_reflect_version (use --fix to set)
-- [ ] Missing health_check section (use --fix to add defaults)
-
-### Stale Artifacts [{PASS|WARNING|FAIL}]
-- [x] No orphaned .continue-here files
-- [ ] 1 abandoned debug session
-  - .planning/debug/auth-loop.md (no resolution, 21 days old)
-- [x] No incomplete spikes
+### {Category} [{PASS|WARNING|FAIL}]
+- [x] Passed check description (detail)
+- [ ] Failed check description (remediation hint)
 
 ### Summary
-**{N} checks passed** | **{M} warnings** | **{K} failures**
+Infrastructure: {HEALTHY|DEGRADED|UNHEALTHY} | Workflow: {LOW|MED|HIGH|UNMEASURED}
+Composite: {GREEN|YELLOW|RED}
+{N} checks passed | {M} warnings | {K} failures
 ```
 
 **Category status rules:**
@@ -366,7 +68,7 @@ Health check results use a hybrid categorized checklist format.
 
 **Final summary line:** Aggregated counts across all categories. If warnings or failures exist, append: `Run /gsd:health-check --fix to auto-repair.`
 
-## 5. Repair Rules
+## 3. Repair Rules
 
 The `--fix` flag enables repair mode for repairable issues.
 
@@ -417,7 +119,7 @@ These are reported but not auto-fixed. User action required.
 | Missing phase directories (PLAN-01) | May indicate ROADMAP.md is stale | Review ROADMAP.md alignment |
 | Missing SUMMARY.md files (PLAN-02) | Plan may not have been executed yet | Execute the plan or mark as skipped |
 
-## 6. Signal Integration
+## 4. Signal Integration
 
 Health check findings can be persisted as signals to enable the reflection engine to detect recurring workspace issues.
 
@@ -460,7 +162,7 @@ Repair applied: {yes|no}
 - YOLO mode: auto-persist signal if findings exist
 - Interactive mode: ask user if they want to persist the signal
 
-## 7. Configuration
+## 5. Configuration
 
 Health check behavior is controlled by these `config.json` fields:
 
@@ -469,23 +171,23 @@ Health check behavior is controlled by these `config.json` fields:
   "health_check": {
     "frequency": "milestone-only",
     "stale_threshold_days": 7,
-    "blocking_checks": false
+    "blocking_checks": false,
+    "workflow_thresholds": {"low": 2.0, "high": 5.0},
+    "resolution_ratio_threshold": 5.0,
+    "reactive_threshold": "RED",
+    "cache_staleness_hours": 24
   }
 }
 ```
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `health_check.frequency` | enum | `milestone-only` | When health check runs automatically: `milestone-only` (at milestone boundaries), `on-resume` (when resuming a project), `every-phase` (before each phase), `explicit-only` (only when user runs command) |
-| `health_check.stale_threshold_days` | number | `7` | Days before an artifact is considered stale. Overridden by `--stale-days` flag. |
-| `health_check.blocking_checks` | boolean | `false` | If true, FAIL results block further operations until resolved. If false, FAILs are reported as warnings and execution continues. |
+See `feature-manifest.json` for full schema definitions and defaults.
 
 **Frequency behavior:**
 
 | Frequency | When It Runs | Typical Use |
 |-----------|-------------|-------------|
 | `milestone-only` | At milestone completion boundaries | Default -- minimal overhead |
-| `on-resume` | When resuming after a break (detected via session timestamp gap) | For users who want assurance after time away |
+| `on-resume` | When resuming after a break | For users who want assurance after time away |
 | `every-phase` | Before `/gsd:execute-phase` starts | For users who want continuous validation |
 | `explicit-only` | Only when user runs `/gsd:health-check` | For minimal-overhead preference |
 
@@ -493,6 +195,6 @@ Health check behavior is controlled by these `config.json` fields:
 
 ---
 
-*Reference version: 1.0.0*
-*Created: 2026-02-09*
-*Phase: 06-production-readiness*
+*Reference version: 2.0.0*
+*Updated: 2026-03-06*
+*Phase: 41-health-score-automation*

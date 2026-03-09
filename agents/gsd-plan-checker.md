@@ -293,6 +293,181 @@ issue:
 
 </verification_dimensions>
 
+<advisory_semantic_dimensions>
+
+## Advisory Severity Policy (PLAN-05)
+
+Dimensions 8-11 are **semantic validation** dimensions. Unlike structural Dimensions 1-7, all semantic findings use `severity: advisory` -- never blocker or warning.
+
+**Why advisory-only:** Plans describe *future state*. A plan that creates directory `src/new-module/` in Task 1 and references `src/new-module/index.ts` in Task 2 would incorrectly fail strict directory validation at plan-check time. Similarly, a plan may reference a gsd-tools subcommand that will be added in the same milestone, or a signal ID that has not yet been collected. Advisory findings surface information for human review without blocking execution.
+
+**When semantic findings matter:** Advisory findings become actionable when they indicate a likely typo, stale reference, or misunderstanding -- not when they reflect temporal ordering within the plan. The executor and verifier provide stronger guarantees at their respective stages.
+
+## Finding ID Schema
+
+All semantic findings use typed IDs with format `[TYPE]-[NNN]`:
+
+| Type | Dimension | Example |
+|------|-----------|---------|
+| TOOL | 8 (Tool Subcommand) | TOOL-001 |
+| CFG  | 9 (Config Key) | CFG-001 |
+| DIR  | 10 (Directory Existence) | DIR-001 |
+| SIG  | 11 (Signal Reference) | SIG-001 |
+
+Sequential numbering per dimension per plan-check run (TOOL-001, TOOL-002, etc.). These typed IDs enable future correlation with execution signals -- if a TOOL-001 advisory is ignored and execution fails on the same command, the signal can reference the original finding.
+
+## Finding Output Format
+
+All semantic dimension findings use this structure:
+
+```yaml
+issue:
+  dimension: "[dimension_name]"
+  severity: advisory
+  finding_id: "[TYPE]-[NNN]"
+  description: "..."
+  plan: "[plan-id]"
+  task: [N]
+  resolution_hint: "..."
+```
+
+## Dimension 8: Tool Subcommand Validation
+
+**Question:** Do plan actions reference valid gsd-tools.js subcommands?
+
+**Severity:** advisory
+
+**Process:**
+1. Scan all `<action>` blocks for patterns matching `gsd-tools.js <command> [<subcommand>]` or `node .*/gsd-tools.js <command> [<subcommand>]`
+2. Check `<command>` against the top-level command allowlist
+3. If command has subcommands, check `<subcommand>` against the subcommand allowlist
+4. Report unmatched commands/subcommands as advisory findings with TOOL-NNN IDs
+
+**Tool Command Allowlist** (verified from gsd-tools.js source 2026-03-06):
+
+```
+Top-level commands:
+  state, resolve-model, find-phase, commit, verify-summary, template,
+  frontmatter, verify, generate-slug, current-timestamp, list-todos,
+  verify-path-exists, config-ensure-section, config-set, history-digest,
+  phases, roadmap, phase, milestone, validate, progress, todo, scaffold,
+  init, phase-plan-index, state-snapshot, summary-extract, websearch,
+  manifest, backlog, automation, sensors, health-probe
+
+Subcommand trees:
+  frontmatter: get, set, merge, validate
+  verify: plan-structure, phase-completeness, references, commits, artifacts, key-links
+  automation: resolve-level, track-event, lock, unlock, check-lock, regime-change, reflection-counter
+  sensors: list, blind-spots
+  health-probe: signal-metrics, signal-density, automation-watchdog
+  init: execute-phase, plan-phase, new-project, new-milestone, quick, resume, verify-work, phase-op, todos, milestone-op, map-codebase, progress
+  template: (accepts template name arg)
+  roadmap: get-phase
+  manifest: selftest, describe
+```
+
+**Maintenance note:** This allowlist must be updated when gsd-tools.js adds new subcommands. When you encounter an unrecognized top-level command, issue a TOOL finding -- do not silently ignore.
+
+**Example finding:**
+```yaml
+issue:
+  dimension: tool_subcommand
+  severity: advisory
+  finding_id: "TOOL-001"
+  description: "Plan references 'frontmatter extract' -- valid subcommands are: get, set, merge, validate"
+  plan: "43-01"
+  task: 1
+  resolution_hint: "Did you mean 'frontmatter get'?"
+```
+
+## Dimension 9: Config Key Validation
+
+**Question:** Do plan actions reference valid config keys from feature-manifest.json?
+
+**Severity:** advisory
+
+**Process:**
+1. Read `get-shit-done/feature-manifest.json` (or `~/.claude/get-shit-done/feature-manifest.json` at runtime)
+2. Build valid key set by walking schema: for each feature, `config_key + "." + schema_field`; for nested objects, `config_key + "." + field + "." + nested_field`
+3. Scan `<action>` blocks for config key references: after `config-set` commands, dotted paths near "config", "config.json", "feature-manifest" context
+4. Validate extracted keys against valid set
+5. Advisory finding for unrecognized keys with CFG-NNN IDs
+
+**Extraction guidance:** Narrow extraction to context where config is being discussed to avoid false positives on version numbers (e.g., "v1.17.0"), file paths (e.g., "path.to.file.ts"), or code references (e.g., "object.property"). Look for dotted paths that appear:
+- After `config-set` or `config-ensure-section` commands
+- In proximity to words like "config", "config.json", "feature-manifest", "schema"
+- As YAML keys under config-related frontmatter fields
+
+**Example finding:**
+```yaml
+issue:
+  dimension: config_key
+  severity: advisory
+  finding_id: "CFG-001"
+  description: "Plan references config key 'spike_sensitivity' -- manifest uses nested path 'spike.sensitivity'"
+  plan: "35-02"
+  task: 1
+  resolution_hint: "Use 'spike.sensitivity' (nested under spike config_key) not 'spike_sensitivity' (flat key)"
+```
+
+## Dimension 10: Directory Existence Validation
+
+**Question:** Do `files_modified` paths in plan frontmatter have valid parent directories?
+
+**Severity:** advisory
+
+**Process:**
+1. Parse `files_modified` from plan frontmatter
+2. For each path, extract parent directory
+3. Build a "will exist" set from task `<files>` and `<action>` blocks (directories explicitly created via mkdir -p or listed as directory creates)
+4. Also build a "dependency creates" set: if plan depends on earlier plans, include directories those plans create (from their `files_modified`)
+5. Check: does the parent directory exist on disk OR appear in the "will exist" set OR appear in the "dependency creates" set?
+6. Advisory finding for missing directories with DIR-NNN IDs
+
+**Temporal awareness is critical:** A plan that creates `src/new-feature/` in Task 1 and references `src/new-feature/component.ts` in Task 2 should NOT produce a finding for the parent directory. Build the "will exist" set by scanning tasks in order -- if Task 1 creates a directory, Task 2's references to files within that directory are valid.
+
+**When checking disk:** Use simple path existence check (`test -d` or `ls`), not recursive search. Only check parent directories, not the files themselves (files are expected to not exist yet -- they are being created by the plan).
+
+**Example finding:**
+```yaml
+issue:
+  dimension: directory_existence
+  severity: advisory
+  finding_id: "DIR-001"
+  description: "files_modified includes 'src/new-module/index.ts' but parent 'src/new-module/' does not exist on disk and is not created by any task in this plan or its dependencies"
+  plan: "43-02"
+  task: 2
+  resolution_hint: "Add directory creation to an earlier task or verify the path is correct"
+```
+
+## Dimension 11: Signal Reference Validation
+
+**Question:** Do `resolves_signals` IDs in plan frontmatter exist in the KB signal index?
+
+**Severity:** advisory
+
+**Process:**
+1. Parse `resolves_signals` from plan frontmatter (YAML list of signal IDs)
+2. Read `.planning/knowledge/index.md` (project-local primary, `~/.gsd/knowledge/index.md` fallback per Phase 38.1 convention)
+3. Extract all signal IDs from the index (both `sig-*` and legacy `SIG-*` format)
+4. For each `resolves_signals` ID, check if it appears in the index
+5. Advisory finding for unmatched IDs with SIG-NNN IDs -- signal may not yet have been collected
+
+**Note:** Signals may be collected after plan creation. An unmatched ID is an advisory note, not a definitive error. The signal collection workflow runs after phase execution, so a plan created before signal collection may reference IDs that will exist by execution time.
+
+**Example finding:**
+```yaml
+issue:
+  dimension: signal_reference
+  severity: advisory
+  finding_id: "SIG-001"
+  description: "resolves_signals includes 'sig-2026-03-10-missing-signal' which is not found in KB index"
+  plan: "43-01"
+  resolution_hint: "Verify signal ID exists in .planning/knowledge/index.md -- signal may not yet be collected"
+```
+
+</advisory_semantic_dimensions>
+
 <verification_process>
 
 ## Step 1: Load Context
@@ -427,6 +602,17 @@ grep "files_modified:" "$PHASE_DIR"/$PHASE-01-PLAN.md
 
 Thresholds: 2-3 tasks/plan good, 4 warning, 5+ blocker (split required).
 
+## Step 8.5: Semantic Validation
+
+Run advisory semantic Dimensions 8-11 against all plans:
+
+1. **Dimension 8 (Tool Subcommand):** Scan `<action>` blocks for gsd-tools.js command references, validate against embedded allowlist
+2. **Dimension 9 (Config Key):** Scan `<action>` blocks for config key references, validate against feature-manifest.json schema
+3. **Dimension 10 (Directory Existence):** Parse `files_modified` paths, check parent directory existence with temporal awareness
+4. **Dimension 11 (Signal Reference):** Parse `resolves_signals` IDs, check against KB signal index
+
+Collect all advisory findings with typed IDs (TOOL-NNN, CFG-NNN, DIR-NNN, SIG-NNN). These are reported in the output but do NOT affect the passed/issues_found determination (see Step 10).
+
 ## Step 9: Verify must_haves Derivation
 
 **Truths:** user-observable (not "bcrypt installed" but "passwords are secure"), testable, specific.
@@ -442,6 +628,8 @@ Thresholds: 2-3 tasks/plan good, 4 warning, 5+ blocker (split required).
 **issues_found:** One or more blockers or warnings. Plans need revision.
 
 Severities: `blocker` (must fix), `warning` (should fix), `info` (suggestions).
+
+**Advisory findings from semantic validation (Dimensions 8-11) are reported in the output but do NOT affect the passed/issues_found determination.** Only blocker and warning severity issues from Dimensions 1-7 determine status. Advisory findings are informational -- they surface potential issues for human review without blocking plan execution.
 
 </verification_process>
 
@@ -615,6 +803,7 @@ Plan verification complete when:
   - [ ] Locked decisions have implementing tasks
   - [ ] No tasks contradict locked decisions
   - [ ] Deferred ideas not included in plans
+- [ ] Semantic validation dimensions checked (Dimensions 8-11, advisory only)
 - [ ] Overall status determined (passed | issues_found)
 - [ ] Structured issues returned (if any found)
 - [ ] Result returned to orchestrator

@@ -426,6 +426,16 @@ function buildHookCommand(configDir, hookName) {
 }
 
 /**
+ * Build a worktree-safe hook command for local/project installs.
+ * Wraps with shell existence guard so hooks exit 0 silently when .claude/ is absent
+ * (e.g., in git worktrees where .claude/ is gitignored and not present).
+ */
+function buildLocalHookCommand(dirName, hookName) {
+  const hookPath = dirName + '/hooks/' + hookName;
+  return 'test -f ' + hookPath + ' && node ' + hookPath + ' || true';
+}
+
+/**
  * Read and parse settings.json, returning empty object if it doesn't exist
  */
 function readSettings(settingsPath) {
@@ -1349,6 +1359,7 @@ function cleanupOrphanedFiles(configDir) {
     'hooks/gsd-check-update.js',   // Renamed to gsdr-check-update.js
     'hooks/gsd-version-check.js',  // Renamed to gsdr-version-check.js
     'hooks/gsd-ci-status.js',      // Renamed to gsdr-ci-status.js
+    'hooks/gsd-health-check.js',   // Renamed to gsdr-health-check.js
   ];
 
   for (const relPath of orphanedFiles) {
@@ -1374,6 +1385,7 @@ function cleanupOrphanedHooks(settings) {
     'gsd-check-update.js',     // Renamed to gsdr-check-update.js
     'gsd-version-check.js',    // Renamed to gsdr-version-check.js
     'gsd-ci-status.js',        // Renamed to gsdr-ci-status.js
+    'gsd-health-check.js',     // Renamed to gsdr-health-check.js
   ];
 
   let cleanedHooks = false;
@@ -1458,78 +1470,92 @@ function uninstall(isGlobal, runtime = 'claude') {
 
   let removedCount = 0;
 
-  // 1. Remove GSD commands directory
+  // Co-installation safety: only touch gsd namespace if it's a legacy Reflect install
+  const cleanLegacy = isLegacyReflectInstall(targetDir);
+
+  // 1. Remove GSDR commands (and legacy gsd commands only if from Reflect)
   if (isCodex) {
-    // Codex: remove skill directories (gsdr-*/SKILL.md, also gsd-* for upgrade path)
     const skillsDir = path.join(targetDir, 'skills');
     if (fs.existsSync(skillsDir)) {
       for (const entry of fs.readdirSync(skillsDir, { withFileTypes: true })) {
-        if (entry.isDirectory() && (entry.name.startsWith('gsdr-') || entry.name.startsWith('gsd-'))) {
+        if (entry.isDirectory() && entry.name.startsWith('gsdr-')) {
+          fs.rmSync(path.join(skillsDir, entry.name), { recursive: true });
+          removedCount++;
+        } else if (cleanLegacy && entry.isDirectory() && entry.name.startsWith('gsd-')) {
           fs.rmSync(path.join(skillsDir, entry.name), { recursive: true });
           removedCount++;
         }
       }
       if (removedCount > 0) {
-        console.log(`  ${green}✓${reset} Removed GSD skills`);
+        console.log(`  ${green}✓${reset} Removed GSDR skills`);
       }
     }
   } else if (isOpencode) {
-    // OpenCode: remove command/gsdr-*.md files (also gsd-* for upgrade path)
     const commandDir = path.join(targetDir, 'command');
     if (fs.existsSync(commandDir)) {
       const files = fs.readdirSync(commandDir);
       for (const file of files) {
-        if ((file.startsWith('gsdr-') || file.startsWith('gsd-')) && file.endsWith('.md')) {
+        if (file.startsWith('gsdr-') && file.endsWith('.md')) {
+          fs.unlinkSync(path.join(commandDir, file));
+          removedCount++;
+        } else if (cleanLegacy && file.startsWith('gsd-') && file.endsWith('.md')) {
           fs.unlinkSync(path.join(commandDir, file));
           removedCount++;
         }
       }
-      console.log(`  ${green}✓${reset} Removed GSD commands from command/`);
+      console.log(`  ${green}✓${reset} Removed GSDR commands from command/`);
     }
   } else {
-    // Claude Code & Gemini: remove commands/gsdr/ directory (also commands/gsd/ for upgrade path)
+    // Claude Code & Gemini: remove commands/gsdr/ (and commands/gsd/ only if legacy Reflect)
     const gsdrCommandsDir = path.join(targetDir, 'commands', 'gsdr');
     if (fs.existsSync(gsdrCommandsDir)) {
       fs.rmSync(gsdrCommandsDir, { recursive: true });
       removedCount++;
       console.log(`  ${green}✓${reset} Removed commands/gsdr/`);
     }
-    const gsdCommandsDir = path.join(targetDir, 'commands', 'gsd');
-    if (fs.existsSync(gsdCommandsDir)) {
-      fs.rmSync(gsdCommandsDir, { recursive: true });
-      removedCount++;
-      console.log(`  ${green}✓${reset} Removed commands/gsd/ (upgrade cleanup)`);
+    if (cleanLegacy) {
+      const gsdCommandsDir = path.join(targetDir, 'commands', 'gsd');
+      if (fs.existsSync(gsdCommandsDir)) {
+        fs.rmSync(gsdCommandsDir, { recursive: true });
+        removedCount++;
+        console.log(`  ${green}✓${reset} Removed commands/gsd/ (legacy Reflect cleanup)`);
+      }
     }
   }
 
-  // 2. Remove get-shit-done-reflect directory (also get-shit-done for upgrade path)
+  // 2. Remove get-shit-done-reflect/ (and get-shit-done/ only if legacy Reflect)
   const gsdrDir = path.join(targetDir, 'get-shit-done-reflect');
   if (fs.existsSync(gsdrDir)) {
     fs.rmSync(gsdrDir, { recursive: true });
     removedCount++;
     console.log(`  ${green}✓${reset} Removed get-shit-done-reflect/`);
   }
-  const gsdDir = path.join(targetDir, 'get-shit-done');
-  if (fs.existsSync(gsdDir)) {
-    fs.rmSync(gsdDir, { recursive: true });
-    removedCount++;
-    console.log(`  ${green}✓${reset} Removed get-shit-done/ (upgrade cleanup)`);
+  if (cleanLegacy) {
+    const gsdDir = path.join(targetDir, 'get-shit-done');
+    if (fs.existsSync(gsdDir)) {
+      fs.rmSync(gsdDir, { recursive: true });
+      removedCount++;
+      console.log(`  ${green}✓${reset} Removed get-shit-done/ (legacy Reflect cleanup)`);
+    }
   }
 
-  // 3. Remove GSD agents (gsdr-*.md and gsd-*.md files) -- skip for Codex
+  // 3. Remove GSDR agents (and gsd-*.md only if legacy Reflect) -- skip for Codex
   const agentsDir = path.join(targetDir, 'agents');
   if (fs.existsSync(agentsDir) && !isCodex) {
     const files = fs.readdirSync(agentsDir);
     let agentCount = 0;
     for (const file of files) {
-      if ((file.startsWith('gsdr-') || file.startsWith('gsd-')) && file.endsWith('.md')) {
+      if (file.startsWith('gsdr-') && file.endsWith('.md')) {
+        fs.unlinkSync(path.join(agentsDir, file));
+        agentCount++;
+      } else if (cleanLegacy && file.startsWith('gsd-') && file.endsWith('.md')) {
         fs.unlinkSync(path.join(agentsDir, file));
         agentCount++;
       }
     }
     if (agentCount > 0) {
       removedCount++;
-      console.log(`  ${green}✓${reset} Removed ${agentCount} GSD agents`);
+      console.log(`  ${green}✓${reset} Removed ${agentCount} GSDR agents`);
     }
   }
 
@@ -1584,8 +1610,8 @@ function uninstall(isGlobal, runtime = 'claude') {
     const hooksDir = path.join(targetDir, 'hooks');
     if (fs.existsSync(hooksDir)) {
       const gsdHooks = [
-        'gsdr-statusline.js', 'gsdr-check-update.js', 'gsdr-version-check.js', 'gsdr-ci-status.js',
-        'gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js', 'gsd-ci-status.js'
+        'gsdr-statusline.js', 'gsdr-check-update.js', 'gsdr-version-check.js', 'gsdr-ci-status.js', 'gsdr-health-check.js',
+        'gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js', 'gsd-ci-status.js', 'gsd-health-check.js'
       ];
       let hookCount = 0;
       for (const hook of gsdHooks) {
@@ -1624,8 +1650,8 @@ function uninstall(isGlobal, runtime = 'claude') {
           // Filter out GSD hooks
           const hasGsdHook = entry.hooks.some(h =>
             h.command && (
-              h.command.includes('gsdr-check-update') || h.command.includes('gsdr-statusline') || h.command.includes('gsdr-version-check') || h.command.includes('gsdr-ci-status') ||
-              h.command.includes('gsd-check-update') || h.command.includes('gsd-statusline') || h.command.includes('gsd-version-check') || h.command.includes('gsd-ci-status')
+              h.command.includes('gsdr-check-update') || h.command.includes('gsdr-statusline') || h.command.includes('gsdr-version-check') || h.command.includes('gsdr-ci-status') || h.command.includes('gsdr-health-check') ||
+              h.command.includes('gsd-check-update') || h.command.includes('gsd-statusline') || h.command.includes('gsd-version-check') || h.command.includes('gsd-ci-status') || h.command.includes('gsd-health-check')
             )
           );
           return !hasGsdHook;
@@ -1879,6 +1905,25 @@ const PATCHES_DIR_NAME = 'gsd-local-patches';
 const MANIFEST_NAME = 'gsd-file-manifest.json';
 
 /**
+ * Detect whether the gsd namespace in a config directory belongs to a pre-Phase-44
+ * GSD Reflect installation (safe to clean up) vs upstream GSD (must not touch).
+ *
+ * Detection: gsd-file-manifest.json is Reflect-only. If it exists and contains
+ * get-shit-done/ paths, this is a pre-Phase-44 Reflect install.
+ */
+function isLegacyReflectInstall(configDir) {
+  const manifestPath = path.join(configDir, MANIFEST_NAME);
+  if (!fs.existsSync(manifestPath)) return false;
+  try {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    // Pre-Phase-44 manifests have get-shit-done/ paths (not get-shit-done-reflect/)
+    return Object.keys(manifest.files || {}).some(f => f.startsWith('get-shit-done/'));
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Compute SHA256 hash of file contents
  */
 function fileHash(filePath) {
@@ -2093,6 +2138,9 @@ function install(isGlobal, runtime = 'claude') {
   if (isGemini) runtimeLabel = 'Gemini';
   if (isCodex) runtimeLabel = 'Codex CLI';
 
+  // Cache legacy detection once — reads and parses gsd-file-manifest.json
+  const cleanLegacy = isLegacyReflectInstall(targetDir);
+
   console.log(`  Installing for ${cyan}${runtimeLabel}${reset} to ${cyan}${locationLabel}${reset}\n`);
 
   // Cross-scope detection: warn if the other scope already has GSD installed
@@ -2201,10 +2249,12 @@ function install(isGlobal, runtime = 'claude') {
     const agentsDest = path.join(targetDir, 'agents');
     safeFs('mkdirSync', () => fs.mkdirSync(agentsDest, { recursive: true }), agentsDest);
 
-    // Remove old GSD agents (gsd-*.md for upgrade path, gsdr-*.md for reinstall)
+    // Remove gsdr-*.md agents (our namespace). Only remove gsd-*.md if legacy Reflect install.
     if (fs.existsSync(agentsDest)) {
       for (const file of fs.readdirSync(agentsDest)) {
-        if ((file.startsWith('gsd-') || file.startsWith('gsdr-')) && file.endsWith('.md')) {
+        if (file.startsWith('gsdr-') && file.endsWith('.md')) {
+          fs.unlinkSync(path.join(agentsDest, file));
+        } else if (cleanLegacy && file.startsWith('gsd-') && file.endsWith('.md')) {
           fs.unlinkSync(path.join(agentsDest, file));
         }
       }
@@ -2306,16 +2356,19 @@ function install(isGlobal, runtime = 'claude') {
     process.exit(1);
   }
 
-  // Upgrade cleanup: remove old gsd-namespaced directories from pre-Phase-44 installs
-  const oldGsdDir = path.join(targetDir, 'get-shit-done');
-  if (fs.existsSync(oldGsdDir)) {
-    fs.rmSync(oldGsdDir, { recursive: true });
-    console.log(`  ${green}✓${reset} Removed old get-shit-done/ (upgrade cleanup)`);
-  }
-  const oldCommandsDir = path.join(targetDir, 'commands', 'gsd');
-  if (fs.existsSync(oldCommandsDir)) {
-    fs.rmSync(oldCommandsDir, { recursive: true });
-    console.log(`  ${green}✓${reset} Removed old commands/gsd/ (upgrade cleanup)`);
+  // Upgrade cleanup: only remove old gsd namespace if it's a pre-Phase-44 Reflect install.
+  // Never remove upstream GSD's namespace — co-installation must be preserved.
+  if (cleanLegacy) {
+    const oldGsdDir = path.join(targetDir, 'get-shit-done');
+    if (fs.existsSync(oldGsdDir)) {
+      fs.rmSync(oldGsdDir, { recursive: true });
+      console.log(`  ${green}✓${reset} Removed old get-shit-done/ (legacy Reflect upgrade)`);
+    }
+    const oldCommandsDir = path.join(targetDir, 'commands', 'gsd');
+    if (fs.existsSync(oldCommandsDir)) {
+      fs.rmSync(oldCommandsDir, { recursive: true });
+      console.log(`  ${green}✓${reset} Removed old commands/gsd/ (legacy Reflect upgrade)`);
+    }
   }
 
   // Codex: no settings.json, hooks, or statusline -- write manifest and return
@@ -2333,16 +2386,19 @@ function install(isGlobal, runtime = 'claude') {
   const settings = cleanupOrphanedHooks(readSettings(settingsPath));
   const statuslineCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-statusline.js')
-    : 'node ' + dirName + '/hooks/gsdr-statusline.js';
+    : buildLocalHookCommand(dirName, 'gsdr-statusline.js');
   const updateCheckCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-check-update.js')
-    : 'node ' + dirName + '/hooks/gsdr-check-update.js';
+    : buildLocalHookCommand(dirName, 'gsdr-check-update.js');
   const versionCheckCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-version-check.js')
-    : 'node ' + dirName + '/hooks/gsdr-version-check.js';
+    : buildLocalHookCommand(dirName, 'gsdr-version-check.js');
   const ciStatusCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-ci-status.js')
-    : 'node ' + dirName + '/hooks/gsdr-ci-status.js';
+    : buildLocalHookCommand(dirName, 'gsdr-ci-status.js');
+  const healthCheckCommand = isGlobal
+    ? buildHookCommand(targetDir, 'gsdr-health-check.js')
+    : buildLocalHookCommand(dirName, 'gsdr-health-check.js');
 
   // Enable experimental agents for Gemini CLI (required for custom sub-agents)
   if (isGemini) {
@@ -2364,53 +2420,32 @@ function install(isGlobal, runtime = 'claude') {
       settings.hooks.SessionStart = [];
     }
 
-    const hasGsdUpdateHook = settings.hooks.SessionStart.some(entry =>
-      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-check-update'))
-    );
+    // Helper: add hook if missing, or upgrade unguarded command to guarded version
+    function ensureHook(hookSubstring, newCommand, label) {
+      const existingEntry = settings.hooks.SessionStart.find(entry =>
+        entry.hooks && entry.hooks.some(h => h.command && h.command.includes(hookSubstring))
+      );
 
-    if (!hasGsdUpdateHook) {
-      settings.hooks.SessionStart.push({
-        hooks: [
-          {
-            type: 'command',
-            command: updateCheckCommand
-          }
-        ]
-      });
-      console.log(`  ${green}✓${reset} Configured update check hook`);
+      if (!existingEntry) {
+        // Hook not present -- add it
+        settings.hooks.SessionStart.push({
+          hooks: [{ type: 'command', command: newCommand }]
+        });
+        console.log(`  ${green}✓${reset} Configured ${label} hook`);
+      } else if (!isGlobal) {
+        // Hook exists -- upgrade to guarded command if not already guarded
+        const hook = existingEntry.hooks.find(h => h.command && h.command.includes(hookSubstring));
+        if (hook && !hook.command.includes('test -f')) {
+          hook.command = newCommand;
+          console.log(`  ${green}✓${reset} Upgraded ${label} hook (worktree-safe guard)`);
+        }
+      }
     }
 
-    const hasGsdVersionHook = settings.hooks.SessionStart.some(entry =>
-      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-version-check'))
-    );
-
-    if (!hasGsdVersionHook) {
-      settings.hooks.SessionStart.push({
-        hooks: [
-          {
-            type: 'command',
-            command: versionCheckCommand
-          }
-        ]
-      });
-      console.log(`  ${green}✓${reset} Configured version check hook`);
-    }
-
-    const hasGsdCiHook = settings.hooks.SessionStart.some(entry =>
-      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-ci-status'))
-    );
-
-    if (!hasGsdCiHook) {
-      settings.hooks.SessionStart.push({
-        hooks: [
-          {
-            type: 'command',
-            command: ciStatusCommand
-          }
-        ]
-      });
-      console.log(`  ${green}✓${reset} Configured CI status hook`);
-    }
+    ensureHook('gsdr-check-update', updateCheckCommand, 'update check');
+    ensureHook('gsdr-version-check', versionCheckCommand, 'version check');
+    ensureHook('gsdr-ci-status', ciStatusCommand, 'CI status');
+    ensureHook('gsdr-health-check', healthCheckCommand, 'health check');
   }
 
   // Write file manifest for future modification detection
@@ -2438,6 +2473,13 @@ function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallS
       command: statuslineCommand
     };
     console.log(`  ${green}✓${reset} Configured statusline`);
+  } else if (!isOpencode && settings.statusLine && settings.statusLine.command &&
+             settings.statusLine.command.includes('statusline') &&
+             !settings.statusLine.command.includes('test -f') &&
+             statuslineCommand && statuslineCommand.includes('test -f')) {
+    // Upgrade existing statusline to worktree-safe guarded command
+    settings.statusLine.command = statuslineCommand;
+    console.log(`  ${green}✓${reset} Upgraded statusline (worktree-safe guard)`);
   }
 
   // Always write settings
@@ -2703,4 +2745,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand };

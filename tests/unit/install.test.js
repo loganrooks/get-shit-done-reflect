@@ -615,13 +615,11 @@ describe('install script', () => {
           timeout: 15000
         })
 
-        // Read health-check.md which has $HOME/.claude/get-shit-done/ (runtime-specific)
-        const healthCheck = path.join(configHome, 'opencode', 'get-shit-done-reflect', 'references', 'health-check.md')
-        const content = await fs.readFile(healthCheck, 'utf8')
+        // Read kb-integrity.md probe which has $HOME/.gsd/knowledge (shared KB path)
+        const kbProbe = path.join(configHome, 'opencode', 'get-shit-done-reflect', 'references', 'health-probes', 'kb-integrity.md')
+        const content = await fs.readFile(kbProbe, 'utf8')
 
-        // $HOME/.claude/get-shit-done should be transformed to runtime path
-        expect(content).not.toContain('$HOME/.claude/get-shit-done')
-        // KB paths already at shared location should pass through
+        // KB paths already at shared location should pass through unchanged
         expect(content).toContain('$HOME/.gsd/knowledge')
       })
 
@@ -1650,6 +1648,10 @@ Also use the Read tool to read files and Bash to run commands.`
       fsSync.writeFileSync(path.join(oldGsdDir, 'VERSION'), '1.16.0')
       fsSync.writeFileSync(path.join(oldCmdDir, 'help.md'), '# old')
       fsSync.writeFileSync(path.join(oldAgentsDir, 'gsd-executor.md'), '# old')
+      // Legacy Reflect installs have a manifest with get-shit-done/ paths
+      fsSync.writeFileSync(path.join(claudeDir, 'gsd-file-manifest.json'), JSON.stringify({
+        version: '1.15.0', files: { 'get-shit-done/VERSION': 'abc123' }
+      }))
 
       // Run upgrade install
       execSync(`node "${installScript}" --claude --global`, {
@@ -1685,6 +1687,47 @@ Also use the Read tool to read files and Bash to run commands.`
       expect(fsSync.existsSync(path.join(claudeDir, 'get-shit-done-reflect', 'VERSION'))).toBe(true)
       expect(fsSync.existsSync(path.join(claudeDir, 'get-shit-done'))).toBe(false)
       expect(fsSync.existsSync(path.join(claudeDir, 'commands', 'gsd'))).toBe(false)
+    })
+
+    tmpdirTest('co-installation preserves upstream GSD namespace', async ({ tmpdir }) => {
+      // Simulate upstream GSD already installed (no gsd-file-manifest.json)
+      const claudeDir = path.join(tmpdir, '.claude')
+      const upstreamGsdDir = path.join(claudeDir, 'get-shit-done')
+      const upstreamCmdDir = path.join(claudeDir, 'commands', 'gsd')
+      const agentsDir = path.join(claudeDir, 'agents')
+
+      fsSync.mkdirSync(upstreamGsdDir, { recursive: true })
+      fsSync.mkdirSync(upstreamCmdDir, { recursive: true })
+      fsSync.mkdirSync(agentsDir, { recursive: true })
+      fsSync.writeFileSync(path.join(upstreamGsdDir, 'VERSION'), '2.0.0')
+      fsSync.writeFileSync(path.join(upstreamCmdDir, 'help.md'), '# upstream GSD help')
+      fsSync.writeFileSync(path.join(agentsDir, 'gsd-executor.md'), '# upstream agent')
+
+      // Install GSD Reflect alongside upstream GSD
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      // GSDR namespace installed
+      expect(fsSync.existsSync(path.join(claudeDir, 'get-shit-done-reflect', 'VERSION'))).toBe(true)
+      expect(fsSync.existsSync(path.join(claudeDir, 'commands', 'gsdr'))).toBe(true)
+
+      // Upstream GSD namespace preserved (not deleted)
+      expect(fsSync.existsSync(upstreamGsdDir)).toBe(true)
+      expect(fsSync.readFileSync(path.join(upstreamGsdDir, 'VERSION'), 'utf8')).toBe('2.0.0')
+      expect(fsSync.existsSync(upstreamCmdDir)).toBe(true)
+      expect(fsSync.readFileSync(path.join(upstreamCmdDir, 'help.md'), 'utf8')).toBe('# upstream GSD help')
+
+      // Upstream agents preserved
+      expect(fsSync.existsSync(path.join(agentsDir, 'gsd-executor.md'))).toBe(true)
+      expect(fsSync.readFileSync(path.join(agentsDir, 'gsd-executor.md'), 'utf8')).toBe('# upstream agent')
+
+      // GSDR agents also present
+      const agentFiles = fsSync.readdirSync(agentsDir)
+      expect(agentFiles.filter(f => f.startsWith('gsdr-') && f.endsWith('.md')).length).toBeGreaterThan(0)
     })
   })
 
@@ -1768,6 +1811,88 @@ Also use the Read tool to read files and Bash to run commands.`
         const staleRefs = content.match(/get-shit-done\/(?!reflect)/g)
         expect(staleRefs, `${hook} has stale get-shit-done/ refs`).toBeNull()
       }
+    })
+  })
+
+  describe('worktree-safe hook commands (buildLocalHookCommand)', () => {
+    // Import buildLocalHookCommand from install.js
+    const { buildLocalHookCommand } = require('../../bin/install.js')
+    const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+    it('returns a shell guard with test -f, &&, and || true', () => {
+      const cmd = buildLocalHookCommand('.claude', 'gsdr-statusline.js')
+      expect(cmd).toContain('test -f')
+      expect(cmd).toContain('&&')
+      expect(cmd).toContain('|| true')
+    })
+
+    it('produces correct guarded command for statusline', () => {
+      const cmd = buildLocalHookCommand('.claude', 'gsdr-statusline.js')
+      expect(cmd).toBe('test -f .claude/hooks/gsdr-statusline.js && node .claude/hooks/gsdr-statusline.js || true')
+    })
+
+    it('produces correct guarded command for all 5 hooks', () => {
+      const hooks = [
+        'gsdr-statusline.js',
+        'gsdr-check-update.js',
+        'gsdr-version-check.js',
+        'gsdr-ci-status.js',
+        'gsdr-health-check.js'
+      ]
+      for (const hookName of hooks) {
+        const cmd = buildLocalHookCommand('.claude', hookName)
+        const expectedPath = '.claude/hooks/' + hookName
+        expect(cmd).toBe(`test -f ${expectedPath} && node ${expectedPath} || true`)
+      }
+    })
+
+    it('works with different dirName values (e.g. .gemini)', () => {
+      const cmd = buildLocalHookCommand('.gemini', 'gsdr-statusline.js')
+      expect(cmd).toBe('test -f .gemini/hooks/gsdr-statusline.js && node .gemini/hooks/gsdr-statusline.js || true')
+    })
+
+    tmpdirTest('local install generates guarded hook commands in settings.json', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --local`, {
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const settingsPath = path.join(tmpdir, '.claude', 'settings.json')
+      const settingsExist = fsSync.existsSync(settingsPath)
+      expect(settingsExist).toBe(true)
+
+      const settings = JSON.parse(fsSync.readFileSync(settingsPath, 'utf8'))
+
+      // statusLine command should be guarded
+      expect(settings.statusLine.command).toContain('test -f')
+      expect(settings.statusLine.command).toContain('|| true')
+
+      // All SessionStart hook commands should be guarded
+      if (settings.hooks && settings.hooks.SessionStart) {
+        for (const entry of settings.hooks.SessionStart) {
+          for (const hook of entry.hooks) {
+            expect(hook.command, `Hook command should be guarded: ${hook.command}`).toContain('test -f')
+            expect(hook.command, `Hook command should exit 0 on missing: ${hook.command}`).toContain('|| true')
+          }
+        }
+      }
+    })
+
+    tmpdirTest('global install does NOT use shell guards (uses buildHookCommand)', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const settingsPath = path.join(tmpdir, '.claude', 'settings.json')
+      const settings = JSON.parse(fsSync.readFileSync(settingsPath, 'utf8'))
+
+      // Global commands use buildHookCommand with quoted absolute paths, no test -f guard
+      expect(settings.statusLine.command).not.toContain('test -f')
+      expect(settings.statusLine.command).toContain('node "')
     })
   })
 })

@@ -21,6 +21,27 @@
           "type": "boolean",
           "default": false,
           "description": "Whether health warnings block execution"
+        },
+        "workflow_thresholds": {
+          "type": "object",
+          "default": {"low": 2.0, "high": 5.0},
+          "description": "Weighted sum thresholds for workflow health LOW/MED/HIGH boundaries"
+        },
+        "resolution_ratio_threshold": {
+          "type": "number",
+          "default": 5.0,
+          "description": "Signal-to-resolution ratio above which a WARNING is surfaced (HEALTH-08)"
+        },
+        "reactive_threshold": {
+          "type": "string",
+          "enum": ["GREEN", "YELLOW", "RED", "disabled"],
+          "default": "RED",
+          "description": "Composite score at or above which reactive session-start trigger fires (HEALTH-06)"
+        },
+        "cache_staleness_hours": {
+          "type": "number",
+          "default": 24,
+          "description": "Hours after which cached health score is considered stale and triggers fresh check"
         }
       },
       "init_prompts": [
@@ -322,6 +343,42 @@
           "type": "object",
           "default": {},
           "description": "Per-feature automation statistics (fires, skips, timestamps). Auto-populated by track-event."
+        },
+        "reflection": {
+          "type": "object",
+          "default": {},
+          "description": "Reflection automation settings (auto-trigger after N phases)",
+          "properties": {
+            "auto_reflect": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether reflection auto-triggers after phase execution (opt-in, REFL-01)"
+            },
+            "threshold_phases": {
+              "type": "number",
+              "default": 3,
+              "min": 1,
+              "max": 20,
+              "description": "Number of phases between auto-reflections (REFL-02)"
+            },
+            "min_signals": {
+              "type": "number",
+              "default": 5,
+              "min": 1,
+              "max": 50,
+              "description": "Minimum untriaged signals required before auto-reflection triggers (REFL-03)"
+            },
+            "phases_since_last_reflect": {
+              "type": "number",
+              "default": 0,
+              "description": "Counter: phases executed since last reflection (auto-managed, do not edit manually)"
+            },
+            "last_reflect_at": {
+              "type": "string",
+              "default": null,
+              "description": "ISO timestamp of last reflection run (auto-managed)"
+            }
+          }
         }
       },
       "init_prompts": [

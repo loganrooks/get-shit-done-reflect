@@ -5437,6 +5437,535 @@ ${prior}
   output({ written: true, path: filePath, id: entryId }, raw);
 }
 
+// ─── Reflection Counter ──────────────────────────────────────────────────────
+
+function cmdAutomationReflectionCounter(cwd, action, raw) {
+  if (!action || !['increment', 'check', 'reset'].includes(action)) {
+    error('Usage: automation reflection-counter <increment|check|reset>');
+  }
+
+  const configPath = path.join(cwd, '.planning', 'config.json');
+  if (!fs.existsSync(configPath)) {
+    error('No .planning/config.json found.');
+  }
+
+  const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  if (!config.automation) config.automation = {};
+  if (!config.automation.reflection) {
+    config.automation.reflection = {
+      auto_reflect: false,
+      threshold_phases: 3,
+      min_signals: 5,
+      phases_since_last_reflect: 0,
+      last_reflect_at: null
+    };
+  }
+
+  const reflection = config.automation.reflection;
+
+  if (action === 'increment') {
+    reflection.phases_since_last_reflect =
+      (reflection.phases_since_last_reflect || 0) + 1;
+  } else if (action === 'reset') {
+    reflection.phases_since_last_reflect = 0;
+    reflection.last_reflect_at = new Date().toISOString();
+  }
+  // 'check' action reads only -- no mutations
+
+  // Atomic write (same pattern as track-event)
+  const tmpPath = configPath + '.tmp';
+  fs.writeFileSync(tmpPath, JSON.stringify(config, null, 2) + '\n');
+  fs.renameSync(tmpPath, configPath);
+
+  output({
+    action,
+    phases_since_last_reflect: reflection.phases_since_last_reflect,
+    threshold_phases: reflection.threshold_phases || 3,
+    min_signals: reflection.min_signals || 5,
+    auto_reflect: reflection.auto_reflect || false,
+    last_reflect_at: reflection.last_reflect_at
+  }, raw);
+}
+
+// ─── Health Probes ────────────────────────────────────────────────────────────
+
+/**
+ * Resolve the knowledge base directory path.
+ * Project-local (.planning/knowledge/) primary, user-global (~/.gsd/knowledge/) fallback.
+ */
+function resolveKBDir(cwd) {
+  const localKB = path.join(cwd, '.planning', 'knowledge');
+  const globalKB = path.join(require('os').homedir(), '.gsd', 'knowledge');
+  if (fs.existsSync(localKB)) return localKB;
+  if (fs.existsSync(globalKB)) return globalKB;
+  return null;
+}
+
+/**
+ * Find the latest regime_change entry in the signals directory.
+ * Returns { id, created } or null if no regime_change found.
+ */
+function findLatestRegimeChange(kbDir) {
+  const signalsDir = path.join(kbDir, 'signals');
+  if (!fs.existsSync(signalsDir)) return null;
+
+  let latestRegime = null;
+  let latestDate = null;
+
+  function scanDir(dir) {
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          scanDir(fullPath);
+        } else if (entry.name.endsWith('.md')) {
+          try {
+            const content = fs.readFileSync(fullPath, 'utf8');
+            // Check if this is a regime_change entry
+            const typeMatch = content.match(/^type:\s*regime_change/m);
+            if (!typeMatch) continue;
+            const createdMatch = content.match(/^created:\s*(.+)/m);
+            if (!createdMatch) continue;
+            const created = new Date(createdMatch[1].trim());
+            if (isNaN(created.getTime())) continue;
+            if (!latestDate || created > latestDate) {
+              latestDate = created;
+              const idMatch = content.match(/^id:\s*(.+)/m);
+              latestRegime = {
+                id: idMatch ? idMatch[1].trim() : entry.name.replace(/\.md$/, ''),
+                created: created,
+              };
+            }
+          } catch (e) {
+            // Skip unparseable files (Pitfall 1)
+          }
+        }
+      }
+    } catch (e) {
+      // Skip inaccessible directories
+    }
+  }
+
+  scanDir(signalsDir);
+  return latestRegime;
+}
+
+/**
+ * Collect signal files within the current regime, categorized by lifecycle state.
+ * Returns { detected: File[], resolved: File[], all: File[] }
+ */
+function collectRegimeSignals(kbDir, regimeStart) {
+  const signalsDir = path.join(kbDir, 'signals');
+  const detected = [];
+  const resolved = [];
+  const all = [];
+
+  if (!fs.existsSync(signalsDir)) return { detected, resolved, all };
+
+  function scanDir(dir) {
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        if (entry.isDirectory()) {
+          scanDir(fullPath);
+        } else if (entry.name.endsWith('.md')) {
+          try {
+            const content = fs.readFileSync(fullPath, 'utf8');
+            // Skip regime_change entries -- they're not regular signals
+            const typeMatch = content.match(/^type:\s*(.+)/m);
+            if (!typeMatch) continue;
+            const type = typeMatch[1].trim();
+            if (type === 'regime_change') continue;
+
+            // Check if within regime
+            const createdMatch = content.match(/^created:\s*(.+)/m);
+            if (!createdMatch) continue;
+            const created = new Date(createdMatch[1].trim());
+            if (isNaN(created.getTime())) continue;
+            if (regimeStart && created < regimeStart) continue;
+
+            // Check lifecycle state
+            const lifecycleMatch = content.match(/^lifecycle_state:\s*(.+)/m);
+            const lifecycle = lifecycleMatch ? lifecycleMatch[1].trim() : 'detected';
+
+            // Parse phase
+            const phaseMatch = content.match(/^phase:\s*(.+)/m);
+            const phase = phaseMatch ? phaseMatch[1].trim() : 'unknown';
+
+            // Parse severity
+            const severityMatch = content.match(/^severity:\s*(.+)/m);
+            const severity = severityMatch ? severityMatch[1].trim() : 'minor';
+
+            const signalInfo = { path: fullPath, lifecycle, phase, severity, created };
+            all.push(signalInfo);
+
+            if (lifecycle === 'detected' || lifecycle === 'triaged') {
+              detected.push(signalInfo);
+            } else if (lifecycle === 'remediated' || lifecycle === 'verified' || lifecycle === 'closed') {
+              resolved.push(signalInfo);
+            }
+          } catch (e) {
+            // Skip unparseable files
+          }
+        }
+      }
+    } catch (e) {
+      // Skip inaccessible directories
+    }
+  }
+
+  scanDir(signalsDir);
+  return { detected, resolved, all };
+}
+
+/**
+ * health-probe signal-metrics (HEALTH-08)
+ * Computes signal-to-resolution ratio within current observation regime.
+ */
+function cmdHealthProbeSignalMetrics(cwd, raw) {
+  const kbDir = resolveKBDir(cwd);
+
+  if (!kbDir) {
+    const result = {
+      probe_id: 'signal-metrics',
+      checks: [{
+        id: 'SIG-RATIO-01',
+        description: 'Signal-to-resolution ratio within current regime',
+        status: 'WARNING',
+        detail: 'KB directory not found -- cannot compute signal metrics',
+        data: { detected: 0, resolved: 0, ratio: 0, regime: null },
+      }],
+      dimension_contribution: {
+        type: 'workflow',
+        signals: { critical: 0, notable: 0, minor: 0 },
+      },
+    };
+    if (raw) {
+      process.stdout.write(JSON.stringify(result));
+      process.exit(0);
+    }
+    console.log('Signal Metrics: KB directory not found');
+    process.exit(0);
+  }
+
+  // Read threshold from config
+  let threshold = 5.0;
+  try {
+    const configPath = path.join(cwd, '.planning', 'config.json');
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      if (config.health_check && typeof config.health_check.resolution_ratio_threshold === 'number') {
+        threshold = config.health_check.resolution_ratio_threshold;
+      }
+    }
+  } catch (e) {
+    // Use default threshold
+  }
+
+  // Find regime boundary
+  const regime = findLatestRegimeChange(kbDir);
+  const regimeStart = regime ? regime.created : null;
+
+  // Collect signals within regime
+  const signals = collectRegimeSignals(kbDir, regimeStart);
+
+  // Compute ratio
+  let ratio;
+  if (signals.detected.length === 0 && signals.resolved.length === 0) {
+    ratio = 0;
+  } else if (signals.resolved.length === 0) {
+    ratio = Infinity;
+  } else {
+    ratio = signals.detected.length / signals.resolved.length;
+  }
+
+  const status = (ratio <= threshold || ratio === 0) ? 'PASS' : 'WARNING';
+
+  // Count severity distribution from all signals in regime
+  const severityCounts = { critical: 0, notable: 0, minor: 0 };
+  for (const sig of signals.all) {
+    if (severityCounts[sig.severity] !== undefined) {
+      severityCounts[sig.severity]++;
+    } else {
+      severityCounts.minor++;
+    }
+  }
+
+  const result = {
+    probe_id: 'signal-metrics',
+    checks: [{
+      id: 'SIG-RATIO-01',
+      description: 'Signal-to-resolution ratio within current regime',
+      status,
+      detail: `Ratio ${signals.detected.length}:${signals.resolved.length} (threshold: ${threshold}:1)`,
+      data: {
+        detected: signals.detected.length,
+        resolved: signals.resolved.length,
+        ratio: ratio === Infinity ? 'Infinity' : ratio,
+        regime: regime ? regime.id : null,
+      },
+    }],
+    dimension_contribution: {
+      type: 'workflow',
+      signals: severityCounts,
+    },
+  };
+
+  if (raw) {
+    process.stdout.write(JSON.stringify(result));
+    process.exit(0);
+  }
+
+  // Human-readable output
+  const ratioStr = ratio === Infinity ? 'Infinity' : ratio.toFixed(1);
+  console.log(`Signal Metrics (HEALTH-08)`);
+  console.log(`  Regime: ${regime ? regime.id : 'all history'}`);
+  console.log(`  Detected (unresolved): ${signals.detected.length}`);
+  console.log(`  Resolved: ${signals.resolved.length}`);
+  console.log(`  Ratio: ${ratioStr}:1 (threshold: ${threshold}:1)`);
+  console.log(`  Status: ${status}`);
+  process.exit(0);
+}
+
+/**
+ * health-probe signal-density (HEALTH-09)
+ * Tracks signal accumulation rate per phase within current observation regime.
+ */
+function cmdHealthProbeSignalDensity(cwd, raw) {
+  const kbDir = resolveKBDir(cwd);
+
+  if (!kbDir) {
+    const result = {
+      probe_id: 'signal-density',
+      checks: [{
+        id: 'SIG-DENSITY-01',
+        description: 'Signal density trend within current regime',
+        status: 'WARNING',
+        detail: 'KB directory not found -- cannot compute signal density',
+        data: { phases: [], trend: 'stable' },
+      }],
+      dimension_contribution: {
+        type: 'workflow',
+        signals: { critical: 0, notable: 0, minor: 0 },
+      },
+    };
+    if (raw) {
+      process.stdout.write(JSON.stringify(result));
+      process.exit(0);
+    }
+    console.log('Signal Density: KB directory not found');
+    process.exit(0);
+  }
+
+  // Find regime boundary
+  const regime = findLatestRegimeChange(kbDir);
+  const regimeStart = regime ? regime.created : null;
+
+  // Collect signals within regime
+  const signals = collectRegimeSignals(kbDir, regimeStart);
+
+  // Group by phase
+  const phaseMap = {};
+  for (const sig of signals.all) {
+    const phase = sig.phase || 'unknown';
+    if (!phaseMap[phase]) phaseMap[phase] = 0;
+    phaseMap[phase]++;
+  }
+
+  // Build sorted densities array (sort by phase number)
+  const densities = Object.entries(phaseMap)
+    .map(([phase, count]) => ({ phase, count }))
+    .sort((a, b) => {
+      const numA = parseFloat(a.phase) || 0;
+      const numB = parseFloat(b.phase) || 0;
+      return numA - numB;
+    });
+
+  // Determine trend from last 3 phases
+  let trend = 'stable';
+  if (densities.length >= 3) {
+    const last3 = densities.slice(-3);
+    const increasing = last3[0].count < last3[1].count && last3[1].count < last3[2].count;
+    const decreasing = last3[0].count > last3[1].count && last3[1].count > last3[2].count;
+    if (increasing) trend = 'increasing';
+    else if (decreasing) trend = 'decreasing';
+  }
+
+  const status = (trend === 'stable' || trend === 'decreasing') ? 'PASS' : 'WARNING';
+
+  // Count severity distribution
+  const severityCounts = { critical: 0, notable: 0, minor: 0 };
+  for (const sig of signals.all) {
+    if (severityCounts[sig.severity] !== undefined) {
+      severityCounts[sig.severity]++;
+    } else {
+      severityCounts.minor++;
+    }
+  }
+
+  const result = {
+    probe_id: 'signal-density',
+    checks: [{
+      id: 'SIG-DENSITY-01',
+      description: 'Signal density trend within current regime',
+      status,
+      detail: `Trend: ${trend} across ${densities.length} phases`,
+      data: { phases: densities, trend },
+    }],
+    dimension_contribution: {
+      type: 'workflow',
+      signals: severityCounts,
+    },
+  };
+
+  if (raw) {
+    process.stdout.write(JSON.stringify(result));
+    process.exit(0);
+  }
+
+  // Human-readable output
+  console.log(`Signal Density (HEALTH-09)`);
+  console.log(`  Regime: ${regime ? regime.id : 'all history'}`);
+  console.log(`  Phases with signals: ${densities.length}`);
+  for (const d of densities) {
+    console.log(`    Phase ${d.phase}: ${d.count} signals`);
+  }
+  console.log(`  Trend: ${trend}`);
+  console.log(`  Status: ${status}`);
+  process.exit(0);
+}
+
+/**
+ * health-probe automation-watchdog (HEALTH-07)
+ * Verifies automation features are firing at expected cadence.
+ */
+function cmdHealthProbeAutomationWatchdog(cwd, raw) {
+  // Read config for automation stats
+  let config = {};
+  const configPath = path.join(cwd, '.planning', 'config.json');
+  try {
+    if (fs.existsSync(configPath)) {
+      config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    }
+  } catch (e) {
+    // Empty config
+  }
+
+  const automationStats = (config.automation && config.automation.stats) || {};
+
+  // Load feature manifest for expected features and their frequencies
+  const manifest = loadManifest(cwd);
+  const features = manifest ? manifest.features || {} : {};
+
+  // Map config_key frequency from manifest to expected cadence
+  const featureChecks = [];
+  const now = Date.now();
+
+  for (const [featureName, featureDef] of Object.entries(features)) {
+    const configKey = featureDef.config_key || featureName;
+    const schema = featureDef.schema || {};
+
+    // Determine expected frequency from the feature's config or manifest
+    let frequency = null;
+    if (schema.frequency) {
+      // Check config for actual value, otherwise use default
+      const featureConfig = config[configKey] || {};
+      frequency = featureConfig.frequency || schema.frequency.default;
+    }
+
+    if (!frequency) continue; // No frequency defined -- skip
+
+    // Derive expected cadence in milliseconds
+    let expectedCadenceMs;
+    switch (frequency) {
+      case 'every-phase':
+        expectedCadenceMs = 6 * 3600 * 1000; // ~6 hours
+        break;
+      case 'on-resume':
+        expectedCadenceMs = 24 * 3600 * 1000; // 24 hours
+        break;
+      case 'milestone-only':
+        expectedCadenceMs = 7 * 24 * 3600 * 1000; // 7 days (relaxed)
+        break;
+      case 'explicit-only':
+        continue; // No cadence expectation for explicit-only
+      default:
+        continue;
+    }
+
+    const stats = automationStats[configKey] || {};
+    const lastTriggered = stats.last_triggered ? new Date(stats.last_triggered).getTime() : 0;
+    const elapsed = now - lastTriggered;
+    const staleThreshold = expectedCadenceMs * 3; // 3x expected cadence = stale
+
+    let checkStatus;
+    let detail;
+    if (!stats.last_triggered) {
+      checkStatus = 'WARNING';
+      detail = `Feature "${configKey}" has never been triggered (expected cadence: ${frequency})`;
+    } else if (elapsed > staleThreshold) {
+      checkStatus = 'WARNING';
+      const daysStale = Math.floor(elapsed / (24 * 3600 * 1000));
+      detail = `Feature "${configKey}" last triggered ${daysStale} days ago (expected cadence: ${frequency})`;
+    } else {
+      checkStatus = 'PASS';
+      const hoursAgo = Math.floor(elapsed / (3600 * 1000));
+      detail = `Feature "${configKey}" last triggered ${hoursAgo}h ago (cadence: ${frequency})`;
+    }
+
+    featureChecks.push({
+      id: `WATCHDOG-${configKey.toUpperCase().replace(/_/g, '-')}`,
+      description: `Automation cadence for ${configKey}`,
+      status: checkStatus,
+      detail,
+      data: {
+        feature: configKey,
+        frequency,
+        last_triggered: stats.last_triggered || null,
+        fires: stats.fires || 0,
+      },
+    });
+  }
+
+  // If no features with frequency were found, report clean state
+  if (featureChecks.length === 0) {
+    featureChecks.push({
+      id: 'WATCHDOG-NONE',
+      description: 'No automation features with cadence expectations found',
+      status: 'PASS',
+      detail: 'No features have a configured frequency requiring watchdog monitoring',
+      data: {},
+    });
+  }
+
+  const overallStatus = featureChecks.some(c => c.status === 'FAIL') ? 'FAIL'
+    : featureChecks.some(c => c.status === 'WARNING') ? 'WARNING' : 'PASS';
+
+  const result = {
+    probe_id: 'automation-watchdog',
+    checks: featureChecks,
+    dimension_contribution: {
+      type: 'infrastructure',
+      signals: { critical: 0, notable: 0, minor: 0 },
+    },
+  };
+
+  if (raw) {
+    process.stdout.write(JSON.stringify(result));
+    process.exit(0);
+  }
+
+  // Human-readable output
+  console.log('Automation Watchdog (HEALTH-07)');
+  for (const check of featureChecks) {
+    console.log(`  [${check.status}] ${check.detail}`);
+  }
+  console.log(`  Overall: ${overallStatus}`);
+  process.exit(0);
+}
+
 // ─── Sensors ──────────────────────────────────────────────────────────────────
 
 function cmdSensorsList(cwd, raw) {
@@ -6078,8 +6607,11 @@ async function main() {
           prior: priorIdx !== -1 ? args[priorIdx + 1] : 'Not recorded',
         };
         cmdAutomationRegimeChange(cwd, desc, options, raw);
+      } else if (subcommand === 'reflection-counter') {
+        const action = args[2];
+        cmdAutomationReflectionCounter(cwd, action, raw);
       } else {
-        error('Unknown automation subcommand. Available: resolve-level, track-event, lock, unlock, check-lock, regime-change');
+        error('Unknown automation subcommand. Available: resolve-level, track-event, lock, unlock, check-lock, regime-change, reflection-counter');
       }
       break;
     }
@@ -6093,6 +6625,20 @@ async function main() {
         cmdSensorsBlindSpots(cwd, sensorName, raw);
       } else {
         error('Unknown sensors subcommand. Available: list, blind-spots');
+      }
+      break;
+    }
+
+    case 'health-probe': {
+      const probeName = args[1];
+      if (probeName === 'signal-metrics') {
+        cmdHealthProbeSignalMetrics(cwd, raw);
+      } else if (probeName === 'signal-density') {
+        cmdHealthProbeSignalDensity(cwd, raw);
+      } else if (probeName === 'automation-watchdog') {
+        cmdHealthProbeAutomationWatchdog(cwd, raw);
+      } else {
+        error('Unknown health-probe. Available: signal-metrics, signal-density, automation-watchdog');
       }
       break;
     }

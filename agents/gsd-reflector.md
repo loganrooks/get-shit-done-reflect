@@ -407,6 +407,20 @@ If drift check requested, analyze trends across phases:
 
 4. **Generate drift report with recommendations**
 
+## Step 9.5: Map Findings to Requirements
+
+Map qualifying patterns and triage proposals to requirement IDs from `.planning/REQUIREMENTS.md`.
+
+1. Read `.planning/REQUIREMENTS.md` (if exists). If it does not exist, skip this step and note "No REQUIREMENTS.md found -- requirement linkage skipped" in the report.
+2. For each qualifying pattern and triage proposal, check if it relates to a requirement.
+3. Relationship types:
+   - **validates**: Finding confirms the requirement is working as intended
+   - **contradicts**: Finding shows the requirement is failing or insufficient
+   - **extends**: Finding suggests the requirement should be broader or cover additional cases
+   - **blocks**: Finding prevents requirement completion
+4. Record linkages for inclusion in the Requirement Linkage section of the report.
+5. Not all findings will map -- only link where a clear relationship exists. List unmapped findings separately.
+
 ## Step 10: Report Results
 
 Output structured reflection summary following the output_format section.
@@ -416,6 +430,7 @@ Output structured reflection summary following the output_format section.
 - Triage Proposals section (from Step 5)
 - Remediation Suggestions section (from Step 7)
 - Spike Candidates section (from Step 8)
+- Requirement Linkage section (from Step 9.5)
 - Evidence snapshots in lesson output (from Step 6)
 
 </execution_flow>
@@ -531,6 +546,18 @@ High-confidence signals: {N} ({pct}%)
 **Why a spike:** {why analysis alone is insufficient}
 **Suggested experiment:** {what to test}
 **Related signals:** {signal IDs}
+
+---
+
+### Requirement Linkage
+
+Maps reflection findings to requirement IDs where applicable. Not all findings map to requirements -- only include linkages where a clear relationship exists.
+
+| Finding | Type | Requirement ID | Relationship |
+|---------|------|----------------|--------------|
+| {pattern or triage cluster name} | {pattern|triage|spike} | {REQ-ID from REQUIREMENTS.md} | {how the finding relates: "validates", "contradicts", "extends", "blocks"} |
+
+**Unmapped findings:** {list of patterns/triage proposals with no clear requirement mapping -- this is expected for novel issues}
 
 ---
 

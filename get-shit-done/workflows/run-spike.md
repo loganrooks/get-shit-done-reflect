@@ -5,10 +5,10 @@ Orchestrates the full spike flow: workspace creation, Design phase (DESIGN.md), 
 ## References
 
 @get-shit-done/references/spike-execution.md
-@.claude/agents/gsd-spike-runner.md
-@.claude/agents/kb-templates/spike-design.md
-@.claude/agents/kb-templates/spike-decision.md
-@.claude/agents/knowledge-store.md
+@~/.claude/agents/gsd-spike-runner.md
+@~/.claude/agents/kb-templates/spike-design.md
+@~/.claude/agents/kb-templates/spike-decision.md
+@~/.claude/agents/knowledge-store.md
 
 ## Inputs
 
@@ -193,7 +193,7 @@ It does NOT create:
 ```markdown
 **Spawning gsd-spike-runner agent**
 
-@.claude/agents/gsd-spike-runner.md
+@~/.claude/agents/gsd-spike-runner.md
 
 Execute Build -> Run -> Document phases for:
 - Workspace: {workspace path}
