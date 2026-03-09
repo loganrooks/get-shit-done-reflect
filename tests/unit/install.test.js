@@ -1812,6 +1812,62 @@ Also use the Read tool to read files and Bash to run commands.`
         expect(staleRefs, `${hook} has stale get-shit-done/ refs`).toBeNull()
       }
     })
+
+    tmpdirTest('installed hooks transform quoted get-shit-done to get-shit-done-reflect in path.join args', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const hooksDir = path.join(tmpdir, '.claude', 'hooks')
+      const hookFiles = fsSync.readdirSync(hooksDir).filter(f => f.endsWith('.js') && f.startsWith('gsdr-'))
+
+      for (const hook of hookFiles) {
+        const content = fsSync.readFileSync(path.join(hooksDir, hook), 'utf8')
+        // Match 'get-shit-done' that is NOT followed by -reflect (i.e., stale quoted refs)
+        const staleQuoted = content.match(/'get-shit-done'(?!-reflect)/g)
+        expect(staleQuoted, `${hook} has stale quoted 'get-shit-done' refs`).toBeNull()
+      }
+    })
+
+    tmpdirTest('installed hooks transform /gsd: to /gsdr: command prefix', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const hooksDir = path.join(tmpdir, '.claude', 'hooks')
+      const statusline = fsSync.readFileSync(path.join(hooksDir, 'gsdr-statusline.js'), 'utf8')
+
+      // Should NOT contain /gsd: (but may contain /gsdr:)
+      const stalePrefix = statusline.match(/\/gsd:(?!r)/g)
+      expect(stalePrefix, 'gsdr-statusline.js has stale /gsd: command prefix').toBeNull()
+
+      // Should contain /gsdr:update (proving the transform happened)
+      expect(statusline).toContain('/gsdr:update')
+    })
+
+    tmpdirTest('get-shit-done-reflect-cc npm package name is NOT double-transformed', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const hooksDir = path.join(tmpdir, '.claude', 'hooks')
+      const checkUpdate = fsSync.readFileSync(path.join(hooksDir, 'gsdr-check-update.js'), 'utf8')
+
+      // npm package name should survive intact
+      expect(checkUpdate).toContain('get-shit-done-reflect-cc')
+
+      // Should NOT have double-transformed name
+      expect(checkUpdate).not.toContain('get-shit-done-reflect-reflect-cc')
+    })
   })
 
   describe('worktree-safe hook commands (buildLocalHookCommand)', () => {
