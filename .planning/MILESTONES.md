@@ -146,3 +146,13 @@
 
 ---
 
+
+## v1.17 Automation Loop (Shipped: 2026-03-09)
+
+**Phases completed:** 46 phases, 129 plans, 8 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+

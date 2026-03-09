@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A self-improving, runtime-agnostic enhancement to the GSD (Get Shit Done) workflow system. Features a complete signal lifecycle (detect, triage, remediate, verify, recurrence check) with multi-sensor collection (artifact + git sensors), confidence-weighted reflection that distills lessons from accumulated signals, and epistemic rigor (counter-evidence seeking, tiered validation) built into every stage. Includes a persistent cross-project knowledge base at `~/.gsd/knowledge/`, a structured spike/experiment workflow for resolving design uncertainty empirically, and knowledge surfacing that retrieves relevant lessons during research and planning. Signal-plan linkage closes the loop: plans declare which signals they fix, completion auto-updates remediation status, and passive verification confirms fixes after configurable phase windows. Supports 4 runtimes (Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI) with cross-runtime pause/resume, shared state, and per-runtime capability detection. Includes a structured backlog system (per-project + global), a declarative feature manifest for config-driven upgrades, and a shared agent protocol for maintainable agent specs. Synchronized with upstream GSD v1.18.0 including the gsd-tools CLI, thin orchestrator architecture, and 11 bug fixes. Includes production tooling: workspace health checks, version migration, DevOps context capture, and installer hardening with safeFs error reporting.
+A self-improving, runtime-agnostic enhancement to the GSD (Get Shit Done) workflow system. Features a complete signal lifecycle (detect, triage, remediate, verify, recurrence check) with multi-sensor collection (artifact + git + CI sensors), confidence-weighted reflection that distills lessons from accumulated signals, and epistemic rigor (counter-evidence seeking, tiered validation) built into every stage. The automation loop is self-triggering: signal collection auto-fires after phase execution, reflection auto-triggers after configurable phase counts, health checks run at session start, and CI failures surface immediately — all governed by a 4-level automation system (manual/nudge/prompt/auto) with per-feature overrides and context-aware deferral. Includes a persistent knowledge base (project-local at `.planning/knowledge/` with `~/.gsd/knowledge/` fallback), a structured spike/experiment workflow for resolving design uncertainty empirically, and knowledge surfacing that retrieves relevant lessons during research and planning. Signal-plan linkage closes the loop: plans declare which signals they fix, completion auto-updates remediation status, and passive verification confirms fixes after configurable phase windows. Plan intelligence validates plans semantically before execution (tool/config/dir/signal reference checking). Health scoring provides two-dimensional assessment (infrastructure + workflow) with traffic-light statusline display and rogue file detection. Supports 4 runtimes (Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI) with cross-runtime pause/resume, shared state, per-runtime capability detection, and GSDR namespace co-installation alongside upstream GSD. Includes a structured backlog system (per-project + global), a declarative feature manifest for config-driven upgrades, and a shared agent protocol for maintainable agent specs. Synchronized with upstream GSD v1.18.0 including the gsd-tools CLI, thin orchestrator architecture, and 11 bug fixes. Includes production tooling: workspace health checks with probe-based architecture, version migration, DevOps context capture, and installer hardening with safeFs error reporting.
 
 ## Core Value
 
@@ -76,21 +76,24 @@ The system never makes the same mistake twice — signals capture what went wron
 - ✓ Full signal lifecycle demonstrated end-to-end (detected → triaged → remediated → verified) — v1.16
 - ✓ 329 tests passing (155 fork + 174 upstream) — v1.16
 
+- ✓ CI wiring test fixed with meta-test preventing recurrence — v1.17
+- ✓ Automation framework: 4-level system (manual/nudge/prompt/auto) with per-feature overrides, runtime capping, context-aware deferral — v1.17
+- ✓ Extensible sensor architecture with auto-discovery, standardized contract, enable/disable config — v1.17
+- ✓ Project-local knowledge base at .planning/knowledge/ with ~/.gsd/knowledge/ fallback — v1.17
+- ✓ CI sensor detecting failed runs, branch protection bypass, test regression with graceful degradation — v1.17
+- ✓ Signal collection automation: postlude-triggered after phase execution with reentrancy protection and regime tracking — v1.17
+- ✓ Health score: two-dimensional scoring (infrastructure + workflow), traffic light statusline display, probe-based architecture — v1.17
+- ✓ Health check automation: session-start hook trigger, reactive threshold, rogue file detection — v1.17
+- ✓ Reflection automation: counter-based triggering with threshold gating, confidence evolution, report chaining — v1.17
+- ✓ Plan intelligence: semantic validation (tool/config/dir/signal refs), advisory severity policy — v1.17
+- ✓ Template provenance: model/context_used_pct in summaries, requirement linkage in reflections, Internal Tensions in feature specs — v1.17
+- ✓ GSDR namespace co-installation: install-time namespace rewriting, side-by-side with upstream GSD — v1.17
+- ✓ Worktree-safe hooks with shell existence guards — v1.17
+- ✓ 278 tests passing (vitest) — v1.17
+
 ### Active
 
-## Current Milestone: v1.17 Automation Loop
-
-**Goal:** Make the self-improvement system actually self-triggering — auto-collect signals after phases, detect CI failures, trigger reflection automatically, and close the gap between signal detection and action.
-
-**Target features:**
-- Fix CI wiring test failure (broken throughout v1.16)
-- CI sensor — detect failed GitHub Actions, bypassed branch protection
-- Auto-trigger signal collection after phase execution
-- Auto-trigger reflection after configurable N phases or at milestone boundaries
-- Health check auto-trigger via hooks
-- CI status warning at session start
-- Plan checker enhancements (semantic validation)
-- Clean up stale TODOs and tech debt from v1.16 audit
+(Fresh for next milestone)
 
 ### Out of Scope
 
@@ -112,17 +115,18 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ## Context
 
-Shipped v1.16 Signal Lifecycle & Reflection. The signal-to-lesson pipeline is operational: 79 signals accumulated, 7 lessons distilled, 10 signals triaged in first reflection run. v1.17 focuses on closing the automation gap — signals are collected and reflection is run manually today; the system should trigger these automatically.
-5 milestone themes identified for post-v1.16 roadmap (see `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`): Automation Loop (v1.17), Meta-Observability, Deliberation Intelligence, Cross-Platform Parity, Parallelization.
-Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, gsd-tools.js CLI (~5,400 lines with backlog + manifest commands).
-Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents (with shared agent-protocol.md), Runtime layer (Node.js) for installation and hooks. Multi-sensor signal collection (artifact + git sensors → synthesizer → KB).
-Knowledge base: `~/.gsd/knowledge/` (runtime-agnostic) with `signals/`, `spikes/`, `lessons/`, `reflections/` subdirectories, auto-generated `index.md`, lifecycle state machine, and provenance fields.
+Shipped v1.17 Automation Loop. The self-improvement system is now self-triggering: signals auto-collect after phases, reflection auto-triggers after configurable phase counts, health checks run at session start, and CI failures surface immediately. The automation gap identified in v1.16 is closed — the system actively monitors itself without manual invocation.
+4 milestone themes remain from post-v1.16 roadmap (see `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`): Meta-Observability (M-B), Deliberation Intelligence (M-C), Cross-Platform Parity (M-D), Parallelization (M-E).
+Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, gsd-tools.js CLI (~5,900 lines with automation + health probe commands).
+Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents (with shared agent-protocol.md), Runtime layer (Node.js) for installation and hooks. Multi-sensor signal collection (artifact + git + CI sensors → synthesizer → KB). Health probes (modular .md specs executed by probe executor). Automation framework (4-level system with per-feature overrides).
+Knowledge base: `.planning/knowledge/` (project-local, version-controlled) with `~/.gsd/knowledge/` fallback. Contains `signals/`, `spikes/`, `reflections/` subdirectories, auto-generated `index.md`, lifecycle state machine, and provenance fields.
 Backlog: Two-tier storage (`.planning/backlog/items/` per-project, `~/.gsd/backlog/items/` global) with Markdown+YAML items, 7 CLI subcommands, auto-indexed.
-Test suite: 329 tests (155 fork + 174 upstream), CI/CD via GitHub Actions with branch protection.
-12 tech debt items from v1.16 audit (0 blockers): 10 human verification items (agent behaviors needing runtime UAT), 2 advisory issues (config key inconsistency, path prefix). See v1.16 audit.
+Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
+20 quick tasks completed across v1.17 development (installer fixes, namespace safety, worktree hooks, etc.).
 
-**Fork status (post v1.16):**
-- Fork at v1.16.0, upstream at v1.18.0
+**Fork status (post v1.17):**
+- Fork at v1.17.0, upstream at v1.18.0
+- GSDR namespace co-installation enables side-by-side with upstream GSD
 - Tracked-modifications strategy with FORK-DIVERGENCES.md documenting per-file merge stances
 - 4 runtimes supported: Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI
 - Upstream's reverted GSD Memory vs fork's file-based KB: fork approach validated in production (see KB-COMPARISON.md)
@@ -185,8 +189,16 @@ Test suite: 329 tests (155 fork + 174 upstream), CI/CD via GitHub Actions with b
 | Lightweight research spike mode | Full BUILD/RUN cycle is overkill for "which format does X use?" questions | ✓ Good — option 4 in run-spike.md, completed Spike 002 end-to-end |
 | Per-run triage cap of 10 signals | First reflection on 78 signals would modify too many files in one session | ✓ Good — bounds blast radius, user can run reflect again |
 
-| 5 milestone themes from post-v1.16 deliberation | Sequential analysis of dependency graph identified M-A (Automation Loop) as foundational | — Pending — v1.17 is first, M-B through M-E follow |
-| Critical state transitions must be programmatic (scripts/hooks), not agent instructions | Agent instructions are unreliable at ensuring every step fires in long sequences -- executor skipped update_resolved_signals despite code existing in execute-plan.md | Deliberation concluded -- reconcile-signal-lifecycle.sh replaces agent-instruction-based transitions |
+| 5 milestone themes from post-v1.16 deliberation | Sequential analysis of dependency graph identified M-A (Automation Loop) as foundational | ✓ Good — v1.17 shipped, M-B through M-E follow |
+| Critical state transitions must be programmatic (scripts/hooks), not agent instructions | Agent instructions are unreliable at ensuring every step fires in long sequences -- executor skipped update_resolved_signals despite code existing in execute-plan.md | ✓ Good — reconcile-signal-lifecycle.sh replaces agent-instruction-based transitions |
+| 4-level automation with per-feature overrides | Scattered boolean toggles don't scale; unified levels + overrides + fine-grained knobs | ✓ Good — automation.level + automation.overrides + per-feature thresholds |
+| Postlude pattern over hooks for auto-triggering | Cross-runtime compatibility (2/4 runtimes lack hooks); workflow steps work everywhere | ✓ Good — execute-phase postlude for signal collection and health checks |
+| Probe-based health check architecture | Monolithic health check was unmaintainable; modular probes enable independent evolution | ✓ Good — 11 probe specs with frontmatter contract, probe executor in gsd-tools |
+| Project-local KB at .planning/knowledge/ | Version control, remote execution access, knowledge auditability | ✓ Good — primary location with ~/.gsd/knowledge/ fallback |
+| GSDR namespace for co-installation | Source files unchanged (merge compatibility); all differentiation at install time | ✓ Good — replacePathsInContent() handles namespace rewriting |
+| Advisory severity for semantic plan validation | Plans describe future state; blocking on predictions is over-confident | ✓ Good — typed finding IDs (TOOL/CFG/DIR/SIG) for future correlation |
+| Regime tracking for observation changes | Signal baselines shift when auto-collection is enabled; trend analysis invalid across boundaries | ✓ Good — regime_change KB entries with timestamps and impact |
+| Counter-based reflection triggering | Simple, predictable, configurable; avoids complex heuristics | ✓ Good — phases_since_last_reflect with threshold gating |
 
 ---
-*Last updated: 2026-03-02 after v1.17 milestone start*
+*Last updated: 2026-03-09 after v1.17 milestone completion*
