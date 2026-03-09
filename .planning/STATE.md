@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-09)
 
 Milestone: v1.17 Automation Loop — SHIPPED 2026-03-09
 Status: Milestone complete, awaiting next milestone
-Last activity: 2026-03-09 - Completed v1.17 Automation Loop milestone
+Last activity: 2026-03-09 - Completed quick task 21: Fix hook installer content transforms
 
 Progress: [██████████] 100% — 10 phases, 24 plans, 21 quick tasks
 
