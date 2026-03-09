@@ -6,6 +6,11 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.17.1] - 2026-03-09
+
+### Fixed
+- Hook installer now applies full content transformation to hook files: added `/gsd:` → `/gsdr:` command prefix transform and `'get-shit-done'` → `'get-shit-done-reflect'` quoted path.join argument transform — fixes installed hooks reading wrong VERSION file paths and showing wrong update command in statusline
+
 ## [1.17.0] - 2026-03-09
 
 ### Added
