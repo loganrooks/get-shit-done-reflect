@@ -93,7 +93,18 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ### Active
 
-(Fresh for next milestone)
+## Current Milestone: v1.18 Upstream Sync & Deep Integration
+
+**Goal:** Properly adopt upstream changes informed by the fork audit, establish a durable sync policy, audit the migration system, and ensure adopted features integrate deeply with the fork's epistemic self-improvement philosophy — not as isolated patches.
+
+**Target features:**
+- Upstream sync policy — formalize what to adopt, keep, reject, and how
+- Modularization migration — redistribute fork's 2,126 lines across upstream's 11 modules
+- Feature adoption — context monitor, Nyquist auditor, code-aware discuss-phase, context scaling fix, stdin timeout, CLAUDE_CONFIG_DIR, new upstream workflows
+- Migration system audit — thorough testing of config migration, KB migration, and namespace rewriting
+- Deep integration — adopted features woven into fork's signal/automation/health/reflection pipeline
+- CI status bug fix — scope CI cache per-project
+- Deliberation update — incorporate upstream sync into v1.17+ roadmap deliberation
 
 ### Out of Scope
 
@@ -125,11 +136,14 @@ Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
 20 quick tasks completed across v1.17 development (installer fixes, namespace safety, worktree hooks, etc.).
 
 **Fork status (post v1.17):**
-- Fork at v1.17.0, upstream at v1.18.0
+- Fork at v1.17.1, upstream at v1.22.4
+- 748 commits ahead, 244 commits behind upstream
 - GSDR namespace co-installation enables side-by-side with upstream GSD
 - Tracked-modifications strategy with FORK-DIVERGENCES.md documenting per-file merge stances
 - 4 runtimes supported: Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI
 - Upstream's reverted GSD Memory vs fork's file-based KB: fork approach validated in production (see KB-COMPARISON.md)
+- Comprehensive fork audit completed (10 reports in .planning/fork-audit/) identifying modularization as critical reconciliation
+- Upstream modularized gsd-tools.js into 11 modules; fork's 2,126 lines of additions need redistribution
 
 ## Constraints
 
@@ -201,4 +215,4 @@ Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
 | Counter-based reflection triggering | Simple, predictable, configurable; avoids complex heuristics | ✓ Good — phases_since_last_reflect with threshold gating |
 
 ---
-*Last updated: 2026-03-09 after v1.17 milestone completion*
+*Last updated: 2026-03-10 after v1.18 milestone start*
