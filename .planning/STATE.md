@@ -5,9 +5,9 @@ milestone_name: Upstream Sync & Deep Integration
 status: active
 stopped_at: null
 last_updated: "2026-03-10T00:00:00.000Z"
-last_activity: 2026-03-10 - Milestone v1.18 started
+last_activity: 2026-03-10 - Roadmap created (10 phases, 48 requirements mapped)
 progress:
-  total_phases: 0
+  total_phases: 10
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.18 Upstream Sync & Deep Integration
+**Current focus:** Phase 45 - CJS Rename (v1.18 Upstream Sync & Deep Integration)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-10 — Milestone v1.18 started
+Phase: 45 of 54 (CJS Rename) -- first phase of v1.18
+Plan: --
+Status: Ready to plan
+Last activity: 2026-03-10 -- Roadmap created for v1.18 (10 phases, 48 requirements)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -51,185 +53,50 @@ Last activity: 2026-03-10 — Milestone v1.18 started
 - Timeline: 13 days (2026-02-11 -> 2026-02-23)
 
 **v1.16:**
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 31 | 01 | 4min | 3 | 5 |
-| 31 | 02 | 4min | 2 | 2 |
-| 31 | 03 | 6min | 2 | 4 |
-| 31 | 04 | 4min | 4 | 4 |
-| 32 | 01 | 4min | 2 | 6 |
-| 32 | 03 | 2min | 1 | 1 |
-| 32 | 02 | 4min | 2 | 1 |
-| 32 | 04 | 4min | 2 | 2 |
-| 33 | 02 | 2min | 2 | 2 |
-| 33 | 01 | 4min | 2 | 1 |
-| 33 | 03 | 4min | 1 | 1 |
-| 33 | 04 | 2min | 1 | 4 |
-| 34 | 01 | 2min | 2 | 2 |
-| 34 | 02 | 2min | 2 | 2 |
-| 34 | 03 | 3min | 2 | 2 |
-| 34 | 04 | 5min | 3 | 7 |
-| 35 | 02 | 2min | 2 | 3 |
-| 35 | 01 | 3min | 2 | 4 |
-| 35 | 03 | 4min | 2 | 4 |
-| 35 | 04 | 2min | 2 | 7 |
+- Plans completed: 20
+- Total execution time: ~67min
 
 **v1.17:**
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 36 | 01 | 3min | 2 | 1 |
-| 37 | 01 | 3min | 2 | 2 |
-| 37 | 02 | 3min | 2 | 2 |
-| 37 | 03 | 4min | 3 | 3 |
-| 38 | 01 | 3min | 2 | 2 |
-| 38 | 02 | 3min | 2 | 5 |
-| 38.1 | 01 | 3min | 2 | 20 |
-| 38.1 | 02 | 7min | 3 | 10 |
-| 38.1 | 03 | 2min | 1 | 2 |
-| 39 | 01 | 3min | 1 | 1 |
-| 39 | 02 | 4min | 2 | 3 |
-| 40 | 01 | 8min | 3 | 4 |
-| 40 | 02 | 4min | 2 | 3 |
+- Plans completed: 24
+- See STATE.md archive for per-plan breakdown
 
-**Phase 44:**
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 44 | 01 | 14min | 3 | 4 |
-| 44 | 02 | 3min | 2 | 1 |
-| 44 | 03 | 23min | 3 | 3 |
-
-**Phase 41:**
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 41 | 01 | 3min | 3 | 8 |
-| 41 | 02 | 9min | 2 | 8 |
-| 41 | 03 | 4min | 3 | 4 |
-| 41 | 04 | 2min | 2 | 2 |
-
-**Phase 42:**
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 42 | 01 | 4min | 2 | 4 |
-| 42 | 02 | 3min | 2 | 2 |
-
-**Phase 43:**
-| Phase | Plan | Duration | Tasks | Files |
-|-------|------|----------|-------|-------|
-| 43 | 01 | 3min | 2 | 1 |
-| 43 | 02 | 2min | 2 | 7 |
+*Updated after each plan completion*
 
 ## Accumulated Context
 
 ### Decisions
 
 Full decision log in PROJECT.md Key Decisions table.
-v1.13-v1.16 decisions archived in milestones/ directories.
+v1.13-v1.17 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
-v1.17: Automation Loop selected as first of 5 post-v1.16 milestones. See .planning/deliberations/v1.17-plus-roadmap-deliberation.md for full multi-milestone roadmap.
-v1.17: Philosophical foundations established (6 frameworks, 8 documents, ~65 citable principles). `philosophy:` added as motivation type. 6 new requirements from cross-framework convergence. 5 tagged interventions with falsifiable predictions for empirical evaluation.
-v1.17: Roadmap created with 8 phases (36-43), 49 requirements mapped, diverging from research's 6-phase recommendation to separate automation framework (Phase 37) and extensible sensor architecture (Phase 38) as distinct foundational phases.
-v1.17 P36: Three specific regex patterns for meta-test detection (readMdFiles, path.join, pathExists) rather than broad .claude/ grep. Four exempt files (install, multi-runtime, cross-runtime-kb, kb-infrastructure).
-- [Phase 37]: Automation feature uses manifest config_key detection (not KNOWN_TOP_LEVEL_KEYS), consistent with all other manifest features
-- [Phase 37]: Resolution chain order: override BEFORE deferral BEFORE runtime cap
-- [Phase 37]: Statistics tracking: 4 lightweight fields per feature (fires, skips, last_triggered, last_skip_reason) -- no arrays or event logs
-- [Phase 38]: File system is sole source of truth for sensor existence; config provides overrides only (sensors default to enabled)
-- [Phase 38]: Sensor contract: input (phase, dir, project, model_profile), output (JSON in SENSOR OUTPUT delimiters), timeout via frontmatter, config_schema optional
-- [Phase 38]: Sensor discovery tries .claude/agents/ first, falls back to agents/ for dev environments
-- [Phase 38.1]: KB path fallback pattern: .planning/knowledge/ primary, ~/.gsd/knowledge/ fallback. Lessons deprecated; KB is 3-type (signals, reflections, spikes)
-- [Phase 38.1]: kb-rebuild-index.sh conditionally omits Lessons section when lessons/ dir does not exist
-- [Phase 38.1]: Signal enrichment uses origin: local naming to avoid collision with existing source: auto|manual detection-method field
-- [Phase 39]: CI sensor is first with non-null config_schema (repo + workflow overrides), validating Phase 38 extensibility
-- [Phase 39]: Pre-flight checks return degraded:true with warning, never clean empty signals (CI-04)
-- [Phase 39]: Test regression detection marked LOW confidence due to log-parsing fragility
-- [Phase 39]: CI status hook uses background spawn + cache file pattern (matching gsd-check-update.js), never blocks session start
-- [Phase 39]: Cache staleness threshold 1 hour; only show CI FAIL for conclusion=failure (not cancelled/skipped)
-- [Phase 40]: Lock stale detection uses file mtime comparison, single JSON output per invocation
-- [Phase 40]: Postlude pattern (workflow step) instead of hook-based triggering for cross-runtime signal auto-collection
-- [Phase 44]: Install-time namespace rewriting via replacePathsInContent() Pass 3a-3d; (?!tools) lookahead protects gsd-tools.js
-- [Phase 44]: Uninstall handles both gsdr-* and gsd-* patterns for upgrade path
-- [Phase 44]: writeManifest tracks only gsdr-* agents; upgrade cleanup in install() removes old dirs
-- [Phase 44]: Stale gsd- detection exempts CHANGELOG.md, gsd-test, gsd-build, gsd-tools, gsd-knowledge
-- [Phase 41]: Probe frontmatter contract: probe_id, category, tier, dimension, execution, depends_on
-- [Phase 41]: Signal weights locked at critical=1.0, notable=0.3, minor=0.1
-- [Phase 41]: Reactive threshold defaults to RED (only trigger on critical composite)
-- [Phase 41]: Regime boundary resolution: no regime_change entries means all signal history is one regime
-- [Phase 41]: H? is a passive indicator (marker-file pattern) -- hooks cannot invoke full health check workflow
-- [Phase 41]: Session dedup uses 1-hour threshold to prevent re-triggering on rapid session restarts
-- [Phase 41]: Generous allowlist approach for rogue detection -- expand registry on false positives rather than weakening detection
-- [Phase 41]: Rogue context probe is tier:full only -- git log queries are too slow for default health checks
-- [Phase 42]: Report filenames use datetime (HHMMSS) to prevent auto-reflect/manual collision on same day
-- [Phase 42]: Counter reset is best-effort in reflect.md -- failure does not break reflection
-- [Phase 42]: Lesson confidence never starts at high -- earned through corroboration across reflections
-- [Phase 42]: Confidence state lives in reflection reports via report-to-report chaining, not deprecated lesson files
-- [Phase 43]: TMPL-01 (requirements motivation) already present in template -- no change needed
-- [Phase 43]: Executor spec updated to instruct filling model/context_used_pct (closes producer-consumer loop)
-- [Phase 43]: Reflector and reflect workflow updated in tandem for requirement linkage (avoids Pitfall 6)
-- [Phase 43]: REQUIREMENTS.md pre-loaded in prepare_context to avoid reflector context budget cost
-- [Phase 43]: All semantic validation findings use advisory severity -- plans describe future state
-- [Phase 43]: Typed finding IDs (TOOL/CFG/DIR/SIG) enable future correlation between plan-check findings and execution signals
+- v1.18 roadmap: Modularization split into 4 phases (45-48) following research's incremental strategy: rename -> adopt modules -> extract fork modules -> extend & verify
+- v1.18 roadmap: Config migration (Phase 49) placed after modularization because upstream workflows reference `granularity` not `depth`
+- v1.18 roadmap: Migration test hardening (Phase 50) placed before feature adoption to catch namespace/migration regressions before they compound
+- v1.18 roadmap: Update System Hardening (Phase 51) added after migration test hardening to ensure robust upgrade paths before feature adoption
+- v1.18 roadmap: Infrastructure (Phase 54) placed last; technically independent of Phases 49-53 but benefits from stable final state
 
 ### Pending Todos
 
 1 pending:
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 
-Note: "Feature manifest system" TODO moved to done -- fully built in v1.15/v1.16.
-
 ### Blockers/Concerns
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
-- 12 tech debt items from v1.16 audit (0 blockers) -- see milestones/v1.16-MILESTONE-AUDIT.md
-- Config key inconsistency: spike_sensitivity (flat) vs spike.sensitivity (nested) -- advisory only
-- Research flags: Phase 40 (reentrancy lockfile) and Phase 42 (Stop hook counter) need deeper design during planning
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 001 | Update installer branding for GSD Reflect | 2026-02-09 | c82ce23 | [001-update-installer-branding-for-gsd-reflect](./quick/001-update-installer-branding-for-gsd-reflect/) |
-| 002 | Fix 2 failing install.test.js tests (signal.md -> reflect.md) | 2026-02-15 | ac3f385 | [2-fix-the-2-failing-install-test-js-tests](./quick/2-fix-the-2-failing-install-test-js-tests/) |
-| 003 | Fix 6 critical PR#4 bugs (migrateKB collision, dangling symlink, Codex regex, 3 capability guards) | 2026-02-16 | 509936e | [3-fix-6-critical-pr4-bugs-migratekb-collis](./quick/3-fix-6-critical-pr4-bugs-migratekb-collis/) |
-| 004 | Create /gsd:release command for automated version bump, changelog, tag, and GitHub Release | 2026-02-16 | 7902519 | [4-create-gsd-release-command-for-automated](./quick/4-create-gsd-release-command-for-automated/) |
-| 005 | Remove C7-C10 self-fulfilling tests (15 tests removed, suite now 140 passing) | 2026-02-16 | 001e7aa | [5-rewrite-c7-c10-self-fulfilling-tests-to-](./quick/5-rewrite-c7-c10-self-fulfilling-tests-to-/) |
-| 006 | Release v1.15.0 to npm with reflect- tag prefix | 2026-02-24 | 7fc4a7c | [6-release-v1-15-0-to-npm-with-reflect-tag-](./quick/6-release-v1-15-0-to-npm-with-reflect-tag-/) |
-| 007 | Dual-install detection/awareness (Phase 1): VERSION comparison, cross-scope warning, description injection, reference doc | 2026-02-25 | 0346ac6 | [7-implement-dual-installation-detection-an](./quick/7-implement-dual-installation-detection-an/) |
-| 008 | Recover lost code: knowledge-store.md + dual-install in resume-project.md to npm source | 2026-02-26 | 9c7e7a9 | [8-recover-lost-code-from-deleted-local-pat](./quick/8-recover-lost-code-from-deleted-local-pat/) |
-| 009 | Fix installer local patch detection false positives (pruneRedundantPatches) | 2026-02-26 | b979680 | [9-fix-installer-local-patch-detection-to-a](./quick/9-fix-installer-local-patch-detection-to-a/) |
-| 010 | Fix pre-v1.16 tech debt: add agent-protocol refs to 5 agents, copy kb-templates to npm source | 2026-02-27 | 824c6c1 | [10-fix-pre-v1-16-tech-debt-add-agent-protoc](./quick/10-fix-pre-v1-16-tech-debt-add-agent-protoc/) |
-| 011 | Add DEV indicator for local dev installs (VERSION+dev suffix, statusline tag, version check fix) | 2026-03-01 | be5a1e4 | [11-add-dev-indicator-to-statusline-when-usi](./quick/11-add-dev-indicator-to-statusline-when-usi/) |
-| 012 | Persist reflection reports to ~/.gsd/knowledge/reflections/ | 2026-03-01 | ea9a758 | [12-add-persistent-report-file-output-to-ref](./quick/12-add-persistent-report-file-output-to-ref/) |
-| 013 | Signal lifecycle reconciliation script, health check watchdog, design principle | 2026-03-04 | bb26acc | [13-implement-signal-lifecycle-deliberation-](./quick/13-implement-signal-lifecycle-deliberation-/) |
-| 014 | Update collect-signals.md rebuild_index to use project-local kb-rebuild-index.sh | 2026-03-05 | ae40d86 | [14-update-collect-signals-md-to-use-plannin](./quick/14-update-collect-signals-md-to-use-plannin/) |
-| 015 | Cross-runtime parity testing: glob hook discovery, name parity, Gemini tool names, hook registration sync | 2026-03-05 | d1f2e2f | [15-implement-cross-runtime-parity-testing-o](./quick/15-implement-cross-runtime-parity-testing-o/) |
-| 016 | Auto-run hooks build in installer if hooks/dist/ missing | 2026-03-06 | 76c0175 | [16-auto-run-hooks-build-in-installer-if-hoo](./quick/16-auto-run-hooks-build-in-installer-if-hoo/) |
-| 017 | Fix stale gsd_reflect_version in config template (1.13.0 -> 1.16.0), add stamp-version.js automation | 2026-03-06 | 52411c9 | [17-fix-stale-gsd-reflect-version-in-config-](./quick/17-fix-stale-gsd-reflect-version-in-config-/) |
-| 018 | Fix +dev suffix to apply when installing from git repo, not just --local | 2026-03-06 | 8232508 | [18-fix-dev-suffix-to-apply-when-installing-](./quick/18-fix-dev-suffix-to-apply-when-installing-/) |
-| 019 | Fix co-installation namespace safety: preserve upstream GSD during Reflect install/uninstall | 2026-03-06 | 842887f | [19-fix-co-installation-namespace-safety-ins](./quick/19-fix-co-installation-namespace-safety-ins/) |
-| 020 | Fix hooks failing in git worktrees (shell existence guards) | 2026-03-08 | 617483a | [20-fix-hooks-failing-in-git-worktrees](./quick/20-fix-hooks-failing-in-git-worktrees/) |
-| 021 | Fix hook installer to apply full content transforms (/gsd: prefix, quoted path.join args) | 2026-03-09 | 5ce01d6 | [21-fix-hook-installer-to-apply-full-content](./quick/21-fix-hook-installer-to-apply-full-content/) |
-
-### Roadmap Evolution
-
-v1.12 complete (Phases 0-6). v1.13 complete (Phases 7-12). v1.14 complete (Phases 13-21). v1.15 complete (Phases 22-30). v1.16 complete (Phases 31-35). All 5 milestones shipped, 105 plans completed. v1.17 roadmap created (Phases 36-43, 18 plans estimated).
-- Phase 44 added: GSDR Namespace Co-Installation (install-time namespace rewriting for co-installation with upstream GSD)
+- Research flag: upstream function drift magnitude unknown -- may affect Phase 46 effort
+- Research flag: init function signature compatibility needs validation during Phase 48
+- Research flag: context% bridge file lifecycle (stale files, concurrent sessions) needs investigation during Phase 51/52
 
 ### Key Artifacts
 
-- Tag `reflect-v1.12.2-pre-sync` -- immutable rollback point on main
-- Tag `reflect-v1.13.0` -- annotated release tag on commit d6a250b
-- Tag `reflect-v1.14.0` -- annotated release tag for multi-runtime interop
-- Tag `reflect-v1.15.0` -- annotated release tag for backlog & update experience
-- Tag `reflect-v1.16.0` -- annotated release tag for signal lifecycle & reflection
-- **Tag convention:** Fork tags use `reflect-v*` prefix to avoid collision with upstream tags. Upstream remote configured with `--no-tags`.
-- PR #3 -- sync/v1.13-upstream to main (https://github.com/loganrooks/get-shit-done-reflect/pull/3)
-- `.planning/FORK-STRATEGY.md` -- conflict resolution runbook + Merge Decision Log
-- `.planning/FORK-DIVERGENCES.md` -- per-file merge stances, post-merge risk recalibration
+- Fork audit reports: `.planning/fork-audit/` (10 reports informing v1.18 scope)
+- Research: `.planning/research/` (4 detailed analysis files: modular-migration, config-migration, migration-testing, integration-pitfalls)
+- Deliberation context: `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`
 
 ## Session Continuity
 
-Last session: 2026-03-09
-Stopped at: Completed quick-21 (fix hook installer content transforms). Ready for next task.
+Last session: 2026-03-10
+Stopped at: v1.18 roadmap created (10 phases, 48 requirements). Ready for `/gsd:plan-phase 45`.
 Resume file: None
-Deliberation context: .planning/deliberations/v1.17-plus-roadmap-deliberation.md (M-B through M-E themes for future milestones)
