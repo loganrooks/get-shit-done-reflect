@@ -14,6 +14,24 @@ const yellow = '\x1b[33m';
 const dim = '\x1b[2m';
 const reset = '\x1b[0m';
 
+// Codex agent config.toml marker -- distinct from MCP config marker (GSD:BEGIN)
+// Uses marker-to-EOF pattern (upstream parity) rather than BEGIN/END pairs
+const GSD_CODEX_MARKER = '# GSD Agent Configuration \u2014 managed by get-shit-done-reflect installer';
+
+const CODEX_AGENT_SANDBOX = {
+  'gsd-executor': 'workspace-write',
+  'gsd-planner': 'workspace-write',
+  'gsd-phase-researcher': 'workspace-write',
+  'gsd-project-researcher': 'workspace-write',
+  'gsd-research-synthesizer': 'workspace-write',
+  'gsd-verifier': 'workspace-write',
+  'gsd-codebase-mapper': 'workspace-write',
+  'gsd-roadmapper': 'workspace-write',
+  'gsd-debugger': 'workspace-write',
+  'gsd-plan-checker': 'read-only',
+  'gsd-integration-checker': 'read-only',
+};
+
 /**
  * Safe wrapper for fs operations with descriptive error messages.
  * Wraps fs.*Sync calls in try-catch, logs operation/path/hint on failure, re-throws.
@@ -928,9 +946,10 @@ function convertClaudeToGeminiToml(content) {
  * Uses TOML literal multi-line strings (''') for developer_instructions
  * to avoid backslash escape issues with bash/regex patterns in agent content.
  * @param {string} content - Markdown file content with optional YAML frontmatter
+ * @param {string} [agentName] - Agent name for sandbox mode lookup (e.g., 'gsdr-executor')
  * @returns {string} - TOML content with literal string delimiters
  */
-function convertClaudeToCodexAgentToml(content) {
+function convertClaudeToCodexAgentToml(content, agentName) {
   let description = '';
   let name = '';
   let body = content;
@@ -948,11 +967,19 @@ function convertClaudeToCodexAgentToml(content) {
     description = name ? `GSD agent: ${name}` : 'GSD agent';
   }
 
+  // Resolve sandbox mode: strip gsdr- prefix for lookup, default to read-only
+  let sandboxKey = agentName || '';
+  if (sandboxKey.startsWith('gsdr-')) {
+    sandboxKey = sandboxKey.replace(/^gsdr-/, 'gsd-');
+  }
+  const sandboxMode = CODEX_AGENT_SANDBOX[sandboxKey] || 'read-only';
+
   // Escape any triple single quotes in body to avoid premature TOML literal string termination
   const safeBody = body.replace(/'''/g, "' ' '");
 
   // Build TOML with literal multi-line string (''') for developer_instructions
   let toml = `description = ${JSON.stringify(description)}\n`;
+  toml += `sandbox_mode = "${sandboxMode}"\n`;
   toml += `developer_instructions = '''\n${safeBody}\n'''\n`;
 
   return toml;
@@ -1208,6 +1235,67 @@ function generateCodexMcpConfig(targetDir) {
   } else {
     fs.writeFileSync(configPath, tomlSection + '\n');
   }
+}
+
+/**
+ * Generate a TOML config block for registering GSD agents in Codex config.toml.
+ * Uses marker-to-EOF pattern (upstream parity) with [agents.name] entries.
+ * @param {Array<{name: string, description: string}>} agents - Agent metadata
+ * @returns {string} - TOML config block with marker header
+ */
+function generateCodexConfigBlock(agents) {
+  const lines = [
+    GSD_CODEX_MARKER,
+    '',
+  ];
+  for (const { name, description } of agents) {
+    lines.push(`[agents.${name}]`);
+    lines.push(`description = ${JSON.stringify(description)}`);
+    lines.push(`config_file = "agents/${name}.toml"`);
+    lines.push('');
+  }
+  return lines.join('\n');
+}
+
+/**
+ * Strip GSD agent registration from Codex config.toml content.
+ * Removes everything from GSD_CODEX_MARKER to EOF, preserving content before marker.
+ * @param {string} content - config.toml content
+ * @returns {string|null} - Cleaned content, or null if file would be empty
+ */
+function stripGsdFromCodexConfig(content) {
+  const markerIndex = content.indexOf(GSD_CODEX_MARKER);
+  if (markerIndex !== -1) {
+    let before = content.substring(0, markerIndex).trimEnd();
+    return before || null;
+  }
+  return content;
+}
+
+/**
+ * Merge GSD agent config block into Codex config.toml.
+ * Creates file if missing, replaces existing GSD section if present, appends otherwise.
+ * @param {string} configPath - Path to config.toml
+ * @param {string} gsdBlock - TOML block from generateCodexConfigBlock
+ */
+function mergeCodexConfig(configPath, gsdBlock) {
+  if (!fs.existsSync(configPath)) {
+    fs.writeFileSync(configPath, gsdBlock + '\n');
+    return;
+  }
+  const existing = fs.readFileSync(configPath, 'utf8');
+  const markerIndex = existing.indexOf(GSD_CODEX_MARKER);
+  if (markerIndex !== -1) {
+    let before = existing.substring(0, markerIndex).trimEnd();
+    if (before) {
+      fs.writeFileSync(configPath, before + '\n\n' + gsdBlock + '\n');
+    } else {
+      fs.writeFileSync(configPath, gsdBlock + '\n');
+    }
+    return;
+  }
+  const content = existing.trimEnd() + '\n\n' + gsdBlock + '\n';
+  fs.writeFileSync(configPath, content);
 }
 
 /**
@@ -1664,25 +1752,53 @@ function uninstall(isGlobal, runtime = 'claude') {
     }
   }
 
-  // 3c. Remove GSD section from config.toml (Codex only)
+  // 3c. Remove GSD agent registration and MCP config from config.toml (Codex only)
   if (isCodex) {
     const configTomlPath = path.join(targetDir, 'config.toml');
     if (fs.existsSync(configTomlPath)) {
       let content = fs.readFileSync(configTomlPath, 'utf8');
-      const GSD_BEGIN = '# GSD:BEGIN (get-shit-done-reflect-cc)';
-      const GSD_END = '# GSD:END (get-shit-done-reflect-cc)';
-      const beginIdx = content.indexOf(GSD_BEGIN);
-      const endIdx = content.indexOf(GSD_END);
-      if (beginIdx !== -1 && endIdx !== -1) {
-        content = content.substring(0, beginIdx) + content.substring(endIdx + GSD_END.length);
-        content = content.trim();
-        if (content.length === 0) {
-          fs.unlinkSync(configTomlPath);
-        } else {
-          fs.writeFileSync(configTomlPath, content + '\n');
-        }
-        console.log(`  ${green}✓${reset} Removed GSD section from config.toml`);
+      // Strip agent registration (marker-to-EOF pattern)
+      const cleaned = stripGsdFromCodexConfig(content);
+      if (cleaned === null) {
+        fs.unlinkSync(configTomlPath);
+        console.log(`  ${green}✓${reset} Removed config.toml (was GSD-only)`);
         removedCount++;
+      } else if (cleaned !== content) {
+        // Also strip MCP config section if present
+        const GSD_MCP_BEGIN = '# GSD:BEGIN (get-shit-done-reflect-cc)';
+        const GSD_MCP_END = '# GSD:END (get-shit-done-reflect-cc)';
+        let finalContent = cleaned;
+        const mBegin = finalContent.indexOf(GSD_MCP_BEGIN);
+        const mEnd = finalContent.indexOf(GSD_MCP_END);
+        if (mBegin !== -1 && mEnd !== -1) {
+          finalContent = finalContent.substring(0, mBegin) + finalContent.substring(mEnd + GSD_MCP_END.length);
+          finalContent = finalContent.trim();
+        }
+        if (!finalContent) {
+          fs.unlinkSync(configTomlPath);
+          console.log(`  ${green}✓${reset} Removed config.toml (was GSD-only)`);
+        } else {
+          fs.writeFileSync(configTomlPath, finalContent + '\n');
+          console.log(`  ${green}✓${reset} Cleaned GSD sections from config.toml`);
+        }
+        removedCount++;
+      } else {
+        // No agent marker found, still check MCP markers
+        const GSD_MCP_BEGIN = '# GSD:BEGIN (get-shit-done-reflect-cc)';
+        const GSD_MCP_END = '# GSD:END (get-shit-done-reflect-cc)';
+        const mBegin = content.indexOf(GSD_MCP_BEGIN);
+        const mEnd = content.indexOf(GSD_MCP_END);
+        if (mBegin !== -1 && mEnd !== -1) {
+          let finalContent = content.substring(0, mBegin) + content.substring(mEnd + GSD_MCP_END.length);
+          finalContent = finalContent.trim();
+          if (!finalContent) {
+            fs.unlinkSync(configTomlPath);
+          } else {
+            fs.writeFileSync(configTomlPath, finalContent + '\n');
+          }
+          console.log(`  ${green}✓${reset} Removed GSD MCP section from config.toml`);
+          removedCount++;
+        }
       }
     }
   }
@@ -2384,27 +2500,41 @@ function install(isGlobal, runtime = 'claude') {
       }
     }
 
-    // Convert each agent .md source to .toml
+    // Convert each agent .md source to .toml, collecting metadata for config.toml
     const agentEntries = fs.readdirSync(agentsSrc, { withFileTypes: true });
+    const agents = [];
     for (const entry of agentEntries) {
       if (entry.isFile() && entry.name.endsWith('.md')) {
         let content = fs.readFileSync(path.join(agentsSrc, entry.name), 'utf8');
         // Apply same transforms as other runtimes
         content = replacePathsInContent(content, pathPrefix);
         content = processAttribution(content, getCommitAttribution(runtime));
-        // Convert to TOML with literal multi-line strings
-        const tomlContent = convertClaudeToCodexAgentToml(content);
         // Rename gsd-*.md -> gsdr-*.toml
         const destName = entry.name.startsWith('gsd-')
           ? entry.name.replace(/^gsd-/, 'gsdr-').replace(/\.md$/, '.toml')
           : entry.name.replace(/\.md$/, '.toml');
+        const agentBaseName = destName.replace('.toml', '');
+        // Convert to TOML with literal multi-line strings, passing agent name for sandbox mode lookup
+        const tomlContent = convertClaudeToCodexAgentToml(content, agentBaseName);
         fs.writeFileSync(path.join(codexAgentsDest, destName), tomlContent);
+        // Collect metadata for config.toml registration
+        const { frontmatter } = extractFrontmatterAndBody(content);
+        const description = extractFrontmatterField(frontmatter, 'description') || '';
+        agents.push({ name: agentBaseName, description });
       }
     }
     if (verifyInstalled(codexAgentsDest, 'agents')) {
       console.log(`  ${green}✓${reset} Installed agents (TOML)`);
     } else {
       failures.push('agents');
+    }
+
+    // Register agents in config.toml
+    if (agents.length > 0) {
+      const configPath = path.join(targetDir, 'config.toml');
+      const gsdBlock = generateCodexConfigBlock(agents);
+      mergeCodexConfig(configPath, gsdBlock);
+      console.log(`  ${green}+${reset} Registered ${agents.length} agents in config.toml`);
     }
   }
 
@@ -2867,4 +2997,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings };
