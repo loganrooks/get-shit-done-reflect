@@ -771,7 +771,7 @@ function convertClaudeToGeminiAgent(content) {
   return `---\n${newFrontmatter}\n---${escapedBody}`;
 }
 
-function convertClaudeToOpencodeFrontmatter(content) {
+function convertClaudeToOpencodeFrontmatter(content, { isAgent = false } = {}) {
   // Replace tool name references in content (applies to all files)
   let convertedContent = content;
   convertedContent = convertedContent.replace(/\bAskUserQuestion\b/g, 'question');
@@ -779,6 +779,8 @@ function convertClaudeToOpencodeFrontmatter(content) {
   convertedContent = convertedContent.replace(/\bTodoWrite\b/g, 'todowrite');
   // Replace /gsd:command with /gsd-command for opencode (flat command structure)
   convertedContent = convertedContent.replace(/\/gsd:/g, '/gsd-');
+  // Remap subagent_type="general-purpose" to "general" for OpenCode compatibility
+  convertedContent = convertedContent.replace(/subagent_type="general-purpose"/g, 'subagent_type="general"');
   // Path replacement is handled by replacePathsInContent() at the call site.
   // Do NOT do path replacement here to avoid double-replacement.
 
@@ -790,10 +792,29 @@ function convertClaudeToOpencodeFrontmatter(content) {
   const lines = fm.split('\n');
   const newLines = [];
   let inAllowedTools = false;
+  let inSkippedArrayField = false;
   const allowedTools = [];
 
   for (const line of lines) {
     const trimmed = line.trim();
+
+    // Skip commented lines when converting agent files (comments not valid in opencode frontmatter)
+    if (isAgent && trimmed.startsWith('#')) {
+      continue;
+    }
+
+    // Strip agent-only fields when isAgent is true (with multi-line array handling)
+    if (isAgent && /^(skills|color|memory|maxTurns|permissionMode|disallowedTools):/.test(trimmed)) {
+      inSkippedArrayField = true;
+      continue;
+    }
+    if (inSkippedArrayField) {
+      if (trimmed.startsWith('- ')) {
+        continue;
+      }
+      inSkippedArrayField = false;
+      // Fall through to process this line normally
+    }
 
     // Detect start of allowed-tools array
     if (trimmed.startsWith('allowed-tools:')) {
@@ -2318,7 +2339,7 @@ function install(isGlobal, runtime = 'claude') {
         content = processAttribution(content, getCommitAttribution(runtime));
         // Convert frontmatter for runtime compatibility
         if (isOpencode) {
-          content = convertClaudeToOpencodeFrontmatter(content);
+          content = convertClaudeToOpencodeFrontmatter(content, { isAgent: true });
         } else if (isGemini) {
           content = convertClaudeToGeminiAgent(content);
         }
