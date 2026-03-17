@@ -795,4 +795,275 @@ describe('multi-runtime validation', () => {
       expect(codex, 'Codex VERSION should match Claude').toBe(claude)
     })
   })
+
+  // ---------------------------------------------------------------------------
+  // Cross-runtime parity enforcement
+  // ---------------------------------------------------------------------------
+
+  describe('Cross-runtime parity enforcement', () => {
+    const SUPPORTED_RUNTIMES = ['claude', 'opencode', 'gemini', 'codex']
+
+    const INTENTIONAL_DIVERGENCES = {
+      agentExtensions: {
+        claude: '.md', opencode: '.md', gemini: '.md', codex: '.toml',
+        // WHY: Codex uses TOML config files for agents, others use markdown
+      },
+      commandStructure: {
+        claude: { dir: 'commands/gsdr', nested: true },
+        opencode: { dir: 'command', nested: false },
+        gemini: { dir: 'commands/gsdr', nested: true },
+        codex: { dir: 'skills', nested: false },
+        // WHY: Each runtime has its own command/skill format
+      },
+      hooksSupport: {
+        claude: true, opencode: false, gemini: true, codex: false,
+        // WHY: OpenCode has no settings.json hook system, Codex has no hook support
+      },
+      codexAgentsMd: true,
+      // WHY: Codex benefits from a consolidated AGENTS.md alongside individual .toml files
+    }
+
+    tmpdirTest('artifact count parity across runtimes', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // Define paths for each runtime's artifact categories
+      const runtimePaths = {
+        claude: {
+          agents: path.join(tmpdir, '.claude', 'agents'),
+          workflows: path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'workflows'),
+          references: path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'references'),
+          templates: path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'templates'),
+        },
+        opencode: {
+          agents: path.join(configHome, 'opencode', 'agents'),
+          workflows: path.join(configHome, 'opencode', 'get-shit-done-reflect', 'workflows'),
+          references: path.join(configHome, 'opencode', 'get-shit-done-reflect', 'references'),
+          templates: path.join(configHome, 'opencode', 'get-shit-done-reflect', 'templates'),
+        },
+        gemini: {
+          agents: path.join(tmpdir, '.gemini', 'agents'),
+          workflows: path.join(tmpdir, '.gemini', 'get-shit-done-reflect', 'workflows'),
+          references: path.join(tmpdir, '.gemini', 'get-shit-done-reflect', 'references'),
+          templates: path.join(tmpdir, '.gemini', 'get-shit-done-reflect', 'templates'),
+        },
+        codex: {
+          agents: path.join(tmpdir, '.codex', 'agents'),
+          workflows: path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'workflows'),
+          references: path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'references'),
+          templates: path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'templates'),
+        },
+      }
+
+      // Count agents per runtime (using runtime-specific extensions)
+      const agentCounts = {}
+      for (const runtime of SUPPORTED_RUNTIMES) {
+        const ext = INTENTIONAL_DIVERGENCES.agentExtensions[runtime]
+        const dir = runtimePaths[runtime].agents
+        if (!fsSync.existsSync(dir)) {
+          agentCounts[runtime] = 0
+          continue
+        }
+        const entries = fsSync.readdirSync(dir)
+        agentCounts[runtime] = entries.filter(f => f.startsWith('gsdr-') && f.endsWith(ext)).length
+      }
+
+      // All runtimes should have the same agent count
+      const refAgentCount = agentCounts.claude
+      expect(refAgentCount, 'Claude should have at least 1 agent').toBeGreaterThanOrEqual(1)
+      for (const runtime of SUPPORTED_RUNTIMES) {
+        expect(agentCounts[runtime], `Agent count parity: ${runtime} (${agentCounts[runtime]}) vs claude (${refAgentCount})`).toBe(refAgentCount)
+      }
+
+      // Count shared categories (workflows, references, templates) -- all use .md
+      for (const category of ['workflows', 'references', 'templates']) {
+        const counts = {}
+        for (const runtime of SUPPORTED_RUNTIMES) {
+          const dir = runtimePaths[runtime][category]
+          if (!fsSync.existsSync(dir)) {
+            counts[runtime] = 0
+            continue
+          }
+          const entries = fsSync.readdirSync(dir)
+          counts[runtime] = entries.filter(f => f.endsWith('.md')).length
+        }
+
+        const refCount = counts.claude
+        expect(refCount, `Claude should have at least 1 ${category} file`).toBeGreaterThanOrEqual(1)
+        for (const runtime of SUPPORTED_RUNTIMES) {
+          expect(counts[runtime], `${category} count parity: ${runtime} (${counts[runtime]}) vs claude (${refCount})`).toBe(refCount)
+        }
+      }
+    })
+
+    tmpdirTest('agent name set equivalence across runtimes', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // Extract agent names per runtime, stripping runtime-specific extension
+      function getAgentNames(dir, ext) {
+        if (!fsSync.existsSync(dir)) return []
+        const entries = fsSync.readdirSync(dir)
+        return entries
+          .filter(f => f.startsWith('gsdr-') && f.endsWith(ext))
+          .map(f => f.substring(0, f.lastIndexOf('.')))
+          .sort()
+      }
+
+      const agentSets = {}
+      const agentDirs = {
+        claude: path.join(tmpdir, '.claude', 'agents'),
+        opencode: path.join(configHome, 'opencode', 'agents'),
+        gemini: path.join(tmpdir, '.gemini', 'agents'),
+        codex: path.join(tmpdir, '.codex', 'agents'),
+      }
+
+      for (const runtime of SUPPORTED_RUNTIMES) {
+        const ext = INTENTIONAL_DIVERGENCES.agentExtensions[runtime]
+        agentSets[runtime] = getAgentNames(agentDirs[runtime], ext)
+      }
+
+      // All runtimes should have the identical sorted name list
+      expect(agentSets.claude.length, 'should have at least 1 agent').toBeGreaterThanOrEqual(1)
+      expect(agentSets.opencode, 'Agent names: OpenCode vs Claude').toEqual(agentSets.claude)
+      expect(agentSets.gemini, 'Agent names: Gemini vs Claude').toEqual(agentSets.claude)
+      expect(agentSets.codex, 'Agent names: Codex vs Claude').toEqual(agentSets.claude)
+    })
+
+    tmpdirTest('content quality: runtime-specific transformations applied', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // 1. Gemini agents: no ${} template patterns in body
+      const geminiAgentsDir = path.join(tmpdir, '.gemini', 'agents')
+      const geminiAgentFiles = fsSync.readdirSync(geminiAgentsDir)
+        .filter(f => f.startsWith('gsdr-') && f.endsWith('.md'))
+      expect(geminiAgentFiles.length, 'should have Gemini agent files').toBeGreaterThanOrEqual(1)
+
+      for (const agentFile of geminiAgentFiles) {
+        const content = await fs.readFile(path.join(geminiAgentsDir, agentFile), 'utf8')
+        // Separate frontmatter from body (split on ---)
+        const parts = content.split('---')
+        const body = parts.slice(2).join('---')
+        // Strip fenced code blocks before checking -- bash ${ARRAY[@]} syntax
+        // inside code examples is intentional, not leaked template variables
+        const bodyWithoutCodeBlocks = body.replace(/```[\s\S]*?```/g, '')
+        const templateVarMatches = bodyWithoutCodeBlocks.match(/\$\{[^}]+\}/g)
+        expect(templateVarMatches, `Gemini ${agentFile}: body should have no \${} template variables outside code blocks (found: ${templateVarMatches})`).toBeNull()
+      }
+
+      // 2. Codex workflows: actual command invocations use $gsdr- not /gsdr:
+      // Note: /gsdr: may appear in prose documenting other runtimes' syntax.
+      // We check for actual command invocation patterns: /gsdr:verb-name
+      const codexWorkflowsDir = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'workflows')
+      const codexWorkflowFiles = fsSync.readdirSync(codexWorkflowsDir)
+        .filter(f => f.endsWith('.md'))
+
+      for (const wfFile of codexWorkflowFiles) {
+        const content = await fs.readFile(path.join(codexWorkflowsDir, wfFile), 'utf8')
+        // Check for /gsdr: used as actual command invocations (e.g., /gsdr:plan-phase, /gsdr:execute-phase)
+        // These are the patterns that should have been converted to $gsdr-plan-phase etc.
+        // Exclude prose/documentation references like "command prefix: /gsdr:" or lists of syntax formats
+        const commandInvocations = content.match(/\/gsdr:[a-z][\w-]*/g)
+        expect(commandInvocations, `Codex workflow ${wfFile}: should NOT contain /gsdr: command invocations (found: ${commandInvocations})`).toBeNull()
+      }
+
+      // 3. OpenCode agents: no skills: in frontmatter
+      const opcodeAgentsDir = path.join(configHome, 'opencode', 'agents')
+      const opcodeAgentFiles = fsSync.readdirSync(opcodeAgentsDir)
+        .filter(f => f.startsWith('gsdr-') && f.endsWith('.md'))
+      expect(opcodeAgentFiles.length, 'should have OpenCode agent files').toBeGreaterThanOrEqual(1)
+
+      for (const agentFile of opcodeAgentFiles) {
+        const content = await fs.readFile(path.join(opcodeAgentsDir, agentFile), 'utf8')
+        // Extract frontmatter (between first and second ---)
+        const parts = content.split('---')
+        if (parts.length >= 3) {
+          const frontmatter = parts[1]
+          expect(frontmatter, `OpenCode ${agentFile}: frontmatter should NOT contain skills:`).not.toContain('skills:')
+        }
+      }
+
+      // 4. Codex agent TOMLs: contain sandbox_mode =
+      const codexAgentsDir = path.join(tmpdir, '.codex', 'agents')
+      const codexAgentFiles = fsSync.readdirSync(codexAgentsDir)
+        .filter(f => f.startsWith('gsdr-') && f.endsWith('.toml'))
+      expect(codexAgentFiles.length, 'should have Codex agent TOML files').toBeGreaterThanOrEqual(1)
+
+      for (const agentFile of codexAgentFiles) {
+        const content = await fs.readFile(path.join(codexAgentsDir, agentFile), 'utf8')
+        expect(content, `Codex ${agentFile}: should contain sandbox_mode =`).toContain('sandbox_mode =')
+      }
+    })
+
+    tmpdirTest('new runtime detection: unknown runtime directories flagged', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // Known directories that are expected after --all install
+      const knownDirs = new Set([
+        '.claude', '.codex', '.gemini', '.config', '.gsd',
+        '.npm', '.node_modules',
+      ])
+
+      // Plausible future runtime directories to watch for
+      const futureRuntimePatterns = ['.copilot', '.cursor', '.windsurf', '.agent', '.aide']
+
+      // Scan tmpdir for hidden directories
+      const entries = fsSync.readdirSync(tmpdir, { withFileTypes: true })
+      const hiddenDirs = entries
+        .filter(e => e.isDirectory() && e.name.startsWith('.'))
+        .map(e => e.name)
+
+      // Flag any hidden directory that matches a future runtime pattern
+      const unexpectedRuntimes = hiddenDirs.filter(
+        dir => futureRuntimePatterns.includes(dir) && !knownDirs.has(dir)
+      )
+
+      expect(
+        unexpectedRuntimes,
+        `Detected runtime directory ${unexpectedRuntimes.join(', ')} not in SUPPORTED_RUNTIMES -- add parity coverage`
+      ).toHaveLength(0)
+
+      // Also flag any completely unknown hidden directory not in knownDirs
+      // (catches installer producing unexpected output)
+      const unknownDirs = hiddenDirs.filter(dir => !knownDirs.has(dir))
+      // Only warn about unknown dirs that look like they could be runtimes
+      // (have agents/ or get-shit-done-reflect/ subdir)
+      const suspiciousUnknown = unknownDirs.filter(dir => {
+        const dirPath = path.join(tmpdir, dir)
+        return fsSync.existsSync(path.join(dirPath, 'agents')) ||
+               fsSync.existsSync(path.join(dirPath, 'get-shit-done-reflect'))
+      })
+
+      expect(
+        suspiciousUnknown,
+        `Unknown directories with runtime-like structure: ${suspiciousUnknown.join(', ')} -- investigate and add to SUPPORTED_RUNTIMES or knownDirs`
+      ).toHaveLength(0)
+    })
+  })
 })
