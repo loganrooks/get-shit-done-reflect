@@ -1335,7 +1335,7 @@ Use WebFetch and Task and SlashCommand for these features.`
     })
 
     describe('convertClaudeToCodexAgentToml() unit tests', () => {
-      it('basic conversion with frontmatter produces TOML with description and literal string body', () => {
+      it('basic conversion with frontmatter produces TOML with literal string body (no description)', () => {
         const input = `---
 name: gsd-test
 description: A test agent
@@ -1344,7 +1344,7 @@ Body content here`
 
         const result = convertClaudeToCodexAgentToml(input)
 
-        expect(result).toContain('description = "A test agent"')
+        expect(result).not.toContain('description =')
         expect(result).toContain("developer_instructions = '''")
         expect(result).toContain('Body content here')
         expect(result).toContain("'''")
@@ -1382,7 +1382,7 @@ Body content here`
 
         expect(result).toContain("developer_instructions = '''")
         expect(result).toContain('Just raw body content with no frontmatter delimiters')
-        expect(result).toContain('description = "GSD agent"')
+        expect(result).not.toContain('description =')
         expect(result).toContain("'''")
       })
 
@@ -1405,19 +1405,6 @@ Some content with ''' inside it`
         expect(parts[1]).not.toContain("'''")
       })
 
-      it('falls back to a reasonable description when frontmatter has no description', () => {
-        const input = `---
-name: gsd-helper
----
-Agent body content`
-
-        const result = convertClaudeToCodexAgentToml(input)
-
-        // Should use name-based fallback
-        expect(result).toContain('description = "GSD agent: gsd-helper"')
-        expect(result).toContain("developer_instructions = '''")
-      })
-
       it('handles real agent content with high backslash density (gsd-verifier)', () => {
         const agentPath = path.resolve(process.cwd(), 'agents', 'gsd-verifier.md')
         const agentContent = fsSync.readFileSync(agentPath, 'utf8')
@@ -1431,9 +1418,9 @@ Agent body content`
         expect(result).not.toContain('developer_instructions = """')
         // Content must be present between delimiters
         expect(result).toContain("'''")
-        // Should have a description from frontmatter
-        expect(result).toContain('description = ')
-        // The word "verifier" should appear somewhere in content or description
+        // Should NOT have a description field (Codex schema: additionalProperties false)
+        expect(result).not.toContain('description =')
+        // The word "verifier" should appear somewhere in developer_instructions body
         expect(result.toLowerCase()).toContain('verif')
       })
 
@@ -1463,6 +1450,30 @@ Agent body content`
         const input = '---\nname: gsd-test\ndescription: Test\n---\nBody'
         const result = convertClaudeToCodexAgentToml(input)
         expect(result).toContain('sandbox_mode = "read-only"')
+      })
+
+      it('does not include description field in output for any input variation', () => {
+        // With description in frontmatter
+        const withDesc = convertClaudeToCodexAgentToml(
+          '---\nname: gsd-test\ndescription: A test agent\n---\nBody'
+        )
+        expect(withDesc).not.toContain('description =')
+
+        // Without frontmatter at all
+        const noFrontmatter = convertClaudeToCodexAgentToml('Just raw content')
+        expect(noFrontmatter).not.toContain('description =')
+
+        // With name only (no description in frontmatter)
+        const nameOnly = convertClaudeToCodexAgentToml(
+          '---\nname: gsd-helper\n---\nBody content'
+        )
+        expect(nameOnly).not.toContain('description =')
+
+        // All should still have the required fields
+        for (const result of [withDesc, noFrontmatter, nameOnly]) {
+          expect(result).toContain('sandbox_mode =')
+          expect(result).toContain("developer_instructions = '''")
+        }
       })
     })
 

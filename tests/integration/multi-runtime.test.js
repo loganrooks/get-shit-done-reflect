@@ -444,7 +444,7 @@ describe('multi-runtime validation', () => {
       expect(content).not.toContain('developer_instructions = """')
 
       // Must contain actual agent content (not empty)
-      expect(content).toContain('description = ')
+      expect(content).not.toContain('description =')
       expect(content.length).toBeGreaterThan(100)
     })
   })
