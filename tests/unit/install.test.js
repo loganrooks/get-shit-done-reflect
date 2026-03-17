@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -509,6 +509,76 @@ describe('install script', () => {
         expect(fsSync.existsSync(path.join(planningDir, 'knowledge', 'signals'))).toBe(true)
         expect(fsSync.existsSync(path.join(planningDir, 'knowledge', 'reflections'))).toBe(true)
         expect(fsSync.existsSync(path.join(planningDir, 'knowledge', 'spikes'))).toBe(true)
+      })
+    })
+
+    describe('extractFrontmatterAndBody unit tests', () => {
+      it('extracts frontmatter and body from valid content', () => {
+        const input = '---\nname: test\ndescription: A test\n---\nBody here'
+        const result = extractFrontmatterAndBody(input)
+        expect(result.frontmatter).toBe('name: test\ndescription: A test')
+        expect(result.body).toBe('\nBody here')
+      })
+
+      it('returns null frontmatter when content has no frontmatter', () => {
+        const input = 'Just plain content'
+        const result = extractFrontmatterAndBody(input)
+        expect(result.frontmatter).toBeNull()
+        expect(result.body).toBe('Just plain content')
+      })
+
+      it('returns null frontmatter when end delimiter is missing', () => {
+        const input = '---\nname: test\nno end delimiter'
+        const result = extractFrontmatterAndBody(input)
+        expect(result.frontmatter).toBeNull()
+        expect(result.body).toBe('---\nname: test\nno end delimiter')
+      })
+
+      it('handles empty frontmatter', () => {
+        const input = '---\n---\nBody only'
+        const result = extractFrontmatterAndBody(input)
+        expect(result.frontmatter).toBe('')
+        expect(result.body).toBe('\nBody only')
+      })
+
+      it('handles content with only frontmatter and no body', () => {
+        const input = '---\nname: test\n---'
+        const result = extractFrontmatterAndBody(input)
+        expect(result.frontmatter).toBe('name: test')
+        expect(result.body).toBe('')
+      })
+    })
+
+    describe('extractFrontmatterField unit tests', () => {
+      const fm = 'name: my-command\ndescription: Does something\ncolor: blue'
+
+      it('extracts an existing field', () => {
+        expect(extractFrontmatterField(fm, 'description')).toBe('Does something')
+      })
+
+      it('returns null for a missing field', () => {
+        expect(extractFrontmatterField(fm, 'missing')).toBeNull()
+      })
+
+      it('strips surrounding quotes from field value', () => {
+        const quoted = "description: 'A quoted value'"
+        expect(extractFrontmatterField(quoted, 'description')).toBe('A quoted value')
+      })
+
+      it('strips double quotes from field value', () => {
+        const quoted = 'description: "A double-quoted value"'
+        expect(extractFrontmatterField(quoted, 'description')).toBe('A double-quoted value')
+      })
+
+      it('trims leading and trailing whitespace from value', () => {
+        const spaced = 'description:   lots of space   '
+        expect(extractFrontmatterField(spaced, 'description')).toBe('lots of space')
+      })
+
+      it('extracts first field when multiple lines match prefix', () => {
+        const multi = 'name: first\nnamespace: second'
+        // 'name' regex is anchored to `^name:\s*` so it matches 'name:' not 'namespace:'
+        expect(extractFrontmatterField(multi, 'name')).toBe('first')
       })
     })
 
