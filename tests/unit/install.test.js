@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -579,6 +579,153 @@ describe('install script', () => {
         const multi = 'name: first\nnamespace: second'
         // 'name' regex is anchored to `^name:\s*` so it matches 'name:' not 'namespace:'
         expect(extractFrontmatterField(multi, 'name')).toBe('first')
+      })
+    })
+
+    describe('convertClaudeToOpencodeFrontmatter', () => {
+      describe('isAgent parameter', () => {
+        it('strips skills field with array items when isAgent is true', () => {
+          const input = '---\ndescription: test\nskills:\n  - skill1\n  - skill2\ncolor: blue\n---\nbody'
+          const result = convertClaudeToOpencodeFrontmatter(input, { isAgent: true })
+          expect(result).not.toContain('skills:')
+          expect(result).not.toContain('skill1')
+          expect(result).not.toContain('color:')
+          expect(result).toContain('description: test')
+        })
+
+        it('strips memory, maxTurns, permissionMode, disallowedTools when isAgent is true', () => {
+          const input = '---\ndescription: test\nmemory: true\nmaxTurns: 5\npermissionMode: auto\ndisallowedTools:\n  - Write\n  - Edit\n---\nbody'
+          const result = convertClaudeToOpencodeFrontmatter(input, { isAgent: true })
+          expect(result).not.toContain('memory:')
+          expect(result).not.toContain('maxTurns:')
+          expect(result).not.toContain('permissionMode:')
+          expect(result).not.toContain('disallowedTools:')
+          expect(result).not.toContain('Write')
+          expect(result).toContain('description: test')
+        })
+
+        it('skips commented lines when isAgent is true', () => {
+          const input = '---\ndescription: test\n# hooks:\n#   pre-tool-use: check.sh\n---\nbody'
+          const result = convertClaudeToOpencodeFrontmatter(input, { isAgent: true })
+          expect(result).not.toContain('hooks:')
+          expect(result).not.toContain('check.sh')
+          expect(result).toContain('description: test')
+        })
+
+        it('preserves color field when isAgent is false (default)', () => {
+          const input = '---\ncolor: blue\ndescription: test\n---\nbody'
+          const result = convertClaudeToOpencodeFrontmatter(input)
+          // color: blue gets converted to hex by the color converter
+          expect(result).toContain('color:')
+          expect(result).toContain('description: test')
+        })
+
+        it('preserves color field when isAgent is explicitly false', () => {
+          const input = '---\ncolor: blue\ndescription: test\n---\nbody'
+          const result = convertClaudeToOpencodeFrontmatter(input, { isAgent: false })
+          expect(result).toContain('color:')
+        })
+      })
+
+      describe('subagent_type remapping', () => {
+        it('remaps subagent_type="general-purpose" to "general"', () => {
+          const input = '---\ndescription: test\n---\nUse subagent_type="general-purpose" for tasks'
+          const result = convertClaudeToOpencodeFrontmatter(input)
+          expect(result).toContain('subagent_type="general"')
+          expect(result).not.toContain('general-purpose')
+        })
+
+        it('does not remap other subagent_type values', () => {
+          const input = '---\ndescription: test\n---\nUse subagent_type="specialist" here'
+          const result = convertClaudeToOpencodeFrontmatter(input)
+          expect(result).toContain('subagent_type="specialist"')
+        })
+      })
+
+      describe('existing behavior preserved', () => {
+        it('replaces tool names (AskUserQuestion, SlashCommand, TodoWrite)', () => {
+          const input = '---\ndescription: test\n---\nUse AskUserQuestion and SlashCommand and TodoWrite'
+          const result = convertClaudeToOpencodeFrontmatter(input)
+          expect(result).toContain('question')
+          expect(result).toContain('skill')
+          expect(result).toContain('todowrite')
+          expect(result).not.toContain('AskUserQuestion')
+        })
+
+        it('converts allowed-tools to tools object', () => {
+          const input = '---\nallowed-tools:\n  - Read\n  - Write\n---\nbody'
+          const result = convertClaudeToOpencodeFrontmatter(input)
+          expect(result).toContain('tools:')
+          expect(result).toContain('read: true')
+          expect(result).toContain('write: true')
+        })
+      })
+    })
+
+    describe('resolveOpencodeConfigPath', () => {
+      it('prefers .jsonc when it exists', () => {
+        const tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), 'gsd-test-'))
+        try {
+          fsSync.writeFileSync(path.join(tmpDir, 'opencode.json'), '{}')
+          fsSync.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), '{}')
+          const result = resolveOpencodeConfigPath(tmpDir)
+          expect(result).toBe(path.join(tmpDir, 'opencode.jsonc'))
+        } finally {
+          fsSync.rmSync(tmpDir, { recursive: true })
+        }
+      })
+
+      it('falls back to .json when .jsonc does not exist', () => {
+        const tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), 'gsd-test-'))
+        try {
+          const result = resolveOpencodeConfigPath(tmpDir)
+          expect(result).toBe(path.join(tmpDir, 'opencode.json'))
+        } finally {
+          fsSync.rmSync(tmpDir, { recursive: true })
+        }
+      })
+    })
+
+    describe('readSettings and writeSettings', () => {
+      it('readSettings returns empty object for missing file', () => {
+        const result = readSettings('/nonexistent/path/settings.json')
+        expect(result).toEqual({})
+      })
+
+      it('readSettings returns empty object for invalid JSON', () => {
+        const tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), 'gsd-test-'))
+        const filePath = path.join(tmpDir, 'bad.json')
+        try {
+          fsSync.writeFileSync(filePath, 'not json{{{')
+          const result = readSettings(filePath)
+          expect(result).toEqual({})
+        } finally {
+          fsSync.rmSync(tmpDir, { recursive: true })
+        }
+      })
+
+      it('readSettings parses valid JSON', () => {
+        const tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), 'gsd-test-'))
+        const filePath = path.join(tmpDir, 'good.json')
+        try {
+          fsSync.writeFileSync(filePath, '{"key": "value"}')
+          const result = readSettings(filePath)
+          expect(result).toEqual({ key: 'value' })
+        } finally {
+          fsSync.rmSync(tmpDir, { recursive: true })
+        }
+      })
+
+      it('writeSettings produces formatted JSON with trailing newline', () => {
+        const tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), 'gsd-test-'))
+        const filePath = path.join(tmpDir, 'out.json')
+        try {
+          writeSettings(filePath, { a: 1, b: 'two' })
+          const content = fsSync.readFileSync(filePath, 'utf8')
+          expect(content).toBe(JSON.stringify({ a: 1, b: 'two' }, null, 2) + '\n')
+        } finally {
+          fsSync.rmSync(tmpDir, { recursive: true })
+        }
       })
     })
 
