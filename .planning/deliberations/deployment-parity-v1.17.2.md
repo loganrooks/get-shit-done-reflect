@@ -12,7 +12,7 @@ Lifecycle: open → concluded → adopted → evaluated → superseded
 
 **Date:** 2026-03-17
 **Status:** Concluded
-**Trigger:** GitHub Issue #15 (Codex agent TOML backslash breakage) revealed that Codex runtime receives structurally different — and broken — deployment artifacts compared to Claude. Investigation of upstream issues #1037 (Codex config.toml pollution) and #1053 (OpenCode .jsonc resolution) showed this is a cross-platform pattern, not a Codex-specific bug. Further comparison with upstream's current installer revealed that upstream has independently solved several of the same problems AND added 2 new runtimes (Copilot, Antigravity), while our fork has accumulated bespoke branches without shared abstractions.
+**Trigger:** GitHub Issue #15 (Codex agent TOML backslash breakage) revealed that Codex runtime receives structurally different — and broken — deployment artifacts compared to Claude. Investigation expanded to all runtimes: upstream issues #1037 (Codex config.toml pollution), #1053 (OpenCode .jsonc resolution), plus diffing upstream's converters against ours revealed functional bugs in Gemini (`${VAR}` template escaping) and OpenCode (missing agent-specific field stripping). Further comparison showed upstream has converged on shared abstractions and a unified `copyWithPathReplacement()` with per-runtime content conversion — including for workflow files — while our fork has accumulated bespoke branches without this coverage.
 **Affects:** v1.17.2 patch release; v1.18 Phase 46-48 (module adoption, fork extraction, extend & verify)
 **Related:**
 - GitHub Issue #15 (loganrooks/get-shit-done-reflect): Codex TOML backslash breakage
@@ -21,12 +21,13 @@ Lifecycle: open → concluded → adopted → evaluated → superseded
 - Quick Task 22: Fixed Codex TOML generation with `'''` literal strings
 - `.planning/deliberations/cross-runtime-parity-testing.md` (Adopted): Testing strategy for parity gaps
 - sig-2026-03-05-multi-runtime-parity-testing-gap
+- Pending TODO: Dual-install Phase 2 (separate concern — update flow UX, not deployment correctness)
 
 ## Situation
 
 The GSD Reflect installer (`bin/install.js`, 2,834 lines) supports 4 runtimes: Claude, OpenCode, Gemini, Codex. Each runtime gets bespoke handling via scattered `if (isCodex) / else if (isOpencode)` conditionals (~35 total). Upstream now supports 6 runtimes (adding Copilot + Antigravity) at 3,084 lines and has converged on shared abstractions that our fork lacks.
 
-Three independent issues exposed deployment parity gaps:
+Three independent issues initially exposed the pattern, but investigation revealed deployment parity gaps across **all** non-Claude runtimes:
 
 1. **Issue #15 (fork, OPEN):** Codex agent TOML files used `"""` (basic strings) which break on backslash patterns in bash examples. Fixed by Quick Task 22 — added `convertClaudeToCodexAgentToml()` using `'''` literal strings.
 
@@ -34,9 +35,30 @@ Three independent issues exposed deployment parity gaps:
 
 3. **Issue #1053 (upstream, CLOSED with fix):** Installer hardcoded `opencode.json`, ignoring `opencode.jsonc`. Fixed upstream with `resolveOpencodeConfigPath()`. Our fork lacks this.
 
-### Upstream Innovations We're Missing
+### Per-Runtime Gap Analysis
 
-Comparison of upstream's current `install.js` (commit ~637a3e7) vs our fork:
+**Gemini gaps (2 functional bugs, 1 improvement):**
+- `${VAR}` template escaping: Gemini agents with `${PHASE}`, `${PLAN}` in bash blocks throw "Missing required input parameters" because Gemini's `templateString()` treats them as template variables. **Functional bug.**
+- `skills:` field stripping: Agent frontmatter with `skills:` causes Gemini CLI validation error. **Functional bug.**
+- `inSkippedArrayField`: Multi-line YAML array fields not properly handled during frontmatter cleanup.
+
+**OpenCode gaps (3 functional gaps, 1 bug fix):**
+- `isAgent` parameter: Agents get command-style conversion, leaving unsupported fields (`skills:`, `color:`, `memory:`, `maxTurns:`, `permissionMode:`, `disallowedTools:`) in agent frontmatter.
+- `subagent_type` remapping: `"general-purpose"` → `"general"` not happening — OpenCode agents may not spawn sub-agents correctly.
+- `resolveOpencodeConfigPath()`: `.jsonc` not respected (#1053 bug).
+- Path replacement in converter: Upstream explicitly replaces `~/.claude` → `~/.config/opencode` and `$HOME/.claude`; our fork defers to `replacePathsInContent()` at the call site.
+
+**Codex gaps (3 items beyond QT22):**
+- Sandbox modes: No `CODEX_AGENT_SANDBOX` per-agent permissions (`workspace-write` vs `read-only`).
+- Config.toml registration: Agents not registered via `[agents.name]` sections, no GSD marker for clean uninstall.
+- Workflow content conversion: `copyWithPathReplacement()` doesn't call `convertClaudeToCodexMarkdown()` for workflow/reference/template files — 59 files with Claude-specific patterns (`AskUserQuestion`, `Task(...)`, `/gsdr:command`) deployed unconverted.
+
+**Structural/cross-runtime gaps:**
+- `copyWithPathReplacement()` missing `isCommand`/`isGlobal` params and Codex content conversion path. Upstream dispatches all 6 runtimes including Codex markdown conversion.
+- No parity enforcement: adding a runtime requires touching 10+ places, no test fails if you miss one. Parity is "remember to do it" convention, not structural guarantee.
+- 6 separate ad-hoc frontmatter parsing sites instead of upstream's shared `extractFrontmatterAndBody()` + `extractFrontmatterField()`.
+
+### Upstream Innovations We're Missing
 
 | Innovation | Upstream | Fork | Impact |
 |-----------|----------|------|--------|
@@ -46,8 +68,15 @@ Comparison of upstream's current `install.js` (commit ~637a3e7) vs our fork:
 | **`CODEX_AGENT_SANDBOX`** | Per-agent sandbox mode config (`workspace-write` vs `read-only`) | No sandbox modes | Medium: Codex security model |
 | **`generateCodexConfigBlock()`** | Registers agents in config.toml with `[agents.name]` sections + GSD marker for clean uninstall | No agent registration, only `AGENTS.md` + raw TOML files | Medium: proper Codex integration |
 | **`stripGsdFromCodexConfig()`** | Clean removal of GSD sections from config.toml | No uninstall for Codex config sections | Medium: addresses #1037 pattern |
-| **Copilot runtime** | Full support: agents (.agent.md), skills (SKILL.md), tool mapping | Missing entirely | Low (v1.18 scope) |
-| **Antigravity runtime** | Full support: agents, skills, Gemini tool reuse | Missing entirely | Low (v1.18 scope) |
+| **Gemini `${VAR}` template escaping** | Converts `${PHASE}`, `${PLAN}` → `$PHASE`, `$PLAN` in agent body | Missing — Gemini agents fail with "Missing required input parameters" | **High: functional bug** |
+| **Gemini `skills:` field stripping** | Strips `skills:` from agent frontmatter | Missing — Gemini agent validation failures | Medium: functional bug |
+| **Gemini `inSkippedArrayField`** | Properly skips multi-line YAML array fields | Missing — multi-line fields leak into output | Low-medium |
+| **OpenCode `isAgent` parameter** | Agent-specific field stripping (skills, color, memory, maxTurns, permissionMode, disallowedTools) | Missing — agents get command-style conversion | Medium: functional gap |
+| **OpenCode `subagent_type` remapping** | `"general-purpose"` → `"general"` | Missing — sub-agents may not spawn | Medium: functional gap |
+| **`copyWithPathReplacement` Codex path** | Calls `convertClaudeToCodexMarkdown()` for workflow/reference/template files | Missing — 59 files deployed with Claude-specific patterns | **High: functional gap** |
+| **`copyWithPathReplacement` `isCommand`/`isGlobal`** | Distinguishes command vs workflow files; passes `isGlobal` to converters | Missing — all files treated identically | High: structural gap |
+| **Copilot runtime** | Full support | Missing entirely | Low (v1.18 scope) |
+| **Antigravity runtime** | Full support | Missing entirely | Low (v1.18 scope) |
 
 ### Evidence Base
 
@@ -56,67 +85,71 @@ Comparison of upstream's current `install.js` (commit ~637a3e7) vs our fork:
 | `bin/install.js` grep for frontmatter parsing | 6 ad-hoc `content.indexOf('---', 3)` + `split('\n')` sites in: `convertClaudeToGeminiAgent` (655), `convertClaudeToOpencodeFrontmatter` (739), `convertClaudeToGeminiToml` (842), `convertClaudeToCodexAgentToml` (885), `convertClaudeToCodexSkill` (951), `injectVersionScope` (1249) | Yes — grep confirmed all 6 | informal |
 | `bin/install.js` grep for sandbox/CODEX_AGENT_SANDBOX | Zero results — no sandbox support in fork | Yes — grep exit code 1 | informal |
 | `bin/install.js` grep for resolveOpencodeConfigPath/opencode.jsonc | Zero results — no jsonc support in fork | Yes — grep exit code 1 | informal |
-| Upstream `install.js` (3,084 lines, downloaded) | Has all 6 innovations listed above; supports 6 runtimes; `extractFrontmatterAndBody()` used 10+ times across all converters | Yes — read upstream source directly | informal |
+| Upstream `install.js` (3,084 lines, downloaded to /tmp) | Has all innovations listed above; supports 6 runtimes; shared helpers used 10+ times | Yes — read upstream source directly | informal |
 | Upstream Issue #1053 closed with commit 637a3e7 | `resolveOpencodeConfigPath()` is a 7-line function preferring `.jsonc` | Yes — read commit message and function source | informal |
 | Upstream Issue #1037 closed without code fix | Only comment is "I have same issue" — closed as known/wontfix | Yes — read issue comments via gh api | informal |
 | Quick Task 22 implementation | Our `convertClaudeToCodexAgentToml()` generates TOML with `'''` but doesn't set sandbox modes or register in config.toml | Yes — read our function (lines 879-912), confirmed no sandbox/registry | informal |
+| Diff of `convertClaudeToGeminiAgent()` upstream vs fork | Upstream adds: `inSkippedArrayField`, `skills:` stripping, `${VAR}` → `$VAR` escaping. Fork adds: tool name replacement in body text (upstream doesn't). | Yes — direct diff of both functions | informal |
+| Diff of `convertClaudeToOpencodeFrontmatter()` upstream vs fork | Upstream adds: `isAgent` parameter with agent-specific field stripping, `subagent_type` remapping, explicit path replacement | Yes — read both function signatures and bodies | informal |
+| Diff of `copyWithPathReplacement()` upstream vs fork | Upstream adds: `isCommand`/`isGlobal` params, Codex markdown conversion, Copilot/Antigravity paths. Fork only handles Claude/OpenCode/Gemini. | Yes — read both functions side-by-side | informal |
+| `get-shit-done/` workflow file audit | 59 files with runtime-specific patterns, 19 using `AskUserQuestion`, 16 using `subagent_type` | Yes — grep -rl confirmed counts | informal |
 
 ## Framing
 
-**Core question:** Before starting the v1.18 upstream sync, what upstream installer innovations should we adopt as a v1.17.2 patch to (a) fix known deployment bugs across all runtimes, (b) align our installer's abstractions with upstream's patterns to reduce merge conflict surface, and (c) bring Codex deployment to parity with Claude/OpenCode/Gemini?
+**Core question:** Before starting the v1.18 upstream sync, what upstream installer innovations should we adopt as a v1.17.2 patch to (a) fix known deployment bugs across all non-Claude runtimes (Gemini template escaping, OpenCode jsonc, Codex config management), (b) align our converter functions with upstream's patterns to reduce merge conflict surface, (c) bring all runtimes to deployment parity with Claude including workflow/reference/template files, and (d) make parity structurally enforced so future changes can't silently break non-Claude runtimes?
 
 **Adjacent questions:**
 - Should we adopt Copilot/Antigravity now or defer to v1.18? (Consensus: defer — new functionality, not a fix)
-- Should we refactor toward a runtime registry pattern? (Consensus: not in a patch — architectural change that needs its own deliberation)
+- Should we refactor toward a runtime registry pattern? (Consensus: not in a patch — architectural change that needs its own deliberation, but parity enforcement tests are a step in that direction)
 - How do we reconcile our `convertClaudeToCodexAgentToml()` (QT22) with upstream's `generateCodexAgentToml()`?
+- Is the dual-install TODO (update flow, hook awareness, version-pinned suppression) part of this? (No — it's UX for managing dual installs, not deployment correctness. Remains a separate pending TODO.)
 
 ## Analysis
 
-### Option A: Targeted Upstream Cherry-Pick (4 items)
+### Option A: Full Parity Across All Runtimes + Enforcement (Adopted)
 
-- **Claim:** Adopt 4 specific upstream innovations as a v1.17.2 patch: (1) shared frontmatter helpers, (2) `resolveOpencodeConfigPath()`, (3) Codex sandbox modes + config.toml agent registration, (4) `readSettings()`/`writeSettings()` helpers. Defer Copilot/Antigravity and registry refactor to v1.18.
-- **Grounds:** These 4 items fix known bugs (#1053 OpenCode, #1037 pattern for Codex config), eliminate 6 duplicate parsing sites, and align our converter functions with the signatures upstream expects — reducing merge conflicts during v1.18 Phase 46-48. Total estimated effort: 2-3 quick tasks. New runtimes (Copilot, Antigravity) require new test infrastructure and flag handling that belongs in the modularization phases.
-- **Warrant:** A patch should fix bugs and reduce technical debt, not add features. These 4 items are all bug-fixes or DRY improvements. Adopting upstream's function signatures now means v1.18's module adoption phase (46) can focus on modular structure, not on reconciling different helper function interfaces. The shared frontmatter helpers alone touch every converter — adopting them now means those converters will have the same call sites as upstream when we sync.
-- **Rebuttal:** Cherry-picking piecemeal creates a hybrid state where some upstream patterns are adopted but the overall structure still differs. If v1.18 changes these same functions again, we've done work twice. However, the frontmatter helpers are stable (used by 10+ call sites upstream — unlikely to change), and the Codex config management directly addresses user-reported issues.
-- **Qualifier:** Probably the right scope. Low risk, high alignment value.
+- **Claim:** Fix all non-Claude runtimes (Gemini, OpenCode, Codex) to deployment parity with Claude, upgrade `copyWithPathReplacement()` to convert workflow files for all runtimes, adopt shared abstractions from upstream, and add parity enforcement tests. Ship as v1.17.2.
+- **Grounds:** Investigation revealed functional bugs in Gemini (template escaping, skills stripping) and OpenCode (missing agent field stripping, subagent_type remapping) in addition to the Codex issues that triggered this deliberation. 59 workflow files are deployed to Codex without content conversion. Upstream has independently solved all of these and converged on shared helpers that we can adopt. 6 quick tasks cover the full scope: shared helpers → per-runtime fixes → structural upgrade → enforcement.
+- **Warrant:** The pattern of "fix one runtime, discover others are broken too" repeats across v1.14 (Phase 17), v1.17 (Phase 39), and now this investigation. Each time, the investigation revealed that non-Claude runtimes had accumulated gaps. The enforcement test (QT28) breaks this cycle — future changes that break parity will be caught by CI, not by user bug reports months later. The shared frontmatter helpers (QT23) reduce code and align function signatures with upstream. Per-runtime fixes (QT24-26) address active functional bugs. The `copyWithPathReplacement` upgrade (QT27) closes the workflow content gap. Together these make v1.18's sync significantly easier because our converter functions will already match upstream's patterns.
+- **Rebuttal:** 6 quick tasks is substantial for a "patch." If any task introduces a regression, it could delay the v1.18 work. However, each task is independently valuable, testable, and shippable — a regression in QT25 doesn't block QT24. The shared helpers (QT23) should land first since all subsequent tasks benefit from them.
+- **Qualifier:** This is the right scope. Each task addresses a real gap with evidence. The enforcement test prevents recurrence.
 
-### Option B: Full Parity Push (include Copilot + Antigravity)
+### Option B: Minimal — Only Bug Fixes (Rejected)
 
-- **Claim:** Adopt all upstream innovations including Copilot and Antigravity runtime support, making our fork fully runtime-equivalent with upstream before the v1.18 sync.
-- **Grounds:** Upstream's 6-runtime support is already working. The conversion functions follow consistent patterns (`convertClaudeTo{Runtime}Content` → `convertClaudeCommandTo{Runtime}Skill` → `convertClaudeAgentTo{Runtime}Agent`). Adding them now means v1.18 doesn't need to add new runtimes, only refactor existing ones.
-- **Warrant:** Completeness reduces the cognitive load of the v1.18 sync — every runtime would already exist, and the sync becomes purely structural (monolith → modules) rather than structural + functional.
-- **Rebuttal:** Copilot and Antigravity are untested on our fork. We'd need new tests, new flags (`--copilot`, `--antigravity`), and potentially new CI configurations. That's feature work, not a patch. It also means we're adding runtime support that diverges from upstream's implementation before we sync — we'd be creating MORE merge conflicts, not fewer. The namespace isolation alone (gsd → gsdr for 2 new runtimes) needs careful testing.
-- **Qualifier:** Probably too much scope for a patch release. Better to let v1.18 handle this with proper planning.
-
-### Option C: Minimal — Only Bug Fixes
-
-- **Claim:** Only adopt `resolveOpencodeConfigPath()` (#1053 fix) and Codex config.toml management (#1037 pattern). Skip the shared helpers and settings helpers.
-- **Grounds:** These are the only items that fix user-reported bugs. The shared frontmatter helpers are a refactor (DRY improvement) not a bug fix.
-- **Warrant:** Patches should be minimal. The DRY improvements, while valuable, change internal structure without fixing user-visible issues.
-- **Rebuttal:** The frontmatter helpers are the highest-value item for v1.18 prep — they touch every converter and aligning them now saves significant merge conflict resolution later. Skipping them means the v1.18 sync has to reconcile 6 different ad-hoc parsers with the shared helper pattern, which is the most error-prone part of the merge.
-- **Qualifier:** Too conservative. The merge conflict reduction alone justifies the shared helpers.
+- **Claim:** Only fix the three user-reported bugs: Gemini template escaping, OpenCode jsonc, Codex config management. Skip shared helpers, workflow conversion, and enforcement tests.
+- **Grounds:** These are the items with actual bug reports.
+- **Warrant:** Minimal patches minimize risk.
+- **Rebuttal:** This was the approach that created the current situation — fixing the reported bug without addressing the structural pattern underneath. The workflow content gap is arguably worse than the reported bugs (59 files with wrong syntax) but hasn't been reported because Codex users may not know what "correct" looks like. The enforcement test is the single most valuable item for long-term maintainability.
+- **Qualifier:** Too conservative. We'd be back here in v1.18 fixing the same class of issue.
 
 ## Tensions
 
-1. **Patch scope vs. v1.18 prep value:** A patch should be small and focused, but the shared helpers are high-value prep work that makes v1.18 dramatically easier. Resolution: include them — they're a refactor that reduces code, not a feature that adds it.
+1. **Patch scope vs. v1.18 prep value:** 6 quick tasks is large for a patch, but each one reduces the v1.18 sync burden. The alternative — deferring to v1.18 — means running the sync against a codebase with known functional bugs in 3 of 4 runtimes.
 
-2. **Our QT22 implementation vs. upstream's approach:** We just shipped `convertClaudeToCodexAgentToml()` which generates TOML. Upstream has `generateCodexAgentToml()` which does the same thing differently (uses `CODEX_AGENT_SANDBOX` config, different function name). Reconciliation needed — either adopt upstream's version (discarding QT22's function) or bridge them. Given v1.18 will sync anyway, adopting upstream's approach now is cleaner.
+2. **Our QT22 implementation vs. upstream's approach:** We just shipped `convertClaudeToCodexAgentToml()`. Upstream has `generateCodexAgentToml()` with different structure (uses `CODEX_AGENT_SANDBOX`, different function name). QT26 reconciles these.
 
-3. **Parity as a goal vs. parity as emergent:** We can't test Copilot/Antigravity because we don't have those runtimes installed. Upstream presumably tests them. Shipping untested runtime support is worse than not shipping it.
+3. **Enforcing parity vs. allowing intentional divergence:** The enforcement test must distinguish "missing converter" (bug) from "intentional skip" (e.g., Codex skips hooks). Use an explicit exception list that documents WHY each divergence exists.
+
+4. **Workflow conversion depth:** Upstream's `convertClaudeToCodexMarkdown()` does `/gsd:` → `$gsd-` and `$ARGUMENTS` → `{{GSD_ARGS}}` but doesn't remap tool names in workflow body text. Tool names like `AskUserQuestion` in workflow instructions may still confuse non-Claude runtimes. Full semantic conversion is out of scope for a patch — the `copyWithPathReplacement` upgrade handles what upstream handles.
 
 ## Recommendation
 
-**Adopt Option A: Targeted Upstream Cherry-Pick (4 items), scoped as v1.17.2 patch.**
+**Adopt Option A: Full Parity Across All Runtimes + Enforcement, as v1.17.2 patch.**
 
-Implementation as quick tasks:
+Implementation as 6 quick tasks (QT23 should land first; QT24-26 are independent; QT27 depends on QT23; QT28 depends on QT24-27):
 
-| QT# | Item | Scope | Est. |
-|-----|------|-------|------|
-| 23 | Shared frontmatter helpers (`extractFrontmatterAndBody`, `extractFrontmatterField`) — add functions, refactor all 6 parsing sites to use them | `bin/install.js`, unit tests | Medium |
-| 24 | OpenCode `.jsonc` resolution (`resolveOpencodeConfigPath`) + settings helpers (`readSettings`/`writeSettings`) | `bin/install.js`, unit + integration tests | Small |
-| 25 | Codex deployment parity: sandbox modes (`CODEX_AGENT_SANDBOX`), config.toml agent registration (`generateCodexConfigBlock`), clean uninstall (`stripGsdFromCodexConfig`), reconcile QT22 with upstream pattern | `bin/install.js`, unit + integration tests | Medium |
+| QT# | Item | Runtime(s) | Scope |
+|-----|------|-----------|-------|
+| 23 | **Shared frontmatter helpers** — add `extractFrontmatterAndBody()` + `extractFrontmatterField()`, refactor all 6 ad-hoc parsing sites to use them | All | `bin/install.js`, unit tests |
+| 24 | **Gemini converter parity** — `${VAR}` → `$VAR` template escaping, `skills:` field stripping, `inSkippedArrayField` handling | Gemini | `bin/install.js`, unit + integration tests |
+| 25 | **OpenCode converter parity** — `isAgent` parameter with agent-specific field stripping, `subagent_type` remapping, `resolveOpencodeConfigPath()`, `readSettings()`/`writeSettings()` helpers | OpenCode | `bin/install.js`, unit + integration tests |
+| 26 | **Codex deployment parity** — sandbox modes (`CODEX_AGENT_SANDBOX`), config.toml agent registration (`generateCodexConfigBlock`), clean uninstall (`stripGsdFromCodexConfig`), reconcile QT22 with upstream pattern | Codex | `bin/install.js`, unit + integration tests |
+| 27 | **`copyWithPathReplacement` upgrade** — add `isCommand`/`isGlobal` params, Codex content conversion for workflow/reference/template files, runtime dispatch for all 4 runtimes | All (esp. Codex) | `bin/install.js`, unit + integration tests |
+| 28 | **Parity enforcement test** — structural test that fails when a runtime is missing converter coverage, verifying agent count parity, workflow content conversion, and no runtime-specific gaps. Must have explicit exception list for intentional divergences. | All | `tests/integration/multi-runtime.test.js` |
 
-After all 3 quick tasks: tag as `reflect-v1.17.2`, note in roadmap that deployment parity was addressed pre-v1.18.
+After all 6 quick tasks: tag as `reflect-v1.17.2`, note in ROADMAP.md that deployment parity was addressed pre-v1.18.
+
+**Note on dual-install TODO:** The pending TODO ("Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression") is a separate concern about UX for managing dual local+global installs. It remains open and is not addressed by this patch.
 
 ## Predictions
 
@@ -126,13 +159,15 @@ After all 3 quick tasks: tag as `reflect-v1.17.2`, note in roadmap that deployme
 | P2 | v1.18 Phase 46 (module adoption) will have <5 merge conflicts in converter functions because our function signatures match upstream | Merge conflict count during Phase 46 | >5 conflicts in converter functions specifically |
 | P3 | Codex config.toml agent registration will prevent the #1037 flickering pattern because GSD sections are properly delimited with markers and cleanly removable | Manual test: install → uninstall → verify config.toml is clean | Config.toml retains GSD artifacts after uninstall |
 | P4 | OpenCode `.jsonc` resolution will work transparently — existing `.json` users unaffected, `.jsonc` users get correct behavior | Integration test with both file types | Test failure or regression in `.json` path |
+| P5 | Gemini `${VAR}` escaping will eliminate template validation errors for all agents | Install `--gemini --global`, grep for `${` in installed agents — should find 0 | Any installed Gemini agent still contains `${word}` patterns |
+| P6 | The parity enforcement test (QT28) will catch at least one gap if a new feature is added for Claude without equivalent coverage for other runtimes | Run test after any future Claude-only addition — should fail | Test passes despite missing non-Claude implementation |
 
 ## Decision Record
 
-**Decision:** Adopt Option A — 3 quick tasks (QT23-25) implementing shared frontmatter helpers, OpenCode jsonc fix, and Codex deployment parity. Release as v1.17.2. Defer Copilot/Antigravity and registry refactor to v1.18.
+**Decision:** Adopt Option A — 6 quick tasks (QT23-28) implementing shared frontmatter helpers, Gemini converter fixes, OpenCode converter fixes, Codex deployment parity, workflow content conversion upgrade, and parity enforcement tests. Release as v1.17.2. Defer Copilot/Antigravity and registry refactor to v1.18.
 **Decided:** 2026-03-17
-**Implemented via:** Quick Tasks 23, 24, 25 (pending)
-**Signals addressed:** sig-2026-03-05-multi-runtime-parity-testing-gap (partially — addresses the structural gaps that parity tests would catch)
+**Implemented via:** Quick Tasks 23, 24, 25, 26, 27, 28 (pending)
+**Signals addressed:** sig-2026-03-05-multi-runtime-parity-testing-gap (addresses both the testing gaps and the structural deployment gaps that cause them)
 
 ## Evaluation
 
