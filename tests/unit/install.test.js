@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -1436,6 +1436,34 @@ Agent body content`
         // The word "verifier" should appear somewhere in content or description
         expect(result.toLowerCase()).toContain('verif')
       })
+
+      it('includes sandbox_mode when agentName provided', () => {
+        const input = '---\nname: gsd-executor\ndescription: Plan executor\n---\nBody content'
+        const result = convertClaudeToCodexAgentToml(input, 'gsdr-executor')
+        expect(result).toContain('sandbox_mode = "workspace-write"')
+        // sandbox_mode must appear BEFORE developer_instructions
+        const sandboxIdx = result.indexOf('sandbox_mode')
+        const devIdx = result.indexOf('developer_instructions')
+        expect(sandboxIdx).toBeLessThan(devIdx)
+      })
+
+      it('strips gsdr- prefix for sandbox lookup', () => {
+        const input = '---\nname: gsd-plan-checker\ndescription: Plan checker\n---\nBody'
+        const result = convertClaudeToCodexAgentToml(input, 'gsdr-plan-checker')
+        expect(result).toContain('sandbox_mode = "read-only"')
+      })
+
+      it('defaults to read-only when agentName not in CODEX_AGENT_SANDBOX', () => {
+        const input = '---\nname: gsd-unknown\ndescription: Unknown agent\n---\nBody'
+        const result = convertClaudeToCodexAgentToml(input, 'gsdr-unknown')
+        expect(result).toContain('sandbox_mode = "read-only"')
+      })
+
+      it('defaults to read-only when agentName omitted (backward compat)', () => {
+        const input = '---\nname: gsd-test\ndescription: Test\n---\nBody'
+        const result = convertClaudeToCodexAgentToml(input)
+        expect(result).toContain('sandbox_mode = "read-only"')
+      })
     })
 
     describe('generateCodexAgentsMd() unit tests', () => {
@@ -2028,6 +2056,128 @@ Also use the Read tool to read files and Bash to run commands.`
 
       const content = fsSync.readFileSync(path.join(tmpdir, 'config.toml'), 'utf8')
       expect(content).not.toContain('required')
+    })
+  })
+
+  describe('Codex config.toml agent registration', () => {
+    describe('CODEX_AGENT_SANDBOX', () => {
+      it('maps executor agents to workspace-write', () => {
+        expect(CODEX_AGENT_SANDBOX['gsd-executor']).toBe('workspace-write')
+        expect(CODEX_AGENT_SANDBOX['gsd-planner']).toBe('workspace-write')
+        expect(CODEX_AGENT_SANDBOX['gsd-verifier']).toBe('workspace-write')
+        expect(CODEX_AGENT_SANDBOX['gsd-debugger']).toBe('workspace-write')
+      })
+
+      it('maps checker agents to read-only', () => {
+        expect(CODEX_AGENT_SANDBOX['gsd-plan-checker']).toBe('read-only')
+        expect(CODEX_AGENT_SANDBOX['gsd-integration-checker']).toBe('read-only')
+      })
+
+      it('returns undefined for unknown agents (defaults handled by caller)', () => {
+        expect(CODEX_AGENT_SANDBOX['gsd-nonexistent']).toBeUndefined()
+      })
+    })
+
+    describe('generateCodexConfigBlock', () => {
+      it('produces TOML with GSD_CODEX_MARKER and agent entries', () => {
+        const result = generateCodexConfigBlock([{ name: 'gsdr-executor', description: 'Plan executor' }])
+        expect(result).toContain(GSD_CODEX_MARKER)
+        expect(result).toContain('[agents.gsdr-executor]')
+        expect(result).toContain('description = "Plan executor"')
+        expect(result).toContain('config_file = "agents/gsdr-executor.toml"')
+      })
+
+      it('handles multiple agents', () => {
+        const agents = [
+          { name: 'gsdr-executor', description: 'Executor' },
+          { name: 'gsdr-planner', description: 'Planner' },
+          { name: 'gsdr-verifier', description: 'Verifier' },
+        ]
+        const result = generateCodexConfigBlock(agents)
+        expect(result).toContain('[agents.gsdr-executor]')
+        expect(result).toContain('[agents.gsdr-planner]')
+        expect(result).toContain('[agents.gsdr-verifier]')
+      })
+
+      it('escapes double quotes in description', () => {
+        const result = generateCodexConfigBlock([{ name: 'gsdr-test', description: 'Agent with "quotes"' }])
+        expect(result).toContain('description = "Agent with \\"quotes\\""')
+      })
+    })
+
+    describe('stripGsdFromCodexConfig', () => {
+      it('removes GSD section from marker to EOF, preserves content before', () => {
+        const input = 'model = "o3-mini"\n\n' + GSD_CODEX_MARKER + '\n\n[agents.gsdr-executor]\ndescription = "test"\n'
+        const result = stripGsdFromCodexConfig(input)
+        expect(result).toBe('model = "o3-mini"')
+        expect(result).not.toContain(GSD_CODEX_MARKER)
+        expect(result).not.toContain('agents.gsdr-executor')
+      })
+
+      it('returns null when file is all GSD content', () => {
+        const input = GSD_CODEX_MARKER + '\n\n[agents.gsdr-executor]\ndescription = "test"\n'
+        const result = stripGsdFromCodexConfig(input)
+        expect(result).toBeNull()
+      })
+
+      it('returns content unchanged when no marker present', () => {
+        const input = 'model = "o3-mini"\n\n[mcp_servers.context7]\ncommand = "npx"\n'
+        const result = stripGsdFromCodexConfig(input)
+        expect(result).toBe(input)
+      })
+    })
+
+    describe('mergeCodexConfig', () => {
+      tmpdirTest('creates new config.toml when none exists', async ({ tmpdir }) => {
+        const configPath = path.join(tmpdir, 'config.toml')
+        const block = generateCodexConfigBlock([{ name: 'gsdr-executor', description: 'Executor' }])
+        mergeCodexConfig(configPath, block)
+
+        const content = fsSync.readFileSync(configPath, 'utf8')
+        expect(content).toContain(GSD_CODEX_MARKER)
+        expect(content).toContain('[agents.gsdr-executor]')
+      })
+
+      tmpdirTest('appends to existing config.toml without marker', async ({ tmpdir }) => {
+        const configPath = path.join(tmpdir, 'config.toml')
+        fsSync.writeFileSync(configPath, 'model = "o3-mini"\n')
+
+        const block = generateCodexConfigBlock([{ name: 'gsdr-executor', description: 'Executor' }])
+        mergeCodexConfig(configPath, block)
+
+        const content = fsSync.readFileSync(configPath, 'utf8')
+        expect(content).toContain('model = "o3-mini"')
+        expect(content).toContain(GSD_CODEX_MARKER)
+        expect(content).toContain('[agents.gsdr-executor]')
+      })
+
+      tmpdirTest('replaces existing GSD section on re-install', async ({ tmpdir }) => {
+        const configPath = path.join(tmpdir, 'config.toml')
+        fsSync.writeFileSync(configPath, 'model = "o3-mini"\n')
+
+        // First install
+        const block1 = generateCodexConfigBlock([{ name: 'gsdr-executor', description: 'Executor v1' }])
+        mergeCodexConfig(configPath, block1)
+
+        // Second install (updated description)
+        const block2 = generateCodexConfigBlock([
+          { name: 'gsdr-executor', description: 'Executor v2' },
+          { name: 'gsdr-planner', description: 'Planner' },
+        ])
+        mergeCodexConfig(configPath, block2)
+
+        const content = fsSync.readFileSync(configPath, 'utf8')
+        // User content preserved
+        expect(content).toContain('model = "o3-mini"')
+        // Only one marker (not duplicated)
+        const markerCount = (content.match(new RegExp(GSD_CODEX_MARKER.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length
+        expect(markerCount).toBe(1)
+        // Updated content present
+        expect(content).toContain('Executor v2')
+        expect(content).toContain('[agents.gsdr-planner]')
+        // Old content replaced
+        expect(content).not.toContain('Executor v1')
+      })
     })
   })
 
