@@ -103,6 +103,19 @@ function getOpencodeGlobalDir() {
 }
 
 /**
+ * Resolve the OpenCode config file path, preferring .jsonc when it exists.
+ * @param {string} configDir - The OpenCode config directory
+ * @returns {string} Path to opencode.jsonc (if exists) or opencode.json (fallback)
+ */
+function resolveOpencodeConfigPath(configDir) {
+  const jsoncPath = path.join(configDir, 'opencode.jsonc');
+  if (fs.existsSync(jsoncPath)) {
+    return jsoncPath;
+  }
+  return path.join(configDir, 'opencode.json');
+}
+
+/**
  * Get the global config directory for a runtime
  * @param {string} runtime - 'claude', 'opencode', or 'gemini'
  * @param {string|null} explicitDir - Explicit directory from --config-dir flag
@@ -473,7 +486,7 @@ function getCommitAttribution(runtime) {
   let result;
 
   if (runtime === 'opencode') {
-    const config = readSettings(path.join(getGlobalDir('opencode', null), 'opencode.json'));
+    const config = readSettings(resolveOpencodeConfigPath(getGlobalDir('opencode', null)));
     result = config.disable_ai_attribution === true ? null : undefined;
   } else if (runtime === 'gemini') {
     // Gemini: check gemini settings.json for attribution config
@@ -1747,13 +1760,13 @@ function uninstall(isGlobal, runtime = 'claude') {
     }
   }
 
-  // 6. For OpenCode, clean up permissions from opencode.json
+  // 6. For OpenCode, clean up permissions from opencode config
   if (isOpencode) {
     const opencodeConfigDir = getOpencodeGlobalDir();
-    const configPath = path.join(opencodeConfigDir, 'opencode.json');
+    const configPath = resolveOpencodeConfigPath(opencodeConfigDir);
     if (fs.existsSync(configPath)) {
       try {
-        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        const config = readSettings(configPath);
         let modified = false;
 
         // Remove GSD permission entries
@@ -1865,9 +1878,9 @@ function parseJsonc(content) {
  * This prevents permission prompts when GSD accesses the get-shit-done directory
  */
 function configureOpencodePermissions() {
-  // OpenCode config file is at ~/.config/opencode/opencode.json
+  // OpenCode config file - prefers .jsonc when it exists, falls back to .json
   const opencodeConfigDir = getOpencodeGlobalDir();
-  const configPath = path.join(opencodeConfigDir, 'opencode.json');
+  const configPath = resolveOpencodeConfigPath(opencodeConfigDir);
 
   // Ensure config directory exists
   safeFs('mkdirSync', () => fs.mkdirSync(opencodeConfigDir, { recursive: true }), opencodeConfigDir);
@@ -2854,4 +2867,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings };
