@@ -870,6 +870,52 @@ function convertClaudeToGeminiToml(content) {
 }
 
 /**
+ * Convert Claude Code agent markdown to Codex agent TOML format.
+ * Uses TOML literal multi-line strings (''') for developer_instructions
+ * to avoid backslash escape issues with bash/regex patterns in agent content.
+ * @param {string} content - Markdown file content with optional YAML frontmatter
+ * @returns {string} - TOML content with literal string delimiters
+ */
+function convertClaudeToCodexAgentToml(content) {
+  let description = '';
+  let name = '';
+  let body = content;
+
+  // Parse YAML frontmatter if present
+  if (content.startsWith('---')) {
+    const endIndex = content.indexOf('---', 3);
+    if (endIndex !== -1) {
+      const frontmatter = content.substring(3, endIndex).trim();
+      body = content.substring(endIndex + 3).trim();
+
+      const lines = frontmatter.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('description:')) {
+          description = trimmed.substring(12).trim();
+        } else if (trimmed.startsWith('name:')) {
+          name = trimmed.substring(5).trim();
+        }
+      }
+    }
+  }
+
+  // Fallback description if not found in frontmatter
+  if (!description) {
+    description = name ? `GSD agent: ${name}` : 'GSD agent';
+  }
+
+  // Escape any triple single quotes in body to avoid premature TOML literal string termination
+  const safeBody = body.replace(/'''/g, "' ' '");
+
+  // Build TOML with literal multi-line string (''') for developer_instructions
+  let toml = `description = ${JSON.stringify(description)}\n`;
+  toml += `developer_instructions = '''\n${safeBody}\n'''\n`;
+
+  return toml;
+}
+
+/**
  * Convert a Claude Code command markdown into Codex SKILL.md format.
  * - Replaces tool name references in body text using word-boundary regex
  * - Replaces /gsdr:command-name with $gsdr-command-name for Codex skill mention syntax
@@ -2243,7 +2289,7 @@ function install(isGlobal, runtime = 'claude') {
     console.log(`  ${yellow}!${reset} Feature manifest not found (expected at ${manifestDest})`);
   }
 
-  // Copy agents to agents directory (skip for Codex -- uses AGENTS.md instead)
+  // Copy agents to agents directory (Claude/OpenCode/Gemini: .md files; Codex: .toml files)
   const agentsSrc = path.join(src, 'agents');
   if (fs.existsSync(agentsSrc) && !isCodex) {
     const agentsDest = path.join(targetDir, 'agents');
@@ -2288,7 +2334,45 @@ function install(isGlobal, runtime = 'claude') {
     }
   }
 
-  // Generate AGENTS.md for Codex
+  // Generate Codex agent .toml files (individual agent definitions with literal strings)
+  if (fs.existsSync(agentsSrc) && isCodex) {
+    const codexAgentsDest = path.join(targetDir, 'agents');
+    safeFs('mkdirSync', () => fs.mkdirSync(codexAgentsDest, { recursive: true }), codexAgentsDest);
+
+    // Clean existing gsdr-*.toml files
+    if (fs.existsSync(codexAgentsDest)) {
+      for (const file of fs.readdirSync(codexAgentsDest)) {
+        if (file.startsWith('gsdr-') && file.endsWith('.toml')) {
+          fs.unlinkSync(path.join(codexAgentsDest, file));
+        }
+      }
+    }
+
+    // Convert each agent .md source to .toml
+    const agentEntries = fs.readdirSync(agentsSrc, { withFileTypes: true });
+    for (const entry of agentEntries) {
+      if (entry.isFile() && entry.name.endsWith('.md')) {
+        let content = fs.readFileSync(path.join(agentsSrc, entry.name), 'utf8');
+        // Apply same transforms as other runtimes
+        content = replacePathsInContent(content, pathPrefix);
+        content = processAttribution(content, getCommitAttribution(runtime));
+        // Convert to TOML with literal multi-line strings
+        const tomlContent = convertClaudeToCodexAgentToml(content);
+        // Rename gsd-*.md -> gsdr-*.toml
+        const destName = entry.name.startsWith('gsd-')
+          ? entry.name.replace(/^gsd-/, 'gsdr-').replace(/\.md$/, '.toml')
+          : entry.name.replace(/\.md$/, '.toml');
+        fs.writeFileSync(path.join(codexAgentsDest, destName), tomlContent);
+      }
+    }
+    if (verifyInstalled(codexAgentsDest, 'agents')) {
+      console.log(`  ${green}✓${reset} Installed agents (TOML)`);
+    } else {
+      failures.push('agents');
+    }
+  }
+
+  // Generate AGENTS.md for Codex (supplements individual agent TOML files)
   if (isCodex) {
     generateCodexAgentsMd(targetDir, pathPrefix);
     console.log(`  ${green}+${reset} Generated AGENTS.md`);
@@ -2747,4 +2831,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand };
