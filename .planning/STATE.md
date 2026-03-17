@@ -75,6 +75,7 @@ Recent decisions affecting current work:
 - v1.18 roadmap: Migration test hardening (Phase 50) placed before feature adoption to catch namespace/migration regressions before they compound
 - v1.18 roadmap: Update System Hardening (Phase 51) added after migration test hardening to ensure robust upgrade paths before feature adoption
 - v1.18 roadmap: Infrastructure (Phase 54) placed last; technically independent of Phases 49-53 but benefits from stable final state
+- [Phase quick-22]: Used TOML literal strings (''') for Codex agent files to preserve backslash patterns verbatim
 
 ### Pending Todos
 
