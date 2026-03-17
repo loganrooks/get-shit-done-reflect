@@ -4,8 +4,8 @@ milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
 stopped_at: null
-last_updated: "2026-03-17T03:33:00.000Z"
-last_activity: 2026-03-17 - Completed quick task 25: OpenCode converter parity (isAgent param, subagent_type remap, jsonc resolver, settings refactor)
+last_updated: "2026-03-17T04:00:00.000Z"
+last_activity: 2026-03-17 - Completed quick task 26: Codex deployment parity (sandbox modes, config.toml registration, clean uninstall)
 progress:
   total_phases: 10
   completed_phases: 0
@@ -98,6 +98,7 @@ Recent decisions affecting current work:
 | 23 | Shared frontmatter helpers (extractFrontmatterAndBody/extractFrontmatterField) | 2026-03-17 | 4802023 | [23-shared-frontmatter-helpers-extractfrontm](./quick/23-shared-frontmatter-helpers-extractfrontm/) |
 | 24 | Gemini converter parity: template escaping, skills stripping, array field tracking | 2026-03-17 | 5e52804 | [24-gemini-converter-parity-template-escapin](./quick/24-gemini-converter-parity-template-escapin/) |
 | 25 | OpenCode converter parity: isAgent param, subagent_type remap, jsonc resolver, settings refactor | 2026-03-17 | 461e7d6 | [25-opencode-converter-parity-isagent-param-](./quick/25-opencode-converter-parity-isagent-param-/) |
+| 26 | Codex deployment parity: sandbox modes, config.toml registration, clean uninstall | 2026-03-17 | f3cddea | [26-codex-deployment-parity-sandbox-modes-co](./quick/26-codex-deployment-parity-sandbox-modes-co/) |
 
 ### Key Artifacts
 
@@ -108,5 +109,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-17
-Stopped at: Quick task 25 completed (OpenCode converter parity). Ready for `/gsd:plan-phase 45`.
+Stopped at: Quick task 26 completed (Codex deployment parity). Ready for `/gsd:plan-phase 45`.
 Resume file: None
