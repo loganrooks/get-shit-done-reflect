@@ -641,6 +641,38 @@ function stripSubTags(content) {
 }
 
 /**
+ * Extract YAML frontmatter and body from markdown content.
+ * @param {string} content - File content potentially starting with ---
+ * @returns {{ frontmatter: string|null, body: string }}
+ */
+function extractFrontmatterAndBody(content) {
+  if (!content.startsWith('---')) {
+    return { frontmatter: null, body: content };
+  }
+  const endIndex = content.indexOf('---', 3);
+  if (endIndex === -1) {
+    return { frontmatter: null, body: content };
+  }
+  return {
+    frontmatter: content.substring(3, endIndex).trim(),
+    body: content.substring(endIndex + 3),
+  };
+}
+
+/**
+ * Extract a single field value from parsed frontmatter text.
+ * @param {string} frontmatter - Raw frontmatter text (without --- delimiters)
+ * @param {string} fieldName - Field name to extract
+ * @returns {string|null} Field value or null
+ */
+function extractFrontmatterField(frontmatter, fieldName) {
+  const regex = new RegExp(`^${fieldName}:\\s*(.+)$`, 'm');
+  const match = frontmatter.match(regex);
+  if (!match) return null;
+  return match[1].trim().replace(/^['"]|['"]$/g, '');
+}
+
+/**
  * Convert Claude Code agent frontmatter to Gemini CLI format
  * Gemini agents use .md files with YAML frontmatter, same as Claude,
  * but with different field names and formats:
@@ -650,13 +682,8 @@ function stripSubTags(content) {
  * - mcp__* tools: preserved as-is (Gemini CLI supports MCP servers)
  */
 function convertClaudeToGeminiAgent(content) {
-  if (!content.startsWith('---')) return content;
-
-  const endIndex = content.indexOf('---', 3);
-  if (endIndex === -1) return content;
-
-  const frontmatter = content.substring(3, endIndex).trim();
-  const body = content.substring(endIndex + 3);
+  const { frontmatter, body } = extractFrontmatterAndBody(content);
+  if (!frontmatter) return content;
 
   const lines = frontmatter.split('\n');
   const newLines = [];
@@ -736,21 +763,11 @@ function convertClaudeToOpencodeFrontmatter(content) {
   // Do NOT do path replacement here to avoid double-replacement.
 
   // Check if content has frontmatter
-  if (!convertedContent.startsWith('---')) {
-    return convertedContent;
-  }
-
-  // Find the end of frontmatter
-  const endIndex = convertedContent.indexOf('---', 3);
-  if (endIndex === -1) {
-    return convertedContent;
-  }
-
-  const frontmatter = convertedContent.substring(3, endIndex).trim();
-  const body = convertedContent.substring(endIndex + 3);
+  const { frontmatter: fm, body } = extractFrontmatterAndBody(convertedContent);
+  if (!fm) return convertedContent;
 
   // Parse frontmatter line by line (simple YAML parsing)
-  const lines = frontmatter.split('\n');
+  const lines = fm.split('\n');
   const newLines = [];
   let inAllowedTools = false;
   const allowedTools = [];
@@ -834,29 +851,12 @@ function convertClaudeToOpencodeFrontmatter(content) {
  * @returns {string} - TOML content
  */
 function convertClaudeToGeminiToml(content) {
-  // Check if content has frontmatter
-  if (!content.startsWith('---')) {
+  const { frontmatter, body: rawBody } = extractFrontmatterAndBody(content);
+  if (!frontmatter) {
     return `prompt = ${JSON.stringify(content)}\n`;
   }
-
-  const endIndex = content.indexOf('---', 3);
-  if (endIndex === -1) {
-    return `prompt = ${JSON.stringify(content)}\n`;
-  }
-
-  const frontmatter = content.substring(3, endIndex).trim();
-  const body = content.substring(endIndex + 3).trim();
-  
-  // Extract description from frontmatter
-  let description = '';
-  const lines = frontmatter.split('\n');
-  for (const line of lines) {
-    const trimmed = line.trim();
-    if (trimmed.startsWith('description:')) {
-      description = trimmed.substring(12).trim();
-      break;
-    }
-  }
+  const body = rawBody.trim();
+  const description = extractFrontmatterField(frontmatter, 'description') || '';
 
   // Construct TOML
   let toml = '';
@@ -882,22 +882,11 @@ function convertClaudeToCodexAgentToml(content) {
   let body = content;
 
   // Parse YAML frontmatter if present
-  if (content.startsWith('---')) {
-    const endIndex = content.indexOf('---', 3);
-    if (endIndex !== -1) {
-      const frontmatter = content.substring(3, endIndex).trim();
-      body = content.substring(endIndex + 3).trim();
-
-      const lines = frontmatter.split('\n');
-      for (const line of lines) {
-        const trimmed = line.trim();
-        if (trimmed.startsWith('description:')) {
-          description = trimmed.substring(12).trim();
-        } else if (trimmed.startsWith('name:')) {
-          name = trimmed.substring(5).trim();
-        }
-      }
-    }
+  const { frontmatter, body: rawBody } = extractFrontmatterAndBody(content);
+  if (frontmatter) {
+    body = rawBody.trim();
+    description = extractFrontmatterField(frontmatter, 'description') || '';
+    name = extractFrontmatterField(frontmatter, 'name') || '';
   }
 
   // Fallback description if not found in frontmatter
@@ -948,15 +937,10 @@ function convertClaudeToCodexSkill(content, commandName, pathPrefix) {
   converted = converted.replace(/@(~\/\.codex\/[^\s]+)/g, 'Read the file at `$1`');
 
   // Step 4: Parse frontmatter and rebuild as SKILL.md format
-  if (!converted.startsWith('---')) {
+  const { frontmatter, body } = extractFrontmatterAndBody(converted);
+  if (!frontmatter) {
     return `---\nname: ${commandName}\ndescription: GSD command: ${commandName}\n---\n\n${converted}`;
   }
-
-  const endIndex = converted.indexOf('---', 3);
-  if (endIndex === -1) return converted;
-
-  const frontmatter = converted.substring(3, endIndex).trim();
-  const body = converted.substring(endIndex + 3);
 
   // Parse frontmatter fields
   let description = '';
@@ -1245,13 +1229,11 @@ function replacePathsInContent(content, runtimePathPrefix) {
  * @returns {string} Modified content with version in description
  */
 function injectVersionScope(content, version, _scope) {
-  if (!content.startsWith('---')) return content;
-  const endIdx = content.indexOf('---', 3);
-  if (endIdx === -1) return content;
-  const frontmatter = content.substring(0, endIdx + 3);
-  const body = content.substring(endIdx + 3);
+  const { frontmatter, body } = extractFrontmatterAndBody(content);
+  if (!frontmatter) return content;
+  const delimited = `---\n${frontmatter}\n---`;
   // Strip any existing version suffix (with or without scope/+dev) before adding new one
-  const modified = frontmatter.replace(
+  const modified = delimited.replace(
     /^(description:\s*)(.+?)(\s*\(v[\d.]+(?:\+\w+)?(?:\s+(?:local|global))?\))?$/m,
     `$1$2 (v${version})`
   );
@@ -2831,4 +2813,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField };
