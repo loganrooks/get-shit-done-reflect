@@ -688,10 +688,19 @@ function convertClaudeToGeminiAgent(content) {
   const lines = frontmatter.split('\n');
   const newLines = [];
   let inAllowedTools = false;
+  let inSkippedArrayField = false;
   const tools = [];
 
   for (const line of lines) {
     const trimmed = line.trim();
+
+    // Skip continuation lines of a stripped array field (e.g., skills:)
+    if (inSkippedArrayField) {
+      if (!trimmed || trimmed.startsWith('- ')) {
+        continue;
+      }
+      inSkippedArrayField = false;
+    }
 
     // Convert allowed-tools YAML array to tools list
     if (trimmed.startsWith('allowed-tools:')) {
@@ -717,6 +726,12 @@ function convertClaudeToGeminiAgent(content) {
 
     // Strip color field (not supported by Gemini CLI, causes validation error)
     if (trimmed.startsWith('color:')) continue;
+
+    // Strip skills field (not supported by Gemini CLI)
+    if (trimmed.startsWith('skills:')) {
+      inSkippedArrayField = true;
+      continue;
+    }
 
     // Collect allowed-tools/tools array items
     if (inAllowedTools) {
@@ -748,7 +763,12 @@ function convertClaudeToGeminiAgent(content) {
   for (const [claudeTool, geminiTool] of Object.entries(claudeToGeminiTools)) {
     processedBody = processedBody.replace(new RegExp(`\\b${claudeTool}\\b`, 'g'), geminiTool);
   }
-  return `---\n${newFrontmatter}\n---${processedBody}`;
+  // Escape ${VAR} patterns for Gemini CLI compatibility.
+  // Gemini's templateString() treats ${word} as template variables and throws
+  // "Template validation failed" when they can't be resolved. Removing braces
+  // ($PHASE instead of ${PHASE}) is equivalent bash syntax.
+  const escapedBody = processedBody.replace(/\$\{(\w+)\}/g, '$$$1');
+  return `---\n${newFrontmatter}\n---${escapedBody}`;
 }
 
 function convertClaudeToOpencodeFrontmatter(content) {
