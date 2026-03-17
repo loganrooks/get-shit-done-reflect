@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, convertClaudeToGeminiAgent, safeFs } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -1114,6 +1114,110 @@ Use WebFetch and Task and SlashCommand for these features.`
         expect(result).toContain('WebFetch')
         expect(result).toContain('Task')
         expect(result).toContain('SlashCommand')
+      })
+    })
+
+    describe('convertClaudeToCodexAgentToml() unit tests', () => {
+      it('basic conversion with frontmatter produces TOML with description and literal string body', () => {
+        const input = `---
+name: gsd-test
+description: A test agent
+---
+Body content here`
+
+        const result = convertClaudeToCodexAgentToml(input)
+
+        expect(result).toContain('description = "A test agent"')
+        expect(result).toContain("developer_instructions = '''")
+        expect(result).toContain('Body content here')
+        expect(result).toContain("'''")
+      })
+
+      it('preserves backslash patterns verbatim (critical: Issue #15 root cause)', () => {
+        // Use regular string concatenation to avoid template literal backtick escaping
+        const input = '---\n' +
+          'name: gsd-mapper\n' +
+          'description: Maps codebase\n' +
+          '---\n' +
+          'Use grep: grep -r "import\\.stripe\\|import\\.supabase" src/\n' +
+          'Pattern match: "prisma\\.message\\.(find\\|create)"\n' +
+          'Backtick: \\`backtick\\`\n' +
+          'Regex: \\w+ and \\[ and \\{ patterns'
+
+        const result = convertClaudeToCodexAgentToml(input)
+
+        // All backslash patterns must survive verbatim
+        expect(result).toContain('grep -r "import\\.stripe\\|import\\.supabase" src/')
+        expect(result).toContain('"prisma\\.message\\.(find\\|create)"')
+        expect(result).toContain('\\`backtick\\`')
+        expect(result).toContain('\\w+')
+        expect(result).toContain('\\[')
+        expect(result).toContain('\\{')
+        // Must use literal strings, not basic strings
+        expect(result).toContain("developer_instructions = '''")
+        expect(result).not.toContain('developer_instructions = """')
+      })
+
+      it('handles input without frontmatter', () => {
+        const input = 'Just raw body content with no frontmatter delimiters'
+
+        const result = convertClaudeToCodexAgentToml(input)
+
+        expect(result).toContain("developer_instructions = '''")
+        expect(result).toContain('Just raw body content with no frontmatter delimiters')
+        expect(result).toContain('description = "GSD agent"')
+        expect(result).toContain("'''")
+      })
+
+      it('escapes triple single quotes in body content', () => {
+        const input = `---
+name: gsd-test
+description: Test agent
+---
+Some content with ''' inside it`
+
+        const result = convertClaudeToCodexAgentToml(input)
+
+        // The body should not contain unescaped ''' between the delimiters
+        // Split on the delimiters and check the inner content
+        const parts = result.split("'''")
+        // parts[0] = before first ''', parts[1] = body content, parts[2] = after closing '''
+        expect(parts.length).toBe(3)
+        // The body (parts[1]) should contain the escaped version
+        expect(parts[1]).toContain("' ' '")
+        expect(parts[1]).not.toContain("'''")
+      })
+
+      it('falls back to a reasonable description when frontmatter has no description', () => {
+        const input = `---
+name: gsd-helper
+---
+Agent body content`
+
+        const result = convertClaudeToCodexAgentToml(input)
+
+        // Should use name-based fallback
+        expect(result).toContain('description = "GSD agent: gsd-helper"')
+        expect(result).toContain("developer_instructions = '''")
+      })
+
+      it('handles real agent content with high backslash density (gsd-verifier)', () => {
+        const agentPath = path.resolve(process.cwd(), 'agents', 'gsd-verifier.md')
+        const agentContent = fsSync.readFileSync(agentPath, 'utf8')
+        // Use first ~30 lines to keep test fast while covering realistic content
+        const lines = agentContent.split('\n').slice(0, 30).join('\n')
+
+        const result = convertClaudeToCodexAgentToml(lines)
+
+        // Must use literal string delimiters
+        expect(result).toContain("developer_instructions = '''")
+        expect(result).not.toContain('developer_instructions = """')
+        // Content must be present between delimiters
+        expect(result).toContain("'''")
+        // Should have a description from frontmatter
+        expect(result).toContain('description = ')
+        // The word "verifier" should appear somewhere in content or description
+        expect(result.toLowerCase()).toContain('verif')
       })
     })
 
