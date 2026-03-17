@@ -659,10 +659,10 @@ describe('multi-runtime validation', () => {
       expect([...claudeAgents].sort(), 'Agent parity: Claude vs Gemini').toEqual([...geminiAgents].sort())
       expect([...claudeAgents].sort(), 'Agent parity: Claude vs Codex').toEqual([...codexAgents].sort())
 
-      // --- Workflows: All 4 runtimes (Gemini uses .toml, others use .md) ---
+      // --- Workflows: All 4 runtimes use .md (Gemini no longer TOML-converts non-command files) ---
       const claudeWorkflows = getNameSet(path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'workflows'), '', '.md')
       const opcodeWorkflows = getNameSet(path.join(configHome, 'opencode', 'get-shit-done-reflect', 'workflows'), '', '.md')
-      const geminiWorkflows = getNameSet(path.join(tmpdir, '.gemini', 'get-shit-done-reflect', 'workflows'), '', '.toml')
+      const geminiWorkflows = getNameSet(path.join(tmpdir, '.gemini', 'get-shit-done-reflect', 'workflows'), '', '.md')
       const codexWorkflows = getNameSet(path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'workflows'), '', '.md')
 
       expect([...claudeWorkflows].sort(), 'Workflow parity: Claude vs OpenCode').toEqual([...opcodeWorkflows].sort())

@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -1466,6 +1466,49 @@ Agent body content`
       })
     })
 
+    describe('convertClaudeToCodexMarkdown() unit tests', () => {
+      it('replaces /gsdr:help with $gsdr-help', () => {
+        const input = 'Use /gsdr:help to see commands'
+        const result = convertClaudeToCodexMarkdown(input)
+        expect(result).toContain('$gsdr-help')
+        expect(result).not.toContain('/gsdr:help')
+      })
+
+      it('replaces $ARGUMENTS with {{GSD_ARGS}}', () => {
+        const input = 'Pass $ARGUMENTS to the command'
+        const result = convertClaudeToCodexMarkdown(input)
+        expect(result).toContain('{{GSD_ARGS}}')
+        expect(result).not.toContain('$ARGUMENTS')
+      })
+
+      it('handles mixed content with both patterns', () => {
+        const input = 'Run /gsdr:execute-phase with $ARGUMENTS for the phase'
+        const result = convertClaudeToCodexMarkdown(input)
+        expect(result).toContain('$gsdr-execute-phase')
+        expect(result).toContain('{{GSD_ARGS}}')
+      })
+
+      it('passes through content with no patterns unchanged', () => {
+        const input = 'Just some regular markdown content'
+        const result = convertClaudeToCodexMarkdown(input)
+        expect(result).toBe(input)
+      })
+
+      it('handles multiple command references in one string', () => {
+        const input = 'Use /gsdr:plan-phase then /gsdr:execute-phase'
+        const result = convertClaudeToCodexMarkdown(input)
+        expect(result).toContain('$gsdr-plan-phase')
+        expect(result).toContain('$gsdr-execute-phase')
+      })
+
+      it('handles case-insensitive command references via /gi flag', () => {
+        const input = 'Use /GSDR:Help for help'
+        const result = convertClaudeToCodexMarkdown(input)
+        expect(result).toContain('$gsdr-Help')
+        expect(result).not.toContain('/GSDR:Help')
+      })
+    })
+
     describe('generateCodexAgentsMd() unit tests', () => {
       tmpdirTest('creates new AGENTS.md with GSD markers when none exists', async ({ tmpdir }) => {
         generateCodexAgentsMd(tmpdir, '~/.codex/')
@@ -1699,6 +1742,107 @@ Agent body content`
           }
         }
       })
+    })
+  })
+
+  describe('copyWithPathReplacement isCommand/isGlobal behavior', () => {
+    tmpdirTest('Codex runtime applies convertClaudeToCodexMarkdown to .md files', async ({ tmpdir }) => {
+      const srcDir = path.join(tmpdir, 'src')
+      const destDir = path.join(tmpdir, 'dest')
+      fsSync.mkdirSync(srcDir, { recursive: true })
+      fsSync.writeFileSync(path.join(srcDir, 'workflow.md'), 'Use /gsdr:test-command with $ARGUMENTS here')
+
+      copyWithPathReplacement(srcDir, destDir, '~/.codex/', 'codex', false, false)
+
+      const output = fsSync.readFileSync(path.join(destDir, 'workflow.md'), 'utf8')
+      expect(output).toContain('$gsdr-test-command')
+      expect(output).toContain('{{GSD_ARGS}}')
+      expect(output).not.toContain('/gsdr:test-command')
+      expect(output).not.toContain('$ARGUMENTS')
+    })
+
+    tmpdirTest('Gemini with isCommand=true produces .toml file', async ({ tmpdir }) => {
+      const srcDir = path.join(tmpdir, 'src')
+      const destDir = path.join(tmpdir, 'dest')
+      fsSync.mkdirSync(srcDir, { recursive: true })
+      fsSync.writeFileSync(path.join(srcDir, 'help.md'), '---\ndescription: Help command\n---\nHelp body')
+
+      copyWithPathReplacement(srcDir, destDir, '~/.gemini/', 'gemini', true, false)
+
+      // .toml file should exist
+      expect(fsSync.existsSync(path.join(destDir, 'help.toml'))).toBe(true)
+      // .md file should NOT exist (TOML replaces it)
+      expect(fsSync.existsSync(path.join(destDir, 'help.md'))).toBe(false)
+    })
+
+    tmpdirTest('Gemini with isCommand=false keeps .md file (no TOML)', async ({ tmpdir }) => {
+      const srcDir = path.join(tmpdir, 'src')
+      const destDir = path.join(tmpdir, 'dest')
+      fsSync.mkdirSync(srcDir, { recursive: true })
+      fsSync.writeFileSync(path.join(srcDir, 'workflow.md'), '# Workflow\n\nSome workflow content')
+
+      copyWithPathReplacement(srcDir, destDir, '~/.gemini/', 'gemini', false, false)
+
+      // .md file should exist
+      expect(fsSync.existsSync(path.join(destDir, 'workflow.md'))).toBe(true)
+      // .toml file should NOT exist
+      expect(fsSync.existsSync(path.join(destDir, 'workflow.toml'))).toBe(false)
+    })
+
+    tmpdirTest('Claude runtime writes .md as-is (no conversion of command syntax)', async ({ tmpdir }) => {
+      const srcDir = path.join(tmpdir, 'src')
+      const destDir = path.join(tmpdir, 'dest')
+      fsSync.mkdirSync(srcDir, { recursive: true })
+      fsSync.writeFileSync(path.join(srcDir, 'test.md'), 'Use /gsdr:test to run tests')
+
+      copyWithPathReplacement(srcDir, destDir, '~/.claude/', 'claude', false, false)
+
+      const output = fsSync.readFileSync(path.join(destDir, 'test.md'), 'utf8')
+      // Claude does NOT convert command syntax — /gsdr: should remain
+      expect(output).toContain('/gsdr:test')
+      expect(output).not.toContain('$gsdr')
+    })
+
+    tmpdirTest('OpenCode runtime applies frontmatter conversion', async ({ tmpdir }) => {
+      const srcDir = path.join(tmpdir, 'src')
+      const destDir = path.join(tmpdir, 'dest')
+      fsSync.mkdirSync(srcDir, { recursive: true })
+      fsSync.writeFileSync(path.join(srcDir, 'test.md'), '---\nname: test\ndescription: A test\nallowed-tools:\n  - Read\n  - Bash\n---\n\nBody content')
+
+      copyWithPathReplacement(srcDir, destDir, '~/.opencode/', 'opencode', false, false)
+
+      const output = fsSync.readFileSync(path.join(destDir, 'test.md'), 'utf8')
+      // OpenCode converts frontmatter: allowed-tools becomes tools
+      expect(output).toContain('tools:')
+      // Body should be present
+      expect(output).toContain('Body content')
+    })
+
+    tmpdirTest('recursive directory traversal propagates isCommand and isGlobal', async ({ tmpdir }) => {
+      const srcDir = path.join(tmpdir, 'src')
+      const subDir = path.join(srcDir, 'sub')
+      const destDir = path.join(tmpdir, 'dest')
+      fsSync.mkdirSync(subDir, { recursive: true })
+      fsSync.writeFileSync(path.join(subDir, 'nested.md'), 'Use /gsdr:nested with $ARGUMENTS')
+
+      copyWithPathReplacement(srcDir, destDir, '~/.codex/', 'codex', false, false)
+
+      const output = fsSync.readFileSync(path.join(destDir, 'sub', 'nested.md'), 'utf8')
+      expect(output).toContain('$gsdr-nested')
+      expect(output).toContain('{{GSD_ARGS}}')
+    })
+
+    tmpdirTest('non-.md files are copied as-is regardless of runtime', async ({ tmpdir }) => {
+      const srcDir = path.join(tmpdir, 'src')
+      const destDir = path.join(tmpdir, 'dest')
+      fsSync.mkdirSync(srcDir, { recursive: true })
+      fsSync.writeFileSync(path.join(srcDir, 'data.json'), '{"key": "/gsdr:test"}')
+
+      copyWithPathReplacement(srcDir, destDir, '~/.codex/', 'codex', false, false)
+
+      const output = fsSync.readFileSync(path.join(destDir, 'data.json'), 'utf8')
+      // JSON file should be copied as-is (no conversion)
+      expect(output).toContain('/gsdr:test')
     })
   })
 
