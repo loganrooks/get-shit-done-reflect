@@ -13,6 +13,8 @@
 
 **Milestone Goal:** Properly adopt upstream changes informed by the fork audit, redistribute the fork's 2,126 lines across upstream's modular structure, establish a durable sync policy, harden the migration system, and ensure adopted features integrate deeply with the fork's epistemic self-improvement pipeline -- not as isolated patches.
 
+**Pre-work completed (v1.17.2-v1.17.3, QT22-28):** Installer converter functions brought to upstream parity before modular sync. Shared frontmatter helpers, Gemini/OpenCode/Codex converter fixes, `copyWithPathReplacement` upgrade, and parity enforcement tests. This ensures Phase 46's module adoption doesn't need to reconcile converter function interfaces. See `.planning/deliberations/deployment-parity-v1.17.2.md`.
+
 ## Phases
 
 **Phase Numbering:**
