@@ -1333,10 +1333,14 @@ Agent body content`
         expect(agentsMd).toContain('<!-- GSD:BEGIN (get-shit-done-reflect-cc) -->')
         expect(agentsMd).toContain('<!-- GSD:END (get-shit-done-reflect-cc) -->')
 
-        // Verify NO agents directory (agents skipped for Codex)
+        // Verify agents directory exists with .toml files (individual agent definitions)
         const agentsDir = path.join(tmpdir, '.codex', 'agents')
         const agentsDirExists = await fs.access(agentsDir).then(() => true).catch(() => false)
-        expect(agentsDirExists).toBe(false)
+        expect(agentsDirExists).toBe(true)
+
+        const agentFiles = await fs.readdir(agentsDir)
+        const tomlAgents = agentFiles.filter(f => f.startsWith('gsdr-') && f.endsWith('.toml'))
+        expect(tomlAgents.length).toBeGreaterThanOrEqual(1)
 
         // Verify NO hooks directory (hooks skipped for Codex)
         const hooksDir = path.join(tmpdir, '.codex', 'hooks')

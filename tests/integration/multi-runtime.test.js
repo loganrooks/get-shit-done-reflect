@@ -94,10 +94,10 @@ async function verifyRuntimeLayout(rootDir, runtime, configHome) {
     const base = path.join(rootDir, '.codex')
     await dirHasGlobDirs(path.join(base, 'skills'), 'gsdr-*', 3)
     await dirHasFiles(path.join(base, 'get-shit-done-reflect'), null, 1)
+    await dirHasGlobFiles(path.join(base, 'agents'), 'gsdr-*.toml', 1)
     await fileExists(path.join(base, 'AGENTS.md'))
     await fileExists(path.join(base, 'get-shit-done-reflect', 'VERSION'))
     // Codex should NOT have these:
-    await fileNotExists(path.join(base, 'agents'))
     await fileNotExists(path.join(base, 'hooks'))
     await fileNotExists(path.join(base, 'settings.json'))
   }
@@ -420,6 +420,36 @@ describe('multi-runtime validation', () => {
   })
 
   // ---------------------------------------------------------------------------
+  // Codex agent TOML literal string safety
+  // ---------------------------------------------------------------------------
+
+  describe('Codex agent TOML literal string safety', () => {
+    tmpdirTest('Codex agent TOML files use literal strings for backslash safety', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --codex --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      // Read the verifier agent (highest backslash density)
+      const verifierPath = path.join(tmpdir, '.codex', 'agents', 'gsdr-verifier.toml')
+      const exists = await fs.access(verifierPath).then(() => true).catch(() => false)
+      expect(exists, 'gsdr-verifier.toml should exist after Codex install').toBe(true)
+
+      const content = await fs.readFile(verifierPath, 'utf8')
+
+      // Must use literal string delimiters ('''), not basic string delimiters (""")
+      expect(content).toContain("developer_instructions = '''")
+      expect(content).not.toContain('developer_instructions = """')
+
+      // Must contain actual agent content (not empty)
+      expect(content).toContain('description = ')
+      expect(content.length).toBeGreaterThan(100)
+    })
+  })
+
+  // ---------------------------------------------------------------------------
   // VALID-03: Multi-runtime --all install (added in Task 2)
   // ---------------------------------------------------------------------------
 
@@ -619,13 +649,15 @@ describe('multi-runtime validation', () => {
         hooks: []
       }
 
-      // --- Agents: Claude, OpenCode, Gemini (Codex excluded — uses AGENTS.md composite) ---
+      // --- Agents: All 4 runtimes (Codex uses .toml, others use .md) ---
       const claudeAgents = getNameSet(path.join(tmpdir, '.claude', 'agents'), 'gsdr-', '.md')
       const opcodeAgents = getNameSet(path.join(configHome, 'opencode', 'agents'), 'gsdr-', '.md')
       const geminiAgents = getNameSet(path.join(tmpdir, '.gemini', 'agents'), 'gsdr-', '.md')
+      const codexAgents = getNameSet(path.join(tmpdir, '.codex', 'agents'), 'gsdr-', '.toml')
 
       expect([...claudeAgents].sort(), 'Agent parity: Claude vs OpenCode').toEqual([...opcodeAgents].sort())
       expect([...claudeAgents].sort(), 'Agent parity: Claude vs Gemini').toEqual([...geminiAgents].sort())
+      expect([...claudeAgents].sort(), 'Agent parity: Claude vs Codex').toEqual([...codexAgents].sort())
 
       // --- Workflows: All 4 runtimes (Gemini uses .toml, others use .md) ---
       const claudeWorkflows = getNameSet(path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'workflows'), '', '.md')
