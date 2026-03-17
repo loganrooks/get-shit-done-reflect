@@ -1581,6 +1581,132 @@ Agent body content.`
         expect(result).toContain('mcp__fetch__get')
       })
     })
+
+    describe('Gemini agent template escaping and field stripping', () => {
+      it('escapes ${VAR} patterns to $VAR in body text', () => {
+        const input = `---
+tools: Read
+---
+
+Use \${PHASE} and \${PLAN} and \${DESCRIPTION} variables.`
+
+        const result = convertClaudeToGeminiAgent(input)
+
+        expect(result).toContain('$PHASE')
+        expect(result).toContain('$PLAN')
+        expect(result).toContain('$DESCRIPTION')
+        expect(result).not.toContain('${PHASE}')
+        expect(result).not.toContain('${PLAN}')
+      })
+
+      it('preserves non-matching dollar patterns ($SIMPLE, $(command))', () => {
+        const input = `---
+tools: Read
+---
+
+Use $SIMPLE and $(command) substitution.`
+
+        const result = convertClaudeToGeminiAgent(input)
+
+        expect(result).toContain('$SIMPLE')
+        expect(result).toContain('$(command)')
+      })
+
+      it('applies template escaping after tool name replacement', () => {
+        const input = `---
+tools: Read
+---
+
+Use the Read tool with \${PHASE} variable.`
+
+        const result = convertClaudeToGeminiAgent(input)
+
+        // Tool name replacement happened
+        expect(result).toContain('read_file tool')
+        expect(result).not.toMatch(/\bRead\b/)
+        // Template escaping also happened
+        expect(result).toContain('$PHASE')
+        expect(result).not.toContain('${PHASE}')
+      })
+
+      it('strips skills: field with inline value', () => {
+        const input = `---
+tools: Read
+skills: planning, research
+description: test agent
+---
+
+Agent body.`
+
+        const result = convertClaudeToGeminiAgent(input)
+
+        expect(result).not.toContain('skills:')
+        expect(result).not.toContain('planning')
+        expect(result).not.toContain('research')
+        expect(result).toContain('description: test agent')
+      })
+
+      it('strips skills: field with YAML array items', () => {
+        const input = `---
+tools: Read
+skills:
+  - planning
+  - research
+description: test agent
+---
+
+Agent body.`
+
+        const result = convertClaudeToGeminiAgent(input)
+
+        expect(result).not.toContain('skills:')
+        expect(result).not.toContain('planning')
+        expect(result).not.toContain('research')
+        expect(result).toContain('description: test agent')
+      })
+
+      it('strips both skills: and color: fields when both present', () => {
+        const input = `---
+tools: Read
+color: blue
+skills: planning
+description: test agent
+---
+
+Agent body.`
+
+        const result = convertClaudeToGeminiAgent(input)
+
+        expect(result).not.toContain('color:')
+        expect(result).not.toContain('blue')
+        expect(result).not.toContain('skills:')
+        expect(result).not.toContain('planning')
+        expect(result).toContain('description: test agent')
+        expect(result).toContain('tools:')
+      })
+
+      it('regression: existing color and tools conversion unchanged', () => {
+        const input = `---
+tools: Read, Write
+color: red
+description: test agent
+---
+
+Use Read to read files.`
+
+        const result = convertClaudeToGeminiAgent(input)
+
+        // color stripped
+        expect(result).not.toContain('color:')
+        // tools converted to YAML array with Gemini names
+        expect(result).toContain('tools:')
+        expect(result).toContain('  - read_file')
+        expect(result).toContain('  - write_file')
+        // body text uses Gemini tool names
+        expect(result).toContain('read_file to read files')
+        expect(result).not.toMatch(/\bRead\b/)
+      })
+    })
   })
 
   describe('Gemini agent body text tool name replacement', () => {
