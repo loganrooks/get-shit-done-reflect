@@ -6,6 +6,30 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.17.3] - 2026-03-17
+
+### Added
+- **Shared frontmatter helpers** (QT23): `extractFrontmatterAndBody()` and `extractFrontmatterField()` replace 6 ad-hoc parsing sites across all converter functions — aligns with upstream function signatures, reduces code by 18 lines
+- **OpenCode `.jsonc` resolution** (QT25): `resolveOpencodeConfigPath()` prefers `opencode.jsonc` when present, fixing upstream issue #1053
+- **OpenCode `isAgent` parameter** (QT25): `convertClaudeToOpencodeFrontmatter()` now strips unsupported agent fields (`skills:`, `color:`, `memory:`, `maxTurns:`, `permissionMode:`, `disallowedTools:`) when converting agents
+- **OpenCode `subagent_type` remapping** (QT25): `"general-purpose"` → `"general"` for correct sub-agent spawning
+- **Shared settings helpers** (QT25): `readSettings()` / `writeSettings()` replace ad-hoc JSON settings I/O throughout installer
+- **Codex agent sandbox modes** (QT26): `CODEX_AGENT_SANDBOX` config with per-agent `workspace-write` / `read-only` permissions in generated `.toml` files
+- **Codex config.toml agent registration** (QT26): `generateCodexConfigBlock()` registers agents with `[agents.name]` sections and GSD marker for idempotent replacement
+- **Codex clean uninstall** (QT26): `stripGsdFromCodexConfig()` removes GSD sections from `config.toml` on uninstall — addresses upstream issue #1037 pattern
+- **Codex workflow content conversion** (QT27): `convertClaudeToCodexMarkdown()` converts `/gsdr:` → `$gsdr-` and `$ARGUMENTS` → `{{GSD_ARGS}}` in workflow/reference/template files
+- **Cross-runtime parity enforcement test** (QT28): structural test verifying all 4 runtimes get equivalent deployment treatment — agent parity, content quality assertions, `INTENTIONAL_DIVERGENCES` documentation, fails if a new runtime is added without full converter coverage
+
+### Fixed
+- **Gemini template escaping** (QT24): `${VAR}` patterns in agent body text (e.g., `${PHASE}`, `${PLAN}`) escaped to `$VAR` — prevents Gemini CLI "Missing required input parameters" error
+- **Gemini `skills:` field stripping** (QT24): removes `skills:` from agent frontmatter which caused Gemini CLI validation error
+- **Gemini multi-line field handling** (QT24): `inSkippedArrayField` properly skips continuation lines of stripped YAML array fields
+- **Gemini workflow TOML gating** (QT27): `copyWithPathReplacement()` `isCommand` flag ensures only commands get TOML conversion — workflow/reference/template files now correctly stay as `.md`
+
+### Changed
+- `copyWithPathReplacement()` upgraded with `isCommand` and `isGlobal` parameters matching upstream signature
+- 66 new tests added across QT23-28 (284 → 350 total)
+
 ## [1.17.2] - 2026-03-17
 
 ### Fixed
