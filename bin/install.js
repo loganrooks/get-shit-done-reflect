@@ -942,6 +942,24 @@ function convertClaudeToGeminiToml(content) {
 }
 
 /**
+ * Convert Claude Code markdown content to Codex-compatible markdown.
+ * Applies content-level conversions for workflow/reference/template files:
+ * - Replaces /gsdr:command-name with $gsdr-command-name for Codex skill mention syntax
+ * - Replaces $ARGUMENTS with {{GSD_ARGS}} Codex argument placeholder
+ * Note: This does NOT do full skill conversion (see convertClaudeToCodexSkill for that).
+ * @param {string} content - Markdown file content
+ * @returns {string} - Converted markdown content
+ */
+function convertClaudeToCodexMarkdown(content) {
+  let converted = content;
+  // Replace /gsdr:command-name with $gsdr-command-name for Codex skill mention syntax
+  converted = converted.replace(/\/gsdr:([a-z0-9-]+)/gi, '\\$gsdr-$1');
+  // Replace $ARGUMENTS with Codex argument placeholder
+  converted = converted.replace(/\$ARGUMENTS\b/g, '{{GSD_ARGS}}');
+  return converted;
+}
+
+/**
  * Convert Claude Code agent markdown to Codex agent TOML format.
  * Uses TOML literal multi-line strings (''') for developer_instructions
  * to avoid backslash escape issues with bash/regex patterns in agent content.
@@ -1472,9 +1490,11 @@ function copyFlattenedCommands(srcDir, destDir, prefix, pathPrefix, runtime) {
  * @param {string} srcDir - Source directory
  * @param {string} destDir - Destination directory
  * @param {string} pathPrefix - Path prefix for file references
- * @param {string} runtime - Target runtime ('claude', 'opencode', 'gemini')
+ * @param {string} runtime - Target runtime ('claude', 'opencode', 'gemini', 'codex')
+ * @param {boolean} [isCommand=false] - Whether the files being copied are commands (affects Gemini TOML conversion)
+ * @param {boolean} [isGlobal=false] - Whether this is a global install
  */
-function copyWithPathReplacement(srcDir, destDir, pathPrefix, runtime) {
+function copyWithPathReplacement(srcDir, destDir, pathPrefix, runtime, isCommand = false, isGlobal = false) {
   const isOpencode = runtime === 'opencode';
   const dirName = getDirName(runtime);
 
@@ -1491,7 +1511,7 @@ function copyWithPathReplacement(srcDir, destDir, pathPrefix, runtime) {
     const destPath = path.join(destDir, entry.name);
 
     if (entry.isDirectory()) {
-      copyWithPathReplacement(srcPath, destPath, pathPrefix, runtime);
+      copyWithPathReplacement(srcPath, destPath, pathPrefix, runtime, isCommand, isGlobal);
     } else if (entry.name.endsWith('.md')) {
       // Replace paths using centralized two-pass function
       let content = fs.readFileSync(srcPath, 'utf8');
@@ -1503,12 +1523,19 @@ function copyWithPathReplacement(srcDir, destDir, pathPrefix, runtime) {
         content = convertClaudeToOpencodeFrontmatter(content);
         fs.writeFileSync(destPath, content);
       } else if (runtime === 'gemini') {
-        // Convert to TOML for Gemini (strip <sub> tags — terminals can't render subscript)
-        content = stripSubTags(content);
-        const tomlContent = convertClaudeToGeminiToml(content);
-        // Replace extension with .toml
-        const tomlPath = destPath.replace(/\.md$/, '.toml');
-        fs.writeFileSync(tomlPath, tomlContent);
+        if (isCommand) {
+          // Only commands get TOML conversion
+          content = stripSubTags(content);
+          const tomlContent = convertClaudeToGeminiToml(content);
+          const tomlPath = destPath.replace(/\.md$/, '.toml');
+          fs.writeFileSync(tomlPath, tomlContent);
+        } else {
+          // Workflow/reference/template files stay as markdown
+          fs.writeFileSync(destPath, content);
+        }
+      } else if (runtime === 'codex') {
+        content = convertClaudeToCodexMarkdown(content);
+        fs.writeFileSync(destPath, content);
       } else {
         fs.writeFileSync(destPath, content);
       }
@@ -2413,7 +2440,7 @@ function install(isGlobal, runtime = 'claude') {
 
     const gsdSrc = path.join(src, 'commands', 'gsd');
     const gsdDest = path.join(commandsDir, 'gsdr');
-    copyWithPathReplacement(gsdSrc, gsdDest, pathPrefix, runtime);
+    copyWithPathReplacement(gsdSrc, gsdDest, pathPrefix, runtime, true, isGlobal);
     if (verifyInstalled(gsdDest, 'commands/gsdr')) {
       console.log(`  ${green}✓${reset} Installed commands/gsdr`);
     } else {
@@ -2426,7 +2453,7 @@ function install(isGlobal, runtime = 'claude') {
   // Copy get-shit-done skill with path replacement
   const skillSrc = path.join(src, 'get-shit-done');
   const skillDest = path.join(targetDir, 'get-shit-done-reflect');
-  copyWithPathReplacement(skillSrc, skillDest, pathPrefix, runtime);
+  copyWithPathReplacement(skillSrc, skillDest, pathPrefix, runtime, false, isGlobal);
   if (verifyInstalled(skillDest, 'get-shit-done-reflect')) {
     console.log(`  ${green}✓${reset} Installed get-shit-done-reflect`);
   } else {
@@ -2997,4 +3024,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement };
