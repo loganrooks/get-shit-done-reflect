@@ -6,6 +6,18 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.17.2] - 2026-03-17
+
+### Fixed
+- **Codex agent TOML generation** (Issue #15): Added `convertClaudeToCodexAgentToml()` using TOML literal multi-line strings (`'''`) that preserve backslash patterns in bash/regex content verbatim — fixes all GSD agent invocations failing on Codex with TOML parse errors
+- Codex install now generates individual agent `.toml` files alongside existing `AGENTS.md` summary (previously relied on Codex CLI's broken `"""` string generation)
+
+### Added
+- Agent parity test: Codex agents now included in cross-runtime name parity assertions
+- 6 unit tests for `convertClaudeToCodexAgentToml()` covering backslash preservation, edge cases, and real agent content
+- Integration test verifying Codex agent TOML files use literal strings (`'''`) not basic strings (`"""`)
+- Deliberation: cross-platform deployment parity analysis for v1.17.3 prep (identifies Gemini, OpenCode, and Codex converter gaps vs upstream)
+
 ## [1.17.1] - 2026-03-09
 
 ### Fixed
