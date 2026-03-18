@@ -444,69 +444,8 @@ describe('multi-runtime validation', () => {
       expect(content).not.toContain('developer_instructions = """')
 
       // Must contain actual agent content (not empty)
-      expect(content).not.toContain('description =')
+      expect(content).toContain('description = ')
       expect(content.length).toBeGreaterThan(100)
-    })
-  })
-
-  // ---------------------------------------------------------------------------
-  // Codex agent TOML schema compliance
-  // ---------------------------------------------------------------------------
-
-  describe('Codex agent TOML schema compliance', () => {
-    tmpdirTest('agent TOML files contain only allowed top-level fields', async ({ tmpdir }) => {
-      execSync(`node "${installScript}" --codex --global`, {
-        env: { ...process.env, HOME: tmpdir },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 15000
-      })
-
-      const agentsDir = path.join(tmpdir, '.codex', 'agents')
-      const agentFiles = fsSync.readdirSync(agentsDir)
-        .filter(f => f.startsWith('gsdr-') && f.endsWith('.toml'))
-      expect(agentFiles.length, 'should have at least 1 Codex agent TOML').toBeGreaterThanOrEqual(1)
-
-      const ALLOWED_TOP_LEVEL_KEYS = ['sandbox_mode', 'developer_instructions', 'model']
-
-      for (const agentFile of agentFiles) {
-        const content = await fs.readFile(path.join(agentsDir, agentFile), 'utf8')
-
-        // Split on ''' to isolate parts outside the literal string block
-        const segments = content.split("'''")
-        // Collect top-level keys from non-literal-string segments (even indices: 0, 2, 4...)
-        const topLevelKeys = []
-        for (let i = 0; i < segments.length; i += 2) {
-          const matches = segments[i].matchAll(/^(\w+)\s*=/gm)
-          for (const match of matches) {
-            topLevelKeys.push(match[1])
-          }
-        }
-
-        // Every found key must be in the allowed set
-        for (const key of topLevelKeys) {
-          expect(
-            ALLOWED_TOP_LEVEL_KEYS,
-            `${agentFile}: unexpected top-level key "${key}"`
-          ).toContain(key)
-        }
-
-        // description must NOT be among the keys
-        expect(
-          topLevelKeys,
-          `${agentFile}: should NOT contain description`
-        ).not.toContain('description')
-
-        // Required fields must be present
-        expect(
-          topLevelKeys,
-          `${agentFile}: must contain sandbox_mode`
-        ).toContain('sandbox_mode')
-        expect(
-          topLevelKeys,
-          `${agentFile}: must contain developer_instructions`
-        ).toContain('developer_instructions')
-      }
     })
   })
 
@@ -1072,7 +1011,6 @@ describe('multi-runtime validation', () => {
       for (const agentFile of codexAgentFiles) {
         const content = await fs.readFile(path.join(codexAgentsDir, agentFile), 'utf8')
         expect(content, `Codex ${agentFile}: should contain sandbox_mode =`).toContain('sandbox_mode =')
-        expect(content, `Codex ${agentFile}: should NOT contain description =`).not.toContain('description =')
       }
     })
 

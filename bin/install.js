@@ -968,12 +968,21 @@ function convertClaudeToCodexMarkdown(content) {
  * @returns {string} - TOML content with literal string delimiters
  */
 function convertClaudeToCodexAgentToml(content, agentName) {
+  let description = '';
+  let name = '';
   let body = content;
 
   // Parse YAML frontmatter if present
   const { frontmatter, body: rawBody } = extractFrontmatterAndBody(content);
   if (frontmatter) {
     body = rawBody.trim();
+    description = extractFrontmatterField(frontmatter, 'description') || '';
+    name = extractFrontmatterField(frontmatter, 'name') || '';
+  }
+
+  // Fallback description if not found in frontmatter
+  if (!description) {
+    description = name ? `GSD agent: ${name}` : 'GSD agent';
   }
 
   // Resolve sandbox mode: strip gsdr- prefix for lookup, default to read-only
@@ -987,9 +996,8 @@ function convertClaudeToCodexAgentToml(content, agentName) {
   const safeBody = body.replace(/'''/g, "' ' '");
 
   // Build TOML with literal multi-line string (''') for developer_instructions
-  // Note: description is NOT included here — Codex schema uses additionalProperties: false
-  // at the agent TOML level. Description lives in config.toml via generateCodexConfigBlock().
-  let toml = `sandbox_mode = "${sandboxMode}"\n`;
+  let toml = `description = ${JSON.stringify(description)}\n`;
+  toml += `sandbox_mode = "${sandboxMode}"\n`;
   toml += `developer_instructions = '''\n${safeBody}\n'''\n`;
 
   return toml;
