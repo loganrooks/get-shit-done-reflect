@@ -89,13 +89,13 @@ IMPORTANT: All sections must use semantic descriptions only. Never include runti
 
 Use `current-timestamp` for last_updated field. You can use init todos (which provides timestamps) or call directly:
 ```bash
-timestamp=$(node ~/.claude/get-shit-done/bin/gsd-tools.js current-timestamp full --raw)
+timestamp=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs current-timestamp full --raw)
 ```
 </step>
 
 <step name="commit">
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "wip: [phase-name] paused at task [X]/[Y]" --files .planning/phases/*/.continue-here.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "wip: [phase-name] paused at task [X]/[Y]" --files .planning/phases/*/.continue-here.md
 ```
 </step>
 

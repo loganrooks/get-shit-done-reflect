@@ -17,10 +17,10 @@ Detects whether signal density is increasing across phases, which may indicate g
 
 ## Execution
 
-This probe runs via gsd-tools.js subcommand:
+This probe runs via gsd-tools.cjs subcommand:
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js health-probe signal-density --raw
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs health-probe signal-density --raw
 ```
 
 ## Computation

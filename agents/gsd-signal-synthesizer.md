@@ -180,7 +180,7 @@ For each remaining candidate, enforce Phase 31 tiered rigor (knowledge-store.md 
 ```bash
 # Write candidate to temp file, validate, then decide
 echo '{frontmatter + body}' > /tmp/signal-candidate.md
-node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter validate /tmp/signal-candidate.md --schema signal
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs frontmatter validate /tmp/signal-candidate.md --schema signal
 ```
 
 If validation fails, reject the signal and log:
@@ -282,7 +282,7 @@ For each signal that passed all gates (trace filter, dedup, rigor, cap):
 
 9. **Post-write validation:** Validate the written file to catch malformed YAML:
    ```bash
-   node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter validate {written_file} --schema signal
+   node ~/.claude/get-shit-done/bin/gsd-tools.cjs frontmatter validate {written_file} --schema signal
    ```
    If validation fails on the written file, the YAML was malformed. Log the error and delete the malformed file:
    ```bash
@@ -345,7 +345,7 @@ Return a structured report to the orchestrator:
 
 2. **Trust sensor classifications.** Trust severity, signal_type, and tags from sensors -- your job is quality gating, not re-analyzing artifacts. Do not re-derive severity or re-classify signal types.
 
-3. **Use Phase 31 validation infrastructure.** Validate with `gsd-tools.js frontmatter validate --schema signal` before writing. Phase 31 built this infrastructure -- use it, do not rebuild it.
+3. **Use Phase 31 validation infrastructure.** Validate with `gsd-tools.cjs frontmatter validate --schema signal` before writing. Phase 31 built this infrastructure -- use it, do not rebuild it.
 
 4. **Use `kb-rebuild-index.sh` for index management.** Do not hand-construct the index. The rebuild script handles format, sorting, and archived entry exclusion.
 

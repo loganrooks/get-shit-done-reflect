@@ -706,7 +706,7 @@ both manual (`/gsd:reflect`) and auto-triggered reflections reset the counter, s
 next auto-reflection is scheduled correctly.
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation reflection-counter reset --raw 2>/dev/null || echo "Warning: Counter reset failed (non-blocking)"
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation reflection-counter reset --raw 2>/dev/null || echo "Warning: Counter reset failed (non-blocking)"
 ```
 
 This step is best-effort. If it fails (e.g., no config.json), reflection still completes

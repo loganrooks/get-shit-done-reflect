@@ -76,14 +76,14 @@ git commit -m "feat(08-02): create user registration endpoint
 "
 ```
 
-## 4. gsd-tools.js Commit Pattern
+## 4. gsd-tools.cjs Commit Pattern
 
-Use gsd-tools.js for committing planning artifacts (PLAN.md, SUMMARY.md, RESEARCH.md, STATE.md, ROADMAP.md).
+Use gsd-tools.cjs for committing planning artifacts (PLAN.md, SUMMARY.md, RESEARCH.md, STATE.md, ROADMAP.md).
 
 **Pattern:**
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "{message}" --files {file1} {file2}
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "{message}" --files {file1} {file2}
 ```
 
 **When to use:**
@@ -96,10 +96,10 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js commit "{message}" --files {file1}
 **Example:**
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(22-01): create shared agent protocol" --files .claude/get-shit-done/references/agent-protocol.md .planning/phases/22-agent-boilerplate-extraction/22-EXTRACTION-REGISTRY.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(22-01): create shared agent protocol" --files .claude/get-shit-done/references/agent-protocol.md .planning/phases/22-agent-boilerplate-extraction/22-EXTRACTION-REGISTRY.md
 ```
 
-The gsd-tools.js commit command respects `commit_docs` configuration automatically.
+The gsd-tools.cjs commit command respects `commit_docs` configuration automatically.
 
 ## 5. commit_docs Configuration
 
@@ -108,7 +108,7 @@ The gsd-tools.js commit command respects `commit_docs` configuration automatical
 **Always:**
 1. Write files first (using Write/Edit tools)
 2. Check `commit_docs` configuration
-3. If `commit_docs: true` → commit via gsd-tools.js
+3. If `commit_docs: true` → commit via gsd-tools.cjs
 4. If `commit_docs: false` → skip git commit, files still written
 
 **Critical distinction:**
@@ -117,13 +117,13 @@ The gsd-tools.js commit command respects `commit_docs` configuration automatical
 - Planning artifacts MUST be written regardless of commit_docs setting
 - Code files are committed separately from planning artifacts
 
-**How gsd-tools.js handles it:**
+**How gsd-tools.cjs handles it:**
 
-The `gsd-tools.js commit` command automatically checks `commit_docs` from config.json:
+The `gsd-tools.cjs commit` command automatically checks `commit_docs` from config.json:
 - If `true`: executes git commit
 - If `false`: skips git commit silently
 
-Agents don't need to check commit_docs manually when using gsd-tools.js commit.
+Agents don't need to check commit_docs manually when using gsd-tools.cjs commit.
 
 ## 6. State File Conventions
 
@@ -187,14 +187,14 @@ Agents don't need to check commit_docs manually when using gsd-tools.js commit.
 - Active: `.planning/debug/{slug}.md`
 - Resolved: `.planning/debug/resolved/{slug}.md`
 
-## 7. gsd-tools.js Init Pattern
+## 7. gsd-tools.cjs Init Pattern
 
-Most agents load execution context via gsd-tools.js init command.
+Most agents load execution context via gsd-tools.cjs init command.
 
 **General pattern:**
 
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init {subcommand} "${PHASE}")
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs init {subcommand} "${PHASE}")
 ```
 
 **Available init subcommands:**
@@ -220,7 +220,7 @@ The specific init subcommand and fields extracted remain in each agent spec (age
 **Example from executor:**
 
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init execute-phase "${PHASE}")
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs init execute-phase "${PHASE}")
 # Extract: executor_model, commit_docs, phase_dir, plans, incomplete_plans
 ```
 
@@ -282,10 +282,10 @@ mcp__context7__query-docs with libraryId: "npm:library-name@version", query: "sp
 
 ### Enhanced Web Search (Brave API)
 
-**When available** (check `brave_search` config), use Brave Search via gsd-tools.js:
+**When available** (check `brave_search` config), use Brave Search via gsd-tools.cjs:
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js websearch "query" --limit 10
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs websearch "query" --limit 10
 ```
 
 **Options:**
@@ -525,7 +525,7 @@ All GSD agents return structured results to orchestrators using a consistent pat
 For environment variables:
 - Create `.env.example` with placeholder values
 - Document required env vars in USER-SETUP.md
-- Use gsd-tools.js to set env vars in external dashboards via CLI (Vercel, Railway, etc.)
+- Use gsd-tools.cjs to set env vars in external dashboards via CLI (Vercel, Railway, etc.)
 
 For configuration:
 - Modify project config files (like `next.config.js`, `vite.config.ts`)

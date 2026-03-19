@@ -175,7 +175,7 @@ rm -f ~/.claude/cache/gsd-update-check.json
 After installation completes, check if the updated version introduces new features:
 
 ```bash
-DIFF=$(node ~/.claude/get-shit-done/bin/gsd-tools.js manifest diff-config --raw 2>/dev/null)
+DIFF=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest diff-config --raw 2>/dev/null)
 ```
 
 **If command fails** (no config.json, no manifest, or any error): Skip this step silently. The user may not have an initialized project.
@@ -192,17 +192,17 @@ Read mode from `.planning/config.json`:
 
 **YOLO mode:** Auto-apply the migration:
 ```bash
-RESULT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js manifest apply-migration --raw)
+RESULT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest apply-migration --raw)
 ```
 
 Then log the migration:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js manifest log-migration --from "<old_version>" --to "<new_version>" --changes '<changes_from_result>' --raw
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest log-migration --from "<old_version>" --to "<new_version>" --changes '<changes_from_result>' --raw
 ```
 
 Update version stamp:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js config-set gsd_reflect_version "<new_version>"
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs config-set gsd_reflect_version "<new_version>"
 ```
 
 Display:

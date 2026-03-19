@@ -25,7 +25,7 @@ fi
 
 inconsistencies=0
 while IFS= read -r plan; do
-  raw=$(node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter get "$plan" --field resolves_signals --raw 2>/dev/null || echo "")
+  raw=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs frontmatter get "$plan" --field resolves_signals --raw 2>/dev/null || echo "")
   # Skip if not a valid array
   echo "$raw" | grep -q '^\[' || continue
   # Parse signal IDs
@@ -54,7 +54,7 @@ fi
 
 orphans=0
 while IFS= read -r plan; do
-  raw=$(node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter get "$plan" --field resolves_signals --raw 2>/dev/null || echo "")
+  raw=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs frontmatter get "$plan" --field resolves_signals --raw 2>/dev/null || echo "")
   echo "$raw" | grep -q '^\[' || continue
   for sig_id in $(echo "$raw" | node -e "process.stdin.on('data',d=>{try{JSON.parse(d).forEach(s=>console.log(s))}catch{}})" 2>/dev/null); do
     sig_file=$(find "$KB_DIR/signals" -name "${sig_id}.md" 2>/dev/null | head -1)
