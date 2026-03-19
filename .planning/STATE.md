@@ -5,7 +5,7 @@ milestone_name: Upstream Sync & Deep Integration
 status: active
 stopped_at: null
 last_updated: "2026-03-19T06:25:00.000Z"
-last_activity: 2026-03-19 - Completed quick task 31: Upstream local Codex patches (AGENTS.md, capability matrix, collect-signals)
+last_activity: 2026-03-19 - Completed quick task 32: Cross-runtime model profile language and per-runtime resolution
 progress:
   total_phases: 10
   completed_phases: 0
@@ -104,6 +104,7 @@ Recent decisions affecting current work:
 | 29 | Fix Codex agent TOML description field (REVERTED ec54886 - validated against wrong schema) | 2026-03-17 | 425903d | [29-fix-codex-agent-toml-description-field-a](./quick/29-fix-codex-agent-toml-description-field-a/) |
 | 30 | Platform change detection scripts + QT29 retrospective + monitoring reference | 2026-03-19 | a59b5d5 | [30-platform-change-detection-scripts-qt29-r](./quick/30-platform-change-detection-scripts-qt29-r/) |
 | 31 | Upstream local Codex patches: AGENTS.md gen, capability matrix, collect-signals | 2026-03-19 | d202a70 | [31-upstream-local-codex-patches-agents-md-c](./quick/31-upstream-local-codex-patches-agents-md-c/) |
+| 32 | Cross-runtime model profile language and per-runtime resolution | 2026-03-19 | c8db983 | [32-upstream-cross-runtime-model-profile-pat](./quick/32-upstream-cross-runtime-model-profile-pat/) |
 
 ### Key Artifacts
 
@@ -114,5 +115,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Quick task 31 completed (upstream local Codex patches). Ready for next quick task or `/gsd:plan-phase 45`.
+Stopped at: Quick task 32 completed (cross-runtime model profiles). Ready for next quick task or `/gsd:plan-phase 45`.
 Resume file: None
