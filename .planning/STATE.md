@@ -4,8 +4,8 @@ milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
 stopped_at: null
-last_updated: "2026-03-19T04:00:00.000Z"
-last_activity: 2026-03-19 - Completed quick task 30: Platform change detection scripts (QT29 retrospective)
+last_updated: "2026-03-19T06:25:00.000Z"
+last_activity: 2026-03-19 - Completed quick task 31: Upstream local Codex patches (AGENTS.md, capability matrix, collect-signals)
 progress:
   total_phases: 10
   completed_phases: 0
@@ -103,6 +103,7 @@ Recent decisions affecting current work:
 | 28 | Cross-runtime parity enforcement: 4 structural CI tests (count, names, content quality, new runtime detection) | 2026-03-17 | b3aab25 | [28-parity-enforcement-test-structural-ci-te](./quick/28-parity-enforcement-test-structural-ci-te/) |
 | 29 | Fix Codex agent TOML description field (REVERTED ec54886 - validated against wrong schema) | 2026-03-17 | 425903d | [29-fix-codex-agent-toml-description-field-a](./quick/29-fix-codex-agent-toml-description-field-a/) |
 | 30 | Platform change detection scripts + QT29 retrospective + monitoring reference | 2026-03-19 | a59b5d5 | [30-platform-change-detection-scripts-qt29-r](./quick/30-platform-change-detection-scripts-qt29-r/) |
+| 31 | Upstream local Codex patches: AGENTS.md gen, capability matrix, collect-signals | 2026-03-19 | d202a70 | [31-upstream-local-codex-patches-agents-md-c](./quick/31-upstream-local-codex-patches-agents-md-c/) |
 
 ### Key Artifacts
 
@@ -113,5 +114,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Quick task 30 completed (platform change detection scripts + QT29 retrospective). Ready for next quick task or `/gsd:plan-phase 45`.
+Stopped at: Quick task 31 completed (upstream local Codex patches). Ready for next quick task or `/gsd:plan-phase 45`.
 Resume file: None
