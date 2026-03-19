@@ -1172,8 +1172,8 @@ Use \`/skills\` or type \`$gsdr-\` to discover GSD commands:
 
 ## Runtime Capabilities
 
-This runtime operates with limited capabilities compared to Claude Code:
-- **No Task tool support** -- Codex cannot spawn sub-agents, so all execution is sequential within a single context
+This runtime differs from Claude Code in a few important ways:
+- **Task tool support is available via Codex subagents/threads** -- Codex can delegate bounded subtasks and run them in parallel, but the control surface differs from Claude's \`Task()\`-style spawning. Some GSD workflows may still fall back to sequential execution until they are adapted to Codex-native delegation patterns.
 - **No hooks support** -- pre-commit hooks and other lifecycle hooks are unavailable in Codex
 - **No tool restrictions** -- Codex does not support allowed-tools filtering, so all tools are always available to skills
 

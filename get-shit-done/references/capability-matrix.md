@@ -8,41 +8,42 @@
 
 | Capability | Claude Code | OpenCode | Gemini CLI | Codex CLI | Impact When Missing |
 |------------|:-----------:|:--------:|:----------:|:---------:|---------------------|
-| task_tool  |      Y      |    Y     |   Y [1]    |     N     | Sequential execution |
+| task_tool  |      Y      |    Y     |   Y [1]    |   Y [2]   | Sequential execution |
 | hooks      |      Y      |    N     |     Y      |     N     | Skip hook features   |
-| tool_permissions | Y     |    Y     |   Y [2]    |     N     | All tools available  |
-| mcp_servers|      Y      |    Y     |   Y [3]    |   Y [4]   | Skip MCP features    |
+| tool_permissions | Y     |    Y     |   Y [3]    |     N     | All tools available  |
+| mcp_servers|      Y      |    Y     |   Y [4]    |   Y [5]   | Skip MCP features    |
 
 > [1] Experimental, sequential only. Parallel subagent execution not yet available.
-> [2] Via tools.core (allowlist), tools.exclude (denylist), and per-sub-agent restrictions.
-> [3] STDIO, SSE, and Streamable HTTP transports. OAuth support.
-> [4] STDIO and Streamable HTTP transports. OAuth support.
+> [2] Stable multi-agent support via Codex subagents/threads. The capability exists, but the runtime-native interface differs from Claude's `Task()`-style spawning and needs Codex-specific orchestration patterns.
+> [3] Via tools.core (allowlist), tools.exclude (denylist), and per-sub-agent restrictions.
+> [4] STDIO, SSE, and Streamable HTTP transports. OAuth support.
+> [5] STDIO and Streamable HTTP transports. OAuth support.
 
 ## Format Reference
 
 | Property | Claude Code | OpenCode | Gemini CLI | Codex CLI |
 |----------|-------------|----------|------------|-----------|
 | frontmatter | YAML | YAML (tools as map) | TOML | SKILL.md |
-| commands | commands/gsd/*.md | command/gsd-*.md | commands/gsd/*.toml | skills/*.md |
-| agents | agents/gsd-*.md | agents/gsd-*.md | agents/gsd-*.md | (via AGENTS.md) |
+| commands | commands/gsd/*.md | command/gsdr-*.md | commands/gsd/*.toml | skills/*.md |
+| agents | agents/gsdr-*.md | agents/gsdr-*.md | agents/gsdr-*.md | (via AGENTS.md) |
 | config | settings.json | opencode.json | settings.json | codex.toml |
 
 ## Capability Details
 
 ### task_tool
 
-Can spawn subagent processes via Task() calls for parallel execution. This is the primary mechanism for wave-based plan execution -- the orchestrator spawns a gsd-executor agent for each plan in a wave, and they run concurrently.
+Can delegate bounded subtasks to child agents for parallel execution. The exact mechanism is runtime-specific: Claude/OpenCode use explicit task-style spawning, while Codex uses native subagent workflows and agent threads.
 
-**Available in:** Claude Code, OpenCode, Gemini CLI [1]
-**Missing in:** Codex CLI
+**Available in:** Claude Code, OpenCode, Gemini CLI [1], Codex CLI [2]
 
 > [1] Gemini CLI task_tool support is experimental and sequential only. Parallel subagent execution is not yet available -- plans within a wave execute one at a time rather than concurrently.
+> [2] Codex CLI now exposes stable subagent workflows. They can run in parallel, but the control surface is thread-based rather than Claude's `Task()` call pattern.
 
 **Degraded behavior when missing:**
-Execute plans sequentially in the main context. The orchestrator reads plan files directly and executes tasks one at a time instead of spawning gsd-executor agents per wave. Wave grouping and parallel spawning are skipped. Plans execute in dependency order, and each plan's tasks are completed before moving to the next plan.
+Execute plans sequentially in the main context. The orchestrator reads plan files directly and executes tasks one at a time instead of spawning gsdr-executor agents per wave. Wave grouping and parallel spawning are skipped. Plans execute in dependency order, and each plan's tasks are completed before moving to the next plan.
 
 **How orchestrators adapt:**
-Use `<capability_check name="parallel_execution">` before wave execution logic. If task_tool is available, spawn agents as designed. Otherwise, execute plans sequentially following the execute-plan.md flow inline.
+Use `<capability_check name="parallel_execution">` before wave execution logic. If task_tool is available, delegate via the runtime-native child-agent mechanism. Otherwise, execute plans sequentially following the execute-plan.md flow inline.
 
 ### hooks
 
@@ -95,12 +96,14 @@ No orchestrator adaptation needed. The installer preserves MCP tool references f
 
 | Feature | Status | Adaptation |
 |---------|--------|------------|
-| Parallel agents (task_tool) | N | Sequential plan execution in main context |
+| Parallel agents (task_tool) | Y [1] | Use Codex subagents/threads rather than Claude-style `Task()` spawning |
 | Hooks | N | Update checks on GSD command invocation |
 | Tool permissions | N | All tools available to all agents |
 | MCP servers | Y | Full MCP support via STDIO and Streamable HTTP |
 
-Codex CLI operates as the baseline runtime with two missing capabilities: parallel execution (task_tool) and session hooks. All GSD workflows are designed to function correctly under these constraints. The primary impact is execution speed (sequential vs parallel) and the absence of automatic session hooks. MCP servers and tool permissions are the only areas where Codex remains more constrained than other runtimes (no tool permissions support).
+> [1] Codex subagents are now a stable capability, but GSD orchestrators still need Codex-specific delegation flows instead of assuming Claude-style `Task()` semantics.
+
+Codex CLI no longer lacks parallel delegation outright. Its main remaining runtime gaps are session hooks and per-agent tool-permission controls, while multi-agent execution uses Codex-native subagent/thread flows rather than Claude's pane-centric task flow. The primary current limitation for GSD is integration shape, not absence of capability.
 
 ### Gemini CLI
 
@@ -148,10 +151,10 @@ Capability checks are wrapped in `<capability_check>` XML tags for grep-ability 
 
 ```markdown
 <capability_check name="parallel_execution">
-Check the runtime capability matrix (get-shit-done/references/capability-matrix.md):
+Check the runtime capability matrix (get-shit-done-reflect/references/capability-matrix.md):
 
 If has_capability("task_tool"):
-  Spawn gsd-executor via Task() for each plan in the wave.
+  Delegate each plan in the wave via the runtime-native child-agent mechanism.
   Track agent progress, collect results, proceed to next wave.
 
 Else:

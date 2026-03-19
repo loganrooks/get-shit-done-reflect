@@ -1523,7 +1523,7 @@ Agent body content`
         expect(content).toContain('$gsdr-help')
         expect(content).toContain('~/.gsd/knowledge')
         expect(content).toContain('codex exec')
-        expect(content).toContain('No Task tool support')
+        expect(content).toContain('Task tool support is available via Codex subagents')
       })
 
       tmpdirTest('appends GSD section to existing AGENTS.md without GSD section', async ({ tmpdir }) => {
