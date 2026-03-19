@@ -5,7 +5,7 @@
  * that round-trip through config-set without data loss.
  *
  * Separate file from gsd-tools.test.js per Phase 9 decision:
- * "Separate fork-tools.js over modifying gsd-tools.js" — zero merge friction.
+ * "Separate fork-tools.js over modifying gsd-tools.cjs" — zero merge friction.
  */
 
 const { test, describe, beforeEach, afterEach } = require('node:test');
@@ -290,7 +290,7 @@ Original body content.
       const fs = require('fs');
       const toolsSrc = fs.readFileSync('${TOOLS_PATH.replace(/\\/g, '\\\\')}', 'utf-8');
 
-      // Extract the three functions from gsd-tools.js source
+      // Extract the three functions from gsd-tools.cjs source
       const extractFn = toolsSrc.match(/function extractFrontmatter\\(content\\)[\\s\\S]+?^\\}/m)[0];
       const reconstructFn = toolsSrc.match(/function reconstructFrontmatter\\(obj\\)[\\s\\S]+?^\\}/m)[0];
       const spliceFn = toolsSrc.match(/function spliceFrontmatter\\(content, newObj\\)[\\s\\S]+?^\\}/m)[0];

@@ -297,11 +297,11 @@ describe('install script', () => {
       })
 
       describe('false positive protection', () => {
-        it('preserves gsd-tools.js via (?!tools) lookahead', () => {
-          const input = 'node get-shit-done/bin/gsd-tools.js state advance-plan'
+        it('preserves gsd-tools.cjs via (?!tools) lookahead', () => {
+          const input = 'node get-shit-done/bin/gsd-tools.cjs state advance-plan'
           const result = replacePathsInContent(input, './.claude/')
-          expect(result).toContain('gsd-tools.js')
-          expect(result).not.toContain('gsdr-tools.js')
+          expect(result).toContain('gsd-tools.cjs')
+          expect(result).not.toContain('gsdr-tools.cjs')
         })
 
         it('preserves gsd-tools in prose text', () => {
@@ -399,9 +399,9 @@ describe('install script', () => {
         })
 
         it('local install prefix composes correctly', () => {
-          const input = '~/.claude/get-shit-done/bin/gsd-tools.js'
+          const input = '~/.claude/get-shit-done/bin/gsd-tools.cjs'
           const result = replacePathsInContent(input, './.claude/')
-          expect(result).toBe('./.claude/get-shit-done-reflect/bin/gsd-tools.js')
+          expect(result).toBe('./.claude/get-shit-done-reflect/bin/gsd-tools.cjs')
         })
 
         it('combined realistic agent file content: all rules compose without interference', () => {
@@ -413,7 +413,7 @@ describe('install script', () => {
             'Read @~/.claude/get-shit-done/references/agent-protocol.md',
             'Use /gsd:help for commands.',
             'subagent_type="gsd-executor"',
-            'Run: node get-shit-done/bin/gsd-tools.js init',
+            'Run: node get-shit-done/bin/gsd-tools.cjs init',
             'GSD ► Phase 1',
             'KB: ~/.gsd/knowledge/index.md',
             'Package: get-shit-done-reflect-cc',
@@ -425,12 +425,12 @@ describe('install script', () => {
           expect(result).toContain('get-shit-done-reflect/references/agent-protocol.md')
           expect(result).toContain('/gsdr:help')
           expect(result).toContain('gsdr-executor')
-          expect(result).toContain('get-shit-done-reflect/bin/gsd-tools.js')
+          expect(result).toContain('get-shit-done-reflect/bin/gsd-tools.cjs')
           expect(result).toContain('GSDR ►')
 
           // Correctly preserved
-          expect(result).toContain('gsd-tools.js')
-          expect(result).not.toContain('gsdr-tools.js')
+          expect(result).toContain('gsd-tools.cjs')
+          expect(result).not.toContain('gsdr-tools.cjs')
           expect(result).toContain('~/.gsd/knowledge/index.md')
           expect(result).toContain('get-shit-done-reflect-cc')
           expect(result).not.toContain('reflect-reflect')
@@ -2515,7 +2515,7 @@ Also use the Read tool to read files and Bash to run commands.`
       }
     })
 
-    tmpdirTest('installed files preserve gsd-tools.js filename', async ({ tmpdir }) => {
+    tmpdirTest('installed files preserve gsd-tools.cjs filename', async ({ tmpdir }) => {
       execSync(`node "${installScript}" --claude --global`, {
         env: { ...process.env, HOME: tmpdir },
         cwd: tmpdir,
@@ -2534,7 +2534,7 @@ Also use the Read tool to read files and Bash to run commands.`
           expect(content, `${file} incorrectly rewrote gsd-tools`).not.toContain('gsdr-tools')
         }
       }
-      expect(foundGsdTools, 'At least one workflow should reference gsd-tools.js').toBe(true)
+      expect(foundGsdTools, 'At least one workflow should reference gsd-tools.cjs').toBe(true)
     })
 
     tmpdirTest('installed hooks have gsdr- prefix and correct paths', async ({ tmpdir }) => {
