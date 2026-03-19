@@ -9,7 +9,7 @@ Requirements for Upstream Sync & Deep Integration milestone.
 
 ### Modularization
 
-- [ ] **MOD-01**: Runtime file renamed from gsd-tools.js to gsd-tools.cjs with all 56 shell references updated
+- [x] **MOD-01**: Runtime file renamed from gsd-tools.js to gsd-tools.cjs with all 66 source file references updated ✓ 2026-03-19
 - [ ] **MOD-02**: Upstream's 11 lib/*.cjs modules adopted with dispatcher rewritten to route commands to modules
 - [ ] **MOD-03**: 4 shared helper functions (loadManifest, loadProjectConfig, atomicWriteJson, parseIncludeFlag) extracted to core.cjs
 - [ ] **MOD-04**: sensors.cjs module extracted with cmdSensorsList and cmdSensorsBlindSpots functions
@@ -117,7 +117,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| MOD-01 | Phase 45 | Pending |
+| MOD-01 | Phase 45 | Complete |
 | MOD-02 | Phase 46 | Pending |
 | MOD-03 | Phase 46 | Pending |
 | MOD-04 | Phase 47 | Pending |

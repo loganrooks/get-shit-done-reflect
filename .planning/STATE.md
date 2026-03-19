@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 45 - CJS Rename (v1.18 Upstream Sync & Deep Integration)
+**Current focus:** Phase 46 - Upstream Module Adoption (v1.18 Upstream Sync & Deep Integration)
 
 ## Current Position
 
