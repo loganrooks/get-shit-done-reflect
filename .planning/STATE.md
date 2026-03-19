@@ -4,8 +4,8 @@ milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
 stopped_at: null
-last_updated: "2026-03-17T04:00:00.000Z"
-last_activity: 2026-03-17 - Completed quick task 29: Fix Codex agent TOML description field + schema compliance test
+last_updated: "2026-03-19T04:00:00.000Z"
+last_activity: 2026-03-19 - Executing quick task 30: Platform change detection scripts (QT29 retrospective)
 progress:
   total_phases: 10
   completed_phases: 0
@@ -101,7 +101,7 @@ Recent decisions affecting current work:
 | 26 | Codex deployment parity: sandbox modes, config.toml registration, clean uninstall | 2026-03-17 | f3cddea | [26-codex-deployment-parity-sandbox-modes-co](./quick/26-codex-deployment-parity-sandbox-modes-co/) |
 | 27 | copyWithPathReplacement upgrade: isCommand/isGlobal params, Codex markdown conversion, Gemini isCommand gating | 2026-03-17 | eec0ae1 | [27-copywithpathreplacement-upgrade-iscomman](./quick/27-copywithpathreplacement-upgrade-iscomman/) |
 | 28 | Cross-runtime parity enforcement: 4 structural CI tests (count, names, content quality, new runtime detection) | 2026-03-17 | b3aab25 | [28-parity-enforcement-test-structural-ci-te](./quick/28-parity-enforcement-test-structural-ci-te/) |
-| 29 | Fix Codex agent TOML description field: remove unauthorized field, add schema compliance test | 2026-03-17 | 425903d | [29-fix-codex-agent-toml-description-field-a](./quick/29-fix-codex-agent-toml-description-field-a/) |
+| 29 | Fix Codex agent TOML description field (REVERTED ec54886 - validated against wrong schema) | 2026-03-17 | 425903d | [29-fix-codex-agent-toml-description-field-a](./quick/29-fix-codex-agent-toml-description-field-a/) |
 
 ### Key Artifacts
 
@@ -111,6 +111,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-17
-Stopped at: Quick task 29 completed (Codex agent TOML description field fix + schema compliance test). Ready for next quick task or `/gsd:plan-phase 45`.
+Last session: 2026-03-19
+Stopped at: Executing quick task 30 (platform change detection scripts + QT29 retrospective).
 Resume file: None
