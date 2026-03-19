@@ -44,11 +44,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Running `gsd-tools.cjs` from any hook or shell script produces identical output to the previous `gsd-tools.js`
   2. All 278 existing vitest tests pass without modification
   3. No shell script, hook, or workflow file references `gsd-tools.js` (the old name)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 45-01: TBD
-- [ ] 45-02: TBD
+- [ ] 45-01-PLAN.md -- Rename gsd-tools.js to gsd-tools.cjs and update all source file references
+- [ ] 45-02-PLAN.md -- Update test/installer fixtures and run full verification sweep
 
 ### Phase 46: Upstream Module Adoption
 **Goal**: The CLI dispatcher routes commands through upstream's 11 modular files and shared fork helpers live in core.cjs, replacing the monolith's inline function definitions
@@ -215,7 +215,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 49 -> 50 -> 51 -> 52 ->
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 45. CJS Rename | 0/TBD | Not started | - |
+| 45. CJS Rename | 0/2 | Not started | - |
 | 46. Upstream Module Adoption | 0/TBD | Not started | - |
 | 47. Fork Module Extraction | 0/TBD | Not started | - |
 | 48. Module Extensions & Verification | 0/TBD | Not started | - |
