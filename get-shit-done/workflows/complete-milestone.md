@@ -40,7 +40,7 @@ When a milestone completes:
 **Use `roadmap analyze` for comprehensive readiness check:**
 
 ```bash
-ROADMAP=$(node ~/.claude/get-shit-done/bin/gsd-tools.js roadmap analyze)
+ROADMAP=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs roadmap analyze)
 ```
 
 This returns all phases with plan/summary counts and disk status. Use this to verify:
@@ -143,7 +143,7 @@ Extract one-liners from SUMMARY.md files using summary-extract:
 ```bash
 # For each phase in milestone, extract one-liner
 for summary in .planning/phases/*-*/*-SUMMARY.md; do
-  node ~/.claude/get-shit-done/bin/gsd-tools.js summary-extract "$summary" --fields one_liner | jq -r '.one_liner'
+  node ~/.claude/get-shit-done/bin/gsd-tools.cjs summary-extract "$summary" --fields one_liner | jq -r '.one_liner'
 done
 ```
 
@@ -312,7 +312,7 @@ Initial user testing showed demand for shape tools.
 ## Post-Evolve: Backlog Review
 
 ```bash
-BACKLOG_LIST=$(node ~/.claude/get-shit-done/bin/gsd-tools.js backlog list --status captured,triaged --raw)
+BACKLOG_LIST=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs backlog list --status captured,triaged --raw)
 ```
 
 Parse BACKLOG_LIST for item count. If 0 unpromoted items, skip to next step.
@@ -340,26 +340,26 @@ Use AskUserQuestion:
 
 **If "Review individually":** For each item, AskUserQuestion with:
 - "Keep" -- no change
-- "Defer" -- `node ~/.claude/get-shit-done/bin/gsd-tools.js backlog update <id> --status deferred`
-- "Discard" -- `node ~/.claude/get-shit-done/bin/gsd-tools.js backlog update <id> --status done`
+- "Defer" -- `node ~/.claude/get-shit-done/bin/gsd-tools.cjs backlog update <id> --status deferred`
+- "Discard" -- `node ~/.claude/get-shit-done/bin/gsd-tools.cjs backlog update <id> --status done`
 
 **If "Defer all":**
 ```bash
 # For each unpromoted item:
-node ~/.claude/get-shit-done/bin/gsd-tools.js backlog update <id> --status deferred
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs backlog update <id> --status deferred
 ```
 
 **Check for planned items** (promoted during this milestone):
 
 ```bash
-PLANNED=$(node ~/.claude/get-shit-done/bin/gsd-tools.js backlog list --status planned --raw)
+PLANNED=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs backlog list --status planned --raw)
 ```
 
 If planned items exist, AskUserQuestion:
 - header: "Planned Items"
 - question: "These backlog items were promoted during this milestone. Mark as done?"
 - options:
-  - "Mark all as done" -- `node ~/.claude/get-shit-done/bin/gsd-tools.js backlog update <id> --status done` for each
+  - "Mark all as done" -- `node ~/.claude/get-shit-done/bin/gsd-tools.cjs backlog update <id> --status done` for each
   - "Keep as planned" -- no change (useful if milestone partially shipped)
 
 **This step is always skippable** -- never gate milestone completion on backlog triage. If item count is 0, skip entirely.
@@ -415,7 +415,7 @@ Update `.planning/ROADMAP.md` — group completed milestone phases:
 **Delegate archival to gsd-tools:**
 
 ```bash
-ARCHIVE=$(node ~/.claude/get-shit-done/bin/gsd-tools.js milestone complete "v[X.Y]" --name "[Milestone Name]")
+ARCHIVE=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs milestone complete "v[X.Y]" --name "[Milestone Name]")
 ```
 
 The CLI handles:
@@ -503,7 +503,7 @@ Check branching strategy and offer merge options.
 Use `init milestone-op` for context, or load config directly:
 
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init execute-phase "1")
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs init execute-phase "1")
 ```
 
 Extract `branching_strategy`, `phase_branch_template`, `milestone_branch_template` from init JSON.
@@ -633,7 +633,7 @@ git push origin v[X.Y]
 Commit milestone completion.
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "chore: complete v[X.Y] milestone" --files .planning/milestones/v[X.Y]-ROADMAP.md .planning/milestones/v[X.Y]-REQUIREMENTS.md .planning/milestones/v[X.Y]-MILESTONE-AUDIT.md .planning/MILESTONES.md .planning/PROJECT.md .planning/STATE.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "chore: complete v[X.Y] milestone" --files .planning/milestones/v[X.Y]-ROADMAP.md .planning/milestones/v[X.Y]-REQUIREMENTS.md .planning/milestones/v[X.Y]-MILESTONE-AUDIT.md .planning/MILESTONES.md .planning/PROJECT.md .planning/STATE.md
 ```
 ```
 

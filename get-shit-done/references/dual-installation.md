@@ -13,7 +13,7 @@ Local always takes precedence over global. When both exist:
 - Commands execute from the local installation
 - VERSION from local is the "active" version
 - Hooks check local first, fall back to global
-- gsd-tools.js init reports the local version as active
+- gsd-tools.cjs init reports the local version as active
 
 ## When to Use Each
 
@@ -53,7 +53,7 @@ npx get-shit-done-reflect-cc --local
 
 ## Detection
 
-The `gsd-tools.js init` commands include a `dual_install` field in their JSON output:
+The `gsd-tools.cjs init` commands include a `dual_install` field in their JSON output:
 
 ```json
 {

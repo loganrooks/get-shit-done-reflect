@@ -318,15 +318,15 @@ After each sensor output is collected (success or failure), track stats:
 
 ```bash
 # On successful sensor output collection:
-node ~/.claude/get-shit-done-reflect/bin/gsd-tools.js automation track-event "sensor_{NAME}" fire
+node ~/.claude/get-shit-done-reflect/bin/gsd-tools.cjs automation track-event "sensor_{NAME}" fire
 
 # On sensor failure (parse error, agent error):
-node ~/.claude/get-shit-done-reflect/bin/gsd-tools.js automation track-event "sensor_{NAME}" skip "parse-error"
+node ~/.claude/get-shit-done-reflect/bin/gsd-tools.cjs automation track-event "sensor_{NAME}" skip "parse-error"
 # or
-node ~/.claude/get-shit-done-reflect/bin/gsd-tools.js automation track-event "sensor_{NAME}" skip "agent-error"
+node ~/.claude/get-shit-done-reflect/bin/gsd-tools.cjs automation track-event "sensor_{NAME}" skip "agent-error"
 
 # On sensor timeout:
-node ~/.claude/get-shit-done-reflect/bin/gsd-tools.js automation track-event "sensor_{NAME}" skip "timeout"
+node ~/.claude/get-shit-done-reflect/bin/gsd-tools.cjs automation track-event "sensor_{NAME}" skip "timeout"
 ```
 
 Collect all successfully parsed sensor JSON arrays into a merged list: `MERGED_SENSOR_JSON`.

@@ -333,17 +333,17 @@ issue:
 
 ## Dimension 8: Tool Subcommand Validation
 
-**Question:** Do plan actions reference valid gsd-tools.js subcommands?
+**Question:** Do plan actions reference valid gsd-tools.cjs subcommands?
 
 **Severity:** advisory
 
 **Process:**
-1. Scan all `<action>` blocks for patterns matching `gsd-tools.js <command> [<subcommand>]` or `node .*/gsd-tools.js <command> [<subcommand>]`
+1. Scan all `<action>` blocks for patterns matching `gsd-tools.cjs <command> [<subcommand>]` or `node .*/gsd-tools.cjs <command> [<subcommand>]`
 2. Check `<command>` against the top-level command allowlist
 3. If command has subcommands, check `<subcommand>` against the subcommand allowlist
 4. Report unmatched commands/subcommands as advisory findings with TOOL-NNN IDs
 
-**Tool Command Allowlist** (verified from gsd-tools.js source 2026-03-06):
+**Tool Command Allowlist** (verified from gsd-tools.cjs source 2026-03-06):
 
 ```
 Top-level commands:
@@ -366,7 +366,7 @@ Subcommand trees:
   manifest: selftest, describe
 ```
 
-**Maintenance note:** This allowlist must be updated when gsd-tools.js adds new subcommands. When you encounter an unrecognized top-level command, issue a TOOL finding -- do not silently ignore.
+**Maintenance note:** This allowlist must be updated when gsd-tools.cjs adds new subcommands. When you encounter an unrecognized top-level command, issue a TOOL finding -- do not silently ignore.
 
 **Example finding:**
 ```yaml
@@ -474,7 +474,7 @@ issue:
 
 Load phase operation context:
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init phase-op "${PHASE_ARG}")
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs init phase-op "${PHASE_ARG}")
 ```
 
 Extract from init JSON: `phase_dir`, `phase_number`, `has_plans`, `plan_count`.
@@ -483,7 +483,7 @@ Orchestrator provides CONTEXT.md content in the verification prompt. If provided
 
 ```bash
 ls "$phase_dir"/*-PLAN.md 2>/dev/null
-node ~/.claude/get-shit-done/bin/gsd-tools.js roadmap get-phase "$phase_number"
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs roadmap get-phase "$phase_number"
 ls "$phase_dir"/*-BRIEF.md 2>/dev/null
 ```
 
@@ -496,7 +496,7 @@ Use gsd-tools to validate plan structure:
 ```bash
 for plan in "$PHASE_DIR"/*-PLAN.md; do
   echo "=== $plan ==="
-  PLAN_STRUCTURE=$(node ~/.claude/get-shit-done/bin/gsd-tools.js verify plan-structure "$plan")
+  PLAN_STRUCTURE=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs verify plan-structure "$plan")
   echo "$PLAN_STRUCTURE"
 done
 ```
@@ -514,7 +514,7 @@ Map errors/warnings to verification dimensions:
 Extract must_haves from each plan using gsd-tools:
 
 ```bash
-MUST_HAVES=$(node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter get "$PLAN_PATH" --field must_haves)
+MUST_HAVES=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs frontmatter get "$PLAN_PATH" --field must_haves)
 ```
 
 Returns JSON: `{ truths: [...], artifacts: [...], key_links: [...] }`
@@ -557,7 +557,7 @@ For each requirement: find covering task(s), verify action is specific, flag gap
 Use gsd-tools plan-structure verification (already run in Step 2):
 
 ```bash
-PLAN_STRUCTURE=$(node ~/.claude/get-shit-done/bin/gsd-tools.js verify plan-structure "$PLAN_PATH")
+PLAN_STRUCTURE=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs verify plan-structure "$PLAN_PATH")
 ```
 
 The `tasks` array in the result shows each task's completeness:
@@ -606,7 +606,7 @@ Thresholds: 2-3 tasks/plan good, 4 warning, 5+ blocker (split required).
 
 Run advisory semantic Dimensions 8-11 against all plans:
 
-1. **Dimension 8 (Tool Subcommand):** Scan `<action>` blocks for gsd-tools.js command references, validate against embedded allowlist
+1. **Dimension 8 (Tool Subcommand):** Scan `<action>` blocks for gsd-tools.cjs command references, validate against embedded allowlist
 2. **Dimension 9 (Config Key):** Scan `<action>` blocks for config key references, validate against feature-manifest.json schema
 3. **Dimension 10 (Directory Existence):** Parse `files_modified` paths, check parent directory existence with temporal awareness
 4. **Dimension 11 (Signal Reference):** Parse `resolves_signals` IDs, check against KB signal index

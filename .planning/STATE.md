@@ -4,14 +4,14 @@ milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
 stopped_at: null
-last_updated: "2026-03-19T06:25:00.000Z"
-last_activity: 2026-03-19 - Completed quick task 32: Cross-runtime model profile language and per-runtime resolution
+last_updated: "2026-03-19T23:29:00.000Z"
+last_activity: 2026-03-19 - Completed Phase 45 CJS rename (2/2 plans, tests + behavioral equivalence verified)
 progress:
   total_phases: 10
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
+  percent: 10
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 45 - CJS Rename (v1.18 Upstream Sync & Deep Integration)
+**Current focus:** Phase 46 - Upstream Module Adoption (v1.18 Upstream Sync & Deep Integration)
 
 ## Current Position
 
 Phase: 45 of 54 (CJS Rename) -- first phase of v1.18
-Plan: --
-Status: Ready to plan
-Last activity: 2026-03-10 -- Roadmap created for v1.18 (10 phases, 48 requirements)
+Plan: 2 of 2 (PHASE COMPLETE)
+Status: Phase 45 complete
+Last activity: 2026-03-19 -- Completed 45-02 (tests, installer, behavioral equivalence verified)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [▓░░░░░░░░░] 10%
 
 ## Performance Metrics
 
@@ -60,6 +60,13 @@ Progress: [░░░░░░░░░░] 0%
 - Plans completed: 24
 - See STATE.md archive for per-plan breakdown
 
+**v1.18:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| 45-01 | 3min | 2 | 58 |
+| 45-02 | 5min | 2 | 7 |
+
 *Updated after each plan completion*
 
 ## Accumulated Context
@@ -76,11 +83,13 @@ Recent decisions affecting current work:
 - v1.18 roadmap: Update System Hardening (Phase 51) added after migration test hardening to ensure robust upgrade paths before feature adoption
 - v1.18 roadmap: Infrastructure (Phase 54) placed last; technically independent of Phases 49-53 but benefits from stable final state
 - [Phase quick-22]: Used TOML literal strings (''') for Codex agent files to preserve backslash patterns verbatim
+- [Phase 45]: install.test.js prose test (lines 307-311) correctly left unchanged -- uses extensionless gsd-tools not gsd-tools.js
 
 ### Pending Todos
 
-1 pending:
+2 pending:
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
+- [HIGH] Local patch archive: versioned history instead of single-snapshot overwrite (installer)
 
 ### Blockers/Concerns
 
@@ -115,5 +124,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Quick task 32 completed (cross-runtime model profiles). Ready for next quick task or `/gsd:plan-phase 45`.
+Stopped at: Completed 45-02-PLAN.md. Phase 45 (CJS Rename) complete. Ready for Phase 46 (Adopt Modules).
 Resume file: None

@@ -63,8 +63,8 @@ fi
 
 Migration actions are now manifest-driven. Running `manifest apply-migration` reads `feature-manifest.json`, detects config gaps, fills missing features/fields with schema defaults, and coerces mismatched types.
 
-**To see what would change:** `node ~/.claude/get-shit-done/bin/gsd-tools.js manifest diff-config --raw`
-**To apply changes:** `node ~/.claude/get-shit-done/bin/gsd-tools.js manifest apply-migration --raw`
+**To see what would change:** `node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest diff-config --raw`
+**To apply changes:** `node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest apply-migration --raw`
 
 Adding a new feature requires only adding it to `feature-manifest.json`. The migration commands automatically handle existing projects.
 

@@ -67,7 +67,7 @@ Check if `--auto` flag was passed in arguments OR if `.planning/config.json` has
 
 Run manifest diff to detect config gaps:
 ```bash
-DIFF=$(node ~/.claude/get-shit-done/bin/gsd-tools.js manifest diff-config --raw)
+DIFF=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest diff-config --raw)
 ```
 
 Parse the JSON result. Extract `missing_features`, `missing_fields`, and `type_mismatches`.
@@ -77,25 +77,25 @@ Report "Config is up to date" and skip to Step 6.
 
 **In YOLO/auto mode:** Apply all defaults without prompting:
 ```bash
-RESULT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js manifest apply-migration --raw)
+RESULT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest apply-migration --raw)
 ```
 
 **In interactive mode:** For each missing feature:
-1. Get prompts: `node ~/.claude/get-shit-done/bin/gsd-tools.js manifest get-prompts <feature> --raw`
+1. Get prompts: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest get-prompts <feature> --raw`
 2. Check for `_gate` prompt (field === "_gate"):
    - If present: ask the gate question first via AskUserQuestion
    - If user selects `skip_value`: skip remaining prompts, feature gets all defaults
    - If user selects other value: continue with remaining prompts
 3. For each non-gate prompt: present question and options via AskUserQuestion
-4. Write user choices: `node ~/.claude/get-shit-done/bin/gsd-tools.js config-set <config_key>.<field> <value>`
+4. Write user choices: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs config-set <config_key>.<field> <value>`
 5. After all user choices, fill remaining defaults and coerce types:
    ```bash
-   node ~/.claude/get-shit-done/bin/gsd-tools.js manifest apply-migration --raw
+   node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest apply-migration --raw
    ```
 
 Update version stamps LAST (only after all changes succeed):
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js config-set gsd_reflect_version "<installed_version>"
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs config-set gsd_reflect_version "<installed_version>"
 ```
 
 This ensures partial migrations are retried on next run.
@@ -106,7 +106,7 @@ This ensures partial migrations are retried on next run.
 
 Log the migration using the changes from Step 5:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js manifest log-migration --from "<old_version>" --to "<new_version>" --changes '<changes_json_from_step_5>' --raw
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest log-migration --from "<old_version>" --to "<new_version>" --changes '<changes_json_from_step_5>' --raw
 ```
 
 The `--changes` argument is the `changes` array from the `manifest apply-migration` output in Step 5. If interactive mode added user choices via `config-set`, include those as additional `field_added` entries in the changes array.

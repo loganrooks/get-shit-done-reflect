@@ -46,7 +46,7 @@ npm run build:hooks         # build hook scripts
 - `.planning/` — GSD project management (STATE.md, ROADMAP.md, phases/)
 - `.planning/deliberations/` — persistent design thinking across sessions
 - `bin/install.js` — the installer (copies source to runtime config dirs)
-- `get-shit-done/bin/gsd-tools.js` — CLI runtime (~5,400 lines)
+- `get-shit-done/bin/gsd-tools.cjs` — CLI runtime (~5,400 lines)
 - `get-shit-done/feature-manifest.json` — declarative feature/config schema
 - `~/.gsd/knowledge/` — cross-project knowledge base (signals, spikes, lessons)
 
@@ -55,4 +55,4 @@ npm run build:hooks         # build hook scripts
 - Fork tags: `reflect-v*` prefix (e.g., `reflect-v1.15.0`)
 - Upstream remote: `--no-tags` to prevent tag collision
 - Fork divergences tracked in `.planning/FORK-DIVERGENCES.md`
-- Never modify `get-shit-done/bin/gsd-tools.js` directly (upstream file)
+- Never modify `get-shit-done/bin/gsd-tools.cjs` directly (upstream file)

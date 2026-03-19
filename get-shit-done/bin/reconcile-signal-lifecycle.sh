@@ -21,7 +21,7 @@ if [ ! -d "$PHASE_DIR" ]; then
   exit 1
 fi
 
-GSD_TOOLS="$HOME/.claude/get-shit-done/bin/gsd-tools.js"
+GSD_TOOLS="$HOME/.claude/get-shit-done/bin/gsd-tools.cjs"
 
 # KB path resolution -- project-local primary, GSD_HOME middle tier, user-global fallback
 if [ -d ".planning/knowledge" ]; then
