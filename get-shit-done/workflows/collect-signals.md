@@ -14,18 +14,14 @@ Orchestrate multi-sensor signal collection for a completed phase. Discovers sens
     - Blind spots: `<blind_spots>` section in agent spec body (prose documentation,
       not structured data -- makes theory-ladenness visible)
 
-  - AUTO-DISCOVERY: Sensors are discovered by scanning for gsdr-*-sensor.md files in the
+  - AUTO-DISCOVERY: Sensors are discovered by scanning for gsd-*-sensor.md files in the
     agents directory. Adding a new sensor is a single-file operation: create
-    agents/gsdr-{name}-sensor.md conforming to the contract above.
+    agents/gsd-{name}-sensor.md conforming to the contract above.
     If no file-backed sensor specs exist, fall back to built-in runtime roles when available
-    (currently `gsdr-artifact-sensor` and `gsdr-git-sensor`).
+    (currently `gsd-artifact-sensor` and `gsd-git-sensor`).
 
   - Sensors return JSON to orchestrator -- they do NOT write to KB (single-writer principle)
-  - Sensor model policy in Codex runtimes:
-    - Default single-pass run: `gpt-5.4` with `reasoning_effort=medium`
-    - Optional comparison run: add `gpt-5.4-mini` with `reasoning_effort=medium` when calibrating a new sensor, checking disagreement, or validating a high-stakes phase
-    - Escalation path: use `gpt-5.4` with `reasoning_effort=high` only when the phase was messy or cross-run disagreement materially changes synthesis judgment
-    - Do NOT hardcode legacy `quality -> opus` / `balanced -> sonnet` mappings in Codex-native workflows
+  - Sensor model selection: derive from model_profile via model-profiles.md Per-Runtime Resolution table
   - The orchestrator passes file PATHS to sensors, not file CONTENTS (prevents context bloat)
   - JSON extraction uses ## SENSOR OUTPUT / ## END SENSOR OUTPUT delimiters with fallback to fenced code block search
   - This pattern differs from map-codebase: mappers write files and return confirmations, sensors return data (JSON) to the orchestrator. The delimiter protocol ensures reliable data transfer across Task() boundaries.
@@ -89,7 +85,7 @@ At least one SUMMARY.md must exist -- signals can only be detected from complete
 ```bash
 if [ "$SUMMARY_COUNT" -eq 0 ]; then
   echo "No completed plans to analyze."
-  echo "Run \$gsdr-execute-phase $PHASE_ARG first to execute plans, then collect signals."
+  echo "Run \/gsd:execute-phase $PHASE_ARG first to execute plans, then collect signals."
   exit 0
 fi
 ```
@@ -113,20 +109,20 @@ If `signal_collection` is absent, use the workflow defaults documented below.
 </step>
 
 <step name="discover_sensors">
-Scan the agents directory for sensor agent specs matching the `gsdr-*-sensor.md` naming convention. This is the preferred auto-discovery mechanism because it keeps sensors self-describing on disk. If none are present, fall back to the built-in runtime sensor roles.
+Scan the agents directory for sensor agent specs matching the `gsd-*-sensor.md` naming convention. This is the preferred auto-discovery mechanism because it keeps sensors self-describing on disk. If none are present, fall back to the built-in runtime sensor roles.
 
 ```bash
 # Discover all sensor agent specs from the file system
-SENSOR_FILES=$(ls -1 ~/.claude/agents/gsdr-*-sensor.md 2>/dev/null)
+SENSOR_FILES=$(ls -1 ~/.claude/agents/gsd-*-sensor.md 2>/dev/null)
 
 if [ -z "$SENSOR_FILES" ]; then
   echo "No file-backed sensor specs found; falling back to built-in runtime sensors."
-  DISCOVERED_SENSORS="artifact|builtin:gsdr-artifact-sensor|45\ngit|builtin:gsdr-git-sensor|45\n"
+  DISCOVERED_SENSORS="artifact|builtin:gsd-artifact-sensor|45\ngit|builtin:gsd-git-sensor|45\n"
 else
   DISCOVERED_SENSORS=""
   for SENSOR_FILE in $SENSOR_FILES; do
-    # Extract sensor name from filename: gsdr-{name}-sensor.md -> {name}
-    SENSOR_NAME=$(basename "$SENSOR_FILE" | sed 's/^gsdr-//' | sed 's/-sensor\.md$//')
+    # Extract sensor name from filename: gsd-{name}-sensor.md -> {name}
+    SENSOR_NAME=$(basename "$SENSOR_FILE" | sed 's/^gsd-//' | sed 's/-sensor\.md$//')
 
     # Parse frontmatter for contract fields
     # Extract timeout_seconds (default 45 if not declared)
@@ -273,7 +269,7 @@ for ENTRY in ENABLED_SENSOR_RUNS:
   REASONING_EFFORT = ENTRY.reasoning_effort
   SENSOR_AGENT_TYPE = ENTRY.spec_path starts with "builtin:"
     ? ENTRY.spec_path without "builtin:"
-    : "gsdr-" + NAME + "-sensor"
+    : "gsd-" + NAME + "-sensor"
 
   Task(
     subagent_type=SENSOR_AGENT_TYPE,
@@ -376,7 +372,7 @@ Spawn the synthesizer as a foreground Task() (NOT background -- we need its repo
 
 ```
 Task(
-  subagent_type="gsdr-signal-synthesizer",
+  subagent_type="gsd-signal-synthesizer",
   model="{synthesizer_model}",
   reasoning_effort="{synthesizer_reasoning_effort}",
   description="Synthesize signals for phase {PADDED_PHASE}",
@@ -495,8 +491,8 @@ Skip if `COMMIT_PLANNING_DOCS` is false or no signals were written.
 **No sensors discovered:** Report error only after both discovery paths fail: no file-backed specs and no built-in runtime roles available.
 **Single sensor failure:** Log the failure, track via track-event with skip reason, continue with remaining sensors. Only fail the whole workflow if ALL sensors fail.
 **Single sensor timeout:** Log inline warning, track via track-event with "timeout" skip reason, treat as empty array, continue with remaining sensors.
-**All sensors failed:** Report "all sensors failed" with error details. Suggest manual `\$gsdr-signal` for individual entries.
-**Synthesizer failure:** Report what was attempted and suggest manual `\$gsdr-signal` for individual entries.
+**All sensors failed:** Report "all sensors failed" with error details. Suggest manual `\/gsd:signal` for individual entries.
+**Synthesizer failure:** Report what was attempted and suggest manual `\/gsd:signal` for individual entries.
 **KB directory missing:** Synthesizer creates it (mkdir -p) during signal write step.
 **JSON extraction failure:** Use fallback extraction (fenced code block search). If fallback also fails, skip that sensor and continue.
 **Frontmatter parse failure:** Log warning "Sensor {name} has malformed frontmatter -- skipping", continue with remaining sensors.
