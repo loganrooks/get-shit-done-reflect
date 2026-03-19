@@ -139,7 +139,7 @@ async function verifyNoLeakedPaths(runtimeDir, runtime) {
     }
 
     // Check for stale gsd- references that should be gsdr- in installed output
-    // Exempt: gsd-tools.js (filename preserved), gsd-knowledge (legacy KB path),
+    // Exempt: gsd-tools.cjs (filename preserved), gsd-knowledge (legacy KB path),
     //         CHANGELOG.md (historical references to old agent names),
     //         gsd-test (temp directory names from test harness),
     //         gsd-build (upstream GitHub org name)

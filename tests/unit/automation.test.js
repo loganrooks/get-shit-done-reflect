@@ -5,7 +5,7 @@ import fs from 'node:fs/promises'
 import fsSync from 'node:fs'
 import { execSync } from 'node:child_process'
 
-const GSD_TOOLS = path.resolve(process.cwd(), 'get-shit-done/bin/gsd-tools.js')
+const GSD_TOOLS = path.resolve(process.cwd(), 'get-shit-done/bin/gsd-tools.cjs')
 
 /**
  * Helper: create a temp project with .planning/config.json and run track-event
