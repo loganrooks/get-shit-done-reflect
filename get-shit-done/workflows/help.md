@@ -321,9 +321,9 @@ Usage: `/gsd:settings`
 **`/gsd:set-profile <profile>`**
 Quick switch model profile for GSD agents.
 
-- `quality` — Opus everywhere except verification
-- `balanced` — Opus for planning, Sonnet for execution (default)
-- `budget` — Sonnet for writing, Haiku for research/verification
+- `quality` — Opus-tier for all decision-making agents
+- `balanced` — Opus-tier for planning, sonnet-tier for execution (default)
+- `budget` — Sonnet-tier for writing, haiku-tier for research/verification
 
 Usage: `/gsd:set-profile budget`
 
