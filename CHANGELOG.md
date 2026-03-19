@@ -6,6 +6,24 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.17.4] - 2026-03-19
+
+### Fixed
+- **Codex AGENTS.md false capability claim** (QT31): "Codex cannot spawn sub-agents" → accurate description of Codex subagent/thread support (stable since v0.115.0, validated by spike 003)
+- **Capability matrix Codex task_tool** (QT31): changed from `N` to `Y [2]` with footnote about stable multi-agent support
+- **collect-signals namespace errors** (QT31): `gsd-*-sensor.md` → `gsdr-*-sensor.md`, `/gsd:` → `$gsdr-`, `get-shit-done/` → `get-shit-done-reflect/`
+- **QT29 revert**: restored `description` field in Codex agent TOML — the published JSON Schema (`config.schema.json`) describes `config.toml`, not agent role files; the actual agent role file schema (`RawAgentRoleFileToml` in Codex source) explicitly accepts `description`
+
+### Added
+- **Platform change detection script** (QT30): `scripts/detect-platform-changes.sh` with `--upstream` (GSD installer diff) and `--codex-schema` (Codex config schema diff) modes for proactive platform monitoring
+- **Platform monitoring reference** (QT30): `references/platform-monitoring.md` documenting the two-layer monitoring strategy and the QT29 false positive lesson
+- **Codex-native model policy in collect-signals** (QT31): replaces Claude-centric `quality→opus` mappings with `gpt-5.4` + `reasoning_effort` levels, multi-run comparison mode, built-in sensor fallback
+- **Spike 003**: Codex agent integration validated end-to-end — all 20 agent roles load, are discoverable, and spawn correctly as sub-agents via `spawn_agent`/`wait_agent`
+
+### Changed
+- collect-signals workflow adapted for Codex runtime: sensor model selection, reasoning_effort escalation, multi-run reporting table
+- Deliberation: platform change monitoring concluded with two-layer strategy (change detection + integration testing)
+
 ## [1.17.3] - 2026-03-17
 
 ### Added
