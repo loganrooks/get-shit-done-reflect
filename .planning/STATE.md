@@ -116,5 +116,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Quick task 32 completed (cross-runtime model profiles). Ready for next quick task or `/gsd:plan-phase 45`.
+Stopped at: v1.17.5 released. Session included: deliberation (self-improvement-pipeline-design, concluded), QT32 (cross-runtime model profiles), CI fix (QT31 source namespace pollution), signal (qt31-source-namespace-pollution), todo (local patch archive). Ready for `/gsd:plan-phase 45`.
 Resume file: None

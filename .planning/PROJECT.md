@@ -213,6 +213,8 @@ Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
 | Advisory severity for semantic plan validation | Plans describe future state; blocking on predictions is over-confident | ✓ Good — typed finding IDs (TOOL/CFG/DIR/SIG) for future correlation |
 | Regime tracking for observation changes | Signal baselines shift when auto-collection is enabled; trend analysis invalid across boundaries | ✓ Good — regime_change KB entries with timestamps and impact |
 | Counter-based reflection triggering | Simple, predictable, configurable; avoids complex heuristics | ✓ Good — phases_since_last_reflect with threshold gating |
+| Install-time model resolution per runtime | Claude auto-resolves symbolic names; Codex needs explicit model+reasoning_effort pairs; no single strategy covers all platforms | ✓ Good — source files use cross-runtime tier language with Per-Runtime Resolution table; installer deploys same content to all platforms |
+| Critical state transitions must be programmatic | Agent instructions are unreliable at ensuring every step fires in long sequences (proven by lifecycle gap, QT29) | ✓ Good — design principle from signal-lifecycle-closed-loop-gap deliberation |
 
 ---
-*Last updated: 2026-03-10 after v1.18 milestone start*
+*Last updated: 2026-03-19 after v1.17.5 release (QT32, CI fix, self-improvement pipeline deliberation)*
