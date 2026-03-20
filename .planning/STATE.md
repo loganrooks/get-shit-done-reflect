@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 48-01-PLAN.md (signal schema + init --include merge). Phase 48 Plan 01 complete.
-last_updated: "2026-03-20T19:00:09.576Z"
-last_activity: 2026-03-20 -- Completed 47-02 (manifest.cjs + automation.cjs extraction, 61% line reduction)
+stopped_at: Completed 48-02-PLAN.md (fork command overrides extracted, MOD-11 verified, gsd-tools.cjs is pure router at 674 lines). Phase 48 complete.
+last_updated: "2026-03-20T19:08:21.316Z"
+last_activity: 2026-03-20 -- Completed 48-01 (signal schema + init --include merge, gsd-tools.cjs reduced to 794 lines)
 progress:
   total_phases: 10
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 9
-  percent: 100
+  completed_plans: 10
+  percent: 99
 ---
 
 # Project State
@@ -75,6 +75,7 @@ Progress: [██████████] 99%
 | Phase 47 P01 | 13min | 2 tasks | 5 files |
 | Phase 47 P02 | 11min | 2 tasks | 4 files |
 | Phase 48 P01 | 9min | 2 tasks | 3 files |
+| Phase 48 P02 | 6min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -100,6 +101,8 @@ Recent decisions affecting current work:
 - [Phase 47]: gsd-tools.cjs reduced from 3,200 to 1,239 lines (61% reduction); retains only fork init overrides, fork command overrides, and CLI router
 - [Phase 48]: Tiered validation detection by schema properties (conditional/recommended), not schema name — future-proof for new tiered schemas
 - [Phase 48]: Merge strategy: edit upstream function bodies in-place (add includes param + content loading block), never wholesale-replace
+- [Phase 48]: Fork extension pattern: module.exports.funcName appended after main exports block — consistent with frontmatter.cjs and init.cjs approach
+- [Phase 48]: gsd-tools.cjs is now a pure CLI router with zero inline function definitions — all command logic lives in lib/*.cjs
 
 ### Pending Todos
 
@@ -139,6 +142,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-20T19:00:09.573Z
-Stopped at: Completed 48-01-PLAN.md (signal schema + init --include merge). Phase 48 Plan 01 complete.
+Last session: 2026-03-20T19:08:21.312Z
+Stopped at: Completed 48-02-PLAN.md (fork command overrides extracted, MOD-11 verified, gsd-tools.cjs is pure router at 674 lines). Phase 48 complete.
 Resume file: None
