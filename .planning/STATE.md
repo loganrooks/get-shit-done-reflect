@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 46-03-PLAN.md. Phase 46 complete. Ready for Phase 47 (Fork Module Extraction).
-last_updated: "2026-03-20T05:00:00.000Z"
-last_activity: 2026-03-20 -- Completed 46-03 (integration testing + user verification)
+stopped_at: Completed 46-04-PLAN.md (gap closure). Phase 46 fully verified. Ready for Phase 47.
+last_updated: "2026-03-20T05:04:07.924Z"
+last_activity: 2026-03-20 -- Completed 46-04 (init.cjs gap closure -- routing + dead code removal)
 progress:
   total_phases: 10
   completed_phases: 2
-  total_plans: 5
-  completed_plans: 5
-  percent: 20
+  total_plans: 6
+  completed_plans: 6
+  percent: 100
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 ## Current Position
 
 Phase: 46 of 54 (Upstream Module Adoption)
-Plan: 3 of 3
+Plan: 4 of 4 (gap closure complete)
 Status: active
-Last activity: 2026-03-20 -- Completed 46-03 (integration testing + user verification)
+Last activity: 2026-03-20 -- Completed 46-04 (init.cjs gap closure -- routing + dead code removal)
 
-Progress: [▓▓░░░░░░░░] 20%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -71,6 +71,7 @@ Progress: [▓▓░░░░░░░░] 20%
 *Updated after each plan completion*
 | Phase 46 P02 | 20min | 2 tasks | 1 files |
 | Phase 46 P03 | 5min | 2 tasks | 0 files |
+| Phase 46 P04 | 3min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,7 @@ Recent decisions affecting current work:
 - [Phase 46]: loadManifest __dirname path adjusted to two levels up from bin/lib/ for correct feature-manifest.json resolution
 - [Phase 46]: Fork overrides added for list-todos, config-set/get, frontmatter validate signal where upstream modules diverge from fork behavior
 - [Phase 46]: Behavioral equivalence verified across all 6 command categories; no code changes needed post-dispatcher-rewire
+- [Phase 46]: cmdInitTodos remains inline as sole init fork override; 8 other init subcommands routed through init.cjs
 
 ### Pending Todos
 
@@ -130,6 +132,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:00:00.000Z
-Stopped at: Completed 46-03-PLAN.md. Phase 46 complete. Ready for Phase 47 (Fork Module Extraction).
+Last session: 2026-03-20T05:04:07.920Z
+Stopped at: Completed 46-04-PLAN.md (gap closure). Phase 46 fully verified. Ready for Phase 47.
 Resume file: None
