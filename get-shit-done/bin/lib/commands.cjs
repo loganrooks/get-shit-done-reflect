@@ -664,3 +664,47 @@ module.exports = {
   cmdScaffold,
   cmdStats,
 };
+
+// Fork extension: enriched list-todos with priority/source/status fields
+module.exports.cmdForkListTodos = function cmdForkListTodos(cwd, area, raw) {
+  const pendingDir = path.join(cwd, '.planning', 'todos', 'pending');
+
+  let count = 0;
+  const todos = [];
+
+  try {
+    const files = fs.readdirSync(pendingDir).filter(f => f.endsWith('.md'));
+
+    for (const file of files) {
+      try {
+        const content = fs.readFileSync(path.join(pendingDir, file), 'utf-8');
+        const createdMatch = content.match(/^created:\s*(.+)$/m);
+        const titleMatch = content.match(/^title:\s*(.+)$/m);
+        const areaMatch = content.match(/^area:\s*(.+)$/m);
+        const priorityMatch = content.match(/^priority:\s*(.+)$/m);
+        const sourceMatch = content.match(/^source:\s*(.+)$/m);
+        const statusMatch = content.match(/^status:\s*(.+)$/m);
+
+        const todoArea = areaMatch ? areaMatch[1].trim() : 'general';
+
+        // Apply area filter if specified
+        if (area && todoArea !== area) continue;
+
+        count++;
+        todos.push({
+          file,
+          created: createdMatch ? createdMatch[1].trim() : 'unknown',
+          title: titleMatch ? titleMatch[1].trim() : 'Untitled',
+          area: todoArea,
+          priority: priorityMatch ? priorityMatch[1].trim() : 'MEDIUM',
+          source: sourceMatch ? sourceMatch[1].trim() : 'unknown',
+          status: statusMatch ? statusMatch[1].trim() : 'pending',
+          path: path.join('.planning', 'todos', 'pending', file),
+        });
+      } catch {}
+    }
+  } catch {}
+
+  const result = { count, todos };
+  output(result, raw, count.toString());
+};

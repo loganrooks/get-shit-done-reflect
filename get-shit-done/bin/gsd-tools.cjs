@@ -3,12 +3,15 @@
 /**
  * GSD Tools — CLI utility for GSD workflow operations (GSD Reflect fork)
  *
- * Thin dispatcher that routes upstream commands to lib/*.cjs modules and
- * retains only fork command overrides and the CLI router.
- * Fork-specific modules extracted in Phase 47: sensors, backlog, health-probe,
- * manifest, automation.
- * Module extensions in Phase 48: signal schema in frontmatter.cjs,
- * --include support in init.cjs (execute-phase, plan-phase, todos, progress).
+ * Pure CLI router: dispatches all commands to lib/*.cjs modules.
+ * Contains zero inline function definitions — only requires and async main().
+ *
+ * Module extraction history:
+ *   Phase 45: renamed gsd-tools.js -> gsd-tools.cjs
+ *   Phase 46: adopted upstream lib/*.cjs modules (frontmatter, init, commands, config)
+ *   Phase 47: extracted fork modules (sensors, backlog, health-probe, manifest, automation)
+ *   Phase 48: extended upstream modules with fork behavior (frontmatter signal schema,
+ *             init --include support, list-todos enrichment, config-set/get permissive paths)
  *
  * Usage: node gsd-tools.cjs <command> [args] [--raw] [--cwd <path>]
  *
@@ -21,6 +24,9 @@
  *   init execute-phase <phase> [--include state,config,roadmap]
  *   init plan-phase <phase> [--include state,roadmap,research,context,verification,uat,requirements]
  *   init progress [--include state,roadmap,project,config]
+ *   list-todos [area] -- enriched with priority/source/status fields
+ *   config-set <key.path> <value> -- permissive (no allowlist)
+ *   config-get <key.path> -- graceful (returns {found:false} for missing keys)
  */
 
 const fs = require('fs');
@@ -45,132 +51,6 @@ const healthProbe = require('./lib/health-probe.cjs');
 const manifest = require('./lib/manifest.cjs');
 const automation = require('./lib/automation.cjs');
 
-
-// ─── Fork list-todos override (includes priority, source, status) ─────────────
-
-function cmdForkListTodos(cwd, area, raw) {
-  const pendingDir = path.join(cwd, '.planning', 'todos', 'pending');
-
-  let count = 0;
-  const todos = [];
-
-  try {
-    const files = fs.readdirSync(pendingDir).filter(f => f.endsWith('.md'));
-
-    for (const file of files) {
-      try {
-        const content = fs.readFileSync(path.join(pendingDir, file), 'utf-8');
-        const createdMatch = content.match(/^created:\s*(.+)$/m);
-        const titleMatch = content.match(/^title:\s*(.+)$/m);
-        const areaMatch = content.match(/^area:\s*(.+)$/m);
-        const priorityMatch = content.match(/^priority:\s*(.+)$/m);
-        const sourceMatch = content.match(/^source:\s*(.+)$/m);
-        const statusMatch = content.match(/^status:\s*(.+)$/m);
-
-        const todoArea = areaMatch ? areaMatch[1].trim() : 'general';
-
-        // Apply area filter if specified
-        if (area && todoArea !== area) continue;
-
-        count++;
-        todos.push({
-          file,
-          created: createdMatch ? createdMatch[1].trim() : 'unknown',
-          title: titleMatch ? titleMatch[1].trim() : 'Untitled',
-          area: todoArea,
-          priority: priorityMatch ? priorityMatch[1].trim() : 'MEDIUM',
-          source: sourceMatch ? sourceMatch[1].trim() : 'unknown',
-          status: statusMatch ? statusMatch[1].trim() : 'pending',
-          path: path.join('.planning', 'todos', 'pending', file),
-        });
-      } catch {}
-    }
-  } catch {}
-
-  const result = { count, todos };
-  output(result, raw, count.toString());
-}
-
-// ─── Fork config-set/config-get (permissive key paths) ────────────────────────
-
-function cmdForkConfigSet(cwd, keyPath, value, raw) {
-  const configPath = path.join(cwd, '.planning', 'config.json');
-
-  if (!keyPath) {
-    error('Usage: config-set <key.path> <value>');
-  }
-
-  // Parse value (handle booleans and numbers)
-  let parsedValue = value;
-  if (value === 'true') parsedValue = true;
-  else if (value === 'false') parsedValue = false;
-  else if (!isNaN(value) && value !== '') parsedValue = Number(value);
-
-  // Try parsing as JSON for complex values
-  if (typeof parsedValue === 'string' && (parsedValue.startsWith('[') || parsedValue.startsWith('{'))) {
-    try { parsedValue = JSON.parse(parsedValue); } catch {}
-  }
-
-  // Load existing config or start with empty object
-  let cfg = {};
-  try {
-    if (fs.existsSync(configPath)) {
-      cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    }
-  } catch (err) {
-    error('Failed to read config.json: ' + err.message);
-  }
-
-  // Set nested value using dot notation (e.g., "workflow.research")
-  const keys = keyPath.split('.');
-  let current = cfg;
-  for (let i = 0; i < keys.length - 1; i++) {
-    const key = keys[i];
-    if (current[key] === undefined || typeof current[key] !== 'object') {
-      current[key] = {};
-    }
-    current = current[key];
-  }
-  current[keys[keys.length - 1]] = parsedValue;
-
-  // Write back
-  try {
-    fs.writeFileSync(configPath, JSON.stringify(cfg, null, 2), 'utf-8');
-    const result = { updated: true, key: keyPath, value: parsedValue };
-    output(result, raw, `${keyPath}=${parsedValue}`);
-  } catch (err) {
-    error('Failed to write config.json: ' + err.message);
-  }
-}
-
-function cmdForkConfigGet(cwd, keyPath, raw) {
-  if (!keyPath) {
-    error('Usage: config-get <key.path>');
-  }
-
-  const configPath = path.join(cwd, '.planning', 'config.json');
-  let cfg = {};
-  try {
-    if (fs.existsSync(configPath)) {
-      cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
-    }
-  } catch (err) {
-    error('Failed to read config.json: ' + err.message);
-  }
-
-  // Navigate nested keys
-  const keys = keyPath.split('.');
-  let current = cfg;
-  for (const key of keys) {
-    if (current === undefined || current === null || typeof current !== 'object') {
-      output({ key: keyPath, value: undefined, found: false }, raw);
-      return;
-    }
-    current = current[key];
-  }
-
-  output({ key: keyPath, value: current, found: current !== undefined }, raw, String(current));
-}
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
 
@@ -390,7 +270,7 @@ async function main() {
     }
 
     case 'list-todos': {
-      cmdForkListTodos(cwd, args[1], raw);
+      commands.cmdForkListTodos(cwd, args[1], raw);
       break;
     }
 
@@ -405,12 +285,12 @@ async function main() {
     }
 
     case 'config-set': {
-      cmdForkConfigSet(cwd, args[1], args[2], raw);
+      config.cmdForkConfigSet(cwd, args[1], args[2], raw);
       break;
     }
 
     case 'config-get': {
-      cmdForkConfigGet(cwd, args[1], raw);
+      config.cmdForkConfigGet(cwd, args[1], raw);
       break;
     }
 
