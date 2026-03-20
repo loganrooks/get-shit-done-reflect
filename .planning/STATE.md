@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 47-02-PLAN.md (manifest/automation extraction). Phase 47 complete.
-last_updated: "2026-03-20T08:44:48Z"
+stopped_at: Completed 48-01-PLAN.md (signal schema + init --include merge). Phase 48 Plan 01 complete.
+last_updated: "2026-03-20T19:00:09.576Z"
 last_activity: 2026-03-20 -- Completed 47-02 (manifest.cjs + automation.cjs extraction, 61% line reduction)
 progress:
   total_phases: 10
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
   percent: 100
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 47 - Fork Module Extraction (v1.18 Upstream Sync & Deep Integration)
+**Current focus:** Phase 48 - Module Extensions & Verification (v1.18 Upstream Sync & Deep Integration)
 
 ## Current Position
 
-Phase: 47 of 54 (Fork Module Extraction)
-Plan: 2 of 2 (complete)
+Phase: 48 of 54 (Module Extensions & Verification)
+Plan: 1 of 1 (complete)
 Status: active
-Last activity: 2026-03-20 -- Completed 47-02 (manifest.cjs + automation.cjs extraction, 61% line reduction)
+Last activity: 2026-03-20 -- Completed 48-01 (signal schema + init --include merge, gsd-tools.cjs reduced to 794 lines)
 
-Progress: [██████████] 100%
+Progress: [██████████] 99%
 
 ## Performance Metrics
 
@@ -74,6 +74,7 @@ Progress: [██████████] 100%
 | Phase 46 P04 | 3min | 2 tasks | 1 files |
 | Phase 47 P01 | 13min | 2 tasks | 5 files |
 | Phase 47 P02 | 11min | 2 tasks | 4 files |
+| Phase 48 P01 | 9min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,8 @@ Recent decisions affecting current work:
 - [Phase 46]: cmdInitTodos remains inline as sole init fork override; 8 other init subcommands routed through init.cjs
 - [Phase 47]: FEATURE_CAPABILITY_MAP exported from automation.cjs per MOD-07 for Phase 53 deep integration consumers
 - [Phase 47]: gsd-tools.cjs reduced from 3,200 to 1,239 lines (61% reduction); retains only fork init overrides, fork command overrides, and CLI router
+- [Phase 48]: Tiered validation detection by schema properties (conditional/recommended), not schema name — future-proof for new tiered schemas
+- [Phase 48]: Merge strategy: edit upstream function bodies in-place (add includes param + content loading block), never wholesale-replace
 
 ### Pending Todos
 
@@ -136,6 +139,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-20T08:46:00Z
-Stopped at: Completed 47-01-PLAN.md (sensors/backlog/health-probe extraction). Phase 47 fully complete. Ready for Phase 48.
+Last session: 2026-03-20T19:00:09.573Z
+Stopped at: Completed 48-01-PLAN.md (signal schema + init --include merge). Phase 48 Plan 01 complete.
 Resume file: None
