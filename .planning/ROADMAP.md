@@ -25,7 +25,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 45: CJS Rename** - Rename gsd-tools.js to gsd-tools.cjs with all 66 source file references updated (zero functional changes) ✓ 2026-03-19
 - [x] **Phase 46: Upstream Module Adoption** - Adopt upstream's 11 lib/*.cjs modules, rewrite dispatcher, extract shared helpers to core.cjs ✓ 2026-03-20
-- [ ] **Phase 47: Fork Module Extraction** - Extract 5 new fork modules (sensors, backlog, manifest, automation, health-probe) in dependency order
+- [x] **Phase 47: Fork Module Extraction** - Extract 5 new fork modules (sensors, backlog, manifest, automation, health-probe) in dependency order ✓ 2026-03-20
 - [ ] **Phase 48: Module Extensions & Verification** - Extend frontmatter.cjs and init.cjs with fork additions, verify all tests pass with zero behavioral changes
 - [ ] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, update workflows and version-migration spec
 - [ ] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, integration depth tests
@@ -215,7 +215,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 49 -> 50 -> 51 -> 52 ->
 |-------|----------------|--------|-----------|
 | 45. CJS Rename | 2/2 | Complete | 2026-03-19 |
 | 46. Upstream Module Adoption | 4/4 | Complete | 2026-03-20 |
-| 47. Fork Module Extraction | 0/2 | Not started | - |
+| 47. Fork Module Extraction | 2/2 | Complete | 2026-03-20 |
 | 48. Module Extensions & Verification | 0/TBD | Not started | - |
 | 49. Config Migration | 0/TBD | Not started | - |
 | 50. Migration Test Hardening | 0/TBD | Not started | - |
