@@ -1,12 +1,13 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-20T04:27:25Z
-**Total entries:** 128
+**Generated:** 2026-03-20T20:59:49Z
+**Total entries:** 129
 
-## Signals (127)
+## Signals (128)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift | get-shit-done-reflect | critical | detected | migration,upgrade-project,config,local-install,global-install,knowledge-base,cross-runtime,codex,claude,hooks,path-resolution | 2026-03-20 | active |
 | sig-2026-03-19-qt31-source-namespace-pollution | get-shit-done-reflect | critical | detected | namespace,dual-directory,source-pollution,ci-failure,wiring-test,collect-signals,codex,quick-task | 2026-03-19 | active |
 | sig-2026-03-07-research-driven-planning-zero-deviations | get-shit-done-reflect | minor | detected | plan-quality,research-driven,execution-efficiency | 2026-03-07 | active |
 | sig-2026-03-07-producer-consumer-gap-remediated-phase43 | get-shit-done-reflect | minor | detected | producer-consumer,traceability,templates,provenance | 2026-03-07 | active |
