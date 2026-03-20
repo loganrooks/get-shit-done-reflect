@@ -77,14 +77,11 @@ Plans:
   3. `manifest.cjs` handles all 6 manifest commands (`diff-config`, `validate`, `apply-migration`, `get-prompts`, `features`, `show`)
   4. `automation.cjs` handles all 7 automation commands and exports FEATURE_CAPABILITY_MAP
   5. `health-probe.cjs` handles 3 probe functions and 3 KB helper functions
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 47-01: TBD
-- [ ] 47-02: TBD
-- [ ] 47-03: TBD
-- [ ] 47-04: TBD
-- [ ] 47-05: TBD
+- [ ] 47-01-PLAN.md -- Extract sensors.cjs, backlog.cjs, health-probe.cjs + remove dead frontmatter helpers
+- [ ] 47-02-PLAN.md -- Extract manifest.cjs and automation.cjs + final gsd-tools.cjs reduction
 
 ### Phase 48: Module Extensions & Verification
 **Goal**: Upstream's frontmatter and init modules are extended with fork-specific capabilities, and the entire modularization is verified as behaviorally equivalent to the pre-modularization monolith
@@ -218,7 +215,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 49 -> 50 -> 51 -> 52 ->
 |-------|----------------|--------|-----------|
 | 45. CJS Rename | 2/2 | Complete | 2026-03-19 |
 | 46. Upstream Module Adoption | 4/4 | Complete | 2026-03-20 |
-| 47. Fork Module Extraction | 0/TBD | Not started | - |
+| 47. Fork Module Extraction | 0/2 | Not started | - |
 | 48. Module Extensions & Verification | 0/TBD | Not started | - |
 | 49. Config Migration | 0/TBD | Not started | - |
 | 50. Migration Test Hardening | 0/TBD | Not started | - |
