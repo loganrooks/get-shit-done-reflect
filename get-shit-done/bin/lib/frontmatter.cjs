@@ -224,10 +224,32 @@ function parseMustHavesBlock(content, blockName) {
 
 // ─── Frontmatter CRUD commands ────────────────────────────────────────────────
 
+const FORK_SIGNAL_SCHEMA = {
+  required: ['id', 'type', 'project', 'tags', 'created', 'severity', 'signal_type'],
+  conditional: [
+    {
+      when: { field: 'severity', value: 'critical' },
+      require: ['evidence'],
+      recommend: ['confidence', 'confidence_basis'],
+    },
+    {
+      when: { field: 'severity', value: 'notable' },
+      recommend: ['evidence', 'confidence'],
+    },
+  ],
+  backward_compat: { field: 'lifecycle_state' },
+  recommended: ['lifecycle_state', 'signal_category', 'confidence', 'confidence_basis'],
+  optional: ['triage', 'remediation', 'verification', 'lifecycle_log',
+             'recurrence_of', 'phase', 'plan', 'polarity', 'source',
+             'occurrence_count', 'related_signals', 'runtime', 'model',
+             'gsd_version', 'durability', 'status'],
+};
+
 const FRONTMATTER_SCHEMAS = {
   plan: { required: ['phase', 'plan', 'type', 'wave', 'depends_on', 'files_modified', 'autonomous', 'must_haves'] },
   summary: { required: ['phase', 'plan', 'subsystem', 'tags', 'duration', 'completed'] },
   verification: { required: ['phase', 'verified', 'status', 'score'] },
+  signal: FORK_SIGNAL_SCHEMA,
 };
 
 function cmdFrontmatterGet(cwd, filePath, field, raw) {
@@ -283,6 +305,72 @@ function cmdFrontmatterValidate(cwd, filePath, schemaName, raw) {
   const fm = extractFrontmatter(content);
   const missing = schema.required.filter(f => fm[f] === undefined);
   const present = schema.required.filter(f => fm[f] !== undefined);
+
+  // Tiered validation (signal schema and any future tiered schemas)
+  if (schema.conditional || schema.recommended) {
+    const conditionalMissing = [];
+    const conditionalWarnings = [];
+    const backwardCompat = schema.backward_compat && fm[schema.backward_compat.field] === undefined;
+
+    if (schema.conditional) {
+      for (const cond of schema.conditional) {
+        if (fm[cond.when.field] === cond.when.value) {
+          if (cond.require) {
+            for (const f of cond.require) {
+              if (fm[f] === undefined) {
+                if (backwardCompat) {
+                  conditionalWarnings.push(`backward_compat: ${f}`);
+                } else {
+                  conditionalMissing.push(f);
+                }
+              }
+            }
+          }
+          if (cond.recommend) {
+            for (const f of cond.recommend) {
+              if (fm[f] === undefined) conditionalWarnings.push(f);
+            }
+          }
+        }
+      }
+    }
+
+    // Evidence content validation
+    if (!backwardCompat && schema.conditional) {
+      for (const cond of schema.conditional) {
+        if (fm[cond.when.field] === cond.when.value && cond.require) {
+          for (const f of cond.require) {
+            if (f === 'evidence' && fm.evidence !== undefined) {
+              const ev = fm.evidence;
+              const hasContent = ev.supporting && ev.supporting.length > 0;
+              if (!hasContent) {
+                conditionalMissing.push('evidence (empty)');
+              }
+            }
+          }
+        }
+      }
+    }
+
+    const recommendedMissing = [];
+    if (schema.recommended) {
+      for (const f of schema.recommended) {
+        if (fm[f] === undefined) recommendedMissing.push(f);
+      }
+    }
+
+    const allMissing = [...missing, ...conditionalMissing];
+    output({
+      valid: allMissing.length === 0,
+      missing: allMissing,
+      present,
+      warnings: [...conditionalWarnings, ...recommendedMissing.map(f => `recommended: ${f}`)],
+      schema: schemaName,
+    }, raw, allMissing.length === 0 ? 'valid' : 'invalid');
+    return;
+  }
+
+  // Simple validation (plan/summary/verification)
   output({ valid: missing.length === 0, missing, present, schema: schemaName }, raw, missing.length === 0 ? 'valid' : 'invalid');
 }
 
