@@ -2661,6 +2661,236 @@ function cmdSensorsBlindSpots(cwd, sensorName, raw) {
   output({ blind_spots: blindSpots }, raw);
 }
 
+// ─── Fork Frontmatter Validation (signal schema) ─────────────────────────────
+
+const FORK_SIGNAL_SCHEMA = {
+  required: ['id', 'type', 'project', 'tags', 'created', 'severity', 'signal_type'],
+  conditional: [
+    {
+      when: { field: 'severity', value: 'critical' },
+      require: ['evidence'],
+      recommend: ['confidence', 'confidence_basis'],
+    },
+    {
+      when: { field: 'severity', value: 'notable' },
+      recommend: ['evidence', 'confidence'],
+    },
+  ],
+  backward_compat: { field: 'lifecycle_state' },
+  recommended: ['lifecycle_state', 'signal_category', 'confidence', 'confidence_basis'],
+  optional: ['triage', 'remediation', 'verification', 'lifecycle_log',
+             'recurrence_of', 'phase', 'plan', 'polarity', 'source',
+             'occurrence_count', 'related_signals', 'runtime', 'model',
+             'gsd_version', 'durability', 'status'],
+};
+
+function cmdForkFrontmatterValidate(cwd, filePath, schemaName, raw) {
+  if (!filePath || !schemaName) { error('file and schema required'); }
+
+  // Only handle signal schema; delegate others to upstream
+  if (schemaName !== 'signal') {
+    frontmatter.cmdFrontmatterValidate(cwd, filePath, schemaName, raw);
+    return;
+  }
+
+  const schema = FORK_SIGNAL_SCHEMA;
+  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
+  const content = safeReadFile(fullPath);
+  if (!content) { output({ error: 'File not found', path: filePath }, raw); return; }
+  const fm = extractFrontmatter(content);
+
+  // Check required fields
+  const missing = schema.required.filter(f => fm[f] === undefined);
+  const present = schema.required.filter(f => fm[f] !== undefined);
+
+  // Check conditional requirements
+  const conditionalMissing = [];
+  const conditionalWarnings = [];
+  const backwardCompat = schema.backward_compat && fm[schema.backward_compat.field] === undefined;
+  if (schema.conditional) {
+    for (const cond of schema.conditional) {
+      if (fm[cond.when.field] === cond.when.value) {
+        if (cond.require) {
+          for (const f of cond.require) {
+            if (fm[f] === undefined) {
+              if (backwardCompat) {
+                conditionalWarnings.push(`backward_compat: ${f}`);
+              } else {
+                conditionalMissing.push(f);
+              }
+            }
+          }
+        }
+        if (cond.recommend) {
+          for (const f of cond.recommend) {
+            if (fm[f] === undefined) conditionalWarnings.push(f);
+          }
+        }
+      }
+    }
+  }
+
+  // Evidence content validation: empty evidence objects don't satisfy the requirement
+  if (!backwardCompat && schema.conditional) {
+    for (const cond of schema.conditional) {
+      if (fm[cond.when.field] === cond.when.value && cond.require) {
+        for (const f of cond.require) {
+          if (f === 'evidence' && fm.evidence !== undefined) {
+            const ev = fm.evidence;
+            const hasContent = ev.supporting && ev.supporting.length > 0;
+            if (!hasContent) {
+              conditionalMissing.push('evidence (empty)');
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Check recommended fields (warnings only)
+  const recommendedMissing = [];
+  if (schema.recommended) {
+    for (const f of schema.recommended) {
+      if (fm[f] === undefined) recommendedMissing.push(f);
+    }
+  }
+
+  const allMissing = [...missing, ...conditionalMissing];
+  output({
+    valid: allMissing.length === 0,
+    missing: allMissing,
+    present,
+    warnings: [...conditionalWarnings, ...recommendedMissing.map(f => `recommended: ${f}`)],
+    schema: schemaName,
+  }, raw, allMissing.length === 0 ? 'valid' : 'invalid');
+}
+
+// ─── Fork list-todos override (includes priority, source, status) ─────────────
+
+function cmdForkListTodos(cwd, area, raw) {
+  const pendingDir = path.join(cwd, '.planning', 'todos', 'pending');
+
+  let count = 0;
+  const todos = [];
+
+  try {
+    const files = fs.readdirSync(pendingDir).filter(f => f.endsWith('.md'));
+
+    for (const file of files) {
+      try {
+        const content = fs.readFileSync(path.join(pendingDir, file), 'utf-8');
+        const createdMatch = content.match(/^created:\s*(.+)$/m);
+        const titleMatch = content.match(/^title:\s*(.+)$/m);
+        const areaMatch = content.match(/^area:\s*(.+)$/m);
+        const priorityMatch = content.match(/^priority:\s*(.+)$/m);
+        const sourceMatch = content.match(/^source:\s*(.+)$/m);
+        const statusMatch = content.match(/^status:\s*(.+)$/m);
+
+        const todoArea = areaMatch ? areaMatch[1].trim() : 'general';
+
+        // Apply area filter if specified
+        if (area && todoArea !== area) continue;
+
+        count++;
+        todos.push({
+          file,
+          created: createdMatch ? createdMatch[1].trim() : 'unknown',
+          title: titleMatch ? titleMatch[1].trim() : 'Untitled',
+          area: todoArea,
+          priority: priorityMatch ? priorityMatch[1].trim() : 'MEDIUM',
+          source: sourceMatch ? sourceMatch[1].trim() : 'unknown',
+          status: statusMatch ? statusMatch[1].trim() : 'pending',
+          path: path.join('.planning', 'todos', 'pending', file),
+        });
+      } catch {}
+    }
+  } catch {}
+
+  const result = { count, todos };
+  output(result, raw, count.toString());
+}
+
+// ─── Fork config-set/config-get (permissive key paths) ────────────────────────
+
+function cmdForkConfigSet(cwd, keyPath, value, raw) {
+  const configPath = path.join(cwd, '.planning', 'config.json');
+
+  if (!keyPath) {
+    error('Usage: config-set <key.path> <value>');
+  }
+
+  // Parse value (handle booleans and numbers)
+  let parsedValue = value;
+  if (value === 'true') parsedValue = true;
+  else if (value === 'false') parsedValue = false;
+  else if (!isNaN(value) && value !== '') parsedValue = Number(value);
+
+  // Try parsing as JSON for complex values
+  if (typeof parsedValue === 'string' && (parsedValue.startsWith('[') || parsedValue.startsWith('{'))) {
+    try { parsedValue = JSON.parse(parsedValue); } catch {}
+  }
+
+  // Load existing config or start with empty object
+  let cfg = {};
+  try {
+    if (fs.existsSync(configPath)) {
+      cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    }
+  } catch (err) {
+    error('Failed to read config.json: ' + err.message);
+  }
+
+  // Set nested value using dot notation (e.g., "workflow.research")
+  const keys = keyPath.split('.');
+  let current = cfg;
+  for (let i = 0; i < keys.length - 1; i++) {
+    const key = keys[i];
+    if (current[key] === undefined || typeof current[key] !== 'object') {
+      current[key] = {};
+    }
+    current = current[key];
+  }
+  current[keys[keys.length - 1]] = parsedValue;
+
+  // Write back
+  try {
+    fs.writeFileSync(configPath, JSON.stringify(cfg, null, 2), 'utf-8');
+    const result = { updated: true, key: keyPath, value: parsedValue };
+    output(result, raw, `${keyPath}=${parsedValue}`);
+  } catch (err) {
+    error('Failed to write config.json: ' + err.message);
+  }
+}
+
+function cmdForkConfigGet(cwd, keyPath, raw) {
+  if (!keyPath) {
+    error('Usage: config-get <key.path>');
+  }
+
+  const configPath = path.join(cwd, '.planning', 'config.json');
+  let cfg = {};
+  try {
+    if (fs.existsSync(configPath)) {
+      cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    }
+  } catch (err) {
+    error('Failed to read config.json: ' + err.message);
+  }
+
+  // Navigate nested keys
+  const keys = keyPath.split('.');
+  let current = cfg;
+  for (const key of keys) {
+    if (current === undefined || current === null || typeof current !== 'object') {
+      output({ key: keyPath, value: undefined, found: false }, raw);
+      return;
+    }
+    current = current[key];
+  }
+
+  output({ key: keyPath, value: current, found: current !== undefined }, raw, String(current));
+}
+
 // ─── CLI Router ───────────────────────────────────────────────────────────────
 
 async function main() {
@@ -2841,7 +3071,7 @@ async function main() {
         frontmatter.cmdFrontmatterMerge(cwd, file, dataIdx !== -1 ? args[dataIdx + 1] : null, raw);
       } else if (subcommand === 'validate') {
         const schemaIdx = args.indexOf('--schema');
-        frontmatter.cmdFrontmatterValidate(cwd, file, schemaIdx !== -1 ? args[schemaIdx + 1] : null, raw);
+        cmdForkFrontmatterValidate(cwd, file, schemaIdx !== -1 ? args[schemaIdx + 1] : null, raw);
       } else {
         error('Unknown frontmatter subcommand. Available: get, set, merge, validate');
       }
@@ -2879,7 +3109,7 @@ async function main() {
     }
 
     case 'list-todos': {
-      commands.cmdListTodos(cwd, args[1], raw);
+      cmdForkListTodos(cwd, args[1], raw);
       break;
     }
 
@@ -2894,12 +3124,12 @@ async function main() {
     }
 
     case 'config-set': {
-      config.cmdConfigSet(cwd, args[1], args[2], raw);
+      cmdForkConfigSet(cwd, args[1], args[2], raw);
       break;
     }
 
     case 'config-get': {
-      config.cmdConfigGet(cwd, args[1], raw);
+      cmdForkConfigGet(cwd, args[1], raw);
       break;
     }
 
