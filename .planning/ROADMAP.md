@@ -59,12 +59,13 @@ Plans:
   2. The 4 shared helpers (loadManifest, loadProjectConfig, atomicWriteJson, parseIncludeFlag) are importable from `lib/core.cjs` by any module
   3. All 11 upstream module files exist in `lib/` and each handles its expected command set
   4. All 278 existing vitest tests pass without modification
-**Plans:** 3 plans
+**Plans:** 4 plans
 
 Plans:
 - [ ] 46-01-PLAN.md -- Copy 11 upstream modules to lib/ and extend core.cjs with 4 fork helpers
 - [ ] 46-02-PLAN.md -- Rewrite dispatcher + retain fork functions inline + full test verification
 - [ ] 46-03-PLAN.md -- Behavioral equivalence spot-checks and user verification
+- [ ] 46-04-PLAN.md -- Gap closure: route init subcommands through init.cjs and remove inline duplicates
 
 ### Phase 47: Fork Module Extraction
 **Goal**: The fork's 2,126 lines of additions are distributed across 5 dedicated modules, each owning a coherent command set with no cross-module circular dependencies
@@ -216,7 +217,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 49 -> 50 -> 51 -> 52 ->
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 45. CJS Rename | 2/2 | Complete | 2026-03-19 |
-| 46. Upstream Module Adoption | 0/3 | Not started | - |
+| 46. Upstream Module Adoption | 0/4 | Not started | - |
 | 47. Fork Module Extraction | 0/TBD | Not started | - |
 | 48. Module Extensions & Verification | 0/TBD | Not started | - |
 | 49. Config Migration | 0/TBD | Not started | - |
