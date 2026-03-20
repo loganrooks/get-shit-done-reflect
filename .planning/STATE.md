@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 46-04-PLAN.md (gap closure). Phase 46 fully verified. Ready for Phase 47.
-last_updated: "2026-03-20T05:04:07.924Z"
-last_activity: 2026-03-20 -- Completed 46-04 (init.cjs gap closure -- routing + dead code removal)
+stopped_at: Completed 47-02-PLAN.md (manifest/automation extraction). Phase 47 complete.
+last_updated: "2026-03-20T08:44:48Z"
+last_activity: 2026-03-20 -- Completed 47-02 (manifest.cjs + automation.cjs extraction, 61% line reduction)
 progress:
   total_phases: 10
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 8
   percent: 100
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-10)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 46 - Upstream Module Adoption (v1.18 Upstream Sync & Deep Integration)
+**Current focus:** Phase 47 - Fork Module Extraction (v1.18 Upstream Sync & Deep Integration)
 
 ## Current Position
 
-Phase: 46 of 54 (Upstream Module Adoption)
-Plan: 4 of 4 (gap closure complete)
+Phase: 47 of 54 (Fork Module Extraction)
+Plan: 2 of 2 (complete)
 Status: active
-Last activity: 2026-03-20 -- Completed 46-04 (init.cjs gap closure -- routing + dead code removal)
+Last activity: 2026-03-20 -- Completed 47-02 (manifest.cjs + automation.cjs extraction, 61% line reduction)
 
 Progress: [██████████] 100%
 
@@ -72,6 +72,7 @@ Progress: [██████████] 100%
 | Phase 46 P02 | 20min | 2 tasks | 1 files |
 | Phase 46 P03 | 5min | 2 tasks | 0 files |
 | Phase 46 P04 | 3min | 2 tasks | 1 files |
+| Phase 47 P02 | 11min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 46]: Fork overrides added for list-todos, config-set/get, frontmatter validate signal where upstream modules diverge from fork behavior
 - [Phase 46]: Behavioral equivalence verified across all 6 command categories; no code changes needed post-dispatcher-rewire
 - [Phase 46]: cmdInitTodos remains inline as sole init fork override; 8 other init subcommands routed through init.cjs
+- [Phase 47]: FEATURE_CAPABILITY_MAP exported from automation.cjs per MOD-07 for Phase 53 deep integration consumers
+- [Phase 47]: gsd-tools.cjs reduced from 3,200 to 1,239 lines (61% reduction); retains only fork init overrides, fork command overrides, and CLI router
 
 ### Pending Todos
 
@@ -132,6 +135,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:04:07.920Z
-Stopped at: Completed 46-04-PLAN.md (gap closure). Phase 46 fully verified. Ready for Phase 47.
+Last session: 2026-03-20T08:44:48Z
+Stopped at: Completed 47-02-PLAN.md (manifest/automation extraction). Phase 47 complete. Ready for Phase 48.
 Resume file: None
