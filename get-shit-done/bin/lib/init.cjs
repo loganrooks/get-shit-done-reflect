@@ -5,9 +5,11 @@
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
-const { loadConfig, resolveModelInternal, findPhaseInternal, getRoadmapPhaseInternal, pathExistsInternal, generateSlugInternal, getMilestoneInfo, normalizePhaseName, toPosixPath, output, error } = require('./core.cjs');
+const { loadConfig, resolveModelInternal, findPhaseInternal, getRoadmapPhaseInternal,
+        pathExistsInternal, generateSlugInternal, getMilestoneInfo, normalizePhaseName,
+        toPosixPath, safeReadFile, parseIncludeFlag, output, error } = require('./core.cjs');
 
-function cmdInitExecutePhase(cwd, phase, raw) {
+function cmdInitExecutePhase(cwd, phase, includes, raw) {
   if (!phase) {
     error('phase required for init execute-phase');
   }
@@ -77,10 +79,21 @@ function cmdInitExecutePhase(cwd, phase, raw) {
     config_path: '.planning/config.json',
   };
 
+  // Include file contents if requested via --include
+  if (includes && includes.has('state')) {
+    result.state_content = safeReadFile(path.join(cwd, '.planning', 'STATE.md'));
+  }
+  if (includes && includes.has('config')) {
+    result.config_content = safeReadFile(path.join(cwd, '.planning', 'config.json'));
+  }
+  if (includes && includes.has('roadmap')) {
+    result.roadmap_content = safeReadFile(path.join(cwd, '.planning', 'ROADMAP.md'));
+  }
+
   output(result, raw);
 }
 
-function cmdInitPlanPhase(cwd, phase, raw) {
+function cmdInitPlanPhase(cwd, phase, includes, raw) {
   if (!phase) {
     error('phase required for init plan-phase');
   }
@@ -154,6 +167,29 @@ function cmdInitPlanPhase(cwd, phase, raw) {
         result.uat_path = toPosixPath(path.join(phaseInfo.directory, uatFile));
       }
     } catch {}
+  }
+
+  // Include file contents if requested via --include
+  if (includes && includes.has('state')) {
+    result.state_content = safeReadFile(path.join(cwd, '.planning', 'STATE.md'));
+  }
+  if (includes && includes.has('roadmap')) {
+    result.roadmap_content = safeReadFile(path.join(cwd, '.planning', 'ROADMAP.md'));
+  }
+  if (includes && includes.has('requirements')) {
+    result.requirements_content = safeReadFile(path.join(cwd, '.planning', 'REQUIREMENTS.md'));
+  }
+  if (includes && includes.has('context') && result.context_path) {
+    result.context_content = safeReadFile(path.join(cwd, result.context_path));
+  }
+  if (includes && includes.has('research') && result.research_path) {
+    result.research_content = safeReadFile(path.join(cwd, result.research_path));
+  }
+  if (includes && includes.has('verification') && result.verification_path) {
+    result.verification_content = safeReadFile(path.join(cwd, result.verification_path));
+  }
+  if (includes && includes.has('uat') && result.uat_path) {
+    result.uat_content = safeReadFile(path.join(cwd, result.uat_path));
   }
 
   output(result, raw);
@@ -459,6 +495,9 @@ function cmdInitTodos(cwd, area, raw) {
         const createdMatch = content.match(/^created:\s*(.+)$/m);
         const titleMatch = content.match(/^title:\s*(.+)$/m);
         const areaMatch = content.match(/^area:\s*(.+)$/m);
+        const priorityMatch = content.match(/^priority:\s*(.+)$/m);
+        const sourceMatch = content.match(/^source:\s*(.+)$/m);
+        const statusMatch = content.match(/^status:\s*(.+)$/m);
         const todoArea = areaMatch ? areaMatch[1].trim() : 'general';
 
         if (area && todoArea !== area) continue;
@@ -469,6 +508,9 @@ function cmdInitTodos(cwd, area, raw) {
           created: createdMatch ? createdMatch[1].trim() : 'unknown',
           title: titleMatch ? titleMatch[1].trim() : 'Untitled',
           area: todoArea,
+          priority: priorityMatch ? priorityMatch[1].trim() : 'MEDIUM',
+          source: sourceMatch ? sourceMatch[1].trim() : 'unknown',
+          status: statusMatch ? statusMatch[1].trim() : 'pending',
           path: '.planning/todos/pending/' + file,
         });
       } catch {}
@@ -596,7 +638,7 @@ function cmdInitMapCodebase(cwd, raw) {
   output(result, raw);
 }
 
-function cmdInitProgress(cwd, raw) {
+function cmdInitProgress(cwd, includes, raw) {
   const config = loadConfig(cwd);
   const milestone = getMilestoneInfo(cwd);
 
@@ -690,6 +732,20 @@ function cmdInitProgress(cwd, raw) {
     project_path: '.planning/PROJECT.md',
     config_path: '.planning/config.json',
   };
+
+  // Include file contents if requested via --include
+  if (includes && includes.has('state')) {
+    result.state_content = safeReadFile(path.join(cwd, '.planning', 'STATE.md'));
+  }
+  if (includes && includes.has('roadmap')) {
+    result.roadmap_content = safeReadFile(path.join(cwd, '.planning', 'ROADMAP.md'));
+  }
+  if (includes && includes.has('project')) {
+    result.project_content = safeReadFile(path.join(cwd, '.planning', 'PROJECT.md'));
+  }
+  if (includes && includes.has('config')) {
+    result.config_content = safeReadFile(path.join(cwd, '.planning', 'config.json'));
+  }
 
   output(result, raw);
 }

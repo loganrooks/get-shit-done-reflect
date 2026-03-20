@@ -4,9 +4,11 @@
  * GSD Tools — CLI utility for GSD workflow operations (GSD Reflect fork)
  *
  * Thin dispatcher that routes upstream commands to lib/*.cjs modules and
- * retains only fork init overrides, fork command overrides, and the CLI router.
+ * retains only fork command overrides and the CLI router.
  * Fork-specific modules extracted in Phase 47: sensors, backlog, health-probe,
  * manifest, automation.
+ * Module extensions in Phase 48: signal schema in frontmatter.cjs,
+ * --include support in init.cjs (execute-phase, plan-phase, todos, progress).
  *
  * Usage: node gsd-tools.cjs <command> [args] [--raw] [--cwd <path>]
  *
@@ -16,8 +18,6 @@
  *   automation resolve-level|track-event|lock|unlock|check-lock|regime-change|reflection-counter
  *   sensors list|blind-spots
  *   health-probe signal-metrics|signal-density|automation-watchdog
- *
- * Fork init overrides (4-param signature with --include support):
  *   init execute-phase <phase> [--include state,config,roadmap]
  *   init plan-phase <phase> [--include state,roadmap,research,context,verification,uat,requirements]
  *   init progress [--include state,roadmap,project,config]
@@ -45,451 +45,6 @@ const healthProbe = require('./lib/health-probe.cjs');
 const manifest = require('./lib/manifest.cjs');
 const automation = require('./lib/automation.cjs');
 
-// ─── Fork Init Overrides ─────────────────────────────────────────────────────
-
-function cmdInitExecutePhase(cwd, phase, includes, raw) {
-  if (!phase) {
-    error('phase required for init execute-phase');
-  }
-
-  const cfg = loadConfig(cwd);
-  const phaseInfo = findPhaseInternal(cwd, phase);
-  const milestoneInfo = getMilestoneInfo(cwd);
-
-  const result = {
-    // Models
-    executor_model: resolveModelInternal(cwd, 'gsd-executor'),
-    verifier_model: resolveModelInternal(cwd, 'gsd-verifier'),
-
-    // Config flags
-    commit_docs: cfg.commit_docs,
-    parallelization: cfg.parallelization,
-    branching_strategy: cfg.branching_strategy,
-    phase_branch_template: cfg.phase_branch_template,
-    milestone_branch_template: cfg.milestone_branch_template,
-    verifier_enabled: cfg.verifier,
-
-    // Phase info
-    phase_found: !!phaseInfo,
-    phase_dir: phaseInfo?.directory || null,
-    phase_number: phaseInfo?.phase_number || null,
-    phase_name: phaseInfo?.phase_name || null,
-    phase_slug: phaseInfo?.phase_slug || null,
-
-    // Plan inventory
-    plans: phaseInfo?.plans || [],
-    summaries: phaseInfo?.summaries || [],
-    incomplete_plans: phaseInfo?.incomplete_plans || [],
-    plan_count: phaseInfo?.plans?.length || 0,
-    incomplete_count: phaseInfo?.incomplete_plans?.length || 0,
-
-    // Branch name (pre-computed)
-    branch_name: cfg.branching_strategy === 'phase' && phaseInfo
-      ? cfg.phase_branch_template
-          .replace('{phase}', phaseInfo.phase_number)
-          .replace('{slug}', phaseInfo.phase_slug || 'phase')
-      : cfg.branching_strategy === 'milestone'
-        ? cfg.milestone_branch_template
-            .replace('{milestone}', milestoneInfo.version)
-            .replace('{slug}', generateSlugInternal(milestoneInfo.name) || 'milestone')
-        : null,
-
-    // Milestone info
-    milestone_version: milestoneInfo.version,
-    milestone_name: milestoneInfo.name,
-    milestone_slug: generateSlugInternal(milestoneInfo.name),
-
-    // File existence
-    state_exists: pathExistsInternal(cwd, '.planning/STATE.md'),
-    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
-    config_exists: pathExistsInternal(cwd, '.planning/config.json'),
-  };
-
-  // Include file contents if requested via --include
-  if (includes.has('state')) {
-    result.state_content = safeReadFile(path.join(cwd, '.planning', 'STATE.md'));
-  }
-  if (includes.has('config')) {
-    result.config_content = safeReadFile(path.join(cwd, '.planning', 'config.json'));
-  }
-  if (includes.has('roadmap')) {
-    result.roadmap_content = safeReadFile(path.join(cwd, '.planning', 'ROADMAP.md'));
-  }
-
-  output(result, raw);
-}
-
-function cmdInitPlanPhase(cwd, phase, includes, raw) {
-  if (!phase) {
-    error('phase required for init plan-phase');
-  }
-
-  const cfg = loadConfig(cwd);
-  const phaseInfo = findPhaseInternal(cwd, phase);
-
-  const result = {
-    // Models
-    researcher_model: resolveModelInternal(cwd, 'gsd-phase-researcher'),
-    planner_model: resolveModelInternal(cwd, 'gsd-planner'),
-    checker_model: resolveModelInternal(cwd, 'gsd-plan-checker'),
-
-    // Workflow flags
-    research_enabled: cfg.research,
-    plan_checker_enabled: cfg.plan_checker,
-    commit_docs: cfg.commit_docs,
-
-    // Phase info
-    phase_found: !!phaseInfo,
-    phase_dir: phaseInfo?.directory || null,
-    phase_number: phaseInfo?.phase_number || null,
-    phase_name: phaseInfo?.phase_name || null,
-    phase_slug: phaseInfo?.phase_slug || null,
-    padded_phase: phaseInfo?.phase_number?.padStart(2, '0') || null,
-
-    // Existing artifacts
-    has_research: phaseInfo?.has_research || false,
-    has_context: phaseInfo?.has_context || false,
-    has_plans: (phaseInfo?.plans?.length || 0) > 0,
-    plan_count: phaseInfo?.plans?.length || 0,
-
-    // Environment
-    planning_exists: pathExistsInternal(cwd, '.planning'),
-    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
-  };
-
-  // Include file contents if requested via --include
-  if (includes.has('state')) {
-    result.state_content = safeReadFile(path.join(cwd, '.planning', 'STATE.md'));
-  }
-  if (includes.has('roadmap')) {
-    result.roadmap_content = safeReadFile(path.join(cwd, '.planning', 'ROADMAP.md'));
-  }
-  if (includes.has('requirements')) {
-    result.requirements_content = safeReadFile(path.join(cwd, '.planning', 'REQUIREMENTS.md'));
-  }
-  if (includes.has('context') && phaseInfo?.directory) {
-    // Find *-CONTEXT.md in phase directory
-    const phaseDirFull = path.join(cwd, phaseInfo.directory);
-    try {
-      const files = fs.readdirSync(phaseDirFull);
-      const contextFile = files.find(f => f.endsWith('-CONTEXT.md') || f === 'CONTEXT.md');
-      if (contextFile) {
-        result.context_content = safeReadFile(path.join(phaseDirFull, contextFile));
-      }
-    } catch {}
-  }
-  if (includes.has('research') && phaseInfo?.directory) {
-    // Find *-RESEARCH.md in phase directory
-    const phaseDirFull = path.join(cwd, phaseInfo.directory);
-    try {
-      const files = fs.readdirSync(phaseDirFull);
-      const researchFile = files.find(f => f.endsWith('-RESEARCH.md') || f === 'RESEARCH.md');
-      if (researchFile) {
-        result.research_content = safeReadFile(path.join(phaseDirFull, researchFile));
-      }
-    } catch {}
-  }
-  if (includes.has('verification') && phaseInfo?.directory) {
-    // Find *-VERIFICATION.md in phase directory
-    const phaseDirFull = path.join(cwd, phaseInfo.directory);
-    try {
-      const files = fs.readdirSync(phaseDirFull);
-      const verificationFile = files.find(f => f.endsWith('-VERIFICATION.md') || f === 'VERIFICATION.md');
-      if (verificationFile) {
-        result.verification_content = safeReadFile(path.join(phaseDirFull, verificationFile));
-      }
-    } catch {}
-  }
-  if (includes.has('uat') && phaseInfo?.directory) {
-    // Find *-UAT.md in phase directory
-    const phaseDirFull = path.join(cwd, phaseInfo.directory);
-    try {
-      const files = fs.readdirSync(phaseDirFull);
-      const uatFile = files.find(f => f.endsWith('-UAT.md') || f === 'UAT.md');
-      if (uatFile) {
-        result.uat_content = safeReadFile(path.join(phaseDirFull, uatFile));
-      }
-    } catch {}
-  }
-
-  output(result, raw);
-}
-
-function cmdInitTodos(cwd, area, raw) {
-  const cfg = loadConfig(cwd);
-  const now = new Date();
-
-  // List todos (reuse existing logic)
-  const pendingDir = path.join(cwd, '.planning', 'todos', 'pending');
-  let count = 0;
-  const todos = [];
-
-  try {
-    const files = fs.readdirSync(pendingDir).filter(f => f.endsWith('.md'));
-    for (const file of files) {
-      try {
-        const content = fs.readFileSync(path.join(pendingDir, file), 'utf-8');
-        const createdMatch = content.match(/^created:\s*(.+)$/m);
-        const titleMatch = content.match(/^title:\s*(.+)$/m);
-        const areaMatch = content.match(/^area:\s*(.+)$/m);
-        const priorityMatch = content.match(/^priority:\s*(.+)$/m);
-        const sourceMatch = content.match(/^source:\s*(.+)$/m);
-        const statusMatch = content.match(/^status:\s*(.+)$/m);
-        const todoArea = areaMatch ? areaMatch[1].trim() : 'general';
-
-        if (area && todoArea !== area) continue;
-
-        count++;
-        todos.push({
-          file,
-          created: createdMatch ? createdMatch[1].trim() : 'unknown',
-          title: titleMatch ? titleMatch[1].trim() : 'Untitled',
-          area: todoArea,
-          priority: priorityMatch ? priorityMatch[1].trim() : 'MEDIUM',
-          source: sourceMatch ? sourceMatch[1].trim() : 'unknown',
-          status: statusMatch ? statusMatch[1].trim() : 'pending',
-          path: path.join('.planning', 'todos', 'pending', file),
-        });
-      } catch {}
-    }
-  } catch {}
-
-  const result = {
-    // Config
-    commit_docs: cfg.commit_docs,
-
-    // Timestamps
-    date: now.toISOString().split('T')[0],
-    timestamp: now.toISOString(),
-
-    // Todo inventory
-    todo_count: count,
-    todos,
-    area_filter: area || null,
-
-    // Paths
-    pending_dir: '.planning/todos/pending',
-    completed_dir: '.planning/todos/completed',
-
-    // File existence
-    planning_exists: pathExistsInternal(cwd, '.planning'),
-    todos_dir_exists: pathExistsInternal(cwd, '.planning/todos'),
-    pending_dir_exists: pathExistsInternal(cwd, '.planning/todos/pending'),
-  };
-
-  output(result, raw);
-}
-
-function cmdInitProgress(cwd, includes, raw) {
-  const cfg = loadConfig(cwd);
-  const milestoneInfo = getMilestoneInfo(cwd);
-
-  // Analyze phases
-  const phasesDir = path.join(cwd, '.planning', 'phases');
-  const phases = [];
-  let currentPhase = null;
-  let nextPhase = null;
-
-  try {
-    const entries = fs.readdirSync(phasesDir, { withFileTypes: true });
-    const dirs = entries.filter(e => e.isDirectory()).map(e => e.name).sort();
-
-    for (const dir of dirs) {
-      const match = dir.match(/^(\d+(?:\.\d+)?)-?(.*)/);
-      const phaseNumber = match ? match[1] : dir;
-      const phaseName = match && match[2] ? match[2] : null;
-
-      const phasePath = path.join(phasesDir, dir);
-      const phaseFiles = fs.readdirSync(phasePath);
-
-      const plans = phaseFiles.filter(f => f.endsWith('-PLAN.md') || f === 'PLAN.md');
-      const summaries = phaseFiles.filter(f => f.endsWith('-SUMMARY.md') || f === 'SUMMARY.md');
-      const hasResearch = phaseFiles.some(f => f.endsWith('-RESEARCH.md') || f === 'RESEARCH.md');
-
-      const status = summaries.length >= plans.length && plans.length > 0 ? 'complete' :
-                     plans.length > 0 ? 'in_progress' :
-                     hasResearch ? 'researched' : 'pending';
-
-      const phaseInfo = {
-        number: phaseNumber,
-        name: phaseName,
-        directory: path.join('.planning', 'phases', dir),
-        status,
-        plan_count: plans.length,
-        summary_count: summaries.length,
-        has_research: hasResearch,
-      };
-
-      phases.push(phaseInfo);
-
-      // Find current (first incomplete with plans) and next (first pending)
-      if (!currentPhase && (status === 'in_progress' || status === 'researched')) {
-        currentPhase = phaseInfo;
-      }
-      if (!nextPhase && status === 'pending') {
-        nextPhase = phaseInfo;
-      }
-    }
-  } catch {}
-
-  // Check for paused work
-  let pausedAt = null;
-  try {
-    const stateContent = fs.readFileSync(path.join(cwd, '.planning', 'STATE.md'), 'utf-8');
-    const pauseMatch = stateContent.match(/\*\*Paused At:\*\*\s*(.+)/);
-    if (pauseMatch) pausedAt = pauseMatch[1].trim();
-  } catch {}
-
-  const result = {
-    // Models
-    executor_model: resolveModelInternal(cwd, 'gsd-executor'),
-    planner_model: resolveModelInternal(cwd, 'gsd-planner'),
-
-    // Config
-    commit_docs: cfg.commit_docs,
-
-    // Milestone
-    milestone_version: milestoneInfo.version,
-    milestone_name: milestoneInfo.name,
-
-    // Phase overview
-    phases,
-    phase_count: phases.length,
-    completed_count: phases.filter(p => p.status === 'complete').length,
-    in_progress_count: phases.filter(p => p.status === 'in_progress').length,
-
-    // Current state
-    current_phase: currentPhase,
-    next_phase: nextPhase,
-    paused_at: pausedAt,
-    has_work_in_progress: !!currentPhase,
-
-    // File existence
-    project_exists: pathExistsInternal(cwd, '.planning/PROJECT.md'),
-    roadmap_exists: pathExistsInternal(cwd, '.planning/ROADMAP.md'),
-    state_exists: pathExistsInternal(cwd, '.planning/STATE.md'),
-  };
-
-  // Include file contents if requested via --include
-  if (includes.has('state')) {
-    result.state_content = safeReadFile(path.join(cwd, '.planning', 'STATE.md'));
-  }
-  if (includes.has('roadmap')) {
-    result.roadmap_content = safeReadFile(path.join(cwd, '.planning', 'ROADMAP.md'));
-  }
-  if (includes.has('project')) {
-    result.project_content = safeReadFile(path.join(cwd, '.planning', 'PROJECT.md'));
-  }
-  if (includes.has('config')) {
-    result.config_content = safeReadFile(path.join(cwd, '.planning', 'config.json'));
-  }
-
-  output(result, raw);
-}
-
-// ─── Fork Frontmatter Validation (signal schema) ─────────────────────────────
-
-const FORK_SIGNAL_SCHEMA = {
-  required: ['id', 'type', 'project', 'tags', 'created', 'severity', 'signal_type'],
-  conditional: [
-    {
-      when: { field: 'severity', value: 'critical' },
-      require: ['evidence'],
-      recommend: ['confidence', 'confidence_basis'],
-    },
-    {
-      when: { field: 'severity', value: 'notable' },
-      recommend: ['evidence', 'confidence'],
-    },
-  ],
-  backward_compat: { field: 'lifecycle_state' },
-  recommended: ['lifecycle_state', 'signal_category', 'confidence', 'confidence_basis'],
-  optional: ['triage', 'remediation', 'verification', 'lifecycle_log',
-             'recurrence_of', 'phase', 'plan', 'polarity', 'source',
-             'occurrence_count', 'related_signals', 'runtime', 'model',
-             'gsd_version', 'durability', 'status'],
-};
-
-function cmdForkFrontmatterValidate(cwd, filePath, schemaName, raw) {
-  if (!filePath || !schemaName) { error('file and schema required'); }
-
-  // Only handle signal schema; delegate others to upstream
-  if (schemaName !== 'signal') {
-    frontmatter.cmdFrontmatterValidate(cwd, filePath, schemaName, raw);
-    return;
-  }
-
-  const schema = FORK_SIGNAL_SCHEMA;
-  const fullPath = path.isAbsolute(filePath) ? filePath : path.join(cwd, filePath);
-  const content = safeReadFile(fullPath);
-  if (!content) { output({ error: 'File not found', path: filePath }, raw); return; }
-  const fm = frontmatter.extractFrontmatter(content);
-
-  // Check required fields
-  const missing = schema.required.filter(f => fm[f] === undefined);
-  const present = schema.required.filter(f => fm[f] !== undefined);
-
-  // Check conditional requirements
-  const conditionalMissing = [];
-  const conditionalWarnings = [];
-  const backwardCompat = schema.backward_compat && fm[schema.backward_compat.field] === undefined;
-  if (schema.conditional) {
-    for (const cond of schema.conditional) {
-      if (fm[cond.when.field] === cond.when.value) {
-        if (cond.require) {
-          for (const f of cond.require) {
-            if (fm[f] === undefined) {
-              if (backwardCompat) {
-                conditionalWarnings.push(`backward_compat: ${f}`);
-              } else {
-                conditionalMissing.push(f);
-              }
-            }
-          }
-        }
-        if (cond.recommend) {
-          for (const f of cond.recommend) {
-            if (fm[f] === undefined) conditionalWarnings.push(f);
-          }
-        }
-      }
-    }
-  }
-
-  // Evidence content validation: empty evidence objects don't satisfy the requirement
-  if (!backwardCompat && schema.conditional) {
-    for (const cond of schema.conditional) {
-      if (fm[cond.when.field] === cond.when.value && cond.require) {
-        for (const f of cond.require) {
-          if (f === 'evidence' && fm.evidence !== undefined) {
-            const ev = fm.evidence;
-            const hasContent = ev.supporting && ev.supporting.length > 0;
-            if (!hasContent) {
-              conditionalMissing.push('evidence (empty)');
-            }
-          }
-        }
-      }
-    }
-  }
-
-  // Check recommended fields (warnings only)
-  const recommendedMissing = [];
-  if (schema.recommended) {
-    for (const f of schema.recommended) {
-      if (fm[f] === undefined) recommendedMissing.push(f);
-    }
-  }
-
-  const allMissing = [...missing, ...conditionalMissing];
-  output({
-    valid: allMissing.length === 0,
-    missing: allMissing,
-    present,
-    warnings: [...conditionalWarnings, ...recommendedMissing.map(f => `recommended: ${f}`)],
-    schema: schemaName,
-  }, raw, allMissing.length === 0 ? 'valid' : 'invalid');
-}
 
 // ─── Fork list-todos override (includes priority, source, status) ─────────────
 
@@ -797,7 +352,7 @@ async function main() {
         frontmatter.cmdFrontmatterMerge(cwd, file, dataIdx !== -1 ? args[dataIdx + 1] : null, raw);
       } else if (subcommand === 'validate') {
         const schemaIdx = args.indexOf('--schema');
-        cmdForkFrontmatterValidate(cwd, file, schemaIdx !== -1 ? args[schemaIdx + 1] : null, raw);
+        frontmatter.cmdFrontmatterValidate(cwd, file, schemaIdx !== -1 ? args[schemaIdx + 1] : null, raw);
       } else {
         error('Unknown frontmatter subcommand. Available: get, set, merge, validate');
       }
@@ -998,10 +553,10 @@ async function main() {
       const includes = parseIncludeFlag(args);
       switch (workflow) {
         case 'execute-phase':
-          cmdInitExecutePhase(cwd, args[2], includes, raw);
+          init.cmdInitExecutePhase(cwd, args[2], includes, raw);
           break;
         case 'plan-phase':
-          cmdInitPlanPhase(cwd, args[2], includes, raw);
+          init.cmdInitPlanPhase(cwd, args[2], includes, raw);
           break;
         case 'new-project':
           init.cmdInitNewProject(cwd, raw);
@@ -1022,7 +577,7 @@ async function main() {
           init.cmdInitPhaseOp(cwd, args[2], raw);
           break;
         case 'todos':
-          cmdInitTodos(cwd, args[2], raw);
+          init.cmdInitTodos(cwd, args[2], raw);
           break;
         case 'milestone-op':
           init.cmdInitMilestoneOp(cwd, raw);
@@ -1031,7 +586,7 @@ async function main() {
           init.cmdInitMapCodebase(cwd, raw);
           break;
         case 'progress':
-          cmdInitProgress(cwd, includes, raw);
+          init.cmdInitProgress(cwd, includes, raw);
           break;
         default:
           error(`Unknown init workflow: ${workflow}\nAvailable: execute-phase, plan-phase, new-project, new-milestone, quick, resume, verify-work, phase-op, todos, milestone-op, map-codebase, progress`);
