@@ -286,17 +286,10 @@ Original body content.
     // Now simulate what the reflector does: read, parse, modify mutable fields, write back
     // We use a small node script that exercises extractFrontmatter + spliceFrontmatter
     const scriptPath = path.join(tmpDir, 'roundtrip.js');
+    const fmModulePath = path.join(__dirname, 'lib', 'frontmatter.cjs');
     fs.writeFileSync(scriptPath, `
       const fs = require('fs');
-      const toolsSrc = fs.readFileSync('${TOOLS_PATH.replace(/\\/g, '\\\\')}', 'utf-8');
-
-      // Extract the three functions from gsd-tools.cjs source
-      const extractFn = toolsSrc.match(/function extractFrontmatter\\(content\\)[\\s\\S]+?^\\}/m)[0];
-      const reconstructFn = toolsSrc.match(/function reconstructFrontmatter\\(obj\\)[\\s\\S]+?^\\}/m)[0];
-      const spliceFn = toolsSrc.match(/function spliceFrontmatter\\(content, newObj\\)[\\s\\S]+?^\\}/m)[0];
-      eval(extractFn);
-      eval(reconstructFn);
-      eval(spliceFn);
+      const { extractFrontmatter, reconstructFrontmatter, spliceFrontmatter } = require('${fmModulePath.replace(/\\/g, '\\\\')}');
 
       // Read the signal
       const content = fs.readFileSync('${signalPath.replace(/\\/g, '\\\\')}', 'utf-8');
