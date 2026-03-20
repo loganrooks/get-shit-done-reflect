@@ -4,14 +4,14 @@ milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
 stopped_at: null
-last_updated: "2026-03-19T23:29:00.000Z"
-last_activity: 2026-03-19 - Completed Phase 45 CJS rename (2/2 plans, tests + behavioral equivalence verified)
+last_updated: "2026-03-20T03:44:00.000Z"
+last_activity: 2026-03-19 - Completed 46-01 upstream module adoption (11 modules + fork helpers)
 progress:
   total_phases: 10
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 10
+  total_plans: 3
+  completed_plans: 3
+  percent: 13
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 
 ## Current Position
 
-Phase: 45 of 54 (CJS Rename) -- first phase of v1.18
-Plan: 2 of 2 (PHASE COMPLETE)
-Status: Phase 45 complete
-Last activity: 2026-03-19 -- Completed 45-02 (tests, installer, behavioral equivalence verified)
+Phase: 46 of 54 (Upstream Module Adoption)
+Plan: 1 of 3
+Status: active
+Last activity: 2026-03-19 -- Completed 46-01 (upstream lib modules + fork helpers)
 
-Progress: [▓░░░░░░░░░] 10%
+Progress: [▓░░░░░░░░░] 13%
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Progress: [▓░░░░░░░░░] 10%
 |------|----------|-------|-------|
 | 45-01 | 3min | 2 | 58 |
 | 45-02 | 5min | 2 | 7 |
+| 46-01 | 2min | 2 | 12 |
 
 *Updated after each plan completion*
 
@@ -84,6 +85,8 @@ Recent decisions affecting current work:
 - v1.18 roadmap: Infrastructure (Phase 54) placed last; technically independent of Phases 49-53 but benefits from stable final state
 - [Phase quick-22]: Used TOML literal strings (''') for Codex agent files to preserve backslash patterns verbatim
 - [Phase 45]: install.test.js prose test (lines 307-311) correctly left unchanged -- uses extensionless gsd-tools not gsd-tools.js
+- [Phase 46]: Used module.exports.funcName extension pattern to add fork helpers to core.cjs without modifying upstream exports block
+- [Phase 46]: loadManifest __dirname path adjusted to two levels up from bin/lib/ for correct feature-manifest.json resolution
 
 ### Pending Todos
 
@@ -95,7 +98,7 @@ Recent decisions affecting current work:
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
-- Research flag: upstream function drift magnitude unknown -- may affect Phase 46 effort
+- Research flag: upstream function drift -- resolved in 46-01 (wholesale module adoption, no reconciliation needed)
 - Research flag: init function signature compatibility needs validation during Phase 48
 - Research flag: context% bridge file lifecycle (stale files, concurrent sessions) needs investigation during Phase 51/52
 
@@ -124,5 +127,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Completed 45-02-PLAN.md. Phase 45 (CJS Rename) complete. Ready for Phase 46 (Adopt Modules).
+Stopped at: Completed 46-01-PLAN.md. Ready for 46-02 (Dispatcher Rewire).
 Resume file: None
