@@ -31,6 +31,7 @@ related:
   - ./deliberation-system-design.md
   - ./development-workflow-gaps.md
   - ./cross-runtime-upgrade-install-and-kb-authority.md
+  - ./deployment-parity-v1.17.2.md
   - ../knowledge/signals/get-shit-done-reflect/sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift.md
 ---
 
@@ -71,6 +72,8 @@ that make the recommendation interpretable later.
 | [/home/rookslog/.codex/get-shit-done-reflect/templates/deliberation.md](/home/rookslog/.codex/get-shit-done-reflect/templates/deliberation.md) | The standard template has header fields for date/status/trigger/affects/related, but no YAML frontmatter, no scope field, no planning-role field, no provenance fields, and no explicit process-history section | Yes — template reviewed directly | informal |
 | Deliberation file inventory under `.planning/deliberations/` | Current status conventions are inconsistent (`Open`, `open`, `Active`, `Concluded (revised)`), which makes machine surfacing and filtered consumption unreliable | Yes — repo inventory checked directly | informal |
 | [development-workflow-gaps.md](./development-workflow-gaps.md) | This gap was already noticed earlier as "deliberations are read manually, not automatically surfaced during milestone scoping" | Yes — prior deliberation reviewed directly | informal |
+| [cross-runtime-upgrade-install-and-kb-authority.md](./cross-runtime-upgrade-install-and-kb-authority.md) | Cross-runtime same-repo work is currently frictionful because install authority, KB authority, and upgrade surfacing are not yet runtime-neutral invariants | Yes — prior deliberation reviewed directly | informal |
+| [deployment-parity-v1.17.2.md](./deployment-parity-v1.17.2.md) | The project has already treated Codex/Claude/OpenCode/Gemini parity as a first-class concern for deployed artifacts, which strengthens the case that deliberation consumption should also not silently diverge by runtime | Yes — prior deliberation reviewed directly | informal |
 
 ## Framing
 
@@ -89,6 +92,7 @@ them.
 - How should open roadmap-scoped deliberations influence phase CONTEXT without automatically blocking planning?
 - Should the system preserve full transcripts, or only a curated process trace?
 - How much backfill should be required for existing deliberations?
+- How should deliberation surfacing behave when a user moves between Codex and Claude in the same repo and expects the same project memory with minimal friction?
 
 ## Analysis
 
@@ -151,6 +155,176 @@ fact that deliberation is an unfolding dialogue.
 - **Rebuttal:** Full transcripts are noisy, expensive, privacy-sensitive, hard to consume in planning, and likely to encourage indiscriminate archival rather than practical interpretation. They are better as optional supporting artifacts than as the primary workflow object.
 - **Qualifier:** Useful as an optional attachment model, not as the default deliberation artifact.
 
+## Provisional Recommendations and Reasoning
+
+This section is intentionally not a final conclusion. It records the current
+best recommendations, the reasons for them, and the parts that still need to be
+tested or challenged.
+
+### 1. Metadata Contract: Add Frontmatter, but Separate Authority from Exhaustiveness
+
+**Provisional recommendation:** Deliberations should gain YAML frontmatter, but
+the frontmatter should carry only the fields that materially improve discovery,
+scope interpretation, and auditability.
+
+**Why this looks right:**
+
+- The current artifact is too weak for routing. `Status`, `Trigger`, and
+  `Affects` exist, but only in prose form and with inconsistent value shapes.
+  That makes filtered discovery unreliable.
+- Frontmatter is the cleanest place for fields whose primary consumer is the
+  workflow rather than the reader of the prose.
+- The important distinction is not "metadata or no metadata." It is
+  "authoritative routing metadata" versus "everything we might someday wish we
+  had." Only the former should be mandatory.
+
+**Current recommended split:**
+
+Mandatory:
+- `title`
+- `status`
+- `date`
+- `scope`
+- `planning_role`
+- `trigger_type`
+- `trigger`
+- `affects`
+- `related`
+
+Best-effort provenance:
+- `created_by.runtime`
+- `created_by.workflow`
+- `created_by.model`
+- `created_by.reasoning_effort`
+- `created_by.participants`
+
+Optional lifecycle:
+- `updated`
+- `supersedes`
+- `superseded_by`
+
+**Why not make more mandatory right away:**
+
+- Some older deliberations do not have reconstructable agent provenance.
+- The system should not refuse to create useful deliberations just because some
+  provenance detail is unavailable.
+- Overly strict mandatory fields would encourage fake precision, especially for
+  shared human/agent authorship.
+
+**Important caution:** provenance fields should be framed as production context,
+not as final authority or blame. A deliberation produced in `codex-cli` by
+`gpt-5.4 xhigh` is still a human-guided artifact. The metadata should help
+later interpretation, not falsely imply that agency is fully machine-local.
+
+### 2. History Contract: Preserve Inquiry as a Curated Trace, Not a Final Memo
+
+**Provisional recommendation:** Require a curated `Genesis` plus `Process Trace`
+section in every nontrivial deliberation. Do not require full transcripts as
+the primary artifact.
+
+**Why this looks right:**
+
+- The user's philosophical objection is sound. A deliberation is not identical
+  with its recommendation. The framing shifts, failed assumptions, and option
+  turns are part of the content.
+- The current template already partially reflects inquiry structure
+  (`Situation`, `Framing`, `Analysis`, `Predictions`), but it does not make the
+  historical path explicit enough.
+- Later continuation and evaluation depend on understanding not only what the
+  current leaning is, but how it got there.
+
+**Why a curated trace instead of full transcripts:**
+
+- Full transcripts preserve too much. They are hard to read, hard to compare,
+  and too easy to confuse with authoritative artifacts.
+- A curated trace preserves the features that matter to future reasoning:
+  - the starting unease
+  - what evidence changed the framing
+  - which assumptions were falsified
+  - what options were seriously entertained
+  - where the present open questions came from
+- This keeps the artifact usable by planning and roadmap work.
+
+**What the trace should capture minimally:**
+
+- initial framing
+- evidence that changed the framing
+- substantive option shifts
+- falsified or abandoned assumptions
+- revision milestones
+
+**What it should not try to do:**
+
+- reproduce every conversational turn
+- substitute for raw chat archives
+- create a fictionalized narrative that hides disagreement or uncertainty
+
+### 3. Workflow Consumption: Open Deliberations Should Be Surfaced, Not Laundered into Decisions
+
+**Provisional recommendation:** Formalize a discovery rule for deliberations,
+but make `scope` and `planning_role` determine how they are consumed.
+
+**Why this looks right:**
+
+- The current gap is not merely that deliberations exist. It is that they are
+  discoverable only by memory, manual mention, or lucky re-reading.
+- At the same time, treating every open deliberation as binding would be
+  disastrous. Planning would become hostage to unresolved thought.
+
+**Current recommended behavior:**
+
+- `open + inform`
+  - may be surfaced in `CONTEXT.md` as background context or an active design
+    question
+- `open + constrain`
+  - should be surfaced when relevant as a guardrail or unresolved tension that
+    planning must at least acknowledge
+- `open + block`
+  - should force explicit handling: resolve, narrow, or consciously defer
+- `concluded`
+  - should behave as default steering unless challenged by new evidence
+- `roadmap` / `project` scoped deliberations
+  - should live in `STATE.md`, `ROADMAP.md`, or `PROJECT.md` references, then be
+    selectively pulled into phase `CONTEXT.md`
+
+**Why this is better than a simple open/closed rule:**
+
+- Some open deliberations are exploratory and should not control execution.
+- Some open deliberations represent serious unresolved architecture tension and
+  should not be silently ignored.
+- `planning_role` captures that distinction directly.
+
+### 4. Cross-Runtime Parity: Deliberation Consumption Must Not Depend on Which Deployment the User Happens to Be Using
+
+**Provisional recommendation:** A user should be able to move between Codex and
+Claude in the same repo with minimal friction and see materially the same
+project deliberation context. Deliberation surfacing should therefore depend on
+repo-local artifacts and runtime-neutral discovery rules, not runtime-specific
+memory or install quirks.
+
+**Why this matters here:**
+
+- The same-repo / multi-runtime expectation is not a side issue. It is one of
+  the main tests of whether deliberation handling is truly project-scoped.
+- If Codex sees one set of active deliberations and Claude sees another because
+  of install precedence, KB location, or surfacing asymmetry, then the
+  deliberation system is not functioning as shared project memory.
+- This directly intersects the cross-runtime authority problem in
+  [cross-runtime-upgrade-install-and-kb-authority.md](./cross-runtime-upgrade-install-and-kb-authority.md).
+
+**What this implies:**
+
+- deliberations should remain project-local artifacts
+- surfacing logic should resolve from repo root, not runtime-local cwd accidents
+- discuss/plan workflows should use the same discovery contract across runtimes
+- hooks may improve UX on Claude, but must not be the sole source of
+  deliberation visibility
+
+**Important boundary:** this deliberation should not pretend to solve install
+authority or upgrade prompting by itself. But it should explicitly require that
+deliberation discovery be compatible with the broader cross-runtime authority
+design.
+
 ## Tensions
 
 1. **Trace richness vs workflow usability:** richer history makes interpretation better, but too much transcript-like material makes planning harder.
@@ -161,9 +335,15 @@ fact that deliberation is an unfolding dialogue.
 
 4. **Curated trace vs full history:** a curated process trace is more practical, but it always involves interpretation and omission.
 
+5. **Project memory vs runtime behavior:** if deliberation discovery differs by
+   Codex vs Claude deployment, the same repo effectively has different active
+   memory depending on the runtime, which breaks the point of project-local
+   deliberation artifacts.
+
 ## Recommendation
 
-**Current leaning:** Option B.
+**Current leaning:** Option B, but only with a disciplined frontmatter contract
+and an explicit refusal to reduce deliberations to final recommendations alone.
 
 Deliberations should gain a structured frontmatter contract and a required
 process-trace section. The frontmatter should support discovery, scoping, and
@@ -179,12 +359,19 @@ This also implies a workflow rule:
 - roadmap- or project-scoped open deliberations should be referenceable from
   `PROJECT.md`, `ROADMAP.md`, and `STATE.md`, not forced into a single phase
 
+This also implies a parity rule:
+
+- switching between Codex and Claude in the same repo should not materially
+  change which deliberations are visible, relevant, or treated as active
+  project context
+
 **Open questions blocking conclusion:**
 1. Which frontmatter fields should be mandatory versus best-effort?
 2. Should `updated` and revision history live in frontmatter, body, or both?
 3. Should full transcript/event-log attachments be supported as optional companion artifacts?
 4. How much existing deliberation backfill is necessary before the system can rely on frontmatter-based discovery?
 5. Where should the actual surfacing logic live: `gsdr-deliberate`, `gsdr-discuss-phase`, `gsdr-plan-phase`, or a shared preflight/indexing layer?
+6. How should same-repo multi-runtime parity be tested so that Codex and Claude do not drift in deliberation surfacing?
 
 ## Predictions
 
@@ -217,6 +404,7 @@ deliberation can be adequately represented by its final conclusion alone.
 3. **Framing shift:** The real problem is broader than open/closed status. It is about artifact legibility, provenance, and historical trace.
 4. **Key inference:** Scope and planning-role metadata are needed so open deliberations can inform planning without automatically blocking it.
 5. **Key philosophical correction:** A deliberation is not merely a decision memo. The artifact needs a durable record of its unfolding, not just its endpoint.
+6. **Parity extension:** If deliberations are project memory, then a switch from Codex to Claude in the same repo should not silently produce a different deliberation horizon.
 
 ## Consumption Contract
 
