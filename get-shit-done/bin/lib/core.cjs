@@ -493,3 +493,38 @@ module.exports = {
   getMilestonePhaseFilter,
   toPosixPath,
 };
+
+// ─── Fork Shared Helpers ──────────────────────────────────────────────────────
+
+module.exports.parseIncludeFlag = function parseIncludeFlag(args) {
+  const includeIndex = args.indexOf('--include');
+  if (includeIndex === -1) return new Set();
+  const includeValue = args[includeIndex + 1];
+  if (!includeValue) return new Set();
+  return new Set(includeValue.split(',').map(s => s.trim()));
+};
+
+module.exports.loadManifest = function loadManifest(cwd) {
+  const localPath = path.join(cwd, '.claude', 'get-shit-done', 'feature-manifest.json');
+  const globalPath = path.join(require('os').homedir(), '.claude', 'get-shit-done', 'feature-manifest.json');
+  // Two levels up from lib/core.cjs -> bin/lib/ -> bin/ -> get-shit-done/
+  const scriptRelPath = path.join(__dirname, '..', '..', 'feature-manifest.json');
+  const manifestPath = fs.existsSync(localPath) ? localPath
+    : fs.existsSync(globalPath) ? globalPath
+    : fs.existsSync(scriptRelPath) ? scriptRelPath : null;
+  if (!manifestPath) return null;
+  try { return JSON.parse(fs.readFileSync(manifestPath, 'utf-8')); } catch { return null; }
+};
+
+module.exports.loadProjectConfig = function loadProjectConfig(cwd) {
+  const configPath = path.join(cwd, '.planning', 'config.json');
+  if (!fs.existsSync(configPath)) return null;
+  try { return JSON.parse(fs.readFileSync(configPath, 'utf-8')); } catch { return null; }
+};
+
+module.exports.atomicWriteJson = function atomicWriteJson(filePath, data) {
+  const tmpPath = filePath + '.tmp';
+  const content = JSON.stringify(data, null, 2) + '\n';
+  fs.writeFileSync(tmpPath, content, 'utf-8');
+  fs.renameSync(tmpPath, filePath);
+};
