@@ -92,11 +92,11 @@ Plans:
   2. `init.cjs` accepts the `--include` flag and applies fork-specific init function modifications
   3. All 278 existing vitest tests pass with zero behavioral changes from the pre-modularization baseline
   4. CLI output for every command is identical before and after modularization (verified by behavioral equivalence spot checks)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 48-01: TBD
-- [ ] 48-02: TBD
+- [ ] 48-01-PLAN.md -- Extend frontmatter.cjs with signal schema + merge fork init functions into init.cjs
+- [ ] 48-02-PLAN.md -- Extract remaining command overrides to modules + behavioral equivalence verification
 
 ### Phase 49: Config Migration
 **Goal**: The manifest-driven migration system supports declarative field renames, the depth-to-granularity breaking change is absorbed programmatically, and multi-version upgrade paths work end-to-end
@@ -216,7 +216,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 49 -> 50 -> 51 -> 52 ->
 | 45. CJS Rename | 2/2 | Complete | 2026-03-19 |
 | 46. Upstream Module Adoption | 4/4 | Complete | 2026-03-20 |
 | 47. Fork Module Extraction | 2/2 | Complete | 2026-03-20 |
-| 48. Module Extensions & Verification | 0/TBD | Not started | - |
+| 48. Module Extensions & Verification | 0/2 | Not started | - |
 | 49. Config Migration | 0/TBD | Not started | - |
 | 50. Migration Test Hardening | 0/TBD | Not started | - |
 | 51. Update System Hardening | 0/TBD | Not started | - |
