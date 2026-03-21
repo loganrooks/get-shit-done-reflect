@@ -1,13 +1,14 @@
 # Deliberation Constellation Map
 
 **Date:** 2026-03-21
-**Scope:** Cross-review of four open framework deliberations plus the relevant signal field
+**Scope:** Cross-review of five open framework deliberations plus the relevant signal field
 **Status:** Provisional
 **Important caution:** This is not a synthesis in the sense of resolution. The aim is to map distinct pressures, overlaps, blind spots, and roadmap implications without forcing the artifacts to agree more than they actually do.
 
 ## 1. Artifacts covered
 
 - `spike-epistemic-rigor-and-framework-reflexivity.md`
+- `comparative-characterization-and-nonadditive-evaluation-praxis.md`
 - `forms-excess-and-framework-becoming.md`
 - `responsibility-alterity-and-methodological-praxis.md`
 - `community-feedback-pipelines-and-dialogue-forms.md`
@@ -65,7 +66,7 @@ That caution needs to remain present in roadmap decisions.
 
 ## 3. Roles of the four deliberations
 
-### A. Primary operational driver
+### A. Primary framework-diagnostic driver
 
 `spike-epistemic-rigor-and-framework-reflexivity`
 
@@ -79,7 +80,22 @@ Main risk:
 
 - could overgeneralize from one spike program if not staged carefully
 
-### B. Primary artifact-form driver
+### B. Primary methodological concretization driver
+
+`comparative-characterization-and-nonadditive-evaluation-praxis`
+
+Current role:
+
+- strongest on defining the epistemic object of evaluation work
+- strongest on claim cards, condition matrices, and non-additive supersession
+- strongest bridge between abstract spike critique and a concrete redesign proposal
+
+Main risk:
+
+- may be too project-specific to universalize across all spike families
+- could introduce a new authority surface if claim cards become over-rigid
+
+### C. Primary artifact-form driver
 
 `forms-excess-and-framework-becoming`
 
@@ -92,7 +108,7 @@ Main risk:
 
 - can become too totalizing if treated as the explanation for every framework problem
 
-### C. Primary interpretive lens
+### D. Primary interpretive lens
 
 `responsibility-alterity-and-methodological-praxis`
 
@@ -105,7 +121,7 @@ Main risk:
 
 - if over-translated, becomes decorative ethics rather than operational pressure
 
-### D. Primary external-intake driver
+### E. Primary external-intake driver
 
 `community-feedback-pipelines-and-dialogue-forms`
 
@@ -124,6 +140,7 @@ Main risk:
 ### A. Anti-premature closure
 
 - spike deliberation gives the strongest empirical case
+- comparative-characterization reframes what the spike should have been trying to know in the first place
 - forms/excess generalizes the pressure into artifact design
 - responsibility/praxis supplies the stake behind deferral and qualification
 
@@ -131,6 +148,7 @@ Main risk:
 
 - forms/excess is the clearest on artifact remainder
 - spike deliberation shows why inquiry work needs preserved reframing history
+- comparative-characterization adds concrete trace classes such as claim genealogy, rejected framings, and conversational turning points
 - community-feedback extends the question to external channels and live dialogue
 
 ### C. Critique should not be reduced to ordinary issue flow
@@ -138,12 +156,20 @@ Main risk:
 - spike deliberation shows why difficult critique can exceed standard artifact assumptions
 - community-feedback shows the same problem at the social intake layer
 - forms/excess shows why forcing everything back into the same form is part of the problem
+- comparative-characterization shows how critique can change the epistemic unit of the work itself, not just its confidence level
 
 ### D. Attention to excluded cases
 
 - responsibility/praxis articulates this most clearly
 - spike deliberation shows it as a methodology problem
+- comparative-characterization operationalizes it through condition-local claims and explicit extrapolation confidence
 - community-feedback shows it as an intake and participation problem
+
+### E. Non-additive learning
+
+- spike deliberation implies later critique can revise earlier claims
+- comparative-characterization makes that operational through claim status, split, narrowing, and supersession
+- forms/excess shows why whole-artifact summaries alone are too coarse for this
 
 ## 5. Productive tensions that should not be erased
 
@@ -193,6 +219,17 @@ Each artifact is trying to pressure technical language from outside its usual co
 
 That tension should remain explicit in future roadmap work.
 
+### E. Review-loop redesign versus claim-structure redesign
+
+The earlier constellation could be read as if the next spike work was mostly about better review and challenge. The new comparative-characterization deliberation complicates that.
+
+The tension is now:
+
+- is the main problem that spikes are under-challenged?
+- or that the archive has the wrong unit of knowledge and the wrong relation between findings and decisions?
+
+The current best answer is probably "both," which means the next spike-methodology work may need to co-design review structure and claim structure rather than treating them as wholly separate tracks.
+
 ## 6. Apparatus-change options opened by the constellation
 
 ### Option 1: Minimal change
@@ -217,6 +254,7 @@ Do:
 - deliberation artifact contract and discovery
 - trace/overflow support
 - spike challenge and qualified-outcome redesign
+- claim-card and supersession support for characterization-heavy programs
 
 Defer:
 
@@ -270,7 +308,10 @@ If these deliberations are taken seriously, the next milestone currently seems t
 1. Deliberation artifact contract and discovery
 2. Trace and overflow policy
 3. Reflexive routing for framework-level observations
-4. Spike challenge and qualified-outcome redesign
+4. Spike-methodology redesign:
+   - challenge and qualification loops
+   - spike-type distinctions where needed
+   - claim cards / claim genealogy / non-additive supersession support
 5. Decide whether a campaign/program model is needed for multi-wave inquiry
 6. Only then design community-facing feedback pathways
 
@@ -279,7 +320,9 @@ If these deliberations are taken seriously, the next milestone currently seems t
 - `forms-excess-and-framework-becoming`
   - strongest driver of 1 and 2
 - `spike-epistemic-rigor-and-framework-reflexivity`
-  - strongest driver of 3, 4, and possibly 5
+  - strongest driver of 3, 4, and possibly 5 at the diagnostic level
+- `comparative-characterization-and-nonadditive-evaluation-praxis`
+  - strongest driver of 4 and 5 at the methodological concretization level
 - `responsibility-alterity-and-methodological-praxis`
   - cross-cutting lens on 1 through 6, but not its own phase
 - `community-feedback-pipelines-and-dialogue-forms`
@@ -297,14 +340,16 @@ If these deliberations are taken seriously, the next milestone currently seems t
 If forced to rank the deliberations by immediate roadmap force, my current reading is:
 
 1. `spike-epistemic-rigor-and-framework-reflexivity`
-2. `forms-excess-and-framework-becoming`
-3. `community-feedback-pipelines-and-dialogue-forms`
-4. `responsibility-alterity-and-methodological-praxis`
+2. `comparative-characterization-and-nonadditive-evaluation-praxis`
+3. `forms-excess-and-framework-becoming`
+4. `community-feedback-pipelines-and-dialogue-forms`
+5. `responsibility-alterity-and-methodological-praxis`
 
 But that ranking is about implementation pressure, not about intellectual value.
 
 The safer and more honest takeaway is:
 
 - the spike and forms/excess deliberations are the strongest next-milestone drivers
+- the comparative-characterization deliberation strengthens the spike track by making the output unit and archive model concrete
 - the responsibility deliberation is the strongest cross-cutting lens
 - the community-feedback deliberation is real but should probably wait until the framework can reliably hold the critique it invites
