@@ -161,13 +161,34 @@ This section is intentionally not a final conclusion. It records the current
 best recommendations, the reasons for them, and the parts that still need to be
 tested or challenged.
 
+These are not being presented as settled findings. They are current readings of
+the design space based on the evidence reviewed so far. They may be misframed if
+important usage context, historical constraints, or runtime behavior has not yet
+been surfaced.
+
+### Assumptions and Possible Misreadings
+
+- This reading may over-weight artifacts and under-weight lived workflow
+  practice. The files show what the system says about itself, not necessarily
+  the whole reality of how maintainers actually use it.
+- This reading may over-state the need for formalization because the pain is
+  presently salient. Some of what looks like missing structure may instead be a
+  missing habit of reference or review.
+- This reading may under-estimate the value of fuller transcript preservation
+  for some kinds of philosophical or architectural deliberation.
+- This reading may conflate two problems that should remain partly separate:
+  deliberation artifact quality and cross-runtime install/authority behavior.
+- This reading may privilege neat routing semantics over authoring friction.
+  A format that is elegant for later planners may still be too heavy for
+  day-to-day use.
+
 ### 1. Metadata Contract: Add Frontmatter, but Separate Authority from Exhaustiveness
 
 **Provisional recommendation:** Deliberations should gain YAML frontmatter, but
 the frontmatter should carry only the fields that materially improve discovery,
 scope interpretation, and auditability.
 
-**Why this looks right:**
+**Why this currently seems plausible:**
 
 - The current artifact is too weak for routing. `Status`, `Trigger`, and
   `Affects` exist, but only in prose form and with inconsistent value shapes.
@@ -178,7 +199,7 @@ scope interpretation, and auditability.
   "authoritative routing metadata" versus "everything we might someday wish we
   had." Only the former should be mandatory.
 
-**Current recommended split:**
+**Current provisional split:**
 
 Mandatory:
 - `title`
@@ -216,13 +237,23 @@ not as final authority or blame. A deliberation produced in `codex-cli` by
 `gpt-5.4 xhigh` is still a human-guided artifact. The metadata should help
 later interpretation, not falsely imply that agency is fully machine-local.
 
+**What could make this reading wrong:**
+
+- If maintainers routinely need other fields first, such as decision ownership,
+  review state, or links to discussion artifacts, then this split is too narrow.
+- If backfilling best-effort provenance proves practically impossible, even the
+  proposed "best-effort" set may be too ambitious.
+- If the workflow can discover and consume deliberations adequately from body
+  conventions alone, frontmatter may be less important than this reading
+  suggests.
+
 ### 2. History Contract: Preserve Inquiry as a Curated Trace, Not a Final Memo
 
 **Provisional recommendation:** Require a curated `Genesis` plus `Process Trace`
 section in every nontrivial deliberation. Do not require full transcripts as
 the primary artifact.
 
-**Why this looks right:**
+**Why this currently seems plausible:**
 
 - The user's philosophical objection is sound. A deliberation is not identical
   with its recommendation. The framing shifts, failed assumptions, and option
@@ -259,19 +290,28 @@ the primary artifact.
 - substitute for raw chat archives
 - create a fictionalized narrative that hides disagreement or uncertainty
 
+**What could make this reading wrong:**
+
+- If future continuation work repeatedly needs details that a curated trace
+  omits, then the curation layer may be too lossy.
+- If writing good process traces proves too interpretive or burdensome, this may
+  create the very artifact reluctance it is trying to solve.
+- If some deliberation classes are inherently transcript-like, then one history
+  contract may be too uniform.
+
 ### 3. Workflow Consumption: Open Deliberations Should Be Surfaced, Not Laundered into Decisions
 
 **Provisional recommendation:** Formalize a discovery rule for deliberations,
 but make `scope` and `planning_role` determine how they are consumed.
 
-**Why this looks right:**
+**Why this currently seems plausible:**
 
 - The current gap is not merely that deliberations exist. It is that they are
   discoverable only by memory, manual mention, or lucky re-reading.
 - At the same time, treating every open deliberation as binding would be
   disastrous. Planning would become hostage to unresolved thought.
 
-**Current recommended behavior:**
+**Current provisional behavior:**
 
 - `open + inform`
   - may be surfaced in `CONTEXT.md` as background context or an active design
@@ -294,6 +334,16 @@ but make `scope` and `planning_role` determine how they are consumed.
   should not be silently ignored.
 - `planning_role` captures that distinction directly.
 
+**What could make this reading wrong:**
+
+- If `planning_role` proves too interpretive or unstable, it may produce false
+  confidence rather than clarity.
+- If planners treat any surfaced deliberation as de facto binding regardless of
+  metadata, then the schema will not solve the social/workflow problem.
+- If this distinction is better represented in ROADMAP/CONTEXT curation than in
+  deliberation metadata itself, the proposal may be assigning the burden to the
+  wrong artifact.
+
 ### 4. Cross-Runtime Parity: Deliberation Consumption Must Not Depend on Which Deployment the User Happens to Be Using
 
 **Provisional recommendation:** A user should be able to move between Codex and
@@ -302,7 +352,7 @@ project deliberation context. Deliberation surfacing should therefore depend on
 repo-local artifacts and runtime-neutral discovery rules, not runtime-specific
 memory or install quirks.
 
-**Why this matters here:**
+**Why this currently seems important:**
 
 - The same-repo / multi-runtime expectation is not a side issue. It is one of
   the main tests of whether deliberation handling is truly project-scoped.
@@ -325,6 +375,15 @@ authority or upgrade prompting by itself. But it should explicitly require that
 deliberation discovery be compatible with the broader cross-runtime authority
 design.
 
+**What could make this reading wrong:**
+
+- If the main source of same-repo friction is entirely install authority and not
+  deliberation handling, then this deliberation may be importing parity concerns
+  too early.
+- If runtimes legitimately need different surfacing idioms while still sharing
+  the same underlying project context, then "material parity" may need to be
+  defined more carefully than "looks the same."
+
 ## Tensions
 
 1. **Trace richness vs workflow usability:** richer history makes interpretation better, but too much transcript-like material makes planning harder.
@@ -345,13 +404,14 @@ design.
 **Current leaning:** Option B, but only with a disciplined frontmatter contract
 and an explicit refusal to reduce deliberations to final recommendations alone.
 
-Deliberations should gain a structured frontmatter contract and a required
-process-trace section. The frontmatter should support discovery, scoping, and
-planning consumption. The process trace should preserve the historical
-unfolding: where the framing began, what was falsified, what shifted, and why
-the current recommendation or open question looks the way it does.
+The current reading is that deliberations would likely benefit from a structured
+frontmatter contract plus a required process-trace section. If that reading is
+sound, the frontmatter would support discovery, scoping, and planning
+consumption, while the process trace would preserve the historical unfolding:
+where the framing began, what was falsified, what shifted, and why the current
+recommendation or open question looks the way it does.
 
-This also implies a workflow rule:
+If this reading is sound, it would also imply a workflow rule:
 
 - `open` deliberations remain open and can still be relevant
 - `scope` and `planning_role` determine how they are surfaced
@@ -359,7 +419,7 @@ This also implies a workflow rule:
 - roadmap- or project-scoped open deliberations should be referenceable from
   `PROJECT.md`, `ROADMAP.md`, and `STATE.md`, not forced into a single phase
 
-This also implies a parity rule:
+It may also imply a parity rule:
 
 - switching between Codex and Claude in the same repo should not materially
   change which deliberations are visible, relevant, or treated as active
