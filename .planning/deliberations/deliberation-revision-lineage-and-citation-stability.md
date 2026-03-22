@@ -62,6 +62,9 @@ The live questions are practical and architectural:
    to an explicit version marker?
 5. How much revision history belongs inside the artifact, and how much should be
    left to Git history or sidecar records?
+6. How can the system preserve enough lineage for trustworthy planning,
+   reflection, and audit without making ordinary work pay unnecessary token or
+   context costs every time a deliberation is read?
 
 Without a better answer, the framework risks two opposite failures:
 
@@ -79,6 +82,10 @@ Without a better answer, the framework risks two opposite failures:
 | [cross-runtime-upgrade-install-and-kb-authority.md](./cross-runtime-upgrade-install-and-kb-authority.md) | An open deliberation can already explicitly affect future phases, showing that roadmap and phase planning may need to cite deliberations before they are concluded | Yes — file reviewed directly | informal |
 | Current roadmap structure in `ROADMAP.md` | Phase definitions currently do not carry a formal `Relevant Deliberations` section, so deliberation relevance still depends heavily on memory and manual mention | Yes — file reviewed directly | informal |
 | Current practice in this repo | New deliberations have been added, older ones have been refined, and some artifacts now function as project memory across sessions, but revision lineage is still inferred from prose and Git rather than declared as part of the artifact contract | Yes — repo history and files reviewed directly | informal |
+| [v1.17-plus-roadmap-deliberation.md](./v1.17-plus-roadmap-deliberation.md) | The roadmap already named meta-observability, token efficiency, and context consumption as things the system should measure, but this remained design intent rather than delivered capability | Yes — file reviewed directly | informal |
+| [v1.17-REQUIREMENTS.md](../milestones/v1.17-REQUIREMENTS.md) | Deferred requirements already call for metrics capture, token/context trending, and model-use visibility, showing the problem was recognized but not yet implemented | Yes — file reviewed directly | informal |
+| [CONCERNS.md](../codebase/CONCERNS.md) | Codebase analysis explicitly says actual context-window usage is not measured and recommends capturing execution-time usage for data-driven optimization | Yes — file reviewed directly | informal |
+| [reflect-2026-03-02.md](../knowledge/reflections/get-shit-done-reflect/reflect-2026-03-02.md) | Reflection already proposed a concrete context-budget baseline spike, but no evidence of follow-through is visible here yet | Yes — file reviewed directly | informal |
 
 ## Framing
 
@@ -91,6 +98,8 @@ time**:
 - enough explicit change trace that later readers can tell what changed
 - enough flexibility that inquiry can continue without creating a new file for
   every sharpened thought
+- enough economy that the common case does not require multi-hop lineage
+  traversal unless the task actually needs deep historical audit
 
 **Core question:** What revision, lineage, and citation model should deliberations use so they can remain stable enough for roadmap/planning references while preserving visible change history, interpretive traceability, and lifecycle clarity?
 
@@ -106,6 +115,9 @@ time**:
   revision markers inside it?
 - Should citation practice differ for ordinary planning reference versus formal
   audit/reflection work?
+- At what granularity, if any, should token or context-cost information be
+  available so the project can tell whether richer traceability is buying enough
+  value to justify its retrieval cost?
 
 ## Analysis
 
@@ -265,6 +277,51 @@ But it is too indirect to be the primary mechanism by which planners or future
 contributors learn that a deliberation changed materially. The artifact itself
 should surface enough of that history to be intelligible on its own.
 
+### 6. Token and context efficiency should become an explicit acceptance criterion
+
+**Current provisional recommendation:** revision and citation design should not
+be judged only by traceability and interpretive richness. It should also be
+judged by whether the common retrieval path is cheap enough for routine work.
+
+There is already partial precedent for this in the repo:
+
+- the old roadmap deliberation explicitly proposed meta-observability around
+  token efficiency and context consumption
+- v1.17 requirements deferred metrics capture and token/context trending
+- codebase analysis later identified the lack of actual measurement as a live
+  weakness
+- reflection work already suggested a baseline spike for context-budget
+  measurement
+
+So the present gap is not that the project never noticed token cost. It is that
+token-cost sensitivity has not yet been integrated into deliberation lineage and
+consumption design itself.
+
+**What this currently seems to imply:**
+
+- routine planning should usually read the current effective deliberation plus a
+  short "what changed" capsule, not the full predecessor chain
+- deeper predecessor traversal should be exceptional and task-motivated
+- roadmap citations should normally resolve to the current effective artifact,
+  not force historical chain-walking
+- audit or controversy work can still escalate to exact-version citation and
+  full lineage traversal
+
+**Current caution:** this should not collapse into "fewer tokens is always
+better." The aim is cheaper access to the same practical understanding, not
+compression for its own sake.
+
+**Possible inspiration from RL-style thinking, used cautiously:**
+
+- the analogy to credit-assignment is real: which added trace, lineage marker,
+  or metric actually improved later planning or auditing?
+- but the environment here is sparse, delayed, and heavily confounded
+- naive reward-style optimization would likely overfit to easy proxies such as
+  shorter context or faster completion rather than better judgment
+
+So RL is more useful here as an analogy for hard attribution problems than as a
+ready-made solution.
+
 ## Tensions
 
 1. **Stable identity vs historical honesty:** one enduring file path helps
@@ -279,6 +336,10 @@ should surface enough of that history to be intelligible on its own.
 
 4. **Git sufficiency vs artifact self-description:** Git preserves history, but
    not all consumers will inspect it.
+
+5. **Traceability vs routine token cost:** richer lineage helps audit and
+   reflection, but ordinary planning should not need to pay multi-hop history
+   cost just to find the current effective position.
 
 ## Recommendation
 
@@ -295,6 +356,9 @@ That means, provisionally:
   `supersedes` / `superseded_by`
 - audit/reflection work should cite a specific version or commit when exact
   wording matters
+- ordinary planning should normally resolve to the current effective artifact
+  plus a bounded delta, reserving full lineage traversal for audit, reflection,
+  or controversy
 
 This is not yet a final framework rule. It is a current attempt to balance
 traceability, usability, and lineage without either silent rewriting or runaway
@@ -309,6 +373,7 @@ artifact proliferation.
 | P1 | Adding roadmap-level deliberation references will make relevant open deliberations show up more reliably in later phase context formation | Compare future CONTEXT creation before and after adoption | Relevant deliberations still depend on manual mention at roughly the same rate |
 | P2 | A stable-path plus explicit-revision model will reduce ambiguity without causing major file sprawl | Observe next 5-10 substantive deliberation updates | Either updates remain opaque or new-file proliferation still becomes the norm |
 | P3 | Two-level citation practice will keep roadmap references readable while still supporting precise audit later | Use it in at least one roadmap/planning cycle and one reflection/audit cycle | Either operational citations become too vague or audit citations still cannot recover what mattered |
+| P4 | A current-effective-plus-bounded-delta access pattern will preserve most planning utility while reducing unnecessary lineage traversal | Compare a few planning/audit tasks before and after adoption | Routine planning still regularly requires multi-hop deliberation reading to recover the right context |
 
 ## Genesis
 
