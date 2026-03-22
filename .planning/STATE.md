@@ -139,7 +139,7 @@ Recent decisions affecting current work:
 
 - Fork audit reports: `.planning/fork-audit/` (10 reports informing v1.18 scope)
 - Research: `.planning/research/` (4 detailed analysis files: modular-migration, config-migration, migration-testing, integration-pitfalls)
-- Deliberation context: `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`, `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`, `.planning/deliberations/deliberation-frontmatter-provenance-and-workflow-consumption.md`
+- Deliberation context: `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`, `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`, `.planning/deliberations/deliberation-frontmatter-provenance-and-workflow-consumption.md`, `.planning/deliberations/deliberation-revision-lineage-and-citation-stability.md`
 
 ## Session Continuity
 
