@@ -29,6 +29,85 @@ This review is based on four evidence layers, not just on the deliberation's own
 
 The review also uses the cross-project signal survey in `2026-03-21-deliberation-signal-landscape.md` as a triangulation layer.
 
+## 1A. Corpus grounding and interpretive criteria
+
+This review is now also being read against the `epistemic-agency` paper corpus,
+but not in a naive "paper says X, therefore framework should do X" way.
+
+The corpus is being used here under a narrower and more critical standard.
+
+### Selection criteria used for this review
+
+A paper is not included merely because it is adjacent to evaluation or agent
+design. It needs to satisfy enough of the following to be useful here:
+
+- **direct relevance to the design question**
+  - spike review, verification, process integrity, agent critique, or
+    human-in-the-loop inquiry
+- **epistemic fit**
+  - the paper helps with the distinction between result quality and
+    interpretation quality, or between outcome success and process integrity
+- **methodological seriousness**
+  - full analysis in the corpus is preferred to abstract-only coverage
+  - theoretical work is allowed if it contributes a real diagnostic or
+    architectural distinction
+- **transferability**
+  - the mechanism or distinction seems at least partially portable to GSD
+    Reflect's workflow questions
+- **citation signal**
+  - citation count and influence score are used only as weak heuristics for
+    whether a paper has begun to matter to others
+  - they do not override methodological weakness or conceptual overreach
+
+### Papers selected for this review
+
+| Paper | Why it was included | Why it is not being taken at face value |
+|-------|----------------------|-----------------------------------------|
+| [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) | Best current theoretical warning against mistaking architectural mediation for epistemic independence; directly relevant to reviewer/verifier design in spikes | Very low citation count and no empirical validation; useful mainly as a diagnostic lens, not a settled theorem for framework design |
+| [When Small Models Are Right for Wrong Reasons](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.00513.json) | Strong support for separating process verification from terminal correctness and for distrusting reflection-like text as evidence of genuine checking | Small-model focus may not transfer cleanly to all GSD roles; its critique of prompted self-critique should not be overgeneralized beyond the tested regime |
+| [ContextCov](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.00822.json) | Most useful concrete example of declarative norms becoming executable structure | Very recent, no citation support yet, and false-positive rates remain underanalyzed; useful as a pattern family, not a finished answer |
+| [Beyond Task Completion](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.03116.json) | Strongest corpus support for gating "success" on procedural integrity rather than completion alone | Domain is transactional and benchmark-local; the paper's own significance claims may not carry over directly to spike inquiry or deliberation practice |
+| [Magentic-UI](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2507.22358.json) | Best concrete vocabulary for different human-in-the-loop mechanisms; useful for thinking beyond generic "human oversight" | User study is small, and some gains depend on side-information conditions; useful for mechanism design, not as blanket proof that more human involvement is always better |
+| [Collaborative Gym](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2412.15701.json) | Highest citation signal among the relevant set and directly supports process-quality evaluation in collaboration | Only abstract-level corpus analysis, so it carries lower interpretive confidence here despite higher citation count |
+| [E-valuator](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.03109.json) | Useful for thinking about external wrapper-style verification instead of assuming verifier reliability | Mainly about statistical monitoring, not inquiry quality; helps with one layer of the problem, not the whole spike redesign |
+| [Agentic Uncertainty Quantification](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.15703.json) | Useful for escalation and intervention thresholds in workflow design | Its uncertainty mechanism may itself be weakly grounded; should not be read as a proof that verbalized uncertainty is trustworthy |
+
+### What this corpus pass currently changes about the spike reading
+
+The papers do not overturn the core review. They sharpen it.
+
+Most importantly, they make three points harder to ignore:
+
+1. **More review is not enough if review lacks epistemic differentiation.**
+   `Semantic Laundering` raises the live possibility that extra reviewer agents
+   may produce architectural theater rather than genuine independence if they
+   operate in the same proposition space with the same kinds of warrant.
+
+2. **Outcome-level success is too weak a target for spike evaluation.**
+   `When Small Models Are Right for Wrong Reasons` and `Beyond Task Completion`
+   both strengthen the review's existing concern that current spike artifacts
+   collapse process quality into terminal conclusions too early.
+
+3. **Some of what the deliberation wants is better realized as harness design
+   than as guidance prose.**
+   `ContextCov` and `Magentic-UI` strengthen the case that if the framework
+   values challenge, interruption, and procedural integrity, at least some of
+   that should be embodied in role design, action loci, and artifact structure.
+
+### What this corpus pass does not justify
+
+It does **not** justify any of the following stronger claims:
+
+- that GSD Reflect should simply adopt multi-agent review everywhere
+- that any specific verifier architecture in the corpus is already the right
+  one for spike work
+- that citation counts prove which methodological direction is correct
+- that the present spike pathology is fully explained by current papers rather
+  than by local workflow and framing failures
+
+So the corpus strengthens the review, but only as a disciplined interpretive
+resource. It should constrain overconfident claims, not authorize them.
+
 ## 2. What this deliberation is doing unusually well
 
 ### A. It is anchored in a genuine failure sequence
