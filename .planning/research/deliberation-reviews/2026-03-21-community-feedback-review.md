@@ -23,6 +23,62 @@ This review draws on:
 
 The key limit of the evidence base is important: there is still almost no direct observation of actual GSD community traffic beyond the bare fact that the upstream repo and Discord exist.
 
+## 1A. Corpus grounding and interpretive criteria
+
+This review is now also being read against the `epistemic-agency` corpus, but
+with a deliberately constrained question:
+
+- not “which venue should GSD build?”
+- but “what adjacent evidence exists about interaction form, feedback
+  translation, blind spots, and writeback discipline?”
+
+That distinction matters because the corpus does **not** yet contain direct
+evidence about actual GSD community demand or current GSD community behavior.
+
+The papers below were chosen because they help with at least one of these
+constraints:
+
+- interaction form shapes what can be heard
+- open-ended feedback needs translation into durable artifacts
+- feedback systems have blind spots
+- writeback and provenance are non-trivial if dialogue is later summarized
+
+Citation signal is only a weak heuristic here. For example,
+[Collaborative Gym](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2412.15701.json)
+has stronger maturity than several others, but its domain fit is still only
+adjacent rather than direct.
+
+| Paper | Why it was included | Claim domain and support strength | Why it remains limited |
+|-------|----------------------|-----------------------------------|------------------------|
+| [Collaborative Gym](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2412.15701.json) | Strongest support for the claim that interaction form is not neutral and that live collaborative channels have both value and failure modes | `interaction affordances / live collaboration costs` — `moderate` support for “form matters” | Abstract-only corpus analysis, unclear real-user sample sizes, and human-agent task settings are still not OSS framework governance |
+| [Magentic-UI](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2507.22358.json) | Best support for the venue-affordance matrix and for having more than one interaction mechanism | `plural intake/interaction modes` — `moderate` support | Small qualitative study plus simulated users; task UI setting, not public community pathway design |
+| [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) | Best support for the claim that low-friction qualitative feedback only becomes useful after translation into grounded, reusable evaluative artifacts | `feedback-to-artifact translation` — `moderate` support | LLM-as-judge circularity and no direct community-governance setting |
+| [Adaptive Data Flywheel](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2510.27051.json) | Strongest caution that feedback systems optimize what they already know how to monitor | `blind spots / mixed-signal feedback design` — `moderate-to-strong` support for caution | Proprietary enterprise case, no code/data, thin citation maturity, and not a venue-design paper |
+| [On the Use of Agentic Coding](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2509.14745.json) | Best adjacent evidence that repo-native durable paths are not neutral; PR flows carry hidden norms and often weak explanatory feedback | `repo-native intake costs / PR normativity` — `moderate` support | Studies agent PRs, not human critique submissions; transfer is partial |
+| [Everything is Context](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.05470.json) | Best support for the insistence that live or multi-session critique needs disciplined writeback, provenance, and retention rules | `writeback / provenance / retention` — `weak-to-moderate` support | Position/design paper without empirical validation; conceptually useful but weak as evidence of efficacy |
+
+### What this corpus pass currently changes
+
+The corpus strengthens the review’s caution and routing emphasis.
+
+More specifically, it supports the narrower claims that:
+
+- interaction form really does shape what kinds of collaboration succeed
+- open-ended feedback needs a translation layer before it becomes planning input
+- feedback pipelines should assume blind spots rather than equate structured
+  intake with complete signal capture
+- writeback from live or multi-session dialogue needs explicit provenance and
+  retention design
+
+### What this corpus pass does not justify
+
+- It does not justify a specific venue choice for GSD.
+- It does not show that Discord, Discussions, or forums will improve epistemic
+  quality here.
+- It does not show that synchronous critique sessions will scale or be
+  maintainable.
+- It does not show actual demand for a broader community stack.
+
 ## 2. What this deliberation is doing well
 
 ### A. It identifies a real design problem that issue trackers usually hide

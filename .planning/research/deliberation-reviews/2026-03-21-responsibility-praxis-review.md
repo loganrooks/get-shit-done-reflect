@@ -23,6 +23,51 @@ This review uses:
 
 The review also assumes that the philosophical vocabulary is not itself the implementation target. The target is the design pressure it exerts on the framework.
 
+## 1A. Corpus grounding and interpretive criteria
+
+This review is now also being read against the `epistemic-agency` corpus, but
+only for a narrower question than the deliberation itself poses.
+
+The corpus cannot validate the deliberation’s ethical orientation directly.
+What it can do is test whether there is convergent support for the
+**methodological translation** this review is making, namely:
+
+- outcomes can conceal significant process failure
+- scope and applicability need stronger treatment
+- evaluation surfaces can systematically omit what matters
+- uncertainty-aware deferral may sometimes be protective rather than weak
+
+The papers below were chosen for direct relevance, methodological seriousness,
+and transferability. Citation signal is used only weakly. Most are too recent
+to carry much maturity weight, so fit and caveat discipline matter more here.
+
+| Paper | Why it was included | Claim domain and support strength | Why it remains limited |
+|-------|----------------------|-----------------------------------|------------------------|
+| [Beyond Task Completion](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.03116.json) | Strongest direct support for the claim that outcome success can conceal important process failure | `process-aware evaluation / applicability conditions` — `high` support for the narrow claim that completion is insufficient | Transactional domains only, GPT-5 judge circularity, no code, very recent, and transfer to open-ended review/planning remains weak |
+| [When Small Models Are Right for Wrong Reasons](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.00513.json) | Strong support for the claim that correct-looking findings can still be methodologically unsound | `reasoning/process verification` — `high` support in the studied small-model regime, `moderate` transfer outward | 7-9B models only, LLM-judge dependence, and not an open-ended workflow study |
+| [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) | Best support for the narrower claim that evaluative coverage is itself a design problem | `feedback-grounded metric design / coverage` — `moderate` support, indirect | LLM-as-judge circularity, single-benchmark improvement, and it supports coverage of human feedback rather than ethical answerability to absent others |
+| [Measuring Agents in Production](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.04123.json) | Best practical support for the claim that constrained autonomy and human verification can be protective rather than merely timid | `production reliability / human verification` — `moderate-to-high` descriptive support | Survey and case-study biases, no released qualitative artifacts, and it supports observed production practice rather than a moral framework claim |
+| [Agentic Uncertainty Quantification](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.15703.json) | Best analogue for confidence partitioning and deferral as a legitimate response to uncertainty | `calibration / thresholded deferral` — `moderate` support | Verbalized uncertainty may not track real uncertainty; benchmark-heavy evidence; no direct proof that similar mechanisms improve review judgment here |
+| [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) | Best guardrail against over-translating the deliberation into fake implementation certainty | `epistemic warrant / anti-checklist caution` — `moderate` conceptual support, `low` implementation support | Theoretical only, solution not validated, and too recent to treat as settled framework evidence |
+
+### What this corpus pass currently changes
+
+The corpus gives the review firmer support for a narrow methodological claim:
+scope-qualified findings, process-sensitive review language, and uncertainty
+handling are not merely decorative. They correspond to real evaluation and
+reliability problems in adjacent agent work.
+
+### What this corpus pass does not justify
+
+- It does not show that the deliberation’s ethical orientation is empirically
+  validated as such.
+- It does not show that asking about absent or unrepresented others reliably
+  improves GSD-like decisions.
+- It does not show that reviewer prompts or documentation changes alone will
+  alter judgment quality rather than only its wording.
+- It does not justify a standalone “responsibility module” or its own roadmap
+  phase.
+
 ## 2. What this deliberation is doing well
 
 ### A. It gives a stronger answer to "why rigor matters"

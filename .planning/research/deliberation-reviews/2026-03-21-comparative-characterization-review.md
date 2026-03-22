@@ -28,6 +28,54 @@ This review uses:
   - `docs/08-evaluation-and-experiments.md`
   - `docs/10-open-questions.md`
 
+## 1A. Corpus grounding and interpretive criteria
+
+This review is now also being read against the `epistemic-agency` corpus, but
+only as **partial external grounding**.
+
+That phrase matters. The corpus can support analogies for:
+
+- finer claim units
+- condition-local evaluation
+- diagnostic characterization over winner-picking compression
+- non-destructive supersession and lifecycle-aware archives
+
+It does **not** yet validate the full claim-card proposal, nor does it settle
+where those claims should live in GSD’s artifact system.
+
+The papers below were chosen for direct methodological relevance, not because
+they all strongly agree with the deliberation. Citation signal is used weakly:
+[TRAIL](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.08638.json)
+has better maturity than the newer papers here, but fit and limitations remain
+more important than citation count alone.
+
+| Paper | Why it was included | Claim domain and support strength | Why it remains limited |
+|-------|----------------------|-----------------------------------|------------------------|
+| [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) | Best support for moving from whole-run verdicts toward behavior-level evaluative units | `claim units / iterative metric refinement` — `medium-to-strong` support | LLM-as-judge circularity, small samples, and induced metrics are not the same as stable cross-spike claim cards |
+| [Capable but Unreliable](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2602.19008.json) | Best support for condition-local claims over global winner narratives; same model-task pair can alternate between success and failure | `condition-local evaluation / reliability vs capability` — `strong` support | Toolathlon-specific, canonical paths may be benchmark-artifact-sensitive, and proposed interventions remain only partly validated |
+| [TRAIL](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.08638.json) | Best support for benchmarking as characterization rather than leaderboard compression | `diagnostic benchmarking / trace taxonomies` — `strong` for taxonomy, `moderate` for archive transfer | Small trace set, hard benchmark, and no direct claim-archive design |
+| [ARIA](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2507.17131.json) | Closest analogue for retained-but-qualified knowledge via explicit validity statuses and supersession semantics | `archive / claim-lifecycle analogue` — `moderate` support | Proprietary production setting, weak reproducibility, and the managed objects are operational knowledge items, not research claims |
+| [Beyond Task Completion](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.03116.json) | Strong support for decomposing success into distinct integrity dimensions rather than collapsing everything into outcome-only success | `multi-dimensional evaluation / benchmarking vs characterization` — `medium-to-strong` support | Gating still collapses dimensions back toward a single disqualifying score; domain fit remains partial |
+
+### What this corpus pass currently changes
+
+The corpus gives the review stronger external support for a narrower claim:
+winner-picking benchmarks are inadequate, while taxonomic and
+multi-dimensional benchmarking can still be rigorous if they expose conditions,
+failure signatures, and integrity dimensions rather than only final scores.
+
+It also gives partial support for lifecycle-aware archives, but only by analogy.
+
+### What this corpus pass does not justify
+
+- It does not validate claim cards as a mature, portable best practice.
+- It does not establish a settled archive design, status ontology, or GSD home
+  for non-additive claims.
+- It does not show direct transfer from tool-use or customer-service settings
+  into `arxiv-sanity-mcp` comparative characterization without further
+  translation.
+- It does not remove the need for substantial human calibration and judgment.
+
 ## 2. What this deliberation adds that the current set did not yet provide
 
 ### A. It changes the level of specificity
