@@ -44,13 +44,27 @@ is much more cited than the other papers below, but that does not make it the
 best conceptual fit. Most of the more directly relevant papers are very recent,
 so methodological fit matters more than maturity alone.
 
-| Paper | Why it was included | Claim domain and support strength | Why it remains limited |
+### Support and maturity labels used here
+
+This review now uses the same two-part vocabulary as the spike review:
+
+- `support class`
+  - `direct-strong`: closely related mechanism with comparatively low transfer burden
+  - `direct-moderate`: direct relevance to one design mechanism, but meaningful transfer or method caveats remain
+  - `adjacent-moderate`: bounded analogue rather than direct study of the same problem
+  - `conceptual-only`: mostly diagnostic or interpretive pressure
+- `citation maturity`
+  - `high`: established uptake, still only a weak heuristic
+  - `medium`: some uptake, but no stable consensus signal
+  - `low`: too recent or thinly cited to carry much weight as uptake evidence
+
+| Paper | Why it was included | Claim domain, support class, and citation maturity | Why it remains limited |
 |-------|----------------------|-----------------------------------|------------------------|
-| [OpenHands](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2407.16741.json) | Strongest corpus support for preserving chronological event history as inspectable state rather than ephemeral interaction exhaust | `process-trace preservation / auditability` — `moderate` support | Infrastructure paper, not a deliberation study; event logging is not isolated as the causal factor; mostly session-level, not cross-artifact memory |
-| [ENGRAM](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2511.12960.json) | Best empirical support for typed/layered memory rather than one undifferentiated store | `typed memory / memory routing` — `strong` support, with a strong ablation | Conversational-agent setting; does not justify these exact categories for GSD; not evidence about deliberative writing or philosophical remainder |
-| [Acon](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2510.00615.json) | Best support for the claim that compression needs epistemic criteria, not just brevity goals | `overflow / compression governance` — `strong` for compression discipline, `weak` for any specific sidecar design | Long-horizon benchmark setting only; measures task success more than interpretive faithfulness; does not prove companion artifacts are the right answer |
-| [Git Context Controller](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2508.00031.json) | Closest analogue to sibling artifacts and branchable overflow paths | `branchable companion artifacts / selective retrieval` — `moderate` support | SWE-specific, model-dependent, and thinly matured; no real evidence yet on indexing burden or human interpretability costs |
-| [Codified Context](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2602.20478.json) | Best direct support for the review’s warning that overly concise capture loses domain-specific failure knowledge | `anti-flattening / tiered context` — `weak-to-moderate` support | Practitioner report with weak causal identification; transfer beyond coding workflows is uncertain |
+| [OpenHands](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2407.16741.json) | Strongest corpus support for preserving chronological event history as inspectable state rather than ephemeral interaction exhaust | `process-trace preservation / auditability` — `direct-moderate`; `citation maturity: high` | Infrastructure paper, not a deliberation study; event logging is not isolated as the causal factor; mostly session-level, not cross-artifact memory |
+| [ENGRAM](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2511.12960.json) | Best empirical support for typed/layered memory rather than one undifferentiated store | `typed memory / memory routing` — `direct-moderate`; `citation maturity: low` | Conversational-agent setting; does not justify these exact categories for GSD; not evidence about deliberative writing or philosophical remainder |
+| [Acon](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2510.00615.json) | Best support for the claim that compression needs epistemic criteria, not just brevity goals | `overflow / compression governance` — `direct-moderate`; `citation maturity: low` | Long-horizon benchmark setting only; measures task success more than interpretive faithfulness; does not prove companion artifacts are the right answer |
+| [Git Context Controller](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2508.00031.json) | Closest analogue to sibling artifacts and branchable overflow paths | `branchable companion artifacts / selective retrieval` — `adjacent-moderate`; `citation maturity: low` | SWE-specific, model-dependent, and thinly matured; no real evidence yet on indexing burden or human interpretability costs |
+| [Codified Context](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2602.20478.json) | Best direct support for the review’s warning that overly concise capture loses domain-specific failure knowledge | `anti-flattening / tiered context` — `adjacent-moderate`; `citation maturity: low` | Practitioner report with weak causal identification; transfer beyond coding workflows is uncertain |
 
 ### What this corpus pass currently changes
 
@@ -74,6 +88,23 @@ What it does support more narrowly is:
   sense this deliberation means.
 - It does not show that the framework has already found the right balance
   between artifact richness and sprawl.
+
+### Boundary pressures and counter-readings kept live
+
+The papers here do not only support richer trace retention. They also pressure
+the review toward narrower and more selective claims:
+
+- [ENGRAM](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2511.12960.json) supports typed memory, but not the exact categories or sidecar ecology this deliberation might invite.
+- [Acon](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2510.00615.json) strengthens the case for governed compression, while also warning against simply retaining more material without criteria.
+- [OpenHands](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2407.16741.json) helps with trace capture, but it also pressures the review not to confuse event logging with preserved interpretive development.
+
+### Explicit triangulation: signal -> corpus -> bounded design implication
+
+| Local signal/problem | External analogue or caution | Bounded design implication |
+|----------------------|------------------------------|----------------------------|
+| `2026-03-04-signal-lifecycle-representation-gap.md` and `sig-2026-03-02-requirements-lack-motivation-traceability.md` | [OpenHands](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2407.16741.json) and [Codified Context](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2602.20478.json) both pressure preservation of decision-relevant history | Test explicit process-trace or motivation-trace sections before leaping to a large new artifact family |
+| `2026-03-06-planner-deliberation-auto-reference-gap.md` and `sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift.md` | [ENGRAM](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2511.12960.json) and [Git Context Controller](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2508.00031.json) both support typed routing over flat accumulation | Strengthen artifact typing and discovery before adding more overflow artifacts |
+| `sig-2026-03-19-spike-framework-scope-gap.md` | [Acon](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2510.00615.json) pressures compression to preserve epistemically relevant distinctions, not just shorter summaries | Any sidecar or overflow design should have explicit inclusion criteria tied to future decision or critique value |
 
 ## 2. What this deliberation is doing especially well
 

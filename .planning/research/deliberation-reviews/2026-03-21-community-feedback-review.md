@@ -48,14 +48,28 @@ Citation signal is only a weak heuristic here. For example,
 has stronger maturity than several others, but its domain fit is still only
 adjacent rather than direct.
 
-| Paper | Why it was included | Claim domain and support strength | Why it remains limited |
+### Support and maturity labels used here
+
+This review uses the same split labels as the others:
+
+- `support class`
+  - `direct-strong`: close match between studied interaction problem and the narrow claim used here
+  - `direct-moderate`: directly relevant mechanism, but substantial transfer caveats remain
+  - `adjacent-moderate`: bounded analogue rather than direct venue evidence
+  - `conceptual-only`: mainly a cautionary or interpretive pressure
+- `citation maturity`
+  - `high`: established uptake, still only weakly informative
+  - `medium`: some uptake
+  - `low`: too recent or thinly cited to say much about uptake
+
+| Paper | Why it was included | Claim domain, support class, and citation maturity | Why it remains limited |
 |-------|----------------------|-----------------------------------|------------------------|
-| [Collaborative Gym](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2412.15701.json) | Strongest support for the claim that interaction form is not neutral and that live collaborative channels have both value and failure modes | `interaction affordances / live collaboration costs` — `moderate` support for “form matters” | Abstract-only corpus analysis, unclear real-user sample sizes, and human-agent task settings are still not OSS framework governance |
-| [Magentic-UI](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2507.22358.json) | Best support for the venue-affordance matrix and for having more than one interaction mechanism | `plural intake/interaction modes` — `moderate` support | Small qualitative study plus simulated users; task UI setting, not public community pathway design |
-| [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) | Best support for the claim that low-friction qualitative feedback only becomes useful after translation into grounded, reusable evaluative artifacts | `feedback-to-artifact translation` — `moderate` support | LLM-as-judge circularity and no direct community-governance setting |
-| [Adaptive Data Flywheel](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2510.27051.json) | Strongest caution that feedback systems optimize what they already know how to monitor | `blind spots / mixed-signal feedback design` — `moderate-to-strong` support for caution | Proprietary enterprise case, no code/data, thin citation maturity, and not a venue-design paper |
-| [On the Use of Agentic Coding](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2509.14745.json) | Best adjacent evidence that repo-native durable paths are not neutral; PR flows carry hidden norms and often weak explanatory feedback | `repo-native intake costs / PR normativity` — `moderate` support | Studies agent PRs, not human critique submissions; transfer is partial |
-| [Everything is Context](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.05470.json) | Best support for the insistence that live or multi-session critique needs disciplined writeback, provenance, and retention rules | `writeback / provenance / retention` — `weak-to-moderate` support | Position/design paper without empirical validation; conceptually useful but weak as evidence of efficacy |
+| [Collaborative Gym](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2412.15701.json) | Strongest support for the claim that interaction form is not neutral and that live collaborative channels have both value and failure modes | `interaction affordances / live collaboration costs` — `adjacent-moderate`; `citation maturity: medium` | Abstract-only corpus analysis, unclear real-user sample sizes, and human-agent task settings are still not OSS framework governance |
+| [Magentic-UI](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2507.22358.json) | Best support for the venue-affordance matrix and for having more than one interaction mechanism | `plural intake/interaction modes` — `adjacent-moderate`; `citation maturity: low` | Small qualitative study plus simulated users; task UI setting, not public community pathway design |
+| [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) | Best support for the claim that low-friction qualitative feedback only becomes useful after translation into grounded, reusable evaluative artifacts | `feedback-to-artifact translation` — `adjacent-moderate`; `citation maturity: low` | LLM-as-judge circularity and no direct community-governance setting |
+| [Adaptive Data Flywheel](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2510.27051.json) | Strongest caution that feedback systems optimize what they already know how to monitor | `blind spots / mixed-signal feedback design` — `adjacent-moderate`; `citation maturity: low` | Proprietary enterprise case, no code/data, thin citation maturity, and not a venue-design paper |
+| [On the Use of Agentic Coding](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2509.14745.json) | Best adjacent evidence that repo-native durable paths are not neutral; PR flows carry hidden norms and often weak explanatory feedback | `repo-native intake costs / PR normativity` — `adjacent-moderate`; `citation maturity: low` | Studies agent PRs, not human critique submissions; transfer is partial |
+| [Everything is Context](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.05470.json) | Best support for the insistence that live or multi-session critique needs disciplined writeback, provenance, and retention rules | `writeback / provenance / retention` — `conceptual-only`; `citation maturity: low` | Position/design paper without empirical validation; conceptually useful but weak as evidence of efficacy |
 
 ### What this corpus pass currently changes
 
@@ -78,6 +92,23 @@ More specifically, it supports the narrower claims that:
 - It does not show that synchronous critique sessions will scale or be
   maintainable.
 - It does not show actual demand for a broader community stack.
+
+### Boundary pressures and counter-readings kept live
+
+These papers do not only support richer community pathways. They also pressure
+the review toward slower and more internal-first conclusions:
+
+- [On the Use of Agentic Coding](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2509.14745.json) suggests repo-native durable paths carry hidden norms, but it also reminds us that those paths already exist and may need improvement before new venues are added.
+- [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) supports translation of qualitative feedback into durable artifacts, which pressures the review to solve writeback and routing before scaling intake.
+- [Everything is Context](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.05470.json) supports provenance concerns, but only conceptually; it does not validate any particular venue or summarize-live-dialogue workflow.
+
+### Explicit triangulation: signal -> corpus -> bounded design implication
+
+| Local signal/problem | External analogue or caution | Bounded design implication |
+|----------------------|------------------------------|----------------------------|
+| `2026-03-06-planner-deliberation-auto-reference-gap.md` and `sig-2026-03-02-requirements-lack-motivation-traceability.md` | [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) and [Everything is Context](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.05470.json) both pressure better translation and writeback discipline | Improve internal feedback-to-artifact routing before expanding external intake surfaces |
+| `sig-2026-03-20-premature-spike-decisions.md` and `sig-2026-03-20-spike-experimental-design-rigor.md` | [Collaborative Gym](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2412.15701.json) and [Magentic-UI](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2507.22358.json) support the idea that interaction form affects what critique becomes possible | Keep live or multi-turn challenge as a possible later lane, but do not infer yet that a public synchronous program is warranted |
+| `sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift.md` | [Adaptive Data Flywheel](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2510.27051.json) warns that systems optimize what they can already see and measure | Any future community pipeline should explicitly preserve blind-spot channels rather than only collecting neatly structured submissions |
 
 ## 2. What this deliberation is doing well
 

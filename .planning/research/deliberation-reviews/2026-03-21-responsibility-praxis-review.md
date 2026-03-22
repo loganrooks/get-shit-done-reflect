@@ -41,14 +41,28 @@ The papers below were chosen for direct relevance, methodological seriousness,
 and transferability. Citation signal is used only weakly. Most are too recent
 to carry much maturity weight, so fit and caveat discipline matter more here.
 
-| Paper | Why it was included | Claim domain and support strength | Why it remains limited |
+### Support and maturity labels used here
+
+This review now distinguishes:
+
+- `support class`
+  - `direct-strong`: close match between the paper's studied mechanism and the narrow claim used here
+  - `direct-moderate`: direct support for one mechanism, but meaningful transfer or methodological caveats remain
+  - `adjacent-moderate`: useful bounded analogue, not direct validation
+  - `conceptual-only`: diagnostic or cautionary support rather than validated intervention evidence
+- `citation maturity`
+  - `high`: established uptake, still only weakly relevant to truth
+  - `medium`: some uptake
+  - `low`: too recent or thinly cited to carry much maturity weight
+
+| Paper | Why it was included | Claim domain, support class, and citation maturity | Why it remains limited |
 |-------|----------------------|-----------------------------------|------------------------|
-| [Beyond Task Completion](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.03116.json) | Strongest direct support for the claim that outcome success can conceal important process failure | `process-aware evaluation / applicability conditions` — `high` support for the narrow claim that completion is insufficient | Transactional domains only, GPT-5 judge circularity, no code, very recent, and transfer to open-ended review/planning remains weak |
-| [When Small Models Are Right for Wrong Reasons](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.00513.json) | Strong support for the claim that correct-looking findings can still be methodologically unsound | `reasoning/process verification` — `high` support in the studied small-model regime, `moderate` transfer outward | 7-9B models only, LLM-judge dependence, and not an open-ended workflow study |
-| [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) | Best support for the narrower claim that evaluative coverage is itself a design problem | `feedback-grounded metric design / coverage` — `moderate` support, indirect | LLM-as-judge circularity, single-benchmark improvement, and it supports coverage of human feedback rather than ethical answerability to absent others |
-| [Measuring Agents in Production](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.04123.json) | Best practical support for the claim that constrained autonomy and human verification can be protective rather than merely timid | `production reliability / human verification` — `moderate-to-high` descriptive support | Survey and case-study biases, no released qualitative artifacts, and it supports observed production practice rather than a moral framework claim |
-| [Agentic Uncertainty Quantification](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.15703.json) | Best analogue for confidence partitioning and deferral as a legitimate response to uncertainty | `calibration / thresholded deferral` — `moderate` support | Verbalized uncertainty may not track real uncertainty; benchmark-heavy evidence; no direct proof that similar mechanisms improve review judgment here |
-| [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) | Best guardrail against over-translating the deliberation into fake implementation certainty | `epistemic warrant / anti-checklist caution` — `moderate` conceptual support, `low` implementation support | Theoretical only, solution not validated, and too recent to treat as settled framework evidence |
+| [Beyond Task Completion](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.03116.json) | Strongest direct support for the claim that outcome success can conceal important process failure | `process-aware evaluation / applicability conditions` — `direct-moderate`; `citation maturity: low` | Transactional domains only, GPT-5 judge circularity, no code, very recent, and transfer to open-ended review/planning remains weak |
+| [When Small Models Are Right for Wrong Reasons](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.00513.json) | Strong support for the claim that correct-looking findings can still be methodologically unsound | `reasoning/process verification` — `direct-moderate`; `citation maturity: low` | 7-9B models only, LLM-judge dependence, and not an open-ended workflow study |
+| [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) | Best support for the narrower claim that evaluative coverage is itself a design problem | `feedback-grounded metric design / coverage` — `adjacent-moderate`; `citation maturity: low` | LLM-as-judge circularity, single-benchmark improvement, and it supports coverage of human feedback rather than ethical answerability to absent others |
+| [Measuring Agents in Production](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.04123.json) | Best practical support for the claim that constrained autonomy and human verification can be protective rather than merely timid | `production reliability / human verification` — `adjacent-moderate`; `citation maturity: low` | Survey and case-study biases, no released qualitative artifacts, and it supports observed production practice rather than a moral framework claim |
+| [Agentic Uncertainty Quantification](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.15703.json) | Best analogue for confidence partitioning and deferral as a legitimate response to uncertainty | `calibration / thresholded deferral` — `adjacent-moderate`; `citation maturity: low` | Verbalized uncertainty may not track real uncertainty; benchmark-heavy evidence; no direct proof that similar mechanisms improve review judgment here |
+| [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) | Best guardrail against over-translating the deliberation into fake implementation certainty | `epistemic warrant / anti-checklist caution` — `conceptual-only`; `citation maturity: low` | Theoretical only, solution not validated, and too recent to treat as settled framework evidence |
 
 ### What this corpus pass currently changes
 
@@ -67,6 +81,23 @@ reliability problems in adjacent agent work.
   alter judgment quality rather than only its wording.
 - It does not justify a standalone “responsibility module” or its own roadmap
   phase.
+
+### Boundary pressures and counter-readings kept live
+
+The corpus here supports the review's methodological translation only in a
+qualified way:
+
+- [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) and [Measuring Agents in Production](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.04123.json) support coverage and human verification as practical concerns, but neither validates the larger normative orientation directly.
+- [Agentic Uncertainty Quantification](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.15703.json) pressures the review not to confuse stated uncertainty or deferral language with genuinely improved judgment.
+- [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) narrows any temptation to think a responsibility prompt or extra reviewer role would automatically solve the underlying problem.
+
+### Explicit triangulation: signal -> corpus -> bounded design implication
+
+| Local signal/problem | External analogue or caution | Bounded design implication |
+|----------------------|------------------------------|----------------------------|
+| `2026-03-19-measuring-wrong-thing-filtering.md` and `2026-03-19-untested-hypotheses-as-findings.md` | [Beyond Task Completion](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.03116.json) and [When Small Models Are Right for Wrong Reasons](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.00513.json) both support process-sensitive evaluation language | Strengthen scope-qualified findings and separate outcome claims from method-confidence claims |
+| `sig-2026-03-02-requirements-lack-motivation-traceability.md` | [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) supports the idea that coverage itself is a design problem | Reviewer or planner prompts about absent cases may be justified as coverage prompts, not as proof of a larger moral framework |
+| `2026-03-04-deliberation-skill-lacks-epistemic-verification.md` | [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) warns that new surface structure can simulate rigor without changing warrant | Prefer bounded review questions and explicit transfer limits over decorative ethical language |
 
 ## 2. What this deliberation is doing well
 

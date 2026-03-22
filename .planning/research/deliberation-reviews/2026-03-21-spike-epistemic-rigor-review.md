@@ -59,18 +59,38 @@ design. It needs to satisfy enough of the following to be useful here:
     whether a paper has begun to matter to others
   - they do not override methodological weakness or conceptual overreach
 
+### Support and maturity labels used here
+
+To keep the review from sliding back into impressionistic "strong" or
+"moderate" language, this corpus section uses two separate labels:
+
+- `support class`
+  - `direct-strong`: the paper studies a closely related mechanism or
+    evaluation problem and transfer burden is comparatively low
+  - `direct-moderate`: the paper is directly relevant to one mechanism, but
+    domain transfer or methodological caveats remain substantial
+  - `adjacent-moderate`: the paper is a bounded analogue rather than a direct
+    study of the same design problem
+  - `conceptual-only`: the paper mainly offers diagnostic pressure or
+    interpretive caution rather than validated implementation guidance
+- `citation maturity`
+  - `high`: established uptake, still only a weak heuristic about attention
+  - `medium`: some uptake, but nowhere near stable consensus
+  - `low`: too recent or thinly cited for uptake to carry much interpretive
+    weight
+
 ### Papers selected for this review
 
-| Paper | Why it was included | Why it is not being taken at face value |
-|-------|----------------------|-----------------------------------------|
-| [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) | Best current theoretical warning against mistaking architectural mediation for epistemic independence; directly relevant to reviewer/verifier design in spikes | Very low citation count and no empirical validation; useful mainly as a diagnostic lens, not a settled theorem for framework design |
-| [When Small Models Are Right for Wrong Reasons](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.00513.json) | Strong support for separating process verification from terminal correctness and for distrusting reflection-like text as evidence of genuine checking | Small-model focus may not transfer cleanly to all GSD roles; its critique of prompted self-critique should not be overgeneralized beyond the tested regime |
-| [ContextCov](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.00822.json) | Most useful concrete example of declarative norms becoming executable structure | Very recent, no citation support yet, and false-positive rates remain underanalyzed; useful as a pattern family, not a finished answer |
-| [Beyond Task Completion](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.03116.json) | Strongest corpus support for gating "success" on procedural integrity rather than completion alone | Domain is transactional and benchmark-local; the paper's own significance claims may not carry over directly to spike inquiry or deliberation practice |
-| [Magentic-UI](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2507.22358.json) | Best concrete vocabulary for different human-in-the-loop mechanisms; useful for thinking beyond generic "human oversight" | User study is small, and some gains depend on side-information conditions; useful for mechanism design, not as blanket proof that more human involvement is always better |
-| [Collaborative Gym](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2412.15701.json) | Highest citation signal among the relevant set and directly supports process-quality evaluation in collaboration | Only abstract-level corpus analysis, so it carries lower interpretive confidence here despite higher citation count |
-| [E-valuator](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.03109.json) | Useful for thinking about external wrapper-style verification instead of assuming verifier reliability | Mainly about statistical monitoring, not inquiry quality; helps with one layer of the problem, not the whole spike redesign |
-| [Agentic Uncertainty Quantification](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.15703.json) | Useful for escalation and intervention thresholds in workflow design | Its uncertainty mechanism may itself be weakly grounded; should not be read as a proof that verbalized uncertainty is trustworthy |
+| Paper | Why it was included | Claim domain, support class, and citation maturity | Why it is not being taken at face value |
+|-------|----------------------|-----------------------------------------------|-----------------------------------------|
+| [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) | Best current theoretical warning against mistaking architectural mediation for epistemic independence; directly relevant to reviewer/verifier design in spikes | `review-role independence / epistemic differentiation` — `conceptual-only`; `citation maturity: low` | No empirical validation; useful mainly as a diagnostic lens, not a settled theorem for framework design |
+| [When Small Models Are Right for Wrong Reasons](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.00513.json) | Strong support for separating process verification from terminal correctness and for distrusting reflection-like text as evidence of genuine checking | `process verification vs correctness` — `direct-moderate`; `citation maturity: low` | Small-model focus may not transfer cleanly to all GSD roles; its critique of prompted self-critique should not be overgeneralized beyond the tested regime |
+| [ContextCov](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.00822.json) | Most useful concrete example of declarative norms becoming executable structure | `instruction-to-check compilation / structural enforcement` — `direct-moderate`; `citation maturity: low` | Very recent, no citation support yet, and false-positive rates remain underanalyzed; useful as a pattern family, not a finished answer |
+| [Beyond Task Completion](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.03116.json) | Strongest corpus support for gating "success" on procedural integrity rather than completion alone | `procedural integrity vs completion` — `direct-moderate`; `citation maturity: low` | Domain is transactional and benchmark-local; the paper's own significance claims may not carry over directly to spike inquiry or deliberation practice |
+| [Magentic-UI](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2507.22358.json) | Best concrete vocabulary for different human-in-the-loop mechanisms; useful for thinking beyond generic "human oversight" | `interaction mechanisms / intervention loci` — `adjacent-moderate`; `citation maturity: low` | User study is small, and some gains depend on side-information conditions; useful for mechanism design, not as blanket proof that more human involvement is always better |
+| [Collaborative Gym](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2412.15701.json) | Highest citation signal among the relevant set and directly supports process-quality evaluation in collaboration | `process-quality evaluation / collaborative task structure` — `adjacent-moderate`; `citation maturity: medium` | Only abstract-level corpus analysis, so it carries lower interpretive confidence here despite higher citation count |
+| [E-valuator](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.03109.json) | Useful for thinking about external wrapper-style verification instead of assuming verifier reliability | `external statistical verification / wrapper monitoring` — `adjacent-moderate`; `citation maturity: low` | Mainly about statistical monitoring, not inquiry quality; helps with one layer of the problem, not the whole spike redesign |
+| [Agentic Uncertainty Quantification](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.15703.json) | Useful for escalation and intervention thresholds in workflow design | `uncertainty-triggered escalation` — `adjacent-moderate`; `citation maturity: low` | Its uncertainty mechanism may itself be weakly grounded; should not be read as a proof that verbalized uncertainty is trustworthy |
 
 ### What this corpus pass currently changes about the spike reading
 
@@ -107,6 +127,23 @@ It does **not** justify any of the following stronger claims:
 
 So the corpus strengthens the review, but only as a disciplined interpretive
 resource. It should constrain overconfident claims, not authorize them.
+
+### Boundary pressures and counter-readings kept live
+
+This review is still more support-seeking than adversarial, but several of the
+selected papers also pressure narrower readings:
+
+- [ContextCov](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.00822.json) and [E-valuator](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.03109.json) both keep open the possibility that some spike failures should first be addressed through narrower executable checks or external wrappers rather than a broad dialogical redesign.
+- [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) pressures any easy conclusion that "more agents" or "more reviewers" automatically solve the problem.
+- [Magentic-UI](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2507.22358.json) supports differentiated intervention mechanisms, but also pressures the review to distinguish carefully between human involvement and genuine epistemic improvement.
+
+### Explicit triangulation: signal -> corpus -> bounded design implication
+
+| Local signal/problem | External analogue or caution | Bounded design implication |
+|----------------------|------------------------------|----------------------------|
+| `sig-2026-03-20-premature-spike-decisions.md` and `2026-03-19-untested-hypotheses-as-findings.md` | [Beyond Task Completion](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.03116.json) and [When Small Models Are Right for Wrong Reasons](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.00513.json) both show that terminal success can conceal serious process defects | Final spike artifacts should separate measured outcome, methodological confidence, and extrapolative implication |
+| `2026-03-02-premature-spiking-no-research-gate.md` and `sig-2026-03-20-spike-experimental-design-rigor.md` | [ContextCov](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.00822.json) shows one way guidance can become executable structure rather than only prose | Test a thinner pre-execution challenge/check layer before assuming a wholly new spike subsystem is needed |
+| `2026-03-04-deliberation-skill-lacks-epistemic-verification.md` | [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) warns that architectural role separation does not guarantee independent warrant | Any reviewer/verifier redesign should specify what actually changes in evidence position, not only agent count or file ownership |
 
 ## 2. What this deliberation is doing unusually well
 
