@@ -106,9 +106,10 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-2 pending:
+3 pending:
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 - [HIGH] Local patch archive: versioned history instead of single-snapshot overwrite (installer)
+- [MEDIUM] Revisit provisional corpus grounding set (planning)
 
 ### Blockers/Concerns
 
