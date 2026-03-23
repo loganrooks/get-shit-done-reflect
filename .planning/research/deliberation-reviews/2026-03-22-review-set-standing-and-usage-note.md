@@ -41,6 +41,12 @@ related sessions and share a large amount of framing context. That means their
 convergent dependency ordering may be meaningful, but it is not independent
 confirmation.
 
+More specifically, the five reviews and the immanent critique were produced by
+the same model family in the same broad production cluster, with heavy shared
+context and mutual visibility. Their convergence should therefore be weighted as
+internal consistency of one review program, not as five independent judgments
+arriving at the same answer.
+
 In particular, the repeated sequence:
 
 1. deliberation contract / discovery
@@ -50,6 +56,9 @@ In particular, the repeated sequence:
 
 may still be right. But it should currently be read as a **provisional shared
 reading**, not as something validated simply because all five reviews say it.
+
+Independent or cross-model review is the better test of whether this ordering
+actually holds up.
 
 ## Current usage rule
 

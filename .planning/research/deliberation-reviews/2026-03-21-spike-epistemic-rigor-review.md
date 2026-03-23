@@ -368,6 +368,10 @@ This deliberation should influence the next milestone strongly, but not alone. I
 3. Spike challenge / qualified outcome redesign
 4. Only then decide whether a spike program/campaign concept is warranted
 
+This ordering converges with the other reviews in the set. Because those reviews
+share substantial production context, that convergence should currently be
+treated as internal consistency rather than as independent confirmation.
+
 Why that order currently seems sensible:
 
 - the spike redesign work needs better artifact/discovery primitives anyway
