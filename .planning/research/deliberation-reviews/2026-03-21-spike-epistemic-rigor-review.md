@@ -137,6 +137,16 @@ selected papers also pressure narrower readings:
 - [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) pressures any easy conclusion that "more agents" or "more reviewers" automatically solve the problem.
 - [Magentic-UI](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2507.22358.json) supports differentiated intervention mechanisms, but also pressures the review to distinguish carefully between human involvement and genuine epistemic improvement.
 
+**Current narrowing effect:** these pressures mean the review should currently
+lean first toward thinner interventions that are easier to falsify:
+
+- pre-execution design challenge before new reviewer subsystems
+- clearer separation of measured result from architectural implication
+- explicit evidence-position requirements before adding more reviewer roles
+
+They do **not** yet justify treating multi-agent critique or broader dialogical
+redesign as the default answer.
+
 ### Explicit triangulation: signal -> corpus -> bounded design implication
 
 | Local signal/problem | External analogue or caution | Bounded design implication |

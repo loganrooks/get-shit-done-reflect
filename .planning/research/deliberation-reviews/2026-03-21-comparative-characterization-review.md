@@ -99,6 +99,13 @@ already-settled framework method:
 - [ARIA](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2507.17131.json) gives a useful archive analogue, while also warning that production knowledge-item lifecycles may not map cleanly onto research or spike claims.
 - [Beyond Task Completion](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2603.03116.json) supports multi-dimensional evaluation, but its own gating choices remind us how easily characterization can collapse back into winner-picking if the archive design is weak.
 
+**Current narrowing effect:** this means the review should currently treat claim
+cards, condition matrices, and supersession semantics as:
+
+- strong candidate patterns for characterization-heavy spike programs
+- project-local methodology ready for further testing
+- not yet a portable framework commitment for all spike families
+
 ### Explicit triangulation: signal -> corpus -> bounded design implication
 
 | Local signal/problem | External analogue or caution | Bounded design implication |
@@ -202,7 +209,10 @@ This new deliberation suggests that may still be too abstract. It implies that s
 - how later work qualifies earlier work
 - how architecture implications are kept downstream of characterization
 
-That is a real challenge to the previous framing. It suggests the next spike-methodology phase may need to co-design review loops and claim/archive structure together.
+That is a real challenge to the previous framing. It suggests the next
+spike-methodology phase may need to co-design review loops and claim/archive
+structure together, but only if that work is explicitly framed as a candidate
+pattern family rather than the already-settled future of all spikes.
 
 ### B. It narrows the meaning of "non-additive"
 

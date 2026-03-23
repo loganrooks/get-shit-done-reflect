@@ -91,6 +91,17 @@ qualified way:
 - [Agentic Uncertainty Quantification](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.15703.json) pressures the review not to confuse stated uncertainty or deferral language with genuinely improved judgment.
 - [Semantic Laundering](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2601.08333.json) narrows any temptation to think a responsibility prompt or extra reviewer role would automatically solve the underlying problem.
 
+**Current narrowing effect:** this review should currently be read as an
+interpretive lens on process integrity, scope, and closure rather than as
+strong evidence for a new mechanism. The triangulation here supports:
+
+- stronger scope-qualified findings
+- better coverage prompts
+- caution about decorative ethical language
+
+It does **not** yet support treating the underlying orientation as a proven
+driver of improved framework outcomes.
+
 ### Explicit triangulation: signal -> corpus -> bounded design implication
 
 | Local signal/problem | External analogue or caution | Bounded design implication |

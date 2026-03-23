@@ -98,6 +98,16 @@ the review toward narrower and more selective claims:
 - [Acon](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2510.00615.json) strengthens the case for governed compression, while also warning against simply retaining more material without criteria.
 - [OpenHands](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2407.16741.json) helps with trace capture, but it also pressures the review not to confuse event logging with preserved interpretive development.
 
+**Current narrowing effect:** the strongest supported move here is not a broad
+new overflow apparatus. It is narrower:
+
+- better process-trace preservation
+- stronger artifact typing and discovery
+- explicit inclusion criteria for anything retained as overflow or sidecar
+
+This means the review's diagnostic force is stronger than its intervention
+staging, and that asymmetry should remain visible.
+
 ### Explicit triangulation: signal -> corpus -> bounded design implication
 
 | Local signal/problem | External analogue or caution | Bounded design implication |

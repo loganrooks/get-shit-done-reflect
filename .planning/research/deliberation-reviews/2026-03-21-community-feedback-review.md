@@ -3,7 +3,7 @@
 **Date:** 2026-03-21
 **Artifact under review:** `community-feedback-pipelines-and-dialogue-forms.md`
 **Review status:** Provisional
-**Current caution:** This is the least empirically grounded of the four deliberations. Some of its strongest claims may be right, but at this stage they are still better treated as design hypotheses than as community-program conclusions.
+**Current caution:** This is the least empirically grounded of the four deliberations. Some of its strongest claims may be right, but at this stage they are still better treated as design hypotheses than as community-program conclusions. In the current project reality, this also appears to be a later-stage concern: the framework is still being used primarily by a very small number of highly engaged participants, and the internal routing/trace system is not yet mature enough to responsibly support a broader community pathway.
 
 ## 1. Scope and evidence reviewed
 
@@ -101,6 +101,17 @@ the review toward slower and more internal-first conclusions:
 - [On the Use of Agentic Coding](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2509.14745.json) suggests repo-native durable paths carry hidden norms, but it also reminds us that those paths already exist and may need improvement before new venues are added.
 - [AutoLibra](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2505.02820.json) supports translation of qualitative feedback into durable artifacts, which pressures the review to solve writeback and routing before scaling intake.
 - [Everything is Context](/home/rookslog/workspace/projects/epistemic-agency/corpus/paper-analyses/2512.05470.json) supports provenance concerns, but only conceptually; it does not validate any particular venue or summarize-live-dialogue workflow.
+
+**Current narrowing effect:** these counter-pressures do materially change what
+this review should recommend right now. The review should currently support:
+
+- internal routing and writeback improvements first
+- repo-native or already-existing low-infrastructure paths before new venues
+- explicit deferral of larger community-program design until there is stronger
+  demand, more internal discipline, and more than a tiny core usage pattern
+
+So this review is better treated as later-stage orientation than as a near-term
+roadmap driver.
 
 ### Explicit triangulation: signal -> corpus -> bounded design implication
 
@@ -273,12 +284,17 @@ Reasons:
 - v1.18 is currently dominated by migration, update hardening, authority, and integration work
 - the community pathway question is real, but it depends on internal artifact and intake discipline that the framework does not yet have
 - the signal field shows internal routing is still weak even before external pathways expand
+- the project is still effectively in a small-core usage stage, so the operating
+  burden of a larger community pathway would likely outrun current need
 
 At most, current v1.18 should record this as a next-milestone pressure in the relevant governance/docs phase.
 
 ### Next milestone placement
 
 This seems best deferred until after internal deliberation and reflexive-artifact work.
+
+It also likely belongs after the project has clearer evidence that it is moving
+beyond a small number of highly engaged users and maintainers.
 
 A plausible dependency order is:
 
