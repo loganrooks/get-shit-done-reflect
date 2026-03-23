@@ -104,6 +104,11 @@ the current milestone.
   - begin with thinner first-pass hardening
   - leave broader reviewer/program redesign as follow-on only if thinner changes
     prove insufficient
+  - if spike redesign enters the next milestone, claim-unit and archive-structure
+    concerns (from the comparative-characterization deliberation) may need to be
+    co-designed with review-loop changes rather than treated sequentially — the
+    comparative-characterization review found that review structure and
+    claim/archive structure are coupled problems
 
 These all seem like plausible next-milestone shaping pressures.
 
@@ -138,6 +143,28 @@ Why:
 3. Only after that, write a roadmap-shaping note for the next milestone.
 4. Keep open-orientation deliberations available as material for later milestone
    shaping, without treating them as adopted policy.
+
+## What would change this reading
+
+- If thinner spike hardening proves insufficient quickly (e.g., the next 2-3
+  spikes still collapse into premature architecture verdicts despite the new
+  outcome types and design challenge step), the broader redesign moves up and
+  may need to become current-milestone work.
+- If a second project's spike work shows different failure dynamics than the
+  `arxiv-sanity-mcp` family, the current diagnosis narrows and the
+  comparative-characterization proposals become less portable than they currently
+  appear.
+- If internal routing and traceability improve faster than expected, community
+  pathway work could move earlier than "later-stage."
+
+## Process observation
+
+The review chain that produced this memo is itself preliminary evidence for the
+spike deliberation's "review as dialogue" thesis. The cross-model exchange
+(Claude Opus 4.6 and GPT-5.4 xhigh) caught different weaknesses and produced
+better artifacts than either model alone would have. That does not yet prove the
+thesis, but it does suggest that cross-model review is a candidate practice
+worth preserving for future spike and deliberation work.
 
 ## Open cautions
 
