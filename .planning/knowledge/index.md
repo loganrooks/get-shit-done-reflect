@@ -1,12 +1,13 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-23T06:18:26Z
-**Total entries:** 131
+**Generated:** 2026-03-23T07:03:04Z
+**Total entries:** 132
 
-## Signals (130)
+## Signals (131)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-03-23-missing-home-for-constellation-recommendations | get-shit-done-reflect | notable | detected | deliberations,governance,roadmap,workflow-gap,artifact-home,planning-routing | 2026-03-23 | active |
 | sig-2026-03-23-cross-model-review-chain-epistemic-discipline | get-shit-done-reflect | notable | detected | deliberation-reviews,cross-model-review,epistemic-discipline,review-methodology,positive-pattern | 2026-03-23 | active |
 | sig-2026-03-23-prose-wrapping-convention-gap | get-shit-done-reflect | notable | detected | formatting,conventions,deliberation-artifacts,review-artifacts,markdown | 2026-03-23 | active |
 | sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift | get-shit-done-reflect | critical | detected | migration,upgrade-project,config,local-install,global-install,knowledge-base,cross-runtime,codex,claude,hooks,path-resolution | 2026-03-20 | active |
