@@ -10,6 +10,12 @@ runtime: codex-cli
 model: gpt-5.4
 reasoning_effort: xhigh
 source_artifacts:
+  - .planning/research/deliberation-reviews/2026-03-21-spike-epistemic-rigor-review.md
+  - .planning/research/deliberation-reviews/2026-03-21-forms-excess-review.md
+  - .planning/research/deliberation-reviews/2026-03-21-responsibility-praxis-review.md
+  - .planning/research/deliberation-reviews/2026-03-21-community-feedback-review.md
+  - .planning/research/deliberation-reviews/2026-03-21-comparative-characterization-review.md
+  - .planning/research/deliberation-reviews/2026-03-22-immanent-critique-of-corpus-grounded-reviews.md
   - .planning/research/deliberation-reviews/2026-03-22-review-set-standing-and-usage-note.md
   - .planning/research/deliberation-reviews/2026-03-22-independent-critical-review-of-review-set.md
   - .planning/research/deliberation-reviews/2026-03-23-deliberation-revision-brief.md
