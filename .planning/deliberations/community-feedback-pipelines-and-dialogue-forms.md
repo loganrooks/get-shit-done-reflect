@@ -5,7 +5,7 @@ project: get-shit-done-reflect
 scope: framework
 status: open
 created: 2026-03-20T19:10:00Z
-updated: 2026-03-20T19:10:00Z
+updated: 2026-03-23T00:00:00Z
 author: logan-rooks
 drafter: claude-opus-4-6
 runtime: claude-code
@@ -31,6 +31,13 @@ edit_history:
   - date: 2026-03-20T19:10:00Z
     author: claude-opus-4-6
     description: Initial framing from conversation
+  - date: 2026-03-23T00:00:00Z
+    author: codex-gpt-5.4
+    description: >
+      Revised after the stabilized review set to make the artifact's later-stage status
+      explicit. Narrowed current implications toward orientation and future routing
+      design, while emphasizing that internal traceability and planning integration
+      should mature before broader community pathways are treated as near-term work.
 ---
 
 # Deliberation: Community Feedback Pipelines and Dialogue Forms
@@ -58,6 +65,14 @@ feedback artifact that may not fit the pipeline it's analyzing.
 ## Situation
 
 GSD Reflect is currently developed by one person who is also its primary user. The feedback loop is simplified: insights from use (like the Spike 003 methodology critique) feed directly into development because both roles are occupied by the same person. This won't scale.
+
+At the same time, this remains a later-stage concern. The framework is still
+effectively being used by a very small number of highly engaged participants,
+and the internal routing, traceability, and deliberation-surfacing machinery is
+not yet mature enough to responsibly support a broader community pathway. That
+does not make the question unreal; it means the current artifact should be read
+primarily as orientation and future design pressure, not as a near-term program
+commitment.
 
 The framework is deployed across multiple platforms (Claude Code, OpenCode, Gemini CLI, Codex CLI). As usage grows, users will encounter the same kinds of issues surfaced in this session — methodology gaps, template inadequacies, philosophical questions about the framework's assumptions — and will need ways to communicate these to developers.
 
@@ -163,12 +178,30 @@ The tension between the productivity of real-time dialogue and the persistence o
 
 ## Recommendation
 
-**Current leaning:** Multiple venues serving different feedback types, with explicit awareness that each venue forecloses certain voices:
+**Current leaning:** Multiple venues serving different feedback types remains
+plausible, but this should currently be read as later-stage orientation rather
+than as a near-term roadmap demand. Internal routing, traceability, and
+deliberation integration probably need to improve first.
+
+If the framework later reaches a scale where broader intake becomes timely, a
+multi-venue design still seems more plausible than a single-channel answer,
+with explicit awareness that each venue forecloses certain voices:
 
 1. **GitHub issues** for bug reports and discrete feature requests — they work well for this and shouldn't be replaced.
 2. **A deliberation submission pathway** (PRs to a deliberations directory, or a dedicated space) for framework-level critique and philosophical engagement — for users who want to contribute sustained thinking, not just problem reports.
 3. **Discord or equivalent** for quick observations, community building, and lightweight dialogue — acknowledging it's ephemeral and not everyone joins.
-4. **An explicit acknowledgment** that no venue combination is sufficient. Some feedback will never arrive because the available forms don't accommodate it. This isn't a problem to solve but a condition to name — the framework's community design should include a statement of whose voices it probably can't hear and why.
+4. **An explicit acknowledgment** that no venue combination is sufficient. Some
+   feedback will never arrive because the available forms don't accommodate it.
+   This isn't a problem to solve but a condition to name — the framework's
+   community design should include a statement of whose voices it probably
+   can't hear and why.
+
+What this should currently change is narrower:
+
+- future roadmap and context work should keep this as a later-stage pressure
+- internal deliberation/signal routing should improve before broadening intake
+- any later community design should preserve blind-spot channels rather than
+  only collecting neat structured submissions
 
 **Open questions blocking conclusion:**
 
@@ -179,6 +212,8 @@ The tension between the productivity of real-time dialogue and the persistence o
 5. Can we learn from how other frameworks (Rust RFCs, Python PEPs, Nix RFCs) handle community-driven design evolution?
 6. How do we design for voices that don't naturally participate in open-source community structures?
 7. Can an MCP server for planning operations (signals, deliberations, KB queries) lower the friction for structured feedback? Would exposing `create_signal` and `submit_deliberation` as MCP tools make it easier for agents and users to contribute without learning the framework's file conventions?
+8. At what scale of real usage would this shift from anticipatory orientation to
+   something worth concrete implementation work?
 
 ## Predictions
 

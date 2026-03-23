@@ -30,9 +30,10 @@ Lifecycle: open → concluded → adopted → evaluated → superseded
 - The conversation then shifted from a local Spike 004 critique toward a broader research-program question: whether evaluation should be additive or whether later experiments must be allowed to qualify, split, or supersede earlier claims.
 - A further turn in the discussion introduced a van Fraassen-inflected orientation, then expanded into a mixed praxis also drawing on Mayo, Dewey, Cartwright, and Lakatos to avoid both metric absolutism and soft anti-foundationalism.
 **Intended Use:**
-- Provide a methodological frame for revising Spike 004 so its protocol produces comparative characterization rather than a premature winner-picking verdict.
-- Give future spikes and evaluation assets a clearer structure for claim-local rigor, condition-sensitive interpretation, and non-additive claim revision.
-- Serve as a cross-project reflection artifact for GSDR workflow adaptation, especially around what deliberation documents can and cannot preserve from dialogical inquiry.
+- Provide a project-local methodological frame for revising Spike 004 so its protocol produces comparative characterization rather than a premature winner-picking verdict.
+- Give future `arxiv-sanity-mcp` spikes and evaluation assets a clearer structure for claim-local rigor, condition-sensitive interpretation, and non-additive claim revision.
+- Preserve candidate pattern ideas that may be portable to other characterization-heavy spike programs, while keeping their transfer status explicitly open.
+- Serve as a cross-project reflection artifact for GSDR workflow adaptation, especially around what deliberation documents can and cannot preserve from dialogical inquiry, without treating any local proposal here as already-adopted framework apparatus.
 **Related:**
 - `.planning/spikes/004-embedding-model-evaluation/DESIGN.md`
 - `.planning/spikes/004-embedding-model-evaluation/reviews/2026-03-21-codex-design-review.md`
@@ -93,7 +94,7 @@ If the object is:
 **Core question:** How should this project operationalize a repeatable, critical, non-additive comparative characterization program for retrieval and recommendation strategies, and what does that imply for Spike 004 specifically?
 
 **Adjacent questions:**
-- What should count as a repeatable unit of knowledge: a benchmark score, a characterization card, or a condition-local claim?
+- What should count as the repeatable unit of knowledge in this evaluation program: a benchmark score, a condition-local claim, or some local artifact for carrying such claims?
 - How should later spikes revise earlier claims without producing a chaotic archive?
 - What kind of human review is calibration rather than premature institutionalization?
 - How much philosophical modesty is productive before it becomes indecision?
@@ -169,15 +170,20 @@ If the object is:
 
 ## Recommendation
 
-**Current leaning:** Option D — operationalize a mixed comparative-characterization praxis and use Spike 004 as the first deliberate instantiation of it.
+**Current leaning:** Option D — operationalize a mixed comparative-characterization praxis in `arxiv-sanity-mcp` and use Spike 004 as the first deliberate instantiation of it.
+
+**Status of what follows:**
+- **Project-local methodology:** claim-local evaluation, explicit condition matrices, two-layer screening plus deep characterization, and non-additive revision are the main proposed methodological shifts for this project's comparative evaluation work.
+- **Potentially portable pattern family:** other characterization-heavy spike programs may benefit from local claim records, explicit qualification/supersession handling, and stronger separation between characterization and architecture implication, but that portability is not yet established here.
+- **Still speculative:** whether GSDR should standardize claim cards, claim genealogy fields, or a particular archive/status ontology remains open. This deliberation does not warrant framework-wide adoption of those structures.
 
 This means a few concrete shifts.
 
-### 1. The unit of knowledge should become the claim, not the spike-level verdict
+### 1. The operative unit of knowledge should become the condition-local claim, not the spike-level verdict
 
-Each meaningful finding should be recorded as a **claim card** rather than buried in synthesis prose.
+Each meaningful finding should be recorded as an explicit claim-level record rather than buried in synthesis prose. For this project, a **claim card** is a plausible local artifact for doing that work, not a settled framework object.
 
-Suggested schema:
+Suggested local schema:
 
 | Field | Purpose |
 |------|---------|
@@ -195,7 +201,7 @@ Suggested schema:
 | `decision_relevance` | Why this matters for product or architecture |
 | `status` | `holds`, `qualified`, `inconclusive`, `superseded` |
 
-This allows later spikes to revise earlier claims without pretending the program is simply additive.
+This would allow later spikes to revise earlier claims without pretending the program is simply additive. The core commitment is the claim-local revision logic, not the exact card format.
 
 ### 2. The experiment should be organized by a condition matrix, not just by model list
 
@@ -227,7 +233,7 @@ Not every Cartesian product needs to be tested. The point is to declare the rele
 
 This avoids making the entire program either thinly quantitative or exhaustively qualitative.
 
-### 4. The archive should become explicitly non-additive
+### 4. The archive should make non-additive revision explicit
 
 Claims need a lifecycle:
 - introduced
@@ -236,7 +242,7 @@ Claims need a lifecycle:
 - split into more local claims
 - superseded
 
-The project already does this informally through qualification notes and revised decisions. It should be made explicit rather than remaining a retrospective cleanup operation.
+The project already does this informally through qualification notes and revised decisions. That revision logic should be made explicit rather than remaining a retrospective cleanup operation. The right storage location, schema, and whether this becomes a standing artifact class remain open.
 
 ### 5. Architecture implications should be separated from empirical characterization
 
@@ -273,15 +279,19 @@ to something closer to:
 
 That would imply:
 
-1. **Replace single-spike verdict orientation with claim-card outputs**
+1. **Replace single-spike verdict orientation with explicit claim-level outputs, potentially using claim cards or a comparable local appendix structure**
 2. **Make the condition matrix explicit**
 3. **Bring TF-IDF into the architecture-facing decision frame when needed**
 4. **Define protocol details tightly enough for repeatability**
 5. **Separate characterization from architecture recommendation**
 
-## Concrete Operational Proposal
+## Concrete Operational Proposal for `arxiv-sanity-mcp`
+
+What follows is a testable local proposal for this evaluation program. It should be read as an implementation sketch for one project, plus a source of candidate transferable patterns, not as already-warranted framework schema.
 
 ### A. Minimal claim card template
+
+This is a candidate local carrier for claim-level rigor:
 
 ```yaml
 claim_id: clm-004-001
@@ -359,14 +369,14 @@ Suggested cells:
    - AI qualitative review plus optional human calibration
 
 7. **Outputs**
-   - claim cards
+   - explicit claim records, potentially implemented as claim cards
    - model characterization cards
    - condition summary table
    - architecture implications using constrained result vocabulary
 
 ## Open questions blocking conclusion
 
-1. What is the right storage location and format for claim cards if this becomes a standing program artifact rather than a one-off appendix?
+1. What is the right storage location and format for explicit claim records if this becomes a standing program artifact rather than a one-off appendix, and does that remain project-local?
 2. How much human calibration is enough before the process becomes over-institutionalized?
 3. Should 004 be revised in place, or should a follow-up design artifact be created that supersedes the current 004 framing?
 4. Does Open Question 12 need to be split into:
@@ -376,6 +386,7 @@ Suggested cells:
    - measurement spikes
    - characterization spikes
    - decision spikes
+6. If parts of this approach transfer beyond `arxiv-sanity-mcp`, what is the thinnest portable pattern that preserves claim-local rigor without prematurely standardizing claim cards or archive ontology inside GSDR?
 
 ## Predictions
 
@@ -384,7 +395,7 @@ Suggested cells:
 | ID | Prediction | Observable by | Falsified if |
 |----|-----------|---------------|-------------|
 | P1 | Future strategy findings will become narrower, more condition-local, and easier to revise without whole-spike confusion | After 2+ future comparative spikes | New spikes still collapse into broad architecture verdicts with heavy qualification sections |
-| P2 | Later evaluation work will supersede earlier claims more cleanly because claims, not only spike summaries, are referenceable | After first use of claim cards across 004+ | Supersession still has to happen via ad-hoc review memos and document caveats |
+| P2 | Later evaluation work will supersede earlier claims more cleanly because claims, not only spike summaries, are referenceable | After first use of explicit claim records across 004+ | Supersession still has to happen via ad-hoc review memos and document caveats |
 | P3 | Repeatability will improve because protocol variance is captured at the claim/condition level, not only as global caveat text | After first rerun or replication pass | Reruns still expose undocumented protocol ambiguity |
 | P4 | This approach will reduce premature-closure pressure without reducing decision usefulness | After 004 synthesis and next architecture-facing deliberation | Outputs become either indecisive mush or still overclaim in the same way as 003 |
 
@@ -418,7 +429,7 @@ This deliberation captures the substantive methodological proposal reasonably we
 
 ### Implications for GSDR adaptation
 
-If this workflow is to better support this style of reflection, the current deliberation form may benefit from lightweight additions such as:
+If this workflow is to better support this style of reflection, the current deliberation form may warrant experiments with lightweight additions or companion notes in cases like this. These are candidate trace aids, not already-warranted core framework fields:
 
 - **Conversational Turning Points**
   - what intervention changed the inquiry

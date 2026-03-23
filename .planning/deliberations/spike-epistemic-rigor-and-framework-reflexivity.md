@@ -1,16 +1,19 @@
 ---
 id: delib-2026-03-20-spike-epistemic-rigor
 type: deliberation
-project: arxiv-mcp
-scope: framework  # this deliberation is about GSD Reflect itself, not just this project
-canonical_location: ~/.claude/get-shit-done-reflect/deliberations/spike-epistemic-rigor-and-framework-reflexivity.md
-note: >
-  This is a project-local copy. The canonical version lives in the GSD Reflect repo.
-  Evidence files (signals, spike artifacts, reviews) remain in this project's .planning/.
-  Edits should be made to the canonical copy and synced here.
+project: get-shit-done-reflect
+scope: framework  # this deliberation is about GSD Reflect itself, interpreted from project-local spike evidence
+source_projects:
+  - arxiv-sanity-mcp
+canonical_location: .planning/deliberations/spike-epistemic-rigor-and-framework-reflexivity.md
+governance_note: >
+  This deliberation belongs to the GSD Reflect repo and should be revised here.
+  Its strongest evidence comes from arxiv-sanity-mcp spike artifacts, signals,
+  and review notes. Earlier runtime-specific paths or cross-project copies are
+  historical provenance only, not the source of truth for this artifact.
 status: open
 created: 2026-03-20T16:30:00Z
-updated: 2026-03-20T16:30:00Z
+updated: 2026-03-23T00:00:00Z
 author: logan-rooks  # user initiated and directed the analysis
 drafter: claude-opus-4-6  # model that wrote the document
 runtime: claude-code
@@ -61,6 +64,14 @@ edit_history:
       iterative, pharmacologically aware, traces over erasure, review as dialogue).
       The section embodies its own argument — proposing practices while noting that
       operationalizing them risks the same domestication the deliberation critiques.
+  - date: 2026-03-23T00:00:00Z
+    author: codex-gpt-5.4
+    triggered_by: deliberation review revision pass
+    description: >
+      Clarified governance and source of truth in the GSD Reflect repo, made the
+      evidence-to-framework distinction more explicit, and narrowed the current
+      recommendation toward thinner first-pass spike hardening while keeping
+      broader reflexivity questions open and provisional.
 ---
 
 # Deliberation: Epistemic Rigor in Experimental Workflows and Framework Self-Reflexivity
@@ -118,16 +129,20 @@ Lifecycle: open → concluded → adopted → evaluated → superseded
 - Spike 003 DECISION.md Sections 8-9 (epistemic qualifications, methodological failures)
 - Cross-spike qualification report (experiments/reviews/cross_spike_qualifications.md)
 - GSDR workflow audit (experiments/reviews/gsdr_spike_workflow_audit.md)
+**Governance and evidence position:** This artifact is a GSD Reflect deliberation maintained in the `get-shit-done-reflect` repo because the question is framework-scoped. Its evidential base is still project-local: the documented failure chain comes primarily from `arxiv-sanity-mcp` spike work and related signals. The diagnosis below is therefore stronger than any framework redesign implication drawn from it.
+**Current standing:** Strongest as a diagnosis of one concrete failure family. Candidate changes below should be read as staged hypotheses under revision pressure, not as already-settled framework commitments.
 
 ## Scope and sibling deliberations
 
-This deliberation addresses epistemic rigor specifically in spike/experimental workflows. During the conversation that produced it, the concerns escalated beyond spikes into broader questions about how any formal system handles what exceeds its categories. Those broader concerns now have their own home:
+This deliberation addresses epistemic rigor specifically in spike/experimental workflows. It is the GSD Reflect artifact for that question, but it should not be mistaken for the source of truth for the underlying spike evidence itself. The spike artifacts, qualifications, and local signals remain in `arxiv-sanity-mcp`; this file interprets them as framework pressure.
+
+During the conversation that produced it, the concerns escalated beyond spikes into broader questions about how any formal system handles what exceeds its categories. Those broader concerns now have their own home:
 
 - **`forms-excess-and-framework-becoming.md`** — the general question of how formal systems relate to excess, with the full conversational trajectory that produced the analysis
 - **`responsibility-alterity-and-methodological-praxis.md`** — the ethical ground: WHY the excess matters, not just that it exists
 - **`community-feedback-pipelines-and-dialogue-forms.md`** — how dialogue forms shape what the framework can hear
 
-This deliberation retains the spike-specific instantiation. The concrete evidence (Spike 003 failures, cross-spike qualifications, Jaccard methodology critique) lives here. The broader philosophical analysis that emerged from this evidence lives in the sibling deliberations. The concerns inhabit both — the spike context gives them concreteness; the broader context gives them generality.
+This deliberation retains the spike-specific instantiation. The concrete evidence (Spike 003 failures, cross-spike qualifications, Jaccard methodology critique) anchors the diagnosis here. The sibling deliberations extend the interpretive horizon, but they should not be read as independent confirmation that framework-wide redesign is already warranted. The concerns inhabit both — the spike context gives them concreteness; the broader context keeps broader reflexivity questions open.
 
 ## Situation
 
@@ -274,15 +289,17 @@ These principles don't resolve into a clean design. They're orientations — way
 
 ## Recommendation
 
-**Current leaning:** A combination that acknowledges each option's mode of betrayal rather than pretending any single approach resolves the tension:
+**Current leaning:** Start with thinner, easier-to-falsify spike hardening before assuming that more reviewer roles, new subsystems, or broad dialogical redesign are already justified.
 
-- **B (adversarial reviewer)** for operative value — it catches known failure modes (sample size, metric scope, evaluation independence). This is the Said at its most useful: concrete, checkable, preventive. Its betrayal (certification stamp displacing genuine critique) should be named in the reviewer's own output: "This review checks known failure modes. It cannot certify epistemic adequacy."
+- **First-pass changes most directly supported by the failure chain:** add one pre-execution design challenge step using existing checker/question-producing patterns; allow explicit spike outcomes such as `deferred`, `qualified-local`, or `follow-up-required`; and require final spike artifacts to separate measured result, interpretive confidence, and architectural implication.
 
-- **A (self-reflexive prompts)** kept minimal — not a section to fill but a question the template poses without expecting an answer in its own terms. Something like: "What happened during this work that this document cannot hold?" The question is there; answering "nothing" is always available; but the question's presence keeps the form from presenting itself as complete.
+- **Keep self-reflexive pressure lightweight at first:** if a template-level intervention is tried, it should be minimal — closer to one prompt such as "what happened here that this artifact could not hold?" than to a new mandatory reflection block. The point is to preserve a trace of mismatch without pretending the trace exhausts it.
 
-- **C (reflexive signals)** as a trace mechanism — not as a new signal type with its own schema but as a convention that any signal can carry a `reflexive: true` flag indicating it's about the framework itself, not just the project. The flag doesn't change the processing; it marks the signal as belonging to a different order of observation. The trace is preserved without creating a separate system that domesticates it.
+- **Treat dedicated reviewer agents, reflexive signal conventions, and broader inquiry redesign as candidate second-step work:** they remain live possibilities, but the current evidence does not yet warrant treating them as the default answer. The signal field proves that current spike practice is insufficient; it does not yet prove that a wholly new reviewer layer or a framework-wide redesign is required.
 
-- **Ongoing conversation** as the genuine site of critique. The most important insights in this session — the Jaccard methodology problem, the premature closure pattern, the philosophical framing — came from dialogue, not from any designed mechanism. No formalization can replace this. The framework should remain open to being interrupted by questions it didn't design for, which means the most important "feature" is not a feature at all but a posture: the willingness of the system's users to push back when something doesn't feel right, and the system's capacity to be changed by that pushback rather than absorbing it into existing categories.
+- **Keep conversation and cross-perspective critique load-bearing:** the deepest interventions in this failure family came from sustained challenge, not from a designed mechanism. That should remain a standing caution against converting "dialogue matters" into premature apparatus expansion.
+
+**Why this narrowing matters:** the strongest current claim is diagnostic, not architectural. Spike 003 and the cross-spike qualification work show a real weakness around inquiry quality, review timing, and closure pressure. They do not yet settle whether the right answer is template change, workflow change, operator-practice change, a campaign/program concept, or some interaction among them.
 
 **What I'm less sure about:** Whether the problem is structural (the forms need changing) or interpretive (we need to be better readers of what our forms produce). Maybe the DECISION.md template is fine and the real issue is that agents — both AI and potentially human — treat template sections as obligations to fill rather than questions to engage with. If so, the intervention is about the *practice* of using templates, not the templates themselves. This uncertainty is not a blocker — it's constitutive of the problem. The relationship between structure and practice is itself chiasmatic: the structure shapes the practice, and the practice reveals the structure's limits.
 
@@ -302,14 +319,14 @@ These principles don't resolve into a clean design. They're orientations — way
 
 ## Predictions
 
-**If adopted (combination of A, B, C), we predict:**
+**If the thinner first-pass changes are tried, we predict:**
 
 | ID | Prediction | Observable by | Falsified if |
 |----|-----------|---------------|-------------|
-| P1 | Reflexive signals will cluster around specific template sections — revealing which parts of which templates produce the most friction | After 5+ spikes using reflexive signals | Signals are uniformly distributed or too rare to show patterns |
-| P2 | An adversarial spike-design-reviewer will catch at least one sample-size or metric-scope problem before execution in its first 3 uses | First 3 spikes using the reviewer | Zero catches — all designs pass without modification |
-| P3 | Template modifications driven by accumulated annotations will produce different (not necessarily better) spike outcomes than modifications driven by top-down deliberation | After template revision cycle | No detectable difference in outcome quality |
-| P4 | Some important critiques will still come from outside the system (user questions, cross-model review) despite all internal mechanisms | Always | All important critiques are caught by internal mechanisms (extremely unlikely) |
+| P1 | A pre-execution design challenge step will catch at least one sample-size, metric-scope, or evaluation-independence problem within its first 3 uses | First 3 spikes using the challenge step | Zero meaningful design corrections are produced |
+| P2 | Allowing `deferred` / `qualified-local` outcomes and separating measured result from architectural implication will reduce unsupported architecture decisions in the next 3 spike conclusion artifacts | Next 3 comparable spike conclusions | Conclusion artifacts still state broad architecture decisions while their own qualifications undercut them |
+| P3 | A minimal reflexive prompt will surface recurring friction points, but it will not eliminate the need for external challenge | After 5+ spike artifacts using the prompt | The prompt yields no recurring pattern at all, or it is treated as sufficient evidence that critique has been internalized |
+| P4 | Some failures will still turn out to be scope-mismatch problems, keeping the campaign/program question open even after thin hardening is tried | After several multi-wave spikes | Thin hardening alone cleanly resolves the inquiry-shape problems without residual scope tension |
 
 ## Decision Record
 

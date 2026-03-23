@@ -5,7 +5,7 @@ project: get-shit-done-reflect
 scope: framework
 status: open
 created: 2026-03-21T01:00:00Z
-updated: 2026-03-21T01:00:00Z
+updated: 2026-03-23T00:00:00Z
 author: logan-rooks
 drafter: claude-opus-4-6
 runtime: claude-code
@@ -36,6 +36,13 @@ edit_history:
       Created from broader concerns that exceeded the spike-epistemic-rigor deliberation's
       frame. The spike deliberation retains its concrete instantiation; this one takes the
       general form.
+  - date: 2026-03-23T00:00:00Z
+    author: codex-gpt-5.4
+    description: >
+      Revised after the review set stabilized. Clarified that the deliberation currently
+      functions more strongly as diagnosis and design pressure than as a staged
+      intervention program. Narrowed the supported near-term implications and made the
+      apparatus/practice/sidecar boundary more explicit as an open question.
 ---
 
 # Deliberation: Forms, Excess, and the Becoming of the Framework
@@ -99,6 +106,14 @@ This trajectory — from specific metric → experimental design → template st
 
 **Why this isn't a design problem:** Every proposed "solution" (new artifact type, new template section, new agent) is itself a formalization that will have its own excess. The question isn't "what form captures everything?" (none can) but "what relationship should the framework have to its own constitutive inadequacy?"
 
+**Current standing:** This deliberation currently seems strongest as a diagnostic
+and orienting artifact. It does appear to put real pressure on artifact design,
+traceability, and memory layering, but it does not yet warrant a tidy
+intervention program. The main practical value right now is in showing where the
+current artifact ecology flattens, forgets, or misroutes important development,
+while keeping open the question of which responses belong in apparatus, which in
+practice, and which should remain deliberately outside formal capture.
+
 **Adjacent questions:**
 
 1. **Traces and legibility.** How should the excess leave traces in the framework's artifacts? Not as a designed "excess field" (which domesticates) but as something that accumulates through practice — the conversation that changed the deliberation, the pushback that changed the design, the anomaly that changed the methodology. How do these become legible to future agents and users without being reduced to schema fields?
@@ -147,19 +162,44 @@ And: the most important insights in the session that produced this analysis came
 
 ## Recommendation
 
-**Current leaning:** No single solution. Rather, a practice composed of:
+**Current leaning:** No single solution, and not yet a full intervention
+program. The strongest supported implications are narrower than the full
+problem this deliberation names.
 
-1. **Lightweight prompts** in key templates (DECISION.md, FINDINGS.md, deliberations): "What happened during this work that this document cannot hold?" — present but not enforced, inviting but not requiring.
+### Stronger near-term implications
 
-2. **Conversational trace sections** in deliberations: not transcripts, but narrative of how the thinking developed through dialogue, preserving the path alongside the position. The traces in this deliberation and its siblings are an experiment in this practice.
+1. **Conversational trace sections** in deliberations: not transcripts, but
+   narrative of how the thinking developed through dialogue, preserving the
+   path alongside the position. The traces in this deliberation and its
+   siblings are an experiment in this practice.
 
-3. **Reflexive flag on signals** (`reflexive: true`): marking observations about the framework itself without creating a separate system. The flag doesn't change processing; it marks a different order of observation.
+2. **Honest incompleteness** in deliberations — "no conclusion" as a legitimate
+   status, not a failure to conclude. This deliberation practices that.
 
-4. **The practice of dialogue itself** as a form of framework development — not just a trigger for formal artifacts but a mode of thinking that the framework should support and value. How this translates into community design is the concern of the community-feedback deliberation.
+3. **Better criteria for retained side material**: if the framework later adds
+   sidecars, overflow sections, or companion artifacts, those should be
+   retained for future critique or decision value rather than simply because
+   "more trace feels better."
 
-5. **Honest incompleteness** in deliberations — "no conclusion" as a legitimate status, not a failure to conclude. This deliberation practices that.
+### Candidate practices that remain open
 
-These are not solutions to the forms/excess problem. They are ways of inhabiting it. Each has its mode of betrayal. Together they attend to more than any single mechanism could, while remaining inadequate to the full scope of what exceeds the framework.
+1. **Lightweight prompts** in key templates (DECISION.md, FINDINGS.md,
+   deliberations): "What happened during this work that this document cannot
+   hold?" — present but not enforced, inviting but not requiring.
+
+2. **A reflexive marker on signals** (for example, `reflexive: true`) to mark
+   observations about the framework itself without immediately creating a new
+   artifact family or assuming the signal system can hold the whole burden.
+
+3. **The practice of dialogue itself** as a form of framework development — not
+   just a trigger for formal artifacts but a mode of thinking the framework
+   should support and value. How this translates into community design remains a
+   separate question.
+
+These are not solutions to the forms/excess problem. They are provisional ways
+of inhabiting it. Each has its mode of betrayal. Together they attend to more
+than any single mechanism could, while remaining inadequate to the full scope
+of what exceeds the framework.
 
 **Open questions blocking conclusion:**
 
@@ -167,6 +207,9 @@ These are not solutions to the forms/excess problem. They are ways of inhabiting
 2. Can agents meaningfully participate in the kind of dialogue that produced these insights, or does genuine critique require human pushback?
 3. How should the four sibling deliberations relate to each other as they develop? Should they converge, or is their separation itself productive?
 4. What does it mean for the framework to "become" through encounter with excess? Is this just version updates with better self-awareness, or is it something structurally different?
+5. What should become part of the apparatus, what should remain human practice,
+   what should become a sidecar artifact, and what should deliberately remain
+   outside formal capture?
 
 ## Predictions
 
