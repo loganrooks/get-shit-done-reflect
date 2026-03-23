@@ -198,3 +198,141 @@ Yes, but not comprehensively. The reviews do not need another full pass. They ne
 - The responsibility deliberation should not be operationalized because a review asked for a "discriminative test."
 - Claim cards should not be treated as a framework-level design commitment on the basis of one project's evaluation needs.
 - The structural uniformity of the review set should not be read as evidence that all five deliberations have comparable evidential maturity.
+
+---
+
+## Postscript: Response to revisions (2026-03-23)
+
+After this review was delivered, the review set was revised in response to its
+three recommended corrections. This postscript assesses those revisions and
+addresses what remains outstanding.
+
+### What was addressed
+
+The revisions added a **"Current narrowing effect"** paragraph to the boundary
+pressures section of each review. This was the most important correction. The
+boundary pressures are now load-bearing — they explicitly constrain what each
+review should recommend, rather than functioning as rhetorical hedges that leave
+conclusions unchanged.
+
+Specific improvements:
+
+- **Spike review** (`spike-epistemic-rigor-review.md:140-148`): now says the
+  pressures mean leaning toward thinner interventions first and that multi-agent
+  critique is not yet the default answer.
+- **Forms/excess review** (`forms-excess-review.md:101-109`): now says
+  diagnostic force is stronger than intervention staging and that asymmetry
+  should remain visible.
+- **Responsibility review** (`responsibility-praxis-review.md:94-103`): now
+  explicitly identifies itself as "an interpretive lens on process integrity,
+  scope, and closure rather than as strong evidence for a new mechanism." This
+  marks the review genre without removing it from the set — the right move.
+- **Community review** (`community-feedback-review.md:105-114`): the strongest
+  revision. Expanded caution header, explicit "later-stage concern" framing,
+  counter-pressures described as materially changing recommendations, and a
+  small-core usage observation added to the roadmap section.
+- **Comparative characterization review**
+  (`comparative-characterization-review.md:102-107`): now explicitly says claim
+  cards are "project-local methodology ready for further testing" and "not yet a
+  portable framework commitment for all spike families." The co-design paragraph
+  adds the caveat that any such work should be "explicitly framed as a candidate
+  pattern family rather than the already-settled future of all spikes."
+
+The revisions also addressed the unevenness-of-grounding concern by marking the
+responsibility and community reviews as different review genres (interpretive
+lens and later-stage orientation, respectively) rather than removing them from
+the review method. This follows the prior session's stated intent to soften
+rather than reject my critique on this point, and it was done well.
+
+### What was not addressed: convergent roadmap ordering
+
+One of the three recommended corrections was not implemented. All five reviews
+still arrive at the same dependency sequence:
+
+1. Deliberation artifact contract and discovery
+2. Trace/overflow support
+3. Spike redesign
+4. Community pathways later
+
+No review flags this convergence as potentially artifactual.
+
+### Why this matters
+
+The concern is about **epistemic independence** — whether five reviews arriving
+at the same conclusion is strong evidence or weak evidence for that conclusion.
+
+When genuinely independent sources converge on the same answer, that convergence
+is strong corroboration. But these five reviews share production context:
+
+- **Same model** (Claude Opus 4.6)
+- **Same session** (same conversation, same user framing, same signal landscape)
+- **Same temporal position** (all written on the same day, likely sequentially)
+- **Same prior conclusions** (each later review could see the earlier ones)
+
+So the convergence tells a reader less than it appears to. It may reflect one
+judgment expressed five times rather than five separate judgments agreeing.
+Internal consistency is worth something, but it is weaker than independent
+confirmation.
+
+The review set has been carefully honest about analogous limitations elsewhere:
+corpus provenance, support class, citation maturity, transfer caveats. Not
+flagging this one is an inconsistency in that honesty. The reviews are
+disciplined about qualifying external evidence but have not yet applied the same
+discipline to their own production conditions.
+
+This matters especially because the review set is being sent for cross-model
+review (GPT-5.4 xhigh on the Codex platform). That reviewer will encounter five
+reviews that all agree on the same ordering. Without an explicit note, the
+cross-model reviewer may reasonably treat that convergence as corroborated
+consensus rather than as an artifact of shared production context. That would
+inflate the ordering's apparent authority in exactly the way the reviews
+themselves warn against in other domains.
+
+### Suggested fixes
+
+Any of the following would be sufficient. They are ordered from lightest to most
+thorough.
+
+**Option 1: Single sentence in one review.**
+Add a note to the spike review's roadmap section (as the first and
+strongest review, it is the natural anchor). Something like:
+
+> This ordering converges with the other four reviews. Because all five were
+> produced by the same model in the same session, that convergence should be
+> treated as internal consistency rather than independent confirmation. The
+> cross-model review (Codex/GPT-5.4) is the first genuinely independent test
+> of whether this ordering holds.
+
+**Option 2: Brief note in the immanent critique.**
+The immanent critique (`2026-03-22-immanent-critique-of-corpus-grounded-reviews.md`)
+already discusses the review set's methodological consistency. A paragraph there
+noting that the convergent ordering shares the same production-context limitation
+would fit naturally.
+
+**Option 3: A shared "production context" note for the review set.**
+A brief standalone note (or a section in an existing index document) that states:
+
+- all five reviews and the immanent critique were produced in the same session
+- convergent conclusions across them should be weighted as one assessment, not
+  five
+- the independent critical review (this document) and the cross-model review
+  (Codex/GPT-5.4) are the first opportunities for genuinely independent
+  confirmation or challenge
+
+This option is the most thorough but may be heavier than needed. Option 1 is
+probably sufficient if the cross-model review is happening soon.
+
+### Current assessment
+
+With the revisions made, the review set is now in good shape for two purposes:
+
+1. **Informing deliberation revision** — the boundary pressures are
+   load-bearing, the evidential unevenness is visible, and the portability
+   overclaiming is constrained.
+2. **Cross-model review** — the Codex/GPT-5.4 reviewer will encounter a set
+   that is mostly honest about its own limitations, with one remaining gap (the
+   convergent ordering) that this postscript now makes explicit.
+
+The review set does not need another full revision pass. It needs the convergent
+ordering flagged (any of the three options above), and then it is ready to be
+used.
