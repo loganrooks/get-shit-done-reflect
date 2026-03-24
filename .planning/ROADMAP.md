@@ -119,11 +119,10 @@ Plans:
   2. Post-baseline upstream changes relevant to Phases 49-54 or already-landed Phase 45-48 surfaces are classified as `must-integrate-now`, `fold-into-open-phase`, `candidate-next-milestone`, or `defer`
   3. ROADMAP.md, PROJECT.md, and STATE.md reflect the decided routing before Phase 49 planning starts
   4. If any post-baseline upstream change now belongs in v1.18, the roadmap records where it lands rather than leaving it implicit
-**Plans:** TBD
+**Plans:** 1 plan
 
 Plans:
-- [ ] 48.1-01: TBD
-- [ ] 48.1-02: TBD
+- [ ] 48.1-01-PLAN.md -- Create upstream drift classification ledger and update project docs with routing decisions
 
 ### Phase 49: Config Migration
 **Goal**: The manifest-driven migration system supports declarative field renames, the depth-to-granularity breaking change is absorbed programmatically, and config upgrades move toward one runtime-neutral authority model instead of split workflow/install behavior
@@ -260,7 +259,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 
 | 46. Upstream Module Adoption | 4/4 | Complete | 2026-03-20 |
 | 47. Fork Module Extraction | 2/2 | Complete | 2026-03-20 |
 | 48. Module Extensions & Verification | 2/2 | Complete | 2026-03-20 |
-| 48.1 Post-audit upstream drift retriage | 0/TBD | Not started | - |
+| 48.1 Post-audit upstream drift retriage | 0/1 | Planned | - |
 | 49. Config Migration | 0/TBD | Not started | - |
 | 50. Migration Test Hardening | 0/TBD | Not started | - |
 | 51. Update System Hardening | 0/TBD | Not started | - |
