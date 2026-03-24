@@ -24,8 +24,8 @@ Read all files referenced by the invoking prompt's execution_context before star
 Read backlog items to inform milestone scoping:
 
 ```bash
-BACKLOG_GROUPS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js backlog group --by theme --raw)
-BACKLOG_STATS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js backlog stats --raw)
+BACKLOG_GROUPS=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs backlog group --by theme --raw)
+BACKLOG_STATS=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs backlog stats --raw)
 ```
 
 Parse BACKLOG_STATS for `total` count. If total is 0, skip to Step 2.
@@ -105,13 +105,13 @@ Keep Accumulated Context section from previous milestone.
 Delete MILESTONE-CONTEXT.md if exists (consumed).
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: start milestone v[X.Y] [Name]" --files .planning/PROJECT.md .planning/STATE.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: start milestone v[X.Y] [Name]" --files .planning/PROJECT.md .planning/STATE.md
 ```
 
 ## 7. Load Context and Resolve Models
 
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init new-milestone)
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs init new-milestone)
 ```
 
 Extract from init JSON: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `research_enabled`, `current_milestone`, `project_exists`, `roadmap_exists`.
@@ -126,10 +126,10 @@ AskUserQuestion: "Research the domain ecosystem for new features before defining
 
 ```bash
 # If "Research first": persist true
-node ~/.claude/get-shit-done/bin/gsd-tools.js config-set workflow.research true
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs config-set workflow.research true
 
 # If "Skip research": persist false
-node ~/.claude/get-shit-done/bin/gsd-tools.js config-set workflow.research false
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs config-set workflow.research false
 ```
 
 **If "Research first":**
@@ -280,7 +280,7 @@ If "adjust": Return to scoping.
 
 **Commit requirements:**
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: define milestone v[X.Y] requirements" --files .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: define milestone v[X.Y] requirements" --files .planning/REQUIREMENTS.md
 ```
 
 ## 9b. Promote Selected Backlog Items
@@ -293,7 +293,7 @@ For each selected backlog item:
 2. Promote with milestone version and requirement ID:
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js backlog promote <item-id> --to <REQ-ID> --milestone v[X.Y]
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs backlog promote <item-id> --to <REQ-ID> --milestone v[X.Y]
 ```
 
 **Deduplication:** Before promoting, deduplicate selected items by ID (safety check against double-select from overlapping theme/tag groups).
@@ -383,7 +383,7 @@ Success criteria:
 
 **Commit roadmap** (after approval):
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
 ```
 
 ## 11. Done

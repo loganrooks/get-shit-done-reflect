@@ -23,10 +23,10 @@
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 45: CJS Rename** - Rename gsd-tools.js to gsd-tools.cjs with all 56 shell references updated (zero functional changes)
-- [ ] **Phase 46: Upstream Module Adoption** - Adopt upstream's 11 lib/*.cjs modules, rewrite dispatcher, extract shared helpers to core.cjs
-- [ ] **Phase 47: Fork Module Extraction** - Extract 5 new fork modules (sensors, backlog, manifest, automation, health-probe) in dependency order
-- [ ] **Phase 48: Module Extensions & Verification** - Extend frontmatter.cjs and init.cjs with fork additions, verify all tests pass with zero behavioral changes
+- [x] **Phase 45: CJS Rename** - Rename gsd-tools.js to gsd-tools.cjs with all 66 source file references updated (zero functional changes) ✓ 2026-03-19
+- [x] **Phase 46: Upstream Module Adoption** - Adopt upstream's 11 lib/*.cjs modules, rewrite dispatcher, extract shared helpers to core.cjs ✓ 2026-03-20
+- [x] **Phase 47: Fork Module Extraction** - Extract 5 new fork modules (sensors, backlog, manifest, automation, health-probe) in dependency order ✓ 2026-03-20
+- [x] **Phase 48: Module Extensions & Verification** - Extend frontmatter.cjs and init.cjs with fork additions, verify all tests pass with zero behavioral changes ✓ 2026-03-20
 - [ ] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, update workflows and version-migration spec
 - [ ] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, integration depth tests
 - [ ] **Phase 51: Update System Hardening** - Installer generates migration guides, stale file cleanup, hook re-registration, upgrade testing
@@ -44,11 +44,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. Running `gsd-tools.cjs` from any hook or shell script produces identical output to the previous `gsd-tools.js`
   2. All 278 existing vitest tests pass without modification
   3. No shell script, hook, or workflow file references `gsd-tools.js` (the old name)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 45-01: TBD
-- [ ] 45-02: TBD
+- [ ] 45-01-PLAN.md -- Rename gsd-tools.js to gsd-tools.cjs and update all source file references
+- [ ] 45-02-PLAN.md -- Update test/installer fixtures and run full verification sweep
 
 ### Phase 46: Upstream Module Adoption
 **Goal**: The CLI dispatcher routes commands through upstream's 11 modular files and shared fork helpers live in core.cjs, replacing the monolith's inline function definitions
@@ -59,12 +59,13 @@ Plans:
   2. The 4 shared helpers (loadManifest, loadProjectConfig, atomicWriteJson, parseIncludeFlag) are importable from `lib/core.cjs` by any module
   3. All 11 upstream module files exist in `lib/` and each handles its expected command set
   4. All 278 existing vitest tests pass without modification
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 46-01: TBD
-- [ ] 46-02: TBD
-- [ ] 46-03: TBD
+- [ ] 46-01-PLAN.md -- Copy 11 upstream modules to lib/ and extend core.cjs with 4 fork helpers
+- [ ] 46-02-PLAN.md -- Rewrite dispatcher + retain fork functions inline + full test verification
+- [ ] 46-03-PLAN.md -- Behavioral equivalence spot-checks and user verification
+- [ ] 46-04-PLAN.md -- Gap closure: route init subcommands through init.cjs and remove inline duplicates
 
 ### Phase 47: Fork Module Extraction
 **Goal**: The fork's 2,126 lines of additions are distributed across 5 dedicated modules, each owning a coherent command set with no cross-module circular dependencies
@@ -76,14 +77,11 @@ Plans:
   3. `manifest.cjs` handles all 6 manifest commands (`diff-config`, `validate`, `apply-migration`, `get-prompts`, `features`, `show`)
   4. `automation.cjs` handles all 7 automation commands and exports FEATURE_CAPABILITY_MAP
   5. `health-probe.cjs` handles 3 probe functions and 3 KB helper functions
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 47-01: TBD
-- [ ] 47-02: TBD
-- [ ] 47-03: TBD
-- [ ] 47-04: TBD
-- [ ] 47-05: TBD
+- [ ] 47-01-PLAN.md -- Extract sensors.cjs, backlog.cjs, health-probe.cjs + remove dead frontmatter helpers
+- [ ] 47-02-PLAN.md -- Extract manifest.cjs and automation.cjs + final gsd-tools.cjs reduction
 
 ### Phase 48: Module Extensions & Verification
 **Goal**: Upstream's frontmatter and init modules are extended with fork-specific capabilities, and the entire modularization is verified as behaviorally equivalent to the pre-modularization monolith
@@ -94,11 +92,11 @@ Plans:
   2. `init.cjs` accepts the `--include` flag and applies fork-specific init function modifications
   3. All 278 existing vitest tests pass with zero behavioral changes from the pre-modularization baseline
   4. CLI output for every command is identical before and after modularization (verified by behavioral equivalence spot checks)
-**Plans**: TBD
+**Plans:** 2 plans
 
 Plans:
-- [ ] 48-01: TBD
-- [ ] 48-02: TBD
+- [ ] 48-01-PLAN.md -- Extend frontmatter.cjs with signal schema + merge fork init functions into init.cjs
+- [ ] 48-02-PLAN.md -- Extract remaining command overrides to modules + behavioral equivalence verification
 
 ### Phase 49: Config Migration
 **Goal**: The manifest-driven migration system supports declarative field renames, the depth-to-granularity breaking change is absorbed programmatically, and multi-version upgrade paths work end-to-end
@@ -215,10 +213,10 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 49 -> 50 -> 51 -> 52 ->
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 45. CJS Rename | 0/TBD | Not started | - |
-| 46. Upstream Module Adoption | 0/TBD | Not started | - |
-| 47. Fork Module Extraction | 0/TBD | Not started | - |
-| 48. Module Extensions & Verification | 0/TBD | Not started | - |
+| 45. CJS Rename | 2/2 | Complete | 2026-03-19 |
+| 46. Upstream Module Adoption | 4/4 | Complete | 2026-03-20 |
+| 47. Fork Module Extraction | 2/2 | Complete | 2026-03-20 |
+| 48. Module Extensions & Verification | 2/2 | Complete | 2026-03-20 |
 | 49. Config Migration | 0/TBD | Not started | - |
 | 50. Migration Test Hardening | 0/TBD | Not started | - |
 | 51. Update System Hardening | 0/TBD | Not started | - |

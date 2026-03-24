@@ -17,10 +17,10 @@ Detects automation features that have gone silent -- either because they are mis
 
 ## Execution
 
-This probe runs via gsd-tools.js subcommand:
+This probe runs via gsd-tools.cjs subcommand:
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js health-probe automation-watchdog --raw
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs health-probe automation-watchdog --raw
 ```
 
 ## Computation

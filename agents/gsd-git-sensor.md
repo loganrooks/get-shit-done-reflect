@@ -211,7 +211,7 @@ If no signals are detected for any pattern, return an empty signals array:
 - Never generate more than 5 signal candidates per detection pattern (cap at 15 total)
 - All paths in this agent spec use `~/` prefix (installer converts to `./` during install)
 - The git sensor does NOT write to the knowledge base -- it returns JSON only
-- The git sensor does NOT call `kb-rebuild-index.sh` or `gsd-tools.js`
+- The git sensor does NOT call `kb-rebuild-index.sh` or `gsd-tools.cjs`
 - Keep git commands simple and portable -- avoid platform-specific flags
 - When counting fix-chain streaks, process the git log output line-by-line in bash (use a while-read loop or awk), not external scripting languages
 

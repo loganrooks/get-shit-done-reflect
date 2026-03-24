@@ -312,7 +312,7 @@ resolves_signals:
 - Non-existent signal IDs produce warnings, not errors (signals may be archived or invalidated between planning and execution)
 - The executor performs the lifecycle transition automatically -- no manual intervention required
 
-**Validation:** The `FRONTMATTER_SCHEMAS.plan` schema validates only required fields and does not reject unknown fields, so `resolves_signals` works without code changes to gsd-tools.js.
+**Validation:** The `FRONTMATTER_SCHEMAS.plan` schema validates only required fields and does not reject unknown fields, so `resolves_signals` works without code changes to gsd-tools.cjs.
 
 ### 4.6 Verification by Absence (verification_window)
 
@@ -558,7 +558,7 @@ MUTABLE fields (lifecycle -- modified by authorized agents):
 
 **Severity disagreement handling:** `triage.severity_override` records disagreement between the sensor's initial severity assessment and the triage agent's assessment. The original `severity` field (frozen) preserves the sensor's view; `triage.severity_override` captures the triage agent's view. The `severity_conflict_handling` project setting determines which takes precedence for downstream behavior.
 
-**Enforcement:** The mutability boundary is enforced by agent instructions (agent specs define which fields each agent may modify), not by file system permissions. Optional validation warning in gsd-tools.js may be added in future phases.
+**Enforcement:** The mutability boundary is enforced by agent instructions (agent specs define which fields each agent may modify), not by file system permissions. Optional validation warning in gsd-tools.cjs may be added in future phases.
 
 **Archival:**
 - Set `status: archived` in frontmatter

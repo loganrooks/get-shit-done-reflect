@@ -1358,7 +1358,7 @@ function replacePathsInContent(content, runtimePathPrefix) {
 
   // Pass 3: GSDR namespace rewriting (install-time co-installation isolation)
   // Order: 3a before 3c to avoid partial matches on directory path
-  // Safety: (?!tools) in 3c preserves gsd-tools.js filename (237 occurrences)
+  // Safety: (?!tools) in 3c preserves gsd-tools.cjs filename (237 occurrences)
   //
   // Double-replacement safety (proven by deliberation):
   // - get-shit-done/ requires /. get-shit-done-reflect/ has - not /. No match.

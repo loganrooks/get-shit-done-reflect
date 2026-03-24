@@ -15,7 +15,7 @@ Read config.json for planning behavior settings.
 Load execution context (uses `init execute-phase` for full context, including file contents):
 
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init execute-phase "${PHASE}" --include state,config)
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs init execute-phase "${PHASE}" --include state,config)
 ```
 
 Extract from init JSON: `executor_model`, `commit_docs`, `phase_dir`, `phase_number`, `plans`, `summaries`, `incomplete_plans`.
@@ -339,7 +339,7 @@ If the completed plan has `resolves_signals` in its PLAN.md frontmatter, update 
 
 ```bash
 # Check for resolves_signals in the plan (use `frontmatter get`, NOT `extract` which doesn't exist)
-RESOLVES=$(node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter get "$PLAN_PATH" --field resolves_signals --raw 2>/dev/null)
+RESOLVES=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs frontmatter get "$PLAN_PATH" --field resolves_signals --raw 2>/dev/null)
 ```
 
 **IMPORTANT: Field-not-found handling.** When the field is absent, `frontmatter get --field` returns an error JSON object `{"error":"Field not found",...}` which is non-empty and would pass naive checks. Use `--raw` flag and validate the result is a JSON array before proceeding:
@@ -365,7 +365,7 @@ If `RESOLVES` is a valid non-empty JSON array:
    a. Locate the signal file in `.planning/knowledge/signals/{project}/` (or `~/.gsd/knowledge/signals/{project}/` fallback)
    b. If file not found: log warning "Signal {sig-id} not found or archived, skipping remediation update" and continue
    c. Read the signal file content
-   d. Parse frontmatter with `extractFrontmatter()` (conceptually -- the workflow instructs the executor to use gsd-tools.js or direct file manipulation)
+   d. Parse frontmatter with `extractFrontmatter()` (conceptually -- the workflow instructs the executor to use gsd-tools.cjs or direct file manipulation)
    e. Check current `lifecycle_state`:
       - If already `remediated`, `verified`, or `invalidated`: skip (log "Signal {sig-id} already {state}, skipping")
       - If `detected` and `STRICTNESS` is `strict`: skip (log "Signal {sig-id} is detected but lifecycle_strictness is strict -- requires triage first")
@@ -380,7 +380,7 @@ If `RESOLVES` is a valid non-empty JSON array:
       - `lifecycle_log`: **Initialize as empty array if absent** (`lifecycle_log = lifecycle_log || []`), then append entry "triaged->remediated by executor at {timestamp}: plan {phase}-{plan} completed" (or "detected->remediated" if was detected). Pre-Phase-31 signals may lack this field entirely.
       - `updated`: current ISO-8601 timestamp
    g. Write back using `spliceFrontmatter()` approach (read -> parse -> modify ONLY mutable fields -> splice)
-   h. Validate with: `node ~/.claude/get-shit-done/bin/gsd-tools.js frontmatter validate {file} --schema signal`
+   h. Validate with: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs frontmatter validate {file} --schema signal`
    i. If validation fails: revert the file to its original content and log warning "Validation failed for {sig-id}, reverted"
 4. After all signals processed, rebuild KB index:
    ```bash
@@ -401,13 +401,13 @@ Update STATE.md using gsd-tools:
 
 ```bash
 # Advance plan counter (handles last-plan edge case)
-node ~/.claude/get-shit-done/bin/gsd-tools.js state advance-plan
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs state advance-plan
 
 # Recalculate progress bar from disk state
-node ~/.claude/get-shit-done/bin/gsd-tools.js state update-progress
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs state update-progress
 
 # Record execution metrics
-node ~/.claude/get-shit-done/bin/gsd-tools.js state record-metric \
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs state record-metric \
   --phase "${PHASE}" --plan "${PLAN}" --duration "${DURATION}" \
   --tasks "${TASK_COUNT}" --files "${FILE_COUNT}"
 ```
@@ -418,11 +418,11 @@ From SUMMARY: Extract decisions and add to STATE.md:
 
 ```bash
 # Add each decision from SUMMARY key-decisions
-node ~/.claude/get-shit-done/bin/gsd-tools.js state add-decision \
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs state add-decision \
   --phase "${PHASE}" --summary "${DECISION_TEXT}" --rationale "${RATIONALE}"
 
 # Add blockers if any found
-node ~/.claude/get-shit-done/bin/gsd-tools.js state add-blocker "Blocker description"
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs state add-blocker "Blocker description"
 ```
 </step>
 
@@ -430,7 +430,7 @@ node ~/.claude/get-shit-done/bin/gsd-tools.js state add-blocker "Blocker descrip
 Update session info using gsd-tools:
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js state record-session \
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs state record-session \
   --stopped-at "Completed ${PHASE}-${PLAN}-PLAN.md" \
   --resume-file "None"
 ```
@@ -450,7 +450,7 @@ More plans → update plan count, keep "In progress". Last plan → mark phase "
 Task code already committed per-task. Commit plan metadata:
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs({phase}-{plan}): complete [plan-name] plan" --files .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md .planning/STATE.md .planning/ROADMAP.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs({phase}-{plan}): complete [plan-name] plan" --files .planning/phases/XX-name/{phase}-{plan}-SUMMARY.md .planning/STATE.md .planning/ROADMAP.md
 ```
 </step>
 
@@ -465,7 +465,7 @@ git diff --name-only ${FIRST_TASK}^..HEAD 2>/dev/null
 Update only structural changes: new src/ dir → STRUCTURE.md | deps → STACK.md | file pattern → CONVENTIONS.md | API client → INTEGRATIONS.md | config → STACK.md | renamed → update paths. Skip code-only/bugfix/content changes.
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "" --files .planning/codebase/*.md --amend
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "" --files .planning/codebase/*.md --amend
 ```
 </step>
 

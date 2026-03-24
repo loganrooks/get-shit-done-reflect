@@ -1,13 +1,18 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-07T05:16:47Z
-**Total entries:** 126
+**Generated:** 2026-03-24T00:02:12Z
+**Total entries:** 133
 
-## Signals (125)
+## Signals (132)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
-| sig-2026-03-07-plan-checker-misses-producer-consumer-gaps | get-shit-done-reflect | notable | detected | plan-checker,producer-consumer,cross-workflow,implicit-dependencies,second-order-effects,template-consumer-gap | "2026-03-07 | active |
+| sig-2026-03-23-phase-stack-complete-but-not-integrated | get-shit-done-reflect | critical | detected | git-workflow,branch-management,unpushed-work,no-ci-coverage,main-divergence,phase-stack | 2026-03-23 | active |
+| sig-2026-03-23-missing-home-for-constellation-recommendations | get-shit-done-reflect | notable | detected | deliberations,governance,roadmap,workflow-gap,artifact-home,planning-routing | 2026-03-23 | active |
+| sig-2026-03-23-cross-model-review-chain-epistemic-discipline | get-shit-done-reflect | notable | detected | deliberation-reviews,cross-model-review,epistemic-discipline,review-methodology,positive-pattern | 2026-03-23 | active |
+| sig-2026-03-23-prose-wrapping-convention-gap | get-shit-done-reflect | notable | detected | formatting,conventions,deliberation-artifacts,review-artifacts,markdown | 2026-03-23 | active |
+| sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift | get-shit-done-reflect | critical | detected | migration,upgrade-project,config,local-install,global-install,knowledge-base,cross-runtime,codex,claude,hooks,path-resolution | 2026-03-20 | active |
+| sig-2026-03-19-qt31-source-namespace-pollution | get-shit-done-reflect | critical | detected | namespace,dual-directory,source-pollution,ci-failure,wiring-test,collect-signals,codex,quick-task | 2026-03-19 | active |
 | sig-2026-03-07-research-driven-planning-zero-deviations | get-shit-done-reflect | minor | detected | plan-quality,research-driven,execution-efficiency | 2026-03-07 | active |
 | sig-2026-03-07-producer-consumer-gap-remediated-phase43 | get-shit-done-reflect | minor | detected | producer-consumer,traceability,templates,provenance | 2026-03-07 | active |
 | sig-2026-03-07-plan-files-modified-lists-unnecessary-change | get-shit-done-reflect | minor | detected | deviation,plan-accuracy,files-modified,templates | 2026-03-07 | active |
@@ -22,8 +27,6 @@
 | sig-2026-03-06-ci-test-regression-parse-inconclusive | get-shit-done-reflect | minor | detected | ci,test-regression,parsing-limitation | 2026-03-06 | active |
 | sig-2026-03-06-branch-protection-bypass-three-commits | get-shit-done-reflect | critical | detected | ci,branch-protection,bypass,main-branch,test-failure | 2026-03-06 | active |
 | sig-2026-03-06-phase42-plan-gaps-pre-execution-review | get-shit-done-reflect | notable | detected | plan-accuracy,pre-execution-review,plan-checker,second-order-effects,assumption-verification,capability-gap,phase-42 | 2026-03-06 | active |
-| sig-2026-03-06-planner-deliberation-auto-reference-gap | get-shit-done-reflect | notable | detected | tags: | "2026-03-06 | active |
-| sig-2026-03-05-phase40-plan-gaps-pre-execution-review | get-shit-done-reflect | critical | detected | plan-accuracy,pre-execution-review,reentrancy,double-fire,output-corruption,context-estimation,test-coverage,phase-40 | "2026-03-05 | active |
 | sig-2026-03-05-undeclared-claude-dir-scope-creep-plan02 | get-shit-done-reflect | notable | detected | scope-creep,plan-accuracy,dual-directory | 2026-03-05 | active |
 | sig-2026-03-05-test-count-discrepancy-parallel-wave2 | get-shit-done-reflect | minor | detected | test-count,parallel-execution,wave-dependency | 2026-03-05 | active |
 | sig-2026-03-05-plan02-files-modified-omits-created-files | get-shit-done-reflect | minor | detected | plan-accuracy,frontmatter,files-modified | 2026-03-05 | active |
@@ -125,13 +128,17 @@
 | sig-2026-02-11-premature-spiking-no-research-gate | get-shit-done-reflect | notable | detected | spike-workflow,research-gate,workflow-ordering | 2026-02-11 | active |
 | sig-2026-02-11-spike-design-missing-feasibility | get-shit-done-reflect | notable | detected | spike-workflow,experimental-design,feasibility,template-gap | 2026-02-11 | active |
 |  |  | medium | detected | plan-quality,tdd,race-condition,human-intervention,workflow-improvement |  | open |
+| sig-2026-03-02-requirements-lack-motivation-traceability | get-shit-done-reflect | notable | detected | requirements,traceability,signal-lifecycle,template |  | detected |
 | SIG-260223-015 |  | notable | detected | planning,tdd,pitfall-mitigation |  | resolved |
 | SIG-260223-014 |  | notable | detected | heuristics,natural-language,complexity-detection |  | resolved |
 | SIG-260223-013 |  | notable | detected | testing,isolation,environment |  | open |
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
-| sig-2026-03-02-requirements-lack-motivation-traceability | get-shit-done-reflect | notable | detected | requirements,traceability,signal-lifecycle,template |  | detected |
 |  | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | path-resolution,installer,source-repo,plan-spec-gap,auto-fix |  | active |
+| sig-2026-03-20-yolo-mode-checkpoint-should-auto-verify | get-shit-done-reflect | notable | detected | tags: | "2026-03-20 | active |
+| sig-2026-03-07-plan-checker-misses-producer-consumer-gaps | get-shit-done-reflect | notable | detected | plan-checker,producer-consumer,cross-workflow,implicit-dependencies,second-order-effects,template-consumer-gap | "2026-03-07 | active |
+| sig-2026-03-06-planner-deliberation-auto-reference-gap | get-shit-done-reflect | notable | detected | tags: | "2026-03-06 | active |
+| sig-2026-03-05-phase40-plan-gaps-pre-execution-review | get-shit-done-reflect | critical | detected | plan-accuracy,pre-execution-review,reentrancy,double-fire,output-corruption,context-estimation,test-coverage,phase-40 | "2026-03-05 | active |
 
 ## Spikes (1)
 

@@ -16,7 +16,7 @@ Read STATE.md before any operation to load project context.
 Load all context in one call:
 
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init execute-phase "${PHASE_ARG}")
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs init execute-phase "${PHASE_ARG}")
 ```
 
 Parse JSON for: `executor_model`, `verifier_model`, `commit_docs`, `parallelization`, `branching_strategy`, `branch_name`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `plans`, `incomplete_plans`, `plan_count`, `incomplete_count`, `state_exists`, `roadmap_exists`.
@@ -109,7 +109,7 @@ Else:
 Load plan inventory with wave grouping in one call:
 
 ```bash
-PLAN_INDEX=$(node ~/.claude/get-shit-done/bin/gsd-tools.js phase-plan-index "${PHASE_NUMBER}")
+PLAN_INDEX=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs phase-plan-index "${PHASE_NUMBER}")
 ```
 
 Parse JSON for: `phase`, `plans[]` (each with `id`, `wave`, `autonomous`, `objective`, `files_modified`, `task_count`, `has_summary`), `waves` (map of wave number → plan IDs), `incomplete`, `has_checkpoints`.
@@ -380,7 +380,7 @@ Only runs if verification passed (`passed` or `human_needed` that was approved).
 **1. Check reentrancy guard:**
 
 ```bash
-LOCK_STATUS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation check-lock signal_collection --raw 2>/dev/null)
+LOCK_STATUS=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation check-lock signal_collection --raw 2>/dev/null)
 ```
 
 Parse `LOCK_STATUS`. If `locked: true` (and not stale): skip auto-collection silently.
@@ -388,13 +388,13 @@ This prevents feedback loops if signal collection is already running (SIG-03).
 
 ```bash
 # Track the skip
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event signal_collection skip "reentrancy"
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation track-event signal_collection skip "reentrancy"
 ```
 
 **2. Resolve automation level:**
 
 ```bash
-LEVEL=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation resolve-level signal_collection --context-pct {EST_CONTEXT_PCT} --raw 2>/dev/null)
+LEVEL=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation resolve-level signal_collection --context-pct {EST_CONTEXT_PCT} --raw 2>/dev/null)
 ```
 
 Estimate context percentage using wave count as proxy:
@@ -433,7 +433,7 @@ Run `/gsd:collect-signals {PHASE_NUMBER}` in a fresh session.
 
 Acquire the reentrancy lock:
 ```bash
-LOCK=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation lock signal_collection --source phase-completion --raw 2>/dev/null)
+LOCK=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation lock signal_collection --source phase-completion --raw 2>/dev/null)
 ```
 
 If `LOCK.locked` is true (another process acquired between check and lock -- race condition):
@@ -458,17 +458,17 @@ auto-discovery, so any sensor agent spec matching `gsd-*-sensor.md` (including
 
 After collection completes (success or failure), release the lock first:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation unlock signal_collection --raw 2>/dev/null
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation unlock signal_collection --raw 2>/dev/null
 ```
 
 On success, track the fire event and capture the returned stats:
 ```bash
-FIRE_STATS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event signal_collection fire --raw 2>/dev/null)
+FIRE_STATS=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation track-event signal_collection fire --raw 2>/dev/null)
 ```
 
 On failure, still release lock but track as skip:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event signal_collection skip "collection-error" --raw 2>/dev/null
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation track-event signal_collection skip "collection-error" --raw 2>/dev/null
 ```
 
 **6. First-run regime change detection:**
@@ -482,7 +482,7 @@ always fail. See sig-2026-03-05-phase40-plan-gaps-pre-execution-review.
 
 If `fires` is 1 (first fire): write a regime_change entry:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation regime-change "Auto-collection enabled" --impact "Signal count per phase expected to increase as automated detection catches issues previously missed" --prior "Manual /gsd:collect-signals invocation only" --raw 2>/dev/null
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation regime-change "Auto-collection enabled" --impact "Signal count per phase expected to increase as automated detection catches issues previously missed" --prior "Manual /gsd:collect-signals invocation only" --raw 2>/dev/null
 ```
 
 This step is best-effort -- failures do not block phase completion. If any command fails,
@@ -507,7 +507,7 @@ If HC_FREQ is not 'every-phase', skip this step entirely.
 **2. Check reentrancy guard:**
 
 ```bash
-LOCK_STATUS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation check-lock health_check --raw 2>/dev/null)
+LOCK_STATUS=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation check-lock health_check --raw 2>/dev/null)
 ```
 
 If locked and not stale: skip. Track: `track-event health_check skip "reentrancy"`
@@ -515,7 +515,7 @@ If locked and not stale: skip. Track: `track-event health_check skip "reentrancy
 **3. Resolve automation level:**
 
 ```bash
-LEVEL=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation resolve-level health_check --context-pct {EST_CONTEXT_PCT} --raw 2>/dev/null)
+LEVEL=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation resolve-level health_check --context-pct {EST_CONTEXT_PCT} --raw 2>/dev/null)
 ```
 
 Use same wave-based context estimation as auto_collect_signals: `min(40 + (WAVES_COMPLETED * 10), 80)`
@@ -535,7 +535,7 @@ Context-deferred message: "Context usage high. Health check deferred. Run `/gsd:
 
 ```bash
 # Acquire lock
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation lock health_check --source "postlude" --ttl 300
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation lock health_check --source "postlude" --ttl 300
 ```
 
 Invoke the health check workflow inline (same as how execute-phase invokes other workflows).
@@ -543,10 +543,10 @@ The workflow reads probes, computes score, writes cache.
 
 ```bash
 # Release lock
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation unlock health_check
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation unlock health_check
 
 # Track event (exactly once -- Pitfall 5 from research)
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event health_check fire
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation track-event health_check fire
 ```
 
 This step is best-effort -- failures do not block phase completion. If any command fails,
@@ -564,7 +564,7 @@ Only runs if verification passed AND prior postludes completed (or were skipped)
 **1. Increment phase counter (ALWAYS, regardless of auto_reflect setting):**
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation reflection-counter increment --raw 2>/dev/null
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation reflection-counter increment --raw 2>/dev/null
 ```
 
 This counter tracks "phases since last reflection" independent of whether auto-reflection
@@ -580,12 +580,12 @@ REFLECT_CONFIG=$(node -e "try{const c=JSON.parse(require('fs').readFileSync('.pl
 **3. Check auto_reflect enabled:**
 
 If `auto_reflect` is false: skip entire step.
-Track: `node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event reflection skip "disabled" --raw 2>/dev/null`
+Track: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation track-event reflection skip "disabled" --raw 2>/dev/null`
 
 **4. Check phase counter threshold (REFL-02):**
 
 Parse REFLECT_CONFIG. If `counter < threshold`: skip.
-Track: `node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event reflection skip "threshold-not-met" --raw 2>/dev/null`
+Track: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation track-event reflection skip "threshold-not-met" --raw 2>/dev/null`
 
 **5. Check minimum signal threshold (REFL-03):**
 
@@ -602,13 +602,13 @@ Count only standard-format signals (`sig-` lowercase prefix, not legacy `SIG-` f
 with `detected` lifecycle state. See Pitfall 4 in research.
 
 If UNTRIAGED < min_signals: skip.
-Track: `node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event reflection skip "insufficient-signals" --raw 2>/dev/null`
+Track: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation track-event reflection skip "insufficient-signals" --raw 2>/dev/null`
 
 **6. Check session cooldown (REFL-04):**
 
 If `session_reflection_fired` is true (set by a prior auto_reflect invocation in this
 execute-phase session): skip.
-Track: `node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event reflection skip "session-cooldown" --raw 2>/dev/null`
+Track: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation track-event reflection skip "session-cooldown" --raw 2>/dev/null`
 
 Note: `session_reflection_fired` is an in-memory boolean held by the execute-phase
 orchestrator. It resets naturally when the session ends. Manual `/gsd:reflect` does NOT
@@ -628,7 +628,7 @@ but must be communicated:
 **7. Check reentrancy guard:**
 
 ```bash
-LOCK_STATUS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation check-lock reflection --raw 2>/dev/null)
+LOCK_STATUS=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation check-lock reflection --raw 2>/dev/null)
 ```
 
 If locked and not stale: skip. Track: `track-event reflection skip "reentrancy"`
@@ -636,7 +636,7 @@ If locked and not stale: skip. Track: `track-event reflection skip "reentrancy"`
 **8. Resolve automation level:**
 
 ```bash
-LEVEL=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation resolve-level reflection --context-pct {EST_CONTEXT_PCT} --raw 2>/dev/null)
+LEVEL=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation resolve-level reflection --context-pct {EST_CONTEXT_PCT} --raw 2>/dev/null)
 ```
 
 Use wave-based context estimation with a HIGHER base than prior postludes to account for
@@ -676,7 +676,7 @@ Run `/gsd:reflect` in a fresh session.
 
 Acquire lock:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation lock reflection --source "phase-completion" --ttl 600 --raw 2>/dev/null
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation lock reflection --source "phase-completion" --ttl 600 --raw 2>/dev/null
 ```
 
 Use TTL 600 (10 min) because reflection is expensive -- longer than signal collection's 300s.
@@ -689,12 +689,12 @@ Follow the reflect.md workflow for phase {PADDED_PHASE}.
 
 Release lock:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation unlock reflection --raw 2>/dev/null
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation unlock reflection --raw 2>/dev/null
 ```
 
 Track event (exactly ONCE -- see Pitfall 5 from research, Phase 40 double-fire bug):
 ```bash
-FIRE_STATS=$(node ~/.claude/get-shit-done/bin/gsd-tools.js automation track-event reflection fire --raw 2>/dev/null)
+FIRE_STATS=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation track-event reflection fire --raw 2>/dev/null)
 ```
 
 NOTE: Do NOT reset the counter here. The reflect.md workflow (Plan 02) adds a
@@ -712,7 +712,7 @@ session_reflection_fired = true
 Parse FIRE_STATS from step 10. If `stats.fires` is 1 (first fire ever):
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js automation regime-change "Auto-reflection enabled" --impact "Reflection frequency expected to increase; pattern detection and triage will run automatically every N phases" --prior "Manual /gsd:reflect invocation only" --raw 2>/dev/null
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs automation regime-change "Auto-reflection enabled" --impact "Reflection frequency expected to increase; pattern detection and triage will run automatically every N phases" --prior "Manual /gsd:reflect invocation only" --raw 2>/dev/null
 ```
 
 This step is best-effort -- failures do not block phase completion. If any command fails,
@@ -723,7 +723,7 @@ log a warning and continue to update_roadmap.
 Mark phase complete in ROADMAP.md (date, status).
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs(phase-{X}): complete phase execution" --files .planning/ROADMAP.md .planning/STATE.md .planning/phases/{phase_dir}/*-VERIFICATION.md .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(phase-{X}): complete phase execution" --files .planning/ROADMAP.md .planning/STATE.md .planning/phases/{phase_dir}/*-VERIFICATION.md .planning/REQUIREMENTS.md
 ```
 </step>
 

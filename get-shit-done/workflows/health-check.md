@@ -99,9 +99,9 @@ Execute based on `execution` type:
 - Handle intra-probe blocks: if a check's `**blocks:**` list includes subsequent check IDs, and this check FAILed, skip the blocked checks
 - Record result: `{id, category, description, status, detail, repairable}`
 
-**subcommand:** Run the declared gsd-tools.js command:
+**subcommand:** Run the declared gsd-tools.cjs command:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js health-probe {probe_id} --raw
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs health-probe {probe_id} --raw
 ```
 Parse the returned JSON. Each entry in `checks` array becomes a finding.
 

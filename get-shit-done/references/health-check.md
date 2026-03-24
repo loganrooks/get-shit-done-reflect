@@ -16,7 +16,7 @@ Defines output format, repair rules, and signal integration for workspace valida
 - `category` -- human-readable category name
 - `tier` -- `default` (always runs) or `full` (only with `--full`)
 - `dimension` -- `infrastructure` (binary) or `workflow` (weighted)
-- `execution` -- `inline` (bash checks), `subcommand` (gsd-tools.js), or `agent` (subagent)
+- `execution` -- `inline` (bash checks), `subcommand` (gsd-tools.cjs), or `agent` (subagent)
 - `depends_on` -- list of probe_ids that must pass before this probe runs
 
 **Consumers:**

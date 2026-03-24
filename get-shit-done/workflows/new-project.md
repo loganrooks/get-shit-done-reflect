@@ -40,7 +40,7 @@ The document should describe what you want to build.
 **MANDATORY FIRST STEP — Execute these checks before ANY user interaction:**
 
 ```bash
-INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.js init new-project)
+INIT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs init new-project)
 ```
 
 Parse JSON for: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `project_exists`, `has_codebase_map`, `planning_exists`, `has_existing_code`, `has_package_file`, `is_brownfield`, `needs_codebase_map`, `has_git`.
@@ -212,7 +212,7 @@ Do not compress. Capture everything gathered.
 
 ```bash
 mkdir -p .planning
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: initialize project" --files .planning/PROJECT.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: initialize project" --files .planning/PROJECT.md
 ```
 
 ## 5. Workflow Preferences
@@ -344,7 +344,7 @@ Create `.planning/config.json` with all settings:
 **Commit config.json:**
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "chore: add project config" --files .planning/config.json
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "chore: add project config" --files .planning/config.json
 ```
 
 **Note:** Run `/gsd:settings` anytime to update these preferences.
@@ -359,8 +359,8 @@ After creating the initial config.json with core preferences, configure manifest
 
 For each feature in the manifest:
 
-1. **Auto-detect:** Run `node ~/.claude/get-shit-done/bin/gsd-tools.js manifest auto-detect <feature> --raw` to detect values from the project filesystem
-2. **Get prompts:** Run `node ~/.claude/get-shit-done/bin/gsd-tools.js manifest get-prompts <feature> --raw`
+1. **Auto-detect:** Run `node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest auto-detect <feature> --raw` to detect values from the project filesystem
+2. **Get prompts:** Run `node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest get-prompts <feature> --raw`
 3. **Handle _gate prompts:** If the feature has a prompt with `field: "_gate"`:
    - Ask the gate question via AskUserQuestion
    - If user selects `skip_value`: apply all defaults for this feature (skip remaining prompts)
@@ -368,17 +368,17 @@ For each feature in the manifest:
 4. **Interactive mode:** For each non-gate prompt:
    - Present question and options via AskUserQuestion
    - Use auto-detected values as pre-selected defaults where available
-   - Write user choice: `node ~/.claude/get-shit-done/bin/gsd-tools.js config-set <config_key>.<field> <value>`
+   - Write user choice: `node ~/.claude/get-shit-done/bin/gsd-tools.cjs config-set <config_key>.<field> <value>`
 5. **Auto/YOLO mode:** Use auto-detected values where available, manifest defaults for the rest
 
 After all features processed, fill any remaining gaps:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js manifest apply-migration --raw
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest apply-migration --raw
 ```
 
 Log the initial configuration:
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js manifest log-migration --from "0.0.0" --to "<installed_version>" --changes '<changes_from_apply_migration>' --raw
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs manifest log-migration --from "0.0.0" --to "<installed_version>" --changes '<changes_from_apply_migration>' --raw
 ```
 
 ## 5.7. DevOps Context
@@ -776,7 +776,7 @@ If "adjust": Return to scoping.
 **Commit requirements:**
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: define v1 requirements" --files .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: define v1 requirements" --files .planning/REQUIREMENTS.md
 ```
 
 ## 8. Create Roadmap
@@ -909,7 +909,7 @@ Use AskUserQuestion:
 **Commit roadmap (after approval or auto mode):**
 
 ```bash
-node ~/.claude/get-shit-done/bin/gsd-tools.js commit "docs: create roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
+node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs: create roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
 ```
 
 ## 9. Done
