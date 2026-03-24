@@ -11,9 +11,11 @@
 
 ### v1.18 Upstream Sync & Deep Integration (In Progress)
 
-**Milestone Goal:** Properly adopt upstream changes informed by the fork audit, redistribute the fork's 2,126 lines across upstream's modular structure, establish a durable sync policy, harden the migration system, and ensure adopted features integrate deeply with the fork's epistemic self-improvement pipeline -- not as isolated patches.
+**Milestone Goal:** Properly adopt upstream changes informed by the fork audit, keep v1.18 scoped to the audited upstream baseline (`v1.22.4`) instead of silently expanding with later upstream releases, redistribute the fork's 2,126 lines across upstream's modular structure, formalize adopt/keep/reject policy in milestone governance, harden the migration and upgrade authority model, and ensure adopted features integrate deeply with the fork's epistemic self-improvement pipeline -- not as isolated patches.
 
 **Pre-work completed (v1.17.2-v1.17.3, QT22-28):** Installer converter functions brought to upstream parity before modular sync. Shared frontmatter helpers, Gemini/OpenCode/Codex converter fixes, `copyWithPathReplacement` upgrade, and parity enforcement tests. This ensures Phase 46's module adoption doesn't need to reconcile converter function interfaces. See `.planning/deliberations/deployment-parity-v1.17.2.md`.
+
+**Baseline note:** v1.18 planning is frozen against the March 10 fork audit / upstream `v1.22.4` baseline. Upstream releases after that baseline are handled as explicit triage input for later roadmap work, not as silent current-milestone scope growth.
 
 ## Phases
 
@@ -27,12 +29,12 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 46: Upstream Module Adoption** - Adopt upstream's 11 lib/*.cjs modules, rewrite dispatcher, extract shared helpers to core.cjs ✓ 2026-03-20
 - [x] **Phase 47: Fork Module Extraction** - Extract 5 new fork modules (sensors, backlog, manifest, automation, health-probe) in dependency order ✓ 2026-03-20
 - [x] **Phase 48: Module Extensions & Verification** - Extend frontmatter.cjs and init.cjs with fork additions, verify all tests pass with zero behavioral changes ✓ 2026-03-20
-- [ ] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, update workflows and version-migration spec
-- [ ] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, integration depth tests
-- [ ] **Phase 51: Update System Hardening** - Installer generates migration guides, stale file cleanup, hook re-registration, upgrade testing
+- [ ] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, and route config migration through the cross-runtime install/KB authority questions already identified
+- [ ] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, and root/worktree/KB authority edge-case coverage
+- [ ] **Phase 51: Update System Hardening** - Installer/runtime preflight, migration guides, stale file cleanup, hook/runtime-safe upgrade surfacing, and authoritative project-local upgrade behavior
 - [ ] **Phase 52: Feature Adoption** - Adopt context-monitor, Nyquist auditor, code-aware discuss-phase, upstream workflows, and supporting features
 - [ ] **Phase 53: Deep Integration** - Weave adopted features into fork's signal/automation/health/reflection pipeline
-- [ ] **Phase 54: Infrastructure & Documentation** - CI cache fix, deliberation update, fork divergence docs, upstream sync policy
+- [ ] **Phase 54: Infrastructure & Documentation** - CI cache fix, planning telemetry correctness, deliberation/governance update, fork divergence docs, and upstream sync policy
 
 ## Phase Details
 
@@ -99,9 +101,11 @@ Plans:
 - [ ] 48-02-PLAN.md -- Extract remaining command overrides to modules + behavioral equivalence verification
 
 ### Phase 49: Config Migration
-**Goal**: The manifest-driven migration system supports declarative field renames, the depth-to-granularity breaking change is absorbed programmatically, and multi-version upgrade paths work end-to-end
+**Goal**: The manifest-driven migration system supports declarative field renames, the depth-to-granularity breaking change is absorbed programmatically, and config upgrades move toward one runtime-neutral authority model instead of split workflow/install behavior
 **Depends on**: Phase 48
 **Requirements**: CFG-01, CFG-02, CFG-03, CFG-04, CFG-05, CFG-06, CFG-07
+**Relevant deliberations (planning input, not settled policy)**:
+- `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`
 **Success Criteria** (what must be TRUE):
   1. A project with `depth: "fine"` in config.json automatically migrates to `granularity: "fine"` on upgrade without user intervention
   2. Config fields from upstream that the fork does not recognize are preserved through migration (not deleted)
@@ -116,15 +120,18 @@ Plans:
 - [ ] 49-03: TBD
 
 ### Phase 50: Migration Test Hardening
-**Goal**: The migration, installation, and namespace rewriting pipelines are tested against the edge cases and failure modes identified in the fork audit, preventing regressions as features are adopted
+**Goal**: The migration, installation, namespace rewriting, and project-root/worktree authority paths are tested against the edge cases and failure modes identified in the fork audit, preventing regressions as features are adopted
 **Depends on**: Phase 49
 **Requirements**: TST-01, TST-02, TST-03, TST-04, TST-05, TST-06, TST-07, TST-08, TST-09
+**Relevant deliberations (planning input, not settled policy)**:
+- `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`
 **Success Criteria** (what must be TRUE):
   1. A full-corpus scan of installed files finds zero stale `gsd:`/`gsd-`/`get-shit-done/` references (namespace integrity verified)
   2. Running `apply-migration` N times on the same config produces identical output each time (idempotency)
   3. A simulated crash during KB migration leaves no partial state (cleanup verified)
   4. Each extracted module produces identical CLI output to the pre-extraction monolith for its command set
   5. Snapshot regression tests catch any unintended namespace rewriting changes
+  6. Commands run from repo roots and subdirectories keep project-local KB/install authority when `.planning/` exists
 **Plans**: TBD
 
 Plans:
@@ -133,15 +140,18 @@ Plans:
 - [ ] 50-03: TBD
 
 ### Phase 51: Update System Hardening
-**Goal**: The installer produces actionable migration guides for version-jump upgrades, cleans up stale pre-modularization files, and the full v1.17→v1.18 upgrade path is tested end-to-end
+**Goal**: The installer and command-entry upgrade path produce actionable migration guidance, clean up stale pre-modularization files, and enforce authoritative project-local install/KB behavior across runtimes
 **Depends on**: Phase 50
 **Requirements**: UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06
+**Relevant deliberations (planning input, not settled policy)**:
+- `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`
 **Success Criteria** (what must be TRUE):
   1. Running installer on a v1.17 installation generates MIGRATION-GUIDE.md with relevant per-version sections
   2. Stale gsd-tools.js (pre-modularization) is removed and lib/*.cjs modules are in place after upgrade
   3. Hook registration reflects v1.18 state (new hooks added, stale hooks removed)
   4. Fresh install produces no MIGRATION-GUIDE.md (no migration noise for new users)
   5. v1.17 installation upgrades to v1.18 with all .planning/ artifacts intact and config.json migrated
+  6. Version drift and install-authority problems are surfaced for both hook-capable and non-hook runtimes
 **Plans**: TBD
 
 **Open design decisions (resolve during phase planning):**
@@ -192,14 +202,18 @@ Plans:
 - [ ] 53-04: TBD
 
 ### Phase 54: Infrastructure & Documentation
-**Goal**: CI reliability is restored, fork governance documents reflect the v1.18 sync state, and the upstream sync policy is formalized for future milestones
+**Goal**: CI reliability and planning telemetry correctness are restored, fork governance documents reflect the v1.18 sync state, open deliberations relevant to governance are explicitly linked, and the upstream sync policy is formalized for future milestones
 **Depends on**: Phase 48 (modularization complete; independent of Phases 49-53 but placed last for milestone coherence)
 **Requirements**: INF-01, INF-02, INF-03, INF-04
+**Relevant deliberations (planning input, not settled policy)**:
+- `.planning/deliberations/deliberation-frontmatter-provenance-and-workflow-consumption.md`
+- `.planning/deliberations/deliberation-revision-lineage-and-citation-stability.md`
+- `.planning/deliberations/metaphor-awareness-framing-critique-and-harness-reflexivity.md`
 **Success Criteria** (what must be TRUE):
   1. CI status cache includes repo and branch in its cache key, preventing cross-project pollution
-  2. The v1.17+ roadmap deliberation document reflects upstream sync as a completed milestone theme
-  3. FORK-DIVERGENCES.md reflects the v1.18 module structure and updated merge stances for all modified files
-  4. FORK-STRATEGY.md documents cadence, what-to-adopt criteria, and integration depth standards for future upstream syncs
+  2. STATE.md / ROADMAP.md progress reporting no longer overstates milestone completion while future work remains unplanned or incomplete
+  3. FORK-DIVERGENCES.md reflects the v1.18 module structure, live upstream-tracked divergence set, and updated merge stances for modified files
+  4. FORK-STRATEGY.md and the v1.17+ roadmap deliberation document record sync cadence, baseline-freeze rules, what-to-adopt criteria, and integration depth standards for future upstream syncs
 **Plans**: TBD
 
 Plans:

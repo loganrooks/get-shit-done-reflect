@@ -95,16 +95,16 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ## Current Milestone: v1.18 Upstream Sync & Deep Integration
 
-**Goal:** Properly adopt upstream changes informed by the fork audit, establish a durable sync policy, audit the migration system, and ensure adopted features integrate deeply with the fork's epistemic self-improvement philosophy — not as isolated patches.
+**Goal:** Properly adopt upstream changes informed by the fork audit, keep v1.18 scoped to the audited upstream baseline rather than silently expanding with later upstream releases, formalize adopt/keep/reject policy during the milestone, audit the migration and upgrade authority model, and ensure adopted features integrate deeply with the fork's epistemic self-improvement philosophy — not as isolated patches.
 
 **Target features:**
-- Upstream sync policy — formalize what to adopt, keep, reject, and how
+- Upstream sync policy — formalize what to adopt, keep, reject, and how before later adoption phases are planned
 - Modularization migration — redistribute fork's 2,126 lines across upstream's 11 modules
 - Feature adoption — context monitor, Nyquist auditor, code-aware discuss-phase, context scaling fix, stdin timeout, CLAUDE_CONFIG_DIR, new upstream workflows
-- Migration system audit — thorough testing of config migration, KB migration, and namespace rewriting
+- Migration/update authority hardening — config migration, KB migration, namespace rewriting, project-root/worktree resolution, and runtime-neutral upgrade surfacing
 - Deep integration — adopted features woven into fork's signal/automation/health/reflection pipeline
 - CI status bug fix — scope CI cache per-project
-- Deliberation update — incorporate upstream sync into v1.17+ roadmap deliberation
+- Deliberation-aware governance routing — surface relevant open deliberations directly in roadmap phases instead of relying on memory
 
 ### Out of Scope
 
@@ -115,7 +115,7 @@ The system never makes the same mistake twice — signals capture what went wron
 - ML-based signal classification — heuristic rules are sufficient and debuggable
 - Database for knowledge base — file-based with index is sufficient at expected scale
 - Continuous background monitoring — event-driven checkpoints instead
-- Modifying gsd-tools.js directly — upstream file, fork extensions go in separate gsd-reflect-tools.js
+- A parallel shadow CLI (`gsd-reflect-tools.js` / `fork-tools.js`) used to avoid upstream integration — v1.18 standard is upstream module adoption plus minimal in-place fork extensions where required
 - Full subagent parity in Codex CLI — Codex has no Task tool equivalent; graceful degradation instead
 - Windows-specific runtime support — macOS/Linux focus; Windows fixes from upstream can be adopted later
 - Runtime-specific test suites per runtime — validated via Claude Code + mechanical installer tests
@@ -128,22 +128,22 @@ The system never makes the same mistake twice — signals capture what went wron
 
 Shipped v1.17 Automation Loop. The self-improvement system is now self-triggering: signals auto-collect after phases, reflection auto-triggers after configurable phase counts, health checks run at session start, and CI failures surface immediately. The automation gap identified in v1.16 is closed — the system actively monitors itself without manual invocation.
 4 milestone themes remain from post-v1.16 roadmap (see `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`): Meta-Observability (M-B), Deliberation Intelligence (M-C), Cross-Platform Parity (M-D), Parallelization (M-E).
-Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, gsd-tools.js CLI (~5,900 lines with automation + health probe commands).
+Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, modular `gsd-tools.cjs` CLI router plus `bin/lib/*.cjs` runtime modules.
 Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents (with shared agent-protocol.md), Runtime layer (Node.js) for installation and hooks. Multi-sensor signal collection (artifact + git + CI sensors → synthesizer → KB). Health probes (modular .md specs executed by probe executor). Automation framework (4-level system with per-feature overrides).
 Knowledge base: `.planning/knowledge/` (project-local, version-controlled) with `~/.gsd/knowledge/` fallback. Contains `signals/`, `spikes/`, `reflections/` subdirectories, auto-generated `index.md`, lifecycle state machine, and provenance fields.
 Backlog: Two-tier storage (`.planning/backlog/items/` per-project, `~/.gsd/backlog/items/` global) with Markdown+YAML items, 7 CLI subcommands, auto-indexed.
 Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
 20 quick tasks completed across v1.17 development (installer fixes, namespace safety, worktree hooks, etc.).
 
-**Fork status (post v1.17):**
-- Fork at v1.17.1, upstream at v1.22.4
-- 748 commits ahead, 244 commits behind upstream
+**Fork status (v1.18 audit baseline):**
+- Audit baseline captured 2026-03-10: fork at v1.17.1, upstream at v1.22.4
+- v1.18 scope is frozen to that audited baseline; later upstream releases are triaged explicitly for later roadmap work instead of silently expanding this milestone
 - GSDR namespace co-installation enables side-by-side with upstream GSD
 - Tracked-modifications strategy with FORK-DIVERGENCES.md documenting per-file merge stances
 - 4 runtimes supported: Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI
 - Upstream's reverted GSD Memory vs fork's file-based KB: fork approach validated in production (see KB-COMPARISON.md)
 - Comprehensive fork audit completed (10 reports in .planning/fork-audit/) identifying modularization as critical reconciliation
-- Upstream modularized gsd-tools.js into 11 modules; fork's 2,126 lines of additions need redistribution
+- Phase 45-48 completed the modular CLI reconciliation: `gsd-tools.cjs` is now a router over upstream-aligned `lib/*.cjs` modules with fork additions redistributed across that structure
 
 ## Constraints
 
@@ -173,9 +173,9 @@ Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
 | Health check purely mechanical | No subjective quality assessment | ✓ Good — actionable pass/warning/fail results |
 | Migrations always additive | Never remove or modify existing config fields | ✓ Good — backward compatible upgrades |
 | Traditional merge over rebase for sync | 145 fork commits + 17 modified files makes rebase painful | ✓ Good — single merge commit f97291a |
-| Adopt gsd-tools.js as-is (no fork modifications) | 4,597-line upstream file; any change creates merge conflicts | ✓ Good — fork uses separate gsd-reflect-tools.js (future) |
+| Adopt upstream CLI modules and extend them in place where warranted | A shadow fork CLI would preserve divergence and block deep integration; upstream modules should remain the substrate while fork behavior is layered with minimal targeted edits | ✓ Good — Phases 45-48 landed upstream module adoption, fork extraction, and in-place extension via `bin/lib/*.cjs` |
 | Thin orchestrator pattern for all commands | Upstream architecture: commands delegate to workflows | ✓ Good — 29 commands converted, cleaner separation |
-| Separate fork-tools.js over modifying gsd-tools.js | Zero merge conflict risk for fork-specific CLI operations | — Pending — recommended but not yet created |
+| Upstream for substrate, fork for epistemic behavior | Architectural/runtime/safety improvements should usually be adopted from upstream; fork-specific epistemic loops, KB semantics, automation, and reflection remain fork-owned unless an explicit bridge is designed | ✓ Good — fork audit and v1.18 routing use this as the working adoption filter |
 | GitHub Discussions as fork community link | No fork Discord; GitHub Discussions is built-in and zero-setup | ✓ Good — replaced join-discord with community command |
 | File-based KB over upstream's reverted MCP Memory | Production data confirms: file-based approach has lower friction, works cross-project | ✓ Good — KB-COMPARISON.md documents evidence |
 
@@ -217,4 +217,4 @@ Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
 | Critical state transitions must be programmatic | Agent instructions are unreliable at ensuring every step fires in long sequences (proven by lifecycle gap, QT29) | ✓ Good — design principle from signal-lifecycle-closed-loop-gap deliberation |
 
 ---
-*Last updated: 2026-03-19 after v1.17.5 release (QT32, CI fix, self-improvement pipeline deliberation)*
+*Last updated: 2026-03-24 after quick task 34 (roadmap governance patch for deliberation routing and v1.18 scope alignment)*
