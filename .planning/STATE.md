@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed quick task 34 (applied stage-relevant deliberation review recommendations to ROADMAP.md and PROJECT.md, including baseline freeze and phase-level deliberation routing).
-last_updated: "2026-03-24T02:51:35Z"
-last_activity: 2026-03-24 -- Completed quick task 34: Apply stage-relevant deliberation review recommendations to roadmap and project docs
+stopped_at: Inserted Phase 48.1 to retriage live post-audit upstream drift before Phase 49 planning; roadmap/state now flag the current upstream delta explicitly.
+last_updated: "2026-03-24T03:06:17Z"
+last_activity: 2026-03-24 -- Inserted Phase 48.1 for post-audit upstream drift retriage and roadmap reconciliation
 progress:
-  total_phases: 10
+  total_phases: 11
   completed_phases: 4
   total_plans: 10
   completed_plans: 10
-  percent: 99
+  percent: 36
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 48 complete - Module Extensions & Verification (v1.18 Upstream Sync & Deep Integration)
+**Current focus:** Phase 48.1 inserted - Post-audit upstream drift retriage and roadmap reconciliation (next, not yet planned)
 
 ## Current Position
 
-Phase: 48 of 54 (Module Extensions & Verification)
-Plan: 2 of 2 (complete)
+Phase: 48.1 of 54 (Post-audit upstream drift retriage and roadmap reconciliation)
+Plan: 0 of TBD (not started)
 Status: active
-Last activity: 2026-03-24 -- Completed quick task 34: Apply stage-relevant deliberation review recommendations to roadmap and project docs
+Last activity: 2026-03-24 -- Inserted Phase 48.1 for post-audit upstream drift retriage and roadmap reconciliation
 
-Progress: [████████░░] 40%
+Progress: [███████░░░] 36%
 
 ## Performance Metrics
 
@@ -106,6 +106,11 @@ Recent decisions affecting current work:
 - [Quick 34]: v1.18 scope is explicitly frozen to the audited upstream `v1.22.4` baseline; later upstream changes require explicit triage instead of silent milestone expansion
 - [Quick 34]: Phases 49-51 and 54 now reference the relevant open deliberations as planning input, not adopted policy
 - [Quick 34]: Shadow fork CLI guidance is retired for v1.18; active strategy is upstream substrate with fork-specific epistemic behavior layered into the modular runtime
+- [Roadmap 2026-03-24]: Inserted Phase 48.1 so the live upstream drift after the audit baseline becomes an explicit planning gate, not an implicit background concern
+
+### Roadmap Evolution
+
+- 2026-03-24: Phase 48.1 inserted after Phase 48 — Post-audit upstream drift retriage and roadmap reconciliation (URGENT)
 
 ### Pending Todos
 
@@ -118,6 +123,7 @@ Recent decisions affecting current work:
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
+- Live upstream drift after audit baseline: `upstream/main` at `60fda20` is 358 commits past `v1.22.4` and 31 commits past `v1.28.0`; Phase 48.1 was inserted to retriage this before Phase 49 planning
 - Research flag: upstream function drift -- resolved in 46-01 (wholesale module adoption, no reconciliation needed)
 - Research flag: init function signature compatibility -- resolved in 48-01 (merged with includes param, all upstream fields preserved)
 - Research flag: context% bridge file lifecycle (stale files, concurrent sessions) needs investigation during Phase 51/52
@@ -145,7 +151,7 @@ Recent decisions affecting current work:
 - Fork audit reports: `.planning/fork-audit/` (10 reports informing v1.18 scope)
 - Research: `.planning/research/` (4 detailed analysis files: modular-migration, config-migration, migration-testing, integration-pitfalls)
 - Governance recommendation memo: `.planning/governance/recommendations/2026-03-23-deliberation-constellation-recommendations.md`
-- Deliberation context: `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`, `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`, `.planning/deliberations/deliberation-frontmatter-provenance-and-workflow-consumption.md`, `.planning/deliberations/deliberation-revision-lineage-and-citation-stability.md`
+- Deliberation context: `.planning/deliberations/upstream-drift-retriage-and-roadmap-authority.md`, `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`, `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`, `.planning/deliberations/deliberation-frontmatter-provenance-and-workflow-consumption.md`, `.planning/deliberations/deliberation-revision-lineage-and-citation-stability.md`
 
 ## Session Continuity
 
