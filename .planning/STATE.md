@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 48-02-PLAN.md (fork command overrides extracted, MOD-11 verified, gsd-tools.cjs is pure router at 674 lines). Phase 48 complete.
-last_updated: "2026-03-20T19:08:21.316Z"
-last_activity: 2026-03-20 -- Completed 48-01 (signal schema + init --include merge, gsd-tools.cjs reduced to 794 lines)
+stopped_at: Completed quick task 33 (integration PR #18 opened from Phase 45-48 stack, CI passed, automation regime-change path fixed for project-local KB writes).
+last_updated: "2026-03-24T02:12:03Z"
+last_activity: 2026-03-24 -- Completed quick task 33: Reconcile stacked phases 45-48 into a PR to main with CI gating
 progress:
   total_phases: 10
   completed_phases: 4
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 Phase: 48 of 54 (Module Extensions & Verification)
 Plan: 2 of 2 (complete)
 Status: active
-Last activity: 2026-03-20 -- Completed Phase 48 (modularization complete, gsd-tools.cjs pure router at 674 lines)
+Last activity: 2026-03-24 -- Completed quick task 33: Reconcile stacked phases 45-48 into a PR to main with CI gating
 
 Progress: [████████░░] 40%
 
@@ -134,6 +134,7 @@ Recent decisions affecting current work:
 | 30 | Platform change detection scripts + QT29 retrospective + monitoring reference | 2026-03-19 | a59b5d5 | [30-platform-change-detection-scripts-qt29-r](./quick/30-platform-change-detection-scripts-qt29-r/) |
 | 31 | Upstream local Codex patches: AGENTS.md gen, capability matrix, collect-signals | 2026-03-19 | d202a70 | [31-upstream-local-codex-patches-agents-md-c](./quick/31-upstream-local-codex-patches-agents-md-c/) |
 | 32 | Cross-runtime model profile language and per-runtime resolution | 2026-03-19 | c8db983 | [32-upstream-cross-runtime-model-profile-pat](./quick/32-upstream-cross-runtime-model-profile-pat/) |
+| 33 | Reconcile stacked phases 45-48 into a PR to main with CI gating | 2026-03-24 | 61b8bf4 | [33-reconcile-stacked-phases-45-48-into-a-pr](./quick/33-reconcile-stacked-phases-45-48-into-a-pr/) |
 
 ### Key Artifacts
 
