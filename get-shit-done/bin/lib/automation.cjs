@@ -275,9 +275,12 @@ function cmdAutomationRegimeChange(cwd, description, options, raw) {
     error('Usage: automation regime-change <description> [--impact <impact>] [--prior <prior-regime>]');
   }
 
-  // KB path resolution: project-local primary, ~/.gsd/ fallback
-  let kbDir = path.join(cwd, '.planning', 'knowledge');
-  if (!fs.existsSync(kbDir)) {
+  // KB path resolution: project-local primary, ~/.gsd/ fallback. If the
+  // project already has a .planning directory, prefer creating the local KB
+  // rather than silently switching to the user's global KB.
+  const planningDir = path.join(cwd, '.planning');
+  let kbDir = path.join(planningDir, 'knowledge');
+  if (!fs.existsSync(kbDir) && !fs.existsSync(planningDir)) {
     const globalKbDir = path.join(require('os').homedir(), '.gsd', 'knowledge');
     if (fs.existsSync(globalKbDir)) {
       kbDir = globalKbDir;
@@ -335,11 +338,22 @@ ${prior}
 
   // Attempt to rebuild KB index
   try {
-    const projectLocalScript = path.join(cwd, 'get-shit-done', 'bin', 'kb-rebuild-index.sh');
-    const globalScript = path.join(require('os').homedir(), '.gsd', 'bin', 'kb-rebuild-index.sh');
+    const projectLocalKbDir = path.join(cwd, '.planning', 'knowledge');
+    const bundledScript = path.join(__dirname, '..', 'kb-rebuild-index.sh');
+    const gsdHomeScript = process.env.GSD_HOME
+      ? path.join(process.env.GSD_HOME, 'bin', 'kb-rebuild-index.sh')
+      : null;
+    const globalScript = path.join(os.homedir(), '.gsd', 'bin', 'kb-rebuild-index.sh');
     let rebuildScript = null;
-    if (fs.existsSync(projectLocalScript)) {
-      rebuildScript = projectLocalScript;
+
+    // When writing to a project-local KB, use the script bundled with the
+    // current CLI/runtime. Resolving via cwd breaks temp-project and
+    // installed-runtime execution, and can accidentally fall back to a large
+    // global KB rebuild during tests.
+    if (kbDir === projectLocalKbDir && fs.existsSync(bundledScript)) {
+      rebuildScript = bundledScript;
+    } else if (gsdHomeScript && fs.existsSync(gsdHomeScript)) {
+      rebuildScript = gsdHomeScript;
     } else if (fs.existsSync(globalScript)) {
       rebuildScript = globalScript;
     }
