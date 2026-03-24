@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed quick task 260324-1nf repairing 48.1 branch lineage and stale phase branch cleanup; Phase 49 branch is reset from current main.
-last_updated: "2026-03-24T05:18:40Z"
-last_activity: 2026-03-24 -- Completed quick task 260324-1nf repairing 48.1 branch lineage, branch cleanup, and fresh Phase 49 reset
+stopped_at: Completed quick task 260325 removing stale local worktree refs; only main and the active Phase 49 branch remain.
+last_updated: "2026-03-24T21:49:23Z"
+last_activity: 2026-03-24 -- Completed quick task 260325 removing stale local worktree refs
 progress:
   total_phases: 11
   completed_phases: 5
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 49 next - Config Migration planning can now start from the cleaned post-48.1 mainline and consume the upstream drift ledger
+**Current focus:** Phase 49 next - Config Migration planning can now start from the cleaned post-48.1 mainline with no leftover worktree branch clutter
 
 ## Current Position
 
 Phase: 49 of 54 (Config Migration)
 Plan: 0 of TBD (not started)
 Status: active
-Last activity: 2026-03-24 -- Completed quick task 260324-1nf repairing 48.1 branch lineage, branch cleanup, and fresh Phase 49 reset
+Last activity: 2026-03-24 -- Completed quick task 260325 removing stale local worktree refs
 
 Progress: [███████░░░] 36%
 
@@ -149,6 +149,7 @@ Recent decisions affecting current work:
 | 33 | Reconcile stacked phases 45-48 into a PR to main with CI gating | 2026-03-24 | 61b8bf4 | [33-reconcile-stacked-phases-45-48-into-a-pr](./quick/33-reconcile-stacked-phases-45-48-into-a-pr/) |
 | 34 | Apply stage-relevant deliberation review recommendations to roadmap and project docs | 2026-03-24 | ce7b306 | [34-apply-stage-relevant-deliberation-review](./quick/34-apply-stage-relevant-deliberation-review/) |
 | 260324-1nf | Repair 48.1 branch lineage, restore proper PR flow, and clean stale local phase branches | 2026-03-24 | 1afa649 | [260324-1nf-repair-48-1-branch-lineage-restore-prope](./quick/260324-1nf-repair-48-1-branch-lineage-restore-prope/) |
+| 260325 | Clean leftover local worktree refs | 2026-03-24 | n/a | [260325-clean-leftover-local-worktree-refs](./quick/260325-clean-leftover-local-worktree-refs/) |
 
 ### Key Artifacts
 
@@ -160,6 +161,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-24T05:18:40Z
-Stopped at: Completed quick task 260324-1nf repairing 48.1 branch lineage and stale phase branches. Fresh Phase 49 branch is ready.
+Last session: 2026-03-24T21:49:23Z
+Stopped at: Completed quick task 260325 removing stale local worktree refs. Phase 49 branch remains active.
 Resume file: None
