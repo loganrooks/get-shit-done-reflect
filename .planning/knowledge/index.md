@@ -1,12 +1,13 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-23T07:03:04Z
-**Total entries:** 132
+**Generated:** 2026-03-24T00:02:12Z
+**Total entries:** 133
 
-## Signals (131)
+## Signals (132)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-03-23-phase-stack-complete-but-not-integrated | get-shit-done-reflect | critical | detected | git-workflow,branch-management,unpushed-work,no-ci-coverage,main-divergence,phase-stack | 2026-03-23 | active |
 | sig-2026-03-23-missing-home-for-constellation-recommendations | get-shit-done-reflect | notable | detected | deliberations,governance,roadmap,workflow-gap,artifact-home,planning-routing | 2026-03-23 | active |
 | sig-2026-03-23-cross-model-review-chain-epistemic-discipline | get-shit-done-reflect | notable | detected | deliberation-reviews,cross-model-review,epistemic-discipline,review-methodology,positive-pattern | 2026-03-23 | active |
 | sig-2026-03-23-prose-wrapping-convention-gap | get-shit-done-reflect | notable | detected | formatting,conventions,deliberation-artifacts,review-artifacts,markdown | 2026-03-23 | active |
