@@ -11,9 +11,13 @@
 
 ### v1.18 Upstream Sync & Deep Integration (In Progress)
 
-**Milestone Goal:** Properly adopt upstream changes informed by the fork audit, redistribute the fork's 2,126 lines across upstream's modular structure, establish a durable sync policy, harden the migration system, and ensure adopted features integrate deeply with the fork's epistemic self-improvement pipeline -- not as isolated patches.
+**Milestone Goal:** Properly adopt upstream changes informed by the fork audit, keep v1.18 scoped to the audited upstream baseline (`v1.22.4`) instead of silently expanding with later upstream releases, redistribute the fork's 2,126 lines across upstream's modular structure, formalize adopt/keep/reject policy in milestone governance, harden the migration and upgrade authority model, and ensure adopted features integrate deeply with the fork's epistemic self-improvement pipeline -- not as isolated patches.
 
 **Pre-work completed (v1.17.2-v1.17.3, QT22-28):** Installer converter functions brought to upstream parity before modular sync. Shared frontmatter helpers, Gemini/OpenCode/Codex converter fixes, `copyWithPathReplacement` upgrade, and parity enforcement tests. This ensures Phase 46's module adoption doesn't need to reconcile converter function interfaces. See `.planning/deliberations/deployment-parity-v1.17.2.md`.
+
+**Baseline note:** v1.18 planning is frozen against the March 10 fork audit / upstream `v1.22.4` baseline. Upstream releases after that baseline are handled as explicit triage input for later roadmap work, not as silent current-milestone scope growth.
+
+**Live upstream drift note (2026-03-24):** A fresh fetch moved `upstream/main` to `60fda20`, which is 372 commits past `v1.22.4` and 31 commits past `v1.28.0`. Phase 48.1 exists to retriage that post-audit drift before any further upstream-facing phase planning.
 
 ## Phases
 
@@ -27,12 +31,13 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 46: Upstream Module Adoption** - Adopt upstream's 11 lib/*.cjs modules, rewrite dispatcher, extract shared helpers to core.cjs ✓ 2026-03-20
 - [x] **Phase 47: Fork Module Extraction** - Extract 5 new fork modules (sensors, backlog, manifest, automation, health-probe) in dependency order ✓ 2026-03-20
 - [x] **Phase 48: Module Extensions & Verification** - Extend frontmatter.cjs and init.cjs with fork additions, verify all tests pass with zero behavioral changes ✓ 2026-03-20
-- [ ] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, update workflows and version-migration spec
-- [ ] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, integration depth tests
-- [ ] **Phase 51: Update System Hardening** - Installer generates migration guides, stale file cleanup, hook re-registration, upgrade testing
+- [x] **Phase 48.1: Post-audit upstream drift retriage and roadmap reconciliation (INSERTED)** - Capture what changed since the audit baseline, classify adopt/fold/defer decisions, and update v1.18 routing before Phase 49 planning ✓ 2026-03-24
+- [ ] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, and route config migration through the cross-runtime install/KB authority questions already identified
+- [ ] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, and root/worktree/KB authority edge-case coverage
+- [ ] **Phase 51: Update System Hardening** - Installer/runtime preflight, migration guides, stale file cleanup, hook/runtime-safe upgrade surfacing, and authoritative project-local upgrade behavior
 - [ ] **Phase 52: Feature Adoption** - Adopt context-monitor, Nyquist auditor, code-aware discuss-phase, upstream workflows, and supporting features
 - [ ] **Phase 53: Deep Integration** - Weave adopted features into fork's signal/automation/health/reflection pipeline
-- [ ] **Phase 54: Infrastructure & Documentation** - CI cache fix, deliberation update, fork divergence docs, upstream sync policy
+- [ ] **Phase 54: Infrastructure & Documentation** - CI cache fix, planning telemetry correctness, deliberation/governance update, fork divergence docs, and upstream sync policy
 
 ## Phase Details
 
@@ -98,16 +103,41 @@ Plans:
 - [ ] 48-01-PLAN.md -- Extend frontmatter.cjs with signal schema + merge fork init functions into init.cjs
 - [ ] 48-02-PLAN.md -- Extract remaining command overrides to modules + behavioral equivalence verification
 
+### Phase 48.1: Post-audit upstream drift retriage and roadmap reconciliation (INSERTED)
+
+**Goal**: The roadmap and project state explicitly account for live upstream drift after the audit baseline so later planners know what changed, what remains in-scope for v1.18, what has already landed, and what is consciously deferred
+**Depends on:** Phase 48
+**Requirements**: TBD
+**Relevant deliberations (planning input, not settled policy)**:
+- `.planning/deliberations/upstream-drift-retriage-and-roadmap-authority.md`
+- `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`
+**Relevant artifacts**:
+- `.planning/fork-audit/01-upstream-changes.md`
+- `.planning/governance/recommendations/2026-03-23-deliberation-constellation-recommendations.md`
+**Success Criteria** (what must be TRUE):
+  1. A dated upstream drift snapshot records the current upstream head/tag state and the delta from the `v1.22.4` audit baseline
+  2. Post-baseline upstream changes relevant to Phases 49-54 or already-landed Phase 45-48 surfaces are classified as `must-integrate-now`, `fold-into-open-phase`, `candidate-next-milestone`, or `defer`
+  3. ROADMAP.md, PROJECT.md, and STATE.md reflect the decided routing before Phase 49 planning starts
+  4. If any post-baseline upstream change now belongs in v1.18, the roadmap records where it lands rather than leaving it implicit
+**Plans:** 1 plan
+
+Plans:
+- [ ] 48.1-01-PLAN.md -- Create upstream drift classification ledger and update project docs with routing decisions
+
 ### Phase 49: Config Migration
-**Goal**: The manifest-driven migration system supports declarative field renames, the depth-to-granularity breaking change is absorbed programmatically, and multi-version upgrade paths work end-to-end
-**Depends on**: Phase 48
+**Goal**: The manifest-driven migration system supports declarative field renames, the depth-to-granularity breaking change is absorbed programmatically, and config upgrades move toward one runtime-neutral authority model instead of split workflow/install behavior
+**Depends on**: Phase 48.1
 **Requirements**: CFG-01, CFG-02, CFG-03, CFG-04, CFG-05, CFG-06, CFG-07
+**Relevant deliberations (planning input, not settled policy)**:
+- `.planning/deliberations/upstream-drift-retriage-and-roadmap-authority.md`
+- `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`
 **Success Criteria** (what must be TRUE):
   1. A project with `depth: "fine"` in config.json automatically migrates to `granularity: "fine"` on upgrade without user intervention
   2. Config fields from upstream that the fork does not recognize are preserved through migration (not deleted)
   3. A config from v1.14 can upgrade through v1.15, v1.16, v1.17, v1.18 in sequence and arrive at the correct v1.18 config
   4. The 3 workflow files that referenced `depth` now use `granularity` terminology consistently
   5. version-migration.md documents the controlled-exception mechanism for renames
+**Upstream drift routing (48.1):** Clusters C3 (worktree planning), C5 partial (init.cjs HOME), C6 partial (core.cjs model), C8 (commit_docs autodetect), and C9 (planningPaths) route here. See `UPSTREAM-DRIFT-LEDGER.md`.
 **Plans**: TBD
 
 Plans:
@@ -116,15 +146,20 @@ Plans:
 - [ ] 49-03: TBD
 
 ### Phase 50: Migration Test Hardening
-**Goal**: The migration, installation, and namespace rewriting pipelines are tested against the edge cases and failure modes identified in the fork audit, preventing regressions as features are adopted
+**Goal**: The migration, installation, namespace rewriting, and project-root/worktree authority paths are tested against the edge cases and failure modes identified in the fork audit, preventing regressions as features are adopted
 **Depends on**: Phase 49
 **Requirements**: TST-01, TST-02, TST-03, TST-04, TST-05, TST-06, TST-07, TST-08, TST-09
+**Relevant deliberations (planning input, not settled policy)**:
+- `.planning/deliberations/upstream-drift-retriage-and-roadmap-authority.md`
+- `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`
 **Success Criteria** (what must be TRUE):
   1. A full-corpus scan of installed files finds zero stale `gsd:`/`gsd-`/`get-shit-done/` references (namespace integrity verified)
   2. Running `apply-migration` N times on the same config produces identical output each time (idempotency)
   3. A simulated crash during KB migration leaves no partial state (cleanup verified)
   4. Each extracted module produces identical CLI output to the pre-extraction monolith for its command set
   5. Snapshot regression tests catch any unintended namespace rewriting changes
+  6. Commands run from repo roots and subdirectories keep project-local KB/install authority when `.planning/` exists
+**Upstream drift routing (48.1):** Cluster C2 partial (findProjectRoot bug fix in core.cjs) routes here. See `UPSTREAM-DRIFT-LEDGER.md`.
 **Plans**: TBD
 
 Plans:
@@ -133,15 +168,20 @@ Plans:
 - [ ] 50-03: TBD
 
 ### Phase 51: Update System Hardening
-**Goal**: The installer produces actionable migration guides for version-jump upgrades, cleans up stale pre-modularization files, and the full v1.17→v1.18 upgrade path is tested end-to-end
+**Goal**: The installer and command-entry upgrade path produce actionable migration guidance, clean up stale pre-modularization files, and enforce authoritative project-local install/KB behavior across runtimes
 **Depends on**: Phase 50
 **Requirements**: UPD-01, UPD-02, UPD-03, UPD-04, UPD-05, UPD-06
+**Relevant deliberations (planning input, not settled policy)**:
+- `.planning/deliberations/upstream-drift-retriage-and-roadmap-authority.md`
+- `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`
 **Success Criteria** (what must be TRUE):
   1. Running installer on a v1.17 installation generates MIGRATION-GUIDE.md with relevant per-version sections
   2. Stale gsd-tools.js (pre-modularization) is removed and lib/*.cjs modules are in place after upgrade
   3. Hook registration reflects v1.18 state (new hooks added, stale hooks removed)
   4. Fresh install produces no MIGRATION-GUIDE.md (no migration noise for new users)
   5. v1.17 installation upgrades to v1.18 with all .planning/ artifacts intact and config.json migrated
+  6. Version drift and install-authority problems are surfaced for both hook-capable and non-hook runtimes
+**Upstream drift routing (48.1):** Clusters C1 (config preservation/Codex paths), C5 partial (install.js HOME), C6 partial (install.js model), and C7 (hook field validation) route here. See `UPSTREAM-DRIFT-LEDGER.md`.
 **Plans**: TBD
 
 **Open design decisions (resolve during phase planning):**
@@ -165,6 +205,7 @@ Plans:
   3. The discuss-phase workflow includes codebase scouting (+328 lines) and produces `<code_context>` in CONTEXT.md
   4. All 4 adopted workflows (add-tests, cleanup, health, validate-phase) are installed with `gsdr:` prefix
   5. `CLAUDE_CONFIG_DIR` environment variable is respected in all paths that previously hardcoded `~/.claude`
+**Upstream drift routing (48.1):** Clusters C2 partial (workflow shell robustness) and C4 (worktree isolation) route here. See `UPSTREAM-DRIFT-LEDGER.md`.
 **Plans**: TBD
 
 Plans:
@@ -192,14 +233,19 @@ Plans:
 - [ ] 53-04: TBD
 
 ### Phase 54: Infrastructure & Documentation
-**Goal**: CI reliability is restored, fork governance documents reflect the v1.18 sync state, and the upstream sync policy is formalized for future milestones
-**Depends on**: Phase 48 (modularization complete; independent of Phases 49-53 but placed last for milestone coherence)
+**Goal**: CI reliability and planning telemetry correctness are restored, fork governance documents reflect the v1.18 sync state, open deliberations relevant to governance are explicitly linked, and the upstream sync policy is formalized for future milestones
+**Depends on**: Phase 48.1 (retriage complete; independent of Phases 49-53 execution, but must reflect their updated upstream-routing context)
 **Requirements**: INF-01, INF-02, INF-03, INF-04
+**Relevant deliberations (planning input, not settled policy)**:
+- `.planning/deliberations/upstream-drift-retriage-and-roadmap-authority.md`
+- `.planning/deliberations/deliberation-frontmatter-provenance-and-workflow-consumption.md`
+- `.planning/deliberations/deliberation-revision-lineage-and-citation-stability.md`
+- `.planning/deliberations/metaphor-awareness-framing-critique-and-harness-reflexivity.md`
 **Success Criteria** (what must be TRUE):
   1. CI status cache includes repo and branch in its cache key, preventing cross-project pollution
-  2. The v1.17+ roadmap deliberation document reflects upstream sync as a completed milestone theme
-  3. FORK-DIVERGENCES.md reflects the v1.18 module structure and updated merge stances for all modified files
-  4. FORK-STRATEGY.md documents cadence, what-to-adopt criteria, and integration depth standards for future upstream syncs
+  2. STATE.md / ROADMAP.md progress reporting no longer overstates milestone completion while future work remains unplanned or incomplete
+  3. FORK-DIVERGENCES.md reflects the v1.18 module structure, live upstream-tracked divergence set, and updated merge stances for modified files
+  4. FORK-STRATEGY.md and the v1.17+ roadmap deliberation document record sync cadence, baseline-freeze rules, what-to-adopt criteria, and integration depth standards for future upstream syncs
 **Plans**: TBD
 
 Plans:
@@ -209,7 +255,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 49 -> 50 -> 51 -> 52 -> 53 -> 54
+Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 -> 52 -> 53 -> 54
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -217,6 +263,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 49 -> 50 -> 51 -> 52 ->
 | 46. Upstream Module Adoption | 4/4 | Complete | 2026-03-20 |
 | 47. Fork Module Extraction | 2/2 | Complete | 2026-03-20 |
 | 48. Module Extensions & Verification | 2/2 | Complete | 2026-03-20 |
+| 48.1 Post-audit upstream drift retriage | 1/1 | Complete | 2026-03-24 |
 | 49. Config Migration | 0/TBD | Not started | - |
 | 50. Migration Test Hardening | 0/TBD | Not started | - |
 | 51. Update System Hardening | 0/TBD | Not started | - |
@@ -234,6 +281,6 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 49 -> 50 -> 51 -> 52 ->
 | v1.15 Backlog & Update | 22-30 | 24 | Complete | 2026-02-23 |
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
 | v1.17 Automation Loop | 36-44 | 24 | Complete | 2026-03-09 |
-| v1.18 Upstream Sync & Deep Integration | 45-54 | TBD | In Progress | - |
+| v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | TBD | In Progress | - |
 
-**Totals:** 7 milestones, 54 phases (44 complete + 10 planned), 129 plans completed
+**Totals:** 7 milestones, 55 phases (45 complete + 10 planned), 130 plans completed

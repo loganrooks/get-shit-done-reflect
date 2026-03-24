@@ -3,34 +3,34 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 48-02-PLAN.md (fork command overrides extracted, MOD-11 verified, gsd-tools.cjs is pure router at 674 lines). Phase 48 complete.
-last_updated: "2026-03-20T19:08:21.316Z"
-last_activity: 2026-03-20 -- Completed 48-01 (signal schema + init --include merge, gsd-tools.cjs reduced to 794 lines)
+stopped_at: Completed Phase 48.1 upstream drift routing and roadmap reconciliation; Phase 49 planning is next.
+last_updated: "2026-03-24T04:34:25Z"
+last_activity: 2026-03-24 -- Completed Phase 48.1 upstream drift routing and roadmap reconciliation
 progress:
-  total_phases: 10
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
-  percent: 99
+  total_phases: 11
+  completed_phases: 5
+  total_plans: 11
+  completed_plans: 11
+  percent: 45
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-10)
+See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 48 complete - Module Extensions & Verification (v1.18 Upstream Sync & Deep Integration)
+**Current focus:** Phase 49 next - Config Migration planning can now consume the 48.1 upstream drift ledger
 
 ## Current Position
 
-Phase: 48 of 54 (Module Extensions & Verification)
-Plan: 2 of 2 (complete)
+Phase: 49 of 54 (Config Migration)
+Plan: 0 of TBD (not started)
 Status: active
-Last activity: 2026-03-20 -- Completed Phase 48 (modularization complete, gsd-tools.cjs pure router at 674 lines)
+Last activity: 2026-03-24 -- Completed Phase 48.1 upstream drift routing and roadmap reconciliation
 
-Progress: [████████░░] 40%
+Progress: [███████░░░] 36%
 
 ## Performance Metrics
 
@@ -76,6 +76,7 @@ Progress: [████████░░] 40%
 | Phase 47 P02 | 11min | 2 tasks | 4 files |
 | Phase 48 P01 | 9min | 2 tasks | 3 files |
 | Phase 48 P02 | 6min | 2 tasks | 3 files |
+| Phase 48.1 P01 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,16 @@ Recent decisions affecting current work:
 - [Phase 48]: Merge strategy: edit upstream function bodies in-place (add includes param + content loading block), never wholesale-replace
 - [Phase 48]: Fork extension pattern: module.exports.funcName appended after main exports block — consistent with frontmatter.cjs and init.cjs approach
 - [Phase 48]: gsd-tools.cjs is now a pure CLI router with zero inline function definitions — all command logic lives in lib/*.cjs
+- [Quick 34]: v1.18 scope is explicitly frozen to the audited upstream `v1.22.4` baseline; later upstream changes require explicit triage instead of silent milestone expansion
+- [Quick 34]: Phases 49-51 and 54 now reference the relevant open deliberations as planning input, not adopted policy
+- [Quick 34]: Shadow fork CLI guidance is retired for v1.18; active strategy is upstream substrate with fork-specific epistemic behavior layered into the modular runtime
+- [Roadmap 2026-03-24]: Inserted Phase 48.1 so the live upstream drift after the audit baseline becomes an explicit planning gate, not an implicit background concern
+- [Phase 48.1]: Zero must-integrate-now items; all 9 fold-into clusters (C1-C9) route to Phases 49-52 per `UPSTREAM-DRIFT-LEDGER.md`; no Phase 45-48 reopening needed
+- [Phase 48.1]: Comparison target is `v1.28.0` (released) with `upstream/main` as watchlist; ledger valid until ~2026-04-07
+
+### Roadmap Evolution
+
+- 2026-03-24: Phase 48.1 inserted after Phase 48 — Post-audit upstream drift retriage and roadmap reconciliation (URGENT)
 
 ### Pending Todos
 
@@ -115,6 +126,7 @@ Recent decisions affecting current work:
 
 - NPM_TOKEN config (pre-existing from v1.12, not blocking)
 - Gitignore friction (pre-existing from v1.12, not blocking)
+- Live upstream drift after audit baseline: ADDRESSED by Phase 48.1 -- 372 commits triaged into 11 clusters, 9 fold-into + 1 candidate-next-milestone + 1 defer; routing recorded in ROADMAP.md and `UPSTREAM-DRIFT-LEDGER.md`
 - Research flag: upstream function drift -- resolved in 46-01 (wholesale module adoption, no reconciliation needed)
 - Research flag: init function signature compatibility -- resolved in 48-01 (merged with includes param, all upstream fields preserved)
 - Research flag: context% bridge file lifecycle (stale files, concurrent sessions) needs investigation during Phase 51/52
@@ -134,15 +146,19 @@ Recent decisions affecting current work:
 | 30 | Platform change detection scripts + QT29 retrospective + monitoring reference | 2026-03-19 | a59b5d5 | [30-platform-change-detection-scripts-qt29-r](./quick/30-platform-change-detection-scripts-qt29-r/) |
 | 31 | Upstream local Codex patches: AGENTS.md gen, capability matrix, collect-signals | 2026-03-19 | d202a70 | [31-upstream-local-codex-patches-agents-md-c](./quick/31-upstream-local-codex-patches-agents-md-c/) |
 | 32 | Cross-runtime model profile language and per-runtime resolution | 2026-03-19 | c8db983 | [32-upstream-cross-runtime-model-profile-pat](./quick/32-upstream-cross-runtime-model-profile-pat/) |
+| 33 | Reconcile stacked phases 45-48 into a PR to main with CI gating | 2026-03-24 | 61b8bf4 | [33-reconcile-stacked-phases-45-48-into-a-pr](./quick/33-reconcile-stacked-phases-45-48-into-a-pr/) |
+| 34 | Apply stage-relevant deliberation review recommendations to roadmap and project docs | 2026-03-24 | ce7b306 | [34-apply-stage-relevant-deliberation-review](./quick/34-apply-stage-relevant-deliberation-review/) |
 
 ### Key Artifacts
 
 - Fork audit reports: `.planning/fork-audit/` (10 reports informing v1.18 scope)
 - Research: `.planning/research/` (4 detailed analysis files: modular-migration, config-migration, migration-testing, integration-pitfalls)
-- Deliberation context: `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`, `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`, `.planning/deliberations/deliberation-frontmatter-provenance-and-workflow-consumption.md`, `.planning/deliberations/deliberation-revision-lineage-and-citation-stability.md`
+- Governance recommendation memo: `.planning/governance/recommendations/2026-03-23-deliberation-constellation-recommendations.md`
+- Phase 48.1 drift ledger: `.planning/phases/48.1-post-audit-upstream-drift-retriage-and-roadmap-reconciliation/UPSTREAM-DRIFT-LEDGER.md`
+- Deliberation context: `.planning/deliberations/upstream-drift-retriage-and-roadmap-authority.md`, `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`, `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`, `.planning/deliberations/deliberation-frontmatter-provenance-and-workflow-consumption.md`, `.planning/deliberations/deliberation-revision-lineage-and-citation-stability.md`
 
 ## Session Continuity
 
-Last session: 2026-03-20T19:08:21.312Z
-Stopped at: Completed 48-02-PLAN.md (fork command overrides extracted, MOD-11 verified, gsd-tools.cjs is pure router at 674 lines). Phase 48 complete.
+Last session: 2026-03-24T04:34:25Z
+Stopped at: Completed Phase 48.1 (ledger, routing docs, verification passed). Phase 49 planning is next.
 Resume file: None
