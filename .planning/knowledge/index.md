@@ -1,12 +1,13 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-24T04:53:21Z
-**Total entries:** 134
+**Generated:** 2026-03-24T05:06:42Z
+**Total entries:** 135
 
-## Signals (133)
+## Signals (134)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-03-24-local-branch-cleanup-and-lineage-drift | get-shit-done-reflect | notable | detected | git-workflow,branch-management,post-merge,local-cleanup,stale-lineage,remote-mismatch,codex | 2026-03-24 | active |
 | sig-2026-03-24-codex-delegation-policy-hidden-from-config | get-shit-done-reflect | notable | detected | codex,claude,cross-runtime,delegation-policy,spawn-agent,workflow-behavior,platform-parity | 2026-03-24 | active |
 | sig-2026-03-23-phase-stack-complete-but-not-integrated | get-shit-done-reflect | critical | detected | git-workflow,branch-management,unpushed-work,no-ci-coverage,main-divergence,phase-stack | 2026-03-23 | active |
 | sig-2026-03-23-missing-home-for-constellation-recommendations | get-shit-done-reflect | notable | detected | deliberations,governance,roadmap,workflow-gap,artifact-home,planning-routing | 2026-03-23 | active |
