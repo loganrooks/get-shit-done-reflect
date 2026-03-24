@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed Phase 48.1 upstream drift routing and roadmap reconciliation; Phase 49 planning is next.
-last_updated: "2026-03-24T04:34:25Z"
-last_activity: 2026-03-24 -- Completed Phase 48.1 upstream drift routing and roadmap reconciliation
+stopped_at: Completed quick task 260324-1nf repairing 48.1 branch lineage and stale phase branch cleanup; Phase 49 branch is reset from current main.
+last_updated: "2026-03-24T05:18:40Z"
+last_activity: 2026-03-24 -- Completed quick task 260324-1nf repairing 48.1 branch lineage, branch cleanup, and fresh Phase 49 reset
 progress:
   total_phases: 11
   completed_phases: 5
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 49 next - Config Migration planning can now consume the 48.1 upstream drift ledger
+**Current focus:** Phase 49 next - Config Migration planning can now start from the cleaned post-48.1 mainline and consume the upstream drift ledger
 
 ## Current Position
 
 Phase: 49 of 54 (Config Migration)
 Plan: 0 of TBD (not started)
 Status: active
-Last activity: 2026-03-24 -- Completed Phase 48.1 upstream drift routing and roadmap reconciliation
+Last activity: 2026-03-24 -- Completed quick task 260324-1nf repairing 48.1 branch lineage, branch cleanup, and fresh Phase 49 reset
 
 Progress: [███████░░░] 36%
 
@@ -148,6 +148,7 @@ Recent decisions affecting current work:
 | 32 | Cross-runtime model profile language and per-runtime resolution | 2026-03-19 | c8db983 | [32-upstream-cross-runtime-model-profile-pat](./quick/32-upstream-cross-runtime-model-profile-pat/) |
 | 33 | Reconcile stacked phases 45-48 into a PR to main with CI gating | 2026-03-24 | 61b8bf4 | [33-reconcile-stacked-phases-45-48-into-a-pr](./quick/33-reconcile-stacked-phases-45-48-into-a-pr/) |
 | 34 | Apply stage-relevant deliberation review recommendations to roadmap and project docs | 2026-03-24 | ce7b306 | [34-apply-stage-relevant-deliberation-review](./quick/34-apply-stage-relevant-deliberation-review/) |
+| 260324-1nf | Repair 48.1 branch lineage, restore proper PR flow, and clean stale local phase branches | 2026-03-24 | 1afa649 | [260324-1nf-repair-48-1-branch-lineage-restore-prope](./quick/260324-1nf-repair-48-1-branch-lineage-restore-prope/) |
 
 ### Key Artifacts
 
@@ -159,6 +160,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-24T04:34:25Z
-Stopped at: Completed Phase 48.1 (ledger, routing docs, verification passed). Phase 49 planning is next.
+Last session: 2026-03-24T05:18:40Z
+Stopped at: Completed quick task 260324-1nf repairing 48.1 branch lineage and stale phase branches. Fresh Phase 49 branch is ready.
 Resume file: None
