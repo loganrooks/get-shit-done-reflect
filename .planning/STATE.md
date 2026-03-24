@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed quick task 33 (integration PR #18 opened from Phase 45-48 stack, CI passed, automation regime-change path fixed for project-local KB writes).
-last_updated: "2026-03-24T02:12:03Z"
-last_activity: 2026-03-24 -- Completed quick task 33: Reconcile stacked phases 45-48 into a PR to main with CI gating
+stopped_at: Completed quick task 34 (applied stage-relevant deliberation review recommendations to ROADMAP.md and PROJECT.md, including baseline freeze and phase-level deliberation routing).
+last_updated: "2026-03-24T02:51:35Z"
+last_activity: 2026-03-24 -- Completed quick task 34: Apply stage-relevant deliberation review recommendations to roadmap and project docs
 progress:
   total_phases: 10
   completed_phases: 4
@@ -18,7 +18,7 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-10)
+See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
 **Current focus:** Phase 48 complete - Module Extensions & Verification (v1.18 Upstream Sync & Deep Integration)
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-03-10)
 Phase: 48 of 54 (Module Extensions & Verification)
 Plan: 2 of 2 (complete)
 Status: active
-Last activity: 2026-03-24 -- Completed quick task 33: Reconcile stacked phases 45-48 into a PR to main with CI gating
+Last activity: 2026-03-24 -- Completed quick task 34: Apply stage-relevant deliberation review recommendations to roadmap and project docs
 
 Progress: [████████░░] 40%
 
@@ -103,6 +103,9 @@ Recent decisions affecting current work:
 - [Phase 48]: Merge strategy: edit upstream function bodies in-place (add includes param + content loading block), never wholesale-replace
 - [Phase 48]: Fork extension pattern: module.exports.funcName appended after main exports block — consistent with frontmatter.cjs and init.cjs approach
 - [Phase 48]: gsd-tools.cjs is now a pure CLI router with zero inline function definitions — all command logic lives in lib/*.cjs
+- [Quick 34]: v1.18 scope is explicitly frozen to the audited upstream `v1.22.4` baseline; later upstream changes require explicit triage instead of silent milestone expansion
+- [Quick 34]: Phases 49-51 and 54 now reference the relevant open deliberations as planning input, not adopted policy
+- [Quick 34]: Shadow fork CLI guidance is retired for v1.18; active strategy is upstream substrate with fork-specific epistemic behavior layered into the modular runtime
 
 ### Pending Todos
 
@@ -135,11 +138,13 @@ Recent decisions affecting current work:
 | 31 | Upstream local Codex patches: AGENTS.md gen, capability matrix, collect-signals | 2026-03-19 | d202a70 | [31-upstream-local-codex-patches-agents-md-c](./quick/31-upstream-local-codex-patches-agents-md-c/) |
 | 32 | Cross-runtime model profile language and per-runtime resolution | 2026-03-19 | c8db983 | [32-upstream-cross-runtime-model-profile-pat](./quick/32-upstream-cross-runtime-model-profile-pat/) |
 | 33 | Reconcile stacked phases 45-48 into a PR to main with CI gating | 2026-03-24 | 61b8bf4 | [33-reconcile-stacked-phases-45-48-into-a-pr](./quick/33-reconcile-stacked-phases-45-48-into-a-pr/) |
+| 34 | Apply stage-relevant deliberation review recommendations to roadmap and project docs | 2026-03-24 | ce7b306 | [34-apply-stage-relevant-deliberation-review](./quick/34-apply-stage-relevant-deliberation-review/) |
 
 ### Key Artifacts
 
 - Fork audit reports: `.planning/fork-audit/` (10 reports informing v1.18 scope)
 - Research: `.planning/research/` (4 detailed analysis files: modular-migration, config-migration, migration-testing, integration-pitfalls)
+- Governance recommendation memo: `.planning/governance/recommendations/2026-03-23-deliberation-constellation-recommendations.md`
 - Deliberation context: `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`, `.planning/deliberations/cross-runtime-upgrade-install-and-kb-authority.md`, `.planning/deliberations/deliberation-frontmatter-provenance-and-workflow-consumption.md`, `.planning/deliberations/deliberation-revision-lineage-and-citation-stability.md`
 
 ## Session Continuity
