@@ -138,6 +138,7 @@ Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
 **Fork status (v1.18 audit baseline):**
 - Audit baseline captured 2026-03-10: fork at v1.17.1, upstream at v1.22.4
 - v1.18 scope is frozen to that audited baseline; later upstream releases are triaged explicitly for later roadmap work instead of silently expanding this milestone
+- Post-audit upstream drift triaged (Phase 48.1): 372 commits (`v1.22.4` to `upstream/main`) classified into 11 clusters; zero must-integrate-now, 9 fold-into existing phases, no Phase 45-48 reopening needed. See `UPSTREAM-DRIFT-LEDGER.md`.
 - GSDR namespace co-installation enables side-by-side with upstream GSD
 - Tracked-modifications strategy with FORK-DIVERGENCES.md documenting per-file merge stances
 - 4 runtimes supported: Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI
@@ -174,6 +175,7 @@ Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
 | Migrations always additive | Never remove or modify existing config fields | ✓ Good — backward compatible upgrades |
 | Traditional merge over rebase for sync | 145 fork commits + 17 modified files makes rebase painful | ✓ Good — single merge commit f97291a |
 | Adopt upstream CLI modules and extend them in place where warranted | A shadow fork CLI would preserve divergence and block deep integration; upstream modules should remain the substrate while fork behavior is layered with minimal targeted edits | ✓ Good — Phases 45-48 landed upstream module adoption, fork extraction, and in-place extension via `bin/lib/*.cjs` |
+| Upstream drift routed to existing phases, not new inserted phases | 9 fold-into clusters map naturally to Phase 49-52 boundaries; zero must-integrate-now items; adding more phases here would fragment coherent work packages | ✓ Good — confirmed by function-level overlap analysis in `48.1-RESEARCH.md` |
 | Thin orchestrator pattern for all commands | Upstream architecture: commands delegate to workflows | ✓ Good — 29 commands converted, cleaner separation |
 | Upstream for substrate, fork for epistemic behavior | Architectural/runtime/safety improvements should usually be adopted from upstream; fork-specific epistemic loops, KB semantics, automation, and reflection remain fork-owned unless an explicit bridge is designed | ✓ Good — fork audit and v1.18 routing use this as the working adoption filter |
 | GitHub Discussions as fork community link | No fork Discord; GitHub Discussions is built-in and zero-setup | ✓ Good — replaced join-discord with community command |
@@ -217,4 +219,4 @@ Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
 | Critical state transitions must be programmatic | Agent instructions are unreliable at ensuring every step fires in long sequences (proven by lifecycle gap, QT29) | ✓ Good — design principle from signal-lifecycle-closed-loop-gap deliberation |
 
 ---
-*Last updated: 2026-03-24 after quick task 34 (roadmap governance patch for deliberation routing and v1.18 scope alignment)*
+*Last updated: 2026-03-24 after Phase 48.1 upstream drift routing and roadmap reconciliation*

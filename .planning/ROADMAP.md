@@ -17,7 +17,7 @@
 
 **Baseline note:** v1.18 planning is frozen against the March 10 fork audit / upstream `v1.22.4` baseline. Upstream releases after that baseline are handled as explicit triage input for later roadmap work, not as silent current-milestone scope growth.
 
-**Live upstream drift note (2026-03-24):** A fresh fetch moved `upstream/main` to `60fda20`, which is 358 commits past `v1.22.4` and 31 commits past `v1.28.0`. Phase 48.1 exists to retriage that post-audit drift before any further upstream-facing phase planning.
+**Live upstream drift note (2026-03-24):** A fresh fetch moved `upstream/main` to `60fda20`, which is 372 commits past `v1.22.4` and 31 commits past `v1.28.0`. Phase 48.1 exists to retriage that post-audit drift before any further upstream-facing phase planning.
 
 ## Phases
 
@@ -137,6 +137,7 @@ Plans:
   3. A config from v1.14 can upgrade through v1.15, v1.16, v1.17, v1.18 in sequence and arrive at the correct v1.18 config
   4. The 3 workflow files that referenced `depth` now use `granularity` terminology consistently
   5. version-migration.md documents the controlled-exception mechanism for renames
+**Upstream drift routing (48.1):** Clusters C3 (worktree planning), C5 partial (init.cjs HOME), C6 partial (core.cjs model), C8 (commit_docs autodetect), and C9 (planningPaths) route here. See `UPSTREAM-DRIFT-LEDGER.md`.
 **Plans**: TBD
 
 Plans:
@@ -158,6 +159,7 @@ Plans:
   4. Each extracted module produces identical CLI output to the pre-extraction monolith for its command set
   5. Snapshot regression tests catch any unintended namespace rewriting changes
   6. Commands run from repo roots and subdirectories keep project-local KB/install authority when `.planning/` exists
+**Upstream drift routing (48.1):** Cluster C2 partial (findProjectRoot bug fix in core.cjs) routes here. See `UPSTREAM-DRIFT-LEDGER.md`.
 **Plans**: TBD
 
 Plans:
@@ -179,6 +181,7 @@ Plans:
   4. Fresh install produces no MIGRATION-GUIDE.md (no migration noise for new users)
   5. v1.17 installation upgrades to v1.18 with all .planning/ artifacts intact and config.json migrated
   6. Version drift and install-authority problems are surfaced for both hook-capable and non-hook runtimes
+**Upstream drift routing (48.1):** Clusters C1 (config preservation/Codex paths), C5 partial (install.js HOME), C6 partial (install.js model), and C7 (hook field validation) route here. See `UPSTREAM-DRIFT-LEDGER.md`.
 **Plans**: TBD
 
 **Open design decisions (resolve during phase planning):**
@@ -202,6 +205,7 @@ Plans:
   3. The discuss-phase workflow includes codebase scouting (+328 lines) and produces `<code_context>` in CONTEXT.md
   4. All 4 adopted workflows (add-tests, cleanup, health, validate-phase) are installed with `gsdr:` prefix
   5. `CLAUDE_CONFIG_DIR` environment variable is respected in all paths that previously hardcoded `~/.claude`
+**Upstream drift routing (48.1):** Clusters C2 partial (workflow shell robustness) and C4 (worktree isolation) route here. See `UPSTREAM-DRIFT-LEDGER.md`.
 **Plans**: TBD
 
 Plans:
@@ -259,7 +263,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 
 | 46. Upstream Module Adoption | 4/4 | Complete | 2026-03-20 |
 | 47. Fork Module Extraction | 2/2 | Complete | 2026-03-20 |
 | 48. Module Extensions & Verification | 2/2 | Complete | 2026-03-20 |
-| 48.1 Post-audit upstream drift retriage | 0/1 | Planned | - |
+| 48.1 Post-audit upstream drift retriage | 0/1 | In progress | - |
 | 49. Config Migration | 0/TBD | Not started | - |
 | 50. Migration Test Hardening | 0/TBD | Not started | - |
 | 51. Update System Hardening | 0/TBD | Not started | - |
