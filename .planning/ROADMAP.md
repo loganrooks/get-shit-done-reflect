@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 46: Upstream Module Adoption** - Adopt upstream's 11 lib/*.cjs modules, rewrite dispatcher, extract shared helpers to core.cjs ✓ 2026-03-20
 - [x] **Phase 47: Fork Module Extraction** - Extract 5 new fork modules (sensors, backlog, manifest, automation, health-probe) in dependency order ✓ 2026-03-20
 - [x] **Phase 48: Module Extensions & Verification** - Extend frontmatter.cjs and init.cjs with fork additions, verify all tests pass with zero behavioral changes ✓ 2026-03-20
-- [ ] **Phase 48.1: Post-audit upstream drift retriage and roadmap reconciliation (INSERTED)** - Capture what changed since the audit baseline, classify adopt/fold/defer decisions, and update v1.18 routing before Phase 49 planning
+- [x] **Phase 48.1: Post-audit upstream drift retriage and roadmap reconciliation (INSERTED)** - Capture what changed since the audit baseline, classify adopt/fold/defer decisions, and update v1.18 routing before Phase 49 planning ✓ 2026-03-24
 - [ ] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, and route config migration through the cross-runtime install/KB authority questions already identified
 - [ ] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, and root/worktree/KB authority edge-case coverage
 - [ ] **Phase 51: Update System Hardening** - Installer/runtime preflight, migration guides, stale file cleanup, hook/runtime-safe upgrade surfacing, and authoritative project-local upgrade behavior
@@ -263,7 +263,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 
 | 46. Upstream Module Adoption | 4/4 | Complete | 2026-03-20 |
 | 47. Fork Module Extraction | 2/2 | Complete | 2026-03-20 |
 | 48. Module Extensions & Verification | 2/2 | Complete | 2026-03-20 |
-| 48.1 Post-audit upstream drift retriage | 0/1 | In progress | - |
+| 48.1 Post-audit upstream drift retriage | 1/1 | Complete | 2026-03-24 |
 | 49. Config Migration | 0/TBD | Not started | - |
 | 50. Migration Test Hardening | 0/TBD | Not started | - |
 | 51. Update System Hardening | 0/TBD | Not started | - |
@@ -283,4 +283,4 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 
 | v1.17 Automation Loop | 36-44 | 24 | Complete | 2026-03-09 |
 | v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | TBD | In Progress | - |
 
-**Totals:** 7 milestones, 55 phases (44 complete + 11 planned), 129 plans completed
+**Totals:** 7 milestones, 55 phases (45 complete + 10 planned), 130 plans completed
