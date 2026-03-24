@@ -2,6 +2,10 @@
 
 **Date:** 2026-03-24
 **Status:** Open
+**Runtime:** codex-cli
+**Authored by:** Codex
+**Model:** gpt-5.4
+**Reasoning effort:** not exposed by current runtime
 **Trigger:** Post-merge reflection after PR #18 and user question about whether GSD Reflect should automate PR review so that a different model family reviews code than the one that authored it.
 **Affects:** Future milestone planning, REV-01/REV-02, CI/rulesets, PR workflow, signal collection, branch protection strategy
 **Related:**
