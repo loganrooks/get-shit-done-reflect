@@ -1,12 +1,14 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-24T05:06:42Z
-**Total entries:** 135
+**Generated:** 2026-03-26T22:07:06Z
+**Total entries:** 137
 
-## Signals (134)
+## Signals (136)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-03-26-codex-signal-semantics-confusion | get-shit-done-reflect | notable | detected | codex,signal-semantics,knowledge-model,terminology,traceability | 2026-03-26 | active |
+| sig-2026-03-26-active-phase-branch-not-pushed-immediately | get-shit-done-reflect | notable | detected | git-workflow,branch-management,branch-publication,upstream-tracking,traceability,codex | 2026-03-26 | active |
 | sig-2026-03-24-local-branch-cleanup-and-lineage-drift | get-shit-done-reflect | notable | detected | git-workflow,branch-management,post-merge,local-cleanup,stale-lineage,remote-mismatch,codex | 2026-03-24 | active |
 | sig-2026-03-24-codex-delegation-policy-hidden-from-config | get-shit-done-reflect | notable | detected | codex,claude,cross-runtime,delegation-policy,spawn-agent,workflow-behavior,platform-parity | 2026-03-24 | active |
 | sig-2026-03-23-phase-stack-complete-but-not-integrated | get-shit-done-reflect | critical | detected | git-workflow,branch-management,unpushed-work,no-ci-coverage,main-divergence,phase-stack | 2026-03-23 | active |
