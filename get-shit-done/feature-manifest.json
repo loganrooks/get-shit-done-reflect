@@ -1,5 +1,19 @@
 {
-  "manifest_version": 1,
+  "manifest_version": 2,
+  "migrations": [
+    {
+      "type": "rename_field",
+      "version": "1.15.0",
+      "from": "depth",
+      "to": "granularity",
+      "scope": "top_level",
+      "value_map": {
+        "quick": "coarse",
+        "standard": "standard",
+        "comprehensive": "fine"
+      }
+    }
+  ],
   "features": {
     "health_check": {
       "scope": "project",

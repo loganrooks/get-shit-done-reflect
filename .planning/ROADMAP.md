@@ -32,7 +32,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 47: Fork Module Extraction** - Extract 5 new fork modules (sensors, backlog, manifest, automation, health-probe) in dependency order ✓ 2026-03-20
 - [x] **Phase 48: Module Extensions & Verification** - Extend frontmatter.cjs and init.cjs with fork additions, verify all tests pass with zero behavioral changes ✓ 2026-03-20
 - [x] **Phase 48.1: Post-audit upstream drift retriage and roadmap reconciliation (INSERTED)** - Capture what changed since the audit baseline, classify adopt/fold/defer decisions, and update v1.18 routing before Phase 49 planning ✓ 2026-03-24
-- [ ] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, and route config migration through the cross-runtime install/KB authority questions already identified
+- [x] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, and route config migration through the cross-runtime install/KB authority questions already identified ✓ 2026-03-26
 - [ ] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, and root/worktree/KB authority edge-case coverage
 - [ ] **Phase 51: Update System Hardening** - Installer/runtime preflight, migration guides, stale file cleanup, hook/runtime-safe upgrade surfacing, and authoritative project-local upgrade behavior
 - [ ] **Phase 52: Feature Adoption** - Adopt context-monitor, Nyquist auditor, code-aware discuss-phase, upstream workflows, and supporting features
@@ -138,12 +138,13 @@ Plans:
   4. The 3 workflow files that referenced `depth` now use `granularity` terminology consistently
   5. version-migration.md documents the controlled-exception mechanism for renames
 **Upstream drift routing (48.1):** Clusters C3 (worktree planning), C5 partial (init.cjs HOME), C6 partial (core.cjs model), C8 (commit_docs autodetect), and C9 (planningPaths) route here. See `UPSTREAM-DRIFT-LEDGER.md`.
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 49-01: TBD
-- [ ] 49-02: TBD
-- [ ] 49-03: TBD
+- [ ] 49-01-PLAN.md -- Manifest migrations[] array with rename_field support and depth-to-granularity migration
+- [ ] 49-02-PLAN.md -- Update workflow and reference files from depth to granularity terminology + version-migration.md controlled-exception docs
+- [ ] 49-03-PLAN.md -- Absorb upstream drift clusters C3/C5/C6/C8/C9 into core.cjs and init.cjs
+- [ ] 49-04-PLAN.md -- Rename migration tests, unknown field preservation, multi-version upgrade chain
 
 ### Phase 50: Migration Test Hardening
 **Goal**: The migration, installation, namespace rewriting, and project-root/worktree authority paths are tested against the edge cases and failure modes identified in the fork audit, preventing regressions as features are adopted
@@ -264,7 +265,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 
 | 47. Fork Module Extraction | 2/2 | Complete | 2026-03-20 |
 | 48. Module Extensions & Verification | 2/2 | Complete | 2026-03-20 |
 | 48.1 Post-audit upstream drift retriage | 1/1 | Complete | 2026-03-24 |
-| 49. Config Migration | 0/TBD | Not started | - |
+| 49. Config Migration | 4/4 | Complete | 2026-03-26 |
 | 50. Migration Test Hardening | 0/TBD | Not started | - |
 | 51. Update System Hardening | 0/TBD | Not started | - |
 | 52. Feature Adoption | 0/TBD | Not started | - |

@@ -115,7 +115,7 @@ If Genuine Gaps exist:
 
 2. **Apply sensitivity filter:**
    ```
-   sensitivity = config.spike.sensitivity OR derive from config.depth
+   sensitivity = config.spike.sensitivity OR derive from config.granularity
 
    - conservative: only process Critical gaps with Spike recommendation
    - balanced: process Critical + Medium gaps with Spike recommendation
@@ -204,10 +204,10 @@ If gaps exist: apply same sensitivity/autonomy logic as plan-phase.
 | Aggressive | YOLO | Auto-spike all genuine gaps |
 | Aggressive | Interactive | Ask for all genuine gaps |
 
-**Deriving sensitivity from depth:**
-- depth: quick -> spike.sensitivity: conservative
-- depth: standard -> spike.sensitivity: balanced
-- depth: comprehensive -> spike.sensitivity: aggressive
+**Deriving sensitivity from granularity:**
+- granularity: coarse -> spike.sensitivity: conservative
+- granularity: standard -> spike.sensitivity: balanced
+- granularity: fine -> spike.sensitivity: aggressive
 
 Explicit `spike.sensitivity` in config.json overrides derivation.
 

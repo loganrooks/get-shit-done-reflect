@@ -10,7 +10,7 @@ const { error, output, loadManifest, loadProjectConfig, atomicWriteJson } = requ
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const KNOWN_TOP_LEVEL_KEYS = new Set([
-  'mode', 'depth', 'model_profile', 'commit_docs', 'search_gitignored',
+  'mode', 'granularity', 'model_profile', 'commit_docs', 'search_gitignored',
   'branching_strategy', 'phase_branch_template', 'milestone_branch_template',
   'workflow', 'planning', 'parallelization', 'gates', 'safety',
   'gsd_reflect_version', 'manifest_version', 'brave_search',
@@ -74,6 +74,12 @@ function formatMigrationEntry(fromVersion, toVersion, timestamp, changes) {
       entry += `- Coerced \`${change.feature}.${change.field}\` from ${JSON.stringify(change.from)} to ${JSON.stringify(change.to)}\n`;
     } else if (change.type === 'manifest_version_updated') {
       entry += `- Updated manifest_version: ${change.from} -> ${change.to}\n`;
+    } else if (change.type === 'field_renamed') {
+      entry += `- Renamed \`${change.from}\` to \`${change.to}\``;
+      if (change.old_value !== change.new_value) {
+        entry += ` (value: ${JSON.stringify(change.old_value)} -> ${JSON.stringify(change.new_value)})`;
+      }
+      entry += '\n';
     }
   }
   return entry;
@@ -290,6 +296,31 @@ function cmdManifestApplyMigration(cwd, raw) {
             });
             projectConfig[key][field] = coerced;
           }
+        }
+      }
+    }
+  }
+
+  // Apply declarative rename migrations
+  if (Array.isArray(manifest.migrations)) {
+    for (const migration of manifest.migrations) {
+      if (migration.type === 'rename_field' && migration.scope === 'top_level') {
+        if (migration.from in projectConfig) {
+          if (!(migration.to in projectConfig)) {
+            // Standard rename: old key exists, new key does not
+            const oldValue = projectConfig[migration.from];
+            const newValue = migration.value_map?.[oldValue] ?? oldValue;
+            projectConfig[migration.to] = newValue;
+            changes.push({
+              type: 'field_renamed',
+              from: migration.from,
+              to: migration.to,
+              old_value: oldValue,
+              new_value: newValue,
+            });
+          }
+          // Both keys present OR rename completed: always delete the old key
+          delete projectConfig[migration.from];
         }
       }
     }

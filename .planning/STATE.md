@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed Phase 48.1 upstream drift routing and roadmap reconciliation; Phase 49 planning is next.
-last_updated: "2026-03-24T04:34:25Z"
-last_activity: 2026-03-24 -- Completed Phase 48.1 upstream drift routing and roadmap reconciliation
+stopped_at: Completed 49-04-PLAN.md (rename migration test coverage)
+last_updated: "2026-03-27T01:17:00Z"
+last_activity: 2026-03-27 -- Completed 49-04 rename migration test coverage (Phase 49 complete)
 progress:
   total_phases: 11
-  completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
-  percent: 45
+  completed_phases: 6
+  total_plans: 13
+  completed_plans: 13
+  percent: 54
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 49 next - Config Migration planning can now consume the 48.1 upstream drift ledger
+**Current focus:** Phase 49 complete - Config Migration; all 4 plans done. Next: Phase 50 (Migration Test Hardening)
 
 ## Current Position
 
-Phase: 49 of 54 (Config Migration)
-Plan: 0 of TBD (not started)
+Phase: 49 of 54 (Config Migration) -- COMPLETE
+Plan: 4 of 4 (49-01, 49-02, 49-03, 49-04 complete)
 Status: active
-Last activity: 2026-03-24 -- Completed Phase 48.1 upstream drift routing and roadmap reconciliation
+Last activity: 2026-03-27 -- Completed 49-04 rename migration test coverage (Phase 49 complete)
 
-Progress: [███████░░░] 36%
+Progress: [██████████] 54%
 
 ## Performance Metrics
 
@@ -77,6 +77,10 @@ Progress: [███████░░░] 36%
 | Phase 48 P01 | 9min | 2 tasks | 3 files |
 | Phase 48 P02 | 6min | 2 tasks | 3 files |
 | Phase 48.1 P01 | 4min | 2 tasks | 4 files |
+| Phase 49 P01 | 2min | 1 tasks | 2 files |
+| Phase 49 P02 | 5min | 2 tasks | 11 files |
+| Phase 49 P03 | 5min | 2 tasks | 2 files |
+| Phase 49 P04 | 4min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -110,6 +114,14 @@ Recent decisions affecting current work:
 - [Roadmap 2026-03-24]: Inserted Phase 48.1 so the live upstream drift after the audit baseline becomes an explicit planning gate, not an implicit background concern
 - [Phase 48.1]: Zero must-integrate-now items; all 9 fold-into clusters (C1-C9) route to Phases 49-52 per `UPSTREAM-DRIFT-LEDGER.md`; no Phase 45-48 reopening needed
 - [Phase 48.1]: Comparison target is `v1.28.0` (released) with `upstream/main` as watchlist; ledger valid until ~2026-04-07
+- [Phase 49]: manifest_version bumped from 1 to 2 to signal migrations[] availability
+- [Phase 49]: Both-keys-present edge case handled by always deleting old key when it exists (partial migration safety)
+- [Phase 49]: discovery-phase.md and discuss-phase.md correctly excluded from depth rename -- their "depth" usage is workflow parameters and content concepts, not config fields
+- [Phase 49]: version-migration.md retains "depth" in historical example as documentation of the old field being renamed
+- [Phase 49]: C6 resolve_model_ids behavioral change deferred to Phase 51 -- conflicts with fork's cross-runtime model handling (Quick 32)
+- [Phase 49]: Adopted upstream workstream-aware signatures for planningPaths/planningDir for forward compatibility
+- [Phase 49]: createManifestTestEnv extended with optional migrations parameter for reusable migration test setup
+- [Phase 49]: Multi-version upgrade chain test uses real production manifest from disk for maximum fidelity
 
 ### Roadmap Evolution
 
@@ -148,6 +160,8 @@ Recent decisions affecting current work:
 | 32 | Cross-runtime model profile language and per-runtime resolution | 2026-03-19 | c8db983 | [32-upstream-cross-runtime-model-profile-pat](./quick/32-upstream-cross-runtime-model-profile-pat/) |
 | 33 | Reconcile stacked phases 45-48 into a PR to main with CI gating | 2026-03-24 | 61b8bf4 | [33-reconcile-stacked-phases-45-48-into-a-pr](./quick/33-reconcile-stacked-phases-45-48-into-a-pr/) |
 | 34 | Apply stage-relevant deliberation review recommendations to roadmap and project docs | 2026-03-24 | ce7b306 | [34-apply-stage-relevant-deliberation-review](./quick/34-apply-stage-relevant-deliberation-review/) |
+| 260324-1nf | Repair 48.1 branch lineage, restore proper PR flow, and clean stale local phase branches | 2026-03-24 | 1afa649 | [260324-1nf-repair-48-1-branch-lineage-restore-prope](./quick/260324-1nf-repair-48-1-branch-lineage-restore-prope/) |
+| 260325 | Clean leftover local worktree refs | 2026-03-24 | n/a | [260325-clean-leftover-local-worktree-refs](./quick/260325-clean-leftover-local-worktree-refs/) |
 
 ### Key Artifacts
 
@@ -159,6 +173,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-24T04:34:25Z
-Stopped at: Completed Phase 48.1 (ledger, routing docs, verification passed). Phase 49 planning is next.
+Last session: 2026-03-27T01:17:00Z
+Stopped at: Completed 49-04-PLAN.md -- rename migration test coverage (Phase 49 complete)
 Resume file: None

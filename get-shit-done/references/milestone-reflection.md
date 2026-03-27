@@ -166,14 +166,14 @@ Can be configured in `.planning/config.json`:
 // Fast iterations - skip reflection
 {
   "mode": "yolo",
-  "depth": "quick",
+  "granularity": "coarse",
   "milestone_reflection": "skip"
 }
 
 // Thorough approach - require reflection
 {
   "mode": "interactive",
-  "depth": "comprehensive",
+  "granularity": "fine",
   "milestone_reflection": "required"
 }
 ```
@@ -189,7 +189,7 @@ Milestone reflection uses a summary-focused approach by default:
 | Phase coverage | All phases in milestone |
 | Pattern reporting | Aggregate patterns only (not per-plan) |
 | Lesson suggestions | Top 3 candidates (not all) |
-| Drift check | Included only if depth=comprehensive |
+| Drift check | Included only if granularity=fine |
 | Detail level | Summary in archive, full via `/gsd:reflect` |
 
 **For full detail:** Run `/gsd:reflect --phase {N}` for specific phases after milestone completion.

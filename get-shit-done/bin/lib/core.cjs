@@ -33,6 +33,14 @@ const MODEL_PROFILES = {
   'gsd-ui-auditor':           { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
 };
 
+// Map profile aliases to full Claude model IDs (upstream C6 partial).
+// Used when resolve_model_ids is enabled to prevent 404s from the Task tool API.
+const MODEL_ALIAS_MAP = {
+  'opus': 'claude-opus-4-0',
+  'sonnet': 'claude-sonnet-4-5',
+  'haiku': 'claude-haiku-3-5',
+};
+
 // ─── Output helpers ───────────────────────────────────────────────────────────
 
 function output(result, raw, rawValue) {
@@ -114,7 +122,15 @@ function loadConfig(cwd) {
 
     return {
       model_profile: get('model_profile') ?? defaults.model_profile,
-      commit_docs: get('commit_docs', { section: 'planning', field: 'commit_docs' }) ?? defaults.commit_docs,
+      commit_docs: (() => {
+        const explicit = get('commit_docs', { section: 'planning', field: 'commit_docs' });
+        // If explicitly set in config, respect the user's choice
+        if (explicit !== undefined) return explicit;
+        // Auto-detection: when no explicit value and .planning/ is gitignored,
+        // default to false instead of true (upstream C8)
+        if (isGitIgnored(cwd, '.planning/')) return false;
+        return defaults.commit_docs;
+      })(),
       search_gitignored: get('search_gitignored', { section: 'planning', field: 'search_gitignored' }) ?? defaults.search_gitignored,
       branching_strategy: get('branching_strategy', { section: 'git', field: 'branching_strategy' }) ?? defaults.branching_strategy,
       phase_branch_template: get('phase_branch_template', { section: 'git', field: 'phase_branch_template' }) ?? defaults.phase_branch_template,
@@ -169,6 +185,41 @@ function execGit(cwd, args) {
       stderr: (err.stderr ?? '').toString().trim(),
     };
   }
+}
+
+/**
+ * Detect if cwd is inside a linked git worktree and resolve to the main worktree root.
+ * In a linked worktree, .planning/ lives in the main worktree, not in the linked one.
+ * Returns cwd unchanged if not in a worktree, if cwd IS the main worktree,
+ * or if cwd already has its own .planning/ directory.
+ * @param {string} cwd
+ * @returns {string}
+ */
+function resolveWorktreeRoot(cwd) {
+  // If the current directory already has its own .planning/, respect it.
+  // This handles linked worktrees with independent planning state.
+  if (fs.existsSync(path.join(cwd, '.planning'))) {
+    return cwd;
+  }
+
+  // Check if we're in a linked worktree
+  const gitDir = execGit(cwd, ['rev-parse', '--git-dir']);
+  const commonDir = execGit(cwd, ['rev-parse', '--git-common-dir']);
+
+  if (gitDir.exitCode !== 0 || commonDir.exitCode !== 0) return cwd;
+
+  // In a linked worktree, .git is a file pointing to .git/worktrees/<name>
+  // and git-common-dir points to the main repo's .git directory
+  const gitDirResolved = path.resolve(cwd, gitDir.stdout);
+  const commonDirResolved = path.resolve(cwd, commonDir.stdout);
+
+  if (gitDirResolved !== commonDirResolved) {
+    // We're in a linked worktree -- resolve main worktree root
+    // The common dir is the main repo's .git, so its parent is the main worktree root
+    return path.dirname(commonDirResolved);
+  }
+
+  return cwd;
 }
 
 // ─── Phase utilities ──────────────────────────────────────────────────────────
@@ -471,8 +522,45 @@ function getMilestonePhaseFilter(cwd) {
   return isDirInMilestone;
 }
 
+// ─── Planning path helpers (upstream C9) ─────────────────────────────────────
+
+/**
+ * Return the planning directory path for a project, optionally workstream-aware.
+ * @param {string} cwd - project root
+ * @param {string} [ws] - explicit workstream name; if omitted, checks GSD_WORKSTREAM env var
+ * @returns {string}
+ */
+function planningDir(cwd, ws) {
+  if (ws === undefined) ws = process.env.GSD_WORKSTREAM || null;
+  if (!ws) return path.join(cwd, '.planning');
+  return path.join(cwd, '.planning', 'workstreams', ws);
+}
+
+/**
+ * Return canonical planning directory paths for a project, workstream-aware.
+ * Scoped paths (state, roadmap, phases, requirements) resolve to the active workstream.
+ * Shared paths (project, config) always resolve to the root .planning/.
+ * @param {string} cwd - project root
+ * @param {string} [ws] - explicit workstream name; if omitted, checks GSD_WORKSTREAM env var
+ * @returns {{ planning: string, state: string, roadmap: string, project: string, config: string, phases: string, requirements: string }}
+ */
+function planningPaths(cwd, ws) {
+  const base = planningDir(cwd, ws);
+  const root = path.join(cwd, '.planning');
+  return {
+    planning: base,
+    state: path.join(base, 'STATE.md'),
+    roadmap: path.join(base, 'ROADMAP.md'),
+    project: path.join(root, 'PROJECT.md'),
+    config: path.join(root, 'config.json'),
+    phases: path.join(base, 'phases'),
+    requirements: path.join(base, 'REQUIREMENTS.md'),
+  };
+}
+
 module.exports = {
   MODEL_PROFILES,
+  MODEL_ALIAS_MAP,
   output,
   error,
   safeReadFile,
@@ -492,6 +580,9 @@ module.exports = {
   getMilestoneInfo,
   getMilestonePhaseFilter,
   toPosixPath,
+  resolveWorktreeRoot,
+  planningDir,
+  planningPaths,
 };
 
 // ─── Fork Shared Helpers ──────────────────────────────────────────────────────

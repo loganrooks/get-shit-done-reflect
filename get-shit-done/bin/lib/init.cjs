@@ -4,7 +4,6 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
 const { loadConfig, resolveModelInternal, findPhaseInternal, getRoadmapPhaseInternal,
         pathExistsInternal, generateSlugInternal, getMilestoneInfo, normalizePhaseName,
         toPosixPath, safeReadFile, parseIncludeFlag, output, error } = require('./core.cjs');
@@ -198,28 +197,53 @@ function cmdInitPlanPhase(cwd, phase, includes, raw) {
 function cmdInitNewProject(cwd, raw) {
   const config = loadConfig(cwd);
 
-  // Detect Brave Search API key availability
-  const homedir = require('os').homedir();
+  // Detect Brave Search API key availability (cross-platform HOME, upstream C5)
+  const homedir = process.env.HOME || process.env.USERPROFILE || require('os').homedir();
   const braveKeyFile = path.join(homedir, '.gsd', 'brave_api_key');
   const hasBraveSearch = !!(process.env.BRAVE_API_KEY || fs.existsSync(braveKeyFile));
 
-  // Detect existing code
+  // Detect existing code (cross-platform -- no Unix `find` dependency, upstream C5)
   let hasCode = false;
   let hasPackageFile = false;
   try {
-    const files = execSync('find . -maxdepth 3 \\( -name "*.ts" -o -name "*.js" -o -name "*.py" -o -name "*.go" -o -name "*.rs" -o -name "*.swift" -o -name "*.java" \\) 2>/dev/null | grep -v node_modules | grep -v .git | head -5', {
-      cwd,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe'],
-    });
-    hasCode = files.trim().length > 0;
-  } catch {}
+    const codeExtensions = new Set([
+      '.ts', '.js', '.py', '.go', '.rs', '.swift', '.java',
+      '.kt', '.kts', '.c', '.cpp', '.h', '.cs', '.rb', '.php',
+      '.dart', '.m', '.mm', '.scala', '.groovy', '.lua',
+      '.r', '.R', '.zig', '.ex', '.exs', '.clj',
+    ]);
+    const skipDirs = new Set(['node_modules', '.git', '.planning', '.claude', '__pycache__', 'target', 'dist', 'build']);
+    function findCodeFiles(dir, depth) {
+      if (depth > 3) return false;
+      let entries;
+      try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return false; }
+      for (const entry of entries) {
+        if (entry.isFile() && codeExtensions.has(path.extname(entry.name))) return true;
+        if (entry.isDirectory() && !skipDirs.has(entry.name)) {
+          if (findCodeFiles(path.join(dir, entry.name), depth + 1)) return true;
+        }
+      }
+      return false;
+    }
+    hasCode = findCodeFiles(cwd, 0);
+  } catch { /* intentionally empty -- best-effort detection */ }
 
   hasPackageFile = pathExistsInternal(cwd, 'package.json') ||
                    pathExistsInternal(cwd, 'requirements.txt') ||
                    pathExistsInternal(cwd, 'Cargo.toml') ||
                    pathExistsInternal(cwd, 'go.mod') ||
-                   pathExistsInternal(cwd, 'Package.swift');
+                   pathExistsInternal(cwd, 'Package.swift') ||
+                   pathExistsInternal(cwd, 'build.gradle') ||
+                   pathExistsInternal(cwd, 'build.gradle.kts') ||
+                   pathExistsInternal(cwd, 'pom.xml') ||
+                   pathExistsInternal(cwd, 'Gemfile') ||
+                   pathExistsInternal(cwd, 'composer.json') ||
+                   pathExistsInternal(cwd, 'pubspec.yaml') ||
+                   pathExistsInternal(cwd, 'CMakeLists.txt') ||
+                   pathExistsInternal(cwd, 'Makefile') ||
+                   pathExistsInternal(cwd, 'build.zig') ||
+                   pathExistsInternal(cwd, 'mix.exs') ||
+                   pathExistsInternal(cwd, 'project.clj');
 
   const result = {
     // Models

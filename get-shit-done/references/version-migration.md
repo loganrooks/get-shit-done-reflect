@@ -68,6 +68,39 @@ Migration actions are now manifest-driven. Running `manifest apply-migration` re
 
 Adding a new feature requires only adding it to `feature-manifest.json`. The migration commands automatically handle existing projects.
 
+### Controlled Exception: Field Renames
+
+While migrations are additive-only by default, **field renames** are a controlled exception to this principle. A rename simultaneously adds a new field and removes the old one, which appears to violate "nothing is removed." This is permitted under strict conditions:
+
+**Conditions for a field rename migration:**
+1. The rename is declared in `feature-manifest.json` under the `migrations[]` array
+2. The entry specifies `type: "rename_field"`, the old key (`from`), the new key (`to`), and an optional `value_map` for enum changes
+3. The migration is idempotent: if the old key is absent, no action is taken; if both keys exist, the new key wins and the old is removed
+4. The `version` field records when the rename was introduced for audit
+
+**Example: depth to granularity (v1.15.0)**
+
+The `depth` config field was renamed to `granularity` with enum value changes (`quick` -> `coarse`, `comprehensive` -> `fine`). This is expressed as:
+
+```json
+{
+  "type": "rename_field",
+  "version": "1.15.0",
+  "from": "depth",
+  "to": "granularity",
+  "scope": "top_level",
+  "value_map": {
+    "quick": "coarse",
+    "standard": "standard",
+    "comprehensive": "fine"
+  }
+}
+```
+
+**Runtime safety net:** In addition to the manifest migration, `loadConfig()` in `core.cjs` and `cmdConfigEnsureSection()` in `config.cjs` perform the same rename inline as a belt-and-suspenders fallback for configs that have not yet been explicitly migrated.
+
+**Why both mechanisms coexist:** The manifest migration is the authoritative, auditable path. The inline runtime migration ensures that even if `apply-migration` has not run (e.g., fresh clone without upgrade step), the config is usable. Neither mechanism alone is sufficient.
+
 ### Future Migrations
 
 Adding new features follows the same pattern: add the feature schema to `feature-manifest.json`. The `apply-migration` command automatically detects and fills gaps.
