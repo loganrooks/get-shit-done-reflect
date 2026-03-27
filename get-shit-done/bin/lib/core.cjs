@@ -33,6 +33,14 @@ const MODEL_PROFILES = {
   'gsd-ui-auditor':           { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
 };
 
+// Map profile aliases to full Claude model IDs (upstream C6 partial).
+// Used when resolve_model_ids is enabled to prevent 404s from the Task tool API.
+const MODEL_ALIAS_MAP = {
+  'opus': 'claude-opus-4-0',
+  'sonnet': 'claude-sonnet-4-5',
+  'haiku': 'claude-haiku-3-5',
+};
+
 // ─── Output helpers ───────────────────────────────────────────────────────────
 
 function output(result, raw, rawValue) {
@@ -177,6 +185,41 @@ function execGit(cwd, args) {
       stderr: (err.stderr ?? '').toString().trim(),
     };
   }
+}
+
+/**
+ * Detect if cwd is inside a linked git worktree and resolve to the main worktree root.
+ * In a linked worktree, .planning/ lives in the main worktree, not in the linked one.
+ * Returns cwd unchanged if not in a worktree, if cwd IS the main worktree,
+ * or if cwd already has its own .planning/ directory.
+ * @param {string} cwd
+ * @returns {string}
+ */
+function resolveWorktreeRoot(cwd) {
+  // If the current directory already has its own .planning/, respect it.
+  // This handles linked worktrees with independent planning state.
+  if (fs.existsSync(path.join(cwd, '.planning'))) {
+    return cwd;
+  }
+
+  // Check if we're in a linked worktree
+  const gitDir = execGit(cwd, ['rev-parse', '--git-dir']);
+  const commonDir = execGit(cwd, ['rev-parse', '--git-common-dir']);
+
+  if (gitDir.exitCode !== 0 || commonDir.exitCode !== 0) return cwd;
+
+  // In a linked worktree, .git is a file pointing to .git/worktrees/<name>
+  // and git-common-dir points to the main repo's .git directory
+  const gitDirResolved = path.resolve(cwd, gitDir.stdout);
+  const commonDirResolved = path.resolve(cwd, commonDir.stdout);
+
+  if (gitDirResolved !== commonDirResolved) {
+    // We're in a linked worktree -- resolve main worktree root
+    // The common dir is the main repo's .git, so its parent is the main worktree root
+    return path.dirname(commonDirResolved);
+  }
+
+  return cwd;
 }
 
 // ─── Phase utilities ──────────────────────────────────────────────────────────
@@ -517,6 +560,7 @@ function planningPaths(cwd, ws) {
 
 module.exports = {
   MODEL_PROFILES,
+  MODEL_ALIAS_MAP,
   output,
   error,
   safeReadFile,
@@ -536,6 +580,7 @@ module.exports = {
   getMilestoneInfo,
   getMilestonePhaseFilter,
   toPosixPath,
+  resolveWorktreeRoot,
   planningDir,
   planningPaths,
 };
