@@ -81,6 +81,7 @@ Progress: [██████████] 54%
 | Phase 49 P02 | 5min | 2 tasks | 11 files |
 | Phase 49 P03 | 5min | 2 tasks | 2 files |
 | Phase 49 P04 | 4min | 2 tasks | 1 files |
+| Phase 50 P02 | 3min | 2 tasks | 1 files |
 | Phase 50 P03 | 2min | 2 tasks | 1 files |
 
 ## Accumulated Context
@@ -125,6 +126,8 @@ Recent decisions affecting current work:
 - [Phase 49]: Multi-version upgrade chain test uses real production manifest from disk for maximum fidelity
 - [Phase 50]: TST-05 renameSync test documents that test-reachable code path does not invoke renameSync (old KB path depends on os.homedir); verifies data safety through the non-rename path
 - [Phase 50]: fs mocking uses direct property replacement with try/finally restore rather than vitest.spyOn, matching CJS module interop pattern
+- [Phase 50]: N-run idempotency (TST-02) tested with N=5 to catch metadata accumulation bugs invisible to 2-run tests
+- [Phase 50]: Feature reconciliation idempotency tested with partial health_check config (missing fields added on run 1, stable on runs 2-5)
 
 ### Roadmap Evolution
 
@@ -176,6 +179,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T02:06:00Z
-Stopped at: Completed 50-03-PLAN.md -- KB edge-case and crash-recovery tests
+Last session: 2026-03-27T02:07:00Z
+Stopped at: Completed 50-02-PLAN.md -- N-run idempotency and type coercion edge case tests
 Resume file: None
