@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 50-03-PLAN.md (KB edge-case and crash-recovery tests)
-last_updated: "2026-03-27T02:06:00Z"
-last_activity: 2026-03-27 -- Completed 50-03 KB edge-case and crash-recovery tests
+stopped_at: Completed 50-05-PLAN.md (TST-06 module equivalence + project-root authority)
+last_updated: "2026-03-27T02:11:00Z"
+last_activity: 2026-03-27 -- Completed 50-05 TST-06 module equivalence and project-root authority tests
 progress:
   total_phases: 11
   completed_phases: 6
   total_plans: 13
-  completed_plans: 14
+  completed_plans: 15
   percent: 54
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 50 - Migration Test Hardening; 50-01, 50-02, 50-03 complete. Next: 50-04 (cross-module migration integration)
+**Current focus:** Phase 50 - Migration Test Hardening; 50-01, 50-02, 50-03, 50-05 complete. Next: 50-04 (cross-module migration integration)
 
 ## Current Position
 
 Phase: 50 of 54 (Migration Test Hardening)
-Plan: 3 of 5 (50-01, 50-02, 50-03 complete)
+Plan: 4 of 5 (50-01, 50-02, 50-03, 50-05 complete)
 Status: active
-Last activity: 2026-03-27 -- Completed 50-03 KB edge-case and crash-recovery tests
+Last activity: 2026-03-27 -- Completed 50-05 TST-06 module equivalence and project-root authority tests
 
 Progress: [██████████] 54%
 
@@ -84,6 +84,7 @@ Progress: [██████████] 54%
 | Phase 50 P01 | 6min | 2 tasks | 1 files |
 | Phase 50 P02 | 3min | 2 tasks | 1 files |
 | Phase 50 P03 | 2min | 2 tasks | 1 files |
+| Phase 50 P05 | 7min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -130,6 +131,7 @@ Recent decisions affecting current work:
 - [Phase 50]: N-run idempotency (TST-02) tested with N=5 to catch metadata accumulation bugs invisible to 2-run tests
 - [Phase 50]: Feature reconciliation idempotency tested with partial health_check config (missing fields added on run 1, stable on runs 2-5)
 - [Phase 50]: TST-01 excludes upstream runtime files (bin/, settings.json, CHANGELOG.md) from namespace scan -- these are intentionally not rewritten by replacePathsInContent
+- [Phase 50]: findProjectRoot subdirectory test expects parent resolution when .planning/ and .git/ coexist at ancestor -- matches upstream .git heuristic behavior
 
 ### Roadmap Evolution
 
@@ -181,6 +183,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T02:10:00Z
-Stopped at: Completed 50-01-PLAN.md -- full-corpus namespace scan and snapshot regression tests
+Last session: 2026-03-27T02:11:00Z
+Stopped at: Completed 50-05-PLAN.md -- TST-06 module equivalence + project-root authority tests
 Resume file: None
