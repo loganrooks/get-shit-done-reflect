@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 50-04-PLAN.md (TST-03 idempotency + TST-08 integration depth)
-last_updated: "2026-03-27T02:18:00Z"
-last_activity: 2026-03-27 -- Completed 50-04 TST-03 installer re-run idempotency and TST-08 integration depth tests
+stopped_at: Completed 51-01-PLAN.md (migration spec infrastructure + guide generation)
+last_updated: "2026-03-27T03:42:00Z"
+last_activity: 2026-03-27 -- Completed 51-01 migration spec infrastructure and guide generation
 progress:
   total_phases: 11
   completed_phases: 6
   total_plans: 13
-  completed_plans: 16
-  percent: 54
+  completed_plans: 17
+  percent: 57
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 50 - Migration Test Hardening; all 5 plans complete. Phase 50 finished.
+**Current focus:** Phase 51 - Update System Hardening; plan 1 of 3 complete.
 
 ## Current Position
 
-Phase: 50 of 54 (Migration Test Hardening)
-Plan: 5 of 5 (all complete)
-Status: phase-complete
-Last activity: 2026-03-27 -- Completed 50-04 TST-03 installer re-run idempotency and TST-08 integration depth tests
+Phase: 51 of 54 (Update System Hardening)
+Plan: 1 of 3
+Status: active
+Last activity: 2026-03-27 -- Completed 51-01 migration spec infrastructure and guide generation
 
-Progress: [██████████] 54%
+Progress: [███████████] 57%
 
 ## Performance Metrics
 
@@ -86,6 +86,7 @@ Progress: [██████████] 54%
 | Phase 50 P03 | 2min | 2 tasks | 1 files |
 | Phase 50 P05 | 7min | 2 tasks | 2 files |
 | Phase 50 P04 | 3min | 2 tasks | 1 files |
+| Phase 51 P01 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -134,6 +135,8 @@ Recent decisions affecting current work:
 - [Phase 50]: TST-01 excludes upstream runtime files (bin/, settings.json, CHANGELOG.md) from namespace scan -- these are intentionally not rewritten by replacePathsInContent
 - [Phase 50]: TST-08 adapted FEATURE_CAPABILITY_MAP assertions to actual structure (hook_dependent_above/task_tool_dependent) instead of plan's assumed max_level/requires
 - [Phase 50]: findProjectRoot subdirectory test expects parent resolution when .planning/ and .git/ coexist at ancestor -- matches upstream .git heuristic behavior
+- [Phase 51]: Migration guide uses action callouts (automatic vs run-upgrade-project) mapped from spec JSON action field -- human-readable rendering, not raw field values
+- [Phase 51]: Version comparison uses dot-split numeric approach without semver dependency, strips +dev suffix before comparison
 
 ### Roadmap Evolution
 
@@ -185,6 +188,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T02:18:00Z
-Stopped at: Completed 50-04-PLAN.md -- TST-03 idempotency + TST-08 integration depth (Phase 50 complete)
+Last session: 2026-03-27T03:42:00Z
+Stopped at: Completed 51-01-PLAN.md -- migration spec infrastructure + guide generation
 Resume file: None
