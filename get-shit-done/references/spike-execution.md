@@ -226,15 +226,15 @@ Control which gaps trigger spikes based on criticality.
 | **Balanced** | Critical + Medium gaps | Default, reasonable coverage |
 | **Aggressive** | Any genuine gap | Thorough validation, frontier work |
 
-**Derivation from depth (default):**
-- `depth: quick` → `spike_sensitivity: conservative`
-- `depth: standard` → `spike_sensitivity: balanced`
-- `depth: comprehensive` → `spike_sensitivity: aggressive`
+**Derivation from granularity (default):**
+- `granularity: coarse` → `spike_sensitivity: conservative`
+- `granularity: standard` → `spike_sensitivity: balanced`
+- `granularity: fine` → `spike_sensitivity: aggressive`
 
 **Override:** Can be set explicitly in `.planning/config.json`:
 ```json
 {
-  "depth": "standard",
+  "granularity": "standard",
   "spike_sensitivity": "aggressive"
 }
 ```

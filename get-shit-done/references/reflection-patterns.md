@@ -689,7 +689,7 @@ Common mistakes in reflection implementation.
 ### 11.3 Configuration Integration
 
 - Read from: `.planning/config.json`
-- Fields: `mode` (yolo/interactive), `depth`, cross-project settings
+- Fields: `mode` (yolo/interactive), `granularity`, cross-project settings
 
 ---
 

@@ -34,7 +34,7 @@ node -e "JSON.parse(require('fs').readFileSync('$CONFIG','utf8'))" 2>/dev/null &
 ### CFG-03: Required fields present
 
 ```bash
-for field in mode depth; do
+for field in mode granularity; do
   node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8')); if(!c.$field) process.exit(1)" 2>/dev/null && echo "PASS: $field present" || echo "FAIL: $field missing"
 done
 ```
@@ -43,9 +43,9 @@ done
 
 ```bash
 MODE=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8')); console.log(c.mode||'')" 2>/dev/null)
-DEPTH=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8')); console.log(c.depth||'')" 2>/dev/null)
+GRANULARITY=$(node -e "const c=JSON.parse(require('fs').readFileSync('$CONFIG','utf8')); console.log(c.granularity||'')" 2>/dev/null)
 echo "$MODE" | grep -qE "^(yolo|interactive)$" && echo "PASS: mode=$MODE" || echo "WARNING: mode=$MODE is not yolo|interactive"
-echo "$DEPTH" | grep -qE "^(quick|standard|comprehensive)$" && echo "PASS: depth=$DEPTH" || echo "WARNING: depth=$DEPTH is not quick|standard|comprehensive"
+echo "$GRANULARITY" | grep -qE "^(coarse|standard|fine)$" && echo "PASS: granularity=$GRANULARITY" || echo "WARNING: granularity=$GRANULARITY is not coarse|standard|fine"
 ```
 
 ### CFG-05: Version tracking exists
