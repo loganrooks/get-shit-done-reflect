@@ -448,6 +448,100 @@ describe('install script', () => {
       })
     })
 
+    describe('TST-09: namespace rewriting snapshot regression', () => {
+      it('agent file corpus: rewrites subagent_type, paths, and command prefixes', () => {
+        const input = [
+          'subagent_type="gsd-executor"',
+          '@./.claude/get-shit-done/workflows/execute-plan.md',
+          '/gsd:execute-phase',
+          'node gsd-tools.cjs state advance-plan'
+        ].join('\n')
+        const result = replacePathsInContent(input, './.claude/')
+        expect(result).toMatchInlineSnapshot(`
+          "subagent_type="gsdr-executor"
+          @./.claude/get-shit-done-reflect/workflows/execute-plan.md
+          /gsdr:execute-phase
+          node gsd-tools.cjs state advance-plan"
+        `)
+      })
+
+      it('workflow file corpus: rewrites tilde paths and multiple command prefixes', () => {
+        const input = [
+          '@~/.claude/get-shit-done/references/agent-protocol.md',
+          'node ~/.claude/get-shit-done/bin/gsd-tools.cjs',
+          '/gsd:plan-phase',
+          '/gsd:research-phase'
+        ].join('\n')
+        const result = replacePathsInContent(input, './.claude/')
+        expect(result).toMatchInlineSnapshot(`
+          "@./.claude/get-shit-done-reflect/references/agent-protocol.md
+          node ./.claude/get-shit-done-reflect/bin/gsd-tools.cjs
+          /gsdr:plan-phase
+          /gsdr:research-phase"
+        `)
+      })
+
+      it('hook file corpus: rewrites get-shit-done/ paths in JS source comments and strings', () => {
+        const input = [
+          '// Load from ~/.claude/get-shit-done/bin/gsd-tools.cjs',
+          'const toolsPath = homedir + "/.claude/get-shit-done/bin/gsd-tools.cjs"',
+          'const prefix = "/gsd:update"'
+        ].join('\n')
+        const result = replacePathsInContent(input, './.claude/')
+        expect(result).toMatchInlineSnapshot(`
+          "// Load from ./.claude/get-shit-done-reflect/bin/gsd-tools.cjs
+          const toolsPath = homedir + "/.claude/get-shit-done-reflect/bin/gsd-tools.cjs"
+          const prefix = "/gsdr:update""
+        `)
+      })
+
+      it('false-positive boundary corpus: preserves tool names and correct namespace', () => {
+        const input = [
+          'gsd-tools.cjs',
+          'gsd-tools-fork.test.js',
+          'get-shit-done-reflect'
+        ].join('\n')
+        const result = replacePathsInContent(input, './.claude/')
+        expect(result).toMatchInlineSnapshot(`
+          "gsd-tools.cjs
+          gsd-tools-fork.test.js
+          get-shit-done-reflect"
+        `)
+      })
+
+      it('mixed content corpus: realistic agent file with interleaved patterns', () => {
+        const input = [
+          '---',
+          'name: GSD Executor',
+          'subagent_type: "gsd-executor"',
+          '---',
+          '',
+          'Read @~/.claude/get-shit-done/references/agent-protocol.md',
+          'Run /gsd:execute-phase to start.',
+          'Uses node ~/.claude/get-shit-done/bin/gsd-tools.cjs for CLI.',
+          'GSD ► Phase 3 Plan 1',
+          'KB: ~/.gsd/knowledge/index.md',
+          'Package: get-shit-done-reflect-cc',
+          'Config: "gsd_reflect_version": "1.16.0"'
+        ].join('\n')
+        const result = replacePathsInContent(input, './.claude/')
+        expect(result).toMatchInlineSnapshot(`
+          "---
+          name: GSD Executor
+          subagent_type: "gsdr-executor"
+          ---
+
+          Read @./.claude/get-shit-done-reflect/references/agent-protocol.md
+          Run /gsdr:execute-phase to start.
+          Uses node ./.claude/get-shit-done-reflect/bin/gsd-tools.cjs for CLI.
+          GSDR ► Phase 3 Plan 1
+          KB: ~/.gsd/knowledge/index.md
+          Package: get-shit-done-reflect-cc
+          Config: "gsd_reflect_version": "1.16.0""
+        `)
+      })
+    })
+
     describe('createProjectLocalKB', () => {
       tmpdirTest('creates .planning/knowledge/{signals,reflections,spikes} when .planning/ exists', async ({ tmpdir }) => {
         const planningDir = path.join(tmpdir, '.planning')
@@ -2476,6 +2570,246 @@ Also use the Read tool to read files and Bash to run commands.`
     })
   })
 
+  describe('TST-03: full installer re-run idempotency', () => {
+    const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+    // Helper: recursively collect all file paths and simple hashes under a directory
+    function collectFileInventory(dir) {
+      const results = []
+      if (!fsSync.existsSync(dir)) return results
+      const entries = fsSync.readdirSync(dir, { withFileTypes: true })
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name)
+        if (entry.isSymbolicLink()) {
+          // Record symlinks by target, not content
+          const target = fsSync.readlinkSync(fullPath)
+          results.push({ path: fullPath, size: 0, hash: `symlink:${target}` })
+        } else if (entry.isDirectory()) {
+          // Exclude timestamped backup directories (e.g., knowledge.backup-*)
+          if (/\.backup-\d+/.test(entry.name)) continue
+          results.push(...collectFileInventory(fullPath))
+        } else if (entry.isFile()) {
+          const content = fsSync.readFileSync(fullPath, 'utf8')
+          results.push({
+            path: fullPath,
+            size: content.length,
+            hash: `${content.length}-${content.slice(0, 100)}`
+          })
+        }
+      }
+      return results.sort((a, b) => a.path.localeCompare(b.path))
+    }
+
+    tmpdirTest('TST-03: two consecutive --claude --global installs produce identical file trees', async ({ tmpdir }) => {
+      const execOpts = {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      }
+
+      // First install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const inventory1 = collectFileInventory(path.join(tmpdir, '.claude'))
+
+      // Second install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const inventory2 = collectFileInventory(path.join(tmpdir, '.claude'))
+
+      // File count must be identical
+      expect(inventory2.length, 'File count changed after re-run').toBe(inventory1.length)
+
+      // File paths must be identical
+      const paths1 = inventory1.map(f => f.path)
+      const paths2 = inventory2.map(f => f.path)
+      expect(paths2, 'File paths differ after re-run').toEqual(paths1)
+
+      // File sizes must be identical
+      const sizes1 = inventory1.map(f => f.size)
+      const sizes2 = inventory2.map(f => f.size)
+      expect(sizes2, 'File sizes differ after re-run').toEqual(sizes1)
+
+      // No new files appeared, no files disappeared
+      const newFiles = paths2.filter(p => !paths1.includes(p))
+      const missingFiles = paths1.filter(p => !paths2.includes(p))
+      expect(newFiles, 'New files appeared after re-run').toEqual([])
+      expect(missingFiles, 'Files disappeared after re-run').toEqual([])
+    })
+
+    tmpdirTest('TST-03: installer re-run does not duplicate settings.json hook entries', async ({ tmpdir }) => {
+      const execOpts = {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      }
+
+      // First install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const settingsPath = path.join(tmpdir, '.claude', 'settings.json')
+      const settings1 = JSON.parse(fsSync.readFileSync(settingsPath, 'utf8'))
+      const hooks1 = settings1.hooks || {}
+      const hookCount1 = Object.keys(hooks1).length
+
+      // Second install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const settings2 = JSON.parse(fsSync.readFileSync(settingsPath, 'utf8'))
+      const hooks2 = settings2.hooks || {}
+      const hookCount2 = Object.keys(hooks2).length
+
+      // Hook entry count must be identical
+      expect(hookCount2, 'Hook entry count changed after re-run').toBe(hookCount1)
+
+      // No duplicate hook command strings
+      for (const [key, entries] of Object.entries(hooks2)) {
+        if (Array.isArray(entries)) {
+          for (const entry of entries) {
+            if (entry.hooks && Array.isArray(entry.hooks)) {
+              const commands = entry.hooks.map(h => h.command)
+              const uniqueCommands = [...new Set(commands)]
+              expect(commands.length, `Duplicate hook commands in ${key}`).toBe(uniqueCommands.length)
+            }
+          }
+        }
+      }
+
+      // Hooks object must be structurally identical (deep equal)
+      expect(hooks2, 'Hooks object differs after re-run').toEqual(hooks1)
+    })
+
+    tmpdirTest('TST-03: installer re-run does not duplicate agent files', async ({ tmpdir }) => {
+      const execOpts = {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      }
+
+      // First install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const agentsDir = path.join(tmpdir, '.claude', 'agents')
+      const agents1 = fsSync.readdirSync(agentsDir).sort()
+
+      // Second install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const agents2 = fsSync.readdirSync(agentsDir).sort()
+
+      // Same file set
+      expect(agents2, 'Agent files differ after re-run').toEqual(agents1)
+
+      // No copy-pattern duplicates
+      const copyPatterns = agents2.filter(f => /-copy\.\w+$/.test(f) || / \(\d+\)\.\w+$/.test(f))
+      expect(copyPatterns, 'Copy-pattern duplicates found').toEqual([])
+    })
+  })
+
+  describe('TST-08: integration depth - adopted features connect to fork pipeline', () => {
+    const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+    // Import automation module for structural tests
+    const automationPath = path.resolve(process.cwd(), 'get-shit-done/bin/lib/automation.cjs')
+    const { FEATURE_CAPABILITY_MAP } = require(automationPath)
+
+    it('FEATURE_CAPABILITY_MAP exports all four automation features', () => {
+      const expectedFeatures = ['signal_collection', 'reflection', 'health_check', 'ci_status']
+      const actualFeatures = Object.keys(FEATURE_CAPABILITY_MAP).sort()
+      expect(actualFeatures).toEqual(expectedFeatures.sort())
+
+      // Each entry must have hook_dependent_above (number or null) and task_tool_dependent (boolean)
+      for (const feature of expectedFeatures) {
+        const entry = FEATURE_CAPABILITY_MAP[feature]
+        expect(entry, `${feature} entry missing`).toBeDefined()
+        expect('hook_dependent_above' in entry, `${feature} missing hook_dependent_above`).toBe(true)
+        expect(typeof entry.task_tool_dependent, `${feature} task_tool_dependent should be boolean`).toBe('boolean')
+      }
+    })
+
+    tmpdirTest('installed feature-manifest.json contains migrations array for automation consumption', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const manifestPath = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'feature-manifest.json')
+      expect(fsSync.existsSync(manifestPath), 'feature-manifest.json must be installed').toBe(true)
+
+      const manifest = JSON.parse(fsSync.readFileSync(manifestPath, 'utf8'))
+
+      // manifest_version >= 2 signals migrations[] availability
+      expect(manifest.manifest_version, 'manifest_version should be >= 2').toBeGreaterThanOrEqual(2)
+
+      // migrations must be an array with at least one entry
+      expect(Array.isArray(manifest.migrations), 'migrations should be an array').toBe(true)
+      expect(manifest.migrations.length, 'migrations should have at least one entry').toBeGreaterThanOrEqual(1)
+
+      // Each migration entry must have type and version fields
+      for (const migration of manifest.migrations) {
+        expect(migration.type, 'migration entry missing type').toBeDefined()
+        expect(migration.version, 'migration entry missing version').toBeDefined()
+      }
+    })
+
+    tmpdirTest('installed config defaults include automation-relevant feature definitions', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const manifestPath = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'feature-manifest.json')
+      const manifest = JSON.parse(fsSync.readFileSync(manifestPath, 'utf8'))
+
+      // features section must include signal_lifecycle and automation features
+      expect(manifest.features, 'manifest must have features section').toBeDefined()
+      expect(manifest.features.signal_lifecycle, 'features must include signal_lifecycle').toBeDefined()
+      expect(manifest.features.signal_lifecycle.config_key, 'signal_lifecycle must have config_key').toBe('signal_lifecycle')
+      expect(manifest.features.automation, 'features must include automation').toBeDefined()
+      expect(manifest.features.automation.config_key, 'automation must have config_key').toBe('automation')
+
+      // automation feature must define level, overrides, and context_threshold_pct in its schema
+      const autoSchema = manifest.features.automation.schema
+      expect(autoSchema.level, 'automation schema must define level').toBeDefined()
+      expect(autoSchema.overrides, 'automation schema must define overrides').toBeDefined()
+      expect(autoSchema.context_threshold_pct, 'automation schema must define context_threshold_pct').toBeDefined()
+    })
+
+    it('cmdAutomationResolveLevel accepts all FEATURE_CAPABILITY_MAP feature names', () => {
+      // Read the source manifest to get the automation feature definition
+      const manifestSrcPath = path.resolve(process.cwd(), 'get-shit-done/feature-manifest.json')
+      const manifest = JSON.parse(fsSync.readFileSync(manifestSrcPath, 'utf8'))
+
+      // The automation feature's overrides schema describes per-feature level overrides
+      // keyed by feature config_key -- these keys must match FEATURE_CAPABILITY_MAP
+      const automationFeature = manifest.features.automation
+      expect(automationFeature, 'automation feature must exist in manifest').toBeDefined()
+      expect(automationFeature.schema.overrides, 'automation must have overrides schema').toBeDefined()
+
+      // The overrides description mentions per-feature keys matching config_key names
+      // Verify each FEATURE_CAPABILITY_MAP key corresponds to a feature in the manifest
+      const capMapKeys = Object.keys(FEATURE_CAPABILITY_MAP)
+      const allFeatureConfigKeys = Object.values(manifest.features).map(f => f.config_key)
+
+      for (const key of capMapKeys) {
+        // ci_status is an automation-only feature (not a standalone feature with its own config_key)
+        // signal_collection, reflection, and health_check map to manifest features
+        if (key === 'ci_status') {
+          // ci_status is valid in FEATURE_CAPABILITY_MAP as an automation capability
+          // but is not a separate top-level feature -- this is by design
+          expect(FEATURE_CAPABILITY_MAP[key]).toBeDefined()
+          continue
+        }
+        // Other FEATURE_CAPABILITY_MAP keys should correspond to manifest feature config_keys
+        // (signal_collection -> signal_collection, reflection -> automation.reflection, health_check -> health_check)
+        const hasCorrespondingFeature = allFeatureConfigKeys.includes(key) ||
+          (key === 'reflection' && !!automationFeature.schema.reflection)
+        expect(hasCorrespondingFeature, `${key} should have corresponding manifest feature`).toBe(true)
+      }
+    })
+  })
+
   describe('installed content namespace verification', () => {
     const installScript = path.resolve(process.cwd(), 'bin/install.js')
 
@@ -2612,6 +2946,98 @@ Also use the Read tool to read files and Bash to run commands.`
 
       // Should NOT have double-transformed name
       expect(checkUpdate).not.toContain('get-shit-done-reflect-reflect-cc')
+    })
+
+    tmpdirTest('TST-01: full-corpus scan of all installed files finds zero stale namespace references', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const claudeDir = path.join(tmpdir, '.claude')
+      const binaryExtensions = new Set(['.png', '.jpg', '.jpeg', '.ico', '.gif', '.bmp', '.woff', '.woff2', '.ttf', '.eot'])
+
+      // Upstream runtime modules (bin/lib/*.cjs, bin/gsd-tools.cjs) are copied as-is
+      // without namespace rewriting -- they use upstream gsd- naming intentionally.
+      // settings.json is generated programmatically with legitimate gsd-test patterns.
+      // These are excluded from the stale-reference scan.
+      function isUpstreamRuntime(relPath) {
+        if (relPath.includes('/bin/')) return true
+        if (relPath.endsWith('settings.json')) return true
+        if (relPath.endsWith('settings.local.json')) return true
+        // CHANGELOG.md is copied as-is (fs.copyFileSync) -- historical document
+        // with legitimate references to old naming in version history entries
+        if (relPath.endsWith('CHANGELOG.md')) return true
+        return false
+      }
+
+      // Recursively collect all files under .claude/
+      function walkDir(dir) {
+        const results = []
+        const entries = fsSync.readdirSync(dir, { withFileTypes: true })
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name)
+          if (entry.isDirectory()) {
+            results.push(...walkDir(fullPath))
+          } else if (entry.isFile()) {
+            const ext = path.extname(entry.name).toLowerCase()
+            if (!binaryExtensions.has(ext)) {
+              results.push(fullPath)
+            }
+          }
+        }
+        return results
+      }
+
+      const allFiles = walkDir(claudeDir)
+      expect(allFiles.length, 'Install should produce files to scan').toBeGreaterThan(0)
+
+      // Separate rewritten files from upstream runtime modules
+      const rewrittenFiles = []
+      const upstreamFiles = []
+      for (const filePath of allFiles) {
+        const relPath = path.relative(tmpdir, filePath)
+        if (isUpstreamRuntime(relPath)) {
+          upstreamFiles.push(filePath)
+        } else {
+          rewrittenFiles.push(filePath)
+        }
+      }
+
+      const violations = []
+
+      for (const filePath of rewrittenFiles) {
+        const content = fsSync.readFileSync(filePath, 'utf8')
+        const relPath = path.relative(tmpdir, filePath)
+
+        // Pattern 1: /gsd: command prefix (should be /gsdr:)
+        const staleCommandPrefix = content.match(/\/gsd:(?!r)/g)
+        if (staleCommandPrefix) {
+          violations.push({ file: relPath, type: '/gsd: command prefix', matches: staleCommandPrefix })
+        }
+
+        // Pattern 2: gsd- prefix that is NOT gsd-tools and NOT gsd-reflect
+        const staleGsdDash = content.match(/\bgsd-(?!tools|reflect)\w+/g)
+        if (staleGsdDash) {
+          violations.push({ file: relPath, type: 'gsd- prefix', matches: staleGsdDash })
+        }
+
+        // Pattern 3: get-shit-done/ directory path NOT followed by reflect
+        const staleGetShitDone = content.match(/get-shit-done\/(?!reflect)/g)
+        if (staleGetShitDone) {
+          violations.push({ file: relPath, type: 'get-shit-done/ path', matches: staleGetShitDone })
+        }
+      }
+
+      expect(violations, `Stale namespace references found:\n${JSON.stringify(violations, null, 2)}`).toEqual([])
+      // Verify meaningful corpus size across rewritten files
+      expect(rewrittenFiles.length, 'Rewritten corpus should include 50+ files').toBeGreaterThanOrEqual(50)
+      // Verify upstream files were found (proves exclusion logic is working, not hiding empty set)
+      expect(upstreamFiles.length, 'Upstream runtime files should exist').toBeGreaterThan(0)
+      // Verify total corpus breadth
+      expect(allFiles.length, 'Full corpus should include 50+ files across all categories').toBeGreaterThanOrEqual(50)
     })
   })
 

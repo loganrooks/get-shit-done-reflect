@@ -3031,6 +3031,295 @@ describe('manifest apply-migration multi-version upgrade', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// manifest apply-migration N-run idempotency (TST-02)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest apply-migration N-run idempotency (TST-02)', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('apply-migration is idempotent over N=5 runs with rename migration', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      { mode: 'yolo', depth: 'comprehensive', manifest_version: 1 },
+      2,
+      [renameMigration()]
+    );
+
+    // Run 1: should produce changes
+    const result1 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result1.success, `Run 1 failed: ${result1.error}`);
+    const output1 = JSON.parse(result1.output);
+    assert.ok(output1.total_changes > 0, 'run 1 should have changes');
+
+    // Capture config after run 1 as reference
+    const configAfterRun1 = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+
+    // Runs 2-5: should produce zero changes and byte-identical config
+    for (let run = 2; run <= 5; run++) {
+      const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+      assert.ok(result.success, `Run ${run} failed: ${result.error}`);
+      const output = JSON.parse(result.output);
+      assert.strictEqual(output.total_changes, 0, `run ${run} should have zero changes`);
+
+      const configAfterRun = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+      assert.strictEqual(configAfterRun, configAfterRun1, `config after run ${run} should be byte-identical to config after run 1`);
+    }
+  });
+
+  test('apply-migration is idempotent over N=5 runs with full feature reconciliation', () => {
+    // Config missing some health_check fields so feature reconciliation adds them on run 1
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      { mode: 'yolo', granularity: 'fine', manifest_version: 2, health_check: { frequency: 'milestone-only' } },
+      2
+    );
+
+    // Run 1: should add missing health_check fields
+    const result1 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result1.success, `Run 1 failed: ${result1.error}`);
+    const output1 = JSON.parse(result1.output);
+    assert.ok(output1.total_changes > 0, 'run 1 should have changes (missing fields added)');
+
+    // Capture config after run 1 as reference
+    const configAfterRun1 = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+
+    // Runs 2-5: should produce zero changes and byte-identical config
+    for (let run = 2; run <= 5; run++) {
+      const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+      assert.ok(result.success, `Run ${run} failed: ${result.error}`);
+      const output = JSON.parse(result.output);
+      assert.strictEqual(output.total_changes, 0, `run ${run} should have zero changes`);
+
+      const configAfterRun = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+      assert.strictEqual(configAfterRun, configAfterRun1, `config after run ${run} should be byte-identical to config after run 1`);
+    }
+  });
+
+  test('apply-migration is idempotent over N=5 runs on multi-version upgrade', () => {
+    // Read the REAL production manifest from disk (same pattern as CFG-05 test)
+    const realManifest = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'feature-manifest.json'), 'utf-8')
+    );
+
+    // Write the real manifest into the test environment
+    const manifestDir = path.join(tmpDir, '.claude', 'get-shit-done');
+    fs.mkdirSync(manifestDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(manifestDir, 'feature-manifest.json'),
+      JSON.stringify(realManifest, null, 2)
+    );
+
+    // Start with v1.14-era config
+    const v114Config = {
+      mode: 'yolo',
+      depth: 'comprehensive',
+      parallelization: true,
+      commit_docs: true,
+      model_profile: 'balanced',
+      workflow: {
+        research: true,
+        plan_checker: true,
+        verifier: true,
+      },
+      gsd_reflect_version: '1.14.0',
+      manifest_version: 1,
+    };
+
+    fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'config.json'),
+      JSON.stringify(v114Config, null, 2)
+    );
+
+    // Run 1: applies all migrations + feature reconciliation
+    const result1 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result1.success, `Run 1 failed: ${result1.error}`);
+    const output1 = JSON.parse(result1.output);
+    assert.ok(output1.total_changes > 0, 'run 1 should have changes');
+
+    // Capture config after run 1 as reference
+    const configAfterRun1 = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+
+    // Runs 2-5: should produce zero changes and byte-identical config
+    for (let run = 2; run <= 5; run++) {
+      const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+      assert.ok(result.success, `Run ${run} failed: ${result.error}`);
+      const output = JSON.parse(result.output);
+      assert.strictEqual(output.total_changes, 0, `run ${run} should have zero changes`);
+
+      const configAfterRun = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+      assert.strictEqual(configAfterRun, configAfterRun1, `config after run ${run} should be byte-identical to config after run 1`);
+    }
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// manifest apply-migration type coercion edge cases (TST-07)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest apply-migration type coercion edge cases (TST-07)', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('null config value does not crash apply-migration (TST-07)', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: null,
+          blocking_checks: false,
+        },
+      },
+      2
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed (null value should not crash): ${result.error}`);
+  });
+
+  test('string "true"/"false" coerced to boolean in boolean fields', () => {
+    // Test "false" -> false
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: 30,
+          blocking_checks: 'false',
+        },
+      },
+      2
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.health_check.blocking_checks, false, 'string "false" should be coerced to boolean false');
+    assert.strictEqual(typeof config.health_check.blocking_checks, 'boolean', 'blocking_checks should be boolean type');
+
+    // Test "true" -> true in a fresh env
+    cleanup(tmpDir);
+    tmpDir = createTempProject();
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: 30,
+          blocking_checks: 'true',
+        },
+      },
+      2
+    );
+
+    const result2 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result2.success, `Command failed: ${result2.error}`);
+
+    const config2 = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config2.health_check.blocking_checks, true, 'string "true" should be coerced to boolean true');
+    assert.strictEqual(typeof config2.health_check.blocking_checks, 'boolean', 'blocking_checks should be boolean type');
+  });
+
+  test('empty string in number field is not coerced to 0', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: '',
+          blocking_checks: false,
+        },
+      },
+      2
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed (empty string should not crash): ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    // Empty string should NOT become 0; coerceValue checks trimmed !== '' before number conversion.
+    // It should either remain "" or be replaced by the default (7) via feature reconciliation.
+    assert.notStrictEqual(config.health_check.stale_threshold_days, 0, 'empty string should NOT be coerced to 0');
+  });
+
+  test('NaN-producing string in number field passes through unchanged', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: 'not-a-number',
+          blocking_checks: false,
+        },
+      },
+      2
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed (NaN string should not crash): ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    // coerceValue returns the value as-is when !isNaN fails
+    assert.strictEqual(config.health_check.stale_threshold_days, 'not-a-number',
+      'NaN-producing string should pass through unchanged');
+  });
+
+  test('numeric string in number field is coerced to number', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: '30',
+          blocking_checks: false,
+        },
+      },
+      2
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.health_check.stale_threshold_days, 30,
+      'numeric string "30" should be coerced to number 30');
+    assert.strictEqual(typeof config.health_check.stale_threshold_days, 'number',
+      'stale_threshold_days should be number type');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // manifest log-migration command
 // ─────────────────────────────────────────────────────────────────────────────
 

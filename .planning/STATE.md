@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 49-04-PLAN.md (rename migration test coverage)
-last_updated: "2026-03-27T01:17:00Z"
-last_activity: 2026-03-27 -- Completed 49-04 rename migration test coverage (Phase 49 complete)
+stopped_at: Completed 50-04-PLAN.md (TST-03 idempotency + TST-08 integration depth)
+last_updated: "2026-03-27T02:18:00Z"
+last_activity: 2026-03-27 -- Completed 50-04 TST-03 installer re-run idempotency and TST-08 integration depth tests
 progress:
   total_phases: 11
   completed_phases: 6
   total_plans: 13
-  completed_plans: 13
+  completed_plans: 16
   percent: 54
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 49 complete - Config Migration; all 4 plans done. Next: Phase 50 (Migration Test Hardening)
+**Current focus:** Phase 50 - Migration Test Hardening; all 5 plans complete. Phase 50 finished.
 
 ## Current Position
 
-Phase: 49 of 54 (Config Migration) -- COMPLETE
-Plan: 4 of 4 (49-01, 49-02, 49-03, 49-04 complete)
-Status: active
-Last activity: 2026-03-27 -- Completed 49-04 rename migration test coverage (Phase 49 complete)
+Phase: 50 of 54 (Migration Test Hardening)
+Plan: 5 of 5 (all complete)
+Status: phase-complete
+Last activity: 2026-03-27 -- Completed 50-04 TST-03 installer re-run idempotency and TST-08 integration depth tests
 
 Progress: [██████████] 54%
 
@@ -81,6 +81,11 @@ Progress: [██████████] 54%
 | Phase 49 P02 | 5min | 2 tasks | 11 files |
 | Phase 49 P03 | 5min | 2 tasks | 2 files |
 | Phase 49 P04 | 4min | 2 tasks | 1 files |
+| Phase 50 P01 | 6min | 2 tasks | 1 files |
+| Phase 50 P02 | 3min | 2 tasks | 1 files |
+| Phase 50 P03 | 2min | 2 tasks | 1 files |
+| Phase 50 P05 | 7min | 2 tasks | 2 files |
+| Phase 50 P04 | 3min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -122,6 +127,13 @@ Recent decisions affecting current work:
 - [Phase 49]: Adopted upstream workstream-aware signatures for planningPaths/planningDir for forward compatibility
 - [Phase 49]: createManifestTestEnv extended with optional migrations parameter for reusable migration test setup
 - [Phase 49]: Multi-version upgrade chain test uses real production manifest from disk for maximum fidelity
+- [Phase 50]: TST-05 renameSync test documents that test-reachable code path does not invoke renameSync (old KB path depends on os.homedir); verifies data safety through the non-rename path
+- [Phase 50]: fs mocking uses direct property replacement with try/finally restore rather than vitest.spyOn, matching CJS module interop pattern
+- [Phase 50]: N-run idempotency (TST-02) tested with N=5 to catch metadata accumulation bugs invisible to 2-run tests
+- [Phase 50]: Feature reconciliation idempotency tested with partial health_check config (missing fields added on run 1, stable on runs 2-5)
+- [Phase 50]: TST-01 excludes upstream runtime files (bin/, settings.json, CHANGELOG.md) from namespace scan -- these are intentionally not rewritten by replacePathsInContent
+- [Phase 50]: TST-08 adapted FEATURE_CAPABILITY_MAP assertions to actual structure (hook_dependent_above/task_tool_dependent) instead of plan's assumed max_level/requires
+- [Phase 50]: findProjectRoot subdirectory test expects parent resolution when .planning/ and .git/ coexist at ancestor -- matches upstream .git heuristic behavior
 
 ### Roadmap Evolution
 
@@ -173,6 +185,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T01:17:00Z
-Stopped at: Completed 49-04-PLAN.md -- rename migration test coverage (Phase 49 complete)
+Last session: 2026-03-27T02:18:00Z
+Stopped at: Completed 50-04-PLAN.md -- TST-03 idempotency + TST-08 integration depth (Phase 50 complete)
 Resume file: None

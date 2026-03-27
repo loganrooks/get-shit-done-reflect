@@ -33,7 +33,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 48: Module Extensions & Verification** - Extend frontmatter.cjs and init.cjs with fork additions, verify all tests pass with zero behavioral changes ✓ 2026-03-20
 - [x] **Phase 48.1: Post-audit upstream drift retriage and roadmap reconciliation (INSERTED)** - Capture what changed since the audit baseline, classify adopt/fold/defer decisions, and update v1.18 routing before Phase 49 planning ✓ 2026-03-24
 - [x] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, and route config migration through the cross-runtime install/KB authority questions already identified ✓ 2026-03-26
-- [ ] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, and root/worktree/KB authority edge-case coverage
+- [x] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, and root/worktree/KB authority edge-case coverage ✓ 2026-03-26
 - [ ] **Phase 51: Update System Hardening** - Installer/runtime preflight, migration guides, stale file cleanup, hook/runtime-safe upgrade surfacing, and authoritative project-local upgrade behavior
 - [ ] **Phase 52: Feature Adoption** - Adopt context-monitor, Nyquist auditor, code-aware discuss-phase, upstream workflows, and supporting features
 - [ ] **Phase 53: Deep Integration** - Weave adopted features into fork's signal/automation/health/reflection pipeline
@@ -161,12 +161,14 @@ Plans:
   5. Snapshot regression tests catch any unintended namespace rewriting changes
   6. Commands run from repo roots and subdirectories keep project-local KB/install authority when `.planning/` exists
 **Upstream drift routing (48.1):** Cluster C2 partial (findProjectRoot bug fix in core.cjs) routes here. See `UPSTREAM-DRIFT-LEDGER.md`.
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 50-01: TBD
-- [ ] 50-02: TBD
-- [ ] 50-03: TBD
+- [ ] 50-01-PLAN.md -- Full-corpus namespace scan (TST-01) + snapshot regression for namespace rewriting (TST-09)
+- [ ] 50-02-PLAN.md -- N-run migration idempotency (TST-02) + type coercion edge cases (TST-07)
+- [ ] 50-03-PLAN.md -- KB migration edge-case filenames (TST-04) + crash recovery (TST-05)
+- [ ] 50-04-PLAN.md -- Installer re-run idempotency (TST-03) + integration depth (TST-08)
+- [ ] 50-05-PLAN.md -- Adopt findProjectRoot from upstream (C2 partial) + module equivalence and root authority (TST-06)
 
 ### Phase 51: Update System Hardening
 **Goal**: The installer and command-entry upgrade path produce actionable migration guidance, clean up stale pre-modularization files, and enforce authoritative project-local install/KB behavior across runtimes
@@ -266,7 +268,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 
 | 48. Module Extensions & Verification | 2/2 | Complete | 2026-03-20 |
 | 48.1 Post-audit upstream drift retriage | 1/1 | Complete | 2026-03-24 |
 | 49. Config Migration | 4/4 | Complete | 2026-03-26 |
-| 50. Migration Test Hardening | 0/TBD | Not started | - |
+| 50. Migration Test Hardening | 5/5 | Complete | 2026-03-26 |
 | 51. Update System Hardening | 0/TBD | Not started | - |
 | 52. Feature Adoption | 0/TBD | Not started | - |
 | 53. Deep Integration | 0/TBD | Not started | - |

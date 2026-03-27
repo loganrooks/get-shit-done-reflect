@@ -490,6 +490,216 @@ describe('migrateKB pre-migration backup', () => {
   })
 })
 
+describe('TST-04: KB migration nested subdirectories and edge-case filenames', () => {
+  tmpdirTest('migrates deeply nested subdirectories (3 levels deep)', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+
+    // Create 3-level deep nested structures
+    const deepSignalDir = path.join(kbDir, 'signals', 'project-a', 'subsystem', 'deep')
+    const deepSpikeDir = path.join(kbDir, 'spikes', 'project-b', 'nested')
+    fsSync.mkdirSync(deepSignalDir, { recursive: true })
+    fsSync.mkdirSync(deepSpikeDir, { recursive: true })
+
+    const sigContent = '---\nid: sig-deep\ntype: signal\n---\nDeep signal content'
+    const spkContent = '---\nid: spk-nested\ntype: spike\n---\nNested spike content'
+    fsSync.writeFileSync(path.join(deepSignalDir, 'sig-deep.md'), sigContent)
+    fsSync.writeFileSync(path.join(deepSpikeDir, 'spk-nested.md'), spkContent)
+
+    migrateKB(tmpdir, [])
+
+    // Verify files still exist at original relative paths
+    expect(fsSync.readFileSync(path.join(deepSignalDir, 'sig-deep.md'), 'utf8')).toBe(sigContent)
+    expect(fsSync.readFileSync(path.join(deepSpikeDir, 'spk-nested.md'), 'utf8')).toBe(spkContent)
+    expect(countKBEntries(kbDir)).toBe(2)
+  })
+
+  tmpdirTest('preserves filenames with spaces', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    const projectDir = path.join(kbDir, 'signals', 'my project')
+    fsSync.mkdirSync(projectDir, { recursive: true })
+
+    const content = '---\nid: sig-spaces\ntype: signal\n---\nSignal with spaces in path'
+    fsSync.writeFileSync(path.join(projectDir, 'signal with spaces.md'), content)
+
+    migrateKB(tmpdir, [])
+
+    // Verify file accessible and content preserved byte-for-byte
+    const actual = fsSync.readFileSync(path.join(projectDir, 'signal with spaces.md'), 'utf8')
+    expect(actual).toBe(content)
+  })
+
+  tmpdirTest('preserves filenames with unicode characters', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    const accentedDir = path.join(kbDir, 'lessons', 'filosof\u00eda')
+    const asciiDir = path.join(kbDir, 'signals', 'test')
+    fsSync.mkdirSync(accentedDir, { recursive: true })
+    fsSync.mkdirSync(asciiDir, { recursive: true })
+
+    const lessonContent = '---\nid: les-unica\ntype: lesson\n---\nLecci\u00f3n \u00fanica con acentos'
+    const signalContent = '---\nid: sig-emdash\ntype: signal\n---\nContent with em\u2014dash and \u201csmart quotes\u201d'
+    fsSync.writeFileSync(path.join(accentedDir, 'lecci\u00f3n-\u00fanica.md'), lessonContent)
+    fsSync.writeFileSync(path.join(asciiDir, 'signal-with-em-dash.md'), signalContent)
+
+    migrateKB(tmpdir, [])
+
+    // Verify files exist and content preserved including unicode
+    expect(fsSync.readFileSync(path.join(accentedDir, 'lecci\u00f3n-\u00fanica.md'), 'utf8')).toBe(lessonContent)
+    expect(fsSync.readFileSync(path.join(asciiDir, 'signal-with-em-dash.md'), 'utf8')).toBe(signalContent)
+  })
+
+  tmpdirTest('preserves dot-prefixed files and directories', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    const hiddenProjectDir = path.join(kbDir, 'signals', '.hidden-project')
+    const lessonDir = path.join(kbDir, 'lessons', 'test')
+    fsSync.mkdirSync(hiddenProjectDir, { recursive: true })
+    fsSync.mkdirSync(lessonDir, { recursive: true })
+
+    const sigContent = '---\nid: sig-hidden\ntype: signal\n---\nHidden project signal'
+    const metaContent = '---\nid: les-metadata\ntype: lesson\n---\nMetadata lesson'
+    fsSync.writeFileSync(path.join(hiddenProjectDir, 'sig-hidden.md'), sigContent)
+    fsSync.writeFileSync(path.join(lessonDir, '.metadata.md'), metaContent)
+
+    migrateKB(tmpdir, [])
+
+    // Verify dot-prefixed files and directories survive migration
+    expect(fsSync.readFileSync(path.join(hiddenProjectDir, 'sig-hidden.md'), 'utf8')).toBe(sigContent)
+    expect(fsSync.readFileSync(path.join(lessonDir, '.metadata.md'), 'utf8')).toBe(metaContent)
+  })
+
+  tmpdirTest('handles empty subdirectories gracefully', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    // Create empty subdirectories
+    fsSync.mkdirSync(path.join(kbDir, 'signals', 'project-a'), { recursive: true })
+    fsSync.mkdirSync(path.join(kbDir, 'spikes'), { recursive: true })
+    // Plus one real entry
+    const lessonDir = path.join(kbDir, 'lessons', 'test')
+    fsSync.mkdirSync(lessonDir, { recursive: true })
+    const content = '---\nid: les-001\ntype: lesson\n---\nThe one real entry'
+    fsSync.writeFileSync(path.join(lessonDir, 'les-001.md'), content)
+
+    // Should not crash
+    migrateKB(tmpdir, [])
+
+    // The one real entry is preserved
+    expect(fsSync.readFileSync(path.join(lessonDir, 'les-001.md'), 'utf8')).toBe(content)
+    expect(countKBEntries(kbDir)).toBe(1)
+  })
+})
+
+describe('TST-05: crash recovery for interrupted KB migration', () => {
+  tmpdirTest('cpSync failure: original KB data preserved, no partial destination', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    const signalDir = path.join(kbDir, 'signals', 'test')
+    fsSync.mkdirSync(signalDir, { recursive: true })
+    const originalContent = '---\nid: sig-001\ntype: signal\n---\nOriginal content for crash test'
+    fsSync.writeFileSync(path.join(signalDir, 'sig-001.md'), originalContent)
+
+    // Mock cpSync to throw during backup creation
+    const origCpSync = fsSync.cpSync
+    fsSync.cpSync = (...args) => { throw new Error('Simulated disk failure during copy') }
+    try {
+      expect(() => migrateKB(tmpdir, [])).toThrow('Simulated disk failure during copy')
+    } finally {
+      fsSync.cpSync = origCpSync
+    }
+
+    // Original data must be preserved
+    expect(fsSync.readFileSync(path.join(signalDir, 'sig-001.md'), 'utf8')).toBe(originalContent)
+    expect(countKBEntries(kbDir)).toBe(1)
+
+    // No partial backup directories should exist
+    const entries = fsSync.readdirSync(tmpdir)
+    const backupDirs = entries.filter(e => e.startsWith('knowledge.backup-'))
+    expect(backupDirs).toHaveLength(0)
+  })
+
+  tmpdirTest('mkdirSync failure: no partial state created', async ({ tmpdir }) => {
+    // Start WITHOUT an existing knowledge/ directory so backup is skipped
+    // and mkdirSync for the new KB dirs is the first fs-intensive operation
+
+    // Mock mkdirSync to throw when creating the new KB directory structure
+    const origMkdirSync = fsSync.mkdirSync
+    let mkdirCallCount = 0
+    fsSync.mkdirSync = (...args) => {
+      mkdirCallCount++
+      // Throw on first mkdirSync call (creating signals/ dir)
+      if (mkdirCallCount === 1) {
+        throw new Error('Simulated permission denied')
+      }
+      return origMkdirSync(...args)
+    }
+    try {
+      expect(() => migrateKB(tmpdir, [])).toThrow('Simulated permission denied')
+    } finally {
+      fsSync.mkdirSync = origMkdirSync
+    }
+
+    // No knowledge directory should have been created since the first mkdir failed
+    const entries = fsSync.readdirSync(tmpdir)
+    // The knowledge/ dir should not exist OR should be empty (no signals/ subdir)
+    if (entries.includes('knowledge')) {
+      // If recursive:true created the parent before failing on subdir,
+      // at minimum no data files should exist
+      expect(countKBEntries(path.join(tmpdir, 'knowledge'))).toBe(0)
+    }
+  })
+
+  tmpdirTest('renameSync failure: original data preserved, copy may exist but is not authoritative', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    const signalDir = path.join(kbDir, 'signals', 'test')
+    fsSync.mkdirSync(signalDir, { recursive: true })
+    const originalContent = '---\nid: sig-rename\ntype: signal\n---\nRename crash test content'
+    fsSync.writeFileSync(path.join(signalDir, 'sig-rename.md'), originalContent)
+
+    // Let cpSync succeed (backup will be created) but mock renameSync to throw
+    const origRenameSync = fsSync.renameSync
+    fsSync.renameSync = (...args) => { throw new Error('Simulated rename failure') }
+    try {
+      // migrateKB may or may not throw depending on whether renameSync is called
+      // in this code path. Since oldKBDir (os.homedir()/.claude/gsd-knowledge)
+      // does not exist in the test env, renameSync is not called in this path.
+      // The function completes normally -- this verifies that the non-rename
+      // path preserves data even when renameSync is broken.
+      migrateKB(tmpdir, [])
+    } catch (e) {
+      // If renameSync WAS called and threw, that's also acceptable
+    } finally {
+      fsSync.renameSync = origRenameSync
+    }
+
+    // Original KB data must still be intact regardless of rename behavior
+    expect(fsSync.readFileSync(path.join(signalDir, 'sig-rename.md'), 'utf8')).toBe(originalContent)
+    expect(countKBEntries(kbDir)).toBe(1)
+  })
+
+  tmpdirTest('successful migration creates backup and preserves data (happy path baseline)', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    const signalDir = path.join(kbDir, 'signals', 'test')
+    const spikeDir = path.join(kbDir, 'spikes', 'test')
+    fsSync.mkdirSync(signalDir, { recursive: true })
+    fsSync.mkdirSync(spikeDir, { recursive: true })
+    fsSync.writeFileSync(path.join(signalDir, 'sig-happy.md'), '---\nid: sig-happy\ntype: signal\n---\nHappy path')
+    fsSync.writeFileSync(path.join(spikeDir, 'spk-happy.md'), '---\nid: spk-happy\ntype: spike\n---\nHappy path spike')
+
+    // Normal execution -- no mocking
+    migrateKB(tmpdir, [])
+
+    // All entries preserved
+    expect(countKBEntries(kbDir)).toBe(2)
+    expect(fsSync.readFileSync(path.join(signalDir, 'sig-happy.md'), 'utf8')).toContain('Happy path')
+    expect(fsSync.readFileSync(path.join(spikeDir, 'spk-happy.md'), 'utf8')).toContain('Happy path spike')
+
+    // Backup was created (since entries > 0)
+    const entries = fsSync.readdirSync(tmpdir)
+    const backupDirs = entries.filter(e => e.startsWith('knowledge.backup-'))
+    expect(backupDirs.length).toBeGreaterThanOrEqual(1)
+
+    // Backup also has correct entry count
+    const backupDir = path.join(tmpdir, backupDirs[0])
+    expect(countKBEntries(backupDir)).toBe(2)
+  })
+})
+
 describe('KB template provenance fields', () => {
   tmpdirTest('signal template includes gsd_version field', async () => {
     const templatePath = path.join(REPO_ROOT, '.claude', 'agents', 'kb-templates', 'signal.md')
