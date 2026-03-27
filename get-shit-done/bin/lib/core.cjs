@@ -114,7 +114,15 @@ function loadConfig(cwd) {
 
     return {
       model_profile: get('model_profile') ?? defaults.model_profile,
-      commit_docs: get('commit_docs', { section: 'planning', field: 'commit_docs' }) ?? defaults.commit_docs,
+      commit_docs: (() => {
+        const explicit = get('commit_docs', { section: 'planning', field: 'commit_docs' });
+        // If explicitly set in config, respect the user's choice
+        if (explicit !== undefined) return explicit;
+        // Auto-detection: when no explicit value and .planning/ is gitignored,
+        // default to false instead of true (upstream C8)
+        if (isGitIgnored(cwd, '.planning/')) return false;
+        return defaults.commit_docs;
+      })(),
       search_gitignored: get('search_gitignored', { section: 'planning', field: 'search_gitignored' }) ?? defaults.search_gitignored,
       branching_strategy: get('branching_strategy', { section: 'git', field: 'branching_strategy' }) ?? defaults.branching_strategy,
       phase_branch_template: get('phase_branch_template', { section: 'git', field: 'phase_branch_template' }) ?? defaults.phase_branch_template,
@@ -471,6 +479,42 @@ function getMilestonePhaseFilter(cwd) {
   return isDirInMilestone;
 }
 
+// ─── Planning path helpers (upstream C9) ─────────────────────────────────────
+
+/**
+ * Return the planning directory path for a project, optionally workstream-aware.
+ * @param {string} cwd - project root
+ * @param {string} [ws] - explicit workstream name; if omitted, checks GSD_WORKSTREAM env var
+ * @returns {string}
+ */
+function planningDir(cwd, ws) {
+  if (ws === undefined) ws = process.env.GSD_WORKSTREAM || null;
+  if (!ws) return path.join(cwd, '.planning');
+  return path.join(cwd, '.planning', 'workstreams', ws);
+}
+
+/**
+ * Return canonical planning directory paths for a project, workstream-aware.
+ * Scoped paths (state, roadmap, phases, requirements) resolve to the active workstream.
+ * Shared paths (project, config) always resolve to the root .planning/.
+ * @param {string} cwd - project root
+ * @param {string} [ws] - explicit workstream name; if omitted, checks GSD_WORKSTREAM env var
+ * @returns {{ planning: string, state: string, roadmap: string, project: string, config: string, phases: string, requirements: string }}
+ */
+function planningPaths(cwd, ws) {
+  const base = planningDir(cwd, ws);
+  const root = path.join(cwd, '.planning');
+  return {
+    planning: base,
+    state: path.join(base, 'STATE.md'),
+    roadmap: path.join(base, 'ROADMAP.md'),
+    project: path.join(root, 'PROJECT.md'),
+    config: path.join(root, 'config.json'),
+    phases: path.join(base, 'phases'),
+    requirements: path.join(base, 'REQUIREMENTS.md'),
+  };
+}
+
 module.exports = {
   MODEL_PROFILES,
   output,
@@ -492,6 +536,8 @@ module.exports = {
   getMilestoneInfo,
   getMilestonePhaseFilter,
   toPosixPath,
+  planningDir,
+  planningPaths,
 };
 
 // ─── Fork Shared Helpers ──────────────────────────────────────────────────────
