@@ -81,6 +81,7 @@ Progress: [██████████] 54%
 | Phase 49 P02 | 5min | 2 tasks | 11 files |
 | Phase 49 P03 | 5min | 2 tasks | 2 files |
 | Phase 49 P04 | 4min | 2 tasks | 1 files |
+| Phase 50 P01 | 6min | 2 tasks | 1 files |
 | Phase 50 P02 | 3min | 2 tasks | 1 files |
 | Phase 50 P03 | 2min | 2 tasks | 1 files |
 
@@ -128,6 +129,7 @@ Recent decisions affecting current work:
 - [Phase 50]: fs mocking uses direct property replacement with try/finally restore rather than vitest.spyOn, matching CJS module interop pattern
 - [Phase 50]: N-run idempotency (TST-02) tested with N=5 to catch metadata accumulation bugs invisible to 2-run tests
 - [Phase 50]: Feature reconciliation idempotency tested with partial health_check config (missing fields added on run 1, stable on runs 2-5)
+- [Phase 50]: TST-01 excludes upstream runtime files (bin/, settings.json, CHANGELOG.md) from namespace scan -- these are intentionally not rewritten by replacePathsInContent
 
 ### Roadmap Evolution
 
@@ -179,6 +181,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T02:07:00Z
-Stopped at: Completed 50-02-PLAN.md -- N-run idempotency and type coercion edge case tests
+Last session: 2026-03-27T02:10:00Z
+Stopped at: Completed 50-01-PLAN.md -- full-corpus namespace scan and snapshot regression tests
 Resume file: None
