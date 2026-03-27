@@ -3164,6 +3164,162 @@ describe('manifest apply-migration N-run idempotency (TST-02)', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// manifest apply-migration type coercion edge cases (TST-07)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest apply-migration type coercion edge cases (TST-07)', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('null config value does not crash apply-migration (TST-07)', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: null,
+          blocking_checks: false,
+        },
+      },
+      2
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed (null value should not crash): ${result.error}`);
+  });
+
+  test('string "true"/"false" coerced to boolean in boolean fields', () => {
+    // Test "false" -> false
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: 30,
+          blocking_checks: 'false',
+        },
+      },
+      2
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.health_check.blocking_checks, false, 'string "false" should be coerced to boolean false');
+    assert.strictEqual(typeof config.health_check.blocking_checks, 'boolean', 'blocking_checks should be boolean type');
+
+    // Test "true" -> true in a fresh env
+    cleanup(tmpDir);
+    tmpDir = createTempProject();
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: 30,
+          blocking_checks: 'true',
+        },
+      },
+      2
+    );
+
+    const result2 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result2.success, `Command failed: ${result2.error}`);
+
+    const config2 = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config2.health_check.blocking_checks, true, 'string "true" should be coerced to boolean true');
+    assert.strictEqual(typeof config2.health_check.blocking_checks, 'boolean', 'blocking_checks should be boolean type');
+  });
+
+  test('empty string in number field is not coerced to 0', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: '',
+          blocking_checks: false,
+        },
+      },
+      2
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed (empty string should not crash): ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    // Empty string should NOT become 0; coerceValue checks trimmed !== '' before number conversion.
+    // It should either remain "" or be replaced by the default (7) via feature reconciliation.
+    assert.notStrictEqual(config.health_check.stale_threshold_days, 0, 'empty string should NOT be coerced to 0');
+  });
+
+  test('NaN-producing string in number field passes through unchanged', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: 'not-a-number',
+          blocking_checks: false,
+        },
+      },
+      2
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed (NaN string should not crash): ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    // coerceValue returns the value as-is when !isNaN fails
+    assert.strictEqual(config.health_check.stale_threshold_days, 'not-a-number',
+      'NaN-producing string should pass through unchanged');
+  });
+
+  test('numeric string in number field is coerced to number', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        manifest_version: 1,
+        health_check: {
+          frequency: 'milestone-only',
+          stale_threshold_days: '30',
+          blocking_checks: false,
+        },
+      },
+      2
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.health_check.stale_threshold_days, 30,
+      'numeric string "30" should be coerced to number 30');
+    assert.strictEqual(typeof config.health_check.stale_threshold_days, 'number',
+      'stale_threshold_days should be number type');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // manifest log-migration command
 // ─────────────────────────────────────────────────────────────────────────────
 
