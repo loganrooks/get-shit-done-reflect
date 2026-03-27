@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -3120,6 +3120,103 @@ Also use the Read tool to read files and Bash to run commands.`
       // Global commands use buildHookCommand with quoted absolute paths, no test -f guard
       expect(settings.statusLine.command).not.toContain('test -f')
       expect(settings.statusLine.command).toContain('node "')
+    })
+  })
+
+  describe('Phase 51: Migration Guide and Version Detection', () => {
+    describe('compareVersions', () => {
+      it('returns -1 when a < b (minor)', () => {
+        expect(compareVersions('1.17.0', '1.18.0')).toBe(-1)
+      })
+
+      it('returns 0 when a === b', () => {
+        expect(compareVersions('1.18.0', '1.18.0')).toBe(0)
+      })
+
+      it('returns 1 when a > b (minor)', () => {
+        expect(compareVersions('1.19.0', '1.18.0')).toBe(1)
+      })
+
+      it('returns -1 when a < b (patch level)', () => {
+        expect(compareVersions('1.18.0', '1.18.1')).toBe(-1)
+      })
+
+      it('strips +dev suffix before comparison', () => {
+        expect(compareVersions('1.18.0+dev', '1.18.0')).toBe(0)
+        expect(compareVersions('1.17.0+dev', '1.18.0')).toBe(-1)
+      })
+    })
+
+    describe('isVersionInRange', () => {
+      it('returns true when version equals upper bound (inclusive)', () => {
+        expect(isVersionInRange('1.18.0', '1.17.0', '1.18.0')).toBe(true)
+      })
+
+      it('returns false when version equals lower bound (exclusive)', () => {
+        expect(isVersionInRange('1.17.0', '1.17.0', '1.18.0')).toBe(false)
+      })
+
+      it('returns false when version is below range', () => {
+        expect(isVersionInRange('1.16.0', '1.17.0', '1.18.0')).toBe(false)
+      })
+
+      it('returns false when version is above range', () => {
+        expect(isVersionInRange('1.19.0', '1.17.0', '1.18.0')).toBe(false)
+      })
+
+      it('returns true for version strictly between bounds', () => {
+        expect(isVersionInRange('1.17.5', '1.17.0', '1.18.0')).toBe(true)
+      })
+    })
+
+    describe('generateMigrationGuide', () => {
+      tmpdirTest('generates MIGRATION-GUIDE.md with correct structure for 1.17->1.18 upgrade', async ({ tmpdir }) => {
+        generateMigrationGuide(tmpdir, '1.17.0', '1.18.0')
+
+        const guidePath = path.join(tmpdir, 'MIGRATION-GUIDE.md')
+        expect(fsSync.existsSync(guidePath)).toBe(true)
+
+        const content = fsSync.readFileSync(guidePath, 'utf8')
+        expect(content).toContain('# Migration Guide: 1.17.0 -> 1.18.0')
+        expect(content).toContain('## Version 1.18.0: Modularization')
+        expect(content).toContain('**BREAKING:**')
+        expect(content).toContain('Action required:')
+        expect(content).toContain('/gsdr:upgrade-project')
+      })
+
+      tmpdirTest('does not generate guide when no specs match (same version)', async ({ tmpdir }) => {
+        generateMigrationGuide(tmpdir, '1.18.0', '1.18.0')
+
+        const guidePath = path.join(tmpdir, 'MIGRATION-GUIDE.md')
+        expect(fsSync.existsSync(guidePath)).toBe(false)
+      })
+
+      tmpdirTest('does not generate guide when previous version is above all specs', async ({ tmpdir }) => {
+        generateMigrationGuide(tmpdir, '2.0.0', '2.1.0')
+
+        const guidePath = path.join(tmpdir, 'MIGRATION-GUIDE.md')
+        expect(fsSync.existsSync(guidePath)).toBe(false)
+      })
+    })
+
+    describe('cleanupOrphanedFiles', () => {
+      tmpdirTest('removes stale gsd-tools.js from pre-modularization installs', async ({ tmpdir }) => {
+        // Create directory structure with stale file
+        const staleDir = path.join(tmpdir, 'get-shit-done-reflect', 'bin')
+        fsSync.mkdirSync(staleDir, { recursive: true })
+        const stalePath = path.join(staleDir, 'gsd-tools.js')
+        fsSync.writeFileSync(stalePath, '// stale file')
+        expect(fsSync.existsSync(stalePath)).toBe(true)
+
+        cleanupOrphanedFiles(tmpdir)
+
+        expect(fsSync.existsSync(stalePath)).toBe(false)
+      })
+
+      tmpdirTest('does not error when stale files do not exist', async ({ tmpdir }) => {
+        // Call on empty dir -- should not throw
+        expect(() => cleanupOrphanedFiles(tmpdir)).not.toThrow()
+      })
     })
   })
 })
