@@ -2613,6 +2613,98 @@ Also use the Read tool to read files and Bash to run commands.`
       // Should NOT have double-transformed name
       expect(checkUpdate).not.toContain('get-shit-done-reflect-reflect-cc')
     })
+
+    tmpdirTest('TST-01: full-corpus scan of all installed files finds zero stale namespace references', async ({ tmpdir }) => {
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      })
+
+      const claudeDir = path.join(tmpdir, '.claude')
+      const binaryExtensions = new Set(['.png', '.jpg', '.jpeg', '.ico', '.gif', '.bmp', '.woff', '.woff2', '.ttf', '.eot'])
+
+      // Upstream runtime modules (bin/lib/*.cjs, bin/gsd-tools.cjs) are copied as-is
+      // without namespace rewriting -- they use upstream gsd- naming intentionally.
+      // settings.json is generated programmatically with legitimate gsd-test patterns.
+      // These are excluded from the stale-reference scan.
+      function isUpstreamRuntime(relPath) {
+        if (relPath.includes('/bin/')) return true
+        if (relPath.endsWith('settings.json')) return true
+        if (relPath.endsWith('settings.local.json')) return true
+        // CHANGELOG.md is copied as-is (fs.copyFileSync) -- historical document
+        // with legitimate references to old naming in version history entries
+        if (relPath.endsWith('CHANGELOG.md')) return true
+        return false
+      }
+
+      // Recursively collect all files under .claude/
+      function walkDir(dir) {
+        const results = []
+        const entries = fsSync.readdirSync(dir, { withFileTypes: true })
+        for (const entry of entries) {
+          const fullPath = path.join(dir, entry.name)
+          if (entry.isDirectory()) {
+            results.push(...walkDir(fullPath))
+          } else if (entry.isFile()) {
+            const ext = path.extname(entry.name).toLowerCase()
+            if (!binaryExtensions.has(ext)) {
+              results.push(fullPath)
+            }
+          }
+        }
+        return results
+      }
+
+      const allFiles = walkDir(claudeDir)
+      expect(allFiles.length, 'Install should produce files to scan').toBeGreaterThan(0)
+
+      // Separate rewritten files from upstream runtime modules
+      const rewrittenFiles = []
+      const upstreamFiles = []
+      for (const filePath of allFiles) {
+        const relPath = path.relative(tmpdir, filePath)
+        if (isUpstreamRuntime(relPath)) {
+          upstreamFiles.push(filePath)
+        } else {
+          rewrittenFiles.push(filePath)
+        }
+      }
+
+      const violations = []
+
+      for (const filePath of rewrittenFiles) {
+        const content = fsSync.readFileSync(filePath, 'utf8')
+        const relPath = path.relative(tmpdir, filePath)
+
+        // Pattern 1: /gsd: command prefix (should be /gsdr:)
+        const staleCommandPrefix = content.match(/\/gsd:(?!r)/g)
+        if (staleCommandPrefix) {
+          violations.push({ file: relPath, type: '/gsd: command prefix', matches: staleCommandPrefix })
+        }
+
+        // Pattern 2: gsd- prefix that is NOT gsd-tools and NOT gsd-reflect
+        const staleGsdDash = content.match(/\bgsd-(?!tools|reflect)\w+/g)
+        if (staleGsdDash) {
+          violations.push({ file: relPath, type: 'gsd- prefix', matches: staleGsdDash })
+        }
+
+        // Pattern 3: get-shit-done/ directory path NOT followed by reflect
+        const staleGetShitDone = content.match(/get-shit-done\/(?!reflect)/g)
+        if (staleGetShitDone) {
+          violations.push({ file: relPath, type: 'get-shit-done/ path', matches: staleGetShitDone })
+        }
+      }
+
+      expect(violations, `Stale namespace references found:\n${JSON.stringify(violations, null, 2)}`).toEqual([])
+      // Verify meaningful corpus size across rewritten files
+      expect(rewrittenFiles.length, 'Rewritten corpus should include 50+ files').toBeGreaterThanOrEqual(50)
+      // Verify upstream files were found (proves exclusion logic is working, not hiding empty set)
+      expect(upstreamFiles.length, 'Upstream runtime files should exist').toBeGreaterThan(0)
+      // Verify total corpus breadth
+      expect(allFiles.length, 'Full corpus should include 50+ files across all categories').toBeGreaterThanOrEqual(50)
+    })
   })
 
   describe('worktree-safe hook commands (buildLocalHookCommand)', () => {
