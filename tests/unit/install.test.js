@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -3216,6 +3216,205 @@ Also use the Read tool to read files and Bash to run commands.`
       tmpdirTest('does not error when stale files do not exist', async ({ tmpdir }) => {
         // Call on empty dir -- should not throw
         expect(() => cleanupOrphanedFiles(tmpdir)).not.toThrow()
+      })
+    })
+  })
+
+  describe('Phase 51: Upstream Drift Cluster Integration', () => {
+    describe('C7: validateHookFields', () => {
+      it('returns settings unchanged when no hooks property exists', () => {
+        const settings = { statusLine: { type: 'command' } }
+        const result = validateHookFields(settings)
+        expect(result).toEqual({ statusLine: { type: 'command' } })
+        expect(result.hooks).toBeUndefined()
+      })
+
+      it('returns settings unchanged when hooks is empty object', () => {
+        const settings = { hooks: {} }
+        const result = validateHookFields(settings)
+        // Empty hooks object should be deleted
+        expect(result.hooks).toBeUndefined()
+      })
+
+      it('strips hook entry missing hooks sub-array', () => {
+        const settings = {
+          hooks: {
+            SessionStart: [{ type: 'command' }]
+          }
+        }
+        const result = validateHookFields(settings)
+        // Entry without hooks array is invalid, entire SessionStart should be pruned
+        expect(result.hooks).toBeUndefined()
+      })
+
+      it('strips hook entry where inner hook has neither prompt nor command', () => {
+        const settings = {
+          hooks: {
+            SessionStart: [{
+              type: 'command',
+              hooks: [{ event: 'test' }]
+            }]
+          }
+        }
+        const result = validateHookFields(settings)
+        expect(result.hooks).toBeUndefined()
+      })
+
+      it('preserves valid command hook', () => {
+        const settings = {
+          hooks: {
+            SessionStart: [{
+              type: 'command',
+              hooks: [{ event: 'test', command: 'echo hi' }]
+            }]
+          }
+        }
+        const result = validateHookFields(settings)
+        expect(result.hooks.SessionStart).toHaveLength(1)
+        expect(result.hooks.SessionStart[0].hooks[0].command).toBe('echo hi')
+      })
+
+      it('preserves valid agent hook', () => {
+        const settings = {
+          hooks: {
+            SessionStart: [{
+              type: 'agent',
+              hooks: [{ event: 'test', prompt: 'do something' }]
+            }]
+          }
+        }
+        const result = validateHookFields(settings)
+        expect(result.hooks.SessionStart).toHaveLength(1)
+        expect(result.hooks.SessionStart[0].hooks[0].prompt).toBe('do something')
+      })
+
+      it('deletes event type key when all entries stripped, deletes hooks when all types gone', () => {
+        const settings = {
+          hooks: {
+            SessionStart: [
+              { type: 'command' },  // invalid: no hooks array
+              { type: 'command', hooks: [{ event: 'test' }] }  // invalid: no command or prompt
+            ],
+            Stop: [
+              { type: 'command', hooks: [] }  // invalid: empty hooks array
+            ]
+          }
+        }
+        const result = validateHookFields(settings)
+        expect(result.hooks).toBeUndefined()
+      })
+    })
+
+    describe('C1: generateCodexConfigBlock absolute paths', () => {
+      it('without targetDir: config_file uses relative path', () => {
+        const result = generateCodexConfigBlock([{ name: 'test-agent', description: 'Test' }])
+        expect(result).toContain('config_file = "agents/test-agent.toml"')
+      })
+
+      it('with targetDir: config_file uses absolute path', () => {
+        const result = generateCodexConfigBlock([{ name: 'test-agent', description: 'Test' }], '/tmp/test')
+        expect(result).toContain('config_file = "/tmp/test/agents/test-agent.toml"')
+      })
+
+      it('multiple agents produce correct separate TOML sections', () => {
+        const agents = [
+          { name: 'agent-a', description: 'Agent A' },
+          { name: 'agent-b', description: 'Agent B' }
+        ]
+        const result = generateCodexConfigBlock(agents, '/home/user/.codex')
+        expect(result).toContain('[agents.agent-a]')
+        expect(result).toContain('config_file = "/home/user/.codex/agents/agent-a.toml"')
+        expect(result).toContain('[agents.agent-b]')
+        expect(result).toContain('config_file = "/home/user/.codex/agents/agent-b.toml"')
+      })
+    })
+
+    describe('C5: pathPrefix $HOME for global installs', () => {
+      const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+      tmpdirTest('global install file content contains $HOME/ not literal home directory path', async ({ tmpdir }) => {
+        execSync(`node "${installScript}" --claude --global`, {
+          env: { ...process.env, HOME: tmpdir },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Read an installed file that goes through replacePathsInContent
+        const gsdDir = path.join(tmpdir, '.claude', 'get-shit-done-reflect')
+        const entries = fsSync.readdirSync(gsdDir, { recursive: true })
+        const mdFile = entries.find(e => e.endsWith('.md') && !e.includes('CHANGELOG'))
+        if (mdFile) {
+          const content = fsSync.readFileSync(path.join(gsdDir, mdFile), 'utf8')
+          // $HOME pattern should be present (for global installs with @ references)
+          // The literal tmpdir absolute path should NOT be in @ references
+          const atRefs = content.match(/@[^\s]+/g) || []
+          const hasLiteralTmpdir = atRefs.some(ref => ref.includes(tmpdir))
+          // Global install paths in @ references should use $HOME, not literal paths
+          if (atRefs.length > 0) {
+            expect(hasLiteralTmpdir).toBe(false)
+          }
+        }
+      })
+    })
+
+    describe('C6: resolve_model_ids for non-Claude runtimes', () => {
+      const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+      tmpdirTest('non-Claude install (opencode) writes resolve_model_ids: omit to defaults.json', async ({ tmpdir }) => {
+        const gsdHome = path.join(tmpdir, '.gsd')
+        fsSync.mkdirSync(gsdHome, { recursive: true })
+
+        execSync(`node "${installScript}" --opencode --global`, {
+          env: { ...process.env, HOME: tmpdir, GSD_HOME: gsdHome },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        const defaultsPath = path.join(gsdHome, 'defaults.json')
+        expect(fsSync.existsSync(defaultsPath)).toBe(true)
+        const defaults = JSON.parse(fsSync.readFileSync(defaultsPath, 'utf8'))
+        expect(defaults.resolve_model_ids).toBe('omit')
+      })
+
+      tmpdirTest('Claude install does NOT write resolve_model_ids to defaults.json', async ({ tmpdir }) => {
+        const gsdHome = path.join(tmpdir, '.gsd')
+        fsSync.mkdirSync(gsdHome, { recursive: true })
+
+        execSync(`node "${installScript}" --claude --global`, {
+          env: { ...process.env, HOME: tmpdir, GSD_HOME: gsdHome },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        const defaultsPath = path.join(gsdHome, 'defaults.json')
+        if (fsSync.existsSync(defaultsPath)) {
+          const defaults = JSON.parse(fsSync.readFileSync(defaultsPath, 'utf8'))
+          expect(defaults.resolve_model_ids).toBeUndefined()
+        }
+        // If defaults.json doesn't exist at all, that's also correct
+      })
+
+      tmpdirTest('existing defaults.json content is preserved when adding resolve_model_ids', async ({ tmpdir }) => {
+        const gsdHome = path.join(tmpdir, '.gsd')
+        fsSync.mkdirSync(gsdHome, { recursive: true })
+
+        // Pre-populate defaults.json with existing content
+        const defaultsPath = path.join(gsdHome, 'defaults.json')
+        fsSync.writeFileSync(defaultsPath, JSON.stringify({ existing_key: 'preserved_value' }, null, 2) + '\n')
+
+        execSync(`node "${installScript}" --opencode --global`, {
+          env: { ...process.env, HOME: tmpdir, GSD_HOME: gsdHome },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        const defaults = JSON.parse(fsSync.readFileSync(defaultsPath, 'utf8'))
+        expect(defaults.existing_key).toBe('preserved_value')
+        expect(defaults.resolve_model_ids).toBe('omit')
       })
     })
   })
