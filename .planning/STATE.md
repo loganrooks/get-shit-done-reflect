@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 51-01-PLAN.md (migration spec infrastructure + guide generation)
-last_updated: "2026-03-27T03:42:00Z"
-last_activity: 2026-03-27 -- Completed 51-01 migration spec infrastructure and guide generation
+stopped_at: Completed 51-02-PLAN.md (upstream drift cluster integration C1, C5, C6, C7)
+last_updated: "2026-03-27T03:50:00Z"
+last_activity: 2026-03-27 -- Completed 51-02 upstream drift cluster integration (C1, C5, C6, C7)
 progress:
   total_phases: 11
   completed_phases: 6
   total_plans: 13
-  completed_plans: 17
+  completed_plans: 18
   percent: 57
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 51 - Update System Hardening; plan 1 of 3 complete.
+**Current focus:** Phase 51 - Update System Hardening; plan 2 of 3 complete.
 
 ## Current Position
 
 Phase: 51 of 54 (Update System Hardening)
-Plan: 1 of 3
+Plan: 2 of 3
 Status: active
-Last activity: 2026-03-27 -- Completed 51-01 migration spec infrastructure and guide generation
+Last activity: 2026-03-27 -- Completed 51-02 upstream drift cluster integration (C1, C5, C6, C7)
 
 Progress: [███████████] 57%
 
@@ -87,6 +87,7 @@ Progress: [███████████] 57%
 | Phase 50 P05 | 7min | 2 tasks | 2 files |
 | Phase 50 P04 | 3min | 2 tasks | 1 files |
 | Phase 51 P01 | 5min | 2 tasks | 3 files |
+| Phase 51 P02 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -137,6 +138,9 @@ Recent decisions affecting current work:
 - [Phase 50]: findProjectRoot subdirectory test expects parent resolution when .planning/ and .git/ coexist at ancestor -- matches upstream .git heuristic behavior
 - [Phase 51]: Migration guide uses action callouts (automatic vs run-upgrade-project) mapped from spec JSON action field -- human-readable rendering, not raw field values
 - [Phase 51]: Version comparison uses dot-split numeric approach without semver dependency, strips +dev suffix before comparison
+- [Phase 51]: validateHookFields uses two-pass approach (filter then prune) to avoid mutation during iteration; wired at both settings load and finishInstall write
+- [Phase 51]: C6 resolve_model_ids placed after hook registration in install(), complementary to fork's core.cjs MODEL_PROFILES
+- [Phase 51]: C5 pathPrefix uses path.basename(targetDir) with $HOME prefix for shell compatibility in global installs
 
 ### Roadmap Evolution
 
@@ -188,6 +192,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T03:42:00Z
-Stopped at: Completed 51-01-PLAN.md -- migration spec infrastructure + guide generation
+Last session: 2026-03-27T03:50:00Z
+Stopped at: Completed 51-02-PLAN.md -- upstream drift cluster integration (C1, C5, C6, C7)
 Resume file: None
