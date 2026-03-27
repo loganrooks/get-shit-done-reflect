@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 51-02-PLAN.md (upstream drift cluster integration C1, C5, C6, C7)
-last_updated: "2026-03-27T03:50:00Z"
-last_activity: 2026-03-27 -- Completed 51-02 upstream drift cluster integration (C1, C5, C6, C7)
+stopped_at: Completed 51-03-PLAN.md (end-to-end upgrade path tests)
+last_updated: "2026-03-27T03:57:00Z"
+last_activity: 2026-03-27 -- Completed 51-03 end-to-end upgrade path tests (UPD-05)
 progress:
   total_phases: 11
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 13
-  completed_plans: 18
-  percent: 57
+  completed_plans: 19
+  percent: 64
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 51 - Update System Hardening; plan 2 of 3 complete.
+**Current focus:** Phase 51 - Update System Hardening; plan 3 of 3 complete. Phase complete.
 
 ## Current Position
 
 Phase: 51 of 54 (Update System Hardening)
-Plan: 2 of 3
-Status: active
-Last activity: 2026-03-27 -- Completed 51-02 upstream drift cluster integration (C1, C5, C6, C7)
+Plan: 3 of 3
+Status: phase-complete
+Last activity: 2026-03-27 -- Completed 51-03 end-to-end upgrade path tests (UPD-05)
 
-Progress: [███████████] 57%
+Progress: [████████████] 64%
 
 ## Performance Metrics
 
@@ -88,6 +88,7 @@ Progress: [███████████] 57%
 | Phase 50 P04 | 3min | 2 tasks | 1 files |
 | Phase 51 P01 | 5min | 2 tasks | 3 files |
 | Phase 51 P02 | 4min | 2 tasks | 2 files |
+| Phase 51 P03 | 5min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -141,6 +142,8 @@ Recent decisions affecting current work:
 - [Phase 51]: validateHookFields uses two-pass approach (filter then prune) to avoid mutation during iteration; wired at both settings load and finishInstall write
 - [Phase 51]: C6 resolve_model_ids placed after hook registration in install(), complementary to fork's core.cjs MODEL_PROFILES
 - [Phase 51]: C5 pathPrefix uses path.basename(targetDir) with $HOME prefix for shell compatibility in global installs
+- [Phase 51]: Upgrade e2e test uses VERSION=1.16.0 to trigger isUpgrade when package.json version is 1.17.5; guide generation tested separately with matching spec range
+- [Phase 51]: All 6 UPD requirements verified with test coverage: 29 new tests total (15+14+4) above 376 baseline
 
 ### Roadmap Evolution
 
@@ -192,6 +195,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T03:50:00Z
-Stopped at: Completed 51-02-PLAN.md -- upstream drift cluster integration (C1, C5, C6, C7)
+Last session: 2026-03-27T03:57:00Z
+Stopped at: Completed 51-03-PLAN.md -- end-to-end upgrade path tests (Phase 51 complete)
 Resume file: None
