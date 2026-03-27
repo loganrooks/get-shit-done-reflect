@@ -2570,6 +2570,139 @@ Also use the Read tool to read files and Bash to run commands.`
     })
   })
 
+  describe('TST-03: full installer re-run idempotency', () => {
+    const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+    // Helper: recursively collect all file paths and simple hashes under a directory
+    function collectFileInventory(dir) {
+      const results = []
+      if (!fsSync.existsSync(dir)) return results
+      const entries = fsSync.readdirSync(dir, { withFileTypes: true })
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name)
+        if (entry.isSymbolicLink()) {
+          // Record symlinks by target, not content
+          const target = fsSync.readlinkSync(fullPath)
+          results.push({ path: fullPath, size: 0, hash: `symlink:${target}` })
+        } else if (entry.isDirectory()) {
+          // Exclude timestamped backup directories (e.g., knowledge.backup-*)
+          if (/\.backup-\d+/.test(entry.name)) continue
+          results.push(...collectFileInventory(fullPath))
+        } else if (entry.isFile()) {
+          const content = fsSync.readFileSync(fullPath, 'utf8')
+          results.push({
+            path: fullPath,
+            size: content.length,
+            hash: `${content.length}-${content.slice(0, 100)}`
+          })
+        }
+      }
+      return results.sort((a, b) => a.path.localeCompare(b.path))
+    }
+
+    tmpdirTest('TST-03: two consecutive --claude --global installs produce identical file trees', async ({ tmpdir }) => {
+      const execOpts = {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      }
+
+      // First install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const inventory1 = collectFileInventory(path.join(tmpdir, '.claude'))
+
+      // Second install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const inventory2 = collectFileInventory(path.join(tmpdir, '.claude'))
+
+      // File count must be identical
+      expect(inventory2.length, 'File count changed after re-run').toBe(inventory1.length)
+
+      // File paths must be identical
+      const paths1 = inventory1.map(f => f.path)
+      const paths2 = inventory2.map(f => f.path)
+      expect(paths2, 'File paths differ after re-run').toEqual(paths1)
+
+      // File sizes must be identical
+      const sizes1 = inventory1.map(f => f.size)
+      const sizes2 = inventory2.map(f => f.size)
+      expect(sizes2, 'File sizes differ after re-run').toEqual(sizes1)
+
+      // No new files appeared, no files disappeared
+      const newFiles = paths2.filter(p => !paths1.includes(p))
+      const missingFiles = paths1.filter(p => !paths2.includes(p))
+      expect(newFiles, 'New files appeared after re-run').toEqual([])
+      expect(missingFiles, 'Files disappeared after re-run').toEqual([])
+    })
+
+    tmpdirTest('TST-03: installer re-run does not duplicate settings.json hook entries', async ({ tmpdir }) => {
+      const execOpts = {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      }
+
+      // First install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const settingsPath = path.join(tmpdir, '.claude', 'settings.json')
+      const settings1 = JSON.parse(fsSync.readFileSync(settingsPath, 'utf8'))
+      const hooks1 = settings1.hooks || {}
+      const hookCount1 = Object.keys(hooks1).length
+
+      // Second install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const settings2 = JSON.parse(fsSync.readFileSync(settingsPath, 'utf8'))
+      const hooks2 = settings2.hooks || {}
+      const hookCount2 = Object.keys(hooks2).length
+
+      // Hook entry count must be identical
+      expect(hookCount2, 'Hook entry count changed after re-run').toBe(hookCount1)
+
+      // No duplicate hook command strings
+      for (const [key, entries] of Object.entries(hooks2)) {
+        if (Array.isArray(entries)) {
+          for (const entry of entries) {
+            if (entry.hooks && Array.isArray(entry.hooks)) {
+              const commands = entry.hooks.map(h => h.command)
+              const uniqueCommands = [...new Set(commands)]
+              expect(commands.length, `Duplicate hook commands in ${key}`).toBe(uniqueCommands.length)
+            }
+          }
+        }
+      }
+
+      // Hooks object must be structurally identical (deep equal)
+      expect(hooks2, 'Hooks object differs after re-run').toEqual(hooks1)
+    })
+
+    tmpdirTest('TST-03: installer re-run does not duplicate agent files', async ({ tmpdir }) => {
+      const execOpts = {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 15000
+      }
+
+      // First install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const agentsDir = path.join(tmpdir, '.claude', 'agents')
+      const agents1 = fsSync.readdirSync(agentsDir).sort()
+
+      // Second install
+      execSync(`node "${installScript}" --claude --global`, execOpts)
+      const agents2 = fsSync.readdirSync(agentsDir).sort()
+
+      // Same file set
+      expect(agents2, 'Agent files differ after re-run').toEqual(agents1)
+
+      // No copy-pattern duplicates
+      const copyPatterns = agents2.filter(f => /-copy\.\w+$/.test(f) || / \(\d+\)\.\w+$/.test(f))
+      expect(copyPatterns, 'Copy-pattern duplicates found').toEqual([])
+    })
+  })
+
   describe('installed content namespace verification', () => {
     const installScript = path.resolve(process.cwd(), 'bin/install.js')
 
