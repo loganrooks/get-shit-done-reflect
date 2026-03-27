@@ -17,7 +17,7 @@ Read these references for pattern detection rules and distillation criteria:
 - .claude/agents/knowledge-store.md
 
 Read STATE.md before any operation to load project context.
-Read config.json for mode and depth settings.
+Read config.json for mode and granularity settings.
 
 </required_reading>
 
@@ -87,7 +87,7 @@ Read planning configuration:
 ```bash
 # Load config
 MODE=$(cat .planning/config.json 2>/dev/null | grep -o '"mode"[[:space:]]*:[[:space:]]*"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"' || echo "interactive")
-DEPTH=$(cat .planning/config.json 2>/dev/null | grep -o '"depth"[[:space:]]*:[[:space:]]*"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"' || echo "standard")
+GRANULARITY=$(cat .planning/config.json 2>/dev/null | grep -o '"granularity"[[:space:]]*:[[:space:]]*"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"' || echo "standard")
 COMMIT_PLANNING_DOCS=$(cat .planning/config.json 2>/dev/null | grep -o '"commit_docs"[[:space:]]*:[[:space:]]*[^,}]*' | grep -o 'true\|false' || echo "true")
 git check-ignore -q .planning 2>/dev/null && COMMIT_PLANNING_DOCS=false
 
@@ -97,13 +97,13 @@ PROJECT_NAME=$(basename "$(pwd)" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]
 **Config integration:**
 - `mode: yolo` - Auto-approve HIGH confidence lessons
 - `mode: interactive` - Present all lesson candidates for confirmation
-- `depth: quick` - Check only current project, skip drift check
-- `depth: standard` - Current project with drift check
-- `depth: comprehensive` - Cross-project with full drift analysis
+- `granularity: coarse` - Check only current project, skip drift check
+- `granularity: standard` - Current project with drift check
+- `granularity: fine` - Cross-project with full drift analysis
 
-**Depth auto-adjustments:**
-If `DEPTH="comprehensive"` and `SCOPE="project"`, auto-enable `--drift-check` if not already set.
-If `SCOPE="all"`, depth is effectively comprehensive regardless of setting.
+**Granularity auto-adjustments:**
+If `GRANULARITY="fine"` and `SCOPE="project"`, auto-enable `--drift-check` if not already set.
+If `SCOPE="all"`, granularity is effectively fine regardless of setting.
 
 </step>
 

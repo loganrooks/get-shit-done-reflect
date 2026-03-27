@@ -320,7 +320,7 @@ Create `.planning/config.json` with all settings:
 ```json
 {
   "mode": "yolo|interactive",
-  "depth": "quick|standard|comprehensive",
+  "granularity": "coarse|standard|fine",
   "parallelization": true|false,
   "commit_docs": true|false,
   "model_profile": "quality|balanced|budget",
@@ -976,7 +976,7 @@ Present completion with next steps:
 - [ ] Brownfield detection completed
 - [ ] Deep questioning completed (threads followed, not rushed)
 - [ ] PROJECT.md captures full context → **committed**
-- [ ] config.json has workflow mode, depth, parallelization → **committed**
+- [ ] config.json has workflow mode, granularity, parallelization → **committed**
 - [ ] Research completed (if selected) — 4 parallel agents spawned → **committed**
 - [ ] Requirements gathered (from research or conversation)
 - [ ] User scoped each category (v1/v2/out of scope)

@@ -17,7 +17,7 @@ Orchestrates the full spike flow: workspace creation, Design phase (DESIGN.md), 
 | question | /gsd:spike argument or user prompt | yes |
 | phase | /gsd:spike --phase argument | no |
 | mode | .planning/config.json "mode" field | no (default: interactive) |
-| sensitivity | .planning/config.json "spike_sensitivity" or derived from depth | no |
+| sensitivity | .planning/config.json "spike_sensitivity" or derived from granularity | no |
 | spike_mode | --mode argument or research-first advisory selection | no (default: full) |
 
 ## Execution Flow

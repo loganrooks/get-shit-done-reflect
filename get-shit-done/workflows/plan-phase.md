@@ -176,10 +176,10 @@ If Genuine Gaps exist:
 
 3. **Apply sensitivity filter:**
    ```
-   sensitivity = config.spike.sensitivity OR derive from config.depth:
-     - depth: quick       -> conservative
-     - depth: standard    -> balanced
-     - depth: comprehensive -> aggressive
+   sensitivity = config.spike.sensitivity OR derive from config.granularity:
+     - granularity: coarse    -> conservative
+     - granularity: standard  -> balanced
+     - granularity: fine      -> aggressive
 
    Explicit spike.sensitivity overrides derivation.
 
