@@ -137,6 +137,12 @@ Recent decisions affecting current work:
 - [Phase 50]: TST-01 excludes upstream runtime files (bin/, settings.json, CHANGELOG.md) from namespace scan -- these are intentionally not rewritten by replacePathsInContent
 - [Phase 50]: TST-08 adapted FEATURE_CAPABILITY_MAP assertions to actual structure (hook_dependent_above/task_tool_dependent) instead of plan's assumed max_level/requires
 - [Phase 50]: findProjectRoot subdirectory test expects parent resolution when .planning/ and .git/ coexist at ancestor -- matches upstream .git heuristic behavior
+- [Phase 51]: Migration specs stored as JSON in get-shit-done/migrations/ per version, matching existing data format conventions
+- [Phase 51]: MIGRATION-GUIDE.md is installer-generated (works across all 4 runtimes), upgrade-project remains companion for config migration action
+- [Phase 51]: Fresh-vs-upgrade detection via VERSION file presence; no guide generated for fresh installs (UPD-04)
+- [Phase 51]: C6 resolve_model_ids "omit" adopted for non-Claude runtimes -- complementary to fork's core.cjs MODEL_PROFILES (separate code paths)
+- [Phase 51]: C7 validateHookFields() adopted from upstream -- strips invalid hook entries before writeSettings() to prevent silent settings.json rejection
+- [Phase 51]: E2E upgrade test uses VERSION=1.16.0 (not 1.17.5) because package.json is still at v1.17.5 -- the migration spec range filter needs previousVersion < currentVersion
 - [Phase 51]: Migration guide uses action callouts (automatic vs run-upgrade-project) mapped from spec JSON action field -- human-readable rendering, not raw field values
 - [Phase 51]: Version comparison uses dot-split numeric approach without semver dependency, strips +dev suffix before comparison
 - [Phase 51]: validateHookFields uses two-pass approach (filter then prune) to avoid mutation during iteration; wired at both settings load and finishInstall write
