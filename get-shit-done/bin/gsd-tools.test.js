@@ -3031,6 +3031,139 @@ describe('manifest apply-migration multi-version upgrade', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// manifest apply-migration N-run idempotency (TST-02)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest apply-migration N-run idempotency (TST-02)', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('apply-migration is idempotent over N=5 runs with rename migration', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      { mode: 'yolo', depth: 'comprehensive', manifest_version: 1 },
+      2,
+      [renameMigration()]
+    );
+
+    // Run 1: should produce changes
+    const result1 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result1.success, `Run 1 failed: ${result1.error}`);
+    const output1 = JSON.parse(result1.output);
+    assert.ok(output1.total_changes > 0, 'run 1 should have changes');
+
+    // Capture config after run 1 as reference
+    const configAfterRun1 = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+
+    // Runs 2-5: should produce zero changes and byte-identical config
+    for (let run = 2; run <= 5; run++) {
+      const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+      assert.ok(result.success, `Run ${run} failed: ${result.error}`);
+      const output = JSON.parse(result.output);
+      assert.strictEqual(output.total_changes, 0, `run ${run} should have zero changes`);
+
+      const configAfterRun = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+      assert.strictEqual(configAfterRun, configAfterRun1, `config after run ${run} should be byte-identical to config after run 1`);
+    }
+  });
+
+  test('apply-migration is idempotent over N=5 runs with full feature reconciliation', () => {
+    // Config missing some health_check fields so feature reconciliation adds them on run 1
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      { mode: 'yolo', granularity: 'fine', manifest_version: 2, health_check: { frequency: 'milestone-only' } },
+      2
+    );
+
+    // Run 1: should add missing health_check fields
+    const result1 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result1.success, `Run 1 failed: ${result1.error}`);
+    const output1 = JSON.parse(result1.output);
+    assert.ok(output1.total_changes > 0, 'run 1 should have changes (missing fields added)');
+
+    // Capture config after run 1 as reference
+    const configAfterRun1 = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+
+    // Runs 2-5: should produce zero changes and byte-identical config
+    for (let run = 2; run <= 5; run++) {
+      const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+      assert.ok(result.success, `Run ${run} failed: ${result.error}`);
+      const output = JSON.parse(result.output);
+      assert.strictEqual(output.total_changes, 0, `run ${run} should have zero changes`);
+
+      const configAfterRun = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+      assert.strictEqual(configAfterRun, configAfterRun1, `config after run ${run} should be byte-identical to config after run 1`);
+    }
+  });
+
+  test('apply-migration is idempotent over N=5 runs on multi-version upgrade', () => {
+    // Read the REAL production manifest from disk (same pattern as CFG-05 test)
+    const realManifest = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'feature-manifest.json'), 'utf-8')
+    );
+
+    // Write the real manifest into the test environment
+    const manifestDir = path.join(tmpDir, '.claude', 'get-shit-done');
+    fs.mkdirSync(manifestDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(manifestDir, 'feature-manifest.json'),
+      JSON.stringify(realManifest, null, 2)
+    );
+
+    // Start with v1.14-era config
+    const v114Config = {
+      mode: 'yolo',
+      depth: 'comprehensive',
+      parallelization: true,
+      commit_docs: true,
+      model_profile: 'balanced',
+      workflow: {
+        research: true,
+        plan_checker: true,
+        verifier: true,
+      },
+      gsd_reflect_version: '1.14.0',
+      manifest_version: 1,
+    };
+
+    fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'config.json'),
+      JSON.stringify(v114Config, null, 2)
+    );
+
+    // Run 1: applies all migrations + feature reconciliation
+    const result1 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result1.success, `Run 1 failed: ${result1.error}`);
+    const output1 = JSON.parse(result1.output);
+    assert.ok(output1.total_changes > 0, 'run 1 should have changes');
+
+    // Capture config after run 1 as reference
+    const configAfterRun1 = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+
+    // Runs 2-5: should produce zero changes and byte-identical config
+    for (let run = 2; run <= 5; run++) {
+      const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+      assert.ok(result.success, `Run ${run} failed: ${result.error}`);
+      const output = JSON.parse(result.output);
+      assert.strictEqual(output.total_changes, 0, `run ${run} should have zero changes`);
+
+      const configAfterRun = fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8');
+      assert.strictEqual(configAfterRun, configAfterRun1, `config after run ${run} should be byte-identical to config after run 1`);
+    }
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // manifest log-migration command
 // ─────────────────────────────────────────────────────────────────────────────
 
