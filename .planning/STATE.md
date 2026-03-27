@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 49-03-PLAN.md (upstream drift cluster integration C3/C5/C6/C8/C9)
-last_updated: "2026-03-27T01:10:00Z"
-last_activity: 2026-03-27 -- Completed 49-03 upstream drift cluster integration
+stopped_at: Completed 49-04-PLAN.md (rename migration test coverage)
+last_updated: "2026-03-27T01:17:00Z"
+last_activity: 2026-03-27 -- Completed 49-04 rename migration test coverage (Phase 49 complete)
 progress:
   total_phases: 11
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 13
-  completed_plans: 12
-  percent: 46
+  completed_plans: 13
+  percent: 54
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 49 in progress - Config Migration; 49-01/02/03 complete, 49-04 next (verification and test coverage)
+**Current focus:** Phase 49 complete - Config Migration; all 4 plans done. Next: Phase 50 (Migration Test Hardening)
 
 ## Current Position
 
-Phase: 49 of 54 (Config Migration)
-Plan: 3 of 4 (49-01, 49-02, 49-03 complete)
+Phase: 49 of 54 (Config Migration) -- COMPLETE
+Plan: 4 of 4 (49-01, 49-02, 49-03, 49-04 complete)
 Status: active
-Last activity: 2026-03-27 -- Completed 49-03 upstream drift cluster integration (C3, C5, C6, C8, C9)
+Last activity: 2026-03-27 -- Completed 49-04 rename migration test coverage (Phase 49 complete)
 
-Progress: [█████████░] 46%
+Progress: [██████████] 54%
 
 ## Performance Metrics
 
@@ -80,6 +80,7 @@ Progress: [█████████░] 46%
 | Phase 49 P01 | 2min | 1 tasks | 2 files |
 | Phase 49 P02 | 5min | 2 tasks | 11 files |
 | Phase 49 P03 | 5min | 2 tasks | 2 files |
+| Phase 49 P04 | 4min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,8 @@ Recent decisions affecting current work:
 - [Phase 49]: version-migration.md retains "depth" in historical example as documentation of the old field being renamed
 - [Phase 49]: C6 resolve_model_ids behavioral change deferred to Phase 51 -- conflicts with fork's cross-runtime model handling (Quick 32)
 - [Phase 49]: Adopted upstream workstream-aware signatures for planningPaths/planningDir for forward compatibility
+- [Phase 49]: createManifestTestEnv extended with optional migrations parameter for reusable migration test setup
+- [Phase 49]: Multi-version upgrade chain test uses real production manifest from disk for maximum fidelity
 
 ### Roadmap Evolution
 
@@ -170,6 +173,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T01:10:00Z
-Stopped at: Completed 49-03-PLAN.md -- upstream drift cluster integration (C3, C5, C6, C8, C9)
+Last session: 2026-03-27T01:17:00Z
+Stopped at: Completed 49-04-PLAN.md -- rename migration test coverage (Phase 49 complete)
 Resume file: None
