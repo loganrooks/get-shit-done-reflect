@@ -23,13 +23,13 @@ Requirements for Upstream Sync & Deep Integration milestone.
 
 ### Config Migration
 
-- [ ] **CFG-01**: Feature manifest extended with migrations[] array supporting declarative field renames
-- [ ] **CFG-02**: depth→granularity rename expressed as manifest migration and applied programmatically
-- [ ] **CFG-03**: KNOWN_TOP_LEVEL_KEYS updated to include granularity and exclude depth
-- [ ] **CFG-04**: 3 workflow files (plan-phase.md, spike-execution.md, roadmap.md template) updated from depth to granularity terminology
-- [ ] **CFG-05**: Multi-version upgrade chain tested (v1.14→v1.15→v1.16→v1.17→v1.18 config evolution)
-- [ ] **CFG-06**: Unknown config fields from upstream preserved during migration (not deleted)
-- [ ] **CFG-07**: version-migration.md spec updated with controlled-exception mechanism for renames
+- [x] **CFG-01**: Feature manifest extended with migrations[] array supporting declarative field renames
+- [x] **CFG-02**: depth→granularity rename expressed as manifest migration and applied programmatically
+- [x] **CFG-03**: KNOWN_TOP_LEVEL_KEYS updated to include granularity and exclude depth
+- [x] **CFG-04**: 3 workflow files (plan-phase.md, spike-execution.md, roadmap.md template) updated from depth to granularity terminology
+- [x] **CFG-05**: Multi-version upgrade chain tested (v1.14→v1.15→v1.16→v1.17→v1.18 config evolution)
+- [x] **CFG-06**: Unknown config fields from upstream preserved during migration (not deleted)
+- [x] **CFG-07**: version-migration.md spec updated with controlled-exception mechanism for renames
 
 ### Migration Test Hardening
 
