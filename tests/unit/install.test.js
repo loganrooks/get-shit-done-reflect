@@ -448,6 +448,100 @@ describe('install script', () => {
       })
     })
 
+    describe('TST-09: namespace rewriting snapshot regression', () => {
+      it('agent file corpus: rewrites subagent_type, paths, and command prefixes', () => {
+        const input = [
+          'subagent_type="gsd-executor"',
+          '@./.claude/get-shit-done/workflows/execute-plan.md',
+          '/gsd:execute-phase',
+          'node gsd-tools.cjs state advance-plan'
+        ].join('\n')
+        const result = replacePathsInContent(input, './.claude/')
+        expect(result).toMatchInlineSnapshot(`
+          "subagent_type="gsdr-executor"
+          @./.claude/get-shit-done-reflect/workflows/execute-plan.md
+          /gsdr:execute-phase
+          node gsd-tools.cjs state advance-plan"
+        `)
+      })
+
+      it('workflow file corpus: rewrites tilde paths and multiple command prefixes', () => {
+        const input = [
+          '@~/.claude/get-shit-done/references/agent-protocol.md',
+          'node ~/.claude/get-shit-done/bin/gsd-tools.cjs',
+          '/gsd:plan-phase',
+          '/gsd:research-phase'
+        ].join('\n')
+        const result = replacePathsInContent(input, './.claude/')
+        expect(result).toMatchInlineSnapshot(`
+          "@./.claude/get-shit-done-reflect/references/agent-protocol.md
+          node ./.claude/get-shit-done-reflect/bin/gsd-tools.cjs
+          /gsdr:plan-phase
+          /gsdr:research-phase"
+        `)
+      })
+
+      it('hook file corpus: rewrites get-shit-done/ paths in JS source comments and strings', () => {
+        const input = [
+          '// Load from ~/.claude/get-shit-done/bin/gsd-tools.cjs',
+          'const toolsPath = homedir + "/.claude/get-shit-done/bin/gsd-tools.cjs"',
+          'const prefix = "/gsd:update"'
+        ].join('\n')
+        const result = replacePathsInContent(input, './.claude/')
+        expect(result).toMatchInlineSnapshot(`
+          "// Load from ./.claude/get-shit-done-reflect/bin/gsd-tools.cjs
+          const toolsPath = homedir + "/.claude/get-shit-done-reflect/bin/gsd-tools.cjs"
+          const prefix = "/gsdr:update""
+        `)
+      })
+
+      it('false-positive boundary corpus: preserves tool names and correct namespace', () => {
+        const input = [
+          'gsd-tools.cjs',
+          'gsd-tools-fork.test.js',
+          'get-shit-done-reflect'
+        ].join('\n')
+        const result = replacePathsInContent(input, './.claude/')
+        expect(result).toMatchInlineSnapshot(`
+          "gsd-tools.cjs
+          gsd-tools-fork.test.js
+          get-shit-done-reflect"
+        `)
+      })
+
+      it('mixed content corpus: realistic agent file with interleaved patterns', () => {
+        const input = [
+          '---',
+          'name: GSD Executor',
+          'subagent_type: "gsd-executor"',
+          '---',
+          '',
+          'Read @~/.claude/get-shit-done/references/agent-protocol.md',
+          'Run /gsd:execute-phase to start.',
+          'Uses node ~/.claude/get-shit-done/bin/gsd-tools.cjs for CLI.',
+          'GSD ► Phase 3 Plan 1',
+          'KB: ~/.gsd/knowledge/index.md',
+          'Package: get-shit-done-reflect-cc',
+          'Config: "gsd_reflect_version": "1.16.0"'
+        ].join('\n')
+        const result = replacePathsInContent(input, './.claude/')
+        expect(result).toMatchInlineSnapshot(`
+          "---
+          name: GSD Executor
+          subagent_type: "gsdr-executor"
+          ---
+
+          Read @./.claude/get-shit-done-reflect/references/agent-protocol.md
+          Run /gsdr:execute-phase to start.
+          Uses node ./.claude/get-shit-done-reflect/bin/gsd-tools.cjs for CLI.
+          GSDR ► Phase 3 Plan 1
+          KB: ~/.gsd/knowledge/index.md
+          Package: get-shit-done-reflect-cc
+          Config: "gsd_reflect_version": "1.16.0""
+        `)
+      })
+    })
+
     describe('createProjectLocalKB', () => {
       tmpdirTest('creates .planning/knowledge/{signals,reflections,spikes} when .planning/ exists', async ({ tmpdir }) => {
         const planningDir = path.join(tmpdir, '.planning')
