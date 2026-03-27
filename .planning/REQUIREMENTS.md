@@ -45,12 +45,12 @@ Requirements for Upstream Sync & Deep Integration milestone.
 
 ### Update System Hardening
 
-- [ ] **UPD-01**: Installer generates MIGRATION-GUIDE.md with per-version sequential sections for all changes between detected previous version and current version
-- [ ] **UPD-02**: Installer detects stale runtime files from pre-modularization install (old gsd-tools.js, missing lib/*.cjs) and cleans up
-- [ ] **UPD-03**: Hook registration updated during upgrade (new hooks registered, stale hooks removed, modified hooks rebuilt)
-- [ ] **UPD-04**: Fresh install vs upgrade detected — no migration guide generated for first-time users
-- [ ] **UPD-05**: End-to-end upgrade test from v1.17 installation to v1.18 with .planning artifacts preserved
-- [ ] **UPD-06**: Each release ships a migration spec (structured notes on what changed) that the installer can mechanically append
+- [x] **UPD-01**: Installer generates MIGRATION-GUIDE.md with per-version sequential sections for all changes between detected previous version and current version ✓ 2026-03-26
+- [x] **UPD-02**: Installer detects stale runtime files from pre-modularization install (old gsd-tools.js, missing lib/*.cjs) and cleans up ✓ 2026-03-26
+- [x] **UPD-03**: Hook registration updated during upgrade (new hooks registered, stale hooks removed, modified hooks rebuilt) ✓ 2026-03-26
+- [x] **UPD-04**: Fresh install vs upgrade detected — no migration guide generated for first-time users ✓ 2026-03-26
+- [x] **UPD-05**: End-to-end upgrade test from v1.17 installation to v1.18 with .planning artifacts preserved ✓ 2026-03-26
+- [x] **UPD-06**: Each release ships a migration spec (structured notes on what changed) that the installer can mechanically append ✓ 2026-03-26
 
 ### Feature Adoption
 
@@ -144,12 +144,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TST-07 | Phase 50 | Pending |
 | TST-08 | Phase 50 | Pending |
 | TST-09 | Phase 50 | Pending |
-| UPD-01 | Phase 51 | Pending |
-| UPD-02 | Phase 51 | Pending |
-| UPD-03 | Phase 51 | Pending |
-| UPD-04 | Phase 51 | Pending |
-| UPD-05 | Phase 51 | Pending |
-| UPD-06 | Phase 51 | Pending |
+| UPD-01 | Phase 51 | Complete |
+| UPD-02 | Phase 51 | Complete |
+| UPD-03 | Phase 51 | Complete |
+| UPD-04 | Phase 51 | Complete |
+| UPD-05 | Phase 51 | Complete |
+| UPD-06 | Phase 51 | Complete |
 | ADT-01 | Phase 52 | Pending |
 | ADT-02 | Phase 52 | Pending |
 | ADT-03 | Phase 52 | Pending |

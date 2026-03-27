@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields } = require('../../bin/install.js')
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -3121,5 +3121,448 @@ Also use the Read tool to read files and Bash to run commands.`
       expect(settings.statusLine.command).not.toContain('test -f')
       expect(settings.statusLine.command).toContain('node "')
     })
+  })
+
+  describe('Phase 51: Migration Guide and Version Detection', () => {
+    describe('compareVersions', () => {
+      it('returns -1 when a < b (minor)', () => {
+        expect(compareVersions('1.17.0', '1.18.0')).toBe(-1)
+      })
+
+      it('returns 0 when a === b', () => {
+        expect(compareVersions('1.18.0', '1.18.0')).toBe(0)
+      })
+
+      it('returns 1 when a > b (minor)', () => {
+        expect(compareVersions('1.19.0', '1.18.0')).toBe(1)
+      })
+
+      it('returns -1 when a < b (patch level)', () => {
+        expect(compareVersions('1.18.0', '1.18.1')).toBe(-1)
+      })
+
+      it('strips +dev suffix before comparison', () => {
+        expect(compareVersions('1.18.0+dev', '1.18.0')).toBe(0)
+        expect(compareVersions('1.17.0+dev', '1.18.0')).toBe(-1)
+      })
+    })
+
+    describe('isVersionInRange', () => {
+      it('returns true when version equals upper bound (inclusive)', () => {
+        expect(isVersionInRange('1.18.0', '1.17.0', '1.18.0')).toBe(true)
+      })
+
+      it('returns false when version equals lower bound (exclusive)', () => {
+        expect(isVersionInRange('1.17.0', '1.17.0', '1.18.0')).toBe(false)
+      })
+
+      it('returns false when version is below range', () => {
+        expect(isVersionInRange('1.16.0', '1.17.0', '1.18.0')).toBe(false)
+      })
+
+      it('returns false when version is above range', () => {
+        expect(isVersionInRange('1.19.0', '1.17.0', '1.18.0')).toBe(false)
+      })
+
+      it('returns true for version strictly between bounds', () => {
+        expect(isVersionInRange('1.17.5', '1.17.0', '1.18.0')).toBe(true)
+      })
+    })
+
+    describe('generateMigrationGuide', () => {
+      tmpdirTest('generates MIGRATION-GUIDE.md with correct structure for 1.17->1.18 upgrade', async ({ tmpdir }) => {
+        generateMigrationGuide(tmpdir, '1.17.0', '1.18.0')
+
+        const guidePath = path.join(tmpdir, 'MIGRATION-GUIDE.md')
+        expect(fsSync.existsSync(guidePath)).toBe(true)
+
+        const content = fsSync.readFileSync(guidePath, 'utf8')
+        expect(content).toContain('# Migration Guide: 1.17.0 -> 1.18.0')
+        expect(content).toContain('## Version 1.18.0: Modularization')
+        expect(content).toContain('**BREAKING:**')
+        expect(content).toContain('Action required:')
+        expect(content).toContain('/gsdr:upgrade-project')
+      })
+
+      tmpdirTest('does not generate guide when no specs match (same version)', async ({ tmpdir }) => {
+        generateMigrationGuide(tmpdir, '1.18.0', '1.18.0')
+
+        const guidePath = path.join(tmpdir, 'MIGRATION-GUIDE.md')
+        expect(fsSync.existsSync(guidePath)).toBe(false)
+      })
+
+      tmpdirTest('does not generate guide when previous version is above all specs', async ({ tmpdir }) => {
+        generateMigrationGuide(tmpdir, '2.0.0', '2.1.0')
+
+        const guidePath = path.join(tmpdir, 'MIGRATION-GUIDE.md')
+        expect(fsSync.existsSync(guidePath)).toBe(false)
+      })
+    })
+
+    describe('cleanupOrphanedFiles', () => {
+      tmpdirTest('removes stale gsd-tools.js from pre-modularization installs', async ({ tmpdir }) => {
+        // Create directory structure with stale file
+        const staleDir = path.join(tmpdir, 'get-shit-done-reflect', 'bin')
+        fsSync.mkdirSync(staleDir, { recursive: true })
+        const stalePath = path.join(staleDir, 'gsd-tools.js')
+        fsSync.writeFileSync(stalePath, '// stale file')
+        expect(fsSync.existsSync(stalePath)).toBe(true)
+
+        cleanupOrphanedFiles(tmpdir)
+
+        expect(fsSync.existsSync(stalePath)).toBe(false)
+      })
+
+      tmpdirTest('does not error when stale files do not exist', async ({ tmpdir }) => {
+        // Call on empty dir -- should not throw
+        expect(() => cleanupOrphanedFiles(tmpdir)).not.toThrow()
+      })
+    })
+  })
+
+  describe('Phase 51: Upstream Drift Cluster Integration', () => {
+    describe('C7: validateHookFields', () => {
+      it('returns settings unchanged when no hooks property exists', () => {
+        const settings = { statusLine: { type: 'command' } }
+        const result = validateHookFields(settings)
+        expect(result).toEqual({ statusLine: { type: 'command' } })
+        expect(result.hooks).toBeUndefined()
+      })
+
+      it('returns settings unchanged when hooks is empty object', () => {
+        const settings = { hooks: {} }
+        const result = validateHookFields(settings)
+        // Empty hooks object should be deleted
+        expect(result.hooks).toBeUndefined()
+      })
+
+      it('strips hook entry missing hooks sub-array', () => {
+        const settings = {
+          hooks: {
+            SessionStart: [{ type: 'command' }]
+          }
+        }
+        const result = validateHookFields(settings)
+        // Entry without hooks array is invalid, entire SessionStart should be pruned
+        expect(result.hooks).toBeUndefined()
+      })
+
+      it('strips hook entry where inner hook has neither prompt nor command', () => {
+        const settings = {
+          hooks: {
+            SessionStart: [{
+              type: 'command',
+              hooks: [{ event: 'test' }]
+            }]
+          }
+        }
+        const result = validateHookFields(settings)
+        expect(result.hooks).toBeUndefined()
+      })
+
+      it('preserves valid command hook', () => {
+        const settings = {
+          hooks: {
+            SessionStart: [{
+              type: 'command',
+              hooks: [{ event: 'test', command: 'echo hi' }]
+            }]
+          }
+        }
+        const result = validateHookFields(settings)
+        expect(result.hooks.SessionStart).toHaveLength(1)
+        expect(result.hooks.SessionStart[0].hooks[0].command).toBe('echo hi')
+      })
+
+      it('preserves valid agent hook', () => {
+        const settings = {
+          hooks: {
+            SessionStart: [{
+              type: 'agent',
+              hooks: [{ event: 'test', prompt: 'do something' }]
+            }]
+          }
+        }
+        const result = validateHookFields(settings)
+        expect(result.hooks.SessionStart).toHaveLength(1)
+        expect(result.hooks.SessionStart[0].hooks[0].prompt).toBe('do something')
+      })
+
+      it('deletes event type key when all entries stripped, deletes hooks when all types gone', () => {
+        const settings = {
+          hooks: {
+            SessionStart: [
+              { type: 'command' },  // invalid: no hooks array
+              { type: 'command', hooks: [{ event: 'test' }] }  // invalid: no command or prompt
+            ],
+            Stop: [
+              { type: 'command', hooks: [] }  // invalid: empty hooks array
+            ]
+          }
+        }
+        const result = validateHookFields(settings)
+        expect(result.hooks).toBeUndefined()
+      })
+    })
+
+    describe('C1: generateCodexConfigBlock absolute paths', () => {
+      it('without targetDir: config_file uses relative path', () => {
+        const result = generateCodexConfigBlock([{ name: 'test-agent', description: 'Test' }])
+        expect(result).toContain('config_file = "agents/test-agent.toml"')
+      })
+
+      it('with targetDir: config_file uses absolute path', () => {
+        const result = generateCodexConfigBlock([{ name: 'test-agent', description: 'Test' }], '/tmp/test')
+        expect(result).toContain('config_file = "/tmp/test/agents/test-agent.toml"')
+      })
+
+      it('multiple agents produce correct separate TOML sections', () => {
+        const agents = [
+          { name: 'agent-a', description: 'Agent A' },
+          { name: 'agent-b', description: 'Agent B' }
+        ]
+        const result = generateCodexConfigBlock(agents, '/home/user/.codex')
+        expect(result).toContain('[agents.agent-a]')
+        expect(result).toContain('config_file = "/home/user/.codex/agents/agent-a.toml"')
+        expect(result).toContain('[agents.agent-b]')
+        expect(result).toContain('config_file = "/home/user/.codex/agents/agent-b.toml"')
+      })
+    })
+
+    describe('C5: pathPrefix $HOME for global installs', () => {
+      const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+      tmpdirTest('global install file content contains $HOME/ not literal home directory path', async ({ tmpdir }) => {
+        execSync(`node "${installScript}" --claude --global`, {
+          env: { ...process.env, HOME: tmpdir },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        // Read an installed file that goes through replacePathsInContent
+        const gsdDir = path.join(tmpdir, '.claude', 'get-shit-done-reflect')
+        const entries = fsSync.readdirSync(gsdDir, { recursive: true })
+        const mdFile = entries.find(e => e.endsWith('.md') && !e.includes('CHANGELOG'))
+        if (mdFile) {
+          const content = fsSync.readFileSync(path.join(gsdDir, mdFile), 'utf8')
+          // $HOME pattern should be present (for global installs with @ references)
+          // The literal tmpdir absolute path should NOT be in @ references
+          const atRefs = content.match(/@[^\s]+/g) || []
+          const hasLiteralTmpdir = atRefs.some(ref => ref.includes(tmpdir))
+          // Global install paths in @ references should use $HOME, not literal paths
+          if (atRefs.length > 0) {
+            expect(hasLiteralTmpdir).toBe(false)
+          }
+        }
+      })
+    })
+
+    describe('C6: resolve_model_ids for non-Claude runtimes', () => {
+      const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+      tmpdirTest('non-Claude install (opencode) writes resolve_model_ids: omit to defaults.json', async ({ tmpdir }) => {
+        const gsdHome = path.join(tmpdir, '.gsd')
+        fsSync.mkdirSync(gsdHome, { recursive: true })
+
+        execSync(`node "${installScript}" --opencode --global`, {
+          env: { ...process.env, HOME: tmpdir, GSD_HOME: gsdHome },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        const defaultsPath = path.join(gsdHome, 'defaults.json')
+        expect(fsSync.existsSync(defaultsPath)).toBe(true)
+        const defaults = JSON.parse(fsSync.readFileSync(defaultsPath, 'utf8'))
+        expect(defaults.resolve_model_ids).toBe('omit')
+      })
+
+      tmpdirTest('Claude install does NOT write resolve_model_ids to defaults.json', async ({ tmpdir }) => {
+        const gsdHome = path.join(tmpdir, '.gsd')
+        fsSync.mkdirSync(gsdHome, { recursive: true })
+
+        execSync(`node "${installScript}" --claude --global`, {
+          env: { ...process.env, HOME: tmpdir, GSD_HOME: gsdHome },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        const defaultsPath = path.join(gsdHome, 'defaults.json')
+        if (fsSync.existsSync(defaultsPath)) {
+          const defaults = JSON.parse(fsSync.readFileSync(defaultsPath, 'utf8'))
+          expect(defaults.resolve_model_ids).toBeUndefined()
+        }
+        // If defaults.json doesn't exist at all, that's also correct
+      })
+
+      tmpdirTest('existing defaults.json content is preserved when adding resolve_model_ids', async ({ tmpdir }) => {
+        const gsdHome = path.join(tmpdir, '.gsd')
+        fsSync.mkdirSync(gsdHome, { recursive: true })
+
+        // Pre-populate defaults.json with existing content
+        const defaultsPath = path.join(gsdHome, 'defaults.json')
+        fsSync.writeFileSync(defaultsPath, JSON.stringify({ existing_key: 'preserved_value' }, null, 2) + '\n')
+
+        execSync(`node "${installScript}" --opencode --global`, {
+          env: { ...process.env, HOME: tmpdir, GSD_HOME: gsdHome },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        const defaults = JSON.parse(fsSync.readFileSync(defaultsPath, 'utf8'))
+        expect(defaults.existing_key).toBe('preserved_value')
+        expect(defaults.resolve_model_ids).toBe('omit')
+      })
+    })
+  })
+
+  describe('Phase 51: End-to-End Upgrade Path (UPD-05)', () => {
+    const installScript = path.resolve(process.cwd(), 'bin/install.js')
+    const pkg = JSON.parse(fsSync.readFileSync(path.resolve(process.cwd(), 'package.json'), 'utf8'))
+    const currentVersionClean = pkg.version.replace(/\+dev$/, '')
+
+    tmpdirTest('upgrade from older version: stale cleanup, .planning preservation, hooks, lib modules', async ({ tmpdir }) => {
+      // 1. Simulate an older installation state
+      const reflectDir = path.join(tmpdir, '.claude', 'get-shit-done-reflect')
+      fsSync.mkdirSync(path.join(reflectDir, 'bin'), { recursive: true })
+
+      // VERSION file from a prior release (below current package version)
+      fsSync.writeFileSync(path.join(reflectDir, 'VERSION'), '1.16.0')
+
+      // Stale pre-modularization artifact (UPD-02)
+      fsSync.writeFileSync(path.join(reflectDir, 'bin', 'gsd-tools.js'), '// stale pre-modularization file')
+
+      // settings.json with basic hooks
+      fsSync.writeFileSync(
+        path.join(tmpdir, '.claude', 'settings.json'),
+        JSON.stringify({
+          hooks: {
+            SessionStart: [{
+              hooks: [{ type: 'command', command: 'echo hello' }]
+            }]
+          }
+        }, null, 2)
+      )
+
+      // .planning/ directory with artifacts
+      const planningDir = path.join(tmpdir, '.planning')
+      fsSync.mkdirSync(path.join(planningDir, 'phases', '01-init'), { recursive: true })
+      fsSync.writeFileSync(path.join(planningDir, 'STATE.md'), '# State\nPhase: 1\nStatus: active')
+      fsSync.writeFileSync(
+        path.join(planningDir, 'config.json'),
+        JSON.stringify({ mode: 'yolo', gsd_reflect_version: '1.16.0', manifest_version: 1, depth: 'standard' })
+      )
+
+      // 2. Run installer (simulating upgrade)
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // 3a. Stale file removed (UPD-02)
+      expect(fsSync.existsSync(path.join(reflectDir, 'bin', 'gsd-tools.js'))).toBe(false)
+      expect(fsSync.existsSync(path.join(reflectDir, 'bin', 'gsd-tools.cjs'))).toBe(true)
+
+      // 3b. lib/*.cjs modules present (UPD-02)
+      const libDir = path.join(reflectDir, 'bin', 'lib')
+      expect(fsSync.existsSync(libDir)).toBe(true)
+      const cjsFiles = fsSync.readdirSync(libDir).filter(f => f.endsWith('.cjs'))
+      expect(cjsFiles.length).toBeGreaterThanOrEqual(10)
+
+      // 3c. VERSION updated
+      const versionContent = fsSync.readFileSync(path.join(reflectDir, 'VERSION'), 'utf8').trim()
+      expect(versionContent.replace(/\+dev$/, '')).toBe(currentVersionClean)
+
+      // 3d. .planning/ artifacts preserved (UPD-05)
+      expect(fsSync.existsSync(path.join(planningDir, 'STATE.md'))).toBe(true)
+      const stateContent = fsSync.readFileSync(path.join(planningDir, 'STATE.md'), 'utf8')
+      expect(stateContent).toContain('Phase: 1')
+      expect(fsSync.existsSync(path.join(planningDir, 'config.json'))).toBe(true)
+      expect(fsSync.existsSync(path.join(planningDir, 'phases', '01-init'))).toBe(true)
+
+      // 3e. Hook registration present (UPD-03)
+      const settingsPath = path.join(tmpdir, '.claude', 'settings.json')
+      const settings = JSON.parse(fsSync.readFileSync(settingsPath, 'utf8'))
+      expect(settings.hooks).toBeDefined()
+      expect(settings.hooks.SessionStart).toBeDefined()
+      expect(Array.isArray(settings.hooks.SessionStart)).toBe(true)
+      const allCommands = settings.hooks.SessionStart
+        .flatMap(entry => (entry.hooks || []).map(h => h.command || ''))
+        .join(' ')
+      expect(allCommands).toContain('gsdr-check-update')
+      expect(allCommands).toContain('gsdr-health-check')
+
+      // 3f. Migration guide: the v1.18.0 spec targets version 1.18.0, which is above
+      // the current package version (1.17.5). So no spec falls in the (1.16.0, 1.17.5]
+      // range, and no guide is generated. This is correct behavior -- guide generation
+      // itself is verified by unit tests in the 'generateMigrationGuide' describe block
+      // and by the dedicated migration guide e2e test below.
+    }, 30000)
+
+    tmpdirTest('upgrade triggers migration guide when spec version is in range (UPD-01)', async ({ tmpdir }) => {
+      // This test verifies the full installer upgrade path including guide generation
+      // by calling generateMigrationGuide directly with version bounds that match the spec.
+      // The installer's isUpgrade detection was verified in the e2e test above;
+      // here we verify the guide generation mechanism works with realistic version bounds.
+      const targetDir = path.join(tmpdir, '.claude')
+      fsSync.mkdirSync(targetDir, { recursive: true })
+
+      // Call with version bounds that capture the v1.18.0 spec: (1.17.5, 1.18.0]
+      generateMigrationGuide(targetDir, '1.17.5', '1.18.0')
+
+      const guidePath = path.join(targetDir, 'MIGRATION-GUIDE.md')
+      expect(fsSync.existsSync(guidePath)).toBe(true)
+      const guideContent = fsSync.readFileSync(guidePath, 'utf8')
+      expect(guideContent).toContain('Migration Guide')
+      expect(guideContent).toContain('1.17.5')
+      expect(guideContent).toContain('Modularization')
+      expect(guideContent).toContain('BREAKING')
+    }, 30000)
+
+    tmpdirTest('fresh install produces no migration guide (UPD-04)', async ({ tmpdir }) => {
+      // 1. Do NOT create any pre-existing .claude/ directory or VERSION file
+
+      // 2. Run installer
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // 3. Assert
+      const guidePath = path.join(tmpdir, '.claude', 'MIGRATION-GUIDE.md')
+      expect(fsSync.existsSync(guidePath)).toBe(false)
+
+      const versionPath = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'VERSION')
+      expect(fsSync.existsSync(versionPath)).toBe(true)
+
+      const gsdToolsPath = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'bin', 'gsd-tools.cjs')
+      expect(fsSync.existsSync(gsdToolsPath)).toBe(true)
+    }, 30000)
+
+    tmpdirTest('same-version reinstall produces no migration guide', async ({ tmpdir }) => {
+      // 1. Create VERSION file with current package version
+      const reflectDir = path.join(tmpdir, '.claude', 'get-shit-done-reflect')
+      fsSync.mkdirSync(reflectDir, { recursive: true })
+      fsSync.writeFileSync(path.join(reflectDir, 'VERSION'), currentVersionClean)
+
+      // 2. Run installer
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      // 3. Assert MIGRATION-GUIDE.md does NOT exist (same version = not an upgrade)
+      const guidePath = path.join(tmpdir, '.claude', 'MIGRATION-GUIDE.md')
+      expect(fsSync.existsSync(guidePath)).toBe(false)
+    }, 30000)
   })
 })

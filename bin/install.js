@@ -1261,7 +1261,10 @@ function generateCodexMcpConfig(targetDir) {
  * @param {Array<{name: string, description: string}>} agents - Agent metadata
  * @returns {string} - TOML config block with marker header
  */
-function generateCodexConfigBlock(agents) {
+function generateCodexConfigBlock(agents, targetDir) {
+  const agentsPrefix = targetDir
+    ? path.join(targetDir, 'agents').replace(/\\/g, '/')
+    : 'agents';
   const lines = [
     GSD_CODEX_MARKER,
     '',
@@ -1269,7 +1272,7 @@ function generateCodexConfigBlock(agents) {
   for (const { name, description } of agents) {
     lines.push(`[agents.${name}]`);
     lines.push(`description = ${JSON.stringify(description)}`);
-    lines.push(`config_file = "agents/${name}.toml"`);
+    lines.push(`config_file = "${agentsPrefix}/${name}.toml"`);
     lines.push('');
   }
   return lines.join('\n');
@@ -1546,6 +1549,106 @@ function copyWithPathReplacement(srcDir, destDir, pathPrefix, runtime, isCommand
 }
 
 /**
+ * Compare two dot-delimited version strings.
+ * Returns -1 if a < b, 0 if a === b, 1 if a > b.
+ * Strips +dev suffix before comparison.
+ */
+function compareVersions(a, b) {
+  const partsA = a.replace(/\+dev$/, '').split('.').map(Number);
+  const partsB = b.replace(/\+dev$/, '').split('.').map(Number);
+  const len = Math.max(partsA.length, partsB.length);
+  for (let i = 0; i < len; i++) {
+    const segA = partsA[i] || 0;
+    const segB = partsB[i] || 0;
+    if (segA < segB) return -1;
+    if (segA > segB) return 1;
+  }
+  return 0;
+}
+
+/**
+ * Returns true if version is strictly greater than fromVersion
+ * AND less than or equal to toVersion.
+ * Strips +dev suffix before comparison.
+ */
+function isVersionInRange(version, fromVersion, toVersion) {
+  return compareVersions(version, fromVersion) > 0 && compareVersions(version, toVersion) <= 0;
+}
+
+/**
+ * Generate a MIGRATION-GUIDE.md for upgrades by reading migration spec JSONs.
+ * Reads all JSON files from get-shit-done/migrations/ (relative to package root),
+ * filters to specs in the (previousVersion, currentVersion] range, sorts by version,
+ * and writes a Markdown guide to targetDir/MIGRATION-GUIDE.md.
+ * If no applicable specs are found, does nothing (no empty guide).
+ */
+function generateMigrationGuide(targetDir, previousVersion, currentVersion) {
+  const migrationsDir = path.join(__dirname, '..', 'get-shit-done', 'migrations');
+  if (!fs.existsSync(migrationsDir)) return;
+
+  const specFiles = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.json'));
+  const applicableSpecs = [];
+
+  for (const file of specFiles) {
+    try {
+      const spec = JSON.parse(fs.readFileSync(path.join(migrationsDir, file), 'utf8'));
+      if (spec.version && isVersionInRange(spec.version, previousVersion, currentVersion)) {
+        applicableSpecs.push(spec);
+      }
+    } catch {
+      // Skip malformed spec files
+    }
+  }
+
+  if (applicableSpecs.length === 0) return;
+
+  // Sort by version ascending
+  applicableSpecs.sort((a, b) => compareVersions(a.version, b.version));
+
+  const categoryBadge = {
+    breaking: '**BREAKING:**',
+    config: '**Config:**',
+    feature: '**Feature:**',
+  };
+
+  const lines = [];
+  lines.push(`# Migration Guide: ${previousVersion} -> ${currentVersion}`);
+  lines.push('');
+  lines.push(`> Generated: ${new Date().toISOString()}`);
+  lines.push(`> Previous version: ${previousVersion}`);
+  lines.push(`> Current version: ${currentVersion}`);
+  lines.push('');
+
+  for (const spec of applicableSpecs) {
+    lines.push(`## Version ${spec.version}: ${spec.title}`);
+    lines.push('');
+    for (const section of spec.sections) {
+      const badge = categoryBadge[section.category] || `**${section.category}:**`;
+      lines.push(`### ${badge} ${section.heading}`);
+      lines.push('');
+      lines.push(section.body);
+      lines.push('');
+      if (section.action === 'automatic') {
+        lines.push('> *This change is applied automatically during installation.*');
+        lines.push('');
+      } else if (section.action === 'run-upgrade-project') {
+        lines.push('> *Action required:* Run `/gsdr:upgrade-project` to apply this change.');
+        lines.push('');
+      }
+    }
+  }
+
+  lines.push('---');
+  lines.push('');
+  lines.push('For project-level config migrations, run `/gsdr:upgrade-project`.');
+  lines.push('');
+
+  const guidePath = path.join(targetDir, 'MIGRATION-GUIDE.md');
+  fs.writeFileSync(guidePath, lines.join('\n'));
+  console.log(`  + Generated MIGRATION-GUIDE.md (${previousVersion} -> ${currentVersion})`);
+}
+
+/**
  * Clean up orphaned files from previous GSD versions
  */
 function cleanupOrphanedFiles(configDir) {
@@ -1557,6 +1660,8 @@ function cleanupOrphanedFiles(configDir) {
     'hooks/gsd-version-check.js',  // Renamed to gsdr-version-check.js
     'hooks/gsd-ci-status.js',      // Renamed to gsdr-ci-status.js
     'hooks/gsd-health-check.js',   // Renamed to gsdr-health-check.js
+    // Pre-modularization stale artifacts (v1.17 -> v1.18)
+    'get-shit-done-reflect/bin/gsd-tools.js',  // Renamed to gsd-tools.cjs in Phase 45
   ];
 
   for (const relPath of orphanedFiles) {
@@ -1626,6 +1731,54 @@ function cleanupOrphanedHooks(settings) {
       'gsdr-statusline.js'
     );
     console.log(`  ${green}✓${reset} Updated statusline path (statusline.js → gsdr-statusline.js)`);
+  }
+
+  return settings;
+}
+
+/**
+ * Validate hook field structure in settings.hooks.
+ * Strips entries missing required sub-fields to prevent Zod rejection in settings.json.
+ * Two-pass approach: filter invalid entries, then prune empty event type keys.
+ * @param {object} settings - The settings object (mutated in place)
+ * @returns {object} - The mutated settings object
+ */
+function validateHookFields(settings) {
+  if (!settings.hooks || typeof settings.hooks !== 'object') {
+    return settings;
+  }
+
+  // Pass 1: Filter invalid entries from each event type
+  for (const eventType of Object.keys(settings.hooks)) {
+    const hookEntries = settings.hooks[eventType];
+    if (!Array.isArray(hookEntries)) continue;
+
+    settings.hooks[eventType] = hookEntries.filter(entry => {
+      // Must have a hooks property that is a non-empty array
+      if (!entry.hooks || !Array.isArray(entry.hooks) || entry.hooks.length === 0) {
+        console.log(`  ${green}+${reset} Removed invalid hook entry from ${eventType}`);
+        return false;
+      }
+      // Each hook in the array must have either prompt or command
+      const allValid = entry.hooks.every(h => h.prompt || h.command);
+      if (!allValid) {
+        console.log(`  ${green}+${reset} Removed invalid hook entry from ${eventType}`);
+        return false;
+      }
+      return true;
+    });
+  }
+
+  // Pass 2: Delete empty event type keys
+  for (const eventType of Object.keys(settings.hooks)) {
+    if (Array.isArray(settings.hooks[eventType]) && settings.hooks[eventType].length === 0) {
+      delete settings.hooks[eventType];
+    }
+  }
+
+  // Delete hooks property entirely if all event types removed
+  if (Object.keys(settings.hooks).length === 0) {
+    delete settings.hooks;
   }
 
   return settings;
@@ -2352,10 +2505,10 @@ function install(isGlobal, runtime = 'claude') {
     : targetDir.replace(process.cwd(), '.');
 
   // Path prefix for file references in markdown content
-  // For global installs: use full path
+  // For global installs: use $HOME for shell compatibility (C5)
   // For local installs: use relative
   const pathPrefix = isGlobal
-    ? `${targetDir.replace(/\\/g, '/')}/`
+    ? `$HOME/${path.basename(targetDir)}/`
     : `./${dirName}/`;
 
   let runtimeLabel = 'Claude Code';
@@ -2392,6 +2545,18 @@ function install(isGlobal, runtime = 'claude') {
   // Applied when: local installs (always dev), or global installs from git repo (not from npm)
   const isFromGitRepo = fs.existsSync(path.join(src, '.git'));
   const versionString = (!isGlobal || isFromGitRepo) ? `${pkg.version}+dev` : pkg.version;
+
+  // Fresh vs upgrade detection (UPD-04)
+  const reflectVersionPath = path.join(targetDir, 'get-shit-done-reflect', 'VERSION');
+  let previousVersion = null;
+  if (fs.existsSync(reflectVersionPath)) {
+    try {
+      previousVersion = fs.readFileSync(reflectVersionPath, 'utf8').trim()
+        .replace(/\+dev$/, '');
+    } catch { /* treat as fresh install */ }
+  }
+  const currentVersionClean = versionString.replace(/\+dev$/, '');
+  const isUpgrade = previousVersion && previousVersion !== currentVersionClean;
 
   // Save any locally modified GSD files before they get wiped
   saveLocalPatches(targetDir);
@@ -2559,7 +2724,7 @@ function install(isGlobal, runtime = 'claude') {
     // Register agents in config.toml
     if (agents.length > 0) {
       const configPath = path.join(targetDir, 'config.toml');
-      const gsdBlock = generateCodexConfigBlock(agents);
+      const gsdBlock = generateCodexConfigBlock(agents, targetDir);
       mergeCodexConfig(configPath, gsdBlock);
       console.log(`  ${green}+${reset} Registered ${agents.length} agents in config.toml`);
     }
@@ -2592,6 +2757,11 @@ function install(isGlobal, runtime = 'claude') {
     console.log(`  ${green}✓${reset} Wrote VERSION (${versionString})`);
   } else {
     failures.push('VERSION');
+  }
+
+  // Generate migration guide for upgrades only (UPD-01, UPD-04)
+  if (isUpgrade) {
+    generateMigrationGuide(targetDir, previousVersion, currentVersionClean);
   }
 
   // Copy hooks from dist/ (bundled with dependencies) -- skip for Codex (no hook system)
@@ -2662,7 +2832,7 @@ function install(isGlobal, runtime = 'claude') {
   // Configure statusline and hooks in settings.json
   // Gemini shares same hook system as Claude Code for now
   const settingsPath = path.join(targetDir, 'settings.json');
-  const settings = cleanupOrphanedHooks(readSettings(settingsPath));
+  const settings = validateHookFields(cleanupOrphanedHooks(readSettings(settingsPath)));
   const statuslineCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-statusline.js')
     : buildLocalHookCommand(dirName, 'gsdr-statusline.js');
@@ -2727,6 +2897,22 @@ function install(isGlobal, runtime = 'claude') {
     ensureHook('gsdr-health-check', healthCheckCommand, 'health check');
   }
 
+  // C6: Set resolve_model_ids for non-Claude runtimes
+  const isClaude = !isOpencode && !isGemini && !isCodex;
+  if (!isClaude) {
+    const gsdHome = getGsdHome();
+    const defaultsPath = path.join(gsdHome, 'defaults.json');
+    let defaults = {};
+    if (fs.existsSync(defaultsPath)) {
+      try { defaults = JSON.parse(fs.readFileSync(defaultsPath, 'utf8')); } catch {}
+    }
+    if (defaults.resolve_model_ids !== 'omit') {
+      defaults.resolve_model_ids = 'omit';
+      fs.writeFileSync(defaultsPath, JSON.stringify(defaults, null, 2) + '\n');
+      console.log(`  ${green}+${reset} Set resolve_model_ids: omit for ${runtimeLabel}`);
+    }
+  }
+
   // Write file manifest for future modification detection
   writeManifest(targetDir);
   console.log(`  ${green}✓${reset} Wrote file manifest (${MANIFEST_NAME})`);
@@ -2761,6 +2947,8 @@ function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallS
     console.log(`  ${green}✓${reset} Upgraded statusline (worktree-safe guard)`);
   }
 
+  // Validate hook fields before writing (C7: strip invalid entries to prevent Zod rejection)
+  validateHookFields(settings);
   // Always write settings
   writeSettings(settingsPath, settings);
 
@@ -3024,4 +3212,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields };

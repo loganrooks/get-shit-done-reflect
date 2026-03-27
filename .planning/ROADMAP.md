@@ -34,7 +34,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 48.1: Post-audit upstream drift retriage and roadmap reconciliation (INSERTED)** - Capture what changed since the audit baseline, classify adopt/fold/defer decisions, and update v1.18 routing before Phase 49 planning ✓ 2026-03-24
 - [x] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, and route config migration through the cross-runtime install/KB authority questions already identified ✓ 2026-03-26
 - [x] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, and root/worktree/KB authority edge-case coverage ✓ 2026-03-26
-- [ ] **Phase 51: Update System Hardening** - Installer/runtime preflight, migration guides, stale file cleanup, hook/runtime-safe upgrade surfacing, and authoritative project-local upgrade behavior
+- [x] **Phase 51: Update System Hardening** - Installer/runtime preflight, migration guides, stale file cleanup, hook/runtime-safe upgrade surfacing, and authoritative project-local upgrade behavior ✓ 2026-03-26
 - [ ] **Phase 52: Feature Adoption** - Adopt context-monitor, Nyquist auditor, code-aware discuss-phase, upstream workflows, and supporting features
 - [ ] **Phase 53: Deep Integration** - Weave adopted features into fork's signal/automation/health/reflection pipeline
 - [ ] **Phase 54: Infrastructure & Documentation** - CI cache fix, planning telemetry correctness, deliberation/governance update, fork divergence docs, and upstream sync policy
@@ -185,18 +185,18 @@ Plans:
   5. v1.17 installation upgrades to v1.18 with all .planning/ artifacts intact and config.json migrated
   6. Version drift and install-authority problems are surfaced for both hook-capable and non-hook runtimes
 **Upstream drift routing (48.1):** Clusters C1 (config preservation/Codex paths), C5 partial (install.js HOME), C6 partial (install.js model), and C7 (hook field validation) route here. See `UPSTREAM-DRIFT-LEDGER.md`.
-**Plans**: TBD
+**Plans:** 3 plans
 
-**Open design decisions (resolve during phase planning):**
-- Compound vs sequential vs hybrid for advisory sections
-- Whether /gsdr:upgrade-project consumes the guide or is replaced by it
-- How migration guide is auto-triggered after installer runs inside a Claude session
-- Per-version migration spec format and storage location
+**Design decisions resolved during planning:**
+- Sequential (per-version) layout for migration guide advisory sections
+- /gsdr:upgrade-project remains companion to guide (guide = docs, upgrade-project = action)
+- Migration guide surfaced via installer stdout message (cross-runtime compatible)
+- Per-version migration specs stored as JSON in get-shit-done/migrations/ directory
 
 Plans:
-- [ ] 51-01: TBD
-- [ ] 51-02: TBD
-- [ ] 51-03: TBD
+- [ ] 51-01-PLAN.md -- Migration spec infrastructure, guide generation, stale cleanup, fresh-vs-upgrade detection
+- [ ] 51-02-PLAN.md -- Upstream drift clusters C1/C5/C6/C7 integration into installer
+- [ ] 51-03-PLAN.md -- End-to-end v1.17-to-v1.18 upgrade test and requirement coverage verification
 
 ### Phase 52: Feature Adoption
 **Goal**: Upstream features (context-monitor, Nyquist auditor, code-aware discuss-phase, supporting workflows, and utility improvements) are adopted into the fork with correct namespace rewriting
@@ -269,7 +269,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 
 | 48.1 Post-audit upstream drift retriage | 1/1 | Complete | 2026-03-24 |
 | 49. Config Migration | 4/4 | Complete | 2026-03-26 |
 | 50. Migration Test Hardening | 5/5 | Complete | 2026-03-26 |
-| 51. Update System Hardening | 0/TBD | Not started | - |
+| 51. Update System Hardening | 3/3 | Complete | 2026-03-26 |
 | 52. Feature Adoption | 0/TBD | Not started | - |
 | 53. Deep Integration | 0/TBD | Not started | - |
 | 54. Infrastructure & Documentation | 0/TBD | Not started | - |

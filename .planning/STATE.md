@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 50-04-PLAN.md (TST-03 idempotency + TST-08 integration depth)
-last_updated: "2026-03-27T02:18:00Z"
-last_activity: 2026-03-27 -- Completed 50-04 TST-03 installer re-run idempotency and TST-08 integration depth tests
+stopped_at: Completed 51-03-PLAN.md (end-to-end upgrade path tests)
+last_updated: "2026-03-27T03:57:00Z"
+last_activity: 2026-03-27 -- Completed 51-03 end-to-end upgrade path tests (UPD-05)
 progress:
   total_phases: 11
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 13
-  completed_plans: 16
-  percent: 54
+  completed_plans: 19
+  percent: 64
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 50 - Migration Test Hardening; all 5 plans complete. Phase 50 finished.
+**Current focus:** Phase 51 - Update System Hardening; plan 3 of 3 complete. Phase complete.
 
 ## Current Position
 
-Phase: 50 of 54 (Migration Test Hardening)
-Plan: 5 of 5 (all complete)
+Phase: 51 of 54 (Update System Hardening)
+Plan: 3 of 3
 Status: phase-complete
-Last activity: 2026-03-27 -- Completed 50-04 TST-03 installer re-run idempotency and TST-08 integration depth tests
+Last activity: 2026-03-27 -- Completed 51-03 end-to-end upgrade path tests (UPD-05)
 
-Progress: [██████████] 54%
+Progress: [████████████] 64%
 
 ## Performance Metrics
 
@@ -86,6 +86,9 @@ Progress: [██████████] 54%
 | Phase 50 P03 | 2min | 2 tasks | 1 files |
 | Phase 50 P05 | 7min | 2 tasks | 2 files |
 | Phase 50 P04 | 3min | 2 tasks | 1 files |
+| Phase 51 P01 | 5min | 2 tasks | 3 files |
+| Phase 51 P02 | 4min | 2 tasks | 2 files |
+| Phase 51 P03 | 5min | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -134,6 +137,19 @@ Recent decisions affecting current work:
 - [Phase 50]: TST-01 excludes upstream runtime files (bin/, settings.json, CHANGELOG.md) from namespace scan -- these are intentionally not rewritten by replacePathsInContent
 - [Phase 50]: TST-08 adapted FEATURE_CAPABILITY_MAP assertions to actual structure (hook_dependent_above/task_tool_dependent) instead of plan's assumed max_level/requires
 - [Phase 50]: findProjectRoot subdirectory test expects parent resolution when .planning/ and .git/ coexist at ancestor -- matches upstream .git heuristic behavior
+- [Phase 51]: Migration specs stored as JSON in get-shit-done/migrations/ per version, matching existing data format conventions
+- [Phase 51]: MIGRATION-GUIDE.md is installer-generated (works across all 4 runtimes), upgrade-project remains companion for config migration action
+- [Phase 51]: Fresh-vs-upgrade detection via VERSION file presence; no guide generated for fresh installs (UPD-04)
+- [Phase 51]: C6 resolve_model_ids "omit" adopted for non-Claude runtimes -- complementary to fork's core.cjs MODEL_PROFILES (separate code paths)
+- [Phase 51]: C7 validateHookFields() adopted from upstream -- strips invalid hook entries before writeSettings() to prevent silent settings.json rejection
+- [Phase 51]: E2E upgrade test uses VERSION=1.16.0 (not 1.17.5) because package.json is still at v1.17.5 -- the migration spec range filter needs previousVersion < currentVersion
+- [Phase 51]: Migration guide uses action callouts (automatic vs run-upgrade-project) mapped from spec JSON action field -- human-readable rendering, not raw field values
+- [Phase 51]: Version comparison uses dot-split numeric approach without semver dependency, strips +dev suffix before comparison
+- [Phase 51]: validateHookFields uses two-pass approach (filter then prune) to avoid mutation during iteration; wired at both settings load and finishInstall write
+- [Phase 51]: C6 resolve_model_ids placed after hook registration in install(), complementary to fork's core.cjs MODEL_PROFILES
+- [Phase 51]: C5 pathPrefix uses path.basename(targetDir) with $HOME prefix for shell compatibility in global installs
+- [Phase 51]: Upgrade e2e test uses VERSION=1.16.0 to trigger isUpgrade when package.json version is 1.17.5; guide generation tested separately with matching spec range
+- [Phase 51]: All 6 UPD requirements verified with test coverage: 29 new tests total (15+14+4) above 376 baseline
 
 ### Roadmap Evolution
 
@@ -185,6 +201,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T02:18:00Z
-Stopped at: Completed 50-04-PLAN.md -- TST-03 idempotency + TST-08 integration depth (Phase 50 complete)
+Last session: 2026-03-27T03:57:00Z
+Stopped at: Completed 51-03-PLAN.md -- end-to-end upgrade path tests (Phase 51 complete)
 Resume file: None
