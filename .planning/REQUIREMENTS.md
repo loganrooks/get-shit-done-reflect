@@ -33,15 +33,15 @@ Requirements for Upstream Sync & Deep Integration milestone.
 
 ### Migration Test Hardening
 
-- [ ] **TST-01**: Full-corpus namespace scan test verifying zero stale gsd:/gsd-/get-shit-done/ references in installed files
-- [ ] **TST-02**: Idempotency tests for apply-migration (N-times application produces same result)
-- [ ] **TST-03**: Idempotency test for full installer re-run over existing installation
-- [ ] **TST-04**: KB migration test with nested subdirectories and edge-case filenames
-- [ ] **TST-05**: Crash-recovery test for interrupted KB migration (partial state cleanup)
-- [ ] **TST-06**: Module behavioral equivalence tests comparing CLI output before and after extraction
-- [ ] **TST-07**: Config type coercion edge case tests (string↔boolean, null handling)
-- [ ] **TST-08**: Integration depth tests verifying adopted features connect to fork pipeline
-- [ ] **TST-09**: Snapshot regression tests for namespace rewriting on representative file corpus
+- [x] **TST-01**: Full-corpus namespace scan test verifying zero stale gsd:/gsd-/get-shit-done/ references in installed files
+- [x] **TST-02**: Idempotency tests for apply-migration (N-times application produces same result)
+- [x] **TST-03**: Idempotency test for full installer re-run over existing installation
+- [x] **TST-04**: KB migration test with nested subdirectories and edge-case filenames
+- [x] **TST-05**: Crash-recovery test for interrupted KB migration (partial state cleanup)
+- [x] **TST-06**: Module behavioral equivalence tests comparing CLI output before and after extraction
+- [x] **TST-07**: Config type coercion edge case tests (string↔boolean, null handling)
+- [x] **TST-08**: Integration depth tests verifying adopted features connect to fork pipeline
+- [x] **TST-09**: Snapshot regression tests for namespace rewriting on representative file corpus
 
 ### Update System Hardening
 
