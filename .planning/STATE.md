@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-24)
 ## Current Position
 
 Phase: 49 of 54 (Config Migration)
-Plan: 1 of 2 (49-01 complete)
+Plan: 2 of 2 (49-02 complete)
 Status: active
-Last activity: 2026-03-26 -- Completed 49-01 declarative rename_field migration type
+Last activity: 2026-03-27 -- Completed 49-02 workflow and reference file depth-to-granularity updates
 
 Progress: [█████████░] 46%
 
@@ -78,6 +78,7 @@ Progress: [█████████░] 46%
 | Phase 48 P02 | 6min | 2 tasks | 3 files |
 | Phase 48.1 P01 | 4min | 2 tasks | 4 files |
 | Phase 49 P01 | 2min | 1 tasks | 2 files |
+| Phase 49 P02 | 5min | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,8 @@ Recent decisions affecting current work:
 - [Phase 48.1]: Comparison target is `v1.28.0` (released) with `upstream/main` as watchlist; ledger valid until ~2026-04-07
 - [Phase 49]: manifest_version bumped from 1 to 2 to signal migrations[] availability
 - [Phase 49]: Both-keys-present edge case handled by always deleting old key when it exists (partial migration safety)
+- [Phase 49]: discovery-phase.md and discuss-phase.md correctly excluded from depth rename -- their "depth" usage is workflow parameters and content concepts, not config fields
+- [Phase 49]: version-migration.md retains "depth" in historical example as documentation of the old field being renamed
 
 ### Roadmap Evolution
 
@@ -164,6 +167,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T01:02:46Z
-Stopped at: Completed 49-01-PLAN.md (declarative rename migration infrastructure). 49-02 next.
+Last session: 2026-03-27T01:08:17Z
+Stopped at: Completed 49-02-PLAN.md -- workflow and reference file depth-to-granularity updates
 Resume file: None
