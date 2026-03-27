@@ -490,6 +490,102 @@ describe('migrateKB pre-migration backup', () => {
   })
 })
 
+describe('TST-04: KB migration nested subdirectories and edge-case filenames', () => {
+  tmpdirTest('migrates deeply nested subdirectories (3 levels deep)', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+
+    // Create 3-level deep nested structures
+    const deepSignalDir = path.join(kbDir, 'signals', 'project-a', 'subsystem', 'deep')
+    const deepSpikeDir = path.join(kbDir, 'spikes', 'project-b', 'nested')
+    fsSync.mkdirSync(deepSignalDir, { recursive: true })
+    fsSync.mkdirSync(deepSpikeDir, { recursive: true })
+
+    const sigContent = '---\nid: sig-deep\ntype: signal\n---\nDeep signal content'
+    const spkContent = '---\nid: spk-nested\ntype: spike\n---\nNested spike content'
+    fsSync.writeFileSync(path.join(deepSignalDir, 'sig-deep.md'), sigContent)
+    fsSync.writeFileSync(path.join(deepSpikeDir, 'spk-nested.md'), spkContent)
+
+    migrateKB(tmpdir, [])
+
+    // Verify files still exist at original relative paths
+    expect(fsSync.readFileSync(path.join(deepSignalDir, 'sig-deep.md'), 'utf8')).toBe(sigContent)
+    expect(fsSync.readFileSync(path.join(deepSpikeDir, 'spk-nested.md'), 'utf8')).toBe(spkContent)
+    expect(countKBEntries(kbDir)).toBe(2)
+  })
+
+  tmpdirTest('preserves filenames with spaces', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    const projectDir = path.join(kbDir, 'signals', 'my project')
+    fsSync.mkdirSync(projectDir, { recursive: true })
+
+    const content = '---\nid: sig-spaces\ntype: signal\n---\nSignal with spaces in path'
+    fsSync.writeFileSync(path.join(projectDir, 'signal with spaces.md'), content)
+
+    migrateKB(tmpdir, [])
+
+    // Verify file accessible and content preserved byte-for-byte
+    const actual = fsSync.readFileSync(path.join(projectDir, 'signal with spaces.md'), 'utf8')
+    expect(actual).toBe(content)
+  })
+
+  tmpdirTest('preserves filenames with unicode characters', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    const accentedDir = path.join(kbDir, 'lessons', 'filosof\u00eda')
+    const asciiDir = path.join(kbDir, 'signals', 'test')
+    fsSync.mkdirSync(accentedDir, { recursive: true })
+    fsSync.mkdirSync(asciiDir, { recursive: true })
+
+    const lessonContent = '---\nid: les-unica\ntype: lesson\n---\nLecci\u00f3n \u00fanica con acentos'
+    const signalContent = '---\nid: sig-emdash\ntype: signal\n---\nContent with em\u2014dash and \u201csmart quotes\u201d'
+    fsSync.writeFileSync(path.join(accentedDir, 'lecci\u00f3n-\u00fanica.md'), lessonContent)
+    fsSync.writeFileSync(path.join(asciiDir, 'signal-with-em-dash.md'), signalContent)
+
+    migrateKB(tmpdir, [])
+
+    // Verify files exist and content preserved including unicode
+    expect(fsSync.readFileSync(path.join(accentedDir, 'lecci\u00f3n-\u00fanica.md'), 'utf8')).toBe(lessonContent)
+    expect(fsSync.readFileSync(path.join(asciiDir, 'signal-with-em-dash.md'), 'utf8')).toBe(signalContent)
+  })
+
+  tmpdirTest('preserves dot-prefixed files and directories', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    const hiddenProjectDir = path.join(kbDir, 'signals', '.hidden-project')
+    const lessonDir = path.join(kbDir, 'lessons', 'test')
+    fsSync.mkdirSync(hiddenProjectDir, { recursive: true })
+    fsSync.mkdirSync(lessonDir, { recursive: true })
+
+    const sigContent = '---\nid: sig-hidden\ntype: signal\n---\nHidden project signal'
+    const metaContent = '---\nid: les-metadata\ntype: lesson\n---\nMetadata lesson'
+    fsSync.writeFileSync(path.join(hiddenProjectDir, 'sig-hidden.md'), sigContent)
+    fsSync.writeFileSync(path.join(lessonDir, '.metadata.md'), metaContent)
+
+    migrateKB(tmpdir, [])
+
+    // Verify dot-prefixed files and directories survive migration
+    expect(fsSync.readFileSync(path.join(hiddenProjectDir, 'sig-hidden.md'), 'utf8')).toBe(sigContent)
+    expect(fsSync.readFileSync(path.join(lessonDir, '.metadata.md'), 'utf8')).toBe(metaContent)
+  })
+
+  tmpdirTest('handles empty subdirectories gracefully', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, 'knowledge')
+    // Create empty subdirectories
+    fsSync.mkdirSync(path.join(kbDir, 'signals', 'project-a'), { recursive: true })
+    fsSync.mkdirSync(path.join(kbDir, 'spikes'), { recursive: true })
+    // Plus one real entry
+    const lessonDir = path.join(kbDir, 'lessons', 'test')
+    fsSync.mkdirSync(lessonDir, { recursive: true })
+    const content = '---\nid: les-001\ntype: lesson\n---\nThe one real entry'
+    fsSync.writeFileSync(path.join(lessonDir, 'les-001.md'), content)
+
+    // Should not crash
+    migrateKB(tmpdir, [])
+
+    // The one real entry is preserved
+    expect(fsSync.readFileSync(path.join(lessonDir, 'les-001.md'), 'utf8')).toBe(content)
+    expect(countKBEntries(kbDir)).toBe(1)
+  })
+})
+
 describe('KB template provenance fields', () => {
   tmpdirTest('signal template includes gsd_version field', async () => {
     const templatePath = path.join(REPO_ROOT, '.claude', 'agents', 'kb-templates', 'signal.md')
