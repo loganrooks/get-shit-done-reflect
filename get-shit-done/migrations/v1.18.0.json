@@ -1,0 +1,43 @@
+{
+  "version": "1.18.0",
+  "title": "Modularization & Cross-Runtime Hardening",
+  "date": "2026-03-26",
+  "sections": [
+    {
+      "category": "breaking",
+      "heading": "Runtime Entry Point Renamed",
+      "body": "gsd-tools.js has been renamed to gsd-tools.cjs to match the CommonJS module system. The installer automatically removes the old file during upgrade.",
+      "action": "automatic"
+    },
+    {
+      "category": "feature",
+      "heading": "Modular CLI Architecture",
+      "body": "The monolithic CLI has been split into 16 focused modules in lib/. The command interface is unchanged -- all existing commands work identically.",
+      "action": "none"
+    },
+    {
+      "category": "config",
+      "heading": "Config Field Rename: depth to granularity",
+      "body": "The 'depth' config field has been renamed to 'granularity'. Run /gsdr:upgrade-project to migrate your project config automatically.",
+      "action": "run-upgrade-project"
+    },
+    {
+      "category": "config",
+      "heading": "Manifest Version 2 with Migrations Array",
+      "body": "manifest_version has been bumped from 1 to 2 to support declarative config migrations. Run /gsdr:upgrade-project to update your project config.",
+      "action": "run-upgrade-project"
+    },
+    {
+      "category": "feature",
+      "heading": "Hook Field Validation",
+      "body": "Invalid hook entries in settings.json are now validated and stripped to prevent Claude Code's schema validator from silently discarding the entire settings file.",
+      "action": "automatic"
+    },
+    {
+      "category": "feature",
+      "heading": "Cross-Platform Code Detection",
+      "body": "Project initialization now detects language and build files using a cross-platform approach (no Unix find dependency), supporting 16+ build/package file types.",
+      "action": "none"
+    }
+  ]
+}

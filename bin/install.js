@@ -1546,6 +1546,106 @@ function copyWithPathReplacement(srcDir, destDir, pathPrefix, runtime, isCommand
 }
 
 /**
+ * Compare two dot-delimited version strings.
+ * Returns -1 if a < b, 0 if a === b, 1 if a > b.
+ * Strips +dev suffix before comparison.
+ */
+function compareVersions(a, b) {
+  const partsA = a.replace(/\+dev$/, '').split('.').map(Number);
+  const partsB = b.replace(/\+dev$/, '').split('.').map(Number);
+  const len = Math.max(partsA.length, partsB.length);
+  for (let i = 0; i < len; i++) {
+    const segA = partsA[i] || 0;
+    const segB = partsB[i] || 0;
+    if (segA < segB) return -1;
+    if (segA > segB) return 1;
+  }
+  return 0;
+}
+
+/**
+ * Returns true if version is strictly greater than fromVersion
+ * AND less than or equal to toVersion.
+ * Strips +dev suffix before comparison.
+ */
+function isVersionInRange(version, fromVersion, toVersion) {
+  return compareVersions(version, fromVersion) > 0 && compareVersions(version, toVersion) <= 0;
+}
+
+/**
+ * Generate a MIGRATION-GUIDE.md for upgrades by reading migration spec JSONs.
+ * Reads all JSON files from get-shit-done/migrations/ (relative to package root),
+ * filters to specs in the (previousVersion, currentVersion] range, sorts by version,
+ * and writes a Markdown guide to targetDir/MIGRATION-GUIDE.md.
+ * If no applicable specs are found, does nothing (no empty guide).
+ */
+function generateMigrationGuide(targetDir, previousVersion, currentVersion) {
+  const migrationsDir = path.join(__dirname, '..', 'get-shit-done', 'migrations');
+  if (!fs.existsSync(migrationsDir)) return;
+
+  const specFiles = fs.readdirSync(migrationsDir).filter(f => f.endsWith('.json'));
+  const applicableSpecs = [];
+
+  for (const file of specFiles) {
+    try {
+      const spec = JSON.parse(fs.readFileSync(path.join(migrationsDir, file), 'utf8'));
+      if (spec.version && isVersionInRange(spec.version, previousVersion, currentVersion)) {
+        applicableSpecs.push(spec);
+      }
+    } catch {
+      // Skip malformed spec files
+    }
+  }
+
+  if (applicableSpecs.length === 0) return;
+
+  // Sort by version ascending
+  applicableSpecs.sort((a, b) => compareVersions(a.version, b.version));
+
+  const categoryBadge = {
+    breaking: '**BREAKING:**',
+    config: '**Config:**',
+    feature: '**Feature:**',
+  };
+
+  const lines = [];
+  lines.push(`# Migration Guide: ${previousVersion} -> ${currentVersion}`);
+  lines.push('');
+  lines.push(`> Generated: ${new Date().toISOString()}`);
+  lines.push(`> Previous version: ${previousVersion}`);
+  lines.push(`> Current version: ${currentVersion}`);
+  lines.push('');
+
+  for (const spec of applicableSpecs) {
+    lines.push(`## Version ${spec.version}: ${spec.title}`);
+    lines.push('');
+    for (const section of spec.sections) {
+      const badge = categoryBadge[section.category] || `**${section.category}:**`;
+      lines.push(`### ${badge} ${section.heading}`);
+      lines.push('');
+      lines.push(section.body);
+      lines.push('');
+      if (section.action === 'automatic') {
+        lines.push('> *This change is applied automatically during installation.*');
+        lines.push('');
+      } else if (section.action === 'run-upgrade-project') {
+        lines.push('> *Action required:* Run `/gsdr:upgrade-project` to apply this change.');
+        lines.push('');
+      }
+    }
+  }
+
+  lines.push('---');
+  lines.push('');
+  lines.push('For project-level config migrations, run `/gsdr:upgrade-project`.');
+  lines.push('');
+
+  const guidePath = path.join(targetDir, 'MIGRATION-GUIDE.md');
+  fs.writeFileSync(guidePath, lines.join('\n'));
+  console.log(`  + Generated MIGRATION-GUIDE.md (${previousVersion} -> ${currentVersion})`);
+}
+
+/**
  * Clean up orphaned files from previous GSD versions
  */
 function cleanupOrphanedFiles(configDir) {
@@ -1557,6 +1657,8 @@ function cleanupOrphanedFiles(configDir) {
     'hooks/gsd-version-check.js',  // Renamed to gsdr-version-check.js
     'hooks/gsd-ci-status.js',      // Renamed to gsdr-ci-status.js
     'hooks/gsd-health-check.js',   // Renamed to gsdr-health-check.js
+    // Pre-modularization stale artifacts (v1.17 -> v1.18)
+    'get-shit-done-reflect/bin/gsd-tools.js',  // Renamed to gsd-tools.cjs in Phase 45
   ];
 
   for (const relPath of orphanedFiles) {
@@ -2393,6 +2495,18 @@ function install(isGlobal, runtime = 'claude') {
   const isFromGitRepo = fs.existsSync(path.join(src, '.git'));
   const versionString = (!isGlobal || isFromGitRepo) ? `${pkg.version}+dev` : pkg.version;
 
+  // Fresh vs upgrade detection (UPD-04)
+  const reflectVersionPath = path.join(targetDir, 'get-shit-done-reflect', 'VERSION');
+  let previousVersion = null;
+  if (fs.existsSync(reflectVersionPath)) {
+    try {
+      previousVersion = fs.readFileSync(reflectVersionPath, 'utf8').trim()
+        .replace(/\+dev$/, '');
+    } catch { /* treat as fresh install */ }
+  }
+  const currentVersionClean = versionString.replace(/\+dev$/, '');
+  const isUpgrade = previousVersion && previousVersion !== currentVersionClean;
+
   // Save any locally modified GSD files before they get wiped
   saveLocalPatches(targetDir);
 
@@ -2592,6 +2706,11 @@ function install(isGlobal, runtime = 'claude') {
     console.log(`  ${green}✓${reset} Wrote VERSION (${versionString})`);
   } else {
     failures.push('VERSION');
+  }
+
+  // Generate migration guide for upgrades only (UPD-01, UPD-04)
+  if (isUpgrade) {
+    generateMigrationGuide(targetDir, previousVersion, currentVersionClean);
   }
 
   // Copy hooks from dist/ (bundled with dependencies) -- skip for Codex (no hook system)
@@ -3024,4 +3143,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles };
