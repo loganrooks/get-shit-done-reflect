@@ -464,3 +464,184 @@ triage:
       'Critical signal with lifecycle_state AND evidence should pass');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TST-06: module behavioral equivalence — CLI output validation
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Helper that runs gsd-tools from an arbitrary cwd with HOME override
+function runGsdToolsFromDir(args, cwd) {
+  try {
+    const result = execSync(
+      `node "${TOOLS_PATH}" ${args}`,
+      { cwd, encoding: 'utf-8', timeout: 10000, env: { ...process.env, HOME: cwd } }
+    );
+    return { success: true, output: result.trim() };
+  } catch (e) {
+    return { success: false, error: e.stderr || e.message, output: (e.stdout || '').trim() };
+  }
+}
+
+describe('TST-06: module behavioral equivalence - CLI output validation', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+    // Seed with minimal config.json
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'config.json'),
+      JSON.stringify({ mode: 'yolo', granularity: 'standard' }, null, 2),
+      'utf-8'
+    );
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('manifest commands produce valid JSON output via router', () => {
+    // manifest apply-migration uses loadManifest which resolves relative to the script
+    const result = runGsdToolsFromDir('manifest apply-migration', tmpDir);
+    assert.ok(result.success, `manifest apply-migration failed: ${result.error}`);
+    const parsed = JSON.parse(result.output);
+    assert.ok('total_changes' in parsed, 'Output should have total_changes key');
+    assert.ok('changes' in parsed, 'Output should have changes key');
+    assert.ok(Array.isArray(parsed.changes), 'changes should be an array');
+    assert.strictEqual(typeof parsed.total_changes, 'number', 'total_changes should be a number');
+  });
+
+  test('frontmatter validate produces structured output via router', () => {
+    // Create a plan file with valid frontmatter
+    const planPath = path.join(tmpDir, 'test-plan.md');
+    fs.writeFileSync(planPath, `---
+phase: 01-test
+plan: 01
+type: execute
+autonomous: true
+---
+
+# Test Plan
+
+Some content.
+`);
+
+    const result = runGsdToolsFromDir(`frontmatter validate ${planPath} --schema plan`, tmpDir);
+    assert.ok(result.success, `frontmatter validate failed: ${result.error}`);
+    const parsed = JSON.parse(result.output);
+    assert.ok('valid' in parsed, 'Output should have valid key');
+    assert.ok('missing' in parsed, 'Output should have missing key');
+    assert.ok('present' in parsed, 'Output should have present key');
+    assert.strictEqual(typeof parsed.valid, 'boolean', 'valid should be a boolean');
+    assert.ok(Array.isArray(parsed.missing), 'missing should be an array');
+    assert.ok(Array.isArray(parsed.present), 'present should be an array');
+  });
+
+  test('config-get produces output via router', () => {
+    const result = runGsdToolsFromDir('config-get mode', tmpDir);
+    assert.ok(result.success, `config-get failed: ${result.error}`);
+    assert.ok(result.output.length > 0, 'Output should be non-empty');
+    const parsed = JSON.parse(result.output);
+    assert.ok('key' in parsed, 'Output should have key');
+    assert.ok('found' in parsed, 'Output should have found');
+    assert.strictEqual(parsed.key, 'mode', 'Key should be mode');
+    assert.strictEqual(parsed.found, true, 'mode should be found');
+    assert.strictEqual(parsed.value, 'yolo', 'value should be yolo');
+  });
+
+  test('init plan-phase produces JSON output via router', () => {
+    // Create a ROADMAP.md with a phase entry
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'ROADMAP.md'),
+      `# Roadmap
+
+## Phase 01: Test Phase
+
+**Goal:** Test the routing.
+`
+    );
+    // Create the phase directory so findPhaseInternal finds it
+    fs.mkdirSync(path.join(tmpDir, '.planning', 'phases', '01-test-phase'), { recursive: true });
+
+    const result = runGsdToolsFromDir('init plan-phase "01"', tmpDir);
+    assert.ok(result.success, `init plan-phase failed: ${result.error}`);
+    const parsed = JSON.parse(result.output);
+    assert.ok('phase_found' in parsed, 'Output should have phase_found key');
+    assert.ok('phase_dir' in parsed, 'Output should have phase_dir key');
+    assert.strictEqual(parsed.phase_found, true, 'Phase should be found');
+    assert.ok(parsed.phase_dir.includes('01-test-phase'), 'phase_dir should reference the phase directory');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TST-06: project-root authority from subdirectories
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('TST-06: project-root authority from subdirectories', () => {
+  const { findProjectRoot } = require('./lib/core.cjs');
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(require('os').tmpdir(), 'gsd-root-test-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  });
+
+  test('findProjectRoot returns startDir when .planning/ exists at startDir', () => {
+    // Create .planning/ directly in tmpDir
+    fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
+    const result = findProjectRoot(tmpDir);
+    assert.strictEqual(result, tmpDir, 'Should return startDir when .planning/ exists there (early-return fix)');
+  });
+
+  test('findProjectRoot resolves parent when called from subdirectory', () => {
+    // Create: project/.planning/, project/.git/, project/src/components/
+    const projectDir = path.join(tmpDir, 'project');
+    fs.mkdirSync(path.join(projectDir, '.planning'), { recursive: true });
+    fs.mkdirSync(path.join(projectDir, '.git'), { recursive: true });
+    fs.mkdirSync(path.join(projectDir, 'src', 'components'), { recursive: true });
+
+    const subDir = path.join(projectDir, 'src', 'components');
+    const result = findProjectRoot(subDir);
+    // The .git heuristic resolves to project/ because:
+    // 1. project/ has .planning/ (ancestor with planning)
+    // 2. src/components/ is inside project/'s git repo (isInsideGitRepo returns true)
+    assert.strictEqual(result, projectDir,
+      'Should resolve to parent project root when .planning/ and .git/ exist at parent');
+  });
+
+  test('findProjectRoot stops at HOME boundary', () => {
+    // Create: fakehome/project/src/ (no .planning/ anywhere)
+    const fakeHome = path.join(tmpDir, 'fakehome');
+    fs.mkdirSync(path.join(fakeHome, 'project', 'src'), { recursive: true });
+
+    // Temporarily override HOME for this test
+    const origHome = process.env.HOME;
+    try {
+      process.env.HOME = fakeHome;
+      const result = findProjectRoot(path.join(fakeHome, 'project', 'src'));
+      // Should return startDir since no .planning/ exists anywhere
+      assert.strictEqual(result, path.join(fakeHome, 'project', 'src'),
+        'Should return startDir when no .planning/ found (bounded by HOME)');
+    } finally {
+      process.env.HOME = origHome;
+    }
+  });
+
+  test('findProjectRoot does not walk into unrelated parent .planning/', () => {
+    // Create: workspace/.planning/ (parent project), workspace/other-project/src/ (no .planning/, no .git)
+    const workspace = path.join(tmpDir, 'workspace');
+    fs.mkdirSync(path.join(workspace, '.planning'), { recursive: true });
+    fs.mkdirSync(path.join(workspace, 'other-project', 'src'), { recursive: true });
+    // other-project has NO .git and is NOT in sub_repos — unrelated
+
+    const otherSrc = path.join(workspace, 'other-project', 'src');
+    const result = findProjectRoot(otherSrc);
+    // Without .git in other-project, the heuristic should NOT resolve to workspace
+    assert.notStrictEqual(result, workspace,
+      'Should NOT resolve to unrelated parent workspace that has .planning/');
+    assert.strictEqual(result, otherSrc,
+      'Should return startDir since other-project is not inside any git repo under workspace');
+  });
+});
