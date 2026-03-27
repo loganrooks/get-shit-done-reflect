@@ -2870,6 +2870,167 @@ describe('manifest apply-migration rename migrations', () => {
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// manifest apply-migration multi-version upgrade (CFG-05)
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('manifest apply-migration multi-version upgrade', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('upgrades v1.14 config to v1.18 state in single apply-migration run (CFG-05)', () => {
+    // Read the REAL production manifest from disk
+    const realManifest = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'feature-manifest.json'), 'utf-8')
+    );
+
+    // Write the real manifest into the test environment
+    const manifestDir = path.join(tmpDir, '.claude', 'get-shit-done');
+    fs.mkdirSync(manifestDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(manifestDir, 'feature-manifest.json'),
+      JSON.stringify(realManifest, null, 2)
+    );
+
+    // Create a v1.14-era config: has depth (old name), no health_check, no signal_lifecycle, etc.
+    const v114Config = {
+      mode: 'yolo',
+      depth: 'comprehensive',
+      parallelization: true,
+      commit_docs: true,
+      model_profile: 'balanced',
+      workflow: {
+        research: true,
+        plan_checker: true,
+        verifier: true,
+      },
+      gsd_reflect_version: '1.14.0',
+      manifest_version: 1,
+    };
+
+    fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'config.json'),
+      JSON.stringify(v114Config, null, 2)
+    );
+
+    // Run migration
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Migration failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    assert.ok(output.total_changes > 0, 'should have changes');
+
+    // Read resulting config
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+
+    // 1. depth renamed to granularity with value mapping
+    assert.strictEqual(config.depth, undefined, 'depth key should be gone');
+    assert.strictEqual(config.granularity, 'fine', 'granularity should be fine (mapped from comprehensive)');
+
+    // 2. health_check section exists with defaults
+    assert.ok(config.health_check, 'health_check section should exist');
+    assert.strictEqual(config.health_check.frequency, 'milestone-only');
+    assert.strictEqual(config.health_check.stale_threshold_days, 7);
+    assert.strictEqual(config.health_check.blocking_checks, false);
+
+    // 3. devops section exists with defaults
+    assert.ok(config.devops, 'devops section should exist');
+    assert.strictEqual(config.devops.ci_provider, 'none');
+    assert.strictEqual(config.devops.deploy_target, 'none');
+
+    // 4. signal_lifecycle section exists with defaults
+    assert.ok(config.signal_lifecycle, 'signal_lifecycle section should exist');
+    assert.strictEqual(config.signal_lifecycle.lifecycle_strictness, 'flexible');
+
+    // 5. signal_collection section exists with defaults
+    assert.ok(config.signal_collection, 'signal_collection section should exist');
+    assert.strictEqual(config.signal_collection.auto_collect, false);
+
+    // 6. spike section exists with defaults
+    assert.ok(config.spike, 'spike section should exist');
+    assert.strictEqual(config.spike.enabled, true);
+    assert.strictEqual(config.spike.sensitivity, 'balanced');
+
+    // 7. automation section exists with defaults
+    assert.ok(config.automation, 'automation section should exist');
+    assert.strictEqual(config.automation.level, 1);
+
+    // 8. release section exists with defaults
+    assert.ok(config.release, 'release section should exist');
+    assert.strictEqual(config.release.version_file, 'none');
+
+    // 9. manifest_version bumped to 2
+    assert.strictEqual(config.manifest_version, 2, 'manifest_version should be 2');
+
+    // 10. Original fields preserved
+    assert.strictEqual(config.mode, 'yolo', 'mode should be preserved');
+    assert.strictEqual(config.parallelization, true, 'parallelization should be preserved');
+    assert.strictEqual(config.model_profile, 'balanced', 'model_profile should be preserved');
+    assert.deepStrictEqual(config.workflow, {
+      research: true,
+      plan_checker: true,
+      verifier: true,
+    }, 'workflow section should be intact');
+
+    // Verify field_renamed change is in the output
+    const renameChange = output.changes.find(c => c.type === 'field_renamed');
+    assert.ok(renameChange, 'should have a field_renamed change');
+    assert.strictEqual(renameChange.from, 'depth');
+    assert.strictEqual(renameChange.to, 'granularity');
+  });
+
+  test('idempotency on full v1.14-to-v1.18 upgrade: second run produces zero changes', () => {
+    // Read the REAL production manifest
+    const realManifest = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'feature-manifest.json'), 'utf-8')
+    );
+
+    const manifestDir = path.join(tmpDir, '.claude', 'get-shit-done');
+    fs.mkdirSync(manifestDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(manifestDir, 'feature-manifest.json'),
+      JSON.stringify(realManifest, null, 2)
+    );
+
+    const v114Config = {
+      mode: 'yolo',
+      depth: 'comprehensive',
+      parallelization: true,
+      commit_docs: true,
+      model_profile: 'balanced',
+      workflow: { research: true, plan_checker: true, verifier: true },
+      gsd_reflect_version: '1.14.0',
+      manifest_version: 1,
+    };
+
+    fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'config.json'),
+      JSON.stringify(v114Config, null, 2)
+    );
+
+    // First run
+    const result1 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result1.success, `First run failed: ${result1.error}`);
+    const output1 = JSON.parse(result1.output);
+    assert.ok(output1.total_changes > 0, 'first run should have changes');
+
+    // Second run
+    const result2 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result2.success, `Second run failed: ${result2.error}`);
+    const output2 = JSON.parse(result2.output);
+    assert.strictEqual(output2.total_changes, 0, 'second run should have zero changes (idempotent)');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // manifest log-migration command
 // ─────────────────────────────────────────────────────────────────────────────
 
