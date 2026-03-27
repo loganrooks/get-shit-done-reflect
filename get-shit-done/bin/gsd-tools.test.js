@@ -2043,12 +2043,16 @@ describe('scaffold command', () => {
  * @param {object} configObj - config.json contents
  * @param {number} [manifestVersion=1] - manifest_version field
  */
-function createManifestTestEnv(tmpDir, manifestFeatures, configObj, manifestVersion = 1) {
+function createManifestTestEnv(tmpDir, manifestFeatures, configObj, manifestVersion = 1, migrations = []) {
   const manifestDir = path.join(tmpDir, '.claude', 'get-shit-done');
   fs.mkdirSync(manifestDir, { recursive: true });
+  const manifestObj = { manifest_version: manifestVersion, features: manifestFeatures };
+  if (migrations.length > 0) {
+    manifestObj.migrations = migrations;
+  }
   fs.writeFileSync(
     path.join(manifestDir, 'feature-manifest.json'),
-    JSON.stringify({ manifest_version: manifestVersion, features: manifestFeatures }, null, 2)
+    JSON.stringify(manifestObj, null, 2)
   );
   fs.mkdirSync(path.join(tmpDir, '.planning'), { recursive: true });
   fs.writeFileSync(
@@ -2684,6 +2688,184 @@ describe('manifest apply-migration command', () => {
     assert.ok(changeTypes.includes('type_coerced'), 'should include type_coerced');
     assert.ok(changeTypes.includes('manifest_version_updated'), 'should include manifest_version_updated');
     assert.ok(output.total_changes >= 4, 'should have at least 4 changes');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// manifest apply-migration rename migrations
+// ─────────────────────────────────────────────────────────────────────────────
+
+function renameMigration() {
+  return {
+    type: 'rename_field',
+    version: '1.15.0',
+    from: 'depth',
+    to: 'granularity',
+    scope: 'top_level',
+    value_map: {
+      quick: 'coarse',
+      standard: 'standard',
+      comprehensive: 'fine',
+    },
+  };
+}
+
+describe('manifest apply-migration rename migrations', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('renames depth to granularity with value mapping', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      { mode: 'yolo', depth: 'comprehensive', manifest_version: 1 },
+      2,
+      [renameMigration()]
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    const renameChange = output.changes.find(c => c.type === 'field_renamed');
+    assert.ok(renameChange, 'should have a field_renamed change');
+    assert.strictEqual(renameChange.from, 'depth');
+    assert.strictEqual(renameChange.to, 'granularity');
+    assert.strictEqual(renameChange.old_value, 'comprehensive');
+    assert.strictEqual(renameChange.new_value, 'fine');
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.granularity, 'fine', 'config should have granularity: fine');
+    assert.strictEqual(config.depth, undefined, 'config should NOT have depth key');
+  });
+
+  test('renames depth to granularity with standard value (passthrough)', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      { mode: 'yolo', depth: 'standard', manifest_version: 1 },
+      2,
+      [renameMigration()]
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.granularity, 'standard', 'config should have granularity: standard');
+    assert.strictEqual(config.depth, undefined, 'config should NOT have depth key');
+  });
+
+  test('passes through unknown depth value without destroying it', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      { mode: 'yolo', depth: 'custom_value', manifest_version: 1 },
+      2,
+      [renameMigration()]
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.granularity, 'custom_value', 'unknown value should pass through to granularity');
+    assert.strictEqual(config.depth, undefined, 'config should NOT have depth key');
+  });
+
+  test('cleans up depth when both depth and granularity exist', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      { mode: 'yolo', depth: 'comprehensive', granularity: 'fine', manifest_version: 1 },
+      2,
+      [renameMigration()]
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    const renameChange = output.changes.find(c => c.type === 'field_renamed');
+    assert.strictEqual(renameChange, undefined, 'should NOT have a field_renamed change (rename skipped, only cleanup)');
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.granularity, 'fine', 'granularity should be preserved');
+    assert.strictEqual(config.depth, undefined, 'depth should be cleaned up');
+  });
+
+  test('skips rename when granularity already set and depth absent', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      { mode: 'yolo', granularity: 'fine', manifest_version: 1 },
+      2,
+      [renameMigration()]
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const output = JSON.parse(result.output);
+    const renameChange = output.changes.find(c => c.type === 'field_renamed');
+    assert.strictEqual(renameChange, undefined, 'should NOT have a field_renamed change');
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.granularity, 'fine', 'granularity should still be fine');
+  });
+
+  test('preserves unknown config fields through migration (CFG-06)', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      {
+        mode: 'yolo',
+        depth: 'standard',
+        my_custom_field: 'preserved',
+        another_field: { nested: true },
+        manifest_version: 1,
+      },
+      2,
+      [renameMigration()]
+    );
+
+    const result = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+
+    const config = JSON.parse(fs.readFileSync(path.join(tmpDir, '.planning', 'config.json'), 'utf-8'));
+    assert.strictEqual(config.granularity, 'standard', 'depth should be renamed to granularity');
+    assert.strictEqual(config.depth, undefined, 'depth should be gone');
+    assert.strictEqual(config.my_custom_field, 'preserved', 'custom field should survive migration');
+    assert.deepStrictEqual(config.another_field, { nested: true }, 'nested custom field should survive migration');
+  });
+
+  test('is idempotent: second run produces zero changes', () => {
+    createManifestTestEnv(
+      tmpDir,
+      healthCheckFeature(),
+      { mode: 'yolo', depth: 'comprehensive', manifest_version: 1 },
+      2,
+      [renameMigration()]
+    );
+
+    // First run: produces changes
+    const result1 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result1.success, `First run failed: ${result1.error}`);
+    const output1 = JSON.parse(result1.output);
+    assert.ok(output1.total_changes > 0, 'first run should have changes');
+
+    // Second run: should produce zero changes
+    const result2 = runGsdTools('manifest apply-migration --raw', tmpDir);
+    assert.ok(result2.success, `Second run failed: ${result2.error}`);
+    const output2 = JSON.parse(result2.output);
+    assert.strictEqual(output2.total_changes, 0, 'second run should have zero changes (idempotent)');
   });
 });
 
