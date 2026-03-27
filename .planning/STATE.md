@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed quick task 260325 removing stale local worktree refs; only main and the active Phase 49 branch remain.
-last_updated: "2026-03-24T21:49:23Z"
-last_activity: 2026-03-24 -- Completed quick task 260325 removing stale local worktree refs
+stopped_at: Completed 49-01-PLAN.md (declarative rename migration infrastructure)
+last_updated: "2026-03-27T01:02:46Z"
+last_activity: 2026-03-26 -- Completed 49-01 declarative rename_field migration type
 progress:
   total_phases: 11
   completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
-  percent: 45
+  total_plans: 13
+  completed_plans: 12
+  percent: 46
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 49 next - Config Migration planning can now start from the cleaned post-48.1 mainline with no leftover worktree branch clutter
+**Current focus:** Phase 49 in progress - Config Migration; 49-01 complete (rename migration infra), 49-02 next (test coverage)
 
 ## Current Position
 
 Phase: 49 of 54 (Config Migration)
-Plan: 0 of TBD (not started)
+Plan: 1 of 2 (49-01 complete)
 Status: active
-Last activity: 2026-03-24 -- Completed quick task 260325 removing stale local worktree refs
+Last activity: 2026-03-26 -- Completed 49-01 declarative rename_field migration type
 
-Progress: [███████░░░] 36%
+Progress: [█████████░] 46%
 
 ## Performance Metrics
 
@@ -77,6 +77,7 @@ Progress: [███████░░░] 36%
 | Phase 48 P01 | 9min | 2 tasks | 3 files |
 | Phase 48 P02 | 6min | 2 tasks | 3 files |
 | Phase 48.1 P01 | 4min | 2 tasks | 4 files |
+| Phase 49 P01 | 2min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,8 @@ Recent decisions affecting current work:
 - [Roadmap 2026-03-24]: Inserted Phase 48.1 so the live upstream drift after the audit baseline becomes an explicit planning gate, not an implicit background concern
 - [Phase 48.1]: Zero must-integrate-now items; all 9 fold-into clusters (C1-C9) route to Phases 49-52 per `UPSTREAM-DRIFT-LEDGER.md`; no Phase 45-48 reopening needed
 - [Phase 48.1]: Comparison target is `v1.28.0` (released) with `upstream/main` as watchlist; ledger valid until ~2026-04-07
+- [Phase 49]: manifest_version bumped from 1 to 2 to signal migrations[] availability
+- [Phase 49]: Both-keys-present edge case handled by always deleting old key when it exists (partial migration safety)
 
 ### Roadmap Evolution
 
@@ -161,6 +164,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-24T21:49:23Z
-Stopped at: Completed quick task 260325 removing stale local worktree refs. Phase 49 branch remains active.
+Last session: 2026-03-27T01:02:46Z
+Stopped at: Completed 49-01-PLAN.md (declarative rename migration infrastructure). 49-02 next.
 Resume file: None
