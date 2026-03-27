@@ -1261,7 +1261,10 @@ function generateCodexMcpConfig(targetDir) {
  * @param {Array<{name: string, description: string}>} agents - Agent metadata
  * @returns {string} - TOML config block with marker header
  */
-function generateCodexConfigBlock(agents) {
+function generateCodexConfigBlock(agents, targetDir) {
+  const agentsPrefix = targetDir
+    ? path.join(targetDir, 'agents').replace(/\\/g, '/')
+    : 'agents';
   const lines = [
     GSD_CODEX_MARKER,
     '',
@@ -1269,7 +1272,7 @@ function generateCodexConfigBlock(agents) {
   for (const { name, description } of agents) {
     lines.push(`[agents.${name}]`);
     lines.push(`description = ${JSON.stringify(description)}`);
-    lines.push(`config_file = "agents/${name}.toml"`);
+    lines.push(`config_file = "${agentsPrefix}/${name}.toml"`);
     lines.push('');
   }
   return lines.join('\n');
@@ -1728,6 +1731,54 @@ function cleanupOrphanedHooks(settings) {
       'gsdr-statusline.js'
     );
     console.log(`  ${green}✓${reset} Updated statusline path (statusline.js → gsdr-statusline.js)`);
+  }
+
+  return settings;
+}
+
+/**
+ * Validate hook field structure in settings.hooks.
+ * Strips entries missing required sub-fields to prevent Zod rejection in settings.json.
+ * Two-pass approach: filter invalid entries, then prune empty event type keys.
+ * @param {object} settings - The settings object (mutated in place)
+ * @returns {object} - The mutated settings object
+ */
+function validateHookFields(settings) {
+  if (!settings.hooks || typeof settings.hooks !== 'object') {
+    return settings;
+  }
+
+  // Pass 1: Filter invalid entries from each event type
+  for (const eventType of Object.keys(settings.hooks)) {
+    const hookEntries = settings.hooks[eventType];
+    if (!Array.isArray(hookEntries)) continue;
+
+    settings.hooks[eventType] = hookEntries.filter(entry => {
+      // Must have a hooks property that is a non-empty array
+      if (!entry.hooks || !Array.isArray(entry.hooks) || entry.hooks.length === 0) {
+        console.log(`  ${green}+${reset} Removed invalid hook entry from ${eventType}`);
+        return false;
+      }
+      // Each hook in the array must have either prompt or command
+      const allValid = entry.hooks.every(h => h.prompt || h.command);
+      if (!allValid) {
+        console.log(`  ${green}+${reset} Removed invalid hook entry from ${eventType}`);
+        return false;
+      }
+      return true;
+    });
+  }
+
+  // Pass 2: Delete empty event type keys
+  for (const eventType of Object.keys(settings.hooks)) {
+    if (Array.isArray(settings.hooks[eventType]) && settings.hooks[eventType].length === 0) {
+      delete settings.hooks[eventType];
+    }
+  }
+
+  // Delete hooks property entirely if all event types removed
+  if (Object.keys(settings.hooks).length === 0) {
+    delete settings.hooks;
   }
 
   return settings;
@@ -2454,10 +2505,10 @@ function install(isGlobal, runtime = 'claude') {
     : targetDir.replace(process.cwd(), '.');
 
   // Path prefix for file references in markdown content
-  // For global installs: use full path
+  // For global installs: use $HOME for shell compatibility (C5)
   // For local installs: use relative
   const pathPrefix = isGlobal
-    ? `${targetDir.replace(/\\/g, '/')}/`
+    ? `$HOME/${path.basename(targetDir)}/`
     : `./${dirName}/`;
 
   let runtimeLabel = 'Claude Code';
@@ -2673,7 +2724,7 @@ function install(isGlobal, runtime = 'claude') {
     // Register agents in config.toml
     if (agents.length > 0) {
       const configPath = path.join(targetDir, 'config.toml');
-      const gsdBlock = generateCodexConfigBlock(agents);
+      const gsdBlock = generateCodexConfigBlock(agents, targetDir);
       mergeCodexConfig(configPath, gsdBlock);
       console.log(`  ${green}+${reset} Registered ${agents.length} agents in config.toml`);
     }
@@ -2781,7 +2832,7 @@ function install(isGlobal, runtime = 'claude') {
   // Configure statusline and hooks in settings.json
   // Gemini shares same hook system as Claude Code for now
   const settingsPath = path.join(targetDir, 'settings.json');
-  const settings = cleanupOrphanedHooks(readSettings(settingsPath));
+  const settings = validateHookFields(cleanupOrphanedHooks(readSettings(settingsPath)));
   const statuslineCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-statusline.js')
     : buildLocalHookCommand(dirName, 'gsdr-statusline.js');
@@ -2846,6 +2897,22 @@ function install(isGlobal, runtime = 'claude') {
     ensureHook('gsdr-health-check', healthCheckCommand, 'health check');
   }
 
+  // C6: Set resolve_model_ids for non-Claude runtimes
+  const isClaude = !isOpencode && !isGemini && !isCodex;
+  if (!isClaude) {
+    const gsdHome = getGsdHome();
+    const defaultsPath = path.join(gsdHome, 'defaults.json');
+    let defaults = {};
+    if (fs.existsSync(defaultsPath)) {
+      try { defaults = JSON.parse(fs.readFileSync(defaultsPath, 'utf8')); } catch {}
+    }
+    if (defaults.resolve_model_ids !== 'omit') {
+      defaults.resolve_model_ids = 'omit';
+      fs.writeFileSync(defaultsPath, JSON.stringify(defaults, null, 2) + '\n');
+      console.log(`  ${green}+${reset} Set resolve_model_ids: omit for ${runtimeLabel}`);
+    }
+  }
+
   // Write file manifest for future modification detection
   writeManifest(targetDir);
   console.log(`  ${green}✓${reset} Wrote file manifest (${MANIFEST_NAME})`);
@@ -2880,6 +2947,8 @@ function finishInstall(settingsPath, settings, statuslineCommand, shouldInstallS
     console.log(`  ${green}✓${reset} Upgraded statusline (worktree-safe guard)`);
   }
 
+  // Validate hook fields before writing (C7: strip invalid entries to prevent Zod rejection)
+  validateHookFields(settings);
   // Always write settings
   writeSettings(settingsPath, settings);
 
@@ -3143,4 +3212,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields };
