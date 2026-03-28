@@ -237,7 +237,7 @@ Plans:
 - [x] 53-04-PLAN.md -- INT-06 namespace re-verification + cross-plan integration verification
 
 ### Phase 54: Sync Retrospective & Governance
-**Goal**: The v1.18 sync experience is examined as a whole — upstream's trajectory understood, feature overlap with the fork identified, the sync process itself evaluated, and governance artifacts updated to reflect both what happened and what should happen next. Infrastructure fixes (CI cache, progress telemetry) are also addressed.
+**Goal**: The v1.18 sync experience is examined as a whole — upstream's trajectory and design philosophy understood, feature overlap with the fork identified (distinguishing "behind" from "intentionally different"), the sync process itself evaluated, and governance artifacts updated to reflect both what happened and what should happen next. Infrastructure fixes (CI cache, progress telemetry) are also addressed.
 **Depends on**: Phase 53 (all sync/integration work complete; this phase reflects on the full v1.18 experience)
 **Requirements**: INF-01, INF-02, INF-03, INF-04, INF-05, INF-06, INF-07, INF-08, INF-09
 **Relevant deliberations (planning input, not settled policy)**:
@@ -250,8 +250,8 @@ Plans:
   2. STATE.md / ROADMAP.md progress reporting no longer overstates milestone completion while future work remains unplanned or incomplete
   3. FORK-DIVERGENCES.md reflects the v1.18 module structure, live upstream-tracked divergence set, and updated merge stances for modified files
   4. FORK-STRATEGY.md and the v1.17+ roadmap deliberation document record sync cadence, baseline-freeze rules, what-to-adopt criteria, and integration depth standards for future upstream syncs
-  5. Upstream's post-baseline trajectory (issues, PRs, commit themes) is analyzed and documented — what they're responding to, where they're heading
-  6. Feature overlap between fork additions and upstream's independent development is inventoried with disposition (converging, redundant, complementary, divergent)
+  5. Upstream's post-baseline trajectory (issues, PRs, commit themes) is analyzed and documented — what they're responding to, where they're heading, and what design philosophy guides their choices
+  6. Feature overlap between fork additions and upstream's independent development is inventoried with disposition (converging, redundant, complementary, divergent) — with each gap classified as "behind" (same problem, haven't gotten to it) vs "intentionally different" (different design philosophy produces different approach)
   7. The v1.18 sync process itself is retrospected — what worked, what didn't, what the fork's signal history reveals compared to upstream's issue tracker
   8. Outstanding upstream changes not yet addressed are assessed for relevance and prioritized for future sync work
 **Plans**: TBD

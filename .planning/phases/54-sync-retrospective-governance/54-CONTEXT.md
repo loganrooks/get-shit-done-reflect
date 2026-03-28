@@ -153,12 +153,19 @@ The governance deliverables (INF-03, INF-04, INF-09) are outputs of the analytic
 - **Reversibility:** High — analysis, not code
 - **Research should:** Examine upstream GitHub issues (open and closed), PR descriptions and discussions, release notes, README changes. Look for patterns: what problems are they solving? What direction are they heading?
 
-### Q2: Where do fork and upstream features converge vs diverge?
+### Q2: What are the guiding design philosophies of each project, and how do they explain the divergences?
+- **Type:** final
+- **Why it matters:** The fork (GSD Reflect) is built around epistemic self-improvement — "the system never makes the same mistake twice." Upstream GSD's philosophy is less explicit but visible in its choices (SDK/headless automation, runtime breadth, agent skill injection). Understanding each project's design orientation is essential for classifying feature gaps as "behind" (same problem, haven't gotten to it) vs "intentionally different" (different philosophy produces different approach). This distinction directly shapes sync policy — you sync differently with a project heading the same direction vs one heading a complementary but different direction.
+- **Downstream decision:** INF-06 gap classification, INF-04 what-to-adopt criteria, overall sync relationship framing
+- **Reversibility:** High — analysis
+- **Research should:** Examine upstream's README, issue discussions, PR rationales, and architectural choices to surface their implicit design philosophy. Compare against the fork's stated core value and actual design patterns (signals, deliberations, knowledge base, health probes). For each feature overlap or gap: does the divergence follow from philosophical differences, or is it accidental? When facing the same problem (e.g., cross-runtime support, security, verification), how would each project's philosophy suggest a different approach?
+
+### Q2b: Where do fork and upstream features converge vs diverge?
 - **Type:** material
 - **Why it matters:** The fork has 166 fork-only additions and has independently built features (signals, KB, health probes, automation, deliberations, cross-runtime). Upstream has built features we don't have (security.cjs, SDK, Windsurf, UAT tracking, agent skill injection). Where these converge creates merge complexity; where they diverge creates strategic questions.
 - **Downstream decision:** INF-06 inventory structure, INF-04 what-to-adopt criteria
 - **Reversibility:** High — analysis
-- **Research should:** Map fork features against upstream's feature set. For each overlap: are implementations compatible? Would merging be additive or conflicting? For gaps in either direction: is this intentional divergence or missed opportunity?
+- **Research should:** Map fork features against upstream's feature set. For each overlap: are implementations compatible? Would merging be additive or conflicting? For gaps in either direction: classify as "behind" (same problem, haven't reached it) vs "intentionally different" (different design philosophy) vs "blind spot" (neither side's philosophy predicted this need). This classification is upstream of sync policy.
 
 ### Q3: What do our signals tell us about the sync experience?
 - **Type:** final
@@ -234,6 +241,7 @@ The governance deliverables (INF-03, INF-04, INF-09) are outputs of the analytic
 - User wants cross-referencing of our signal history against their issue tracker to identify mutual blind spots
 - User emphasized this is a reflection on the sync process itself, not just documentation of outcomes
 - The governance artifacts should emerge from genuine analysis, not be written as standalone updates
+- User wants explicit analysis of each project's guiding design philosophy — what concerns drive upstream vs the fork, how those philosophies are similar, where they diverge, and whether feature gaps are explained by philosophical differences or are merely "we're behind." This should inform how we approach shared problems differently and how that affects sync policy going forward.
 
 </specifics>
 
