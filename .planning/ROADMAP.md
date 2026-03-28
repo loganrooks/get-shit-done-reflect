@@ -228,13 +228,13 @@ Plans:
   3. The discuss-phase workflow surfaces relevant KB knowledge alongside codebase scouting results
   4. Running the cleanup workflow does NOT delete `.planning/knowledge/`, `.planning/deliberations/`, or `.planning/backlog/`
   5. The automation framework's `resolve-level` recognizes newly adopted features for level-based triggering
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 53-01: TBD
-- [ ] 53-02: TBD
-- [ ] 53-03: TBD
-- [ ] 53-04: TBD
+- [ ] 53-01-PLAN.md -- Bridge file reading in automation deferral + FEATURE_CAPABILITY_MAP expansion (INT-01, INT-08)
+- [ ] 53-02-PLAN.md -- Artifact sensor VALIDATION.md scanning + validation-coverage health probe (INT-02, INT-03, INT-07)
+- [ ] 53-03-PLAN.md -- Discuss-phase KB knowledge surfacing + cleanup workflow fork protection (INT-04, INT-05)
+- [ ] 53-04-PLAN.md -- INT-06 namespace re-verification + cross-plan integration verification
 
 ### Phase 54: Infrastructure & Documentation
 **Goal**: CI reliability and planning telemetry correctness are restored, fork governance documents reflect the v1.18 sync state, open deliberations relevant to governance are explicitly linked, and the upstream sync policy is formalized for future milestones
@@ -272,7 +272,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 
 | 50. Migration Test Hardening | 5/5 | Complete | 2026-03-26 |
 | 51. Update System Hardening | 3/3 | Complete | 2026-03-26 |
 | 52. Feature Adoption | 5/5 | Complete | 2026-03-27 |
-| 53. Deep Integration | 0/TBD | Not started | - |
+| 53. Deep Integration | 0/4 | Not started | - |
 | 54. Infrastructure & Documentation | 0/TBD | Not started | - |
 
 ## Overall Progress
