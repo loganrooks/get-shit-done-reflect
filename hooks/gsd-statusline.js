@@ -103,9 +103,19 @@ process.stdin.on('end', () => {
       } catch (e) {}
     }
 
-    // CI status from SessionStart hook cache
+    // CI status from SessionStart hook cache (project-scoped)
     let ciStatus = '';
-    const ciCacheFile = path.join(claudeDir, 'cache', 'gsd-ci-status.json');
+    const { execSync } = require('child_process');
+    let ciRepoName = 'unknown';
+    try {
+      ciRepoName = execSync('git remote get-url origin', { encoding: 'utf8', timeout: 5000 })
+        .trim().split('/').pop().replace(/\.git$/, '');
+    } catch {
+      try { ciRepoName = path.basename(process.cwd()); } catch {}
+    }
+    let ciBranch = 'main';
+    try { ciBranch = execSync('git branch --show-current', { encoding: 'utf8', timeout: 5000 }).trim() || 'main'; } catch {}
+    const ciCacheFile = path.join(claudeDir, 'cache', 'gsd-ci-status--' + ciRepoName + '--' + ciBranch + '.json');
     if (fs.existsSync(ciCacheFile)) {
       try {
         const ciCache = JSON.parse(fs.readFileSync(ciCacheFile, 'utf8'));
