@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 52-02-PLAN.md (agent/workflow/command-stub adoption)
-last_updated: "2026-03-28T01:47:00Z"
-last_activity: 2026-03-28 -- Completed 52-02 agent/workflow/command-stub adoption (ADT-05, ADT-07, ADT-08)
+stopped_at: Completed 52-03-PLAN.md (workflow wholesale replace)
+last_updated: "2026-03-28T01:48:00Z"
+last_activity: 2026-03-28 -- Completed 52-03 workflow wholesale replace (ADT-06, ADT-10)
 progress:
   total_phases: 11
   completed_phases: 7
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 52 - Feature Adoption; plan 2 of 5 complete.
+**Current focus:** Phase 52 - Feature Adoption; plan 3 of 5 complete.
 
 ## Current Position
 
 Phase: 52 of 54 (Feature Adoption)
-Plan: 2 of 5
+Plan: 3 of 5
 Status: active
-Last activity: 2026-03-28 -- Completed 52-02 agent/workflow/command-stub adoption (ADT-05, ADT-07, ADT-08)
+Last activity: 2026-03-28 -- Completed 52-03 workflow wholesale replace (ADT-06, ADT-10)
 
 Progress: [████████████] 64%
 
@@ -90,6 +90,7 @@ Progress: [████████████] 64%
 | Phase 51 P02 | 4min | 2 tasks | 2 files |
 | Phase 51 P03 | 5min | 2 tasks | 1 files |
 | Phase 52 P02 | 2min | 2 tasks | 10 files |
+| Phase 52 P03 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -153,6 +154,8 @@ Recent decisions affecting current work:
 - [Phase 51]: All 6 UPD requirements verified with test coverage: 29 new tests total (15+14+4) above 376 baseline
 - [Phase 52]: Wholesale-replaced integration-checker with upstream then re-added agent-protocol ref (clean diff, no conflicting sections)
 - [Phase 52]: All adopted files use gsd- prefix source convention; installer handles rewriting to gsdr- at install time
+- [Phase 52]: Upstream wholesale replace verified safe for discuss-phase.md and quick.md -- fork's steering brief model lives in command layer, not workflow file
+- [Phase 52]: Upstream files use $HOME/.claude/get-shit-done/ paths which installer's replacePathsInContent() handles at install time
 
 ### Roadmap Evolution
 
@@ -204,6 +207,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-28T01:47:00Z
-Stopped at: Completed 52-02-PLAN.md -- agent/workflow/command-stub adoption (ADT-05, ADT-07, ADT-08)
+Last session: 2026-03-28T01:48:00Z
+Stopped at: Completed 52-03-PLAN.md -- workflow wholesale replace (ADT-06, ADT-10)
 Resume file: None
