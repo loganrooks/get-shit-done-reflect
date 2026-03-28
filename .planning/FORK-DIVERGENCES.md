@@ -204,7 +204,7 @@ Key v1.18 phases affecting this manifest:
 - **Phases 49-51:** Config migration, test hardening, update system hardening
 - **Phases 52-53:** Feature adoption and deep integration
 
-See [54-RETROSPECTIVE.md](phases/54-sync-retrospective-governance/54-RETROSPECTIVE.md) for the full v1.18 sync retrospective.
+See [54-RETROSPECTIVE.md](phases/54-sync-retrospective-governance/54-RETROSPECTIVE.md) for the full v1.18 sync retrospective and [54-UPSTREAM-ANALYSIS.md](phases/54-sync-retrospective-governance/54-UPSTREAM-ANALYSIS.md) for upstream trajectory analysis including design philosophy comparison.
 
 ---
 *Manifest source: `git diff v1.22.4 --stat -- get-shit-done/bin/lib/` and `git diff v1.22.4 --diff-filter=M --name-only HEAD`*
