@@ -81,6 +81,7 @@ For each gap, fill the debug-subagent-prompt template and spawn:
 Task(
   prompt=filled_debug_subagent_prompt,
   subagent_type="general-purpose",
+  isolation="worktree",
   description="Debug: {truth_short}"
 )
 ```

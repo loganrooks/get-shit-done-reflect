@@ -161,6 +161,7 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    Task(
      subagent_type="gsd-executor",
      model="{executor_model}",
+     isolation="worktree",
      prompt="
        <objective>
        Execute plan {plan_number} of phase {phase_number}-{phase_name}.
