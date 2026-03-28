@@ -242,6 +242,8 @@ The governance deliverables (INF-03, INF-04, INF-09) are outputs of the analytic
 - User emphasized this is a reflection on the sync process itself, not just documentation of outcomes
 - The governance artifacts should emerge from genuine analysis, not be written as standalone updates
 - User wants explicit analysis of each project's guiding design philosophy — what concerns drive upstream vs the fork, how those philosophies are similar, where they diverge, and whether feature gaps are explained by philosophical differences or are merely "we're behind." This should inform how we approach shared problems differently and how that affects sync policy going forward.
+- **Concrete overlap example — health vs health-check:** Upstream has a `health.md` workflow; the fork has `/gsdr:health-check` and `health-probe.cjs`. Research should use this as a worked example of the overlap analysis: What is each responding to? Do they share the same concern or frame the gap differently? If we integrate upstream's response, how do we avoid naming confusion (health vs health-check)? This pattern of analysis should then be applied across all identified overlaps.
+- User wants the retrospective to also surface **issues from the current v1.18 sync round that need future milestone attention** — not just what upstream has that we don't, but what problems we encountered during the sync itself (integration friction, drift management gaps, workflow gaps like the scope-revision protocol absence) that should be addressed going forward.
 
 </specifics>
 
