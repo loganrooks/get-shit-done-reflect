@@ -99,7 +99,38 @@ If "Cancel": Stop.
 
 </step>
 
+<step name="verify_fork_protection">
+
+Before archiving, verify no fork-protected directories will be affected.
+
+**Fork-protected directories** (MUST NOT be moved, deleted, or archived):
+- `.planning/knowledge/`
+- `.planning/deliberations/`
+- `.planning/backlog/`
+
+```bash
+# Verify none of the phase directories to be archived match protected paths
+FORK_PROTECTED_DIRS=("knowledge" "deliberations" "backlog")
+
+for dir in "${PHASE_DIRS_TO_ARCHIVE[@]}"; do
+  dirname=$(basename "$dir")
+  for protected in "${FORK_PROTECTED_DIRS[@]}"; do
+    if [ "$dirname" = "$protected" ]; then
+      echo "SAFETY: Cannot archive fork-protected directory: $dir"
+      echo "Aborting cleanup."
+      exit 1
+    fi
+  done
+done
+```
+
+If any directory in the archive set matches a protected directory name, ABORT with a clear error message. This is a defense-in-depth guard -- the cleanup workflow currently only moves `.planning/phases/{dir}` directories, but this guard protects against future upstream changes that might widen the scope.
+
+</step>
+
 <step name="archive_phases">
+
+**Pre-condition:** verify_fork_protection step confirmed no protected directories in the archive set.
 
 For each milestone, move phase directories:
 

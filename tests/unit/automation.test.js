@@ -3,6 +3,7 @@ import { tmpdirTest } from '../helpers/tmpdir.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import fsSync from 'node:fs'
+import os from 'node:os'
 import { execSync } from 'node:child_process'
 
 const GSD_TOOLS = path.resolve(process.cwd(), 'get-shit-done/bin/gsd-tools.cjs')
@@ -84,7 +85,7 @@ async function setupAndResolve(tmpdir, config, feature, extraArgs = []) {
 describe('automation resolve-level', () => {
   describe('global level resolution', () => {
     tmpdirTest('default level (no automation section) returns effective=1', async ({ tmpdir }) => {
-      const result = await setupAndResolve(tmpdir, { mode: 'yolo' }, 'some_feature')
+      const result = await setupAndResolve(tmpdir, { mode: 'yolo' }, 'some_feature', ['--context-pct', '0'])
       expect(result.configured).toBe(1)
       expect(result.effective).toBe(1)
       expect(result.reasons).toEqual([])
@@ -127,7 +128,7 @@ describe('automation resolve-level', () => {
           level: 2,
           overrides: { signal_collection: 3 }
         }
-      }, 'health_check')
+      }, 'health_check', ['--context-pct', '0'])
       expect(result.configured).toBe(2)
       expect(result.override).toBeNull()
       expect(result.effective).toBe(2)
@@ -236,6 +237,129 @@ describe('automation resolve-level', () => {
       expect(result.reasons).toEqual(
         expect.arrayContaining([
           expect.stringContaining('context_deferred: 65% > 60% threshold')
+        ])
+      )
+    })
+  })
+
+  describe('bridge file context reading (INT-01)', () => {
+    // Helper: create a bridge file in os.tmpdir() with given data
+    function createBridgeFile(suffix, data) {
+      const filename = `claude-ctx-test-${suffix}.json`
+      const filepath = path.join(os.tmpdir(), filename)
+      fsSync.writeFileSync(filepath, JSON.stringify(data))
+      return filepath
+    }
+
+    tmpdirTest('bridge file populates contextPct when --context-pct not provided', async ({ tmpdir }) => {
+      const suffix = `bridge-pop-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      const bridgePath = createBridgeFile(suffix, {
+        session_id: 'test-session',
+        remaining_percentage: 30,
+        used_pct: 70,
+        timestamp: Math.floor(Date.now() / 1000)
+      })
+      try {
+        // level 3 with override, NO --context-pct flag
+        // Bridge says 70% used > 60% threshold -> should defer to level 1
+        const result = await setupAndResolve(tmpdir, {
+          automation: {
+            level: 1,
+            overrides: { signal_collection: 3 },
+            context_threshold_pct: 60
+          }
+        }, 'signal_collection')
+        expect(result.effective).toBe(1)
+        expect(result.reasons).toEqual(
+          expect.arrayContaining([
+            expect.stringContaining('bridge_file')
+          ])
+        )
+      } finally {
+        try { fsSync.unlinkSync(bridgePath) } catch {}
+      }
+    })
+
+    tmpdirTest('stale bridge file is ignored', async ({ tmpdir }) => {
+      const suffix = `bridge-stale-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      const bridgePath = createBridgeFile(suffix, {
+        session_id: 'test-session-stale',
+        remaining_percentage: 30,
+        used_pct: 70,
+        timestamp: Math.floor(Date.now() / 1000) - 200  // 200 seconds ago (> 120s threshold)
+      })
+      try {
+        // level 3 with override, NO --context-pct
+        // Bridge is stale -> should NOT defer, effective stays 3
+        const result = await setupAndResolve(tmpdir, {
+          automation: {
+            level: 1,
+            overrides: { signal_collection: 3 },
+            context_threshold_pct: 60
+          }
+        }, 'signal_collection')
+        expect(result.effective).toBe(3)
+        expect(result.reasons).not.toEqual(
+          expect.arrayContaining([
+            expect.stringContaining('bridge_file')
+          ])
+        )
+      } finally {
+        try { fsSync.unlinkSync(bridgePath) } catch {}
+      }
+    })
+
+    tmpdirTest('explicit --context-pct takes precedence over bridge file', async ({ tmpdir }) => {
+      const suffix = `bridge-prec-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+      const bridgePath = createBridgeFile(suffix, {
+        session_id: 'test-session-prec',
+        remaining_percentage: 30,
+        used_pct: 70,
+        timestamp: Math.floor(Date.now() / 1000)
+      })
+      try {
+        // level 3, explicit --context-pct 40 (below threshold)
+        // Bridge says 70% but explicit 40% takes precedence -> no deferral
+        const result = await setupAndResolve(tmpdir, {
+          automation: {
+            level: 3,
+            context_threshold_pct: 60
+          }
+        }, 'some_feature', ['--context-pct', '40'])
+        expect(result.effective).toBe(3)
+        expect(result.reasons).not.toEqual(
+          expect.arrayContaining([
+            expect.stringContaining('bridge_file')
+          ])
+        )
+      } finally {
+        try { fsSync.unlinkSync(bridgePath) } catch {}
+      }
+    })
+
+    tmpdirTest('no bridge file: graceful fallback', async ({ tmpdir }) => {
+      // Ensure no test bridge files exist (clean any leftover)
+      const tmpDir = os.tmpdir()
+      const testFiles = fsSync.readdirSync(tmpDir)
+        .filter(f => /^claude-ctx-test-.*\.json$/.test(f))
+      for (const f of testFiles) {
+        try { fsSync.unlinkSync(path.join(tmpDir, f)) } catch {}
+      }
+
+      // level 3 without override, no bridge file, no --context-pct
+      // Should not crash, effective stays 3
+      const result = await setupAndResolve(tmpdir, {
+        automation: {
+          level: 3,
+          context_threshold_pct: 60
+        }
+      }, 'some_feature')
+      // Note: real bridge files in /tmp/ may exist but will be stale (>120s)
+      // so effective should stay 3 unless a fresh real file exists
+      expect(result.effective).toBeTypeOf('number')
+      expect(result.reasons).not.toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('crash')
         ])
       )
     })

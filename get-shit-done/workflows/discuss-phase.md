@@ -338,8 +338,57 @@ From the scan, identify:
 Store as internal `<codebase_context>` for use in analyze_phase and present_gray_areas. This is NOT written to a file — it's used within this session only.
 </step>
 
+<step name="surface_kb_knowledge">
+Check for relevant knowledge base entries that might inform gray area identification and discussion.
+
+**Step 1: Locate KB index**
+```bash
+KB_DIR=""
+if [ -d ".planning/knowledge" ]; then
+  KB_DIR=".planning/knowledge"
+elif [ -d "$HOME/.gsd/knowledge" ]; then
+  KB_DIR="$HOME/.gsd/knowledge"
+fi
+if [ -n "$KB_DIR" ]; then
+  cat "$KB_DIR/index.md" 2>/dev/null || true
+fi
+```
+
+If no KB directory exists or index.md is missing: skip this step silently. No workflow slowdown for projects without a knowledge base.
+
+**Step 2: Extract phase keywords**
+From the phase goal in ROADMAP.md (already loaded), identify 3-5 domain keywords relevant to this phase's scope. For example, a phase about "authentication" yields keywords like "auth", "login", "session", "JWT".
+
+**Step 3: Scan index for matches**
+Grep the index for entries whose tags overlap with phase keywords. Use LLM judgment for semantic relevance -- exact substring match is not required. Prioritize:
+- Lessons (les-*) over signals (sig-*) -- lessons are refined knowledge
+- Spikes (spk-*) with resolved status -- spikes answer uncertainty
+- Signals with severity >= notable -- skip minor/trace signals
+
+**Step 4: Read top matches (max 5)**
+For the top 5 matching entries by relevance, read the full entry files from `$KB_DIR/signals/` or `$KB_DIR/spikes/` or `$KB_DIR/lessons/`.
+
+**Step 5: Build internal kb_context**
+If matches were found, build an internal context block:
+
+```
+<kb_context>
+## Relevant KB Entries
+
+- [entry-id]: One-line summary of finding relevant to this phase
+- [entry-id]: One-line summary of finding relevant to this phase
+</kb_context>
+```
+
+Cap at 3-5 items (per guardrail G3). Each item is a one-liner, not the full entry content. Total KB context should stay under ~500 tokens.
+
+If no relevant entries found: set `<kb_context>` to empty. Do not slow down the workflow.
+
+Store as internal variable for use in `analyze_phase` step alongside `codebase_context` and `prior_decisions`.
+</step>
+
 <step name="analyze_phase">
-Analyze the phase to identify gray areas worth discussing. **Use both `prior_decisions` and `codebase_context` to ground the analysis.**
+Analyze the phase to identify gray areas worth discussing. **Use `prior_decisions`, `codebase_context`, and `kb_context` to ground the analysis.**
 
 **Read the phase description from ROADMAP.md and determine:**
 

@@ -27,6 +27,10 @@ const FEATURE_CAPABILITY_MAP = {
     hook_dependent_above: 1,     // session-start display needs hooks above level 1
     task_tool_dependent: false,
   },
+  nyquist_validation: {
+    hook_dependent_above: null,   // workflow-triggered, not hook-based
+    task_tool_dependent: true,    // spawns gsd-nyquist-auditor via Task()
+  },
 };
 
 // ─── Commands ────────────────────────────────────────────────────────────────
@@ -57,6 +61,37 @@ function cmdAutomationResolveLevel(cwd, feature, options, raw) {
     overrideValue = overrides[normalizedFeature];
     effectiveLevel = overrideValue;
     reasons.push(`override: ${normalizedFeature}=${overrideValue}`);
+  }
+
+  // Step 2.5: Bridge file context reading (INT-01)
+  // When no explicit --context-pct was passed, attempt to read the statusline
+  // bridge file from /tmp/ for real context usage data.
+  if (options.contextPct === undefined) {
+    try {
+      const tmpDir = os.tmpdir();
+      const bridgeFiles = fs.readdirSync(tmpDir)
+        .filter(f => /^claude-ctx-.*\.json$/.test(f) && !f.includes('-warned'))
+        .map(f => {
+          const fullPath = path.join(tmpDir, f);
+          const stat = fs.statSync(fullPath);
+          return { path: fullPath, mtime: stat.mtimeMs };
+        })
+        .sort((a, b) => b.mtime - a.mtime);
+
+      if (bridgeFiles.length > 0) {
+        const bridgeContent = fs.readFileSync(bridgeFiles[0].path, 'utf-8');
+        const bridgeData = JSON.parse(bridgeContent);
+        const nowSec = Math.floor(Date.now() / 1000);
+        const ageSec = nowSec - (bridgeData.timestamp || 0);
+
+        if (ageSec <= 120 && bridgeData.used_pct !== undefined) {
+          options.contextPct = bridgeData.used_pct;
+          reasons.push(`bridge_file: used_pct=${bridgeData.used_pct}%`);
+        }
+      }
+    } catch {
+      // Bridge file reading is best-effort -- silent failure
+    }
   }
 
   // Step 3: Context-aware deferral (AUTO-04)

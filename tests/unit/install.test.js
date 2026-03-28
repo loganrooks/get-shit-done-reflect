@@ -2710,8 +2710,8 @@ Also use the Read tool to read files and Bash to run commands.`
     const automationPath = path.resolve(process.cwd(), 'get-shit-done/bin/lib/automation.cjs')
     const { FEATURE_CAPABILITY_MAP } = require(automationPath)
 
-    it('FEATURE_CAPABILITY_MAP exports all four automation features', () => {
-      const expectedFeatures = ['signal_collection', 'reflection', 'health_check', 'ci_status']
+    it('FEATURE_CAPABILITY_MAP exports all five automation features', () => {
+      const expectedFeatures = ['signal_collection', 'reflection', 'health_check', 'ci_status', 'nyquist_validation']
       const actualFeatures = Object.keys(FEATURE_CAPABILITY_MAP).sort()
       expect(actualFeatures).toEqual(expectedFeatures.sort())
 
@@ -2795,9 +2795,9 @@ Also use the Read tool to read files and Bash to run commands.`
       for (const key of capMapKeys) {
         // ci_status is an automation-only feature (not a standalone feature with its own config_key)
         // signal_collection, reflection, and health_check map to manifest features
-        if (key === 'ci_status') {
-          // ci_status is valid in FEATURE_CAPABILITY_MAP as an automation capability
-          // but is not a separate top-level feature -- this is by design
+        if (key === 'ci_status' || key === 'nyquist_validation') {
+          // ci_status and nyquist_validation are valid in FEATURE_CAPABILITY_MAP as automation
+          // capabilities but are not separate top-level manifest features -- this is by design
           expect(FEATURE_CAPABILITY_MAP[key]).toBeDefined()
           continue
         }
