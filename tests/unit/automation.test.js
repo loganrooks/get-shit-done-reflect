@@ -85,7 +85,7 @@ async function setupAndResolve(tmpdir, config, feature, extraArgs = []) {
 describe('automation resolve-level', () => {
   describe('global level resolution', () => {
     tmpdirTest('default level (no automation section) returns effective=1', async ({ tmpdir }) => {
-      const result = await setupAndResolve(tmpdir, { mode: 'yolo' }, 'some_feature')
+      const result = await setupAndResolve(tmpdir, { mode: 'yolo' }, 'some_feature', ['--context-pct', '0'])
       expect(result.configured).toBe(1)
       expect(result.effective).toBe(1)
       expect(result.reasons).toEqual([])
@@ -128,7 +128,7 @@ describe('automation resolve-level', () => {
           level: 2,
           overrides: { signal_collection: 3 }
         }
-      }, 'health_check')
+      }, 'health_check', ['--context-pct', '0'])
       expect(result.configured).toBe(2)
       expect(result.override).toBeNull()
       expect(result.effective).toBe(2)
