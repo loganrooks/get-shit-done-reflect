@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-28T20:15:25Z
-**Total entries:** 139
+**Generated:** 2026-03-28T20:32:02Z
+**Total entries:** 140
 
-## Signals (138)
+## Signals (139)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -139,6 +139,7 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 |  | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | path-resolution,installer,source-repo,plan-spec-gap,auto-fix |  | active |
+| sig-2026-03-28-eager-bypass-of-protocol-when-scope-needs-revision | get-shit-done-reflect | notable | detected | workflow-gap,protocol-bypass,scope-revision,discuss-phase,capability-gap,recurring | "2026-03-28 | active |
 | sig-2026-03-28-squash-merge-destroys-commit-history | get-shit-done-reflect | critical | detected | git-workflow,pr-merge,squash,traceability,commit-history,devops | "2026-03-28 | active |
 | sig-2026-03-28-offer-next-skips-pr-workflow | get-shit-done-reflect | notable | detected | git-workflow,phase-transition,offer-next,workflow-spec,devops,pr-workflow | "2026-03-28 | active |
 | sig-2026-03-20-yolo-mode-checkpoint-should-auto-verify | get-shit-done-reflect | notable | detected | tags: | "2026-03-20 | active |
