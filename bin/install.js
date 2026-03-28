@@ -31,6 +31,7 @@ const CODEX_AGENT_SANDBOX = {
   'gsd-plan-checker': 'read-only',
   'gsd-integration-checker': 'read-only',
   'gsd-nyquist-auditor': 'workspace-write',
+  'gsd-advisor-researcher': 'read-only',
 };
 
 /**
