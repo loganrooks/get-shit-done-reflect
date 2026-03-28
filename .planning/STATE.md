@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 51-03-PLAN.md (end-to-end upgrade path tests)
-last_updated: "2026-03-27T03:57:00Z"
-last_activity: 2026-03-27 -- Completed 51-03 end-to-end upgrade path tests (UPD-05)
+stopped_at: Phase 52 complete, verified 15/15 must-haves. Ready for Phase 53.
+last_updated: "2026-03-28T02:15:00Z"
+last_activity: 2026-03-28 -- Phase 52 verified and complete (15/15 must-haves)
 progress:
   total_phases: 11
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 13
-  completed_plans: 19
-  percent: 64
+  completed_plans: 24
+  percent: 73
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 51 - Update System Hardening; plan 3 of 3 complete. Phase complete.
+**Current focus:** Phase 52 complete (15/15 verified). Ready for Phase 53 - Deep Integration.
 
 ## Current Position
 
-Phase: 51 of 54 (Update System Hardening)
-Plan: 3 of 3
+Phase: 52 of 54 (Feature Adoption)
+Plan: 5 of 5
 Status: phase-complete
-Last activity: 2026-03-27 -- Completed 51-03 end-to-end upgrade path tests (UPD-05)
+Last activity: 2026-03-28 -- Phase 52 verified and complete (15/15 must-haves)
 
-Progress: [████████████] 64%
+Progress: [█████████████████░░░] 73%
 
 ## Performance Metrics
 
@@ -89,6 +89,11 @@ Progress: [████████████] 64%
 | Phase 51 P01 | 5min | 2 tasks | 3 files |
 | Phase 51 P02 | 4min | 2 tasks | 2 files |
 | Phase 51 P03 | 5min | 2 tasks | 1 files |
+| Phase 52 P01 | 5min | 2 tasks | 2 files |
+| Phase 52 P02 | 2min | 2 tasks | 10 files |
+| Phase 52 P03 | 2min | 2 tasks | 2 files |
+| Phase 52 P04 | 8min | 2 tasks | 14 files |
+| Phase 52 P05 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -150,6 +155,13 @@ Recent decisions affecting current work:
 - [Phase 51]: C5 pathPrefix uses path.basename(targetDir) with $HOME prefix for shell compatibility in global installs
 - [Phase 51]: Upgrade e2e test uses VERSION=1.16.0 to trigger isUpgrade when package.json version is 1.17.5; guide generation tested separately with matching spec range
 - [Phase 51]: All 6 UPD requirements verified with test coverage: 29 new tests total (15+14+4) above 376 baseline
+- [Phase 52]: Wholesale-replaced integration-checker with upstream then re-added agent-protocol ref (clean diff, no conflicting sections)
+- [Phase 52]: All adopted files use gsd- prefix source convention; installer handles rewriting to gsdr- at install time
+- [Phase 52]: Upstream wholesale replace verified safe for discuss-phase.md and quick.md -- fork's steering brief model lives in command layer, not workflow file
+- [Phase 52]: Upstream files use $HOME/.claude/get-shit-done/ paths which installer's replacePathsInContent() handles at install time
+- [Phase 52]: Context-monitor uses direct push to PostToolUse (not ensureHook which is SessionStart-only); AfterTool for Gemini/Antigravity
+- [Phase 52]: Advisor-researcher agent adopted from upstream to satisfy discuss-phase.md @-reference (Rule 3 deviation)
+- [Phase 52]: Model-profiles.md adopts upstream inherit profile, per-agent model_overrides, non-Claude runtime docs
 
 ### Roadmap Evolution
 
@@ -201,6 +213,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-27T03:57:00Z
-Stopped at: Completed 51-03-PLAN.md -- end-to-end upgrade path tests (Phase 51 complete)
+Last session: 2026-03-28T02:04:00Z
+Stopped at: Completed 52-05-PLAN.md -- installer integration and end-to-end verification (Phase 52 complete)
 Resume file: None

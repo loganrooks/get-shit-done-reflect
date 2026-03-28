@@ -35,7 +35,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 49: Config Migration** - Implement manifest migrations[] array, apply depth-to-granularity rename, and route config migration through the cross-runtime install/KB authority questions already identified ✓ 2026-03-26
 - [x] **Phase 50: Migration Test Hardening** - Full-corpus namespace scan, idempotency tests, crash recovery, behavioral equivalence, and root/worktree/KB authority edge-case coverage ✓ 2026-03-26
 - [x] **Phase 51: Update System Hardening** - Installer/runtime preflight, migration guides, stale file cleanup, hook/runtime-safe upgrade surfacing, and authoritative project-local upgrade behavior ✓ 2026-03-26
-- [ ] **Phase 52: Feature Adoption** - Adopt context-monitor, Nyquist auditor, code-aware discuss-phase, upstream workflows, and supporting features
+- [x] **Phase 52: Feature Adoption** - Adopt context-monitor, Nyquist auditor, code-aware discuss-phase, upstream workflows, and supporting features ✓ 2026-03-27
 - [ ] **Phase 53: Deep Integration** - Weave adopted features into fork's signal/automation/health/reflection pipeline
 - [ ] **Phase 54: Infrastructure & Documentation** - CI cache fix, planning telemetry correctness, deliberation/governance update, fork divergence docs, and upstream sync policy
 
@@ -209,13 +209,14 @@ Plans:
   4. All 4 adopted workflows (add-tests, cleanup, health, validate-phase) are installed with `gsdr:` prefix
   5. `CLAUDE_CONFIG_DIR` environment variable is respected in all paths that previously hardcoded `~/.claude`
 **Upstream drift routing (48.1):** Clusters C2 partial (workflow shell robustness) and C4 (worktree isolation) route here. See `UPSTREAM-DRIFT-LEDGER.md`.
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 52-01: TBD
-- [ ] 52-02: TBD
-- [ ] 52-03: TBD
-- [ ] 52-04: TBD
+- [ ] 52-01-PLAN.md -- Statusline surgical update (scaling, CLAUDE_CONFIG_DIR, bridge file, stdin timeout) + context-monitor hook adoption
+- [ ] 52-02-PLAN.md -- Nyquist auditor agent, integration-checker update, and 4 upstream workflow adoptions
+- [ ] 52-03-PLAN.md -- Discuss-phase wholesale replace (codebase scouting) + quick.md wholesale replace (--discuss flag)
+- [ ] 52-04-PLAN.md -- Shell robustness (C2) and worktree isolation (C4) for 22 existing fork workflows
+- [ ] 52-05-PLAN.md -- Installer registration, model-profiles doc update (ADT-09), full install + test verification
 
 ### Phase 53: Deep Integration
 **Goal**: Every adopted feature is woven into the fork's signal/automation/health/reflection pipeline so that feature activity generates epistemic value -- the system learns from what these features observe
@@ -270,7 +271,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 
 | 49. Config Migration | 4/4 | Complete | 2026-03-26 |
 | 50. Migration Test Hardening | 5/5 | Complete | 2026-03-26 |
 | 51. Update System Hardening | 3/3 | Complete | 2026-03-26 |
-| 52. Feature Adoption | 0/TBD | Not started | - |
+| 52. Feature Adoption | 5/5 | Complete | 2026-03-27 |
 | 53. Deep Integration | 0/TBD | Not started | - |
 | 54. Infrastructure & Documentation | 0/TBD | Not started | - |
 

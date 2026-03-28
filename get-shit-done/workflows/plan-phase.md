@@ -214,7 +214,7 @@ If Genuine Gaps exist:
 ## 6. Check Existing Plans
 
 ```bash
-ls "${PHASE_DIR}"/*-PLAN.md 2>/dev/null
+ls "${PHASE_DIR}"/*-PLAN.md 2>/dev/null || true
 ```
 
 **If exists:** Offer: 1) Add more plans, 2) View existing, 3) Replan from scratch.
