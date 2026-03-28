@@ -254,11 +254,14 @@ Plans:
   6. Feature overlap between fork additions and upstream's independent development is inventoried with disposition (converging, redundant, complementary, divergent) — with each gap classified as "behind" (same problem, haven't gotten to it) vs "intentionally different" (different design philosophy produces different approach)
   7. The v1.18 sync process itself is retrospected — what worked, what didn't, what the fork's signal history reveals compared to upstream's issue tracker
   8. Outstanding upstream changes not yet addressed are assessed for relevance and prioritized for future sync work
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 54-01: TBD
-- [ ] 54-02: TBD
+- [ ] 54-01-PLAN.md -- CI cache scoping fix (INF-01) + deliberation revision and STATE.md progress sync (INF-02)
+- [ ] 54-02-PLAN.md -- Upstream trajectory analysis (INF-05) + feature overlap inventory (INF-06)
+- [ ] 54-03-PLAN.md -- v1.18 sync retrospective (INF-07) + signal cross-reference (INF-08)
+- [ ] 54-04-PLAN.md -- FORK-DIVERGENCES.md module rewrite (INF-03) + outstanding changes assessment (INF-09)
+- [ ] 54-05-PLAN.md -- FORK-STRATEGY.md durable sync policy (INF-04) + final verification
 
 ## Progress
 
@@ -277,7 +280,7 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 
 | 51. Update System Hardening | 3/3 | Complete | 2026-03-26 |
 | 52. Feature Adoption | 5/5 | Complete | 2026-03-27 |
 | 53. Deep Integration | 4/4 | Complete | 2026-03-28 |
-| 54. Sync Retrospective & Governance | 0/TBD | Not started | - |
+| 54. Sync Retrospective & Governance | 0/5 | Not started | - |
 
 ## Overall Progress
 
@@ -289,6 +292,6 @@ Phases execute in numeric order: 45 -> 46 -> 47 -> 48 -> 48.1 -> 49 -> 50 -> 51 
 | v1.15 Backlog & Update | 22-30 | 24 | Complete | 2026-02-23 |
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
 | v1.17 Automation Loop | 36-44 | 24 | Complete | 2026-03-09 |
-| v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | TBD | In Progress | - |
+| v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | 37 | In Progress | - |
 
-**Totals:** 7 milestones, 55 phases (45 complete + 10 planned), 130 plans completed
+**Totals:** 7 milestones, 55 phases (54 complete + 1 in progress), 130 plans completed + 5 planned
