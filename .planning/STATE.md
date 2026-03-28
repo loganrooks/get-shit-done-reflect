@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Completed 52-04-PLAN.md (upstream drift C2/C4)
-last_updated: "2026-03-28T01:54:00Z"
-last_activity: 2026-03-28 -- Completed 52-04 upstream drift C2/C4 shell robustness and worktree isolation
+stopped_at: Completed 52-05-PLAN.md (installer integration and end-to-end verification)
+last_updated: "2026-03-28T02:04:00Z"
+last_activity: 2026-03-28 -- Completed Phase 52 (Feature Adoption) all 5 plans
 progress:
   total_phases: 11
   completed_phases: 7
   total_plans: 13
-  completed_plans: 20
-  percent: 64
+  completed_plans: 21
+  percent: 68
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 52 - Feature Adoption; plan 4 of 5 complete.
+**Current focus:** Phase 52 - Feature Adoption complete (5/5 plans). Ready for Phase 53.
 
 ## Current Position
 
 Phase: 52 of 54 (Feature Adoption)
-Plan: 4 of 5
+Plan: 5 of 5
 Status: active
-Last activity: 2026-03-28 -- Completed 52-04 upstream drift C2/C4 shell robustness and worktree isolation
+Last activity: 2026-03-28 -- Completed Phase 52 (Feature Adoption) all 5 plans
 
-Progress: [████████████] 64%
+Progress: [████████████████] 68%
 
 ## Performance Metrics
 
@@ -92,6 +92,7 @@ Progress: [████████████] 64%
 | Phase 52 P02 | 2min | 2 tasks | 10 files |
 | Phase 52 P03 | 2min | 2 tasks | 2 files |
 | Phase 52 P04 | 8min | 2 tasks | 14 files |
+| Phase 52 P05 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -157,6 +158,9 @@ Recent decisions affecting current work:
 - [Phase 52]: All adopted files use gsd- prefix source convention; installer handles rewriting to gsdr- at install time
 - [Phase 52]: Upstream wholesale replace verified safe for discuss-phase.md and quick.md -- fork's steering brief model lives in command layer, not workflow file
 - [Phase 52]: Upstream files use $HOME/.claude/get-shit-done/ paths which installer's replacePathsInContent() handles at install time
+- [Phase 52]: Context-monitor uses direct push to PostToolUse (not ensureHook which is SessionStart-only); AfterTool for Gemini/Antigravity
+- [Phase 52]: Advisor-researcher agent adopted from upstream to satisfy discuss-phase.md @-reference (Rule 3 deviation)
+- [Phase 52]: Model-profiles.md adopts upstream inherit profile, per-agent model_overrides, non-Claude runtime docs
 
 ### Roadmap Evolution
 
@@ -208,6 +212,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-28T01:54:00Z
-Stopped at: Completed 52-04-PLAN.md -- upstream drift C2/C4 shell robustness and worktree isolation
+Last session: 2026-03-28T02:04:00Z
+Stopped at: Completed 52-05-PLAN.md -- installer integration and end-to-end verification (Phase 52 complete)
 Resume file: None
