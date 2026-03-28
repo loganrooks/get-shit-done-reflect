@@ -30,6 +30,7 @@ const CODEX_AGENT_SANDBOX = {
   'gsd-debugger': 'workspace-write',
   'gsd-plan-checker': 'read-only',
   'gsd-integration-checker': 'read-only',
+  'gsd-nyquist-auditor': 'workspace-write',
 };
 
 /**
@@ -1660,6 +1661,7 @@ function cleanupOrphanedFiles(configDir) {
     'hooks/gsd-version-check.js',  // Renamed to gsdr-version-check.js
     'hooks/gsd-ci-status.js',      // Renamed to gsdr-ci-status.js
     'hooks/gsd-health-check.js',   // Renamed to gsdr-health-check.js
+    'hooks/gsd-context-monitor.js',  // Renamed to gsdr-context-monitor.js
     // Pre-modularization stale artifacts (v1.17 -> v1.18)
     'get-shit-done-reflect/bin/gsd-tools.js',  // Renamed to gsd-tools.cjs in Phase 45
   ];
@@ -1688,6 +1690,7 @@ function cleanupOrphanedHooks(settings) {
     'gsd-version-check.js',    // Renamed to gsdr-version-check.js
     'gsd-ci-status.js',        // Renamed to gsdr-ci-status.js
     'gsd-health-check.js',     // Renamed to gsdr-health-check.js
+    'gsd-context-monitor.js',  // Renamed to gsdr-context-monitor.js
   ];
 
   let cleanedHooks = false;
@@ -1988,8 +1991,8 @@ function uninstall(isGlobal, runtime = 'claude') {
     const hooksDir = path.join(targetDir, 'hooks');
     if (fs.existsSync(hooksDir)) {
       const gsdHooks = [
-        'gsdr-statusline.js', 'gsdr-check-update.js', 'gsdr-version-check.js', 'gsdr-ci-status.js', 'gsdr-health-check.js',
-        'gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js', 'gsd-ci-status.js', 'gsd-health-check.js'
+        'gsdr-statusline.js', 'gsdr-check-update.js', 'gsdr-version-check.js', 'gsdr-ci-status.js', 'gsdr-health-check.js', 'gsdr-context-monitor.js',
+        'gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js', 'gsd-ci-status.js', 'gsd-health-check.js', 'gsd-context-monitor.js'
       ];
       let hookCount = 0;
       for (const hook of gsdHooks) {
@@ -2044,10 +2047,34 @@ function uninstall(isGlobal, runtime = 'claude') {
       if (settings.hooks.SessionStart.length === 0) {
         delete settings.hooks.SessionStart;
       }
-      // Clean up empty hooks object
-      if (Object.keys(settings.hooks).length === 0) {
-        delete settings.hooks;
+    }
+
+    // Remove GSD hooks from PostToolUse and AfterTool (Gemini uses AfterTool)
+    for (const eventName of ['PostToolUse', 'AfterTool']) {
+      if (settings.hooks && settings.hooks[eventName]) {
+        const before = settings.hooks[eventName].length;
+        settings.hooks[eventName] = settings.hooks[eventName].filter(entry => {
+          if (entry.hooks && Array.isArray(entry.hooks)) {
+            const hasGsdHook = entry.hooks.some(h =>
+              h.command && h.command.includes('gsdr-context-monitor')
+            );
+            return !hasGsdHook;
+          }
+          return true;
+        });
+        if (settings.hooks[eventName].length < before) {
+          settingsModified = true;
+          console.log(`  ${green}✓${reset} Removed context monitor hook from settings`);
+        }
+        if (settings.hooks[eventName].length === 0) {
+          delete settings.hooks[eventName];
+        }
       }
+    }
+
+    // Clean up empty hooks object
+    if (settings.hooks && Object.keys(settings.hooks).length === 0) {
+      delete settings.hooks;
     }
 
     if (settingsModified) {
@@ -2848,6 +2875,9 @@ function install(isGlobal, runtime = 'claude') {
   const healthCheckCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-health-check.js')
     : buildLocalHookCommand(dirName, 'gsdr-health-check.js');
+  const contextMonitorCommand = isGlobal
+    ? buildHookCommand(targetDir, 'gsdr-context-monitor.js')
+    : 'node ' + dirName + '/hooks/gsdr-context-monitor.js';
 
   // Enable experimental agents for Gemini CLI (required for custom sub-agents)
   if (isGemini) {
@@ -2895,6 +2925,51 @@ function install(isGlobal, runtime = 'claude') {
     ensureHook('gsdr-version-check', versionCheckCommand, 'version check');
     ensureHook('gsdr-ci-status', ciStatusCommand, 'CI status');
     ensureHook('gsdr-health-check', healthCheckCommand, 'health check');
+
+    // Configure post-tool hook for context window monitoring
+    // Uses direct push (not ensureHook) because this is PostToolUse, not SessionStart
+    const postToolEvent = (runtime === 'gemini' || runtime === 'antigravity') ? 'AfterTool' : 'PostToolUse';
+    if (!settings.hooks[postToolEvent]) {
+      settings.hooks[postToolEvent] = [];
+    }
+
+    const hasContextMonitorHook = settings.hooks[postToolEvent].some(entry =>
+      entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-context-monitor'))
+    );
+
+    if (!hasContextMonitorHook) {
+      settings.hooks[postToolEvent].push({
+        matcher: 'Bash|Edit|Write|MultiEdit|Agent|Task',
+        hooks: [
+          {
+            type: 'command',
+            command: contextMonitorCommand,
+            timeout: 10
+          }
+        ]
+      });
+      console.log(`  ${green}✓${reset} Configured context window monitor hook`);
+    } else {
+      // Migrate existing context monitor hooks: add matcher and timeout if missing
+      for (const entry of settings.hooks[postToolEvent]) {
+        if (entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-context-monitor'))) {
+          let migrated = false;
+          if (!entry.matcher) {
+            entry.matcher = 'Bash|Edit|Write|MultiEdit|Agent|Task';
+            migrated = true;
+          }
+          for (const h of entry.hooks) {
+            if (h.command && h.command.includes('gsdr-context-monitor') && !h.timeout) {
+              h.timeout = 10;
+              migrated = true;
+            }
+          }
+          if (migrated) {
+            console.log(`  ${green}✓${reset} Updated context monitor hook (added matcher + timeout)`);
+          }
+        }
+      }
+    }
   }
 
   // C6: Set resolve_model_ids for non-Claude runtimes
