@@ -20,7 +20,7 @@
  *   backlog add|list|update|stats|group|promote|index
  *   automation resolve-level|track-event|lock|unlock|check-lock|regime-change|reflection-counter
  *   sensors list|blind-spots
- *   health-probe signal-metrics|signal-density|automation-watchdog
+ *   health-probe signal-metrics|signal-density|automation-watchdog|validation-coverage
  *   init execute-phase <phase> [--include state,config,roadmap]
  *   init plan-phase <phase> [--include state,roadmap,research,context,verification,uat,requirements]
  *   init progress [--include state,roadmap,project,config]
@@ -660,8 +660,10 @@ async function main() {
         healthProbe.cmdHealthProbeSignalDensity(cwd, raw);
       } else if (probeName === 'automation-watchdog') {
         healthProbe.cmdHealthProbeAutomationWatchdog(cwd, raw);
+      } else if (probeName === 'validation-coverage') {
+        healthProbe.cmdHealthProbeValidationCoverage(cwd, raw);
       } else {
-        error('Unknown health-probe. Available: signal-metrics, signal-density, automation-watchdog');
+        error('Unknown health-probe. Available: signal-metrics, signal-density, automation-watchdog, validation-coverage');
       }
       break;
     }

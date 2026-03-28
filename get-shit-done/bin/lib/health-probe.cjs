@@ -483,10 +483,162 @@ function cmdHealthProbeAutomationWatchdog(cwd, raw) {
   process.exit(0);
 }
 
+/**
+ * health-probe validation-coverage (INT-07)
+ * Scans VALIDATION.md files across phases and reports Nyquist compliance coverage.
+ */
+function cmdHealthProbeValidationCoverage(cwd, raw) {
+  const phasesDir = path.join(cwd, '.planning', 'phases');
+
+  // Edge case: no phases directory
+  if (!fs.existsSync(phasesDir)) {
+    const result = {
+      probe_id: 'validation-coverage',
+      checks: [{
+        id: 'VAL-COVERAGE-01',
+        description: 'Nyquist validation coverage across phases',
+        status: 'PASS',
+        detail: 'No phases directory found',
+        data: { phases_scanned: 0, phases_with_validation: 0, average_compliance_pct: 0, below_threshold: [] },
+      }],
+      dimension_contribution: {
+        type: 'quality',
+        signals: { critical: 0, notable: 0, minor: 0 },
+      },
+    };
+    if (raw) {
+      process.stdout.write(JSON.stringify(result));
+      process.exit(0);
+    }
+    console.log('Validation Coverage: No phases directory found');
+    process.exit(0);
+  }
+
+  // Read threshold from config
+  let threshold = 80;
+  try {
+    const configPath = path.join(cwd, '.planning', 'config.json');
+    if (fs.existsSync(configPath)) {
+      const projectConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      if (projectConfig.health_check && typeof projectConfig.health_check.validation_threshold_pct === 'number') {
+        threshold = projectConfig.health_check.validation_threshold_pct;
+      }
+    }
+  } catch (e) {
+    // Use default threshold
+  }
+
+  // Scan phase directories
+  let phaseDirs;
+  try {
+    phaseDirs = fs.readdirSync(phasesDir, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .map(d => d.name);
+  } catch (e) {
+    phaseDirs = [];
+  }
+
+  const scanned = phaseDirs.length;
+  let withValidation = 0;
+  let totalCompliance = 0;
+  const belowThreshold = [];
+
+  for (const phaseDir of phaseDirs) {
+    const phaseFullPath = path.join(phasesDir, phaseDir);
+    // Look for files ending in -VALIDATION.md
+    let files;
+    try {
+      files = fs.readdirSync(phaseFullPath).filter(f => f.endsWith('-VALIDATION.md'));
+    } catch (e) {
+      continue;
+    }
+
+    for (const file of files) {
+      const filePath = path.join(phaseFullPath, file);
+      try {
+        const content = fs.readFileSync(filePath, 'utf8');
+        const match = content.match(/^compliance_pct:\s*(\d+)/m);
+        if (!match) continue;
+        const compliancePct = parseInt(match[1], 10);
+        withValidation++;
+        totalCompliance += compliancePct;
+        if (compliancePct < threshold) {
+          belowThreshold.push({ phase: phaseDir, file, compliance_pct: compliancePct });
+        }
+      } catch (e) {
+        // Skip unreadable files
+      }
+    }
+  }
+
+  const avgCompliance = withValidation > 0 ? Math.round(totalCompliance / withValidation) : 0;
+  const status = belowThreshold.length === 0 ? 'PASS' : 'WARNING';
+
+  // Edge case: no VALIDATION.md files found
+  if (withValidation === 0) {
+    const result = {
+      probe_id: 'validation-coverage',
+      checks: [{
+        id: 'VAL-COVERAGE-01',
+        description: 'Nyquist validation coverage across phases',
+        status: 'PASS',
+        detail: 'No validation files found',
+        data: { phases_scanned: scanned, phases_with_validation: 0, average_compliance_pct: 0, below_threshold: [] },
+      }],
+      dimension_contribution: {
+        type: 'quality',
+        signals: { critical: 0, notable: 0, minor: 0 },
+      },
+    };
+    if (raw) {
+      process.stdout.write(JSON.stringify(result));
+      process.exit(0);
+    }
+    console.log('Validation Coverage: No validation files found');
+    process.exit(0);
+  }
+
+  const result = {
+    probe_id: 'validation-coverage',
+    checks: [{
+      id: 'VAL-COVERAGE-01',
+      description: 'Nyquist validation coverage across phases',
+      status,
+      detail: `${withValidation}/${scanned} phases validated, average compliance: ${avgCompliance}%`,
+      data: { phases_scanned: scanned, phases_with_validation: withValidation, average_compliance_pct: avgCompliance, below_threshold: belowThreshold },
+    }],
+    dimension_contribution: {
+      type: 'quality',
+      signals: { critical: 0, notable: belowThreshold.length > 0 ? 1 : 0, minor: 0 },
+    },
+  };
+
+  if (raw) {
+    process.stdout.write(JSON.stringify(result));
+    process.exit(0);
+  }
+
+  // Human-readable output
+  console.log('Validation Coverage (INT-07)');
+  console.log(`  Phases scanned: ${scanned}`);
+  console.log(`  Phases with validation: ${withValidation}`);
+  console.log(`  Average compliance: ${avgCompliance}%`);
+  console.log(`  Threshold: ${threshold}%`);
+  if (belowThreshold.length > 0) {
+    console.log('  Below threshold:');
+    for (const bt of belowThreshold) {
+      console.log(`    ${bt.phase}: ${bt.compliance_pct}%`);
+    }
+  }
+  console.log(`  Status: ${status}`);
+  process.exit(0);
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
   cmdHealthProbeSignalMetrics,
   cmdHealthProbeSignalDensity,
   cmdHealthProbeAutomationWatchdog,
+  cmdHealthProbeValidationCoverage,
 };
