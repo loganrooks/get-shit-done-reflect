@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
 status: active
-stopped_at: Phase 52 complete, verified 15/15 must-haves. Ready for Phase 53.
-last_updated: "2026-03-28T02:15:00Z"
-last_activity: 2026-03-28 -- Phase 52 verified and complete (15/15 must-haves)
+stopped_at: Completed 53-03-PLAN.md -- KB surfacing and fork protection
+last_updated: "2026-03-28T06:25:29.501Z"
+last_activity: 2026-03-28 -- Completed 53-03 (KB surfacing & fork protection)
 progress:
   total_phases: 11
-  completed_phases: 8
-  total_plans: 13
-  completed_plans: 24
+  completed_phases: 9
+  total_plans: 32
+  completed_plans: 29
   percent: 73
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-24)
 
 ## Current Position
 
-Phase: 52 of 54 (Feature Adoption)
-Plan: 5 of 5
-Status: phase-complete
-Last activity: 2026-03-28 -- Phase 52 verified and complete (15/15 must-haves)
+Phase: 53 of 54 (Deep Integration)
+Plan: 3 of 5
+Status: active
+Last activity: 2026-03-28 -- Completed 53-03 (KB surfacing & fork protection)
 
 Progress: [█████████████████░░░] 73%
 
@@ -94,6 +94,7 @@ Progress: [█████████████████░░░] 73%
 | Phase 52 P03 | 2min | 2 tasks | 2 files |
 | Phase 52 P04 | 8min | 2 tasks | 14 files |
 | Phase 52 P05 | 5min | 2 tasks | 3 files |
+| Phase 53 P03 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -162,6 +163,9 @@ Recent decisions affecting current work:
 - [Phase 52]: Context-monitor uses direct push to PostToolUse (not ensureHook which is SessionStart-only); AfterTool for Gemini/Antigravity
 - [Phase 52]: Advisor-researcher agent adopted from upstream to satisfy discuss-phase.md @-reference (Rule 3 deviation)
 - [Phase 52]: Model-profiles.md adopts upstream inherit profile, per-agent model_overrides, non-Claude runtime docs
+- [Phase 53]: KB surfacing reads project-local .planning/knowledge/ first, falls back to ~/.gsd/knowledge/
+- [Phase 53]: FORK_PROTECTED_DIRS uses relative basenames for portability across install locations
+- [Phase 53]: KB context capped at 3-5 items per guardrail G3, stored as internal variable not written to files
 
 ### Roadmap Evolution
 
@@ -213,6 +217,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-28T02:04:00Z
-Stopped at: Completed 52-05-PLAN.md -- installer integration and end-to-end verification (Phase 52 complete)
+Last session: 2026-03-28T06:25:29.498Z
+Stopped at: Completed 53-03-PLAN.md -- KB surfacing and fork protection
 Resume file: None
