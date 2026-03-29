@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-28T20:32:02Z
-**Total entries:** 140
+**Generated:** 2026-03-29T08:06:31Z
+**Total entries:** 187
 
-## Signals (139)
+## Signals (186)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -139,6 +139,53 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 |  | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | path-resolution,installer,source-repo,plan-spec-gap,auto-fix |  | active |
+| sig-2026-03-28-wave-1-plans-54-01-54-02-54 | get-shit-done-reflect | minor | detected | commit-patterns,parallel-execution,docs-dominant,execution-velocity | "2026-03-29 | active |
+| sig-2026-03-28-state-md-progress-was-stale-at-91-plan | get-shit-done-reflect | minor | detected | config,state-sync,deviation | "2026-03-29 | active |
+| sig-2026-03-28-signal-cross-reference-between-fork-kb-themes-and | get-shit-done-reflect | notable | detected | deviation,good-pattern,plan-accuracy,testing | "2026-03-29 | active |
+| sig-2026-03-28-security-hardening-identified-as-a-genuine-fork-bl | get-shit-done-reflect | notable | detected | config,testing,blocked | "2026-03-29 | active |
+| sig-2026-03-28-plan-01-verification-criterion-for-state-md-percen | get-shit-done-reflect | minor | detected | state-sync,deviation,workflow,plan-accuracy | "2026-03-29 | active |
+| sig-2026-03-28-plan-01-declared-4-files-modified-but-only | get-shit-done-reflect | minor | detected | plan-accuracy,scope-creep,files-modified | "2026-03-29 | active |
+| sig-2026-03-28-phase-identity-reframed-before-planning-began-2-co | get-shit-done-reflect | minor | detected | phase-scoping,commit-patterns,plan-quality,scope-change | "2026-03-29 | active |
+| sig-2026-03-28-phase-54-governance-phase-executed-5-plans-across | get-shit-done-reflect | notable | detected | deviation,performance | "2026-03-29 | active |
+| sig-2026-03-28-ci-cache-cross-project-pollution-bug-inf-01 | get-shit-done-reflect | notable | detected | blocked,deviation,workaround,ci,config | "2026-03-29 | active |
+| sig-2026-03-27-wholesale-workflow-adoption-did-not-include-a-depe | get-shit-done-reflect | notable | detected | dependency-scan,upstream-adoption,at-reference,planning-gap,workflow-adoption | "2026-03-29 | active |
+| sig-2026-03-27-tests-unit-install-test-js-modified-in-8 | get-shit-done-reflect | minor | detected | file-churn,hotspot,test-corpus,install-coverage | "2026-03-29 | active |
+| sig-2026-03-27-plan-checker-caught-two-structural-plan-gaps-missi | get-shit-done-reflect | notable | detected | plan-quality,plan-checker,pre-execution-validation,commit-patterns | "2026-03-29 | active |
+| sig-2026-03-27-plan-53-04-declared-zero-file-modifications-but | get-shit-done-reflect | minor | detected | scope-creep,plan-accuracy,test-isolation,verification-phase | "2026-03-29 | active |
+| sig-2026-03-27-plan-05-adopted-undeclared-agent-gsd-advisor-resea | get-shit-done-reflect | minor | detected | estimation,agent-spec,plan-accuracy,scope-creep,dependency-gap,adoption-workflow | "2026-03-29 | active |
+| sig-2026-03-27-plan-04-files-modified-declared-empty-but-automati | get-shit-done-reflect | minor | detected | deviation,cross-plan-debt,testing,plan-accuracy | "2026-03-29 | active |
+| sig-2026-03-27-plan-04-executor-correctly-scoped-c2-shell-robustn | get-shit-done-reflect | minor | detected | surgical-edit,upstream-drift,shell-robustness,executor-judgment,C2 | "2026-03-29 | active |
+| sig-2026-03-27-plan-03-adopted-discuss-phase-md-without-detecting | get-shit-done-reflect | notable | detected | dependency-gap,upstream-adoption,test-failure,planning-gap,discuss-phase,advisor-researcher | "2026-03-29 | active |
+| sig-2026-03-27-phase-53-test-suite-grew-from-405-to | get-shit-done-reflect | minor | detected | testing | "2026-03-29 | active |
+| sig-2026-03-27-phase-52-achieved-15-15-must-have-verification | get-shit-done-reflect | notable | detected | verification-passed,full-coverage,upstream-adoption,test-suite,ADT | "2026-03-29 | active |
+| sig-2026-03-27-executor-hit-api-500-error-after-completing-all | get-shit-done-reflect | notable | detected | api-error,orchestrator-recovery,executor-disruption,hooks | "2026-03-29 | active |
+| sig-2026-03-27-executor-expanded-progress-md-uat-grep-pattern-bey | get-shit-done-reflect | minor | detected | scope-expansion,upstream-drift,progress-workflow,grep-pattern,C2 | "2026-03-29 | active |
+| sig-2026-03-27-config-profile-is-quality-and-all-plans-executed | get-shit-done-reflect | minor | detected | config | "2026-03-29 | active |
+| sig-2026-03-27-bridge-file-tests-in-plan-53-01-did | get-shit-done-reflect | notable | detected | test-isolation,environment-contamination,bridge-file,plan-quality | "2026-03-29 | active |
+| sig-2026-03-27-bridge-file-reading-in-tmp-creates-test-environmen | get-shit-done-reflect | notable | detected | testing,test-isolation,deviation,workaround | "2026-03-29 | active |
+| sig-2026-03-27-all-4-plans-executed-in-11-minutes-total | get-shit-done-reflect | notable | detected | performance,deviation | "2026-03-29 | active |
+| sig-2026-03-26-tst-05-renamesync-crash-recovery-test-is-structura | get-shit-done-reflect | minor | detected | crash-recovery,test-coverage-gap,renameSync,os.homedir,kb-migration | "2026-03-29 | active |
+| sig-2026-03-26-tests-unit-install-test-js-modified-in-8 | get-shit-done-reflect | minor | detected | file-churn,hotspot,test-maintenance | "2026-03-29 | active |
+| sig-2026-03-26-recurring-pattern-plans-with-incorrect-assumptions | get-shit-done-reflect | notable | detected | plan-underspecification,implementation-visibility,auto-fix,recurring-pattern,API-boundary | "2026-03-29 | active |
+| sig-2026-03-26-plans-specified-test-assertions-using-internal-imp | get-shit-done-reflect | minor | detected | plan-underspecification,testing,deviation | "2026-03-29 | active |
+| sig-2026-03-26-plan-51-01-files-modified-omits-tests-unit | get-shit-done-reflect | minor | detected | scope-creep,plan-accuracy | "2026-03-29 | active |
+| sig-2026-03-26-plan-05-task-1-findprojectroot-adoption-was-alread | get-shit-done-reflect | notable | detected | cross-plan-bleed,task-attribution,findProjectRoot,scope-drift | "2026-03-29 | active |
+| sig-2026-03-26-plan-04-had-a-boolean-coercion-bug-in | get-shit-done-reflect | minor | detected | boolean-coercion,assertion-bug,auto-fix,vitest | "2026-03-29 | active |
+| sig-2026-03-26-plan-03-embedded-incorrect-version-assumption-caus | get-shit-done-reflect | notable | detected | testing,deviation,workaround,version-mismatch,plan-underspecification | "2026-03-29 | active |
+| sig-2026-03-26-plan-03-auto-fix-upstream-init-cjs-detects | get-shit-done-reflect | minor | detected | upstream-drift,init.cjs,auto-fix,file-detection,scope-gap | "2026-03-29 | active |
+| sig-2026-03-26-plan-01-underspecified-upstream-runtime-file-exclu | get-shit-done-reflect | minor | detected | namespace-scan,automation,FEATURE_CAPABILITY_MAP,replacePathsInContent,upstream-runtime,snapshot-regression,plan-underspecification,auto-fix | "2026-03-29 | active |
+| sig-2026-03-26-phase-51-maintains-clean-feat-test-docs-commit | get-shit-done-reflect | minor | detected | commit-patterns,plan-accuracy,plan-quality,good-pattern | "2026-03-29 | active |
+| sig-2026-03-26-phase-50-executed-entirely-within-a-44-minute | get-shit-done-reflect | minor | detected | velocity,autonomous-execution,commit-patterns | "2026-03-29 | active |
+| sig-2026-03-26-phase-50-achieved-a-perfect-19-19-must | get-shit-done-reflect | notable | detected | verification-pass,test-hardening,migration,regression-baseline | "2026-03-29 | active |
+| sig-2026-03-26-multi-version-upgrade-chain-test-uses-real-product | get-shit-done-reflect | notable | detected | testing,integration-test,production-manifest,upgrade-chain,good-pattern | "2026-03-29 | active |
+| sig-2026-03-26-model-profile-quality-opus-class-correctly-matched | get-shit-done-reflect | minor | detected | config,model-profile | "2026-03-29 | active |
+| sig-2026-03-26-model-alias-map-in-core-cjs-contains-stale | get-shit-done-reflect | notable | detected | upstream-bug,model-resolution,dead-code,stale-data,MODEL_ALIAS_MAP | "2026-03-29 | active |
+| sig-2026-03-26-installer-never-run-after-phase-completion-claude | get-shit-done-reflect | critical | detected | plan-gap,depth-rename,install,dual-directory,config-migration,ownership,runtime-mismatch,deferred-step | "2026-03-29 | active |
+| sig-2026-03-26-core-cjs-modified-in-plan-50-03-execution | get-shit-done-reflect | notable | detected | scope-creep,plan-accuracy,summary-accuracy | "2026-03-29 | active |
+| sig-2026-03-26-c6-upstream-model-resolution-behavioral-change-def | get-shit-done-reflect | minor | detected | upstream-drift,model-resolution,conflict,deferred,c6 | "2026-03-29 | active |
+| sig-2026-03-26-all-three-phase-51-plans-completed-within-4 | get-shit-done-reflect | notable | detected | performance,upgrade-path,version-mismatch,testing | "2026-03-29 | active |
+| sig-2026-03-26-all-4-plans-executed-in-a-15-minute | get-shit-done-reflect | notable | detected | commit-patterns,timing-compression,fix-chain-absent,plan-quality,upstream-drift | "2026-03-29 | active |
+| sig-2026-03-26-all-4-autonomous-plans-completed-with-zero-checkpo | get-shit-done-reflect | minor | detected | autonomous,performance,execution-quality,baseline | "2026-03-29 | active |
 | sig-2026-03-28-eager-bypass-of-protocol-when-scope-needs-revision | get-shit-done-reflect | notable | detected | workflow-gap,protocol-bypass,scope-revision,discuss-phase,capability-gap,recurring | "2026-03-28 | active |
 | sig-2026-03-28-squash-merge-destroys-commit-history | get-shit-done-reflect | critical | detected | git-workflow,pr-merge,squash,traceability,commit-history,devops | "2026-03-28 | active |
 | sig-2026-03-28-offer-next-skips-pr-workflow | get-shit-done-reflect | notable | detected | git-workflow,phase-transition,offer-next,workflow-spec,devops,pr-workflow | "2026-03-28 | active |
