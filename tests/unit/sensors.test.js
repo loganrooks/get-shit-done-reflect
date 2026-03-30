@@ -143,6 +143,72 @@ describe('sensors list', () => {
     expect(result.message).toBe('No sensors discovered')
   })
 
+  tmpdirTest('discovers gsdr- prefixed sensor files from .claude/agents/', async ({ tmpdir }) => {
+    const agentsDir = path.join(tmpdir, '.claude', 'agents')
+    await fs.mkdir(agentsDir, { recursive: true })
+
+    const content = (name) => `---
+name: gsdr-${name}-sensor
+description: Test ${name} sensor
+sensor_name: ${name}
+timeout_seconds: 30
+config_schema: null
+---
+
+<role>Test sensor</role>
+
+<blind_spots>
+## Blind Spots
+
+- Test blind spot
+</blind_spots>
+`
+    await fs.writeFile(path.join(agentsDir, `gsdr-alpha-sensor.md`), content('alpha'))
+    await fs.writeFile(path.join(agentsDir, `gsdr-beta-sensor.md`), content('beta'))
+
+    const result = runSensors(tmpdir, 'list')
+    expect(result.sensors).toHaveLength(2)
+    expect(result.sensors[0].name).toBe('alpha')
+    expect(result.sensors[1].name).toBe('beta')
+    // Verify no prefix remnant in names
+    expect(result.sensors[0].name).not.toContain('gsdr')
+    expect(result.sensors[1].name).not.toContain('gsdr')
+  })
+
+  tmpdirTest('prefers .claude/agents/ over agents/ directory', async ({ tmpdir }) => {
+    // Create both .claude/agents/ with gsdr- and agents/ with gsd-
+    const installedDir = path.join(tmpdir, '.claude', 'agents')
+    await fs.mkdir(installedDir, { recursive: true })
+    await fs.writeFile(path.join(installedDir, 'gsdr-alpha-sensor.md'), `---
+name: gsdr-alpha-sensor
+description: Test alpha sensor
+sensor_name: alpha
+timeout_seconds: 30
+config_schema: null
+---
+
+<role>Test sensor</role>
+`)
+
+    const devDir = path.join(tmpdir, 'agents')
+    await fs.mkdir(devDir, { recursive: true })
+    await fs.writeFile(path.join(devDir, 'gsd-beta-sensor.md'), `---
+name: gsd-beta-sensor
+description: Test beta sensor
+sensor_name: beta
+timeout_seconds: 30
+config_schema: null
+---
+
+<role>Test sensor</role>
+`)
+
+    const result = runSensors(tmpdir, 'list')
+    // Should only find alpha from .claude/agents/ (preferred), not beta from agents/
+    expect(result.sensors).toHaveLength(1)
+    expect(result.sensors[0].name).toBe('alpha')
+  })
+
   tmpdirTest('shows last_status from last_skip_reason when present', async ({ tmpdir }) => {
     const agentsDir = path.join(tmpdir, 'agents')
     await createSensorSpec(agentsDir, 'test')
@@ -196,6 +262,64 @@ describe('sensors blind-spots', () => {
     const result = runSensors(tmpdir, 'blind-spots')
     expect(result.blind_spots).toHaveLength(1)
     expect(result.blind_spots[0].blind_spots).toBe('No blind spots documented')
+  })
+
+  tmpdirTest('extracts blind spots from gsdr- prefixed sensor files', async ({ tmpdir }) => {
+    const agentsDir = path.join(tmpdir, '.claude', 'agents')
+    await fs.mkdir(agentsDir, { recursive: true })
+    await fs.writeFile(path.join(agentsDir, 'gsdr-test-sensor.md'), `---
+name: gsdr-test-sensor
+description: Test sensor
+sensor_name: test
+timeout_seconds: 30
+config_schema: null
+---
+
+<role>Test sensor</role>
+
+<blind_spots>
+## Blind Spots
+
+- GSDR test blind spot
+</blind_spots>
+`)
+
+    const result = runSensors(tmpdir, 'blind-spots')
+    expect(result.blind_spots).toHaveLength(1)
+    expect(result.blind_spots[0].sensor).toBe('test')
+    // Verify name is correctly parsed (should be "test", not "gsdr-test" or "r-test")
+    expect(result.blind_spots[0].sensor).not.toContain('gsdr')
+    expect(result.blind_spots[0].sensor).not.toMatch(/^r-/)
+    expect(result.blind_spots[0].blind_spots).toContain('GSDR test blind spot')
+  })
+
+  tmpdirTest('filters gsdr- sensors by name argument', async ({ tmpdir }) => {
+    const agentsDir = path.join(tmpdir, '.claude', 'agents')
+    await fs.mkdir(agentsDir, { recursive: true })
+
+    const content = (name, spot) => `---
+name: gsdr-${name}-sensor
+description: Test ${name} sensor
+sensor_name: ${name}
+timeout_seconds: 30
+config_schema: null
+---
+
+<role>Test sensor</role>
+
+<blind_spots>
+## Blind Spots
+
+- ${spot}
+</blind_spots>
+`
+    await fs.writeFile(path.join(agentsDir, 'gsdr-alpha-sensor.md'), content('alpha', 'Alpha spot'))
+    await fs.writeFile(path.join(agentsDir, 'gsdr-beta-sensor.md'), content('beta', 'Beta spot'))
+
+    const result = runSensors(tmpdir, 'blind-spots', ['beta'])
+    expect(result.blind_spots).toHaveLength(1)
+    expect(result.blind_spots[0].sensor).toBe('beta')
+    expect(result.blind_spots[0].blind_spots).toContain('Beta spot')
   })
 
   tmpdirTest('errors when filtering by nonexistent sensor name', async ({ tmpdir }) => {

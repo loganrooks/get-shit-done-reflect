@@ -2,35 +2,35 @@
 gsd_state_version: 1.0
 milestone: v1.18
 milestone_name: Upstream Sync & Deep Integration
-status: active
-stopped_at: Phase 53 complete, verified 5/5 must-haves. Ready for Phase 54.
-last_updated: "2026-03-28T07:00:00Z"
-last_activity: 2026-03-28 -- Phase 53 verified and complete (5/5 must-haves, 8/8 INT requirements)
+status: complete
+stopped_at: Completed 54-05-PLAN.md -- FORK-STRATEGY.md durable sync policy (INF-04) and Phase 54 final verification. v1.18 milestone complete.
+last_updated: "2026-03-28T21:35:00.000Z"
+last_activity: 2026-03-28 -- Phase 54-05 complete (INF-04 sync policy, all 9 INF requirements verified)
 progress:
   total_phases: 11
-  completed_phases: 10
-  total_plans: 32
-  completed_plans: 28
-  percent: 91
+  completed_phases: 11
+  total_plans: 37
+  completed_plans: 37
+  percent: 100
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-24)
+See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** Phase 53 complete (5/5 must-haves, 8/8 INT requirements). Ready for Phase 54 - Infrastructure & Documentation.
+**Current focus:** v1.18 shipped. Planning next milestone.
 
 ## Current Position
 
-Phase: 53 of 54 (Deep Integration)
-Plan: 4 of 4
-Status: phase-complete
-Last activity: 2026-03-28 -- Phase 53 verified and complete (5/5 must-haves)
+Phase: 54 of 54 (Sync Retrospective & Governance)
+Plan: 5 of 5
+Status: complete
+Last activity: 2026-03-30 -- Completed quick task 260326: sensors.cjs namespace fix + hook propagation
 
-Progress: [██████████████████░░] 91%
+Progress: [████████████████████] 100%
 
 ## Performance Metrics
 
@@ -98,6 +98,11 @@ Progress: [██████████████████░░] 91%
 | Phase 53 P02 | 3min | 2 tasks | 4 files |
 | Phase 53 P04 | 2min | 2 tasks | 1 files |
 | Phase 53 P01 | 4min | 2 tasks | 3 files |
+| Phase 54 P01 | 4min | 2 tasks | 4 files |
+| Phase 54 P02 | 5min | 2 tasks | 2 files |
+| Phase 54 P03 | 6min | 2 tasks | 2 files |
+| Phase 54 P04 | 5min | 2 tasks | 2 files |
+| Phase 54 P05 | 4min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -173,6 +178,17 @@ Recent decisions affecting current work:
 - [Phase 53]: validation-coverage probe follows DC-4 probe shape with configurable threshold (default 80%)
 - [Phase 53]: Bridge file staleness threshold is 120 seconds; nyquist_validation uses task_tool_dependent=true
 - [Phase 53]: Resolve-level tests that assert empty reasons[] pass --context-pct 0 to isolate from host bridge files
+- [Phase 54]: Post-drift-ledger changes classified into C12 (Windsurf+skills, candidate-next-milestone), C13 (SDK/headless, defer), C14 (i18n, defer)
+- [Phase 54]: Fork-upstream relationship characterized as complementary divergence -- shared substrate, different higher-level concerns
+- [Phase 54]: 6-disposition classification framework for feature overlap: converging, complementary, redundant, divergent, behind, not-applicable
+- [Phase 54]: 4 behind gaps identified (security, UAT, cross-phase regression, requirements coverage gate) and 6 intentionally different features
+- [Phase 54]: Signal cross-reference uses theme-level comparison (not entry-level) due to category mismatch between proactive signals and reactive issues
+- [Phase 54]: Retrospective identifies 5 sync-round issues needing future attention (scope revision protocol, squash merge, PR workflow, deliberation tracking, quick task sprawl)
+- [Phase 54]: Security hardening identified as genuine fork blind spot (not philosophical difference) -- recommended for future action
+- [Phase 54]: FORK-DIVERGENCES.md rewritten in-place for 16-module post-modularization architecture (not versioned, per user locked decision)
+- [Phase 54]: Security hardening (C10) recommended as top P1 priority for next sync cycle based on convergent evidence from 3 analyses
+- [Phase 54]: 9 of 11 original drift ledger clusters (C1-C9) confirmed fully addressed by Phases 49-52; C10 remains strongest outstanding candidate
+- [Phase 54]: Durable sync policy formalized in FORK-STRATEGY.md: trigger-based cadence, baseline-freeze (4 rules from 48.1), what-to-adopt criteria (5-class gap taxonomy), integration depth standard (from Phase 53)
 
 ### Roadmap Evolution
 
@@ -213,6 +229,7 @@ Recent decisions affecting current work:
 | 34 | Apply stage-relevant deliberation review recommendations to roadmap and project docs | 2026-03-24 | ce7b306 | [34-apply-stage-relevant-deliberation-review](./quick/34-apply-stage-relevant-deliberation-review/) |
 | 260324-1nf | Repair 48.1 branch lineage, restore proper PR flow, and clean stale local phase branches | 2026-03-24 | 1afa649 | [260324-1nf-repair-48-1-branch-lineage-restore-prope](./quick/260324-1nf-repair-48-1-branch-lineage-restore-prope/) |
 | 260325 | Clean leftover local worktree refs | 2026-03-24 | n/a | [260325-clean-leftover-local-worktree-refs](./quick/260325-clean-leftover-local-worktree-refs/) |
+| 260326 | Fix sensors.cjs namespace-aware discovery (gsdr? regex) + hook propagation | 2026-03-30 | 813b73e | [260326-fix-audit-tech-debt-sensors-cjs-namespac](./quick/260326-fix-audit-tech-debt-sensors-cjs-namespac/) |
 
 ### Key Artifacts
 
@@ -224,6 +241,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-28T06:31:00Z
-Stopped at: Completed 53-04-PLAN.md -- Phase 53 integration verification complete (all 8 INT requirements satisfied)
+Last session: 2026-03-30T12:25:00.000Z
+Stopped at: Completed quick task 260326 -- sensors.cjs namespace fix + hook propagation.
 Resume file: None

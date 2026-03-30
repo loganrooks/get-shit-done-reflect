@@ -21,7 +21,7 @@ function cmdSensorsList(cwd, raw) {
 
   // Find all sensor agent spec files
   const allFiles = fs.readdirSync(agentsDir);
-  const sensorFiles = allFiles.filter(f => /^gsd-.*-sensor\.md$/.test(f));
+  const sensorFiles = allFiles.filter(f => /^gsdr?-.*-sensor\.md$/.test(f));
 
   if (sensorFiles.length === 0) {
     output({ sensors: [], message: 'No sensors discovered' }, raw);
@@ -47,7 +47,7 @@ function cmdSensorsList(cwd, raw) {
         }
       }
     }
-    const name = file.replace(/^gsd-/, '').replace(/-sensor\.md$/, '');
+    const name = file.replace(/^gsdr?-/, '').replace(/-sensor\.md$/, '');
     return {
       name: fmObj.sensor_name || name,
       file,
@@ -108,14 +108,14 @@ function cmdSensorsBlindSpots(cwd, sensorName, raw) {
     error('No agents directory found.');
   }
 
-  const pattern = sensorName
-    ? 'gsd-' + sensorName + '-sensor.md'
+  const namePattern = sensorName
+    ? new RegExp('^gsdr?-' + sensorName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '-sensor\\.md$')
     : null;
 
   const allFiles = fs.readdirSync(agentsDir);
   const sensorFiles = allFiles.filter(f => {
-    if (!/^gsd-.*-sensor\.md$/.test(f)) return false;
-    if (pattern && f !== pattern) return false;
+    if (!/^gsdr?-.*-sensor\.md$/.test(f)) return false;
+    if (namePattern && !namePattern.test(f)) return false;
     return true;
   });
 
@@ -129,7 +129,7 @@ function cmdSensorsBlindSpots(cwd, sensorName, raw) {
 
   const blindSpots = sensorFiles.map(file => {
     const content = fs.readFileSync(path.join(agentsDir, file), 'utf8');
-    const name = file.replace(/^gsd-/, '').replace(/-sensor\.md$/, '');
+    const name = file.replace(/^gsdr?-/, '').replace(/-sensor\.md$/, '');
     const match = content.match(/<blind_spots>([\s\S]*?)<\/blind_spots>/);
     return {
       sensor: name,

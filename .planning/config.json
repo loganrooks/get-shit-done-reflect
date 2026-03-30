@@ -36,7 +36,7 @@
     "stats": {
       "signal_collection": {
         "fires": 0,
-        "skips": 5,
+        "skips": 6,
         "last_triggered": null,
         "last_skip_reason": "level-1"
       },
