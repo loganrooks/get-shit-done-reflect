@@ -91,20 +91,19 @@ The system never makes the same mistake twice — signals capture what went wron
 - ✓ Worktree-safe hooks with shell existence guards — v1.17
 - ✓ 278 tests passing (vitest) — v1.17
 
+- ✓ Modular CLI architecture — 5,400-line monolith restructured to 674-line router + 16 lib/*.cjs modules (11 upstream + 5 fork) — v1.18
+- ✓ Manifest-driven config migration with declarative field renames (depth→granularity) and multi-version upgrade chains — v1.18
+- ✓ Migration test hardening — 9 requirements covering namespace scan, idempotency, crash recovery, behavioral equivalence, project-root authority — v1.18
+- ✓ Update system hardening — per-release migration specs, stale cleanup, hook validation, fresh-vs-upgrade detection — v1.18
+- ✓ Feature adoption — context-monitor, Nyquist auditor, code-aware discuss-phase, 4 workflows, CLAUDE_CONFIG_DIR, shell robustness, worktree isolation — v1.18
+- ✓ Deep integration — adopted features woven into signal/automation/health/reflection pipeline; context-monitor drives automation deferral, Nyquist gaps flow into KB — v1.18
+- ✓ Durable sync governance — upstream trajectory analysis, feature overlap inventory, sync retrospective, formalized sync policy in FORK-STRATEGY.md — v1.18
+- ✓ CI cache scoped per-project preventing cross-project pollution — v1.18
+- ✓ 628 tests passing (419 vitest + 191 upstream + 18 fork) — v1.18
+
 ### Active
 
-## Current Milestone: v1.18 Upstream Sync & Deep Integration
-
-**Goal:** Properly adopt upstream changes informed by the fork audit, keep v1.18 scoped to the audited upstream baseline rather than silently expanding with later upstream releases, formalize adopt/keep/reject policy during the milestone, audit the migration and upgrade authority model, and ensure adopted features integrate deeply with the fork's epistemic self-improvement philosophy — not as isolated patches.
-
-**Target features:**
-- Upstream sync policy — formalize what to adopt, keep, reject, and how before later adoption phases are planned
-- Modularization migration — redistribute fork's 2,126 lines across upstream's 11 modules
-- Feature adoption — context monitor, Nyquist auditor, code-aware discuss-phase, context scaling fix, stdin timeout, CLAUDE_CONFIG_DIR, new upstream workflows
-- Migration/update authority hardening — config migration, KB migration, namespace rewriting, project-root/worktree resolution, and runtime-neutral upgrade surfacing
-- Deep integration — adopted features woven into fork's signal/automation/health/reflection pipeline
-- CI status bug fix — scope CI cache per-project
-- Deliberation-aware governance routing — surface relevant open deliberations directly in roadmap phases instead of relying on memory
+(Next milestone not yet defined — run /gsdr:new-milestone)
 
 ### Out of Scope
 
@@ -126,25 +125,24 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ## Context
 
-Shipped v1.17 Automation Loop. The self-improvement system is now self-triggering: signals auto-collect after phases, reflection auto-triggers after configurable phase counts, health checks run at session start, and CI failures surface immediately. The automation gap identified in v1.16 is closed — the system actively monitors itself without manual invocation.
-4 milestone themes remain from post-v1.16 roadmap (see `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`): Meta-Observability (M-B), Deliberation Intelligence (M-C), Cross-Platform Parity (M-D), Parallelization (M-E).
-Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, modular `gsd-tools.cjs` CLI router plus `bin/lib/*.cjs` runtime modules.
-Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents (with shared agent-protocol.md), Runtime layer (Node.js) for installation and hooks. Multi-sensor signal collection (artifact + git + CI sensors → synthesizer → KB). Health probes (modular .md specs executed by probe executor). Automation framework (4-level system with per-feature overrides).
+Shipped v1.18 Upstream Sync & Deep Integration. The fork's monolithic CLI has been restructured into a modular architecture (674-line router + 16 lib/*.cjs modules), upstream features adopted and deeply integrated into the signal/automation/health/reflection pipeline, and durable governance policies formalized for future upstream syncs.
+3 milestone themes remain from post-v1.16 roadmap (see `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`): Meta-Observability (M-B), Deliberation Intelligence (M-C), Parallelization (M-E). Cross-Platform Parity (M-D) was partially addressed by v1.18's multi-runtime installer hardening.
+Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, modular `gsd-tools.cjs` CLI router (674 lines) plus 16 `bin/lib/*.cjs` runtime modules (8,824 lines total).
+Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents (with shared agent-protocol.md), Runtime layer (Node.js) for installation and hooks. Multi-sensor signal collection (artifact + git + CI sensors → synthesizer → KB). Health probes (modular .md specs executed by probe executor, including validation-coverage probe). Automation framework (4-level system with per-feature overrides, context-aware deferral via bridge files). Context-monitor hook for usage-based automation decisions.
 Knowledge base: `.planning/knowledge/` (project-local, version-controlled) with `~/.gsd/knowledge/` fallback. Contains `signals/`, `spikes/`, `reflections/` subdirectories, auto-generated `index.md`, lifecycle state machine, and provenance fields.
 Backlog: Two-tier storage (`.planning/backlog/items/` per-project, `~/.gsd/backlog/items/` global) with Markdown+YAML items, 7 CLI subcommands, auto-indexed.
-Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
-20 quick tasks completed across v1.17 development (installer fixes, namespace safety, worktree hooks, etc.).
+Test suite: 628 tests (419 vitest + 191 upstream node:test + 18 fork node:test), CI/CD via GitHub Actions with branch protection.
+7 milestones shipped (v1.12-v1.18), 55 phases, 166 plans completed.
 
-**Fork status (v1.18 audit baseline):**
-- Audit baseline captured 2026-03-10: fork at v1.17.1, upstream at v1.22.4
-- v1.18 scope is frozen to that audited baseline; later upstream releases are triaged explicitly for later roadmap work instead of silently expanding this milestone
-- Post-audit upstream drift triaged (Phase 48.1): 372 commits (`v1.22.4` to `upstream/main`) classified into 11 clusters; zero must-integrate-now, 9 fold-into existing phases, no Phase 45-48 reopening needed. See `UPSTREAM-DRIFT-LEDGER.md`.
+**Fork status (post-v1.18):**
+- Fork at v1.18.0, upstream at v1.30.0 (as of 2026-03-28 analysis)
+- v1.18 adopted upstream's modular architecture and 10 features with deep integration
 - GSDR namespace co-installation enables side-by-side with upstream GSD
-- Tracked-modifications strategy with FORK-DIVERGENCES.md documenting per-file merge stances
+- Tracked-modifications strategy with FORK-DIVERGENCES.md documenting per-module merge stances (16 modules)
 - 4 runtimes supported: Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI
-- Upstream's reverted GSD Memory vs fork's file-based KB: fork approach validated in production (see KB-COMPARISON.md)
-- Comprehensive fork audit completed (10 reports in .planning/fork-audit/) identifying modularization as critical reconciliation
-- Phase 45-48 completed the modular CLI reconciliation: `gsd-tools.cjs` is now a router over upstream-aligned `lib/*.cjs` modules with fork additions redistributed across that structure
+- Durable sync policy formalized: trigger-based cadence, baseline-freeze rules, 5-class gap taxonomy, integration depth standard
+- Outstanding upstream work prioritized: security hardening (P1), new modules (P2), test infrastructure (P3)
+- Fork-upstream relationship characterized as complementary divergence — shared substrate, different higher-level concerns
 
 ## Constraints
 
@@ -217,6 +215,11 @@ Test suite: 278 tests (vitest), CI/CD via GitHub Actions with branch protection.
 | Counter-based reflection triggering | Simple, predictable, configurable; avoids complex heuristics | ✓ Good — phases_since_last_reflect with threshold gating |
 | Install-time model resolution per runtime | Claude auto-resolves symbolic names; Codex needs explicit model+reasoning_effort pairs; no single strategy covers all platforms | ✓ Good — source files use cross-runtime tier language with Per-Runtime Resolution table; installer deploys same content to all platforms |
 | Critical state transitions must be programmatic | Agent instructions are unreliable at ensuring every step fires in long sequences (proven by lifecycle gap, QT29) | ✓ Good — design principle from signal-lifecycle-closed-loop-gap deliberation |
+| Manifest-driven config migration with field renames | Hardcoded rename logic scattered across upgrade paths was unmaintainable; declarative migrations[] array in feature-manifest.json | ✓ Good — depth→granularity absorbed programmatically, multi-version upgrade chains tested |
+| Durable sync policy with trigger-based cadence | Ad-hoc sync timing created drift anxiety; formalized policy grounds decisions in evidence from v1.18 experience | ✓ Good — FORK-STRATEGY.md sections: cadence, baseline-freeze, what-to-adopt, integration depth |
+| Deep integration standard for adopted features | Adopting features as isolated patches wastes their observational value; weaving into signal/automation/health/reflection pipeline creates epistemic value | ✓ Good — context-monitor → automation deferral, Nyquist → KB signals, discuss-phase → KB surfacing |
+| Audit severity must distinguish "workaround available" from "feature works as specified" | v1.18 audit classified broken CLI commands as "low" because a different code path compensated; conflating workaround availability with low severity undermines audit integrity | ✓ Good — signal logged, lesson applied to fix both items before milestone completion |
+| Complementary divergence characterization for fork-upstream relationship | Binary "behind/ahead" framing misrepresents a fork with genuinely different higher-level concerns; 6-disposition taxonomy (converging, complementary, redundant, divergent, behind, N/A) provides nuanced classification | ✓ Good — feature overlap inventory used in v1.18 governance analysis |
 
 ---
-*Last updated: 2026-03-24 after Phase 48.1 upstream drift routing and roadmap reconciliation*
+*Last updated: 2026-03-30 after v1.18 milestone completion*

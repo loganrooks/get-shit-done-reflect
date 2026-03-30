@@ -156,3 +156,13 @@
 
 ---
 
+
+## v1.18 Upstream Sync & Deep Integration (Shipped: 2026-03-30)
+
+**Phases completed:** 57 phases, 166 plans, 8 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
