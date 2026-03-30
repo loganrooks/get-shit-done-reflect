@@ -18,6 +18,10 @@ Lifecycle: open → concluded → adopted → evaluated → superseded
 - `.planning/deliberations/self-improvement-pipeline-design.md` (Concluded): Designed overall pipeline; cites `cybernetics/requisite-variety` — "Sensor variety must match problem variety"
 - `.planning/deliberations/signal-lifecycle-closed-loop-gap.md` (Concluded): All signals stay "detected"; feedback loop doesn't close
 - `.planning/deliberations/platform-change-monitoring.md` (Concluded): Two-layer change detection strategy
+- `.planning/phases/54-sync-retrospective-governance/54-OUTSTANDING-CHANGES.md`: P1 recommendations: security.cjs, model-profiles.cjs reconciliation, begin-phase fix
+- `.planning/phases/54-sync-retrospective-governance/54-FEATURE-OVERLAP.md`: Behind gaps: security, UAT debt, cross-phase regression, requirements coverage
+- `.planning/phases/54-sync-retrospective-governance/54-RETROSPECTIVE.md`: 5 sync-round issues, automation inertia, progress telemetry staleness
+- `~/workspace/projects/epistemic-agency/knowledge-base/INDEX.md`: 47 findings from 154 agentic AI papers — F09, F14, F16, F21, F35, F36, F40, I09 directly applicable
 - `sig-2026-03-04-drop-a-file-sensor-extensibility-pattern` (notable): Drop-a-file sensor design validated
 - `sig-2026-03-04-stale-log-sensor-spec-disabled-by-default-text` (minor): Log sensor known stale
 - `sig-2026-03-26-model-alias-map-in-core-cjs-contains-stale` (notable): Stale upstream model IDs adopted as dead code
@@ -149,10 +153,37 @@ Concretely:
 
 3. **Design track (deliberation → v1.19 scope):** Signal lifecycle transitions — how signals move from detected → triaged → remediated → evaluated. This is the consumption-side fix that makes the whole pipeline progressive rather than just accumulative.
 
+### Option E: Research-Informed Harness Evolution (Revised Recommendation)
+
+- **Claim:** v1.19 should be research-informed, not just a sync cycle. Begin with a pre-milestone research phase using arxiv-sanity-mcp and the epistemic-agency knowledge base to identify harness design patterns from the literature, then scope the milestone to address: (1) upstream sync of convergent features (model-profiles.cjs, security.cjs, cross-phase regression gate), (2) harness infrastructure (token/efficiency capture, quality gates for automation, agent registration), (3) fork-only sensors (plan-accuracy, token-efficiency), and (4) v1.18 retrospective issues (scope revision protocol, PR workflow enforcement, automation ungating).
+- **Grounds:**
+  - The epistemic-agency repo has 47 findings from 154 papers on agentic systems, several directly applicable:
+    - F09: Gated behavior trees from logs outperform unconstrained generation → quality gates before ungating
+    - F14: Failure-driven curriculum targets knowledge frontiers → sensors should detect *where we fail*
+    - F16: Three nested loops (reactive/deliberative/meta-learning) → our meta-learning loop is weak
+    - F21: Dual memory (operational + lesson) prevents error cycles → lessons are underused in our KB
+    - F35: Verification quality dominates generation quality → invest in verification infra
+    - F36: Evaluation infrastructure needs its own testing → our sensors have no tests
+    - F40: Confidence-efficiency correlation (fewer tool calls = more accurate) → token sensor value
+    - I09: Variety Amplification × Hallucination Barrier → human-in-loop is architecturally necessary, not pragmatically convenient
+  - Phase 54 OUTSTANDING-CHANGES recommends security.cjs (P1), model-profiles.cjs reconciliation (P1), begin-phase fix (P1), and cross-phase regression gate (P2)
+  - Phase 54 RETROSPECTIVE identifies 5 sync-round issues needing future attention (scope revision protocol, squash merge policy, PR workflow enforcement, deliberation consumption tracking, quick task sprawl threshold)
+  - The fork's automation is entirely inert: signal collection 0 fires/6 skips, reflection disabled, all 186 signals stuck in "detected"
+  - No token/efficiency tracking exists despite SUMMARY.md and task results containing usage data
+- **Warrant:** A sync-only milestone would address upstream convergence but miss the deeper harness evolution opportunity. The epistemic-agency findings suggest specific architectural patterns (gated behavior trees, failure-driven curriculum, three-loop architecture) that could transform the fork's self-improvement pipeline from accumulative (more signals) to progressive (better learning). Research-first ensures the milestone is designed rather than reactive.
+- **Rebuttal:** Research adds lead time before implementation begins. The upstream sync items are concrete and ready now. Over-designing from literature risks building theoretical machinery that doesn't match the fork's practical needs. The epistemic-agency findings are from general agentic systems research, not specifically about development harnesses.
+- **Qualifier:** Probably the most progressive approach if the research phase is kept focused (1-2 sessions, not a multi-week survey). The risk of over-engineering is real and should be guarded against by scoping research questions narrowly.
+
+**Resolved questions:**
+1. Sensor model tier: **Sonnet for all sensors across all profiles** (user confirmed — opus is overkill for sensor work)
+2. Token/efficiency sensor: **High priority** — provides feedback on process efficiency, enables data-driven model selection, supports quality gates for automation
+3. Automation: **Needs quality gates before ungating** — don't just raise the level, ensure automated actions produce verified-quality output
+4. Research phase: **Pre-milestone research using arxiv-sanity-mcp + epistemic-agency KB** to identify harness design patterns before scoping v1.19
+
 **Open questions blocking conclusion:**
-1. Does the user agree with sonnet-tier for all sensors across all profiles? Or should quality profile use opus for synthesizer/reflector?
-2. Which 2 sensors are highest priority from the candidate list?
-3. Is the lifecycle fix urgent enough to be v1.19 scope, or can it wait for v1.20?
+1. Should the research phase be a formal GSD research phase (with RESEARCH.md output) or lighter-weight (deliberation-scoped)?
+2. How many of the 5 retrospective issues should be v1.19 scope vs deferred?
+3. What is the right balance between upstream sync work and fork-original harness evolution?
 
 ## Predictions
 
@@ -170,6 +201,9 @@ Record predictions BEFORE implementation so they can't be retrofitted.
 | P2 | A plan-accuracy sensor would have auto-detected ≥60% of the "files_modified mismatch" signals we collected manually this session | Retrospective analysis of phases 49-54 | Fewer than 5 of the ~8 plan-accuracy signals would have been caught |
 | P3 | Adding 2 new sensors without lifecycle fixes increases KB signal count >220 within 2 milestones but "detected" percentage stays >90% | After v1.19 completion | Signal count stays below 220 OR detected percentage drops below 90% |
 | P4 | The phantom gsd-ui-* entries in MODEL_PROFILES cause no runtime errors because no workflow spawns agents with those names | Grep for gsd-ui spawning in all workflows | Any workflow or orchestrator references gsd-ui-researcher/checker/auditor |
+| P5 | A token/efficiency sensor capturing usage blocks from task results reveals >2x cost difference between opus and sonnet for equivalent sensor output quality | First collection run with both models tracked | Cost difference is <1.5x OR sonnet quality is measurably worse |
+| P6 | Pre-milestone research using epistemic-agency findings produces ≥3 concrete harness design changes that would not have been identified from upstream sync alone | Research phase completion | All proposed changes are things we would have identified anyway from upstream analysis |
+| P7 | Adding quality gates to automation (signal quality check, efficiency check) enables safe ungating to level 2+ within 1 milestone | After quality gates implemented | Automation still stuck at level 1 OR auto-actions produce low-quality output requiring rollback |
 
 ## Decision Record
 
