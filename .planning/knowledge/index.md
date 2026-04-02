@@ -1,12 +1,13 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-02T08:23:24Z
-**Total entries:** 193
+**Generated:** 2026-04-02T08:33:09Z
+**Total entries:** 194
 
-## Signals (192)
+## Signals (193)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-04-02-agent-defaults-to-self-execution-over-delegation | get-shit-done-reflect | critical | detected | agent-behavior,delegation,context-bloat,recurring-pattern,self-monitoring | 2026-04-02 | active |
 | sig-2026-04-02-repeated-failure-to-self-signal-cleanup-hygiene | get-shit-done-reflect | critical | detected | meta-signal,agent-behavior,git-hygiene,cleanup,recurring-pattern,self-monitoring | 2026-04-02 | active |
 | sig-2026-04-02-agent-overwrote-deliberation-without-backup | get-shit-done-reflect | critical | detected | destructive-action,data-loss,deliberation,agent-behavior,quality-gate-bypass | 2026-04-02 | active |
 | sig-2026-04-02-background-agent-bypassed-quality-gates-broke-global-install | get-shit-done-reflect | critical | detected | installer,quality-gate-bypass,destructive-action,agent-delegation,path-rewriting,cascade-failure,parallelization | 2026-04-02 | active |
