@@ -107,16 +107,112 @@ Source (1098 lines, upstream, decision-closing) vs. user's local patch (444 line
 
 Signals are write-once — once created, nothing re-evaluates them when the codebase changes. The Patch A triage found all 4 "patch-worthy" signals were already resolved, wasting investigation time. A git-aware staleness detector could cross-reference signal tags/referenced files against commits and flag signals for re-evaluation when relevant code changes. Partial infrastructure exists (git sensor, signal tags) but the connection is missing. This directly extends the sensor gap thread (Thread 4) and the signal lifecycle findings from the audit (0% remediation rate).
 
+### Thread 9: Deliberation System Lifecycle Gap (from deliberation usage audit)
+
+32 deliberations in this project, 7 concluded, **0 evaluated**. Predictions recorded but never checked against outcomes. Same lifecycle completion failure as signals. 3 open deliberations identify gaps in the deliberation system itself (provenance, citation stability, workflow stratification) — and are themselves stuck in `open`.
+
+Cross-project pattern: deliberations used as documentation (scope decisions, architecture notes), not as the signal-grounded, prediction-oriented workflow artifacts the template intends. arxiv-sanity-mcp (5), zlibrary-mcp (1), epistemic-agency (2) — all lightweight usage.
+
+No workflow auto-surfaces relevant deliberations during planning. `plan-phase` and `discuss-phase` don't search `.planning/deliberations/`. Integration is entirely manual citation.
+
+### Thread 10: Philosophical Diagnosis Awaiting Operationalization (from philosophical audit)
+
+8 deep philosophical deliberations engaging Stiegler, Levinas, Ashby, Dewey, Cartwright, Habermas, Dreyfus. All open. None concluded. The philosophical stream and engineering stream haven't converged — v1.12-v1.18 shipped features while these stayed in `open`.
+
+**What HAS been operationalized:**
+- `deliberate.md` command embeds Dewey, Toulmin, Lakatos, Peirce, Mayo, Popper structurally
+- Signal schema's `epistemic-gap` type (from cybernetics concern with blind spots)
+- `philosophy/` subdirectory as citable apparatus (23 frameworks, 97 principles)
+
+**Four concrete prescriptions from Trace 008 (unbuilt):**
+1. Epistemic health probes (variety, warrant-source, signal-coverage-gap, pharmacological)
+2. Adversarial deliberation step in discuss/plan workflows
+3. Warrant typing for signals (`observer` / `computation` / `generator`)
+4. Requisite variety metrics (explore-to-converge ratio)
+
+**Deepest unoperationalized insight:** The proletarianization gradient (Stiegler/F47). Automation levels 0-3 exist but don't classify which functions are execution-safe vs. judgment-dangerous. The gap is not just classification but response — as the user noted, the answer is not "always monitor judgment operations" but rather designing quality gates, review agents, deterministic hooks, and damage mitigation (version control, reversibility) that respond to criticality with appropriate seriousness. The space of possible responses should remain open rather than prematurely closed.
+
+**The F01 recursion:** Philosophical deliberations about GENERATOR quality are themselves GENERATOR outputs. Only OBSERVER evidence (Trace 008's 218 sessions of usage data) partially grounds them. The Levinas and Derrida work has no such grounding — it is philosophical reasoning the harness cannot confirm or refute empirically. This is not a deficiency but a condition to acknowledge.
+
+**The translation problem:** The deepest philosophical insights (forms-excess, responsibility-alterity, constitutive lock-in) correctly resist checklist translation. But without a middle ground between pure aspiration and procedural enforcement, they remain perpetually deferred. The `structural-norms` deliberation proposes a three-layer distinction (declarative/procedural/structural) that could serve as this middle ground.
+
+### Thread 11: Signal Hermeneutics (from user)
+
+A signal is not simply a fact waiting to be fixed. It can be read multiple ways:
+- As a symptom requiring an immediate patch
+- As indicative of something structural rather than accidental
+- As one element in a constellation that only becomes legible with other signals
+
+The reading and the problem come into being retroactively — signals now can change possible readings of signals past. Future signals change what will have been read in signals past. This is a hermeneutic, not a diagnostic, relationship to the KB.
+
+The implication: the harness should support **re-reading** signals in light of new evidence, not just triaging them as individual items. The signal staleness detection (Thread 8) is one aspect of this. But the deeper point is that signal interpretation is not fixed at detection time — it evolves as context accumulates. We should experiment with performing such readings on our own signal history.
+
+This connects to the question of whether we should resign ourselves to constant monitoring of "dangerous" functions. The user's position: rather than framing judgment-dangerous operations as permanently requiring human oversight, design quality gates, review mechanisms, deterministic hooks, and damage mitigation that respond to criticality proportionally. The aim is iterative reduction of failure probability — preventively and proactively where possible, reactively where necessary. Version control is one damage mitigation mechanism; there are others. This response space should remain open.
+
+### Thread 12: Unified Fix/Feature Lifecycle (from session practice)
+
+What we improvised this session:
+```
+Detection (signal/issue/conversation/cross-project)
+    ↓
+Qualification (validate against current state)
+    ↓
+Scoping (patch / deliberation / milestone-phase)
+    ↓
+Deliberation (if design needed — with predictions)
+    ↓
+Delegation (proposed → in-progress → complete)
+    ↓
+Verification (CI, tests, signal recurrence check)
+    ↓
+Release (patch or milestone)
+    ↓
+Evaluation (did predictions hold? did signals recur?)
+    ↓
+Learning (update KB, close signals, evaluate deliberations)
+```
+
+Missing lifecycle states identified: `proposed`, `delegated`/`in-progress`, `deferred`, `blocked`, `superseded`. Current states (detected → triaged → remediated → verified) are too coarse — "triaged" means everything from "glanced at" to "deliberately deferred for 6 months."
+
+## Session Outcomes (Concrete)
+
+| Outcome | Detail |
+|---------|--------|
+| v1.18.1 released | Installer fixes: patches dir collision (#27) + $HOME doubling |
+| v1.18.2 released | execute-phase branching strategy (6 signals) + merge policy + KB cleanup |
+| #15 closed | Verified fixed (QT-22, v1.17.2) |
+| #27 closed | Fixed in v1.18.1 |
+| 16 signals remediated | First lifecycle transitions in KB history |
+| 144 test artifacts purged | 70% noise reduction in global KB |
+| KB schema standardized | Date formats, missing IDs, field consistency |
+| 5 new signals from session | Cascade failure, meta-signal gap ×2, deliberation overwrite, self-execution default |
+| 3 audit reports | Critical signals, notable signals (sample), KB hygiene |
+| 2 research reports | Deliberation usage across projects, philosophical deliberation analysis |
+
 ## Open Questions for v1.19
 
-1. Which themes to prioritize (sensors, research-grounding, failure attribution, patch workflow, discuss-phase synthesis, lifecycle integration)?
+1. Which themes to prioritize? Candidates: sensors, research-grounding, failure attribution, patch workflow, discuss-phase synthesis, lifecycle integration, Trace 008 prescriptions, deliberation lifecycle, signal hermeneutics
 2. Can the patch response workflow be pre-v1.19 infrastructure?
 3. What's the minimal viable signal/issue linking?
 4. How does the sensor gap relate to M-B (Meta-Observability)?
+5. Should concluded deliberations be evaluated before starting new milestone work?
+6. How to operationalize the proletarianization gradient without premature closure?
+7. How to design the "middle ground" between philosophical aspiration and procedural enforcement?
+8. Can we experiment with hermeneutic re-reading of signal history?
 
 ## Key Artifacts
 
-- Signal audit: `/tmp/signal-audit-report.md`
-- Issue triage: from background agent (in conversation context)
-- Installer fixes: worktree at `/tmp/gsdr-installer-fix/` (branch `fix/installer-patches-27-home-doubling`, tests passing)
+- Signal audit: `/tmp/signal-audit-report.md` (copy to `.planning/` before session end)
+- Deliberation usage audit: agent output (in conversation context)
+- Philosophical audit: agent output (in conversation context)
 - Epistemic-agency findings: `~/workspace/projects/epistemic-agency/knowledge-base/INDEX.md`
+- Trace 008 (cybernetic synthesis): `~/workspace/projects/epistemic-agency/traces/008-cybernetic-synthesis.md`
+
+## GitHub Issues Status
+
+| # | Title | State | Action |
+|---|-------|-------|--------|
+| 15 | Codex TOML escape | CLOSED | Verified + closed this session |
+| 17 | Cross-runtime drift | OPEN | Milestone-deferred (9 acceptance criteria) |
+| 26 | Discuss-phase semantics | OPEN | Needs deliberation (exploratory vs decision-closing synthesis) |
+| 27 | Patches dir collision | CLOSED | Fixed in v1.18.1 |
