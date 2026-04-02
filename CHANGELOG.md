@@ -6,6 +6,16 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.18.1] - 2026-04-02
+
+### Fixed
+- **Local patches directory collision** (Issue #27): Namespaced GSDR backup directory from `gsd-local-patches/` to `gsdr-local-patches/` — prevents backup-meta.json overwrite and data loss when both GSD and GSDR are installed to the same runtime
+- **$HOME path doubling in global installs**: Fixed `replacePathsInContent()` producing doubled `$HOME` prefix paths in all workflow and command files during global install — broke all 91 GSDR files in the global runtime config directory
+
+### Added
+- Regression test for local patches directory namespacing
+- Regression test for $HOME path doubling in replacePathsInContent
+
 ## [1.17.5] - 2026-03-19
 
 ### Fixed
