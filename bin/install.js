@@ -2307,7 +2307,7 @@ function verifyFileInstalled(filePath, description) {
 // Local Patch Persistence
 // ──────────────────────────────────────────────────────
 
-const PATCHES_DIR_NAME = 'gsd-local-patches';
+const PATCHES_DIR_NAME = 'gsdr-local-patches';
 const MANIFEST_NAME = 'gsd-file-manifest.json';
 
 /**
