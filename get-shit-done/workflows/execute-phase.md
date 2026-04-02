@@ -730,6 +730,43 @@ node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(phase-{X}): complete
 
 <step name="offer_next">
 
+**If branching strategy is "phase" or "milestone":**
+
+Check if the current branch is not main:
+```bash
+CURRENT_BRANCH=$(git branch --show-current)
+if [ "$CURRENT_BRANCH" != "main" ]; then
+  echo "On branch: $CURRENT_BRANCH"
+fi
+```
+
+If on a non-main branch:
+
+1. **Push the branch:**
+   ```bash
+   git push -u origin $CURRENT_BRANCH
+   ```
+
+2. **Offer PR creation:**
+   ```
+   Branch `$CURRENT_BRANCH` pushed. Create PR? [y/n]
+   ```
+   If yes:
+   ```bash
+   gh pr create --base main --head $CURRENT_BRANCH --title "Phase ${PHASE_NUMBER}: ${PHASE_NAME}" --fill
+   ```
+
+3. **If PR created, offer to merge.**
+
+4. **If PR merged, run post-merge cleanup:**
+   ```bash
+   git checkout main && git pull origin main
+   git branch -d $CURRENT_BRANCH
+   git push origin --delete $CURRENT_BRANCH  # if not auto-deleted by merge
+   ```
+
+---
+
 **If more phases:**
 ```
 ## Next Up
