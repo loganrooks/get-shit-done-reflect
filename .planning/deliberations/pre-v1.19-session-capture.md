@@ -103,6 +103,10 @@ Source (1098 lines, upstream, decision-closing) vs. user's local patch (444 line
 - **Stiegler**: Proletarianization gradient — execution vs. judgment automation
 - **Mayo/Popper/Dewey**: Design for empirical reliability, not a priori guarantees
 
+### Thread 8: Signal Staleness Detection (surfaced during patch triage)
+
+Signals are write-once — once created, nothing re-evaluates them when the codebase changes. The Patch A triage found all 4 "patch-worthy" signals were already resolved, wasting investigation time. A git-aware staleness detector could cross-reference signal tags/referenced files against commits and flag signals for re-evaluation when relevant code changes. Partial infrastructure exists (git sensor, signal tags) but the connection is missing. This directly extends the sensor gap thread (Thread 4) and the signal lifecycle findings from the audit (0% remediation rate).
+
 ## Open Questions for v1.19
 
 1. Which themes to prioritize (sensors, research-grounding, failure attribution, patch workflow, discuss-phase synthesis, lifecycle integration)?
