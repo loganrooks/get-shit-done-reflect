@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [extraction, quality, agent-specs, knowledge-surfacing, unauthorized-removal]
 created: 2026-02-22T00:00:00Z
-updated: 2026-03-02T18:50:00Z
+updated: 2026-04-02T21:00:00Z
 durability: convention
-status: active
+status: remediated
 severity: critical
 signal_type: quality-issue
 phase: 22
@@ -18,7 +18,7 @@ related_signals: [sig-2026-02-18-sonnet-45-quality-concern-phase22]
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.12.2
-lifecycle_state: triaged
+lifecycle_state: remediated
 lifecycle_log:
   - "detected->triaged by reflector at 2026-03-02T18:50:00Z: dismiss -- addressed by les-2026-02-28-extraction-plans-need-exhaustive-keep-lists, no recurrence since Phase 22"
 evidence:
@@ -48,3 +48,7 @@ Phase 22 Plans 02, 03, 04 — executor agents extracting shared boilerplate from
 ## Potential Cause
 
 Two contributing factors: (1) Executor agents running on Sonnet 4.5 (not the requested Sonnet 4.6) may have had reduced accuracy for nuanced "keep vs. remove" judgment calls. (2) Plans did not explicitly list `<knowledge_surfacing>` in the KEEP list, so the agents treated its absence from the KEEP list as implicit permission to remove it. The plans used a pattern of "KEEP these sections (identity/domain-specific)" without being exhaustive, creating ambiguity about sections not mentioned.
+
+## Remediation
+
+Resolved by fix commit af34ff3 (2026-02-21). All 4 knowledge_surfacing sections restored in executor, planner, debugger, and phase-researcher agent specs.

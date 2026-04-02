@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [extraction, quality, agent-specs, file-deletion, critical-loss]
 created: 2026-02-22T00:00:00Z
-updated: 2026-03-02T18:50:00Z
+updated: 2026-04-02T21:00:00Z
 durability: convention
-status: active
+status: remediated
 severity: critical
 signal_type: quality-issue
 phase: 22
@@ -18,7 +18,7 @@ related_signals: [sig-2026-02-22-knowledge-surfacing-silently-removed]
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.12.2
-lifecycle_state: triaged
+lifecycle_state: remediated
 lifecycle_log:
   - "detected->triaged by reflector at 2026-03-02T18:50:00Z: dismiss -- addressed by les-2026-02-28-extraction-plans-need-exhaustive-keep-lists, no recurrence since Phase 22"
 evidence:
@@ -49,3 +49,7 @@ Plan 22-04 Task 1 was supposed to add `<required_reading>` to plan-checker, code
 ## Potential Cause
 
 The executor agent likely deleted or failed to write gsd-codebase-mapper.md during the extraction process. Possible scenarios: (1) the agent read the file, attempted to write a modified version, but failed silently; (2) the agent's write tool call was interrupted; (3) the file was staged for deletion rather than modification. The commit message mismatch (claiming to have edited codebase-mapper but not showing it in the diff) suggests the agent may have encountered an error mid-task but did not surface it as a deviation.
+
+## Remediation
+
+Resolved by fix commit af34ff3 (2026-02-21). File restored to agents/gsd-codebase-mapper.md. Lesson les-2026-02-28-extraction-plans-need-exhaustive-keep-lists captures the root cause.

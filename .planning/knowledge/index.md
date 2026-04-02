@@ -1,6 +1,6 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-02T08:39:16Z
+**Generated:** 2026-04-02T08:43:52Z
 **Total entries:** 194
 
 ## Signals (193)
@@ -16,12 +16,12 @@
 | sig-2026-03-26-active-phase-branch-not-pushed-immediately | get-shit-done-reflect | notable | detected | git-workflow,branch-management,branch-publication,upstream-tracking,traceability,codex | 2026-03-26 | active |
 | sig-2026-03-24-local-branch-cleanup-and-lineage-drift | get-shit-done-reflect | notable | detected | git-workflow,branch-management,post-merge,local-cleanup,stale-lineage,remote-mismatch,codex | 2026-03-24 | active |
 | sig-2026-03-24-codex-delegation-policy-hidden-from-config | get-shit-done-reflect | notable | detected | codex,claude,cross-runtime,delegation-policy,spawn-agent,workflow-behavior,platform-parity | 2026-03-24 | active |
-| sig-2026-03-23-phase-stack-complete-but-not-integrated | get-shit-done-reflect | critical | detected | git-workflow,branch-management,unpushed-work,no-ci-coverage,main-divergence,phase-stack | 2026-03-23 | active |
+| sig-2026-03-23-phase-stack-complete-but-not-integrated | get-shit-done-reflect | critical | detected | git-workflow,branch-management,unpushed-work,no-ci-coverage,main-divergence,phase-stack | 2026-03-23 | remediated |
 | sig-2026-03-23-missing-home-for-constellation-recommendations | get-shit-done-reflect | notable | detected | deliberations,governance,roadmap,workflow-gap,artifact-home,planning-routing | 2026-03-23 | active |
 | sig-2026-03-23-cross-model-review-chain-epistemic-discipline | get-shit-done-reflect | notable | detected | deliberation-reviews,cross-model-review,epistemic-discipline,review-methodology,positive-pattern | 2026-03-23 | active |
 | sig-2026-03-23-prose-wrapping-convention-gap | get-shit-done-reflect | notable | detected | formatting,conventions,deliberation-artifacts,review-artifacts,markdown | 2026-03-23 | active |
 | sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift | get-shit-done-reflect | critical | detected | migration,upgrade-project,config,local-install,global-install,knowledge-base,cross-runtime,codex,claude,hooks,path-resolution | 2026-03-20 | active |
-| sig-2026-03-19-qt31-source-namespace-pollution | get-shit-done-reflect | critical | detected | namespace,dual-directory,source-pollution,ci-failure,wiring-test,collect-signals,codex,quick-task | 2026-03-19 | active |
+| sig-2026-03-19-qt31-source-namespace-pollution | get-shit-done-reflect | critical | remediated | namespace,dual-directory,source-pollution,ci-failure,wiring-test,collect-signals,codex,quick-task | 2026-03-19 | active |
 | sig-2026-03-07-research-driven-planning-zero-deviations | get-shit-done-reflect | minor | detected | plan-quality,research-driven,execution-efficiency | 2026-03-07 | active |
 | sig-2026-03-07-producer-consumer-gap-remediated-phase43 | get-shit-done-reflect | minor | detected | producer-consumer,traceability,templates,provenance | 2026-03-07 | active |
 | sig-2026-03-07-plan-files-modified-lists-unnecessary-change | get-shit-done-reflect | minor | detected | deviation,plan-accuracy,files-modified,templates | 2026-03-07 | active |
@@ -59,8 +59,8 @@
 | sig-2026-03-03-epistemic-gap-executor-model-not-recorded-phase36 | get-shit-done-reflect | minor | detected | config,deviation | 2026-03-03 | active |
 | sig-2026-03-03-ci-green-unconfirmed-fix-commits-local-only | get-shit-done-reflect | critical | detected | ci,deviation,wiring-validation,dual-directory | 2026-03-03 | active |
 | sig-2026-03-03-pr-review-targets-wrong-repo | get-shit-done-reflect | notable | detected | pr-review,wrong-target,disambiguation,recurring | 2026-03-03 | active |
-| sig-2026-03-03-pr-created-upstream-instead-of-fork | get-shit-done-reflect | critical | detected | pr-create,wrong-target,fork-awareness,upstream-pollution | 2026-03-03 | active |
-| sig-2026-03-03-pr-created-against-upstream-not-fork | get-shit-done-reflect | critical | detected | pr-review,wrong-target,fork-awareness,upstream-pollution | 2026-03-03 | active |
+| sig-2026-03-03-pr-created-upstream-instead-of-fork | get-shit-done-reflect | critical | detected | pr-create,wrong-target,fork-awareness,upstream-pollution | 2026-03-03 | remediated |
+| sig-2026-03-03-pr-created-against-upstream-not-fork | get-shit-done-reflect | critical | detected | pr-review,wrong-target,fork-awareness,upstream-pollution | 2026-03-03 | remediated |
 | sig-2026-03-03-post-merge-cleanup-not-automatic | get-shit-done-reflect | notable | detected | git-workflow,branch-management,deviation,post-merge | 2026-03-03 | active |
 | sig-2026-03-02-ci-failures-ignored-throughout-v116 | get-shit-done-reflect | critical | detected | ci,branch-protection,workflow-bypass,wiring-test,dual-directory,critical-process-failure | 2026-03-02 | active |
 | sig-2026-03-02-zero-deviation-phase-34-execution | get-shit-done-reflect | notable | detected | deviation,workflow | 2026-03-02 | active |
@@ -117,10 +117,10 @@
 | sig-2026-02-22-protocol-section-13-fabricated-provenance | get-shit-done-reflect | notable | triaged | fabrication,provenance,protocol,audit-trail,extraction-registry | 2026-02-22 | active |
 | sig-2026-02-22-plan-22-03-incomplete-interrupted | get-shit-done-reflect | notable | detected | execution,plan-incomplete,ordering,interruption,summary-delayed | 2026-02-22 | active |
 | sig-2026-02-22-out-of-order-plan-execution | get-shit-done-reflect | notable | detected | execution-order,wave-execution,ordering,commit-timing | 2026-02-22 | active |
-| sig-2026-02-22-knowledge-surfacing-silently-removed | get-shit-done-reflect | critical | triaged | extraction,quality,agent-specs,knowledge-surfacing,unauthorized-removal | 2026-02-22 | active |
+| sig-2026-02-22-knowledge-surfacing-silently-removed | get-shit-done-reflect | critical | remediated | extraction,quality,agent-specs,knowledge-surfacing,unauthorized-removal | 2026-02-22 | remediated |
 | sig-2026-02-22-debugger-git-add-a-bug-corrected | get-shit-done-reflect | notable | detected | bug-fix,git-safety,debugger,extraction,positive-finding | 2026-02-22 | active |
 | sig-2026-02-22-commit-label-mismatch-022d068 | get-shit-done-reflect | notable | detected | commit-hygiene,audit-trail,mislabeled-commit,debugging | 2026-02-22 | active |
-| sig-2026-02-22-codebase-mapper-deleted-during-extraction | get-shit-done-reflect | critical | triaged | extraction,quality,agent-specs,file-deletion,critical-loss | 2026-02-22 | active |
+| sig-2026-02-22-codebase-mapper-deleted-during-extraction | get-shit-done-reflect | critical | remediated | extraction,quality,agent-specs,file-deletion,critical-loss | 2026-02-22 | remediated |
 | sig-2026-02-18-task-tool-model-enum-no-sonnet-46 | get-shit-done-reflect | critical | triaged | config,model-selection,task-tool | 2026-02-18 | active |
 | sig-2026-02-18-sonnet-45-quality-concern-phase22 | get-shit-done-reflect | notable | detected | model-selection,quality,extraction | 2026-02-18 | active |
 | sig-2026-02-18-signal-workflow-context-bloat | get-shit-done-reflect | notable | detected | workflow,context-budget,signal-command,dx | 2026-02-18 | active |

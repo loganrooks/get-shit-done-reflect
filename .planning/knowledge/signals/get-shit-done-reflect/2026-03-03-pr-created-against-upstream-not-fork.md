@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [pr-review, wrong-target, fork-awareness, upstream-pollution]
 created: 2026-03-03T00:00:00+11:00
-updated: 2026-03-03T00:00:00+11:00
+updated: 2026-04-02T21:00:00Z
 durability: convention
-status: active
+status: remediated
 severity: critical
 signal_type: deviation
 phase: "36"
@@ -38,3 +38,7 @@ User asked to create a PR for phase 36. Claude ran `gh pr create` which defaulte
 2. **No fork-awareness convention**: There's no established rule to check remotes or use `--repo` flag when creating PRs in a fork context.
 3. **Missing guardrail**: Should check `git remote -v` before PR operations to confirm target repo, or use `gh pr create --repo loganrooks/get-shit-done-reflect`.
 4. **Compounding error**: Same root cause as the PR review deviation — Claude doesn't distinguish fork vs upstream context.
+
+## Remediation
+
+Mitigated by project memory convention (MEMORY.md Fork PR Target section). Not embedded in workflow files — mitigation is memory-based. No recurrence since convention was established.
