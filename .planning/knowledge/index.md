@@ -1,12 +1,13 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-02T22:53:23Z
-**Total entries:** 195
+**Generated:** 2026-04-02T23:10:07Z
+**Total entries:** 196
 
-## Signals (194)
+## Signals (195)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-04-02-update-workflow-npx-resolves-local-in-dev-repo | get-shit-done-reflect | notable | detected | update-workflow,installer,npx,dogfooding,developer-ergonomics | 2026-04-02 | active |
 | sig-2026-04-02-dev-version-suffix-lacks-commit-traceability | get-shit-done-reflect | notable | detected | version-tracing,installer,dev-builds,traceability,signals | 2026-04-02 | active |
 | sig-2026-04-02-agent-defaults-to-self-execution-over-delegation | get-shit-done-reflect | critical | detected | agent-behavior,delegation,context-bloat,recurring-pattern,self-monitoring | 2026-04-02 | active |
 | sig-2026-04-02-repeated-failure-to-self-signal-cleanup-hygiene | get-shit-done-reflect | critical | detected | meta-signal,agent-behavior,git-hygiene,cleanup,recurring-pattern,self-monitoring | 2026-04-02 | active |

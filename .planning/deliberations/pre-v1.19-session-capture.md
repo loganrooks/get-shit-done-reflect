@@ -240,6 +240,24 @@ Practice opportunity: revisit "stale" / "remediated" signals from this session t
 
 **Flesh out threads.** The 18 threads are captured but skeletal. Each needs grounding in specific artifacts, moments, chat logs, code locations. The next session should develop the most pressing ones rather than adding more.
 
+### Thread 19: Signal Relational Ontology and GitHub Issues Integration
+
+**Two linked concerns surfaced:**
+
+**A. GitHub Issues ↔ GSD workflow integration.** When an issue is filed (like #30 from Codex), there's no automatic triage into the GSD workflow — no signal created, no milestone assignment, no tag propagation. GitHub already supports milestones, labels, and relationship types between issues. Could incoming issues auto-generate signals, get triaged by severity, and route to quick-fix or milestone-deferred? The infrastructure for this partially exists in the GitHub sensor proposal (Thread 4) but the intake direction is reversed — we need GitHub → GSD, not just GSD → GitHub.
+
+**B. Signal graph structure.** Currently signals are flat files with `related_signals` as a list of IDs — a weak, undifferentiated link. But signal relationships have different kinds and different epistemic statuses:
+- **Analytical/logical** — signals that are deductively related (a namespace bug and its downstream resolver failure)
+- **Thematic/constellational** — signals that form a pattern only visible retrospectively (Thread 11/18's hermeneutic re-reading)
+- **Causal/hypothetical** — speculative links that function as hypotheses to be tested
+- **Temporal/sequential** — signals that trace an evolution of the same underlying condition
+
+This suggests something richer than flat cross-references — possibly a graph database structure (or at minimum typed edges with confidence levels) that could represent and update these relationships over time. The GitHub issues system's relationship types (duplicates, blocks, relates-to) offer a simpler model; a knowledge graph structure (cf. philograph-mcp) offers a richer one.
+
+**Requisite variety connection (Ashby via Thread 2/10):** The complexity of the feedback/sensor system must match the complexity of the system being observed. A flat signal list with untyped `related_signals` cannot represent the actual relational structure of what signals disclose. But premature formalization risks the opposite error — closing down interpretive possibility (Thread 11/18).
+
+**Research needed:** Survey agentic harness literature (via arxiv-sanity-mcp once operational) for signal/knowledge graph approaches. The epistemic-agency repo's 47 findings may have relevant prior art (F09 contextual retrieval, F14 knowledge graphs, F36 metacognitive architectures). Defer concrete design until research grounding is available.
+
 ## Key Artifacts
 
 - Signal audit: `.planning/signal-audit-report-2026-04-02.md`
@@ -257,3 +275,4 @@ Practice opportunity: revisit "stale" / "remediated" signals from this session t
 | 17 | Cross-runtime drift | OPEN | Milestone-deferred (9 acceptance criteria) |
 | 26 | Discuss-phase semantics | OPEN | Needs deliberation (exploratory vs decision-closing synthesis) |
 | 27 | Patches dir collision | CLOSED | Fixed in v1.18.1 |
+| 30 | Model resolver gsd-* vs gsdr-* | OPEN | Quick-fix (3 buckets: material downgrades, masked mismatches, missing roles) |
