@@ -6,6 +6,17 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.18.3] - 2026-04-02
+
+### Fixed
+- **Model resolver gsdr- prefix normalization** (Issue #30): `resolveModelInternal()` and `cmdResolveModel()` now normalize `gsdr-` prefix to `gsd-` before MODEL_PROFILES lookup — workflows calling `resolve-model gsdr-planner` etc. no longer fall to the `sonnet` fallback
+- **Executor quality tier** (Issue #30): `gsd-executor` quality profile changed from `sonnet` to `opus` (inherit) to match `model-profiles.md` design intent — executor was silently running at reduced tier under quality profile
+- **model_overrides with gsdr- prefix**: Users can write either `gsd-` or `gsdr-` prefix in `model_overrides` config — both resolve correctly via `??` fallback pattern
+
+### Added
+- 11 missing agents added to `MODEL_PROFILES` table: sensors (`artifact-sensor`, `ci-sensor`, `git-sensor`, `log-sensor`), synthesizers (`signal-collector`, `signal-synthesizer`), and roles (`reflector`, `spike-runner`, `checker`, `advisor`, `advisor-researcher`) — all at appropriate tiers per existing sensor model policy
+- 22 new unit tests for model resolution: prefix normalization, executor quality fix, bucket 3 completeness, model_overrides with both prefixes, unknown agent fallback
+
 ## [1.18.2] - 2026-04-02
 
 ### Fixed
