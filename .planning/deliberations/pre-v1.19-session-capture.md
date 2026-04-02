@@ -8,7 +8,7 @@ to restore the original deliberation. The overwrite itself is logged as a signal
 
 **Date:** 2026-04-02
 **Status:** Open
-**Trigger:** Extended deliberation session that started with patch release workflow and expanded into 7 threads covering harness architecture, sensor gaps, epistemic grounding, and failure attribution.
+**Trigger:** Extended deliberation session that started with patch release workflow and expanded into 21 threads covering harness architecture, sensor gaps, epistemic grounding, failure attribution, thread/artifact lifecycle, and deviation accountability.
 
 ## Threads Surfaced
 
