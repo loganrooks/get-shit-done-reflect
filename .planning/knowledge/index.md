@@ -1,12 +1,14 @@
 # Knowledge Store Index
 
-**Generated:** 2026-03-29T08:06:31Z
-**Total entries:** 187
+**Generated:** 2026-04-02T07:16:02Z
+**Total entries:** 191
 
-## Signals (186)
+## Signals (190)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-04-02-background-agent-bypassed-quality-gates-broke-global-install | get-shit-done-reflect | critical | detected | installer,quality-gate-bypass,destructive-action,agent-delegation,path-rewriting,cascade-failure,parallelization | 2026-04-02 | active |
+| sig-2026-04-02-agent-failed-to-self-signal-on-failure-cascade | get-shit-done-reflect | critical | detected | meta-signal,signal-awareness,capability-gap,self-monitoring,epistemic-gap,agent-behavior | 2026-04-02 | active |
 | sig-2026-03-26-codex-signal-semantics-confusion | get-shit-done-reflect | notable | detected | codex,signal-semantics,knowledge-model,terminology,traceability | 2026-03-26 | active |
 | sig-2026-03-26-active-phase-branch-not-pushed-immediately | get-shit-done-reflect | notable | detected | git-workflow,branch-management,branch-publication,upstream-tracking,traceability,codex | 2026-03-26 | active |
 | sig-2026-03-24-local-branch-cleanup-and-lineage-drift | get-shit-done-reflect | notable | detected | git-workflow,branch-management,post-merge,local-cleanup,stale-lineage,remote-mismatch,codex | 2026-03-24 | active |
@@ -131,6 +133,8 @@
 | sig-2026-02-11-agent-inline-research-context-bloat | get-shit-done-reflect | notable | detected | context-bloat,agent-behavior,research-orchestration,deviation | 2026-02-11 | active |
 | sig-2026-02-11-premature-spiking-no-research-gate | get-shit-done-reflect | notable | detected | spike-workflow,research-gate,workflow-ordering | 2026-02-11 | active |
 | sig-2026-02-11-spike-design-missing-feasibility | get-shit-done-reflect | notable | detected | spike-workflow,experimental-design,feasibility,template-gap | 2026-02-11 | active |
+|  |  | medium | detected | release-workflow,deployment,milestone-completion,process-gap,automation-opportunity |  | open |
+|  |  | medium | detected | audit-quality,severity-assessment,epistemic-gap,self-assessment-bias,milestone-audit |  | open |
 |  |  | medium | detected | plan-quality,tdd,race-condition,human-intervention,workflow-improvement |  | open |
 | sig-2026-03-02-requirements-lack-motivation-traceability | get-shit-done-reflect | notable | detected | requirements,traceability,signal-lifecycle,template |  | detected |
 | SIG-260223-015 |  | notable | detected | planning,tdd,pitfall-mitigation |  | resolved |
