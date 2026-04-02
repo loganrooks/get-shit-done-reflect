@@ -1351,6 +1351,9 @@ function replacePathsInContent(content, runtimePathPrefix) {
   if (runtimePathPrefix.startsWith('~/')) {
     // Tilde prefix: strip ~/ to get relative-to-home path
     runtimeSuffix = runtimePathPrefix.slice(2);
+  } else if (runtimePathPrefix.startsWith('$HOME/')) {
+    // $HOME prefix (e.g., global install pathPrefix): strip $HOME/ to avoid doubling
+    runtimeSuffix = runtimePathPrefix.slice('$HOME/'.length);
   } else if (runtimePathPrefix.startsWith(os.homedir())) {
     // Absolute prefix: strip home directory to get relative-to-home path
     runtimeSuffix = runtimePathPrefix.slice(os.homedir().length + 1);
@@ -2307,7 +2310,7 @@ function verifyFileInstalled(filePath, description) {
 // Local Patch Persistence
 // ──────────────────────────────────────────────────────
 
-const PATCHES_DIR_NAME = 'gsd-local-patches';
+const PATCHES_DIR_NAME = 'gsdr-local-patches';
 const MANIFEST_NAME = 'gsd-file-manifest.json';
 
 /**
