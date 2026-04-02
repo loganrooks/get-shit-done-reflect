@@ -389,6 +389,25 @@ describe('install script', () => {
           expect(result).toBe('Use /gsdr:help for commands')
           expect(result).not.toContain('/gsdrr:')
         })
+
+        it('$HOME prefix does NOT double to $HOME/$HOME (regression #27)', () => {
+          // Global installs pass pathPrefix = '$HOME/.claude/' — must not produce $HOME/$HOME
+          const input = '$HOME/.claude/get-shit-done/VERSION'
+          const result = replacePathsInContent(input, '$HOME/.claude/')
+          expect(result).not.toContain('$HOME/$HOME')
+          expect(result).toBe('$HOME/.claude/get-shit-done-reflect/VERSION')
+        })
+
+        it('$HOME prefix: tilde and $HOME paths both resolve correctly without doubling', () => {
+          const input = [
+            '~/.claude/get-shit-done/workflows/signal.md',
+            '$HOME/.claude/get-shit-done/VERSION'
+          ].join('\n')
+          const result = replacePathsInContent(input, '$HOME/.claude/')
+          expect(result).not.toContain('$HOME/$HOME')
+          expect(result).toContain('$HOME/.claude/get-shit-done-reflect/workflows/signal.md')
+          expect(result).toContain('$HOME/.claude/get-shit-done-reflect/VERSION')
+        })
       })
 
       describe('cross-runtime interaction', () => {
