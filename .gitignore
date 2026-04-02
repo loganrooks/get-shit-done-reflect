@@ -25,3 +25,4 @@ tests/benchmarks/results.json
 reports/
 RAILROAD_ARCHITECTURE.md
 .vscode/
+.codex/

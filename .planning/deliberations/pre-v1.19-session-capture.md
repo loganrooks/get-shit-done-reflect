@@ -10,7 +10,7 @@ to restore the original deliberation. The overwrite itself is logged as a signal
 **Status:** Open
 **Trigger:** Extended deliberation session that started with patch release workflow and expanded into 21 threads covering harness architecture, sensor gaps, epistemic grounding, failure attribution, thread/artifact lifecycle, and deviation accountability.
 
-## Threads Surfaced
+## Threads Surfaced (21)
 
 ### Thread 1: Release Workflow Integration
 See `patch-release-workflow-integration.md` for the original deliberation.
@@ -257,6 +257,45 @@ This suggests something richer than flat cross-references — possibly a graph d
 **Requisite variety connection (Ashby via Thread 2/10):** The complexity of the feedback/sensor system must match the complexity of the system being observed. A flat signal list with untyped `related_signals` cannot represent the actual relational structure of what signals disclose. But premature formalization risks the opposite error — closing down interpretive possibility (Thread 11/18).
 
 **Research needed:** Survey agentic harness literature (via arxiv-sanity-mcp once operational) for signal/knowledge graph approaches. The epistemic-agency repo's 47 findings may have relevant prior art (F09 contextual retrieval, F14 knowledge graphs, F36 metacognitive architectures). Defer concrete design until research grounding is available.
+
+### Thread 20: Thread Lifecycle as Distinct from Deliberation Lifecycle
+
+**Surfaced:** 2026-04-02 (session 2, user reflection)
+
+The 19 threads in this document are not deliberations, and forcing them into the deliberation lifecycle (`open → concluded → adopted → evaluated → superseded`) would do them violence. Threads are heterogeneous: Thread 5 (patch workflow) is actionable and could become a phase. Thread 11 (signal hermeneutics) is an orientation that may never "conclude." Thread 10 (philosophical operationalization) occupies an indeterminate space between the two.
+
+A deliberation lifecycle assumes an inquiry moving toward resolution. Threads can:
+1. **Develop into** deliberations (concerns become precise enough to frame as design questions)
+2. **Develop into** phases or scope items (demands become concrete enough to plan)
+3. **Generate** signals (observations get noticed concretely in practice)
+4. **Remain as orientation** (shape how other work is done without being "done" themselves)
+5. **Be absorbed** by another thread or development that renders them differently legible
+6. **Bifurcate** into multiple concerns requiring different treatment
+
+Candidate thread lifecycle states: `surfaced → developing → materialized | orienting | absorbed`. No "concluded" state — threads don't conclude, they either materialize into concrete artifacts or remain as orientation. "Absorbed" is not "superseded" — the thread isn't wrong, it's been taken up.
+
+**Design tension:** Formalizing a thread lifecycle risks bureaucratic overhead for something whose value lies in informality. The pre-v1.19 capture works partly *because* threads aren't formalized. The question is whether a light-touch lifecycle can prevent threads from being silently forgotten without destroying that informality.
+
+**Connects to:** Thread 9 (deliberation lifecycle gap), Thread 12 (unified lifecycle), Thread 18 (contextual interpretation), forms-excess deliberation (how formal systems handle what exceeds their categories).
+
+### Thread 21: Orphaned Artifacts, Deviation Accountability, and the Testimony of Excess
+
+**Surfaced:** 2026-04-02 (session 2, user reflection)
+
+When agents create artifacts outside formal workflows — audit reports in `.planning/` root, directories with no workflow-defined purpose, analysis files with no template — these deviations testify to something the formalized workflows couldn't accommodate. But the artifacts as created typically carry no trace of *why* the deviation happened, *what* prompted it, or *what the creator understood the formal workflow to lack*.
+
+**The accountability gap:** The rogue-files probe (HEALTH-10) detects anomalous files. The rogue-context probe (HEALTH-11) categorizes them as `agent-ignorance` vs `workflow-gap` by reading git history. But git commits record *what* changed, not *why the agent chose to deviate*. The gap is between detection and interpretation — the health check can see the artifact but can't read the intention behind it.
+
+**The ethical analogy (user):** Whenever we deviate from law, we must be able to justify ourselves — give an account, answer for our actions. The same applies to deviating from formalized workflows. This is not about preventing deviation but requiring that deviation be accompanied by testimony. The formalization doesn't close the space for excess — it ensures the excess leaves traces legible to other parts of the system.
+
+**Candidate interventions:**
+1. **Deviation header** — when an agent creates an artifact outside any formal workflow, include a structured note: what was the agent producing, what workflow was searched/found inadequate, what the artifact is meant to serve
+2. **Health-check → signal pipeline** — rogue-context categorizations should generate signals carrying the deviation context, not just file paths
+3. **Formalized deviation testimony pattern** — building on the structural-norms deliberation's three-layer distinction: structurally make it *easy* to deviate responsibly (lightweight template); procedurally check for deviation traces; declaratively hold the principle that untraceable deviation is irresponsible because it denies the system the ability to learn from the gap
+
+**Key insight (user):** This thread and Thread 20 are the same question at different scales — how do we make space for what exceeds our current formalizations while ensuring the excess leaves enough trace to be read later?
+
+**Connects to:** Thread 8 (staleness detection), Thread 11/18 (signal hermeneutics), Thread 20 (thread lifecycle), HEALTH-10/11 (rogue file infrastructure), structural-norms deliberation (three-layer distinction), forms-excess deliberation (formal systems and their remainders), development-workflow-gaps deliberation (Issue #1: agent editing wrong directory).
 
 ## Key Artifacts
 
