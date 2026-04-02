@@ -174,6 +174,38 @@ Learning (update KB, close signals, evaluate deliberations)
 
 Missing lifecycle states identified: `proposed`, `delegated`/`in-progress`, `deferred`, `blocked`, `superseded`. Current states (detected → triaged → remediated → verified) are too coarse — "triaged" means everything from "glanced at" to "deliberately deferred for 6 months."
 
+### Thread 13: Multi-Node KB Bridge (apollo ↔ dionysus)
+
+117 signals on apollo, fully siloed. No propagation mechanism — SyncThing broken since 2025-12, no rsync, no git bridge. 21 critical signals including 2 fresh harness bugs (model-resolver keyed on `gsd-*` not `gsdr-*`, discuss-mode config wiring unowned). Apollo has signals from projects that don't exist on dionysus (blackhole-animation, pdfagentialconversion).
+
+Minimum bridge: `rsync --ignore-existing` pull from apollo → dionysus before reflect runs. But the deeper question is interpretive routing — harness-level signals should flow to the development project, project-specific signals should stay contextual. A signal about Codex quality-profile mismatch in blackhole-animation is about the harness, not about animation. The routing requires the kind of reading described in Thread 11.
+
+New GitHub Issue #30 filed from apollo: model-resolver `gsd-*` key mismatch. Directly relevant to development here.
+
+### Thread 14: Cross-Model Review (GPT 5.4 ↔ Claude)
+
+User discovered that having one model review the work of the other exposes blind spots neither can find alone. This is I09 (variety amplification) made concrete — each model's noise distribution is independent. Architecturally significant for quality gates on judgment-dangerous operations. Could be an optional setup for users with both Claude and Codex subscriptions. Connects to Thread 10 (proletarianization gradient) — cross-model review is a mechanism for maintaining epistemic agency at higher automation levels.
+
+### Thread 15: Involuntary Memory / Context Injection
+
+SessionStart hooks already exist for health checks. Same mechanism could inject: relevant KB context, stale deliberation alerts, unreleased change counts, cross-project signal summaries. The infrastructure is partially there. This connects to Thread 9 (deliberation auto-surfacing) and Thread 4 (sensor gaps). The "involuntary" aspect is important — the system should surface context the user didn't ask for but needs, not wait to be queried.
+
+### Thread 16: Cross-Platform Parity and Graceful Degradation
+
+Codex and Claude Code have different capabilities, different model behaviors, different failure modes. GPT 5.4 has quirks Claude doesn't and vice versa. The harness needs thorough understanding of each platform's features, what needs modification to work, and graceful degradation paths. This extends the existing capability matrix and cross-runtime parity work (v1.14, v1.17 QTs) but requires ongoing monitoring as platforms evolve. Connects to the GitHub sensor proposal (Thread 4) — monitoring platform changelogs.
+
+### Thread 17: User Feedback and Community Design
+
+Beyond GitHub Issues. The harness needs feedback mechanisms responsive to the plurality of situations users encounter. Not just a bug tracker but something that can capture the kind of situated, contextual observations that this session produced. The `community-feedback-pipelines-and-dialogue-forms.md` deliberation is open and addresses this. The challenge: designing for a plurality of concrete situations while maintaining the signal/deliberation infrastructure that enables systematic response.
+
+### Thread 18: Signal Readings and Contextual Interpretation (expanded from Thread 11)
+
+When signals or deliberations are cited in future contexts, they should be read both within their original situated context AND for what they signify beyond that context. A deliberation marked "stale" because its immediate concern was addressed may still carry a demand — the structural condition it pointed to may manifest differently elsewhere. Marking something "remediated" closes one reading but shouldn't foreclose others.
+
+The user's framing: "the very responsiveness of the response, the demandingness of the demand, are timeless and eternal" — even when the situation that produced a signal no longer obtains, the responsibility it articulated presents itself differently in different contexts. This is not mysticism but a practical design consideration: the KB should support re-reading, not just retrieval.
+
+Practice opportunity: revisit "stale" / "remediated" signals from this session to test whether deeper readings are available beyond the symptom/fix reading that justified the status transition.
+
 ## Session Outcomes (Concrete)
 
 | Outcome | Detail |
