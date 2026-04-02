@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [ci, testing, deviation, manifest, test-suite-gap, verify-step]
 created: 2026-03-03T18:30:00Z
-updated: 2026-03-03T18:30:00Z
+updated: 2026-04-02T20:00:00Z
 durability: convention
-status: active
+status: remediated
 severity: critical
 signal_type: deviation
 phase: 37
@@ -45,3 +45,7 @@ User's key question: What should the distribution of responsibilities be? Should
 2. **No post-execution CI gate**: execute-phase verifies via SUMMARY.md spot-checks (file existence, git commits) but doesn't trigger or monitor CI. This is by design — CI awareness is Phase 39's scope.
 3. **Hardcoded assertion is brittle**: The manifest self-test uses an exact count instead of a minimum or a known-feature-list pattern. Adding any feature breaks it.
 4. **Test suite fragmentation**: Having tests in two runners (vitest + node:test) with different invocation commands creates a coverage gap that's invisible to agents told to run only one.
+
+## Remediation
+
+Resolved during Phase 37 (2026-03-03). Test assertion updated from 6 to 7 features, matching current feature-manifest.json.

@@ -1,6 +1,6 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-02T08:33:09Z
+**Generated:** 2026-04-02T08:39:16Z
 **Total entries:** 194
 
 ## Signals (193)
@@ -45,14 +45,14 @@
 | sig-2026-03-04-test-count-exceeded-plan-target-phase38 | get-shit-done-reflect | minor | detected | testing,deviation | 2026-03-04 | active |
 | sig-2026-03-04-summary-md-no-executor-model-epistemic-gap-phase38 | get-shit-done-reflect | notable | detected | config,deviation | 2026-03-04 | active |
 | sig-2026-03-04-stale-log-sensor-spec-disabled-by-default-text | get-shit-done-reflect | minor | detected | config,deviation,workaround | 2026-03-04 | active |
-| sig-2026-03-04-quality-profile-executor-model-unverifiable-phase38 | get-shit-done-reflect | critical | detected | config,deviation | 2026-03-04 | active |
+| sig-2026-03-04-quality-profile-executor-model-unverifiable-phase38 | get-shit-done-reflect | critical | detected | config,deviation | 2026-03-04 | remediated |
 | sig-2026-03-04-pseudocode-template-var-wiring-test-failure | get-shit-done-reflect | minor | detected | deviation,testing,workaround | 2026-03-04 | active |
 | sig-2026-03-04-phase38-both-plans-3min-rapid-execution | get-shit-done-reflect | notable | detected | performance,deviation | 2026-03-04 | active |
 | sig-2026-03-04-drop-a-file-sensor-extensibility-pattern | get-shit-done-reflect | notable | detected | config,deviation | 2026-03-04 | active |
 | sig-2026-03-04-signal-lifecycle-representation-gap | get-shit-done-reflect | critical | detected | signal-lifecycle,meta-observability,representation-gap,capability-gap,feedback-loop,epistemic-gap | 2026-03-04 | active |
 | sig-2026-03-04-deliberation-skill-lacks-epistemic-verification | get-shit-done-reflect | critical | detected | deliberation,epistemic-rigor,capability-gap,verification,meta-observability | 2026-03-04 | active |
 | sig-2026-03-03-no-ci-verification-in-execute-phase-workflow | get-shit-done-reflect | critical | detected | ci,workflow-gap,execute-phase,verification,automation,signal-collection,architecture | 2026-03-03 | active |
-| sig-2026-03-03-ci-fail-manifest-selftest-hardcoded-feature-count | get-shit-done-reflect | critical | detected | ci,testing,deviation,manifest,test-suite-gap,verify-step | 2026-03-03 | active |
+| sig-2026-03-03-ci-fail-manifest-selftest-hardcoded-feature-count | get-shit-done-reflect | critical | detected | ci,testing,deviation,manifest,test-suite-gap,verify-step | 2026-03-03 | remediated |
 | sig-2026-03-03-unplanned-autofix-extractatrefs-trailing-asterisk | get-shit-done-reflect | minor | detected | deviation,wiring-validation,testing | 2026-03-03 | active |
 | sig-2026-03-03-good-pattern-wiring-validation-dual-directory-meta-tests | get-shit-done-reflect | notable | detected | testing,wiring-validation,ci,dual-directory | 2026-03-03 | active |
 | sig-2026-03-03-fix-chain-quick3-pre-v114-six-commits | get-shit-done-reflect | critical | detected | fix-chain,commit-patterns | 2026-03-03 | active |
@@ -67,7 +67,7 @@
 | sig-2026-03-02-summary-md-lacks-executor-model-provenance | get-shit-done-reflect | minor | detected | config,deviation | 2026-03-02 | active |
 | sig-2026-03-02-step-55-auto-trigger-never-exercised | get-shit-done-reflect | notable | detected | deviation,testing,workaround | 2026-03-02 | active |
 | sig-2026-03-02-reflect-to-spike-pipeline-untested-end-to-end | get-shit-done-reflect | notable | detected | deviation,testing | 2026-03-02 | active |
-| sig-2026-03-02-quality-profile-sonnet-executor-mismatch | get-shit-done-reflect | critical | triaged | config,deviation | 2026-03-02 | active |
+| sig-2026-03-02-quality-profile-sonnet-executor-mismatch | get-shit-done-reflect | critical | triaged | config,deviation | 2026-03-02 | remediated |
 | sig-2026-03-02-plan-scope-declaration-mismatch-35-03-and-04 | get-shit-done-reflect | notable | detected | scope-creep,plan-accuracy | 2026-03-02 | active |
 | sig-2026-03-02-plan-04-files-modified-lists-runtime-not-source | get-shit-done-reflect | minor | detected | config,deviation | 2026-03-02 | active |
 | sig-2026-03-02-phase-35-zero-deviation-all-plans | get-shit-done-reflect | minor | detected | deviation | 2026-03-02 | active |
@@ -130,7 +130,7 @@
 | sig-2026-02-16-stale-continue-here-files-not-cleaned | get-shit-done-reflect | notable | detected | continue-here,cleanup,phase-completion,milestone-archival,deviation | 2026-02-16 | active |
 | sig-2026-02-16-branch-not-deleted-after-pr-merge | get-shit-done-reflect | notable | detected | git-workflow,branch-management,deviation,milestone-process | 2026-02-16 | active |
 | sig-2026-02-11-kb-data-loss-migration-gap | get-shit-done-reflect | critical | detected | data-loss,kb-migration,critical-gap,installer-dependency | 2026-02-11 | active |
-| sig-2026-02-11-kb-script-wrong-location-and-path | get-shit-done-reflect | critical | detected | kb-management,path-resolution,architecture,misplaced-artifact | 2026-02-11 | active |
+| sig-2026-02-11-kb-script-wrong-location-and-path | get-shit-done-reflect | critical | detected | kb-management,path-resolution,architecture,misplaced-artifact | 2026-02-11 | remediated |
 | sig-2026-02-11-local-install-global-kb-model | get-shit-done-reflect | critical | detected | install-model,local-install,global-kb,path-resolution,architecture | 2026-02-11 | active |
 | sig-2026-02-11-signal-workflow-context-bloat | get-shit-done-reflect | notable | detected | context-bloat,workflow-overhead,signal-workflow,token-cost | 2026-02-11 | active |
 | sig-2026-02-11-agent-inline-research-context-bloat | get-shit-done-reflect | notable | detected | context-bloat,agent-behavior,research-orchestration,deviation | 2026-02-11 | active |

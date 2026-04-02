@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [config, deviation]
 created: 2026-03-04T20:00:37Z
-updated: 2026-03-04T20:00:37Z
+updated: 2026-04-02T20:00:00Z
 durability: convention
-status: active
+status: remediated
 severity: critical
 signal_type: config-mismatch
 signal_category: negative
@@ -56,3 +56,7 @@ Phase 38, Plans 01 and 02. Both plans achieved 10/10 verification pass on first 
 ## Potential Cause
 
 This is a recurring pattern (related to sig-2026-03-02-quality-profile-sonnet-executor-mismatch and sig-2026-03-03-epistemic-gap-executor-model-not-recorded-phase36). The root epistemic gap is that SUMMARY.md files do not record the executor model, making config mismatch detection unreliable. The signal is flagged at critical severity per detection rules for quality-profile + sonnet-class discrepancy, but the low confidence reflects that the evidence is indirect.
+
+## Remediation
+
+Resolved by Phase 43-02 (commit 26061d1, 2026-03-06). model and context_used_pct fields added to all SUMMARY.md templates and executor spec. All Phase 45+ summaries include model field.

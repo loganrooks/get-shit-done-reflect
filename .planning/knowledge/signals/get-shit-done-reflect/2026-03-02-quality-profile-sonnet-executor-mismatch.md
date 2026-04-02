@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [config, deviation]
 created: 2026-03-02T00:00:00Z
-updated: 2026-03-02T18:50:00Z
+updated: 2026-04-02T20:00:00Z
 durability: convention
-status: active
+status: remediated
 severity: critical
 signal_type: config-mismatch
 signal_category: negative
@@ -60,3 +60,7 @@ Phase 35, post-execution signal synthesis. The sensor is running under the synth
 ## Potential Cause
 
 The synthesizer/sensor was spawned as a sonnet-class model despite the project config requesting quality-class execution. This may reflect a runtime model selection override, a sub-agent context that doesn't inherit the top-level model preference, or the user invoking the session without an explicit opus-class model selection.
+
+## Remediation
+
+Root cause (missing executor model provenance) resolved by Phase 43-02 (commit 26061d1, 2026-03-06). SUMMARY.md template now includes model field.

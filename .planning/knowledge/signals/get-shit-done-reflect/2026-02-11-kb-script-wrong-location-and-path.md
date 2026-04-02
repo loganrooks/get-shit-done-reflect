@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [kb-management, path-resolution, architecture, misplaced-artifact]
 created: 2026-02-11T22:15:00Z
-updated: 2026-02-11T22:15:00Z
+updated: 2026-04-02T20:00:00Z
 durability: convention
-status: active
+status: remediated
 severity: critical
 signal_type: config-mismatch
 phase: post-17
@@ -30,3 +30,7 @@ Discovered during post-v1.14 gap analysis when kb-rebuild-index.sh wasn't found 
 ## Potential Cause
 
 KB migration (Phase 14) focused on data files and path references in source content, but overlooked the management scripts themselves. The scripts were treated as "agent files" because they happened to live in `agents/`, but they're actually KB infrastructure that should travel with the KB.
+
+## Remediation
+
+Resolved by Phase 19 KB Infrastructure (commit 1a79aea, 2026-02-14). installKBScripts() now copies scripts to ~/.gsd/bin/, all workflow references updated.
