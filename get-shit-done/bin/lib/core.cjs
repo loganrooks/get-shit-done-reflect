@@ -18,7 +18,7 @@ function toPosixPath(p) {
 const MODEL_PROFILES = {
   'gsd-planner':              { quality: 'opus', balanced: 'opus',   budget: 'sonnet' },
   'gsd-roadmapper':           { quality: 'opus', balanced: 'sonnet', budget: 'sonnet' },
-  'gsd-executor':             { quality: 'sonnet', balanced: 'sonnet', budget: 'sonnet' },
+  'gsd-executor':             { quality: 'opus', balanced: 'sonnet', budget: 'sonnet' },
   'gsd-phase-researcher':     { quality: 'opus', balanced: 'sonnet', budget: 'haiku' },
   'gsd-project-researcher':   { quality: 'opus', balanced: 'sonnet', budget: 'haiku' },
   'gsd-research-synthesizer': { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
@@ -31,6 +31,17 @@ const MODEL_PROFILES = {
   'gsd-ui-researcher':        { quality: 'opus', balanced: 'sonnet', budget: 'haiku' },
   'gsd-ui-checker':           { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
   'gsd-ui-auditor':           { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'gsd-advisor-researcher':   { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'gsd-reflector':            { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'gsd-spike-runner':         { quality: 'opus', balanced: 'sonnet', budget: 'sonnet' },
+  'gsd-signal-collector':     { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'gsd-signal-synthesizer':   { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'gsd-artifact-sensor':      { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'gsd-ci-sensor':            { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'gsd-git-sensor':           { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'gsd-log-sensor':           { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'gsd-checker':              { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'gsd-advisor':              { quality: 'opus', balanced: 'sonnet', budget: 'sonnet' },
 };
 
 // Map profile aliases to full Claude model IDs (upstream C6 partial).
@@ -509,17 +520,18 @@ function getRoadmapPhaseInternal(cwd, phaseNum) {
 }
 
 function resolveModelInternal(cwd, agentType) {
+  const normalizedType = agentType.replace(/^gsdr-/, 'gsd-');
   const config = loadConfig(cwd);
 
-  // Check per-agent override first
-  const override = config.model_overrides?.[agentType];
+  // Check per-agent override first (support both gsd- and gsdr- keys in config)
+  const override = config.model_overrides?.[normalizedType] ?? config.model_overrides?.[agentType];
   if (override) {
     return override === 'opus' ? 'inherit' : override;
   }
 
   // Fall back to profile lookup
   const profile = config.model_profile || 'balanced';
-  const agentModels = MODEL_PROFILES[agentType];
+  const agentModels = MODEL_PROFILES[normalizedType];
   if (!agentModels) return 'sonnet';
   const resolved = agentModels[profile] || agentModels['balanced'] || 'sonnet';
   return resolved === 'opus' ? 'inherit' : resolved;

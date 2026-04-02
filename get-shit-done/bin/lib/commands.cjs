@@ -202,11 +202,12 @@ function cmdResolveModel(cwd, agentType, raw) {
     error('agent-type required');
   }
 
+  const normalizedType = agentType.replace(/^gsdr-/, 'gsd-');
   const config = loadConfig(cwd);
   const profile = config.model_profile || 'balanced';
   const model = resolveModelInternal(cwd, agentType);
 
-  const agentModels = MODEL_PROFILES[agentType];
+  const agentModels = MODEL_PROFILES[normalizedType];
   const result = agentModels
     ? { model, profile }
     : { model, profile, unknown_agent: true };
