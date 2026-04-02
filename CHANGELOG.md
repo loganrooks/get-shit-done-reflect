@@ -6,6 +6,16 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.18.2] - 2026-04-02
+
+### Fixed
+- **execute-phase branching strategy**: offer_next step now respects branching_strategy config — pushes branch, offers PR creation, runs post-merge cleanup when strategy is "phase" or "milestone" (addresses 6 recurring signals)
+- **PR merge policy**: offer_next explicitly uses --merge not --squash to preserve commit history
+
+### Changed
+- KB cleanup: deleted 144 test artifact directories (70% noise reduction), standardized date formats, added missing signal IDs
+- 16 stale signals transitioned to remediated status (first lifecycle transitions in KB history)
+
 ## [1.18.1] - 2026-04-02
 
 ### Fixed
