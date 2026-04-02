@@ -756,7 +756,14 @@ If on a non-main branch:
    gh pr create --base main --head $CURRENT_BRANCH --title "Phase ${PHASE_NUMBER}: ${PHASE_NAME}" --fill
    ```
 
-3. **If PR created, offer to merge.**
+3. **If PR created, offer to merge:**
+   ```
+   PR created. Merge now? [y/n]
+   ```
+   If yes, merge with `--merge` (preserves individual commit history, never `--squash`):
+   ```bash
+   gh pr merge $CURRENT_BRANCH --merge
+   ```
 
 4. **If PR merged, run post-merge cleanup:**
    ```bash
