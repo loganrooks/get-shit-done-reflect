@@ -1,205 +1,128 @@
 # Deliberation: Patch Release Workflow Integration
 
 <!--
-Started as "how should release connect to workflows" — expanded through conversation
-into a broader examination of harness responsiveness, epistemic grounding, sensor gaps,
-failure attribution, and the meta-learning loop. This deliberation now serves as the
-primary pre-milestone capture for v1.19 scoping.
+Deliberation template grounded in:
+- Dewey's inquiry cycle (situation → problematization → hypothesis → test → warranted assertion)
+- Toulmin's argument structure (claim, grounds, warrant, rebuttal)
+- Lakatos's progressive vs degenerating programme shifts
+- Peirce's fallibilism (no conclusion is permanently settled)
+
+Lifecycle: open → concluded → adopted → evaluated → superseded
 -->
 
-**Date:** 2026-04-02
+**Date:** 2026-03-30
 **Status:** Open
-**Trigger:** Conversation observation — reviewing pending todos between milestones surfaced the question of how quick tasks get released. The v1.18 handoff flagged: "Release workflow gap: complete-milestone doesn't include version bump, GitHub Release creation, or multi-runtime install." Investigation expanded into harness-level design questions.
-**Affects:** harness architecture, automation framework, signal system, sensor design, workflow integration, milestone scoping
+**Trigger:** Conversation observation — reviewing pending todos between milestones surfaced the question of how quick tasks get released. The v1.18 handoff also flagged: "Release workflow gap: complete-milestone doesn't include version bump, GitHub Release creation, or multi-runtime install."
+**Affects:** `/gsdr:complete-milestone`, `/gsdr:quick`, `/gsdr:release`, automation framework, between-milestone workflow
 **Related:**
-- sig-2026-02-17-release-process-fragile-manual-steps
-- sig-2026-03-30-release-workflow-forgotten-in-milestone-completion
-- sig-2026-04-02-background-agent-bypassed-quality-gates-broke-global-install
-- sig-2026-04-02-agent-failed-to-self-signal-on-failure-cascade
-- `.planning/deliberations/development-workflow-gaps.md`
-- `.planning/deliberations/sensor-expansion-and-harness-integration-gaps.md`
-- `.planning/deliberations/v1.17-plus-roadmap-deliberation.md` (M-B, M-C, M-E themes)
-- GitHub Issues #15, #17, #26, #27
+- sig-2026-02-17-release-process-fragile-manual-steps (v1.14 release chaos — led to `/gsdr:release` creation)
+- sig-2026-03-30-release-workflow-forgotten-in-milestone-completion (v1.18 missed version bump, GH Release, multi-runtime install)
+- `.planning/deliberations/development-workflow-gaps.md` (establishes pattern of "workflow steps that should happen but nobody remembers")
 
 ## Situation
 
-### The Original Question
-`/gsdr:release` exists and works but nothing connects it to the workflows that produce releasable work. Two seams (milestone completion, quick task completion) have no release integration. The concept of "unreleased work" has no state representation.
+`/gsdr:release` exists and works — it handles pre-flight checks, version bumps, changelog updates, tags, push, and GitHub Release creation. The problem is that nothing in the GSD lifecycle connects to it. Two workflow seams produce releasable work but have no release integration:
 
-### What the Investigation Revealed
+1. **Milestone completion** (`complete-milestone.md`): Creates a `v[X.Y]` git tag and offers to push it, but does not bump `package.json`, does not create a GitHub Release, does not trigger npm publish, and uses the wrong tag format (missing `reflect-v` prefix). The "offer next" step routes directly to `/gsdr:new-milestone` with no mention of release.
 
-The release gap is one instance of a systemic pattern. Investigation uncovered:
+2. **Quick tasks** (`quick.md`): End at "commit + update STATE.md." No release nudge, no post-completion hook, no awareness that accumulated quick tasks represent unreleased work.
 
-**6 workflow integration gaps** — capabilities that exist but aren't wired to the workflows that should trigger them (release, multi-runtime install, test running, PR creation, deliberation surfacing, codebase doc refresh).
-
-**Automation framework has never fired** — signal collection postlude: 0 fires, 6 skips (100% skip rate). Reflection: 0 fires, disabled. The pattern proposed for extension has no empirical track record of success.
-
-**Research grounding exposed weak reasoning** — the initial proposal (declarative integration points governed by automation levels) was pattern-matching, not evidence-based. Epistemic-agency corpus findings (F47, F45, F46, F33, F04, I09) challenged the framing.
-
-**Live cascade failure demonstrated the gaps** — background agent (wrong type: executor not quick) ran installer → $HOME/$HOME bug broke 91 files → emergency sed fix without tests/CI/release. Agent didn't self-signal. User had to prompt signal creation. (sig-2026-04-02-background-agent-bypassed..., sig-2026-04-02-agent-failed-to-self-signal...)
-
-**174 unresolved signals, 12 open deliberations, 4 GitHub issues** — the signal lifecycle isn't flowing. Signals are captured but rarely processed through triage → remediate → verify. Cross-project signals (30 from 5 projects) aren't synthesized for harness-level patterns.
+Additionally, the concept of "unreleased work" has no representation in GSD state. There's no counter, no tracking, no visibility into how many changes have accumulated since the last release.
 
 ### Evidence Base
 
-| Source | What it shows | Corroborated? |
-|--------|--------------|---------------|
-| complete-milestone.md | No release step, wrong tag prefix, no version bump | Yes |
-| quick.md | No release awareness at completion | Yes |
-| config.json automation stats | signal_collection: 0 fires / 6 skips | Yes |
-| KB index | 174 active signals, 24 critical | Yes |
-| GitHub Issues #15,#17,#26,#27 | Cross-runtime drift, installer bugs, semantic divergence | Yes |
-| Cross-project signals | Same failure modes (quality profile mismatch, CI masking) recur across projects | Yes |
-| v1.18 release incident | Steps forgotten, stale assumptions, manual recovery | Yes (2 signals document it) |
-| This session's cascade | Wrong agent type → installer break → emergency patch → no self-signal | Yes (2 signals document it) |
+| Source | What it shows | Corroborated? | Signal ID |
+|--------|--------------|---------------|-----------|
+| complete-milestone.md (lines 604-630) | Creates `v[X.Y]` tag only — no version bump, no GH Release, no `reflect-v` prefix | Yes (grepped for release/publish/bump) | sig-2026-03-30-release-workflow-forgotten |
+| quick.md (line 684) | Ends at artifact commit — no release awareness | Yes (grepped for release/version/post-completion) | informal |
+| execute-phase.md (lines 372-462) | Signal collection postlude exists as a working pattern for post-execution automation | Yes (read postlude implementation) | informal |
+| release.md workflow | Full release automation exists and works (version bump, changelog, tag, GH Release, npm publish trigger) | Yes (read workflow end-to-end) | sig-2026-02-17-release-process-fragile |
+| v1.18 completion experience | Agent missed release steps, had stale NPM_TOKEN assumption, required user intervention | Yes (signal documents the incident) | sig-2026-03-30-release-workflow-forgotten |
+| STATE.md | No "unreleased changes" or "commits since last release" tracking exists | Yes (read STATE.md structure) | informal |
+| config.json automation stats | signal_collection: 0 fires / 6 skips; reflection: 0 fires / 2 skips | Yes (read config.json) | informal |
 
 ## Framing
 
 **Core question:** When work produces releasable changes — whether a milestone or between-milestone quick tasks — how should the release step be connected to the workflow that produced the changes?
 
-**Adjacent questions surfaced during investigation:**
-
-1. **How should the harness evaluate its own proposed changes?** (research-grounding gap)
-2. **What's the right relationship between automation and human epistemic agency?** (F47 execution/judgment distinction)
-3. **How do we prevent path-dependent local optima in harness evolution?** (I07, F39)
-4. **How can the harness respond to multiple demands in parallel with quality guarantees?** (headless delegation, patch workflow)
-5. **How should signals and GitHub issues relate?** (dual lifecycle, linking infrastructure)
-6. **What sensors are missing?** (chat history, GitHub, arxiv, patches, sentiment, cross-project)
-7. **How do we measure whether features actually work after implementation?** (lifecycle monitoring)
-8. **How can we respond to the singularity of each situation's demand without betraying other demands?** (Levinas)
+**Adjacent questions:**
+- Is "releasable unit of work" a concept GSD should formalize, or should release remain a manual decision?
+- Should the automation framework's 4-level system (manual/nudge/prompt/auto) govern release behavior?
+- How does multi-runtime installation fit into the release flow?
 
 ## Analysis
 
-### Thread 1: Release Workflow (The Original Question)
+### Original Options (A/B/C)
 
-The configurable integration approach (automation levels 0-3 governing release behavior) is sound in principle but ungrounded empirically. The automation framework it would extend has never fired. Before building more integration points:
-- Evaluate whether existing integrations deliver their promises
-- Fix the immediate gap (wire release into complete-milestone as a workflow step)
-- Design structural constraints for mechanical failures (ordering, chaining)
-- Keep judgment decisions (when to release) with the human, improve decision support (unreleased change visibility)
+**Option A: Wire Into Existing Workflows (Minimal Integration)**
+- Add `/gsdr:release` as a step in `complete-milestone` and as a nudge in `quick` task completion.
+- **Grounds:** Both signals trace to the same root cause — workflows end without mentioning release.
+- **Rebuttal:** Doesn't address unreleased work accumulation for between-milestone quick tasks.
 
-### Thread 2: Research-Grounded Evaluation
+**Option B: Release Accumulator (Automation-Aware)**
+- Track unreleased changes as first-class concept. Use automation framework's 4-level system.
+- **Grounds:** `commits_since_last_release` is structurally identical to `phases_since_last_reflect`.
+- **Rebuttal:** Automation framework has 0% fire rate in this project. Extending a non-functional pattern.
 
-The harness lacks a meta-learning loop for evaluating its own design evolution. The deliberation template has Predictions/Evaluation sections but:
-- Predictions are rarely falsifiable enough
-- No research grounding step (arxiv-sanity-mcp, zlibrary-mcp unused in design process)
-- Design claims aren't classified by epistemic status (empirical / analogical / assumed)
-- The agent presenting proposals can't evaluate its own reasoning (F02, I01)
+**Option C: Lifecycle Checkpoint (Release as Workflow Phase)**
+- Formalize "release" as distinct lifecycle phase between "complete" and "shipped."
+- **Rebuttal:** Heaviest option; over-formalizes for projects that don't publish.
 
-**Epistemic-agency findings relevant:**
-- F47: Automation exists on a proletarianization gradient (execution-safe, judgment-dangerous)
-- F45: Premature convergence is a cybernetic variety problem
-- F46: Signal systems suffer the MAPE blind spot (plan-conformance, not planning-quality)
-- F33: Six interaction mechanisms — action guards for irreversible operations
-- F04: 74% of production agents use human-in-loop as architecture, not workaround
-- I09: Human provides independent noise distribution AI cannot generate
-- F29: Plan visibility doesn't calibrate trust (50% floor)
+### Synthesis: Configurable Integration (from user insight)
 
-### Thread 3: Failure Attribution
+Options A/B/C aren't alternatives — they're points on a configuration spectrum. The existing infrastructure supports this:
 
-When the harness fails, we can't trace backward to the responsible component. The v1.18 release signal says "steps were missed" but doesn't distinguish workflow gap vs. automation-level problem vs. agent instruction-following failure vs. architectural flaw. The signal system captures THAT something failed but not WHY at the harness-component level.
+- **Release config** (manifest) already knows *how* to release (version_file, changelog, ci_trigger, registry)
+- **Automation config** (manifest) already knows *when* to auto-trigger (4 levels, per-feature overrides)
+- **Missing bridge:** A `release` sub-section in automation (like `reflection`) connecting "when" to "how"
 
-### Thread 4: Sensor Gaps (from user's message)
+| Level | Milestone completion | Quick task completion | Resume |
+|-------|---------------------|----------------------|--------|
+| 0 (manual) | No mention of release | No mention | No mention |
+| 1 (nudge) | "Don't forget: `/gsdr:release`" | "N changes unreleased" | "N unreleased changes" in status |
+| 2 (prompt) | "Release now? (yes/skip)" | "5 commits since last release — release patch?" | Surfaces as pending action |
+| 3 (auto) | Chains directly to `/gsdr:release` | Auto-releases after threshold | N/A (already released) |
 
-**Proposed new sensors:**
-- **Chat history sensor**: Detect implicit frustration, intervention frequency, dialogue patterns. The most significant failure in the 2026-04-02 session was invisible to every existing sensor because it happened in dialogue, not committed code.
-- **GitHub sensor**: Monitor issues in other repos, other frameworks' changelogs, agentic harness ecosystem evolution.
-- **arxiv-sanity-mcp integration**: Monitor for new relevant papers on harness design.
-- **Patch system sensor**: Local patches as signal source — detect patches in GSDR/GSD/other installations, differentiate from update lag.
-- **Sentiment analysis**: Frustration markers, repeated intervention patterns, anger as signal weight.
-- **Cross-project signal propagation**: The shared ~/.gsd/knowledge is becoming unwieldy.
+### Epistemic Challenge (from user)
 
-**Design considerations raised by user:**
-- Every sensor interprets through a theoretical horizon that should be made explicit
-- Drawing on Levinas: responding to the singularity of each situation without betraying other demands
-- Benjamin's weak messianic power: at minimum record traces for later
-- Deduplication across sensors (don't revisit same issues/changelogs)
-- Sufficient exploration without infinite regress
+The configurable integration proposal was challenged on epistemic grounds:
+- **Not empirically grounded** — based on pattern-matching, not research
+- **Automation framework has never fired** — 0% success rate for the pattern being extended
+- **F47 (Stiegler):** Conflates execution automation (safe) with judgment automation (dangerous)
+- **F45 (Ashby):** Premature convergence — every problem gets "extend automation framework"
 
-### Thread 5: Patch Response Workflow (Not Yet Formalized)
+### Revised Understanding
 
-The session revealed the need for a formalized patch response workflow:
-1. Issue intake (GitHub issues, signals, cross-project observations)
-2. Triage (quick-fix / milestone-deferred / hybrid)
-3. Quick-fix dispatch (parallel worktrees with quality gates)
-4. Release (batch into patch release with CI)
-5. Verification (monitor fix effectiveness, close issues, check signal recurrence)
-6. Deferred routing (captured for milestone planning)
+The v1.18 failures were **mechanical**, not judgment failures:
+- Tag before version bump (ordering constraint)
+- Wrong tag prefix (computed value forgotten)
+- CI pipeline not invoked (step skipped)
+- Multi-runtime install not run (step skipped)
 
-This doesn't exist. Current approach is ad hoc — and the cascade failure demonstrated what happens without it.
+These are structurally preventable — not "try harder" or "add human checkpoint," but make the wrong thing impossible in code. However, "structurally unfailable" is itself an overconfident claim (user correction). The honest position: **design for empirical reliability, observe whether it actually fails, and maintain ability to trace failures back to causes.**
 
-### Thread 6: Issue/Signal Lifecycle Integration
+## Tensions
 
-Signals and GitHub issues track related but disconnected information:
-- Signal schema has no `github_issue` field
-- GitHub issues have no structured signal reference
-- Two independent lifecycles (signal: detected→triaged→remediated→verified; issue: open→closed)
-- No sync mechanism
-
-Filing GitHub issues from signals without linking infrastructure creates maintenance burden. Need to decide: which system is authoritative? Should signals drive issues, issues drive signals, or bidirectional?
-
-### Thread 7: Discuss-Phase Semantic Gap (Issue #26)
-
-The source discuss-phase (1098 lines, upstream) and the user's local patch (444 lines) implement fundamentally different philosophies:
-- **Source**: Decision-closing (pick recommended defaults, lock them, advance pipeline)
-- **User's patch**: Research-opening (preserve uncertainty, epistemic guardrails, never lock merely for completeness)
-
-Both have valuable features the other lacks. Needs synthesis, not selection. The source has KB surfacing, codebase scouting, advisor agent. The patch has four-cause classification, derived constraints, epistemic guardrails, open questions as default home.
-
-## Philosophical Framing
-
-The user raised several philosophical considerations that should inform v1.19 design:
-
-**Levinas** — Responding to the singularity of each situation's demand without betraying the demands of every other project/situation. The harness must differentiate between how a project-local signal should be interpreted within that project vs. how it should inform harness development.
-
-**Benjamin** — Weak messianic power: at minimum, record the traces of failures and demands for later redemption. The signal system is this mechanism — but it only works if signals are created (the meta-signal gap).
-
-**Heidegger** — The pre-theoretical horizon from which predictions are projected should be made explicit. When we predict that a design change will improve reliability, what theoretical framework is that prediction grounded in? Making this explicit allows discrepancies to improve future predictions.
-
-**Stiegler** — Proletarianization gradient: automating execution is safe, automating judgment is dangerous. The 4-level system treats all automation the same. F47 from the epistemic-agency corpus formalizes this.
-
-**Mayo/Popper/Dewey** — We can't prove a design "works" a priori. We can only corroborate through severe testing and observe empirical reliability. "Structurally unfailable" is an overconfident claim. "Empirically very rarely fails" is testable.
-
-## Live Actions Taken
-
-### During this session:
-- Created 2 signals (cascade failure + meta-signal gap)
-- Fixed $HOME/$HOME in 91 installed files (emergency, not source)
-- Verified Issue #15 already resolved (all TOML files parse OK)
-- Launched headless Claude session for installer fixes (#27 + $HOME/$HOME source fix)
-- Launched signal audit agent (174 signals: patch-worthiness, lifecycle accuracy, cross-project harness bugs)
-- Identified discuss-phase source vs. local patch gap (Issue #26)
-- Discovered Issue #27 (patches dir collision) — filed same day
-
-### GitHub issue triage results:
-| Issue | Classification | Status |
-|-------|---------------|--------|
-| #15 TOML escape | Quick-fix | Already fixed, needs verification + close |
-| #17 Cross-runtime drift | Milestone-deferred | 9 acceptance criteria, multi-phase |
-| #26 Discuss-phase semantics | Hybrid | Path alignment quick-fix + semantic deliberation |
-| #27 Patches dir collision | Quick-fix | Being fixed in headless session |
+1. **Automation vs. intentionality**: Release is public-facing. Auto-releasing could ship half-baked work. But manual release gets forgotten (proven twice).
+2. **Universal vs. project-specific**: Some projects release every commit; others batch. Configurable levels address this.
+3. **Mechanical vs. judgment failures**: Most release failures are mechanical (ordering, chaining) — structurally preventable. The judgment question (when to release) is harder.
+4. **Empirical reliability vs. a priori guarantees**: We can't prove a design won't fail. We can design for empirical reliability and observe.
 
 ## Predictions
 
 | ID | Prediction | Observable by | Falsified if |
 |----|-----------|---------------|-------------|
-| P1 | Signal audit will find >30% of critical signals already remediated but still active | Audit completion | <10% are stale |
-| P2 | Cross-project signals will reveal ≥3 harness-level bugs not yet tracked | Audit completion | All cross-project signals are project-specific |
-| P3 | The headless Claude session will complete the installer fixes with passing tests | Session completion | Tests fail or fixes incomplete |
-| P4 | Issue/signal lifecycle integration will be needed before v1.19 completion | v1.19 midpoint | Manual tracking remains sufficient |
-
-## Open Questions (For v1.19 Scoping)
-
-1. Which of the 5+ milestone themes (sensors, research-grounding, failure attribution, patch workflow, discuss-phase synthesis, lifecycle integration) should v1.19 prioritize?
-2. Should v1.19 focus on one theme deeply or address multiple themes incrementally?
-3. How does the sensor gap relate to M-B (Meta-Observability) from the roadmap deliberation?
-4. Can the patch response workflow be built as part of v1.19, or should it be a pre-v1.19 infrastructure piece?
-5. What's the minimal viable linking between signals and GitHub issues?
+| P1 | Milestone completion will include a successful release without manual intervention | Next milestone (v1.19) completion | Release steps are missed or require user to remember `/gsdr:release` separately |
+| P2 | Quick tasks between milestones will result in patch releases within 1 week of accumulation | Between v1.19 milestones | Quick tasks accumulate for >2 weeks without release |
+| P3 | The "release forgotten" signal pattern will not recur | v1.19 and v1.20 milestone completions | A new signal is logged about missed release steps |
+| P4 | Multi-runtime installation will happen as part of release, not as a separate forgotten step | Next release that touches installer | User has to manually run installer for non-active runtimes after release |
 
 ## Decision Record
 
-**Decision:** {pending — this deliberation informs v1.19 scoping, not a single decision}
-**Signals addressed:** sig-2026-02-17, sig-2026-03-30, sig-2026-04-02 (×2)
+**Decision:** {pending — informs v1.19 scoping}
+**Decided:** {pending}
+**Implemented via:** {pending}
+**Signals addressed:** sig-2026-02-17-release-process-fragile-manual-steps, sig-2026-03-30-release-workflow-forgotten-in-milestone-completion
 
 ## Evaluation
 
