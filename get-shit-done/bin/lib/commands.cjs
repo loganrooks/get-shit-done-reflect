@@ -205,7 +205,7 @@ function cmdResolveModel(cwd, agentType, raw) {
   const normalizedType = agentType.replace(/^gsdr-/, 'gsd-');
   const config = loadConfig(cwd);
   const profile = config.model_profile || 'balanced';
-  const model = resolveModelInternal(cwd, normalizedType);
+  const model = resolveModelInternal(cwd, agentType);
 
   const agentModels = MODEL_PROFILES[normalizedType];
   const result = agentModels
