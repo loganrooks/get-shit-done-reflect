@@ -1,12 +1,13 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-02T23:10:07Z
-**Total entries:** 196
+**Generated:** 2026-04-02T23:37:35Z
+**Total entries:** 197
 
-## Signals (195)
+## Signals (196)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-04-02-quick-task-code-changes-committed-directly-to-main | get-shit-done-reflect | critical | detected | quick-task,branching,ci-quality-gate,workflow-gap,git-workflow | 2026-04-02 | active |
 | sig-2026-04-02-update-workflow-npx-resolves-local-in-dev-repo | get-shit-done-reflect | notable | detected | update-workflow,installer,npx,dogfooding,developer-ergonomics | 2026-04-02 | active |
 | sig-2026-04-02-dev-version-suffix-lacks-commit-traceability | get-shit-done-reflect | notable | detected | version-tracing,installer,dev-builds,traceability,signals | 2026-04-02 | active |
 | sig-2026-04-02-agent-defaults-to-self-execution-over-delegation | get-shit-done-reflect | critical | detected | agent-behavior,delegation,context-bloat,recurring-pattern,self-monitoring | 2026-04-02 | active |
