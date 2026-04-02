@@ -1,146 +1,185 @@
-# discuss-phase Global Install Gap Investigation
+# discuss-phase Install Gap Investigation (Revised)
 
 **Date:** 2026-04-02
-**Investigated by:** Agent (claude-opus-4-6)
-**Status:** Resolved (global install updated) + follow-up items identified
+**Status:** Source-install semantic gap documented -- source does NOT have exploratory features
+**Related:** GitHub Issue #26 (cross-runtime semantic divergence)
 
-## Summary
+## Critical Finding
 
-The global install at `~/.claude/get-shit-done-reflect/workflows/discuss-phase.md` was running a 444-line "steering brief" version while the source (`get-shit-done/workflows/discuss-phase.md`) had evolved to a 1098-line version with significantly more capabilities. Running `node bin/install.js --global` fixed the version mismatch. Two follow-up issues were discovered.
+The npm source (`get-shit-done/workflows/discuss-phase.md`, 1098 lines) contains **upstream decision-closing semantics** where `--auto` picks recommended defaults and locks them. The user's locally modified install at `~/.claude/` (444 lines, now backed up to `gsd-local-patches/`) changed `--auto` to be **exploratory** -- opening uncertainty for research and avoiding premature decision closure.
 
-## Version Map Before Fix
+**A previous agent session ran `node bin/install.js --global`, which overwrote the user's preferred exploratory version with the upstream decision-closing version.** This is the exact hazard documented in Issue #26.
 
-| Location | Lines | Version | Content |
-|----------|-------|---------|---------|
-| Source (`get-shit-done/workflows/discuss-phase.md`) | 1098 | v1.18 upstream-adopted | Full: gray areas, adaptive questioning, KB surfacing, advisor-researcher, codebase scouting, todo cross-ref, discussion log |
-| Global (`~/.claude/get-shit-done-reflect/workflows/discuss-phase.md`) | 444 | Steering brief model | Reduced: synthesis-first, hybrid/auto modes, no gray area identification, no advisor-researcher, no codebase scout, no KB surfacing, no todo cross-ref |
-| Project-local (`.claude/get-shit-done-reflect/workflows/discuss-phase.md`) | 1098 | Matches source | Full (with `./.claude/` path prefix) |
-| Codex (`~/.codex/get-shit-done-reflect/workflows/discuss-phase.md`) | 1098 | Matches source | Full |
-| Local patches (`~/.claude/gsd-local-patches/get-shit-done/workflows/discuss-phase.md`) | 444 | Pre-v1.18 patch | Old steering brief (pre-namespace-migration `get-shit-done/` paths) |
+## Version Map (Current State)
 
-## What Was Different (Old 444-Line vs New 1098-Line)
+| Location | Lines | Semantics | Status |
+|----------|-------|-----------|--------|
+| Source (`get-shit-done/workflows/discuss-phase.md`) | 1098 | **Decision-closing** (upstream) | Active in npm source |
+| Global install (`~/.claude/get-shit-done-reflect/workflows/discuss-phase.md`) | 1098 | **Decision-closing** (upstream) | Overwrote exploratory version |
+| Local patches (`~/.claude/gsd-local-patches/get-shit-done-reflect/workflows/discuss-phase.md`) | 444 | **Exploratory** (user's version) | Backup only -- no longer active |
+| Local patches (`~/.claude/gsd-local-patches/get-shit-done/workflows/discuss-phase.md`) | 444 | **Exploratory** (pre-namespace) | Backup only |
+| Project-local (`.claude/get-shit-done-reflect/workflows/discuss-phase.md`) | 1098 | **Decision-closing** (upstream) | Installed from source |
 
-### Features Missing from Global Install (Present in Source)
+## What `--auto` Means in Each Version
 
-1. **Gray area identification** (`<gray_area_identification>` section) -- Domain-aware analysis of what implementation decisions the user should weigh in on, with specific examples by phase type
+### Source (1098 lines): Decision-Closing
 
-2. **Answer validation** (`<answer_validation>` section) -- Empty response handling, text mode for remote sessions (`--text` flag)
+`--auto` in the source version means: "run without asking the user, pick recommended defaults."
 
-3. **Prior context loading** (`load_prior_context` step) -- Reading PROJECT.md, REQUIREMENTS.md, STATE.md, and all prior CONTEXT.md files to avoid re-asking settled questions
+Specific behaviors:
+- `check_existing`: Auto-select "Update it" if context exists, "Continue and replan after" if plans exist
+- `present_gray_areas`: Auto-select ALL gray areas
+- `discuss_areas`: For each question, **choose the recommended option** (first option or one marked "recommended") without using AskUserQuestion
+- `auto_advance`: Chain into plan-phase and execute-phase automatically
+- Logs each auto-selected choice inline
 
-4. **Todo cross-referencing** (`cross_reference_todos` step) -- Surfaces relevant pending todos from the backlog for potential folding into phase scope
+The fundamental posture: resolve ambiguity by making choices. When `--auto` runs, gray areas get answered, decisions get locked, and the pipeline advances.
 
-5. **Codebase scouting** (`scout_codebase` step) -- Lightweight scan of existing code for reusable assets, patterns, and integration points
+### User's Exploratory Version (444 lines): Research-Opening
 
-6. **KB knowledge surfacing** (`surface_kb_knowledge` step) -- Scanning knowledge base index for lessons, spikes, and signals relevant to the phase
+`--auto` in the user's version means: "run without asking the user, but bias toward keeping uncertainty open."
 
-7. **Advisor mode with researcher agents** (`advisor_research` step) -- USER-PROFILE.md-driven advisor mode that spawns parallel Task() agents per gray area with calibration tiers (full_maturity / standard / minimal_decisive)
+Specific behaviors:
+- No gray area identification step at all
+- No AskUserQuestion multi-select flow
+- `analyze_phase`: In auto mode, "do not ask even if ambiguity remains; default unresolved areas into Open Questions"
+- `resolve_unresolved`: Uses explicit precedence order biased toward Open Questions:
+  1. Derived Constraints (only when already fixed)
+  2. Deferred Ideas (out of scope)
+  3. **Open Questions (default home for unresolved gray areas)**
+  4. Working Model & Assumptions (provisional scaffolding only)
+  5. Claude's Discretion (reversible, low-blast-radius only)
+  6. Implementation Decisions (only when directly entailed)
+- "Bias strongly toward Open Questions, not locked decisions"
+- "Never lock a decision merely to make the document feel complete"
+- If unresolved `final` ambiguity remains: mark status as "Needs clarification" or "Ready for research with intent risk"
 
-8. **Rich discussion flow** (`discuss_areas` step) -- Full conversation loop with batch mode (`--batch`), analyze mode (`--analyze`), research-before-questions mode, canonical ref accumulation during discussion, Context7 integration for library choices
+The fundamental posture: preserve uncertainty for downstream research. When `--auto` runs, most gray areas become open questions, assumptions stay provisional, and the output is a research-ready steering brief rather than a locked decision document.
 
-9. **DISCUSSION-LOG.md generation** -- Audit trail of Q&A for compliance/review
+## Detailed Semantic Differences
 
-10. **Auto-advance chain** (`auto_advance` step) -- Chains discuss -> plan -> execute with `--auto` flag
+### 1. Process Architecture
 
-11. **Canonical refs accumulator** -- MANDATORY section in CONTEXT.md linking all specs/ADRs/docs for downstream agents
+| Aspect | Source (1098) | User's Version (444) |
+|--------|---------------|----------------------|
+| Steps | 12 steps (init, check, load_prior, cross_ref_todos, scout, KB, analyze, present, advisor, discuss, write, auto_advance) | 7 steps (init, check, analyze, resolve, write, confirm, commit) |
+| Interactive flow | Gray area multi-select, 4 questions per area, more/next loop | 1-3 batched high-leverage prompts max |
+| Subagent spawning | Advisor-researcher agents per gray area | None |
+| Codebase integration | Scout step, code context in output | None (pure reasoning) |
+| KB integration | Scans knowledge base index | None |
+| Todo cross-reference | Surfaces relevant todos | None |
+| Discussion log | DISCUSSION-LOG.md audit trail | None |
 
-12. **Code context in CONTEXT.md** -- Reusable assets, established patterns, integration points
+### 2. CONTEXT.md Output Structure
 
-### What the Old 444-Line Version Had
+| Section | Source (1098) | User's Version (444) |
+|---------|---------------|----------------------|
+| Phase Boundary | Yes | Yes |
+| Working Model & Assumptions | **No** | Yes |
+| Implementation Decisions | Yes | Yes (rare, grounded only) |
+| Derived Constraints | **No** | Yes |
+| Open Questions | **No** (in write_context template) | Yes (default home) |
+| Epistemic Guardrails | **No** | Yes |
+| Canonical References | Yes | **No** |
+| Code Context | Yes | **No** |
+| Specific Ideas | Yes | Yes |
+| Deferred Ideas | Yes | Yes |
 
-The "steering brief" model was a philosophically different approach:
-- **Synthesis-first** -- Claude derives constraints before asking anything
-- **Minimal questioning** -- 1-3 high-leverage prompts max in hybrid mode
-- **Auto mode that does not ask** -- Defaults unresolved areas to Open Questions
-- **Richer CONTEXT.md structure** -- Working Model & Assumptions, Derived Constraints, Open Questions, Epistemic Guardrails sections
-- **No interactive gray area selection** -- No AskUserQuestion multi-select flow
-- **No subagent spawning** -- No advisor-researcher agents
-- **No codebase/KB integration** -- Pure reasoning from roadmap/requirements
+### 3. Philosophy
 
-## Local Patches Analysis
+| Principle | Source (1098) | User's Version (444) |
+|-----------|---------------|----------------------|
+| Core identity | "Thinking partner -- user is visionary, Claude is builder" | "Reduce avoidable ambiguity before planning" |
+| What Claude asks about | Vision and implementation choices | Only high-leverage ambiguity after derivation |
+| What Claude does NOT ask about | Technical implementation, architecture, performance | Anything already settled by roadmap/requirements/code |
+| Uncertainty handling | Resolve by choosing recommended option | Classify (material/formal/efficient/final) and preserve as open question |
+| Status states | "Ready for planning" | "Ready for research", "Ready for planning", "Ready for research with intent risk", "Needs clarification" |
 
-### Pre-v1.18 Patches (`~/.claude/gsd-local-patches/get-shit-done/workflows/discuss-phase.md`)
+### 4. `--auto` Behavior (The Core Divergence)
 
-This 444-line file uses `get-shit-done/` namespace paths (pre-Phase-44 migration) and contains the steering brief model. It was backed up from v1.13.0 and represents the fork's exploratory "steering brief" discuss-phase that was developed as a local patch to the global install.
+| Behavior | Source (1098) | User's Version (444) |
+|----------|---------------|----------------------|
+| Gray area handling | Select all, answer all | No gray areas -- analyze and classify |
+| Decision making | Pick recommended option for each | Place unresolved items in Open Questions |
+| Locking posture | Lock decisions, log choices | "Never lock a decision merely to make the document feel complete" |
+| Completion signal | Auto-advance to plan-phase | "Ready for research" or "Ready for research with intent risk" |
+| Final cause ambiguity | Infer and lock | "Do not freeze intent from inference alone" |
+| Pipeline behavior | Chain: discuss -> plan -> execute | Stop at context; next step is research |
 
-### Post-Install Patches (`~/.claude/gsd-local-patches/get-shit-done-reflect/workflows/discuss-phase.md`)
+### 5. Command Wrapper Differences
 
-After the global install was updated, the installer backed up the old 444-line version as a new patch under the `get-shit-done-reflect/` namespace. This is the same content as above, just with `gsdr` namespace paths applied.
-
-### Were Exploratory Features Lost?
-
-**Yes, partially.** The steering brief model introduced concepts that the v1.18 source does not have:
-
-1. **Working Model & Assumptions section** in CONTEXT.md -- hypotheses research must verify
-2. **Derived Constraints section** -- binding context from requirements, prior decisions, signals, code realities
-3. **Open Questions section** -- default home for unresolved gray areas (with type classification: material/formal/efficient/final)
-4. **Epistemic Guardrails section** -- what downstream stages must verify, not assume
-5. **Four-cause classification** of unresolved areas (material/formal/efficient/final)
-6. **Status states** -- "Ready for research with intent risk" and "Needs clarification"
-7. **Synthesis priority rules** -- explicit precedence order for where to place unresolved items
-
-The v1.18 source has some of these concepts in its `write_context` step template (it includes `<domain>`, `<decisions>`, `<canonical_refs>`, `<code_context>`, `<specifics>`, `<deferred>` sections) but **does NOT include**: `<assumptions>`, `<constraints>`, `<questions>`, `<guardrails>`.
-
-**The context.md template** was also patched (358 lines vs 314 in source) to include these steering brief sections. The source template was NOT updated to match during v1.18.
-
-## Command Layer Analysis
-
-The source command (`commands/gsd/discuss-phase.md`, 86 lines) and installed command (`~/.claude/commands/gsdr/discuss-phase.md`, 78 lines) were also different:
-
-| Aspect | Source Command (86 lines) | Installed Command (78 lines) |
-|--------|--------------------------|------------------------------|
-| Description | "Gather phase context through adaptive questioning" | "Create phase steering context before planning (v1.17.5+dev)" |
+| Aspect | Source (`commands/gsd/discuss-phase.md`, 86 lines) | User's Patch (`gsd-local-patches/commands/gsdr/discuss-phase.md`, 78 lines) |
+|--------|------|------|
+| Description | "Gather phase context through adaptive questioning before planning" | "Create phase steering context before planning (v1.17.5+dev)" |
 | Argument hint | `<phase>` | `<phase> [--auto]` |
-| Objective | Decision extraction via gray areas | Steering brief creation |
-| Process | 7-step gray area flow | 7-step synthesis-first flow |
-| Success criteria | Gray areas + user discussion | Context scouting + high-leverage questions |
+| Objective | "Extract implementation decisions" via gray areas | "Create CONTEXT.md as a phase steering brief" |
+| Auto mode doc | Not mentioned in command | Explicitly documented: "bias toward opening uncertainty up for research" |
 
-**Phase 52 claim verified:** "Fork's steering brief model lives in command layer" -- the installed command DID reference the steering brief approach, but so did the workflow it pointed to. Both were the old version.
+### 6. Context Template Differences
 
-After the global install, the command now matches source (86 lines, gray area approach, v1.18.0+dev version tag).
+| Aspect | Source (`templates/context.md`, 314 lines) | User's Patch (`gsd-local-patches/get-shit-done-reflect/templates/context.md`, 358 lines) |
+|--------|------|------|
+| Purpose framing | "Document decisions downstream agents need" | "Document the steering context downstream agents need" |
+| Template sections | domain, decisions, specifics, deferred | domain, assumptions, decisions, constraints, questions, guardrails, specifics, deferred |
+| Downstream consumer description | Researcher "reads decisions to focus research" | Researcher "reads decisions, constraints, open questions, assumptions, and guardrails to focus research" |
+| Open Questions | Appended as a separate guideline section | Integrated into the main template with type classification |
 
-## What the Installer Fixed
+## What the Source Does NOT Have
 
-Running `node bin/install.js --global` from the repo:
+The following concepts from the user's exploratory version have no equivalent in the 1098-line source:
 
-1. **Backed up** the old 444-line workflow, old 78-line command, and old 358-line context template as local patches
-2. **Installed** the current 1098-line workflow, 86-line command, and 314-line context template
-3. **Updated** the file manifest to v1.18.0
-4. **Removed** orphaned files (hooks/gsd-context-monitor.js, get-shit-done-reflect/bin/gsd-tools.js)
-5. **Generated** migration guide (1.17.5 -> 1.18.0)
+1. **Working Model & Assumptions** -- hypotheses that research must verify, explicitly provisional
+2. **Derived Constraints** -- binding context inherited from requirements, prior decisions, signals, code realities, or local patches
+3. **Epistemic Guardrails** -- what downstream stages must verify, not assume
+4. **Four-cause classification** of unresolved areas (material, formal, efficient, final)
+5. **Status states beyond "Ready for planning"** -- "Ready for research", "Ready for research with intent risk", "Needs clarification"
+6. **Synthesis priority rules** -- explicit precedence order for where to place unresolved items
+7. **"Derive before reopening" principle** -- record derivations instead of re-asking
+8. **"Respect uncertainty" principle** -- uncertainty may become assumption, open question, discretion area, or deferred idea; never fake certainty
+9. **resolve_unresolved step** -- structured resolution with grounding precedence
+10. **Context model taxonomy** -- explicit table mapping section to purpose
 
-## Follow-Up Issues
+## What the User's Version Does NOT Have
 
-### Issue 1: `$HOME/$HOME` Path Rewriting Bug (HIGH)
+The source has features the user's version lacks. These may or may not be desirable:
 
-The global install has a path doubling bug. Every workflow file in `~/.claude/get-shit-done-reflect/workflows/` has `$HOME/$HOME/.claude/` instead of `$HOME/.claude/`. This affects ALL 36 workflow files, not just discuss-phase.
+1. Gray area identification and interactive selection
+2. Prior context loading from PROJECT.md, REQUIREMENTS.md, prior CONTEXT.md files
+3. Todo cross-referencing
+4. Codebase scouting
+5. KB knowledge surfacing
+6. Advisor-researcher subagent spawning
+7. Discussion log generation
+8. Auto-advance chaining (discuss -> plan -> execute)
+9. Canonical references accumulation
+10. Batch mode, analyze mode, text mode, research-before-questions mode
+11. Context7 integration for library choices
+12. Code context section in CONTEXT.md
 
-**Example:**
-- Source: `node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" init phase-op "${PHASE}"`
-- Global install: `node "$HOME/$HOME/.claude/get-shit-done-reflect/bin/gsd-tools.cjs" init phase-op "${PHASE}"`
+## Damage Assessment
 
-This would cause `gsd-tools.cjs` to not be found at runtime in the global install. The local install does NOT have this bug (it uses `$HOME/./.claude/` which resolves correctly).
+The previous investigation ran `node bin/install.js --global`, which:
+1. Overwrote the user's active exploratory workflow with the source's decision-closing workflow
+2. Backed up the exploratory version to `~/.claude/gsd-local-patches/get-shit-done-reflect/workflows/discuss-phase.md`
+3. Updated the command wrapper to the source version
+4. Updated the context template to the source version
 
-**Root cause:** The installer's `replacePathsInContent()` is doing two passes -- one for namespace (`get-shit-done` -> `get-shit-done-reflect`) and one for path prefix -- and the `$HOME/` prefix is being applied twice for global installs.
+The exploratory version is NOT lost -- it exists in `gsd-local-patches/` -- but it is no longer active. Running `discuss-phase --auto` now uses decision-closing semantics instead of the user's preferred exploratory semantics.
 
-**Impact:** For projects using this repo, the local install takes precedence (per dual-installation rules), so these broken global paths are currently masked. For OTHER projects using the global install, this would break all gsd-tools.cjs invocations.
+## Recommended Actions
 
-**Action needed:** Fix `replacePathsInContent()` in `bin/install.js`. This is a source file change and needs a separate phase/PR.
+1. **Do NOT run the installer again** until the semantic question from Issue #26 is resolved
+2. **The source needs to incorporate the exploratory `--auto` semantics** if the user's intent is the intended direction -- this is a source change, not an install change
+3. **The `gsd-local-patches` backup is the recovery point** if the user needs the exploratory version restored to active use immediately
+4. **Issue #26 is the authoritative tracker** for resolving which `--auto` semantics should be canonical
 
-### Issue 2: Steering Brief Sections Not in Source Template (LOW)
+## File Paths Reference
 
-The context.md template (`get-shit-done/templates/context.md`) does not include the steering brief sections that were developed as local patches:
-- Working Model & Assumptions
-- Derived Constraints
-- Open Questions
-- Epistemic Guardrails
-
-The workflow's `write_context` step defines its own template inline, so this is not a functional gap -- the workflow produces the correct output regardless. But the template file (used as a reference) is out of sync with what the workflow actually generates.
-
-**Action needed:** Decide whether to port the steering brief template sections into the source template, or leave the workflow's inline template as the canonical definition. Needs deliberation since it touches the fundamental philosophy of what CONTEXT.md should be.
-
-## Conclusion
-
-The immediate gap is fixed: the global install now matches the source. The steering brief features from local patches represent a philosophical fork that was partially superseded by v1.18's upstream adoption but introduced concepts (open questions, assumptions, guardrails, four-cause classification) that have no equivalent in the current source. These should be evaluated in a separate deliberation for potential integration.
-
-The `$HOME/$HOME` path rewriting bug is a separate, higher-priority issue affecting all global workflow installs and should be filed as its own fix.
+- Source workflow: `/home/rookslog/workspace/projects/get-shit-done-reflect/get-shit-done/workflows/discuss-phase.md`
+- Source command: `/home/rookslog/workspace/projects/get-shit-done-reflect/commands/gsd/discuss-phase.md`
+- Source template: `/home/rookslog/workspace/projects/get-shit-done-reflect/get-shit-done/templates/context.md`
+- Exploratory workflow backup: `/home/rookslog/.claude/gsd-local-patches/get-shit-done-reflect/workflows/discuss-phase.md`
+- Exploratory command backup: `/home/rookslog/.claude/gsd-local-patches/commands/gsdr/discuss-phase.md`
+- Exploratory template backup: `/home/rookslog/.claude/gsd-local-patches/get-shit-done-reflect/templates/context.md`
+- Backup metadata: `/home/rookslog/.claude/gsd-local-patches/backup-meta.json`
+- GitHub Issue #26: `loganrooks/get-shit-done-reflect#26`
