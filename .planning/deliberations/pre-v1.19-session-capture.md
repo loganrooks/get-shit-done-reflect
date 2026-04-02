@@ -178,7 +178,7 @@ Missing lifecycle states identified: `proposed`, `delegated`/`in-progress`, `def
 
 117 signals on apollo, fully siloed. No propagation mechanism — SyncThing broken since 2025-12, no rsync, no git bridge. 21 critical signals including 2 fresh harness bugs (model-resolver keyed on `gsd-*` not `gsdr-*`, discuss-mode config wiring unowned). Apollo has signals from projects that don't exist on dionysus (blackhole-animation, pdfagentialconversion).
 
-Minimum bridge: `rsync --ignore-existing` pull from apollo → dionysus before reflect runs. But the deeper question is interpretive routing — harness-level signals should flow to the development project, project-specific signals should stay contextual. A signal about Codex quality-profile mismatch in blackhole-animation is about the harness, not about animation. The routing requires the kind of reading described in Thread 11.
+Minimum bridge: `rsync --ignore-existing` pull from apollo → dionysus before reflect runs. But the deeper question is not routing "harness signals here, project signals there" — a single signal discloses differently in different contexts. A quality-profile mismatch in blackhole-animation is simultaneously a project bug (wrong model used), a harness bug (resolution logic broken), and evidence of a structural condition (namespace migration left residue). These aren't separate signals to route separately — they're different readings of the same signal that become available in different interpretive contexts. The bridge needs to make signals available across contexts without predetermining which reading is primary.
 
 New GitHub Issue #30 filed from apollo: model-resolver `gsd-*` key mismatch. Directly relevant to development here.
 
@@ -232,11 +232,20 @@ Practice opportunity: revisit "stale" / "remediated" signals from this session t
 7. How to design the "middle ground" between philosophical aspiration and procedural enforcement?
 8. Can we experiment with hermeneutic re-reading of signal history?
 
+## Pending Work for Next Session
+
+**Revisit deliberations across projects (apollo + dionysus) as harness developers.** Read them not just for their stated conclusions but for what they demand of us — including the chat logs from both Claude and Codex sessions that produced them. The signals, the deliberations, the traces left in repos — these should be linked to concrete moments, contextualized, read for what exceeds their immediate determination. This is not mastery of the material but responsible engagement with it.
+
+**Practice hermeneutic re-reading.** Take signals we marked "stale" or "remediated" this session and read them again — not to reverse the status change but to see what else they disclose when read within the constellation of everything this session surfaced.
+
+**Flesh out threads.** The 18 threads are captured but skeletal. Each needs grounding in specific artifacts, moments, chat logs, code locations. The next session should develop the most pressing ones rather than adding more.
+
 ## Key Artifacts
 
-- Signal audit: `/tmp/signal-audit-report.md` (copy to `.planning/` before session end)
-- Deliberation usage audit: agent output (in conversation context)
-- Philosophical audit: agent output (in conversation context)
+- Signal audit: `.planning/signal-audit-report-2026-04-02.md`
+- Apollo KB audit: `.planning/apollo-kb-audit-2026-04-02.md`
+- Deliberation usage audit: `.planning/deliberation-usage-audit-2026-04-02.md`
+- Philosophical deliberation audit: `.planning/philosophical-audit-2026-04-02.md`
 - Epistemic-agency findings: `~/workspace/projects/epistemic-agency/knowledge-base/INDEX.md`
 - Trace 008 (cybernetic synthesis): `~/workspace/projects/epistemic-agency/traces/008-cybernetic-synthesis.md`
 
