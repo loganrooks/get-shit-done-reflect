@@ -3,8 +3,8 @@ id: sig-2026-03-26-plan-51-01-files-modified-omits-tests-unit
 type: signal
 project: get-shit-done-reflect
 tags: [scope-creep, plan-accuracy]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

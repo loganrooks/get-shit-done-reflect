@@ -8,8 +8,8 @@ tags:
   - deliberation
   - context-surfacing
   - workflow-integration
-created: "2026-03-06T00:00:00Z"
-updated: "2026-03-06T00:00:00Z"
+created: 2026-03-06T00:00:00Z
+updated: 2026-03-06T00:00:00Z
 durability: convention
 status: active
 severity: notable

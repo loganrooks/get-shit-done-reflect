@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [fix-chain, commit-patterns]
 created: 2026-03-03T00:00:00Z
-updated: 2026-03-03T00:00:00Z
+updated: 2026-04-02T22:00:00Z
 durability: convention
-status: active
+status: remediated
 severity: critical
 signal_type: deviation
 signal_category: negative
@@ -19,7 +19,7 @@ related_signals: []
 runtime: claude-code
 model: claude-sonnet-4-6
 gsd_version: 1.16.0+dev
-lifecycle_state: detected
+lifecycle_state: remediated
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-03T00:00:00Z"
 evidence:
@@ -48,3 +48,7 @@ Phase 36 (foundation-fix) commit analysis. The 6-commit fix chain is located app
 ## Potential Cause
 
 The fix-chain likely represents intentional batched remediation of 6 known PR bugs in the quick-3 task from an earlier phase. The git sensor pattern-matched on the commit prefix without filtering by recency or phase adjacency. This signal is low-confidence and may warrant dismissal at triage as a historical artifact rather than a current-phase issue.
+
+## Remediation
+
+Stale. Pre-v1.14 historical artifact (277+ commits old). Low-confidence sensor false positive on an old fix chain.

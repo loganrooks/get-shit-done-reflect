@@ -3,8 +3,8 @@ id: sig-2026-03-27-plan-04-executor-correctly-scoped-c2-shell-robustn
 type: signal
 project: get-shit-done-reflect
 tags: [surgical-edit, upstream-drift, shell-robustness, executor-judgment, C2]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: principle
 status: active
 severity: minor

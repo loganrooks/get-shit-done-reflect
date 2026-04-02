@@ -3,8 +3,8 @@ id: sig-2026-03-26-c6-upstream-model-resolution-behavioral-change-def
 type: signal
 project: get-shit-done-reflect
 tags: [upstream-drift, model-resolution, conflict, deferred, c6]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

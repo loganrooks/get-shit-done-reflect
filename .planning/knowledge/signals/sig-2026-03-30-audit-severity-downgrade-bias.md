@@ -1,4 +1,5 @@
 ---
+id: sig-2026-03-30-audit-severity-downgrade-bias
 type: observation
 severity: medium
 phase: "v1.18-audit"

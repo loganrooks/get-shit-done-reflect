@@ -3,8 +3,8 @@ id: sig-2026-03-27-all-4-plans-executed-in-11-minutes-total
 type: signal
 project: get-shit-done-reflect
 tags: [performance, deviation]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: principle
 status: active
 severity: notable

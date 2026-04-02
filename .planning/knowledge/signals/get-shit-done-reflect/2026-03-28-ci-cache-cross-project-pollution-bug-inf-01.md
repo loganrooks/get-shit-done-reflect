@@ -3,8 +3,8 @@ id: sig-2026-03-28-ci-cache-cross-project-pollution-bug-inf-01
 type: signal
 project: get-shit-done-reflect
 tags: [blocked, deviation, workaround, ci, config]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: notable

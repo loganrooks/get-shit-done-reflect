@@ -4,11 +4,11 @@ type: signal
 project: get-shit-done-reflect
 tags: [ci, branch-protection, workflow-bypass, wiring-test, dual-directory, critical-process-failure]
 created: 2026-03-02T21:00:00Z
-updated: 2026-03-02T21:00:00Z
+updated: 2026-04-02T22:00:00Z
 severity: critical
 signal_type: deviation
 signal_category: negative
-lifecycle_state: detected
+lifecycle_state: remediated
 confidence: high
 confidence_basis: "5 consecutive CI failures visible in gh run list, all showing same wiring-validation.test.js failure"
 evidence:
@@ -41,3 +41,7 @@ source: manual
 ### Systemic Issue
 
 This is not just a test bug — it's a workflow failure. The GSD execution workflow pushes directly to main after each plan, bypassing the PR workflow that would surface CI failures. The branch protection rules exist but are overridden by admin access.
+
+## Remediation
+
+Resolved. Wiring test fixed in Phase 37. v1.17+ has clean CI record.

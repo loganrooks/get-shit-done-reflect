@@ -3,8 +3,8 @@ id: sig-2026-03-26-installer-never-run-after-phase-completion-claude
 type: signal
 project: get-shit-done-reflect
 tags: [plan-gap, depth-rename, install, dual-directory, config-migration, ownership, runtime-mismatch, deferred-step]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: critical

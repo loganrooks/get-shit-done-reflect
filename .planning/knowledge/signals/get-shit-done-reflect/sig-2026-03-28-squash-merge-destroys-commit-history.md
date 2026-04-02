@@ -3,8 +3,8 @@ id: sig-2026-03-28-squash-merge-destroys-commit-history
 type: signal
 project: get-shit-done-reflect
 tags: [git-workflow, pr-merge, squash, traceability, commit-history, devops]
-created: "2026-03-28T07:30:00Z"
-updated: "2026-03-28T07:30:00Z"
+created: 2026-03-28T07:30:00Z
+updated: 2026-03-28T07:30:00Z
 durability: convention
 status: active
 severity: critical

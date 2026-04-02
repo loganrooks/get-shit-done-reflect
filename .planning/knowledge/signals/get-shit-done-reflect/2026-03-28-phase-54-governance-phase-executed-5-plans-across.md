@@ -3,8 +3,8 @@ id: sig-2026-03-28-phase-54-governance-phase-executed-5-plans-across
 type: signal
 project: get-shit-done-reflect
 tags: [deviation, performance]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: notable

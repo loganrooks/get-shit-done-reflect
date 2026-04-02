@@ -3,8 +3,8 @@ id: sig-2026-03-27-plan-53-04-declared-zero-file-modifications-but
 type: signal
 project: get-shit-done-reflect
 tags: [scope-creep, plan-accuracy, test-isolation, verification-phase]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

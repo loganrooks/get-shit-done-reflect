@@ -3,8 +3,8 @@ id: sig-2026-03-26-all-4-autonomous-plans-completed-with-zero-checkpo
 type: signal
 project: get-shit-done-reflect
 tags: [autonomous, performance, execution-quality, baseline]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

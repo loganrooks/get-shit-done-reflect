@@ -3,8 +3,8 @@ id: sig-2026-03-28-offer-next-skips-pr-workflow
 type: signal
 project: get-shit-done-reflect
 tags: [git-workflow, phase-transition, offer-next, workflow-spec, devops, pr-workflow]
-created: "2026-03-28T07:15:00Z"
-updated: "2026-03-28T07:15:00Z"
+created: 2026-03-28T07:15:00Z
+updated: 2026-03-28T07:15:00Z
 durability: convention
 status: active
 severity: notable

@@ -3,8 +3,8 @@ id: sig-2026-03-26-plan-04-had-a-boolean-coercion-bug-in
 type: signal
 project: get-shit-done-reflect
 tags: [boolean-coercion, assertion-bug, auto-fix, vitest]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

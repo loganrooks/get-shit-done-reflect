@@ -3,8 +3,8 @@ id: sig-2026-03-28-eager-bypass-of-protocol-when-scope-needs-revision
 type: signal
 project: get-shit-done-reflect
 tags: [workflow-gap, protocol-bypass, scope-revision, discuss-phase, capability-gap, recurring]
-created: "2026-03-28T08:00:00Z"
-updated: "2026-03-28T08:00:00Z"
+created: 2026-03-28T08:00:00Z
+updated: 2026-03-28T08:00:00Z
 durability: principle
 status: active
 severity: notable

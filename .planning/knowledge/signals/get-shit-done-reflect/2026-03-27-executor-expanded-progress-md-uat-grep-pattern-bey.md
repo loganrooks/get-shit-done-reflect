@@ -3,8 +3,8 @@ id: sig-2026-03-27-executor-expanded-progress-md-uat-grep-pattern-bey
 type: signal
 project: get-shit-done-reflect
 tags: [scope-expansion, upstream-drift, progress-workflow, grep-pattern, C2]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

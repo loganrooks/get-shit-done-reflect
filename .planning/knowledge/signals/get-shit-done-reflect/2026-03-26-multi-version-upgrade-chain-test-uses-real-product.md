@@ -3,8 +3,8 @@ id: sig-2026-03-26-multi-version-upgrade-chain-test-uses-real-product
 type: signal
 project: get-shit-done-reflect
 tags: [testing, integration-test, production-manifest, upgrade-chain, good-pattern]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: principle
 status: active
 severity: notable

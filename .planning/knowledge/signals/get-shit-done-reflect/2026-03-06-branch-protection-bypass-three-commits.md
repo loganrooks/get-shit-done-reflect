@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [ci, branch-protection, bypass, main-branch, test-failure]
 created: 2026-03-06T23:30:00Z
-updated: 2026-03-06T23:30:00Z
+updated: 2026-04-02T22:00:00Z
 durability: convention
-status: active
+status: remediated
 severity: critical
 signal_type: deviation
 signal_category: negative
@@ -18,7 +18,7 @@ related_signals: [sig-2026-03-02-ci-failures-ignored-throughout-v116]
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: "1.16.0+dev"
-lifecycle_state: detected
+lifecycle_state: remediated
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-06T23:30:00Z"
 evidence:
@@ -49,3 +49,7 @@ This is the second occurrence of the branch-protection bypass pattern. The previ
 ## Potential Cause
 
 Most likely a direct push to main bypassing the PR workflow. The three commits appear sequential from the same work session, suggesting a single `git push origin main` rather than three separate bypasses. Branch protection may not be configured to block force-pushes or admin pushes, or the pushes were made with admin privileges that override protection rules.
+
+## Remediation
+
+Resolved post-v1.16. v1.17+ has clean CI record with no branch protection bypasses during phase execution.

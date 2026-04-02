@@ -3,8 +3,8 @@ id: sig-2026-03-26-phase-51-maintains-clean-feat-test-docs-commit
 type: signal
 project: get-shit-done-reflect
 tags: [commit-patterns, plan-accuracy, plan-quality, good-pattern]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

@@ -1,4 +1,5 @@
 ---
+id: sig-2026-03-30-release-workflow-forgotten-in-milestone-completion
 type: observation
 severity: medium
 phase: "v1.18-completion"

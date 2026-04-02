@@ -3,8 +3,8 @@ id: sig-2026-03-26-model-alias-map-in-core-cjs-contains-stale
 type: signal
 project: get-shit-done-reflect
 tags: [upstream-bug, model-resolution, dead-code, stale-data, MODEL_ALIAS_MAP]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: workaround
 status: active
 severity: notable

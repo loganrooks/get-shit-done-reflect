@@ -3,8 +3,8 @@ id: sig-2026-03-27-plan-04-files-modified-declared-empty-but-automati
 type: signal
 project: get-shit-done-reflect
 tags: [deviation, cross-plan-debt, testing, plan-accuracy]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

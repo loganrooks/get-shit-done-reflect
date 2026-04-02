@@ -3,8 +3,8 @@ id: sig-2026-03-28-phase-identity-reframed-before-planning-began-2-co
 type: signal
 project: get-shit-done-reflect
 tags: [phase-scoping, commit-patterns, plan-quality, scope-change]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

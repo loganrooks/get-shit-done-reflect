@@ -3,8 +3,8 @@ id: sig-2026-03-28-state-md-progress-was-stale-at-91-plan
 type: signal
 project: get-shit-done-reflect
 tags: [config, state-sync, deviation]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

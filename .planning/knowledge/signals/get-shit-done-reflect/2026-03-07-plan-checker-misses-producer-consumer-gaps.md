@@ -7,8 +7,8 @@ severity: notable
 lifecycle: detected
 source: manual
 tags: [plan-checker, producer-consumer, cross-workflow, implicit-dependencies, second-order-effects, template-consumer-gap]
-created: "2026-03-07T12:00:00Z"
-updated: "2026-03-07T12:00:00Z"
+created: 2026-03-07T12:00:00Z
+updated: 2026-03-07T12:00:00Z
 durability: principle
 status: active
 phase: "43"

@@ -3,8 +3,8 @@ id: sig-2026-03-27-plan-05-adopted-undeclared-agent-gsd-advisor-resea
 type: signal
 project: get-shit-done-reflect
 tags: [estimation, agent-spec, plan-accuracy, scope-creep, dependency-gap, adoption-workflow]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

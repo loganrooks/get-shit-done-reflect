@@ -3,8 +3,8 @@ id: sig-2026-03-27-plan-03-adopted-discuss-phase-md-without-detecting
 type: signal
 project: get-shit-done-reflect
 tags: [dependency-gap, upstream-adoption, test-failure, planning-gap, discuss-phase, advisor-researcher]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: notable

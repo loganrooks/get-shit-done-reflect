@@ -3,8 +3,8 @@ id: sig-2026-03-27-config-profile-is-quality-and-all-plans-executed
 type: signal
 project: get-shit-done-reflect
 tags: [config]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

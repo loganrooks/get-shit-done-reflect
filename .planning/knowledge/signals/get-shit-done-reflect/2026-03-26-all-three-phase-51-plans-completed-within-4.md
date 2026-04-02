@@ -3,8 +3,8 @@ id: sig-2026-03-26-all-three-phase-51-plans-completed-within-4
 type: signal
 project: get-shit-done-reflect
 tags: [performance, upgrade-path, version-mismatch, testing]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: principle
 status: active
 severity: notable

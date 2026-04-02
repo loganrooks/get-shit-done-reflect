@@ -1,4 +1,5 @@
 ---
+id: sig-2026-03-06-health-check-monolithic-architecture
 type: signal
 signal_type: capability-gap
 severity: notable

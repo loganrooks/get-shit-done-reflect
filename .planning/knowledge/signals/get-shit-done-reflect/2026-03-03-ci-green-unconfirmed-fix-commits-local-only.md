@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [ci, deviation, wiring-validation, dual-directory]
 created: 2026-03-03T00:00:00Z
-updated: 2026-03-03T00:00:00Z
+updated: 2026-04-02T22:00:00Z
 durability: convention
-status: active
+status: remediated
 severity: critical
 signal_type: deviation
 signal_category: negative
@@ -22,7 +22,7 @@ related_signals:
 runtime: claude-code
 model: claude-sonnet-4-6
 gsd_version: 1.16.0+dev
-lifecycle_state: detected
+lifecycle_state: remediated
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-03T00:00:00Z"
 evidence:
@@ -53,3 +53,7 @@ Phase 36 (foundation-fix) was a 2-task plan targeting wiring-validation fixes an
 ## Potential Cause
 
 Verification ran against local state before the push step was completed. The VERIFICATION.md was written reflecting the local truth accurately (tests pass) but could not confirm the remote CI state. The phase completion workflow may not enforce a push-before-verify ordering, or the gap reflects a deliberate sequencing where verification precedes the final push.
+
+## Remediation
+
+Resolved. Push completed post-verification. Non-structural one-time issue.

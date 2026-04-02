@@ -3,7 +3,7 @@ id: sig-2026-03-19-qt31-source-namespace-pollution
 type: signal
 project: get-shit-done-reflect
 tags: [namespace, dual-directory, source-pollution, ci-failure, wiring-test, collect-signals, codex, quick-task]
-created: 2026-03-19
+created: 2026-03-19T00:00:00Z
 severity: critical
 signal_type: deviation
 phase: quick-31

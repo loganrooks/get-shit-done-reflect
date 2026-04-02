@@ -1,4 +1,5 @@
 ---
+id: sig-2026-02-23-plan-review-missing-tdd-and-race-condition
 type: observation
 severity: medium
 phase: "29"

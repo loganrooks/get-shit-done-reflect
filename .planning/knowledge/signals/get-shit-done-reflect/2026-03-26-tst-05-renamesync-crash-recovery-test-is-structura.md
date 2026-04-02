@@ -3,8 +3,8 @@ id: sig-2026-03-26-tst-05-renamesync-crash-recovery-test-is-structura
 type: signal
 project: get-shit-done-reflect
 tags: [crash-recovery, test-coverage-gap, renameSync, os.homedir, kb-migration]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

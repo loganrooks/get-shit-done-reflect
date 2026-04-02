@@ -3,8 +3,8 @@ id: sig-2026-03-28-plan-01-verification-criterion-for-state-md-percen
 type: signal
 project: get-shit-done-reflect
 tags: [state-sync, deviation, workflow, plan-accuracy]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor

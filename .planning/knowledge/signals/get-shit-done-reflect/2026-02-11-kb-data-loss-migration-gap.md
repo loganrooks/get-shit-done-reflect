@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [data-loss, kb-migration, critical-gap, installer-dependency]
 created: 2026-02-11T22:25:00Z
-updated: 2026-02-11T22:25:00Z
+updated: 2026-04-02T22:00:00Z
 durability: principle
-status: active
+status: remediated
 severity: critical
 signal_type: deviation
 phase: post-17
@@ -30,3 +30,7 @@ Discovered during post-v1.14 resume session when kb-rebuild-index.sh reported 0 
 ## Potential Cause
 
 Data migration that only runs inside an optional installer is a single point of failure. The developer installs locally (not globally), so the installer's migrateKB() never executes. No other code path checks for data at the old location. No backup was created. KB data was outside the git repo so there's no version control safety net. This is a defense-in-depth failure — every safety mechanism had a gap.
+
+## Remediation
+
+Mitigated by migrateKB() function with pre-migration backup, entry count verification, and symlink fallback (commit 1a79aea, 2026-02-14). Architectural concern (installer-only trigger) remains but data loss risk eliminated.

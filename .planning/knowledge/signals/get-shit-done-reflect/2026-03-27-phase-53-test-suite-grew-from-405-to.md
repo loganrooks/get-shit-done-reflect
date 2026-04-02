@@ -3,8 +3,8 @@ id: sig-2026-03-27-phase-53-test-suite-grew-from-405-to
 type: signal
 project: get-shit-done-reflect
 tags: [testing]
-created: "2026-03-29T08:00:00Z"
-updated: "2026-03-29T08:00:00Z"
+created: 2026-03-29T08:00:00Z
+updated: 2026-03-29T08:00:00Z
 durability: convention
 status: active
 severity: minor
