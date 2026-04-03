@@ -1,6 +1,6 @@
 ---
 name: gsd:discuss-phase
-description: Gather phase context through adaptive questioning before planning
+description: Create phase steering context before planning. Use --auto for autonomous mode.
 argument-hint: "<phase>"
 allowed-tools:
   - Read
