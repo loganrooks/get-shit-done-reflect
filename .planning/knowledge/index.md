@@ -1,13 +1,12 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-02T23:37:35Z
-**Total entries:** 197
+**Generated:** 2026-04-03T03:52:53Z
+**Total entries:** 199
 
-## Signals (196)
+## Signals (198)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
-| sig-2026-04-03-discuss-mode-adoption-gap-silent-feature-drop | get-shit-done-reflect | high | detected | upstream-adoption,verification-gap,discuss-phase,feature-drop,process-gap | 2026-04-03 | active |
 | sig-2026-04-02-quick-task-code-changes-committed-directly-to-main | get-shit-done-reflect | critical | detected | quick-task,branching,ci-quality-gate,workflow-gap,git-workflow | 2026-04-02 | active |
 | sig-2026-04-02-update-workflow-npx-resolves-local-in-dev-repo | get-shit-done-reflect | notable | detected | update-workflow,installer,npx,dogfooding,developer-ergonomics | 2026-04-02 | active |
 | sig-2026-04-02-dev-version-suffix-lacks-commit-traceability | get-shit-done-reflect | notable | detected | version-tracing,installer,dev-builds,traceability,signals | 2026-04-02 | active |
@@ -194,6 +193,7 @@
 | sig-2026-02-11-agent-inline-research-context-bloat | get-shit-done-reflect | notable | detected | context-bloat,agent-behavior,research-orchestration,deviation | 2026-02-11 | active |
 | sig-2026-02-11-premature-spiking-no-research-gate | get-shit-done-reflect | notable | detected | spike-workflow,research-gate,workflow-ordering | 2026-02-11 | active |
 | sig-2026-02-11-spike-design-missing-feasibility | get-shit-done-reflect | notable | detected | spike-workflow,experimental-design,feasibility,template-gap | 2026-02-11 | active |
+| sig-2026-04-03-discuss-mode-adoption-gap-silent-feature-drop |  | high | detected | upstream-adoption,verification-gap,discuss-phase,feature-drop,process-gap |  | open |
 | sig-2026-03-30-release-workflow-forgotten-in-milestone-completion |  | medium | detected | release-workflow,deployment,milestone-completion,process-gap,automation-opportunity |  | open |
 | sig-2026-03-30-audit-severity-downgrade-bias |  | medium | detected | audit-quality,severity-assessment,epistemic-gap,self-assessment-bias,milestone-audit |  | open |
 | sig-2026-02-23-plan-review-missing-tdd-and-race-condition |  | medium | detected | plan-quality,tdd,race-condition,human-intervention,workflow-improvement |  | open |
@@ -204,6 +204,7 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | path-resolution,installer,source-repo,plan-spec-gap,auto-fix |  | active |
+| sig-2026-04-03-headless-session-wrong-commit-prefix-burned-version | get-shit-done-reflect | critical | detected | headless-session,semver,commit-convention,release,delegation,patch-release | "2026-04-03 | active |
 
 ## Spikes (1)
 
