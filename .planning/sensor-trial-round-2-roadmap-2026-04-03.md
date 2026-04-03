@@ -289,10 +289,74 @@ Final synthesis — update both roadmaps, assess predictions
 
 ---
 
+## R2-A Deliverable: Deliberation Evaluations (3 of 3)
+
+### 1. signal-lifecycle-closed-loop-gap (Concluded 2026-03-04)
+
+**Decision:** Options A+C+B — programmatic reconciliation script, deliberation epistemic hardening, KB health watchdog.
+
+| ID | Prediction | Outcome | Evidence |
+|----|-----------|---------|----------|
+| P1 | Programmatic remediation: plans with resolves_signals will transition signals automatically | **PARTIALLY CONFIRMED** | `reconcile-signal-lifecycle.sh` exists. 7 signals now in "remediated" state (up from 0). But 105 still in "detected" — the backfill (Option D) hasn't been run at scale. The forward fix works; the backlog persists. |
+| P2 | KB health watchdog detects lifecycle inconsistencies | **CONFIRMED** | `signal-lifecycle.md` probe exists in health-probes/. Round 1 Trial E found apollo has plans with resolves_signals where signals remain in detected — this is exactly what the watchdog was designed to catch. |
+| P3 | Severe Testing step catches at least one false claim in next 3 deliberations | **UNTESTABLE** | Can't determine from artifacts whether Step 2.5 actually caught false claims in subsequent deliberations. The step exists in the deliberation skill but there's no log of corrections made. |
+| P4 | >30% decrease in signals stuck in detected by end of v1.18 | **FALSIFIED** | 105 of 120 signals (87.5%) remain in detected state. Only 7 remediated (5.8%), 8 triaged (6.7%). Far from the 30% decrease predicted. The forward fix works but hasn't been applied at scale. |
+
+**Meta-observation:** P1 is partially right (the tool exists and works) but P4 is falsified (the tool hasn't been used enough to move the needle). The deliberation correctly identified what to build but didn't predict the adoption gap — building the tool ≠ using the tool. This is the "content not weight" pattern again: the reconciliation script conveys the CAPABILITY to fix lifecycle states but doesn't carry the WEIGHT to make it happen routinely.
+
+### 2. health-check-maintainability (Concluded 2026-03-06)
+
+**Decision:** Option C — hybrid probe architecture with advisory scoring.
+
+| ID | Prediction | Outcome | Evidence |
+|----|-----------|---------|----------|
+| P1 | Adding a new check = one probe file, zero workflow edits | **CONFIRMED** | 11 probe files exist in health-probes/. Adding rogue-files, rogue-context, signal-lifecycle, automation-watchdog — each was a single-file addition. |
+| P2 | Workflow shrinks from 240 to <100 lines | **FALSIFIED** | Workflow is 253 lines — actually GREW by 13 lines. The generic probe executor pattern was adopted but the workflow retains category-specific orchestration logic. |
+| P3 | Probe contract handles full complexity spectrum without escape hatches | **PARTIALLY CONFIRMED** | Three execution types (inline, subcommand, agent) are all in use. No escape hatches visible. But the rogue-context agent probe has unique spawning requirements that test the contract's limits. |
+| P4 | Thresholds need adjustment within first 2 phases | **UNTESTABLE** | Health check config shows `blocking_checks: false` across projects. No evidence of threshold adjustment because thresholds aren't being used to gate anything — the advisory framing means thresholds are informational only. |
+| P5 | Advisory framing prevents at least one incorrect action | **UNTESTABLE** | No evidence of a threshold that would have triggered incorrectly. The system doesn't log "threshold would have fired but advisory framing prevented action." |
+
+**Meta-observation:** P1 confirmed — the extensibility architecture works. P2 falsified — the workflow didn't shrink as predicted. The prediction assumed the workflow was mainly category-specific logic that probes would absorb. In practice, the workflow retained orchestration complexity (probe discovery, tier filtering, dependency resolution, output formatting). The deliberation correctly predicted what the PROBES would do but underestimated what the ORCHESTRATOR still needs to handle.
+
+### 3. cross-runtime-parity-testing (Adopted 2026-03-05)
+
+**Decision:** Name parity tests + targeted content checks + glob build-hooks.js.
+
+| ID | Prediction | Outcome | Evidence |
+|----|-----------|---------|----------|
+| P1 | Name parity would have caught build-hooks omission | **UNTESTABLE** | No parity test files found in test/ directory via grep. The tests may have been implemented differently than expected, or may live elsewhere (installed runtime tests?). Cannot verify without finding the test implementation. |
+| P2 | Globbing build-hooks.js prevents future parity bugs | **UNTESTABLE** | `build-hooks.js` shows no glob pattern. Either the glob approach wasn't implemented, or it was implemented differently. |
+| P3 | <2 false positive parity failures per milestone | **UNTESTABLE** | Can't find parity test implementation to check failure history. |
+| P4 | <30 seconds CI time increase | **LIKELY CONFIRMED** | CI runs in ~37 seconds total. No visible time increase from parity-era baseline. |
+
+**Meta-observation:** This deliberation is marked "adopted" and was "implemented via Quick task 15." But the implementation artifacts are hard to trace — no test files match "parity" or "cross-runtime" in the test directory. The Quick Task 28 (from STATE.md) references "Cross-runtime parity enforcement: 4 structural CI tests" but these may have been refactored or renamed since. The adoption is real (the decision shaped v1.17-v1.18 architecture) but the specific predicted mechanisms are hard to verify against current code.
+
+### Cross-Deliberation Patterns
+
+1. **Building ≠ Using.** Signal-lifecycle P4 falsified because the tool was built but not used at scale. The deliberation predicted the mechanism, not the adoption.
+
+2. **Orchestrators don't shrink.** Health-check P2 falsified because moving logic to probes didn't eliminate orchestration complexity — it transformed it (from category-specific to probe-discovery/dependency-resolution).
+
+3. **Traceability decays.** Cross-runtime parity predictions are largely untestable because the implementation can't be traced from the deliberation to specific test files 4 weeks later. The deliberation said "Quick task 15" but the artifacts have been through multiple refactors.
+
+4. **Advisory framing is untestable by design.** Health-check P4/P5 are untestable because advisory thresholds don't log what would have happened under a different framing. You can't evaluate "this prevented a bad action" if no actions are gated.
+
+### R2-A Prediction Evaluation
+
+| ID | Prediction | Outcome |
+|----|-----------|---------|
+| R2A-P1 | Signal-lifecycle predictions will be trivially confirmed | **FALSIFIED** — P4 is falsified (87.5% still detected), P3 untestable. Not trivial at all. |
+| R2A-P2 | Health-check Option C assumption won't match reality | **CONFIRMED** — P2 falsified (workflow grew, didn't shrink) |
+| R2A-P3 | Cross-runtime adoption will show partial implementation | **CONFIRMED** — predictions largely untestable, implementation hard to trace |
+
+---
+
 ## Change Log
 
 | Date | Change | Reason |
 |------|--------|--------|
 | 2026-04-03 | Round 2 roadmap created | Post-Round 1 reflection, preparatory work complete, v1.19.0 shipped |
+| 2026-04-03 | Checkpoint 1: R2-C, R2-E, R2-F complete | Thread 22 formalized, positive-pattern design sketched, Thread 7 assessed post-implementation |
+| 2026-04-03 | R2-A complete: 3 deliberation evaluations | signal-lifecycle P4 falsified (87.5% still detected), health-check P2 falsified (workflow grew), cross-runtime largely untestable. Key pattern: building ≠ using. |
 
 ---
