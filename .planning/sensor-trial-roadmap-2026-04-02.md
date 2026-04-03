@@ -12,6 +12,38 @@ This artifact is an exploratory roadmap for informal sensor trials — dispatchi
 
 ## Situational Context
 
+### Framework Provenance Notice
+
+**CRITICAL DISTINCTION:** Projects in this ecosystem use a mixture of **GSD Reflect** (our fork, npm: get-shit-done-reflect-cc) and **upstream GSD** (gsd-build/get-shit-done). Some projects also use a mixture of **Claude Code** and **Codex CLI** runtimes, and some have no persistent runtime installation (signals were produced during sessions but the runtime directory wasn't retained).
+
+The fork adds: signal lifecycle machinery, philosophical deliberation template (Dewey/Toulmin/Lakatos/Peirce), sensor pipeline (artifact + git sensors), structured KB architecture, health probes, automation levels, and the reflection/spike/signal knowledge types. Upstream GSD has its own features (some shared, some divergent — see `.planning/FORK-DIVERGENCES.md`). Signals from upstream-GSD projects tell us about adoption patterns but may not use fork-specific schema fields or lifecycle states.
+
+| Project | Machine | Framework | Version | Runtime(s) | Notes |
+|---------|---------|-----------|---------|------------|-------|
+| **get-shit-done-reflect** | both | **GSDR fork** | apollo: 1.16.0+dev, dionysus: 1.18.2+dev | Claude Code, Codex | The framework itself; apollo copy is stale (pre-v1.17) |
+| **prostagma** | apollo | **GSDR fork** | 1.12.2 | Claude Code | Early fork version, early-stage project |
+| **scholardoc-ocr** | apollo | **GSDR fork** | 1.14.2 | Claude Code + Codex (dual) | Same fork version on both runtimes |
+| **scholardoc** | both | **Mixed** | apollo: upstream 1.20.5, dionysus: fork 1.16.0+dev | Claude Code | Different framework on each machine! |
+| **zlibrary-mcp** | dionysus | **GSDR fork** (probable) | 1.13.0 | Claude Code | Pre-namespace dir name; signal richness suggests fork |
+| **arxiv-sanity-mcp** | dionysus | **Upstream GSD** | 1.22.4 | Claude Code | Upstream version; rich deliberations may use upstream template |
+| **robotic-psalms** | dionysus | **Upstream GSD** | 1.22.4 | Claude Code | Upstream version |
+| **tain** | dionysus | **Upstream GSD** | 1.30.0 | Claude Code | Latest upstream; signals/deliberations reflect upstream patterns |
+| **f1-modeling** | dionysus | **Codex sessions** | — | Codex CLI (GPT-5.4) | No persistent install; 7 deliberations from Codex sessions |
+| **epistemic-agency** | dionysus | **Mixed sessions** | — | Claude + Codex | No persistent install; signals from both runtimes |
+| **blackhole-animation** | apollo | **Codex sessions** | — | Codex CLI (GPT-5) | No persistent install; 6 signals from Codex |
+| **vigil** | apollo | **No runtime** | — | Unknown | Has STATE.md but no signals; HANDOFF.json present |
+| **PDFAgentialConversion** | both | **Codex sessions** | — | Codex CLI (GPT-5) | No persistent install; signals on both machines, non-overlapping |
+| **claude-notify** | dionysus | **No runtime** | — | — | v0.1 completed, 2 deliberations, no persistent GSD install |
+| **hermeneutic-workspace-plugin** | dionysus | **No runtime** | — | — | 1 deliberation, no persistent install |
+
+**Limitations this introduces:**
+- Signals from upstream GSD projects (arxiv-sanity-mcp, tain, robotic-psalms) may use different schema, different signal types, and different lifecycle conventions. Cross-project comparisons must account for this.
+- Projects with no persistent runtime (f1-modeling, epistemic-agency, blackhole-animation, PDFAgentialConversion) produced signals during sessions but the framework installation wasn't retained. Their signals' `gsd_version` field reflects the session's framework, not a persistent install.
+- Scholardoc has *different frameworks on different machines* — upstream on apollo, fork on dionysus. Any cross-machine comparison for this project compares two different toolchains.
+- Codex CLI sessions don't persist runtime directories the same way Claude Code does. The absence of `.codex/` doesn't mean Codex wasn't used — check signal `runtime` fields.
+
+**How to read findings given this:** Findings about adoption patterns, signal quality, and development workflow practices are valid across both frameworks — they tell us about how developers use structured planning tools. Findings about lifecycle transitions, sensor pipeline usage, and fork-specific features apply only to GSDR fork projects. When a finding crosses this boundary, it will be marked.
+
 ### What We Know
 
 - **v1.18 shipped.** The framework is stable. We're in deliberation, not development.
@@ -223,11 +255,91 @@ After all trials complete, evaluate this roadmap itself:
 
 ---
 
+## Trial E Findings (Partial — Supplementary Agent Complete, Main Agent In Progress)
+
+### Apollo Other-Project Signals (Supplementary Agent)
+
+**Date completed:** 2026-04-02, session 2
+
+**Key findings:**
+
+1. **Blackhole-animation (Codex/GPT-5, 6 signals, 12 rogue files):** Workflow chaos during initialization — delegation discipline failures, config mismatches (2 critical: reasoning effort misreported, wrong model used for research pass), research lineage confusion. 12 rogue files in `.planning/` root are active deliberation artifacts from the struggle, not orphaned detritus. This is Thread 21's most acute case: the rogue files carry context the signals can't hold, but without testimony or structure.
+
+2. **PDFAgentialConversion non-overlapping perspectives:** Apollo has 7 signals (testing, quality gates, capability gaps from phases 02-05). Dionysus has 2 signals (config mismatch, version migration from phase 08). Zero overlap. Different machines see different concerns from the same project — direct evidence for Thread 13 (KB bridge) and prediction E-P5.
+
+3. **Vigil's silence as signal:** Active project paused 6 days with blockers and methodology innovations, zero signals generated. HANDOFF.json properly maintained but KB empty. The absence of signals is a capture gap, not an absence of knowledge.
+
+4. **Scholardoc-ocr dual-runtime inert:** Both `.claude/` and `.codex/` on stale v1.14.2, zero signals in either. Most architecturally interesting configuration produces no observations.
+
+5. **Self-referential signal schema gap:** PDFAgentialConversion signal `sig-2026-03-15-signal-metadata-needs-provenance-and-escalation` flags that signal schema is missing creator-side metadata, model provenance, and reasoning-effort fields. The signal system flagging its own incompleteness.
+
+6. **Rogue file patterns:** blackhole-animation has 12 (active chaos artifacts), vigil has 1 legitimate HANDOFF.json, all others clean. No project carries deviation testimony.
+
+### Apollo Main KB (Main Agent — 106 signals, 8 deliberations)
+
+**Date completed:** 2026-04-02, session 2
+
+**Key findings:**
+
+1. **Lifecycle distribution:** 41 detected, 10 triaged, 53 with NO lifecycle_state field (pre-schema signals from v1.12-v1.15 era), 0 remediated, 0 verified. Contrasts with dionysus which has 16 remediated (from last session's manual transitions). The pre-schema signals are effectively frozen — they predate the lifecycle machinery entirely.
+
+2. **Positive pattern capture is an apollo-specific practice:** 12 `good-pattern` signals + 15 manually curated `SIG-*` files documenting positive observations (TDD discipline, clean plan execution, doc-only plan structure). This is a distinct practice not present on dionysus. The SIG-* format appears to be a separate category for distilled lessons outside the automatic sensor stream.
+
+3. **Temporal clustering:** Heavy signal density in late Feb 2026 (v1.12-v1.15 migration challenges) and early March (v1.16 phase escalation). A 28-day gap (2026-03-05 to 2026-04-02) covers the entire v1.17-v1.18 development period — suggesting development shifted to dionysus for those milestones.
+
+4. **Critical extraction quality cluster:** 5 critical signals on a single day (2026-02-22) documenting Phase 22 content loss — codebase-mapper deleted, knowledge surfacing removed, webfetch best practices lost, fabricated provenance in protocol section, unauthorized scope creep. All caused by Sonnet 4.5 treating ambiguous KEEP lists as delete authorization.
+
+5. **CI pipeline as major blind spot:** 6 critical signals about CI failures being silently bypassed, PRs created against upstream instead of fork, and no CI verification in execute-phase workflow. Phase 39 (CI Awareness) was designed to address this.
+
+6. **AskUserQuestion phantom responses:** Critical UX bug — tool auto-resolves without UI in YOLO mode, silently producing garbage. Discovered live during /gsdr:discuss-phase.
+
+7. **Config version field drastically stale:** config.json says version 1.12.2 despite signals referencing 1.15.6+, 1.16.0+, 1.18.1. Config migration doesn't update this field automatically.
+
+8. **All 8 deliberations are a subset of dionysus's 32.** No unique deliberations on apollo. Dionysus has 25 deliberations apollo doesn't have — most created during the philosophical deliberation work (structural-norms, forms-excess, responsibility-alterity, etc.) and the v1.17-v1.18 design period. This confirms development shifted machines.
+
+9. **Only 1 reflection and 1 spike in entire KB.** Despite 106 signals, the distillation pipeline (signal → reflection → lesson) has barely fired. The system collects observations but doesn't synthesize them.
+
+10. **3 Codex-cli signals from 2026-04-02:** Active cross-runtime testing on apollo. One is the model-resolver issue (same as Issue #30, now fixed in quick-260402-qnh). The others are about discuss-mode config being dropped during clean update.
+
+### Full Prediction Evaluation
+
+| ID | Prediction | Confidence | Outcome | Notes |
+|----|-----------|------------|---------|-------|
+| E-P1 | Majority of apollo's signals will be in "detected" lifecycle state | High | **CONFIRMED** | 41 detected + 53 pre-schema (no lifecycle_state field) = 94/106 in detected-equivalent state. 10 triaged, 0 remediated/verified. |
+| E-P2 | At least some apollo signals will reference the same harness bugs | Medium | **CONFIRMED** | Model-profile mismatch, signal lifecycle stuck, KB path issues, installer friction, config migration — all present on both machines. |
+| E-P3 | At least 2 apollo deliberations won't exist on dionysus | Medium | **FALSIFIED** | All 8 apollo deliberations are a strict subset of dionysus's 32. Dionysus has 25 unique deliberations. Development shifted from apollo to dionysus for v1.17+. |
+| E-P4 | Apollo's signal volume reflects more active development, not just more problems | Low-Medium | **PARTIALLY CONFIRMED** | 12 good-pattern + 15 SIG-* positive signals confirm quality capture. But the temporal pattern suggests apollo was primary for v1.12-v1.16 and dionysus for v1.17-v1.18 — the volume split is temporal, not qualitative. |
+| E-P5 | Cross-runtime insights invisible to either machine alone | Medium | **CONFIRMED** | Apollo has CI pipeline blindspot signals (6 critical), AskUserQuestion phantom responses, extraction quality cluster, and SIG-* positive pattern practice — none visible on dionysus. Supplementary: PDFAgentialConversion non-overlapping perspectives, blackhole-animation Codex-specific delegation failures. |
+
+### Epistemic Gaps Revealed by Trial E
+
+1. **We assumed apollo was a parallel development environment.** It's actually a *temporal predecessor* — primary for v1.12-v1.16, then development shifted to dionysus for v1.17-v1.18. The two KBs are not parallel views of the same work but sequential phases of a migration.
+
+2. **We didn't predict the SIG-* curated pattern practice.** Apollo has 15 manually distilled positive-pattern signals in a separate naming format. This practice was abandoned or never migrated to dionysus. It represents a knowledge capture approach (explicit positive observation) that the current workflow doesn't formalize.
+
+3. **The pre-schema signal problem.** 53 signals lack lifecycle_state fields entirely because they predate the schema. These aren't just "detected" — they're structurally excluded from the lifecycle system. Any staleness detection (Trial A) must account for this.
+
+4. **The reflection gap is more severe than expected.** Only 1 reflection in 106 signals. The signal-to-reflection pipeline has effectively never operated at scale on either machine.
+
+### Roadmap Implications
+
+**Trial A (staleness detection) needs adjustment:** The 53 pre-schema signals on apollo require special handling — they can't be evaluated by lifecycle state. The staleness detection should classify signals into: (a) signals with lifecycle_state (evaluate by state vs git history), (b) pre-schema signals (evaluate by concern relevance to current codebase), and (c) SIG-* curated patterns (evaluate by whether the pattern still holds).
+
+**Trial C (cross-project correlation) is now richer than expected:** 106 apollo + ~30 dionysus signals for get-shit-done-reflect, plus signals from 10+ other projects. The temporal split (apollo = v1.12-v1.16 era, dionysus = v1.17-v1.18 era) means cross-machine correlation is partly *historical* — tracing how concerns evolved across milestones.
+
+**Trial D (rogue files) partially complete for apollo:** The supplementary agent already scanned apollo projects. We still need dionysus projects.
+
+**New observation worth noting:** The SIG-* curated positive-pattern practice on apollo is a distinct knowledge capture approach that deserves examination. It's not a sensor trial but it informs Thread 11 (signal hermeneutics) — someone was reading signals and distilling positive patterns manually. Why was this practice abandoned?
+
+---
+
 ## Change Log
 
 | Date | Change | Reason |
 |------|--------|--------|
 | 2026-04-02 | Initial roadmap created | Pre-v1.19 sensor trial planning, session 2 |
+| 2026-04-02 | Trial E supplementary findings added | Apollo other-project agent completed; main KB agent still in progress |
+| 2026-04-02 | Trial E complete — all predictions evaluated | Main KB agent completed. E-P3 falsified (deliberations are subset, not unique). Temporal split discovered (apollo=v1.12-v1.16, dionysus=v1.17-v1.18). Trial A adjusted for pre-schema signals. |
 
 ---
 
