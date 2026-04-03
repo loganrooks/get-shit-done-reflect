@@ -333,6 +333,61 @@ After all trials complete, evaluate this roadmap itself:
 
 ---
 
+## Trial D Findings: Rogue File Census
+
+**Date completed:** 2026-04-02, session 2. Covers all dionysus projects + partial apollo (blackhole-animation, vigil already covered in Trial E supplementary).
+
+### Summary
+
+| Metric | Count |
+|--------|-------|
+| Projects scanned | 12 (9 dionysus + 3 apollo already done) |
+| Total rogue files | 15 (13 tracked, 2 untracked) |
+| Total rogue directories | 5 (foundation-audit, governance ×2, fork-audit, plus today's work) |
+| Files with deviation testimony | **15 of 15 (100%)** |
+| Clean projects (no rogue files) | 5 (claude-notify, hermeneutic-workspace-plugin, robotic-psalms, tain, prostagma) |
+
+### Prediction Evaluation
+
+| ID | Prediction | Confidence | Outcome | Notes |
+|----|-----------|------------|---------|-------|
+| D-P1 | Active projects will have fewer rogues than mature projects | Medium | **CONFIRMED** | Active projects (vigil, tain, robotic-psalms) = clean. Mature projects (zlibrary-mcp, get-shit-done-reflect, arxiv-sanity-mcp) have rogues. |
+| D-P2 | Zero rogue files will carry explicit deviation testimony | High | **FALSIFIED** | 100% carry testimony. Every rogue file has opening documentation explaining its purpose. |
+| D-P3 | Most common rogue type will be audit/analysis reports | Medium | **CONFIRMED** | 11 of 15 rogue files are audit/review artifacts (AUDIT_*, MILESTONE-AUDIT, gap-analysis, ECOSYSTEM-COMMENTARY, etc.) |
+| D-P4 | Apollo will show similar patterns to dionysus | Medium | **CONFIRMED** | Both machines produce audit artifacts as primary rogue type; governance dirs appear on both. |
+
+### The D-P2 Falsification — What It Means for Thread 21
+
+**This is the most important finding from Trial D.** We predicted zero testimony; we found 100%. But this needs careful interpretation.
+
+**What the testimony IS:** Each rogue file explains *what it is* and *when it was created*. Examples:
+- ECOSYSTEM-COMMENTARY.md: "Written 2026-03-11 from cross-project analysis session, before Phase 04.1 execution"
+- governance/POLICY.md: "Phase 5 makes GSDR an explicit outer governance layer for this repo"
+- gap-analysis-2026-03-26.md: "Comprehensive gap analysis" with 8 requirements and 3 deliberation references
+
+**What the testimony is NOT:** None explains *why the file is in .planning/ root instead of a structured directory*. The testimony says "I am an audit report" but not "I searched for a workflow to produce audit reports and found none, so I created this here." The *purpose* is documented; the *placement decision* is not.
+
+This refines Thread 21: the problem isn't that deviations lack justification entirely — it's that the justification is incomplete. Artifacts explain their content but not their structural placement. A human reader can understand the file; the rogue-context probe (HEALTH-11) still can't read *why it's rogue* because the placement reasoning isn't structured.
+
+**Thread 21 update:** The deviation-testimony pattern should focus on the *structural placement decision* ("why here instead of where the workflow expects"), not content documentation (which already happens organically). The gap is narrower than we thought but more specific.
+
+### Framework Provenance Patterns
+
+| Framework | Projects with rogues | Rogue type | Notes |
+|-----------|---------------------|------------|-------|
+| GSDR fork | 3 of 5 | Audit reports + governance dirs | governance/ is fork-specific pattern |
+| Upstream GSD | 2 of 4 | Audit/review reports | No governance pattern |
+| Codex sessions | 1 of 1 | Gap analysis | Single comprehensive analysis file |
+| No runtime | 0 of 3 | — | Too early-stage for rogues |
+
+**Notable:** Governance directories (governance/POLICY.md, governance/recommendations/) appear ONLY in GSDR fork projects (epistemic-agency, get-shit-done-reflect). This may be a fork-specific practice emerging organically — projects using the fork develop governance needs that upstream GSD projects don't encounter. Worth noting for Thread 12 (unified lifecycle) — governance artifacts may need their own place in the workflow.
+
+### Provenance Correction
+
+Trial D found that epistemic-agency has GSDR fork v1.17.3 installed (not "no runtime" as previously assumed). The provenance table in the Situational Context section should be updated.
+
+---
+
 ## Change Log
 
 | Date | Change | Reason |
@@ -340,6 +395,7 @@ After all trials complete, evaluate this roadmap itself:
 | 2026-04-02 | Initial roadmap created | Pre-v1.19 sensor trial planning, session 2 |
 | 2026-04-02 | Trial E supplementary findings added | Apollo other-project agent completed; main KB agent still in progress |
 | 2026-04-02 | Trial E complete — all predictions evaluated | Main KB agent completed. E-P3 falsified (deliberations are subset, not unique). Temporal split discovered (apollo=v1.12-v1.16, dionysus=v1.17-v1.18). Trial A adjusted for pre-schema signals. |
+| 2026-04-02 | Trial D complete — D-P2 falsified (100% testimony) | Rogue file census found all artifacts carry content testimony, but none explain structural placement. Thread 21 refined: gap is narrower but more specific. Governance dirs are fork-specific pattern. epistemic-agency provenance corrected to GSDR fork 1.17.3. |
 
 ---
 
