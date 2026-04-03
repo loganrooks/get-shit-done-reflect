@@ -150,7 +150,11 @@ Merge new settings into existing config.json:
     "research": true/false,
     "plan_check": true/false,
     "verifier": true/false,
-    "discuss_mode": "exploratory" | "discuss" | "assumptions"
+    "auto_advance": true/false,
+    "nyquist_validation": true/false,
+    "text_mode": true/false,
+    "discuss_mode": "exploratory" | "discuss" | "assumptions",
+    "research_before_questions": true/false
   },
   "git": {
     "branching_strategy": "none" | "phase" | "milestone"
@@ -175,8 +179,12 @@ Display:
 | Plan Researcher      | {On/Off} |
 | Plan Checker         | {On/Off} |
 | Execution Verifier   | {On/Off} |
+| Auto-advance         | {On/Off} |
+| Nyquist Validation   | {On/Off} |
 | Git Branching        | {None/Per Phase/Per Milestone} |
 | Discuss Mode         | {Exploratory/Discuss/Assumptions} |
+| Research Before Qs   | {On/Off} |
+| Text Mode            | {On/Off} |
 
 These settings apply to future /gsd:plan-phase, /gsd:execute-phase, and /gsd:discuss-phase runs.
 
@@ -192,7 +200,7 @@ Quick commands:
 
 <success_criteria>
 - [ ] Current config read
-- [ ] User presented with 6 settings (profile + 3 workflow toggles + git branching + discuss mode)
+- [ ] User presented with expanded workflow settings
 - [ ] Config updated with model_profile, workflow, and git sections
 - [ ] Changes confirmed to user
 </success_criteria>
