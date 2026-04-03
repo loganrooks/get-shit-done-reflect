@@ -7,6 +7,7 @@
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-04-03-discuss-mode-adoption-gap-silent-feature-drop | get-shit-done-reflect | high | detected | upstream-adoption,verification-gap,discuss-phase,feature-drop,process-gap | 2026-04-03 | active |
 | sig-2026-04-02-quick-task-code-changes-committed-directly-to-main | get-shit-done-reflect | critical | detected | quick-task,branching,ci-quality-gate,workflow-gap,git-workflow | 2026-04-02 | active |
 | sig-2026-04-02-update-workflow-npx-resolves-local-in-dev-repo | get-shit-done-reflect | notable | detected | update-workflow,installer,npx,dogfooding,developer-ergonomics | 2026-04-02 | active |
 | sig-2026-04-02-dev-version-suffix-lacks-commit-traceability | get-shit-done-reflect | notable | detected | version-tracing,installer,dev-builds,traceability,signals | 2026-04-02 | active |

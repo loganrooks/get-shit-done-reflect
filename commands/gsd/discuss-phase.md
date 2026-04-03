@@ -14,17 +14,25 @@ allowed-tools:
 <objective>
 Extract implementation decisions that downstream agents need — researcher and planner will use CONTEXT.md to know what to investigate and what choices are locked.
 
-**How it works:**
-1. Analyze the phase to identify gray areas (UI, UX, behavior, etc.)
-2. Present gray areas — user selects which to discuss
-3. Deep-dive each selected area until satisfied
-4. Create CONTEXT.md with decisions that guide research and planning
+**Three modes** (configured via `workflow.discuss_mode` in config):
+- `exploratory` (default): Preserve uncertainty, bias toward open questions, mark options as [grounded] or [open]
+- `discuss`: Standard steering brief — auto picks recommended defaults decisively
+- `assumptions`: Codebase-first inference with minimal user interaction
 
-**Output:** `{phase}-CONTEXT.md` — decisions clear enough that downstream agents can act without asking the user again
+**How it works:**
+1. Resolve discuss mode from config (`workflow.discuss_mode`)
+2. If `assumptions` mode → route to discuss-phase-assumptions.md workflow
+3. Analyze the phase to identify gray areas (UI, UX, behavior, etc.)
+4. Present gray areas — user selects which to discuss
+5. Deep-dive each selected area until satisfied (mode affects --auto behavior)
+6. Create CONTEXT.md with decisions (discuss) or working assumptions (exploratory)
+
+**Output:** `{phase}-CONTEXT.md` — decisions/assumptions clear enough that downstream agents can act
 </objective>
 
 <execution_context>
 @~/.claude/get-shit-done/workflows/discuss-phase.md
+@~/.claude/get-shit-done/workflows/discuss-phase-assumptions.md
 @~/.claude/get-shit-done/templates/context.md
 </execution_context>
 
@@ -40,12 +48,16 @@ Phase number: $ARGUMENTS (required)
 
 <process>
 1. Validate phase number (error if missing or not in roadmap)
-2. Check if CONTEXT.md exists (offer update/view/skip if yes)
-3. **Analyze phase** — Identify domain and generate phase-specific gray areas
-4. **Present gray areas** — Multi-select: which to discuss? (NO skip option)
-5. **Deep-dive each area** — 4 questions per area, then offer more/next
-6. **Write CONTEXT.md** — Sections match areas discussed
-7. Offer next steps (research or plan)
+2. **Resolve discuss mode** from `workflow.discuss_mode` config (default: `exploratory`)
+3. If `assumptions` mode → route to discuss-phase-assumptions.md workflow, exit
+4. Check if CONTEXT.md exists (offer update/view/skip if yes)
+5. **Analyze phase** — Identify domain and generate phase-specific gray areas
+6. **Present gray areas** — Multi-select: which to discuss? (NO skip option)
+7. **Deep-dive each area** — 4 questions per area, then offer more/next
+   - In exploratory mode: options marked [grounded] or [open]; --auto only selects grounded
+   - In discuss mode: standard behavior, --auto picks recommended defaults
+8. **Write CONTEXT.md** — Sections match areas discussed
+9. Offer next steps (research or plan)
 
 **CRITICAL: Scope guardrail**
 - Phase boundary from ROADMAP.md is FIXED

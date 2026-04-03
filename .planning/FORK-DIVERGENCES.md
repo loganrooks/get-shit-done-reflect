@@ -14,7 +14,7 @@
 | Pure/mostly upstream modules | 5 (milestone, state, template, verify, + phase/roadmap) |
 | Upstream-only modules (not in fork) | 6 (workstream, security, model-profiles, profile-output, profile-pipeline, uat) |
 | Modified upstream files (non-module) | ~30 (identity, commands, templates, hooks, build) |
-| Fork-only additions | ~954 files (agents, commands, workflows, hooks, references, tests, planning) |
+| Fork-only additions | ~956 files (agents, commands, workflows, hooks, references, tests, planning) |
 
 See [FORK-STRATEGY.md](./FORK-STRATEGY.md) for the overall fork maintenance approach, merge strategy, and conflict resolution runbook.
 
@@ -34,7 +34,7 @@ The runtime was decomposed during v1.18 Phases 45-48. The monolithic `gsd-tools.
 | core.cjs | 713 | Hybrid | +223 | parseIncludeFlag, loadManifest, loadProjectConfig, atomicWriteJson, MODEL_PROFILES added to upstream base | hybrid |
 | init.cjs | 790 | Hybrid | +144/-42 | Fork-specific init overrides, --include flag, fork init subcommand routing | hybrid |
 | commands.cjs | 710 | Hybrid | +162 | Fork command routing additions (signal, health-probe, backlog, automation, manifest) | hybrid |
-| config.cjs | 264 | Hybrid | +95 | Fork config handling, gsd_reflect_version, health_check section | hybrid |
+| config.cjs | 264 | Hybrid | +97 | Fork config handling, gsd_reflect_version, health_check section, workflow.discuss_mode | hybrid |
 | frontmatter.cjs | 387 | Hybrid | +88 | Signal schema validation, tiered validation (conditional/recommended), backward_compat | hybrid |
 | phase.cjs | 908 | Mostly upstream | +17/-1 | Minor fork adjustments to phase handling | adopt-upstream |
 | roadmap.cjs | 305 | Mostly upstream | +15/-1 | Minor fork adjustments to roadmap handling | adopt-upstream |
@@ -104,7 +104,7 @@ These files outside `lib/*.cjs` have fork modifications. Source: `git diff v1.22
 | commands/gsd/discuss-phase.md | Thin orchestrator + fork context | Hybrid merge |
 | commands/gsd/new-project.md | Thin orchestrator + fork DevOps Context | Hybrid merge |
 | commands/gsd/quick.md | Thin orchestrator + fork additions | Hybrid merge |
-| get-shit-done/workflows/discuss-phase.md | Code-aware scouting + KB surfacing (Phase 52) | Hybrid merge |
+| get-shit-done/workflows/discuss-phase.md | Code-aware scouting + KB surfacing (Phase 52) + three-mode discuss system (v1.19: exploratory/discuss/assumptions with workflow.discuss_mode config) | Hybrid merge |
 | get-shit-done/workflows/cleanup.md | FORK_PROTECTED_DIRS (Phase 53) | Hybrid merge |
 
 ### Templates & References
@@ -141,14 +141,14 @@ These files outside `lib/*.cjs` have fork modifications. Source: `git diff v1.22
 |----------|-------|-------------|
 | Agents (fork-specific) | 15 | gsdr-executor.md, gsdr-planner.md, gsdr-researcher.md, advisor-researcher.md |
 | Commands (fork-specific) | 9 | health-check, reflect, signal, spike, discuss-phase |
-| Workflows (fork-specific) | 7 | execute-plan.md, knowledge-surfacing.md, signal workflows |
+| Workflows (fork-specific) | 8 | execute-plan.md, knowledge-surfacing.md, signal workflows, discuss-phase-assumptions.md |
 | Hooks (fork-specific) | 3 | gsd-version-check.js, gsd-health-check.js |
 | References (fork-specific) | 25 | agent-protocol.md, signal-classification.md, knowledge-surfacing.md, checkpoints.md |
 | Templates (fork-specific) | 1 | summary-standard.md and variants |
 | Fork lib modules | 5 | automation.cjs, backlog.cjs, health-probe.cjs, manifest.cjs, sensors.cjs |
 | Tests | 32 | Vitest suite (unit + integration) |
 | Planning artifacts | 832 | STATE.md, ROADMAP.md, phases/, knowledge/, deliberations/ |
-| Migrations | 1 | get-shit-done/migrations/ |
+| Migrations | 2 | get-shit-done/migrations/ |
 | Other | 24 | .github, SECURITY.md, benchmark scripts, etc. |
 
 ## Upstream Modules Not Yet In Fork

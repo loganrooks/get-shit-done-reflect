@@ -1,5 +1,5 @@
 <purpose>
-Interactive configuration of GSD workflow agents (research, plan_check, verifier) and model profile selection via multi-question prompt. Updates .planning/config.json with user preferences.
+Interactive configuration of GSD workflow agents (research, plan_check, verifier, discuss_mode) and model profile selection via multi-question prompt. Updates .planning/config.json with user preferences.
 </purpose>
 
 <required_reading>
@@ -28,6 +28,11 @@ Parse current values (default to `true` if not present):
 - `workflow.research` — spawn researcher during plan-phase
 - `workflow.plan_check` — spawn plan checker during plan-phase
 - `workflow.verifier` — spawn verifier during execute-phase
+- `workflow.auto_advance` (default: `false`)
+- `workflow.nyquist_validation` (default: `true`)
+- `workflow.discuss_mode` — `exploratory` | `discuss` | `assumptions` (default: `exploratory`)
+- `workflow.research_before_questions` (default: `false`)
+- `workflow.text_mode` (default: `false`)
 - `model_profile` — which model each agent uses (default: `balanced`)
 - `git.branching_strategy` — branching approach (default: `"none"`)
 </step>
@@ -75,6 +80,24 @@ AskUserQuestion([
     ]
   },
   {
+    question: "Auto-advance after discuss/plan? (chains discuss → plan → execute)",
+    header: "Auto-advance",
+    multiSelect: false,
+    options: [
+      { label: "No (Recommended)", description: "Manual progression between stages" },
+      { label: "Yes", description: "Automatically chain discuss → plan → execute" }
+    ]
+  },
+  {
+    question: "Nyquist validation? (validates phase requirements coverage)",
+    header: "Nyquist",
+    multiSelect: false,
+    options: [
+      { label: "Yes (Recommended)", description: "Validate requirements coverage after execution" },
+      { label: "No", description: "Skip Nyquist validation" }
+    ]
+  },
+  {
     question: "Git branching strategy?",
     header: "Branching",
     multiSelect: false,
@@ -82,6 +105,34 @@ AskUserQuestion([
       { label: "None (Recommended)", description: "Commit directly to current branch" },
       { label: "Per Phase", description: "Create branch for each phase (gsd/phase-{N}-{name})" },
       { label: "Per Milestone", description: "Create branch for entire milestone (gsd/{version}-{name})" }
+    ]
+  },
+  {
+    question: "Discuss-phase mode? Controls how /gsd:discuss-phase gathers context.",
+    header: "Discuss Mode",
+    multiSelect: false,
+    options: [
+      { label: "Exploratory (Recommended)", description: "Preserve uncertainty, bias toward open questions, auto-select only when strongly grounded" },
+      { label: "Discuss", description: "Standard steering brief — auto picks recommended defaults" },
+      { label: "Assumptions", description: "Codebase-first inference, minimal user interaction — route to assumptions workflow" }
+    ]
+  },
+  {
+    question: "Research before discuss questions? (web search for best practices before each area)",
+    header: "Research",
+    multiSelect: false,
+    options: [
+      { label: "No (Recommended)", description: "Ask questions directly without prior research" },
+      { label: "Yes", description: "Search for best practices before presenting options" }
+    ]
+  },
+  {
+    question: "Text mode? (plain-text menus instead of TUI selections)",
+    header: "Text Mode",
+    multiSelect: false,
+    options: [
+      { label: "No (Recommended)", description: "Use TUI menu selections (requires terminal support)" },
+      { label: "Yes", description: "Plain-text numbered lists (required for remote/rc sessions)" }
     ]
   }
 ])
@@ -98,7 +149,8 @@ Merge new settings into existing config.json:
   "workflow": {
     "research": true/false,
     "plan_check": true/false,
-    "verifier": true/false
+    "verifier": true/false,
+    "discuss_mode": "exploratory" | "discuss" | "assumptions"
   },
   "git": {
     "branching_strategy": "none" | "phase" | "milestone"
@@ -124,8 +176,9 @@ Display:
 | Plan Checker         | {On/Off} |
 | Execution Verifier   | {On/Off} |
 | Git Branching        | {None/Per Phase/Per Milestone} |
+| Discuss Mode         | {Exploratory/Discuss/Assumptions} |
 
-These settings apply to future /gsd:plan-phase and /gsd:execute-phase runs.
+These settings apply to future /gsd:plan-phase, /gsd:execute-phase, and /gsd:discuss-phase runs.
 
 Quick commands:
 - /gsd:set-profile <profile> — switch model profile
@@ -139,7 +192,7 @@ Quick commands:
 
 <success_criteria>
 - [ ] Current config read
-- [ ] User presented with 5 settings (profile + 3 workflow toggles + git branching)
+- [ ] User presented with 6 settings (profile + 3 workflow toggles + git branching + discuss mode)
 - [ ] Config updated with model_profile, workflow, and git sections
 - [ ] Changes confirmed to user
 </success_criteria>
