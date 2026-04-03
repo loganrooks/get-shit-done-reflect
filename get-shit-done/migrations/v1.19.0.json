@@ -1,0 +1,19 @@
+{
+  "version": "1.19.0",
+  "title": "Three-Mode Discuss System",
+  "date": "2026-04-03",
+  "sections": [
+    {
+      "category": "feature",
+      "heading": "Three-Mode Discuss System",
+      "body": "discuss-phase now supports three modes: exploratory (default — preserves uncertainty, marks options as grounded/open), discuss (standard steering brief), and assumptions (codebase-first inference with minimal interaction). Configure via workflow.discuss_mode in .planning/config.json or /gsdr:settings.",
+      "action": "none"
+    },
+    {
+      "category": "config",
+      "heading": "New Config Key: workflow.discuss_mode",
+      "body": "Added workflow.discuss_mode config key with values: 'exploratory' (default), 'discuss', 'assumptions'. Existing projects will use 'exploratory' as the default. No migration action required — the key is added automatically when config-ensure-section runs.",
+      "action": "none"
+    }
+  ]
+}

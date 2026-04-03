@@ -1,7 +1,17 @@
 <purpose>
-Extract implementation decisions that downstream agents need. Analyze the phase to identify gray areas, let the user choose what to discuss, then deep-dive each selected area until satisfied.
+Create `CONTEXT.md` as a phase steering brief that downstream research, planning, execution, and checking can rely on.
 
-You are a thinking partner, not an interviewer. The user is the visionary — you are the builder. Your job is to capture decisions that will guide research and planning, not to figure out implementation yourself.
+You are not just interviewing for preferences. Your job is to reduce avoidable ambiguity before planning by capturing boundary, assumptions, locked decisions, derived constraints, open questions, epistemic guardrails, discretion areas, and deferred ideas. Do not do full research or full planning here; create the steering artifact those stages need.
+
+In interactive mode, you are also a thinking partner. The user is the visionary — you are the builder. Your job is to surface the decisions that matter while doing your own synthesis work first.
+
+**Three discuss modes** (configured via `workflow.discuss_mode` in `.planning/config.json`):
+
+| Mode | Default | Behavior |
+|------|---------|----------|
+| `exploratory` | Yes | Preserve uncertainty. Bias toward open questions. `--auto` selects only when strongly grounded by codebase or prior decisions — otherwise marks areas as "open question" for downstream agents to investigate. Philosophy section includes working assumptions and epistemic guardrails. |
+| `discuss` | No | Standard steering brief. `--auto` picks recommended defaults decisively. Current upstream behavior. |
+| `assumptions` | No | Codebase-first inference with minimal user interaction. Routes to `discuss-phase-assumptions.md` workflow. |
 </purpose>
 
 <downstream_awareness>
@@ -15,9 +25,9 @@ You are a thinking partner, not an interviewer. The user is the visionary — yo
    - "Pull-to-refresh on mobile" → planner includes that in task specs
    - "Claude's Discretion: loading skeleton" → planner can decide approach
 
-**Your job:** Capture decisions clearly enough that downstream agents can act on them without asking the user again.
+**Your job:** Produce context strong enough that downstream stages do not need to reopen avoidable ambiguity.
 
-**Not your job:** Figure out HOW to implement. That's what research and planning do with the decisions you capture.
+**Not your job:** Do exhaustive technical research or break the work into executable tasks.
 </downstream_awareness>
 
 <philosophy>
@@ -35,8 +45,46 @@ The user doesn't know (and shouldn't be asked):
 - Implementation approach (planner figures this out)
 - Success metrics (inferred from the work)
 
-Ask about vision and implementation choices. Capture decisions for downstream agents.
+But CONTEXT.md is broader than user taste. It can also hold:
+- working assumptions that research must test
+- constraints derived from requirements, prior phases, signals, or code reality
+- open questions that should steer research
+- epistemic guardrails and verification standards
+
+Default to doing synthesis work yourself before asking anything. Ask only when a high-leverage ambiguity remains unresolved after scouting and derivation.
+
+**Exploratory mode additions** (active when `DISCUSS_MODE` is `exploratory`):
+
+These additions modify the discussion posture without changing the step structure:
+
+- **Working assumptions, not decisions:** Frame captured choices as "working assumptions" rather than locked decisions. CONTEXT.md should use language like "current assumption" and "open to revision during planning" rather than "decided" or "locked."
+- **Epistemic guardrails:** When presenting options, explicitly note which options are grounded (codebase patterns, prior decisions, established conventions) vs speculative (no existing code support, novel pattern, multiple valid approaches). Mark grounded options with `[grounded]` and open options with `[open]`.
+- **Preserve genuine uncertainty:** If the user says "I'm not sure" or "either could work," record that as a legitimate outcome — do not push toward resolution. Downstream agents (researcher, planner) can investigate further.
+- **Auto-select grounding rule:** With `--auto` in exploratory mode, only auto-select options tagged `[grounded]`. For `[open]` options, record: `[auto] [Area] — Q: "[question]" → Open question (no grounded default — needs user input or research)`
 </philosophy>
+
+<context_model>
+Treat CONTEXT.md as a phase steering brief with possible sections such as:
+- Phase Boundary
+- Working Model & Assumptions
+- Implementation Decisions
+- Derived Constraints
+- Open Questions
+- Epistemic Guardrails
+- Specific Ideas
+- Canonical References
+- Code Context
+- Deferred Ideas
+
+Only include sections that have content.
+</context_model>
+
+<synthesis_priority>
+1. Scout before asking
+2. Derive before reopening
+3. Prioritize by leverage
+4. Respect uncertainty
+</synthesis_priority>
 
 <scope_guardrail>
 **CRITICAL: No scope creep.**
@@ -147,14 +195,59 @@ Use /gsd:progress ${GSD_WS} to see available phases.
 ```
 Exit workflow.
 
-**If `phase_found` is true:** Continue to check_existing.
+**If `phase_found` is true:** Continue to mode_routing.
 
 **Auto mode** — If `--auto` is present in ARGUMENTS:
-- In `check_existing`: auto-select "Skip" (if context exists) or continue without prompting (if no context/plans)
-- In `present_gray_areas`: auto-select ALL gray areas without asking the user
-- In `discuss_areas`: for each discussion question, choose the recommended option (first option, or the one marked "recommended") without using AskUserQuestion
-- Log each auto-selected choice inline so the user can review decisions in the context file
-- After discussion completes, auto-advance to plan-phase (existing behavior)
+- In `check_existing`: auto-load existing context as a revision pass, or continue without prompting
+- In `load_prior_context`, `scout_codebase`, and related scouting steps: proceed automatically
+- In `present_gray_areas`: auto-select all material gray areas without asking
+- In downstream synthesis: bias toward open questions, working assumptions, and guardrails rather than collapsing uncertainty into recommended defaults
+- After discussion completes, auto-advance to plan-phase only after writing a research-ready steering brief
+</step>
+
+<step name="mode_routing">
+Resolve the discuss mode and route accordingly.
+
+```bash
+DISCUSS_MODE=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.discuss_mode 2>/dev/null || echo "exploratory")
+```
+
+**Validate mode value:** If `DISCUSS_MODE` is not one of `exploratory`, `discuss`, `assumptions`, default to `exploratory`.
+
+**Route by mode:**
+
+1. **If `DISCUSS_MODE` is `assumptions`:**
+   Route to the assumptions workflow entirely. Do NOT continue with this workflow's remaining steps.
+
+   Display:
+   ```
+   Discuss mode: assumptions — routing to codebase-first inference workflow.
+   ```
+
+   Follow the workflow defined in `discuss-phase-assumptions.md` instead. That workflow handles its own init, analysis, context writing, and commit.
+
+   Exit this workflow after the assumptions workflow completes.
+
+2. **If `DISCUSS_MODE` is `discuss`:**
+   Standard behavior — proceed to `check_existing` with no modifications. `--auto` picks recommended defaults decisively.
+
+   Display (only if `--auto` is present):
+   ```
+   Discuss mode: discuss — standard steering brief with decisive auto-selection.
+   ```
+
+3. **If `DISCUSS_MODE` is `exploratory`:**
+   Proceed to `check_existing` with exploratory modifications active:
+   - Philosophy section gains **working assumptions** framing (see philosophy additions below)
+   - `--auto` behavior modified: only auto-select when strongly grounded
+   - Gray area presentation includes epistemic confidence markers
+
+   Display (only if `--auto` is present):
+   ```
+   Discuss mode: exploratory — preserving uncertainty, auto-selecting only when grounded.
+   ```
+
+Continue to `check_existing`.
 </step>
 
 <step name="check_existing">
@@ -683,10 +776,23 @@ This gives the user context to make informed decisions without extra prompting. 
 
 Each answer (or answer set, in batch mode) should reveal the next question or next batch.
 
-**Auto mode (`--auto`):** For each area, Claude selects the recommended option (first option, or the one explicitly marked "recommended") for every question without using AskUserQuestion. Log each auto-selected choice:
-```
-[auto] [Area] — Q: "[question text]" → Selected: "[chosen option]" (recommended default)
-```
+**Auto mode (`--auto`):** Behavior depends on `DISCUSS_MODE`:
+
+- **`discuss` mode (standard):** For each area, Claude selects the recommended option (first option, or the one explicitly marked "recommended") for every question without using AskUserQuestion. Log each auto-selected choice:
+  ```
+  [auto] [Area] — Q: "[question text]" → Selected: "[chosen option]" (recommended default)
+  ```
+
+- **`exploratory` mode:** For each area, Claude evaluates whether the recommended option is **grounded** (supported by codebase patterns, prior decisions, or established conventions). Only auto-select grounded options:
+  ```
+  [auto] [Area] — Q: "[question text]" → Selected: "[chosen option]" [grounded: existing pattern in src/...]
+  ```
+  For ungrounded options (novel patterns, multiple equally valid approaches, no codebase precedent):
+  ```
+  [auto] [Area] — Q: "[question text]" → Open question (no grounded default — needs user input or research)
+  ```
+  Open questions are recorded in CONTEXT.md as working assumptions with `[open]` markers for downstream agents.
+
 After all areas are auto-resolved, skip the "Explore more gray areas" prompt and proceed directly to write_context.
 
 **Interactive mode (no `--auto`):**
@@ -1082,14 +1188,18 @@ Route to `confirm_creation` step (existing behavior — show manual next steps).
 
 <success_criteria>
 - Phase validated against roadmap
+- Discuss mode resolved from config (`workflow.discuss_mode`) — defaults to `exploratory`
+- If `assumptions` mode: routed to discuss-phase-assumptions.md workflow
 - Prior context loaded (PROJECT.md, REQUIREMENTS.md, STATE.md, prior CONTEXT.md files)
 - Already-decided questions not re-asked (carried forward from prior phases)
 - Codebase scouted for reusable assets, patterns, and integration points
 - Gray areas identified through intelligent analysis with code and prior decision annotations
 - User selected which areas to discuss
 - Each selected area explored until user satisfied (with code-informed and prior-decision-informed options)
+- In exploratory mode: options marked [grounded] or [open]; uncertainty preserved rather than resolved
+- In exploratory --auto: only grounded options auto-selected; open questions recorded as such
 - Scope creep redirected to deferred ideas
-- CONTEXT.md captures actual decisions, not vague vision
+- CONTEXT.md captures actual decisions (discuss mode) or working assumptions (exploratory mode)
 - CONTEXT.md includes canonical_refs section with full file paths to every spec/ADR/doc downstream agents need (MANDATORY — never omit)
 - CONTEXT.md includes code_context section with reusable assets and patterns
 - Deferred ideas preserved for future phases
