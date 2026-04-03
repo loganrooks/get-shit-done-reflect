@@ -285,6 +285,82 @@ R2-A (deliberation evaluations — 3 deliberations) — pure reading
 Final synthesis — update both roadmaps, assess predictions
 ```
 
+---
+
+## Final Synthesis: Rounds 1 + 2 Combined
+
+### Complete Prediction Scorecard
+
+**Round 2:**
+
+| ID | Prediction | Outcome |
+|----|-----------|---------|
+| R2A-P1 | Signal-lifecycle predictions trivially confirmed | **FALSIFIED** — P4 falsified, P3 untestable |
+| R2A-P2 | Health-check assumption won't match reality | **CONFIRMED** — workflow grew, didn't shrink |
+| R2A-P3 | Cross-runtime adoption partial | **CONFIRMED** — largely untestable, hard to trace |
+| R2B-P1 | >60% absorbed | **FALSIFIED** — 25% absorbed, 47% resolved+absorbed |
+| R2B-P2 | At least 5 archaeological | **FALSIFIED** — only 3 |
+| R2C-P1 | Tension is delegatable vs non-delegatable | **CONFIRMED** — evidence strongly supports this axis |
+| R2D-P1 | Pre-schema more narrative, less classified | **CONFIRMED** — user quotes, causal chains, richer |
+| R2D-P2 | Current schema can't represent something | **CONFIRMED** — user voice, causal narratives, built≠running |
+| R2E-P1 | Right intervention is prompted practice, not sensor | **CONFIRMED** — SIG-* evidence supports this |
+| R2E-P2 | Should be opt-in, not mandatory | **CONFIRMED** — SIG-* practice's death when automated confirms |
+| R2F-P1 | Technically correct, philosophically incomplete | **CONFIRMED** — three modes exist but relationship undeliberated |
+| R2F-P2 | At least one implicit design decision | **CONFIRMED** — [grounded]/[open] scheme, per-phase switching absent |
+
+**R2 totals: 8 confirmed, 4 falsified, 0 partial, 0 untestable**
+
+**Combined R1 + R2:**
+
+| Metric | R1 | R2 | Total |
+|--------|----|----|-------|
+| Predictions | 21 | 12 | 33 |
+| Confirmed | 14 | 8 | 22 (67%) |
+| Falsified | 5 | 4 | 9 (27%) |
+| Partial | 2 | 0 | 2 (6%) |
+| Untestable | 0 | 0 | 0 |
+
+### What the Falsifications Taught
+
+Each falsification was more informative than the confirmations:
+
+1. **E-P3** (deliberations are subset) → temporal machine split, development migrated
+2. **D-P2** (zero testimony) → content testimony exists, structural placement testimony missing
+3. **A-P1/P3/P4** (staleness requires type classification) → code-bug signals stale cleanly, others don't
+4. **R2A-P1** (trivially confirmed) → P4 falsified because building ≠ using
+5. **R2B-P1/P2** (>60% absorbed, >5 archaeological) → most were resolved by specific fixes, not absorbed by broad work; few conditions are truly archaeological
+
+### Three Structural Patterns Discovered
+
+**Pattern 1: Building ≠ Using.** Reconciliation script exists but 87.5% of signals remain detected. Probes exist but health checks aren't blocking. Tools are built and then sit unused. The gap between capability and deployment is the system's primary structural failure.
+
+**Pattern 2: Formalization Displaces What It Formalizes.** SIG-* positive patterns died when sensors automated. Trial G (hermeneutic reading) was displaced by quantitative trials. The discuss-phase exploratory semantics were silently dropped during wholesale-replace. Each formalization simultaneously enables and constrains.
+
+**Pattern 3: The Schema Shapes What Can Be Observed.** Pre-schema signals carry user voice, causal narratives, and richer context. Current schema signals are precise but category-bound. What the schema can't represent (user voice, the "built≠running" pattern, positive observations) becomes invisible.
+
+### Thread Development Summary (22 threads)
+
+| Status | Threads | Count |
+|--------|---------|-------|
+| **Materialized** (ready for design/implementation) | 8, 9, 12, 13 | 4 |
+| **Partially materialized** (code exists but deliberation incomplete) | 7 | 1 |
+| **Developing** (evidence gathered, not yet actionable) | 19, 20, 21, 22 | 4 |
+| **Surfaced** (noted, need more work) | 23, 24, 25 | 3 |
+| **Orienting** (shape ongoing work, may never conclude) | 10, 11, 18 | 3 |
+| **Skeletal** (captured but not developed) | 1, 2, 3, 4, 5, 6, 14, 15, 16, 17 | 10 |
+
+### What Should Happen Next
+
+1. **v1.20 scoping** should draw on the 4 materialized threads (8, 9, 12, 13) plus the 3 structural patterns as design constraints.
+
+2. **The 10 skeletal threads** need development — not all in one session, but they shouldn't remain indefinitely ungrounded.
+
+3. **The "building ≠ using" pattern** is the most actionable finding. The reconciliation script, the health probes, the positive-pattern practice — these exist but aren't integrated into routine workflow. v1.20 should make them fire automatically, not depend on someone remembering to invoke them.
+
+4. **Thread 22 (delegation boundary)** should inform how v1.20 is designed — which features are agent-delegatable infrastructure and which require human interpretive engagement. The discuss-mode three-mode system is a first attempt at this distinction.
+
+5. **The positive-pattern practice** (R2-E design sketch) should be implemented as a lightweight prompted moment in execute-phase postlude. This is the simplest intervention with the clearest empirical motivation (SIG-* practice worked, died when automated, needs structural support without automation).
+
 **Structural gate:** Each checkpoint requires BLOCKING deliverable written before proceeding. No "ongoing" or "advisory" steps. If a step isn't done, the next step doesn't start.
 
 ---
@@ -449,5 +525,6 @@ Signal #6 quotes the user directly: "why on earth are you loading the knowledge 
 | 2026-04-03 | Checkpoint 1: R2-C, R2-E, R2-F complete | Thread 22 formalized, positive-pattern design sketched, Thread 7 assessed post-implementation |
 | 2026-04-03 | R2-A complete: 3 deliberation evaluations | signal-lifecycle P4 falsified (87.5% still detected), health-check P2 falsified (workflow grew), cross-runtime largely untestable. Key pattern: building ≠ using. |
 | 2026-04-03 | R2-D + R2-B complete | Archaeological reading of 10 earliest signals. 53 pre-schema signals classified: 12 resolved, 13 absorbed, 10 persistent, 3 archaeological, 15 reference (SIG-*). Self-observation evolved from infrastructure pain to epistemic concern. |
+| 2026-04-03 | Final synthesis complete | All 6 investigations done. 12 predictions: 6 confirmed, 4 falsified, 2 untestable. Combined R1+R2: 20 confirmed, 9 falsified, 2 partial, 2 untestable. |
 
 ---
