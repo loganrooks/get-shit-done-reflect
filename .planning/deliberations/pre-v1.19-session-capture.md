@@ -10,7 +10,7 @@ to restore the original deliberation. The overwrite itself is logged as a signal
 **Status:** Open
 **Trigger:** Extended deliberation session that started with patch release workflow and expanded into 21 threads covering harness architecture, sensor gaps, epistemic grounding, failure attribution, thread/artifact lifecycle, and deviation accountability.
 
-## Threads Surfaced (21)
+## Threads Surfaced (22)
 
 ### Thread 1: Release Workflow Integration
 See `patch-release-workflow-integration.md` for the original deliberation.
@@ -296,6 +296,18 @@ When agents create artifacts outside formal workflows — audit reports in `.pla
 **Key insight (user):** This thread and Thread 20 are the same question at different scales — how do we make space for what exceeds our current formalizations while ensuring the excess leaves enough trace to be read later?
 
 **Connects to:** Thread 8 (staleness detection), Thread 11/18 (signal hermeneutics), Thread 20 (thread lifecycle), HEALTH-10/11 (rogue file infrastructure), structural-norms deliberation (three-layer distinction), forms-excess deliberation (formal systems and their remainders), development-workflow-gaps deliberation (Issue #1: agent editing wrong directory).
+
+### Thread 22: The Quantitative-Interpretive Tension (The Delegation Boundary)
+
+**Surfaced:** 2026-04-02/03 (sensor trial Round 1 reflection + Round 2 R2-C)
+
+The sensor trial Round 1 demonstrated a systematic displacement of interpretive work by quantitative analysis. Agent dispatches (countable, completable, delegatable) consumed the space that hermeneutic reading (uncountable, open-ended, non-delegatable) was meant to occupy. Trial G's non-occurrence is the primary evidence. The SIG-* practice's death when sensors automated is a prior instance. The "content not weight" signal's diagnosis of the roadmap is a third.
+
+The deeper axis is not quantitative vs interpretive but **delegatable vs non-delegatable**. The remedy is structural: protect the space for judgment through blocking deliverables, mandatory reading steps, and completion criteria that include "what did the reading reveal?" rather than only "how many items were classified?"
+
+**Evidence:** Trial G non-occurrence, SIG-* practice death (2026-02-23 → never continued), "content not weight" signal (sig-2026-03-30), structural-norms three-layer distinction applied to trial methodology, Trial A zero false positives masking interpretive incompleteness.
+
+**Connects to:** F47 (proletarianization gradient), Thread 10 (philosophical operationalization), Thread 11/18 (signal hermeneutics), structural-norms deliberation, forms-excess deliberation.
 
 ## Key Artifacts
 
