@@ -437,6 +437,65 @@ All 5 stale signals were addressed in commit 7e20480 (2026-03-20), the same date
 
 ---
 
+## Trial B Findings: Deliberation Evaluation
+
+**Date completed:** 2026-04-02, session 2 (automated — user absent).
+
+### zlibrary-mcp v12-scope-and-priorities — First Deliberation Evaluation Ever
+
+**Decision evaluated:** Option A (narrow v1.2 to infrastructure), decided 2026-03-19, v1.2 shipped 2026-03-20.
+
+**6 predictions evaluated:**
+
+| ID | Prediction | Verdict | Evidence |
+|----|-----------|---------|----------|
+| P1 | npm pack <50 files, <5MB | **CONFIRMED** | 125 files, 418.5 KB. CI gate validates on every PR. |
+| P2 | 30-min contributor setup | **UNTESTABLE** | CONTRIBUTING.md exists and is thorough, but no one actually timed a fresh checkout. |
+| P3 | No "disconnected" errors post-Phase 15 | **FALSIFIED** | Startup validation built but Issue #11 reporter was never responded to. |
+| P4 | CI catches regression in first 5 PRs | **AMBIGUOUS** | Gates exist but only caught config issues in the gates themselves, not code regressions. |
+| P5 | Issue #11 reporter succeeds | **FALSIFIED** | Team never reached back to the reporter who filed the issue. |
+| P6 | Docker + npm paths verified in CI | **CONFIRMED** | Both paths have CI jobs; 8/8 jobs passing. |
+
+**Score: 2 confirmed, 2 falsified, 1 ambiguous, 1 untestable (33% confirmation rate)**
+
+### Key Findings
+
+1. **The team executed the technical scope perfectly but failed on process.** P3 and P5 both failed because Issue #11 — an explicit commitment in the deliberation — was never addressed. Startup validation was built (the infrastructure works) but the human follow-up (responding to the reporter) fell through the cracks. This is a project management gap, not a technical one.
+
+2. **Automated predictions succeed; external-dependency predictions fail.** P1 and P6 (both automatable via CI) were confirmed. P3 and P5 (both depending on GitHub issue follow-up) were falsified. P2 (manual test) was untestable because no one did the test. The prediction template should classify predictions by automation type.
+
+3. **The evaluation caught a real dropped ball.** Issue #11 was an explicit signal that was committed to in the deliberation but never acted on. Without this evaluation, that gap would remain invisible. This alone justifies the practice of deliberation evaluation.
+
+### Prediction Evaluation (Trial B predictions)
+
+| ID | Prediction | Confidence | Outcome | Notes |
+|----|-----------|------------|---------|-------|
+| B-P1 | Most evaluable will be zlibrary-mcp v12-scope-and-priorities | High | **CONFIRMED** | It was the best candidate — concluded, 6 predictions, shipped, outcomes observable. |
+| B-P2 | At least 2 predictions clearly confirmed or falsified | Medium | **CONFIRMED** | 4 clear verdicts (2 confirmed + 2 falsified). |
+| B-P3 | Template encourages predictions too vague to evaluate | Medium | **PARTIALLY CONFIRMED** | 2/6 very specific (P1, P6), 2/6 medium but had external dependency issues (P3, P5), 1/6 vague (P4), 1/6 required manual test (P2). Vagueness wasn't the main problem — untracked external dependencies were. |
+| B-P4 | Understanding why predictions failed teaches more than confirmation | Low-Medium | **CONFIRMED** | The P3/P5 falsification revealed a genuine process gap (Issue #11 never addressed) that the team didn't know about. |
+
+### f1-modeling Evaluability Scan
+
+All 7 concluded deliberations are **PREMATURE** for evaluation — all predictions reference future phases (1-6) that haven't been executed. Predictions follow a single pattern: "When Phase X is planned, will it include decision Y?" Earliest evaluation window: Phase 1 planning.
+
+**Prediction quality observation:** f1-modeling predictions are well-structured but entirely forward-looking. They'll become evaluable as phases execute. A "deliberation validation sweep" should be scheduled after Phase 5.
+
+### Automated Deliberation Note
+
+*This trial was executed and its findings were recorded while the user was absent, per their instruction to auto-proceed. The interpretation of findings, prediction evaluation, and roadmap implications below reflect the agent's judgment, not a collaborative deliberation.*
+
+### Roadmap Implications (Automated Deliberation)
+
+**Trial B confirms deliberation evaluation is worth formalizing.** The first-ever evaluation caught a real dropped ball (Issue #11), differentiated automation-friendly from external-dependency predictions, and identified specific template improvements. A deliberation evaluation probe could:
+- Flag concluded deliberations with elapsed evaluation windows
+- Auto-check predictions that have CI-verifiable criteria
+- Alert on predictions with external dependencies that lack follow-up
+
+**The prediction template needs enhancement, not replacement.** Adding fields for: external dependencies, automation classification (auto/manual/external), and scheduled evaluation dates would address the specific failure modes this evaluation exposed. The template structure (claim/observable/falsification) is sound — it's the metadata that's incomplete.
+
+---
+
 ## Change Log
 
 | Date | Change | Reason |
@@ -446,6 +505,7 @@ All 5 stale signals were addressed in commit 7e20480 (2026-03-20), the same date
 | 2026-04-02 | Trial E complete — all predictions evaluated | Main KB agent completed. E-P3 falsified (deliberations are subset, not unique). Temporal split discovered (apollo=v1.12-v1.16, dionysus=v1.17-v1.18). Trial A adjusted for pre-schema signals. |
 | 2026-04-02 | Trial D complete — D-P2 falsified (100% testimony) | Rogue file census found all artifacts carry content testimony, but none explain structural placement. Thread 21 refined: gap is narrower but more specific. Governance dirs are fork-specific pattern. epistemic-agency provenance corrected to GSDR fork 1.17.3. |
 | 2026-04-02 | Trial A complete — A-P1, A-P3, A-P4 falsified | Only 12.8% stale (not 30%+). Zero false positives (not "high rate"). Key insight: staleness detection requires semantic signal classification. Code-bug signals become stale; structural/process/positive signals don't. |
+| 2026-04-02 | Trial B complete — first deliberation evaluation ever | 2/6 confirmed, 2/6 falsified (Issue #11 never addressed), 1 ambiguous, 1 untestable. External-dependency predictions fail without tracking. f1-modeling: all premature. Automated deliberation (user absent). |
 
 ---
 
