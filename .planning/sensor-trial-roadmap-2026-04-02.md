@@ -388,6 +388,55 @@ Trial D found that epistemic-agency has GSDR fork v1.17.3 installed (not "no run
 
 ---
 
+## Trial A Findings: Signal Staleness Detection
+
+**Date completed:** 2026-04-02, session 2. Examined 39 signals across zlibrary-mcp (30) and get-shit-done-reflect on dionysus (9).
+
+### Classification Results
+
+| Category | zlibrary-mcp | get-shit-done-reflect | Total | % |
+|----------|-------------|----------------------|-------|---|
+| **STALE** (concern addressed) | 5 | 0 | 5 | 12.8% |
+| **LIVE** (concern persists) | 7 | 8 | 15 | 38.5% |
+| **POSITIVE/BASELINE** | 7 | 0 | 7 | 17.9% |
+| **PROCESS/CHARACTERIZATION** | 11 | 1 | 12 | 30.8% |
+| **Total** | 30 | 9 | 39 | 100% |
+
+### Prediction Evaluation
+
+| ID | Prediction | Confidence | Outcome | Notes |
+|----|-----------|------------|---------|-------|
+| A-P1 | At least 30% of signals will have stale references | Medium | **FALSIFIED** | Only 5/39 = 12.8% stale. Most signals describe structural/process concerns, not fixable code bugs. |
+| A-P2 | zlibrary-mcp will have highest staleness rate | High | **CONFIRMED** | 16.7% (5/30) vs 0% (0/9). zlibrary-mcp had shipped v1.2, so code bugs had been addressed. |
+| A-P3 | Will produce both true positives and false positives | High | **PARTIALLY FALSIFIED** | True positives found (5 stale), but zero false positives. The detector was more accurate than expected. |
+| A-P4 | False positive rate will be high enough to require human judgment | Medium | **FALSIFIED** | Zero false positives. Semantic signal classification (code-bug vs structural vs process) disambiguated cleanly. |
+
+### The Key Insight: Signal Types Determine Staleness Behavior
+
+The most important finding is that **staleness detection requires semantic signal classification before checking git history**:
+
+1. **Code-bug signals** (5 found, all in zlibrary-mcp): These DO become stale when the bug is fixed. All 5 were addressed in a single commit (7e20480) on the same day as signal creation. Git-based staleness detection works well for this type.
+
+2. **Architectural/structural signals** (7 found): Remain LIVE indefinitely because they describe permanent constraints (Alpine musl incompatibility, credential-gated tests), not bugs. The "fix" is graceful degradation, which was already implemented. A staleness detector would correctly identify these as LIVE — no false positive risk.
+
+3. **Process/capability signals** (12 found, including all 8 LIVE in get-shit-done-reflect): Only become stale through workflow/harness changes, not code commits. A git-based detector checking source code would never flag these as stale because the relevant changes would be in workflow spec files, not project code.
+
+4. **Positive/characterization signals** (19 found): Document patterns and baselines. Cannot be "stale" — they're observations, not problems. A detector needs to skip these entirely.
+
+**Implication for sensor formalization:** A staleness sensor is worth building but ONLY for code-bug signals. For the other three types, staleness is either meaningless (positive/characterization), inapplicable (process/capability), or architecturally permanent (structural). The sensor should classify first, then detect — not detect-then-classify.
+
+### Notable Finding: zlibrary-mcp Stale Signals Were All Fixed Same-Day
+
+All 5 stale signals were addressed in commit 7e20480 (2026-03-20), the same date the signals were created. This suggests the signals were detected during post-phase audit work that *also* triggered the fixes — meaning the signal-to-remediation loop worked, but the lifecycle state was never updated. The machinery exists but doesn't fire, confirming the signal-lifecycle-closed-loop-gap diagnosis.
+
+### What This Means for Remaining Trials
+
+**Trial C (cross-project correlation) should incorporate signal type classification.** When correlating signals across projects, a code-bug correlation (same bug in two projects) has different implications than a structural correlation (same architectural constraint in two projects) or a process correlation (same workflow gap in two projects). The type determines what the correlation *means*.
+
+**Trial B (deliberation evaluation) is unaffected** — deliberation predictions are about design decisions, not signal types.
+
+---
+
 ## Change Log
 
 | Date | Change | Reason |
@@ -396,6 +445,7 @@ Trial D found that epistemic-agency has GSDR fork v1.17.3 installed (not "no run
 | 2026-04-02 | Trial E supplementary findings added | Apollo other-project agent completed; main KB agent still in progress |
 | 2026-04-02 | Trial E complete — all predictions evaluated | Main KB agent completed. E-P3 falsified (deliberations are subset, not unique). Temporal split discovered (apollo=v1.12-v1.16, dionysus=v1.17-v1.18). Trial A adjusted for pre-schema signals. |
 | 2026-04-02 | Trial D complete — D-P2 falsified (100% testimony) | Rogue file census found all artifacts carry content testimony, but none explain structural placement. Thread 21 refined: gap is narrower but more specific. Governance dirs are fork-specific pattern. epistemic-agency provenance corrected to GSDR fork 1.17.3. |
+| 2026-04-02 | Trial A complete — A-P1, A-P3, A-P4 falsified | Only 12.8% stale (not 30%+). Zero false positives (not "high rate"). Key insight: staleness detection requires semantic signal classification. Code-bug signals become stale; structural/process/positive signals don't. |
 
 ---
 
