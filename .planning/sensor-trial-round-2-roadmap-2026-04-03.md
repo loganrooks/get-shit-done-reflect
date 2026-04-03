@@ -289,6 +289,96 @@ Final synthesis — update both roadmaps, assess predictions
 
 ---
 
+## R2-D Deliverable: Archaeological Reading of Pre-Schema Signals
+
+### What the Earliest Signals Reveal
+
+The 10 earliest signals (all 2026-02-11 to 2026-02-17) document **infrastructure pain**: KB data loss during migration, path resolution failures, context bloat from loading 864+ lines just to write a short signal, stale checkpoint files accumulating across milestones, branches not deleted after merge. These are plumbing problems — the harness can't reliably install, migrate, clean up after itself, or manage its own state.
+
+The vocabulary is more narrative than the current schema allows. Signal #2 (KB data loss) tells a story: "13 signals and 3 lessons from v1.13 dogfooding were lost. They existed at ~/.claude/gsd-knowledge/... v1.14 Phase 14 updated all source references... but the installer was never run on the developer's machine." This is richer than any signal_type classification can capture — it carries the frustration of discovering data loss, the specific chain of causation, the gap between code existing and code running.
+
+Signal #6 quotes the user directly: "why on earth are you loading the knowledge store agent, the signal-detection agent, and why are they like over 200 lines." This is testimony — the user's voice preserved in the signal. Current auto-generated signals don't carry user voice; they carry agent observations about user behavior.
+
+### How Self-Observation Evolved
+
+**Phase 1 (2026-02-11, v1.12 era): Infrastructure observation.** The project observes its own plumbing failures — path bugs, data loss, context waste. The observer is the developer, not the harness. Signals are filed manually after encountering pain.
+
+**Phase 2 (2026-02-16 to 2026-02-23, v1.14-v1.15 era): Process observation.** The project begins observing its own *workflows* — branches not cleaned, stale files not deleted, plans executed out of order, tech debt dismissed by audits. The observer is still the developer, but the observations are about the harness's behavior, not just its infrastructure.
+
+**Phase 3 (2026-02-22 to 2026-02-23, SIG-* era): Positive pattern observation.** The project begins observing what works well — TDD discipline, atomic writes, zero-touch architecture. This is the only period where the project systematically captures positive observations. It lasts 2 days.
+
+**Phase 4 (2026-03-01+, v1.16+ era): Automated observation with lifecycle schema.** The sensor pipeline takes over. Signals get lifecycle_state, related_signals, evidence fields. The observer shifts from developer to harness. The signals become more structured and less narrative. Positive pattern capture ceases.
+
+**What changed:** The project's capacity for self-observation grew more powerful (automated sensors, structured schema) but narrower (deviations only, no positive patterns, no user voice). The earliest signals are rougher but richer. The latest are precise but constrained by their categories.
+
+### What the Current Schema Cannot Represent (R2D-P2)
+
+1. **User voice.** Signal #6 and #13 quote the user's frustration directly. The current schema has no field for "what the user said about this." The `evidence` field captures code artifacts, not human testimony.
+
+2. **Causal narratives.** Signal #2 tells a multi-step story (migration code written → installer not run → old directory deleted → data lost). The current schema captures "what happened" but not "the chain of decisions that led here." It's a snapshot, not a story.
+
+3. **The distinction between "code exists" and "code runs."** Signal #4 (local-install-global-kb model) and Signal #33 (lifecycle representation gap) both describe the same structural condition: machinery was built but didn't fire. The schema can represent each signal individually but not the recurring pattern — "building ≠ using" as a structural condition of the project.
+
+### R2-D Prediction Evaluation
+
+| ID | Prediction | Outcome |
+|----|-----------|---------|
+| R2D-P1 | Pre-schema signals will be more narrative and less classified | **CONFIRMED** — richer context, user quotes, causal chains. But harder to query, no lifecycle state, no related_signals. |
+| R2D-P2 | Reading them will surface at least one concern the current schema cannot represent | **CONFIRMED** — three: user voice, causal narratives, the "built ≠ running" structural pattern. |
+
+---
+
+## R2-B Deliverable: Apollo Pre-Schema Signal Classification
+
+### Classification of 53 Pre-Schema Signals
+
+| Category | Count | % | Description |
+|----------|-------|---|-------------|
+| **Resolved** | 12 | 23% | Specific bugs fixed by targeted commits or protocol changes |
+| **Absorbed** | 13 | 25% | Addressed by milestone work (v1.13-v1.19) without explicit signal closure |
+| **Persistent** | 10 | 19% | Concern still applies to current codebase |
+| **Archaeological** | 3 | 6% | Describes conditions that no longer exist but has historical value |
+| **Reference** (SIG-*) | 15 | 28% | Positive patterns and architecture decisions — permanently valid |
+| **Total** | **53** | 100% | |
+
+### Notable Classifications
+
+**Persistent (still live — 10 signals):**
+- sig-2026-02-11-kb-data-loss-migration-gap — KB migration fragility persists
+- sig-2026-02-11-local-install-global-kb-model — local/global KB tension is Thread 13
+- sig-2026-02-23-installer-clobbers-force-tracked-files — listed in current blockers, unfixed
+- sig-2026-03-04-signal-lifecycle-representation-gap — 87.5% still in detected
+- sig-2026-03-05-askuserquestion-phantom-answers — may still occur in YOLO mode
+- sig-2026-03-03-no-ci-verification-in-execute-phase — enforcement unclear
+- sig-2026-03-02-requirements-lack-motivation-traceability — still a gap
+- sig-2026-03-05-multi-runtime-parity-testing-gap — partially addressed
+- sig-2026-02-11-kb-script-wrong-location-and-path — KB path architecture evolved but concerns remain
+- sig-2026-03-04-deliberation-skill-lacks-epistemic-verification — Step 2.5 exists but effectiveness untestable
+
+**Resolved (12 signals) includes:**
+- PR targeting (fixed via --repo protocol, saved to memory)
+- Branch cleanup (fixed via post-merge protocol)
+- Model resolver prefix (fixed in quick-260402-qnh)
+- Discuss-mode dropped (fixed in v1.19.0)
+- Stale continue-here files (resume workflow now deletes)
+- CI manifest selftest hardcoded count (fixed)
+
+**Absorbed (13 signals) includes:**
+- Context bloat ×3 (modularization in v1.18 reduced this)
+- Spike workflow gaps ×2 (redesigned in v1.16)
+- Release process fragility (formalized in v1.15)
+- Delegate-to-subagents (established as practice)
+- Post-merge cleanup (memory saved)
+
+### R2-B Prediction Evaluation
+
+| ID | Prediction | Outcome |
+|----|-----------|---------|
+| R2B-P1 | >60% will be "absorbed" | **FALSIFIED** — only 25% absorbed (13/53). Combined resolved+absorbed = 47%. If excluding SIG-* reference signals: 25/38 = 66% resolved+absorbed. The prediction was too specific to "absorbed" vs "resolved" — many were fixed by specific patches, not absorbed by broader work. |
+| R2B-P2 | At least 5 will be "archaeological" | **FALSIFIED** — only 3 archaeological. Most signals that describe old conditions are still classifiable as resolved or absorbed rather than purely historical. |
+
+---
+
 ## R2-A Deliverable: Deliberation Evaluations (3 of 3)
 
 ### 1. signal-lifecycle-closed-loop-gap (Concluded 2026-03-04)
@@ -358,5 +448,6 @@ Final synthesis — update both roadmaps, assess predictions
 | 2026-04-03 | Round 2 roadmap created | Post-Round 1 reflection, preparatory work complete, v1.19.0 shipped |
 | 2026-04-03 | Checkpoint 1: R2-C, R2-E, R2-F complete | Thread 22 formalized, positive-pattern design sketched, Thread 7 assessed post-implementation |
 | 2026-04-03 | R2-A complete: 3 deliberation evaluations | signal-lifecycle P4 falsified (87.5% still detected), health-check P2 falsified (workflow grew), cross-runtime largely untestable. Key pattern: building ≠ using. |
+| 2026-04-03 | R2-D + R2-B complete | Archaeological reading of 10 earliest signals. 53 pre-schema signals classified: 12 resolved, 13 absorbed, 10 persistent, 3 archaeological, 15 reference (SIG-*). Self-observation evolved from infrastructure pain to epistemic concern. |
 
 ---
