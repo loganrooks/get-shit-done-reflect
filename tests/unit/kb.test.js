@@ -7,7 +7,12 @@
  * Requires Node >=22.5.0 (node:sqlite). This machine: v22.22.1.
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeAll } from 'vitest'
+
+// Skip entire file on Node < 22.5.0 (node:sqlite not available)
+const [major, minor] = process.versions.node.split('.').map(Number)
+const hasNodeSqlite = major > 22 || (major === 22 && minor >= 5)
+const describeIf = hasNodeSqlite ? describe : describe.skip
 import { tmpdirTest } from '../helpers/tmpdir.js'
 import path from 'node:path'
 import fs from 'node:fs'
@@ -116,7 +121,7 @@ function createKbDir(tmpdir) {
 
 // ─── 1. Schema generation handling ───────────────────────────────────────────
 
-describe('schema generation handling', () => {
+describeIf('schema generation handling', () => {
   tmpdirTest(
     'legacy SIG-format (observation type, no lifecycle_state) defaults correctly',
     async ({ tmpdir }) => {
@@ -251,7 +256,7 @@ describe('schema generation handling', () => {
 
 // ─── 2. Source field migration mapping ───────────────────────────────────────
 
-describe('source field migration mapping (cmdKbMigrate)', () => {
+describeIf('source field migration mapping (cmdKbMigrate)', () => {
   // Helper: write a signal with source field and run migrate
   function testSourceMigration(tmpdir, sourceValue) {
     const kbDir = createKbDir(tmpdir)
@@ -346,7 +351,7 @@ describe('source field migration mapping (cmdKbMigrate)', () => {
 
 // ─── 3. Rebuild correctness ───────────────────────────────────────────────────
 
-describe('rebuild correctness', () => {
+describeIf('rebuild correctness', () => {
   tmpdirTest(
     'empty corpus: rebuild on empty signals dir produces 0 entries, no errors',
     async ({ tmpdir }) => {
@@ -479,7 +484,7 @@ describe('rebuild correctness', () => {
 
 // ─── 4. Stats output ──────────────────────────────────────────────────────────
 
-describe('stats output', () => {
+describeIf('stats output', () => {
   tmpdirTest(
     'stats on populated corpus returns counts by severity, lifecycle, polarity, project',
     async ({ tmpdir }) => {
@@ -560,7 +565,7 @@ describe('stats output', () => {
 
 // ─── 5. Migrate behavior ──────────────────────────────────────────────────────
 
-describe('migrate behavior', () => {
+describeIf('migrate behavior', () => {
   tmpdirTest(
     'file with source: auto -> adds detection_method + origin, removes source',
     async ({ tmpdir }) => {
@@ -640,7 +645,7 @@ describe('migrate behavior', () => {
 
 // ─── 6. Dual-write invariant (KB-05) ─────────────────────────────────────────
 
-describe('dual-write invariant', () => {
+describeIf('dual-write invariant', () => {
   tmpdirTest(
     'delete kb.db and rebuild -> identical counts (SQLite is derived cache)',
     async ({ tmpdir }) => {
@@ -691,7 +696,7 @@ describe('dual-write invariant', () => {
 
 // ─── 7. Tags and links ────────────────────────────────────────────────────────
 
-describe('tags and links extraction', () => {
+describeIf('tags and links extraction', () => {
   tmpdirTest(
     'signal with tags -> signal_tags table has correct entries',
     async ({ tmpdir }) => {
@@ -778,7 +783,7 @@ Test signal with links.
 
 // ─── 8. Status normalization (RESEARCH.md Pitfall 4) ─────────────────────────
 
-describe('status normalization (Pitfall 4)', () => {
+describeIf('status normalization (Pitfall 4)', () => {
   tmpdirTest(
     'status: resolved -> normalized to status: active, lifecycle_state: remediated',
     async ({ tmpdir }) => {
