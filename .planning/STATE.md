@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 55-03-PLAN.md -- replace phase.cjs/roadmap.cjs with upstream v1.34.2, adopt complete-milestone.md, hybrid-merge installer with 7 reliability fixes
-last_updated: "2026-04-08T20:06:00.000Z"
-last_activity: "2026-04-08 -- Completed 55-03 (phase.cjs, roadmap.cjs, complete-milestone.md, installer hybrid merge)"
+stopped_at: Completed 55-04-PLAN.md -- router updates, upstream test adoption, all 3 suites green, .claude/ runtime updated, FORK-DIVERGENCES.md baseline v1.34.2
+last_updated: "2026-04-08T20:13:04.312Z"
+last_activity: 2026-04-08
 progress:
   total_phases: 10
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 4
-  completed_plans: 3
-  percent: 75
+  completed_plans: 4
+  percent: 100
 ---
 
 # Project State
@@ -26,21 +26,24 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 55 of 64 (Upstream Mini-Sync)
-Plan: 03 of 04 complete
-Status: In progress
-Last activity: 2026-04-08 -- Completed 55-03 (phase.cjs, roadmap.cjs, complete-milestone.md at v1.34.2; installer hybrid merge with 7 reliability fixes)
+Plan: 4 of 04 complete
+Status: Ready to execute
+Last activity: 2026-04-08
 
 Progress: [███████...] 75%
 
 ## Performance Metrics
 
 **v1.20 Current:**
-- Plans completed: 3
+
+- Plans completed: 4
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
+- 55-04: 6min, 2 tasks, 4 files
 
 **v1.18 Final:**
+
 - Plans completed: 37
 - See milestones/v1.18-ROADMAP.md for per-plan breakdown
 
@@ -54,6 +57,7 @@ Full decision log in PROJECT.md Key Decisions table.
 v1.13-v1.18 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
+
 - [55-01]: Adopted model-profiles.cjs as-is from upstream f7549d43; plan mentioned resolveModel but upstream exports getAgentToModelMapForProfile -- file correct as upstream version
 - [55-01]: Single commit for all 5 pure upstream modules per commit-per-merge-category strategy
 - [Roadmap]: 10 phases (55-64) derived from 53 requirements across 9 categories
@@ -71,10 +75,12 @@ Recent decisions affecting current work:
 - [55-03]: installer: applied 7 of 11 upstream fixes; 4 not applicable (.sh hooks, package.json); all fork extensions preserved (replacePathsInContent, dual-directory, gsdr- branding)
 - [55-03]: buildLocalHookCommand: $CLAUDE_PROJECT_DIR anchor (#1906) combined with existing test -f worktree guard -- both protections active
 - [55-03]: uninstall per-hook granularity: isGsdrHookCommand covers both gsdr- (current) and gsd- (legacy) namespaces
+- [Phase 55-04]: gsd-tools.test.js: upstream path does not exist at f7549d43; restored fork version and added 9 correctness regression tests inline adapted from upstream atomic-write, locking, frontmatter test files
 
 ### Pending Todos
 
 3 pending (carried from v1.18):
+
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 - [HIGH] Local patch archive: versioned history instead of single-snapshot overwrite (installer)
 - [MEDIUM] Revisit provisional corpus grounding set (planning)
@@ -93,6 +99,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-08T19:51:19.736Z
-Stopped at: Completed 55-02-PLAN.md -- hybrid-merge core.cjs, frontmatter.cjs, config.cjs with upstream v1.34.2
+Last session: 2026-04-08T20:13:04.307Z
+Stopped at: Completed 55-04-PLAN.md -- router updates, upstream test adoption, all 3 suites green, .claude/ runtime updated, FORK-DIVERGENCES.md baseline v1.34.2
 Resume file: None
