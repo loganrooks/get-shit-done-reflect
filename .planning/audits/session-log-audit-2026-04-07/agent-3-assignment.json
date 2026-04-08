@@ -1,0 +1,196 @@
+{
+  "agent": 3,
+  "sessions": [
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-blackhole-animation",
+      "session_id": "7f423906-515f-4c20-b73d-67170f3ad186",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-blackhole-animation/7f423906-515f-4c20-b73d-67170f3ad186.jsonl",
+      "events": 23,
+      "interest": 5,
+      "duration": 1053.1,
+      "total_tokens": 92295565
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-blackhole-animation",
+      "session_id": "fb3a0a76-0b93-4117-ba29-a4d708103898",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-blackhole-animation/fb3a0a76-0b93-4117-ba29-a4d708103898.jsonl",
+      "events": 12,
+      "interest": 5,
+      "duration": 444.4,
+      "total_tokens": 177140471
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-epistemic-agency",
+      "session_id": "291fb270-7ce5-43ac-bb6f-e8602b9a2817",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-epistemic-agency/291fb270-7ce5-43ac-bb6f-e8602b9a2817.jsonl",
+      "events": 10,
+      "interest": 4,
+      "duration": 116.0,
+      "total_tokens": 37837198
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-get-shit-done-reflect",
+      "session_id": "081de5ed-2959-4037-b98c-8ad171415d71",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-get-shit-done-reflect/081de5ed-2959-4037-b98c-8ad171415d71.jsonl",
+      "events": 9,
+      "interest": 5,
+      "duration": 60.6,
+      "total_tokens": 16925868
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-get-shit-done-reflect",
+      "session_id": "9af8f0ae-f2cb-4fd7-9e69-47c58190b6d4",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-get-shit-done-reflect/9af8f0ae-f2cb-4fd7-9e69-47c58190b6d4.jsonl",
+      "events": 7,
+      "interest": 6,
+      "duration": 141.0,
+      "total_tokens": 8143823
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-vigil",
+      "session_id": "8c2cdf8a-6e2c-4516-9ab5-3f149f421293",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-vigil/8c2cdf8a-6e2c-4516-9ab5-3f149f421293.jsonl",
+      "events": 7,
+      "interest": 4,
+      "duration": 879.9,
+      "total_tokens": 46135192
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-blackhole-animation",
+      "session_id": "4e94f656-9461-4957-8bc5-849521537c3f",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-blackhole-animation/4e94f656-9461-4957-8bc5-849521537c3f.jsonl",
+      "events": 4,
+      "interest": 4,
+      "duration": 760.8,
+      "total_tokens": 17112499
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Projects-Writings-ZionismGenealogy",
+      "session_id": "aa35375e-b2f4-4c2a-bae5-b49ff8c87894",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Projects-Writings-ZionismGenealogy/aa35375e-b2f4-4c2a-bae5-b49ff8c87894.jsonl",
+      "events": 3,
+      "interest": 3,
+      "duration": 28.3,
+      "total_tokens": 3387354
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-get-shit-done-reflect",
+      "session_id": "a1b2c954-e233-4472-80b4-20dbe33a245d",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-get-shit-done-reflect/a1b2c954-e233-4472-80b4-20dbe33a245d.jsonl",
+      "events": 1,
+      "interest": 3,
+      "duration": 126.9,
+      "total_tokens": 27742152
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-PDFAgentialConversion",
+      "session_id": "c7204805-3c89-4731-845e-2be03079b3eb",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-PDFAgentialConversion/c7204805-3c89-4731-845e-2be03079b3eb.jsonl",
+      "events": 0,
+      "interest": 2,
+      "duration": 193.2,
+      "total_tokens": 3419608
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-PDFAgentialConversion",
+      "session_id": "fc7921d7-d687-4277-a010-177d6ec9d6e0",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-PDFAgentialConversion/fc7921d7-d687-4277-a010-177d6ec9d6e0.jsonl",
+      "events": 0,
+      "interest": 2,
+      "duration": 9360.2,
+      "total_tokens": 12460780
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-get-shit-done-reflect",
+      "session_id": "8cf4c8f4-51e0-4d57-87c5-8e1590077b4f",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-get-shit-done-reflect/8cf4c8f4-51e0-4d57-87c5-8e1590077b4f.jsonl",
+      "events": 0,
+      "interest": 2,
+      "duration": 17.2,
+      "total_tokens": 17414838
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-get-shit-done-reflect",
+      "session_id": "84d9f494-d77e-46e2-b538-db3f7703d553",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-get-shit-done-reflect/84d9f494-d77e-46e2-b538-db3f7703d553.jsonl",
+      "events": 0,
+      "interest": 2,
+      "duration": 275.9,
+      "total_tokens": 22408687
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-blackhole-animation",
+      "session_id": "d3169865-b5a6-4a92-bf39-10ecb8888685",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-blackhole-animation/d3169865-b5a6-4a92-bf39-10ecb8888685.jsonl",
+      "events": 0,
+      "interest": 2,
+      "duration": 76.8,
+      "total_tokens": 29540157
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-blackhole-animation",
+      "session_id": "85bf6e8c-7e58-432e-851a-2750c61a151c",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-blackhole-animation/85bf6e8c-7e58-432e-851a-2750c61a151c.jsonl",
+      "events": 0,
+      "interest": 2,
+      "duration": 109.0,
+      "total_tokens": 9123718
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-blackhole-animation",
+      "session_id": "8233c119-8b99-4c9e-bee0-a34548d1b0ac",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-blackhole-animation/8233c119-8b99-4c9e-bee0-a34548d1b0ac.jsonl",
+      "events": 0,
+      "interest": 2,
+      "duration": 37.8,
+      "total_tokens": 13470394
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-blackhole-animation",
+      "session_id": "90b73078-0dff-41a9-b891-56f53a5f91cc",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-blackhole-animation/90b73078-0dff-41a9-b891-56f53a5f91cc.jsonl",
+      "events": 0,
+      "interest": 2,
+      "duration": 537.1,
+      "total_tokens": 19243582
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-vigil",
+      "session_id": "1b365ecc-3434-4b56-af3d-dcf66ed0f95a",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-vigil/1b365ecc-3434-4b56-af3d-dcf66ed0f95a.jsonl",
+      "events": 0,
+      "interest": 2,
+      "duration": 53.2,
+      "total_tokens": 15493757
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-vigil",
+      "session_id": "d822050b-23a9-4b32-ad49-ff695a58262e",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-vigil/d822050b-23a9-4b32-ad49-ff695a58262e.jsonl",
+      "events": 0,
+      "interest": 2,
+      "duration": 137.3,
+      "total_tokens": 28816951
+    }
+  ],
+  "total_events": 76
+}

@@ -1,0 +1,106 @@
+{
+  "agent": 2,
+  "sessions": [
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-arxiv-sanity-mcp",
+      "session_id": "7b8cf8ae-df9b-4730-9d38-f970ec7a944a",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-arxiv-sanity-mcp/7b8cf8ae-df9b-4730-9d38-f970ec7a944a.jsonl",
+      "events": 27,
+      "interest": 5,
+      "duration": 9185.2,
+      "total_tokens": 89156916
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-blackhole-animation",
+      "session_id": "ee9a18b6-1c45-4cbe-a460-d9609b9e5dd8",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-blackhole-animation/ee9a18b6-1c45-4cbe-a460-d9609b9e5dd8.jsonl",
+      "events": 12,
+      "interest": 5,
+      "duration": 619.6,
+      "total_tokens": 13786049
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-arxiv-sanity-mcp",
+      "session_id": "88716b2a-427f-4d79-ad31-65def6b20a33",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-arxiv-sanity-mcp/88716b2a-427f-4d79-ad31-65def6b20a33.jsonl",
+      "events": 9,
+      "interest": 4,
+      "duration": 4923.3,
+      "total_tokens": 83890206
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog",
+      "session_id": "02807c65-6178-41e3-9bca-3fc466d235d9",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog/02807c65-6178-41e3-9bca-3fc466d235d9.jsonl",
+      "events": 8,
+      "interest": 5,
+      "duration": 51.4,
+      "total_tokens": 3669844
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-blackhole-animation",
+      "session_id": "4f9af08b-cd16-4253-b341-d52c30d9de28",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-blackhole-animation/4f9af08b-cd16-4253-b341-d52c30d9de28.jsonl",
+      "events": 7,
+      "interest": 5,
+      "duration": 151.5,
+      "total_tokens": 34223231
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-f1-modeling",
+      "session_id": "7ba47151-6b99-4f49-8941-90a0cd936676",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-f1-modeling/7ba47151-6b99-4f49-8941-90a0cd936676.jsonl",
+      "events": 5,
+      "interest": 5,
+      "duration": 6804.4,
+      "total_tokens": 80013205
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-zlibrary-mcp",
+      "session_id": "fdd15155-380c-4dd8-b02b-065bcd69d0ac",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-zlibrary-mcp/fdd15155-380c-4dd8-b02b-065bcd69d0ac.jsonl",
+      "events": 4,
+      "interest": 5,
+      "duration": 722.0,
+      "total_tokens": 26805766
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog",
+      "session_id": "88d4dd53-5cc0-4fa4-b357-8daa7dd7bd0e",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog/88d4dd53-5cc0-4fa4-b357-8daa7dd7bd0e.jsonl",
+      "events": 3,
+      "interest": 4,
+      "duration": 174.5,
+      "total_tokens": 33158818
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-get-shit-done-reflect",
+      "session_id": "2f390ddc-b071-4e1c-b9cd-8d009b3f9bc5",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-get-shit-done-reflect/2f390ddc-b071-4e1c-b9cd-8d009b3f9bc5.jsonl",
+      "events": 1,
+      "interest": 3,
+      "duration": 32.3,
+      "total_tokens": 8703113
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-vigil",
+      "session_id": "b6a27150-9c2a-4979-9fcb-3682d9a18240",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-vigil/b6a27150-9c2a-4979-9fcb-3682d9a18240.jsonl",
+      "events": 1,
+      "interest": 3,
+      "duration": 689.3,
+      "total_tokens": 9180552
+    }
+  ],
+  "total_events": 77
+}
