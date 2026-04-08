@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: planning
-stopped_at: null
-last_updated: "2026-04-08T00:00:00.000Z"
-last_activity: 2026-04-08 -- Roadmap created (10 phases, 57 requirements mapped)
+status: in_progress
+stopped_at: "Completed 55-01-PLAN.md"
+last_updated: "2026-04-08T19:37:00.000Z"
+last_activity: 2026-04-08 -- Completed Phase 55 Plan 01 (pure upstream module adoption)
 progress:
   total_phases: 10
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 4
+  completed_plans: 1
+  percent: 3
 ---
 
 # Project State
@@ -26,13 +26,17 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 55 of 64 (Upstream Mini-Sync)
-Plan: --
-Status: Ready to plan
-Last activity: 2026-04-08 -- Roadmap created (10 phases, 57 requirements mapped)
+Plan: 01 of 04 complete
+Status: In progress
+Last activity: 2026-04-08 -- Completed 55-01 (pure upstream module adoption: model-profiles.cjs + 4 pure modules from v1.34.2)
 
-Progress: [..........] 0%
+Progress: [|.........] 3%
 
 ## Performance Metrics
+
+**v1.20 Current:**
+- Plans completed: 1
+- 55-01: 1min, 2 tasks, 5 files
 
 **v1.18 Final:**
 - Plans completed: 37
@@ -48,6 +52,8 @@ Full decision log in PROJECT.md Key Decisions table.
 v1.13-v1.18 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
+- [55-01]: Adopted model-profiles.cjs as-is from upstream f7549d43; plan mentioned resolveModel but upstream exports getAgentToModelMapForProfile -- file correct as upstream version
+- [55-01]: Single commit for all 5 pure upstream modules per commit-per-merge-category strategy
 - [Roadmap]: 10 phases (55-64) derived from 53 requirements across 9 categories
 - [Roadmap]: Phase 55 (SYNC-01) must precede all other v1.20 work -- correctness substrate
 - [Roadmap]: Phase 57 (telemetry baseline) must complete before Phase 58 (structural gates) -- ARCHITECTURE.md anti-pattern 4
@@ -78,5 +84,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-04-08
-Stopped at: Roadmap created for v1.20 (10 phases, 57 requirements mapped). Ready to plan Phase 55.
+Stopped at: Completed 55-01-PLAN.md (pure upstream module adoption from v1.34.2)
 Resume file: None
