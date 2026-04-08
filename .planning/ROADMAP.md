@@ -42,7 +42,12 @@
   2. Milestone safety preserves 999.x backlog items during transitions without data loss
   3. Frontmatter parsing handles quoted-comma values correctly
   4. Installer reliability fixes applied and validated by existing test suite (628 tests pass)
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 55-01-PLAN.md -- Adopt model-profiles.cjs and wholesale-replace 4 pure upstream modules
+- [ ] 55-02-PLAN.md -- Hybrid-merge core.cjs, frontmatter.cjs, and config.cjs
+- [ ] 55-03-PLAN.md -- Replace phase.cjs/roadmap.cjs with re-adjustments, hybrid-merge installer
+- [ ] 55-04-PLAN.md -- Update router, adopt upstream tests, validate all 3 suites, run installer
 
 ### Phase 56: KB Schema & SQLite Foundation
 **Goal**: Signal files support full lifecycle tracking, and a SQLite index makes the knowledge base queryable by structured fields
@@ -156,7 +161,7 @@ Phases execute sequentially 55 through 59, then 60 and 61 can proceed in paralle
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 55. Upstream Mini-Sync | 0/TBD | Not started | - |
+| 55. Upstream Mini-Sync | 0/4 | Not started | - |
 | 56. KB Schema & SQLite Foundation | 0/TBD | Not started | - |
 | 57. Measurement & Telemetry Baseline | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
