@@ -285,12 +285,12 @@ async function main() {
     }
 
     case 'config-set': {
-      config.cmdForkConfigSet(cwd, args[1], args[2], raw);
+      config.cmdConfigSet(cwd, args[1], args[2], raw);
       break;
     }
 
     case 'config-get': {
-      config.cmdForkConfigGet(cwd, args[1], raw);
+      config.cmdConfigGetGraceful(cwd, args[1], raw);
       break;
     }
 
