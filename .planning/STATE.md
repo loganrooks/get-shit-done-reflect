@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: in_progress
-stopped_at: "Completed 55-01-PLAN.md"
-last_updated: "2026-04-08T19:37:00.000Z"
-last_activity: 2026-04-08 -- Completed Phase 55 Plan 01 (pure upstream module adoption)
+status: executing
+stopped_at: Completed 55-02-PLAN.md -- hybrid-merge core.cjs, frontmatter.cjs, config.cjs with upstream v1.34.2
+last_updated: "2026-04-08T19:51:19.739Z"
+last_activity: "2026-04-08 -- Completed 55-01 (pure upstream module adoption: model-profiles.cjs + 4 pure modules from v1.34.2)"
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
   percent: 3
 ---
 
@@ -61,6 +61,9 @@ Recent decisions affecting current work:
 - [Roadmap]: Phase 64 (parallel execution) separately gated -- only triggered when parallel phases become regular practice
 - [Roadmap]: Spike programme infrastructure (SPIKE-10a/b/c) in scope as Phase 63, after spike methodology operational
 - [Roadmap]: SPIKE-08 gated on SPIKE-01 completion; auto-defers to v1.21 if SPIKE-01 ships late
+- [Phase 55]: core.cjs: resolveModelInternal preserves fork gsdr- prefix normalization AND opus->inherit conversion (both fork-specific Claude Code behaviors)
+- [Phase 55]: config.cjs: cmdForkConfigGet replaced with cmdConfigGetGraceful fork envelope {key,value,found} -- upstream cmdConfigGet returns raw value, fork tests require envelope
+- [Phase 55]: model-profiles.cjs: 11 fork-only agents added after inline MODEL_PROFILES removed from core.cjs
 
 ### Pending Todos
 
@@ -83,6 +86,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-08
-Stopped at: Completed 55-01-PLAN.md (pure upstream module adoption from v1.34.2)
+Last session: 2026-04-08T19:51:19.736Z
+Stopped at: Completed 55-02-PLAN.md -- hybrid-merge core.cjs, frontmatter.cjs, config.cjs with upstream v1.34.2
 Resume file: None
