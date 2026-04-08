@@ -5181,3 +5181,103 @@ signal_type: deviation
     assert.ok(warningStr.includes('confidence'), 'should warn about missing confidence');
   });
 });
+
+// ─── Upstream correctness regression tests (adopted from v1.34.2) ────────────
+// Covers: atomicWriteFileSync (#1915), acquireStateLock (#1909), splitInlineArray (REG-04)
+
+const CORE_PATH = path.join(__dirname, 'lib', 'core.cjs');
+const STATE_PATH = path.join(__dirname, 'lib', 'state.cjs');
+const FRONTMATTER_PATH = path.join(__dirname, 'lib', 'frontmatter.cjs');
+
+describe('atomicWriteFileSync — correctness regression (#1915)', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('is exported from core.cjs', () => {
+    const core = require(CORE_PATH);
+    assert.strictEqual(typeof core.atomicWriteFileSync, 'function', 'atomicWriteFileSync must be exported');
+  });
+
+  test('writes correct content to the target file', () => {
+    const { atomicWriteFileSync } = require(CORE_PATH);
+    const filePath = path.join(tmpDir, 'test.md');
+    const content = '# Hello\nworld\n';
+    atomicWriteFileSync(filePath, content, 'utf-8');
+    const written = fs.readFileSync(filePath, 'utf-8');
+    assert.strictEqual(written, content, 'written content must match');
+  });
+
+  test('does not leave .tmp.* files after successful write', () => {
+    const { atomicWriteFileSync } = require(CORE_PATH);
+    const filePath = path.join(tmpDir, '.planning', 'STATE.md');
+    atomicWriteFileSync(filePath, '# State\n', 'utf-8');
+    const entries = fs.readdirSync(path.join(tmpDir, '.planning'));
+    const tmpFiles = entries.filter(e => e.includes('.tmp.'));
+    assert.deepStrictEqual(tmpFiles, [], 'no .tmp.* files should remain after write');
+  });
+
+  test('overwrites an existing file with new content', () => {
+    const { atomicWriteFileSync } = require(CORE_PATH);
+    const filePath = path.join(tmpDir, '.planning', 'config.json');
+    atomicWriteFileSync(filePath, '{"first":true}', 'utf-8');
+    atomicWriteFileSync(filePath, '{"second":true}', 'utf-8');
+    const written = fs.readFileSync(filePath, 'utf-8');
+    assert.strictEqual(written, '{"second":true}', 'second write must replace first');
+  });
+});
+
+describe('acquireStateLock — correctness regression (#1909)', () => {
+  test('acquireStateLock source uses Atomics.wait, not a spin-loop', () => {
+    const stateSrc = fs.readFileSync(STATE_PATH, 'utf-8');
+    const spinLoopPattern = /while\s*\(Date\.now\(\)\s*-\s*start\s*<\s*\w+\)\s*\{\s*(?:\/\*[^*]*\*\/)?\s*\}/;
+    const fnStart = stateSrc.indexOf('function acquireStateLock(');
+    assert.ok(fnStart !== -1, 'acquireStateLock function must exist');
+    const fnSnippet = stateSrc.slice(fnStart, fnStart + 2000);
+    assert.ok(
+      !spinLoopPattern.test(fnSnippet),
+      'acquireStateLock must not use a CPU-burning spin-loop'
+    );
+    assert.ok(
+      fnSnippet.includes('Atomics.wait'),
+      'acquireStateLock must use Atomics.wait() for sleeping'
+    );
+  });
+
+  test('acquireStateLock function exists in state.cjs source', () => {
+    const stateSrc = fs.readFileSync(STATE_PATH, 'utf-8');
+    assert.ok(
+      stateSrc.includes('function acquireStateLock('),
+      'acquireStateLock function must be defined in state.cjs'
+    );
+  });
+});
+
+describe('splitInlineArray (REG-04) — quoted comma in frontmatter inline arrays', () => {
+  test('extractFrontmatter handles double-quoted commas in inline arrays', () => {
+    const { extractFrontmatter } = require(FRONTMATTER_PATH);
+    const content = '---\nkey: ["a, b", c]\n---\n';
+    const result = extractFrontmatter(content);
+    assert.deepStrictEqual(result.key, ['a, b', 'c'], 'quoted comma must not split the element');
+  });
+
+  test('extractFrontmatter handles single-quoted commas in inline arrays', () => {
+    const { extractFrontmatter } = require(FRONTMATTER_PATH);
+    const content = "---\nkey: ['x, y', z]\n---\n";
+    const result = extractFrontmatter(content);
+    assert.deepStrictEqual(result.key, ['x, y', 'z'], 'single-quoted comma must not split');
+  });
+
+  test('extractFrontmatter handles mixed quotes in inline arrays', () => {
+    const { extractFrontmatter } = require(FRONTMATTER_PATH);
+    const content = '---\nkey: ["a, b", \'c, d\', e]\n---\n';
+    const result = extractFrontmatter(content);
+    assert.deepStrictEqual(result.key, ['a, b', 'c, d', 'e'], 'mixed quotes preserved');
+  });
+});

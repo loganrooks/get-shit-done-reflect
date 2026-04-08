@@ -1,1119 +1,609 @@
-# Architecture Research: Automation Loop Integration
+# Architecture: v1.20 Signal Infrastructure & Epistemic Rigor Integration
 
-**Domain:** Auto-triggering signal collection, CI sensor, auto-reflection, health check hooks, plan checker semantic validation
-**Researched:** 2026-03-02
-**Confidence:** HIGH (all existing components read, Claude Code hooks API verified against official docs)
-
-## System Overview: Current Architecture
-
-```
-                      COMMAND LAYER (thin orchestrators)
-+----------------+  +----------------+  +----------------+  +----------------+
-| /gsd:collect-  |  | /gsd:reflect   |  | /gsd:plan-     |  | /gsd:health-   |
-|   signals      |  |                |  |   phase        |  |   check        |
-+-------+--------+  +-------+--------+  +-------+--------+  +-------+--------+
-        |                   |                   |                   |
-        v                   v                   v                   v
-                    WORKFLOW LAYER
-+----------------+  +----------------+  +----------------+  +----------------+
-| collect-       |  | reflect.md     |  | plan-phase.md  |  | health-check   |
-|   signals.md   |  |                |  |                |  |   .md          |
-+-------+--------+  +-------+--------+  +-------+--------+  +-------+--------+
-        |                   |                   |                   |
-        v                   v                   v                   v
-                     AGENT LAYER
-+----------------+  +----------------+  +----------------+
-| artifact-sensor|  | gsd-reflector  |  | gsd-plan-      |
-| git-sensor     |  |                |  |   checker      |
-| log-sensor [X] |  |                |  |                |
-+-------+--------+  +-------+--------+  +-------+--------+
-        |                   |
-        v                   v
-+----------------+  +----------------+
-| gsd-signal-    |  | knowledge-     |
-|   synthesizer  |  |   store        |
-+-------+--------+  +-------+--------+
-        |                   |
-        v                   v
-                    KNOWLEDGE STORE
-+-------------------------------------------------------+
-|  ~/.gsd/knowledge/                                     |
-|  +-- signals/{project}/         (YAML frontmatter .md) |
-|  +-- spikes/{project}/                                 |
-|  +-- lessons/{category}/                               |
-|  +-- reflections/{project}/                            |
-|  +-- index.md                   (auto-generated)       |
-+-------------------------------------------------------+
-
-                      HOOK LAYER
-+----------------+  +----------------+
-| SessionStart   |  | statusLine     |
-|  gsd-check-    |  |  gsd-          |
-|  update.js     |  |  statusline.js |
-|  gsd-version-  |  |                |
-|  check.js      |  |                |
-+----------------+  +----------------+
-
-                  settings.json (hooks config)
-```
-
-### Current Hook Usage
-
-Currently only **two** hook types are used:
-
-| Hook Type | Scripts | Purpose |
-|-----------|---------|---------|
-| `SessionStart` | `gsd-check-update.js`, `gsd-version-check.js` | Background npm version check, project migration detection |
-| `statusLine` | `gsd-statusline.js` | Model, task, directory, context usage bar |
-
-### Available Claude Code Hook Types (Not Yet Used)
-
-Verified against official docs at [code.claude.com/docs/en/hooks](https://code.claude.com/docs/en/hooks):
-
-| Hook Event | Fires When | Matcher | Decision Control | Relevance |
-|-----------|------------|---------|------------------|-----------|
-| `PostToolUse` | After tool succeeds | Tool name regex | `decision: "block"`, `reason`, `additionalContext` | **HIGH** -- detect phase completion via Write of SUMMARY.md |
-| `Stop` | Main agent finishes | None | `decision: "block"`, `reason` (forces continuation) | **HIGH** -- session-end metrics, auto-trigger signal collection |
-| `SubagentStop` | Subagent finishes | Agent type regex | Same as Stop | **MEDIUM** -- detect executor completion for auto-triggering |
-| `PreToolUse` | Before tool executes | Tool name regex | `permissionDecision`, `updatedInput`, `additionalContext` | **LOW** -- could inject context but not needed for automation |
-| `UserPromptSubmit` | Prompt submitted | None | `decision: "block"`, `additionalContext` | **LOW** -- could add context but outside scope |
-| `SessionEnd` | Session terminates | Why it ended | None (side effects only) | **MEDIUM** -- cleanup, final metrics |
-| `TaskCompleted` | Task marked done | None | Exit code 2 blocks | **LOW** -- GSD uses internal tracking, not TaskUpdate tool |
-
-### Current Sensor Architecture
-
-```
-collect-signals.md (orchestrator)
-    |
-    +-- Task(gsd-artifact-sensor)  --> JSON signal candidates
-    |   [reads PLAN.md, SUMMARY.md, VERIFICATION.md]
-    |
-    +-- Task(gsd-git-sensor)       --> JSON signal candidates
-    |   [runs git log analysis]
-    |
-    +-- Task(gsd-log-sensor)       --> JSON (empty -- disabled stub)
-    |
-    +-- MERGE sensor outputs
-    |
-    +-- Task(gsd-signal-synthesizer)
-        [dedup, rigor, caps, write to KB]
-```
-
-**Key constraint:** Signal synthesizer is the ONLY KB writer. Sensors return JSON only.
+**Domain:** GSD Reflect workflow harness — v1.20 feature integration
+**Researched:** 2026-04-08
+**Confidence:** HIGH (all existing components read, custom research fully ingested)
 
 ---
 
-## Proposed Architecture: Automation Loop Features
+## Existing Architecture (Baseline)
 
-### Feature 1: Auto-Triggering Signal Collection
-
-**Goal:** Automatically run signal collection when a phase completes execution, instead of requiring manual `/gsd:collect-signals`.
-
-**Integration point:** The `execute-phase.md` workflow, specifically after the `verify_phase_goal` step.
-
-**Current flow (execute-phase.md):**
-```
-execute_waves -> aggregate_results -> verify_phase_goal -> update_roadmap -> offer_next
-```
-
-**Proposed flow:**
-```
-execute_waves -> aggregate_results -> verify_phase_goal -> auto_collect_signals -> update_roadmap -> offer_next
-```
-
-**New component:** `gsd-auto-collect.js` hook script (or inline workflow step).
-
-**Architecture decision: Hook vs Workflow Step**
-
-| Approach | Pros | Cons |
-|----------|------|------|
-| **PostToolUse hook on Write** | Fires automatically without workflow changes; decoupled | Noisy (fires on EVERY Write); hard to determine "phase complete" from a Write event alone; context-budget cost of false positives |
-| **Stop hook** | Fires once at session end; clean trigger point | Session may not align with phase completion; too late for inline flow |
-| **Inline workflow step** | Direct control; phase context available; conditional on verification result; can pass phase number | Requires modifying execute-phase.md; not decoupled |
-
-**Recommendation: Inline workflow step in execute-phase.md.** The automation trigger knows the exact phase that completed, has the verification result, and can conditionally fire. Hooks are better for cross-cutting concerns (logging, metrics) but phase-level orchestration belongs in the workflow. The hook-based approach requires reverse-engineering "which phase just completed" from file write events, which is fragile.
-
-**Implementation:**
-
-New step in `execute-phase.md` between `verify_phase_goal` and `update_roadmap`:
-
-```markdown
-<step name="auto_collect_signals">
-Read signal collection config:
-
-```bash
-AUTO_COLLECT=$(node -e "try { const c = require('./.planning/config.json'); console.log(c.signal_collection?.auto_collect !== false) } catch(e) { console.log('true') }")
-```
-
-If auto_collect is enabled AND verification passed (or gaps_found):
+The current architecture has five layers:
 
 ```
-Task(
-  prompt="Collect signals for phase {PADDED_PHASE}",
-  subagent_type="general-purpose",
-  description="Auto-collect signals for completed phase"
-)
-```
-
-This spawns the same flow as `/gsd:collect-signals {phase}` but automatically.
-</step>
-```
-
-**Config addition to feature-manifest.json:**
-
-```json
-{
-  "signal_collection": {
-    "schema": {
-      "auto_collect": {
-        "type": "boolean",
-        "default": true,
-        "description": "Automatically collect signals after phase execution completes"
-      }
-    }
-  }
-}
-```
-
-**Data flow change:** None to signal collection internals. The orchestrator simply invokes the existing collect-signals workflow as an inline step instead of requiring the user to run it manually.
-
-### Feature 2: CI Sensor
-
-**Goal:** New sensor agent that analyzes CI/CD pipeline results (GitHub Actions, GitLab CI, etc.) to detect build failures, test failures, and deployment issues as signal candidates.
-
-**Integration point:** Parallel sensor in `collect-signals.md` orchestrator, alongside artifact-sensor and git-sensor.
-
-**New component:** `agents/gsd-ci-sensor.md`
-
-**Architecture:**
-
-```
-collect-signals.md (orchestrator)
+COMMAND LAYER (thin orchestrators — commands/gsd/*.md)
     |
-    +-- Task(gsd-artifact-sensor)  --> JSON
-    +-- Task(gsd-git-sensor)       --> JSON
-    +-- Task(gsd-ci-sensor)        --> JSON  <-- NEW
-    +-- Task(gsd-log-sensor)       --> JSON (disabled)
+    v
+WORKFLOW LAYER (get-shit-done/workflows/*.md)
     |
-    +-- MERGE all sensor outputs
-    |
-    +-- Task(gsd-signal-synthesizer)
+    v
+AGENT LAYER (agents/gsd-*.md)
+    |           |
+    v           v
+NODE.JS CLI   KNOWLEDGE STORE
+(gsd-tools.cjs + lib/*.cjs modules)   (.planning/knowledge/)
+    |                   |
+    v                   v
+HOOK LAYER         FILE INDEX
+(hooks/*.js)       (index.md via kb-rebuild-index.sh)
 ```
 
-**Sensor design follows the established pattern:**
-- Reads CI artifacts/API results
-- Returns structured JSON with `## SENSOR OUTPUT` delimiters
-- Does NOT write to KB (synthesizer does that)
-- Configurable via `signal_collection.sensors.ci` in config
+### CLI Module Inventory (16 lib/*.cjs modules)
 
-**Detection patterns for gsd-ci-sensor:**
+| Module | Responsibility |
+|--------|----------------|
+| `core.cjs` | Shared utilities: output, error, path resolution, resolveWorktreeRoot, atomicWriteJson |
+| `state.cjs` | STATE.md read/write, metrics recording, decision/blocker tracking |
+| `phase.cjs` | Phase discovery, plan listing |
+| `roadmap.cjs` | ROADMAP.md parsing and updates |
+| `verify.cjs` | Summary verification |
+| `config.cjs` | config.json read/write |
+| `template.cjs` | Plan/artifact template selection and filling |
+| `milestone.cjs` | Milestone operations |
+| `commands.cjs` | commit, resolve-model |
+| `init.cjs` | Batch context loader for execute-phase, plan-phase, new-project, new-milestone |
+| `frontmatter.cjs` | YAML frontmatter parsing and signal schema |
+| `sensors.cjs` | Sensor discovery and blind-spot reporting |
+| `backlog.cjs` | Backlog entry management |
+| `health-probe.cjs` | Health probe dimensions |
+| `manifest.cjs` | File manifest diff-config, apply-migration |
+| `automation.cjs` | Automation level tracking, lock/unlock, reflection counter |
 
-| Pattern | Detection Method | Signal Type | Severity |
-|---------|-----------------|-------------|----------|
-| Build failure | Parse CI status via `gh run list`/`gh run view` | `deviation` | `notable` (single) / `critical` (recurring) |
-| Test failure | Parse test results from CI logs | `deviation` | `notable` |
-| Flaky tests | Tests that pass on retry | `struggle` | `minor` |
-| Deploy failure | Deployment step failure in CI | `deviation` | `critical` |
-| CI config drift | CI config changed but not reflected in devops config | `config-mismatch` | `minor` |
-
-**CI provider abstraction:**
+### Knowledge Store Structure
 
 ```
-gsd-ci-sensor
-    |
-    +-- read devops.ci_provider from config.json
-    |
-    +-- switch(ci_provider)
-    |   case "github-actions":
-    |       gh run list --limit 5 --json ...
-    |       gh run view {id} --json ...
-    |   case "gitlab-ci":
-    |       (future: gitlab API or local artifacts)
-    |   case "none":
-    |       return empty signals
+.planning/knowledge/          (project-local)
+~/.gsd/knowledge/             (global fallback)
+  +-- signals/{project}/      (YAML frontmatter .md files — 198 entries)
+  +-- spikes/{project}/       (spike DESIGN/FINDINGS/DECISION artifacts)
+  +-- lessons/{category}/     (0 entries — reflection pipeline not running)
+  +-- reflections/{project}/  (periodic synthesis outputs)
+  +-- index.md                (auto-generated via kb-rebuild-index.sh)
 ```
 
-**Start with GitHub Actions only.** The `devops.ci_provider` config field already exists in the feature manifest. Use `gh` CLI which is typically available in development environments. Other providers can be added later following the same sensor pattern.
+**Key invariant:** Files are source of truth. `index.md` is a derived artifact rebuilt by `kb-rebuild-index.sh` (bash script, O(n) reads, scalability ceiling at ~1000 entries).
 
-**Config addition:**
+### Sensor Pipeline (Multi-Sensor Architecture)
 
-```json
-{
-  "signal_collection": {
-    "schema": {
-      "sensors": {
-        "default": {
-          "artifact": { "enabled": true, "model": "auto" },
-          "git": { "enabled": true, "model": "auto" },
-          "ci": { "enabled": true, "model": "auto" },
-          "log": { "enabled": false, "model": "auto" }
-        }
-      }
-    }
-  }
+```
+collect-signals.md (orchestrator workflow)
+    |
+    +-- Task(gsd-artifact-sensor)    --> JSON signal candidates
+    +-- Task(gsd-git-sensor)         --> JSON signal candidates
+    +-- Task(gsd-log-sensor)         --> JSON signal candidates (partially active)
+    |
+    +-- Merge all JSON outputs
+    |
+    +-- Task(gsd-signal-synthesizer) --> Dedup + rigor gates + write to KB
+```
+
+**Single-writer principle:** Only `gsd-signal-synthesizer` writes to KB. Sensors return JSON only and do not touch the filesystem.
+
+**Auto-discovery:** `collect-signals.md` scans for `gsd-*-sensor.md` files. Adding a new sensor is a single-file operation.
+
+### Execute-Phase Postlude Chain
+
+```
+execute_waves → aggregate_results → verify_phase_goal
+    → auto_collect_signals (postlude 1, conditional on verification pass)
+    → health_check_postlude (postlude 2)
+    → auto_reflect_postlude (postlude 3)
+    → offer_next
+```
+
+Context budget increases with each postlude to account for cumulative cost. Cross-runtime degradation: hooks unavailable on Codex CLI — each postlude is a workflow-step-based advisory fallback.
+
+---
+
+## v1.20 Feature Integration Map
+
+### Overview: New Components vs Modified Components
+
+| Component | Status | Type |
+|-----------|--------|------|
+| `lib/telemetry.cjs` | **NEW** | CLI module — session-meta/facets extraction |
+| `lib/kb.cjs` | **NEW** | CLI module — SQLite KB index queries |
+| `agents/gsd-spike-design-reviewer.md` | **NEW** | Agent spec — pre-execution spike design critique |
+| `agents/gsd-patch-sensor.md` | **NEW** | Agent spec — source-vs-installed divergence detection |
+| `commands/gsd/cross-model-review.md` | **NEW** | Command — flexible cross-model review protocol |
+| `commands/gsd/revise-phase-scope.md` | **NEW** | Command — highest-impact missing command (N02) |
+| `.planning/knowledge/kb.db` | **NEW** | Derived artifact — SQLite index (gitignored) |
+| `agents/gsd-log-sensor.md` | **MODIFY** | Add cross-runtime adapter (Claude Code + Codex JSONL) |
+| `get-shit-done/workflows/execute-phase.md` | **MODIFY** | Add offer_next PR/CI gate, branch detection, .continue-here lifecycle |
+| `get-shit-done/workflows/run-spike.md` | **MODIFY** | Add design reviewer invocation as mandatory pre-execution gate |
+| `get-shit-done/workflows/collect-signals.md` | **MODIFY** | Wire lifecycle transitions via resolves_signals; add patch sensor |
+| `get-shit-done/references/signal-detection.md` | **MODIFY** | Extended signal schema (lifecycle, disposition, qualified_by, etc.) |
+| `get-shit-done/references/knowledge-surfacing.md` | **MODIFY** | Prefer gsd-tools kb query over grep on index.md |
+| `get-shit-done/bin/gsd-tools.cjs` | **MODIFY** | Add telemetry and kb command cases to router |
+| `get-shit-done/bin/kb-rebuild-index.sh` | **MODIFY** | Extend to produce kb.db alongside index.md |
+| `hooks/gsd-statusline.js` | **MODIFY** | Add cost/rate-limit fields to bridge file (pending spike E) |
+| `bin/install.js` | **MODIFY** | Add post-install cross-runtime parity check |
+| STATE.md state management | **MODIFY** | Per-worktree file partitioning for parallel execution |
+
+---
+
+## Feature-by-Feature Integration Details
+
+### 1. SQLite KB Index (`lib/kb.cjs`)
+
+**Integration layer:** CLI module, same pattern as `sensors.cjs` and `automation.cjs`.
+
+**Slot in gsd-tools.cjs router:**
+```javascript
+case 'kb': {
+  // subcommands: rebuild, query, stats, health, transition, link, search
 }
 ```
 
 **Data flow:**
-
 ```
-Phase execution complete
+.planning/knowledge/signals/**/*.md  (source of truth)
+    |
+    v [gsd-tools kb rebuild]
+.planning/knowledge/kb.db             (derived SQLite index — gitignored)
+    |
+    v [gsd-tools kb query --format json]
+Agents (knowledge-surfacing.md queries)
+```
+
+**Modifications to existing components:**
+
+- `get-shit-done/bin/kb-rebuild-index.sh`: Extended to call `gsd-tools kb rebuild` after generating `index.md`. During v1.20, both `index.md` (backward compat) and `kb.db` (new) are produced.
+- `get-shit-done/references/knowledge-surfacing.md`: Updated to prefer `gsd-tools kb query --tags "..." --format json` when SQLite index exists, with graceful fallback to `grep` on `index.md` when it does not.
+
+**Schema tables:** `signals`, `signal_tags`, `signal_links`, `spikes`, and FTS5 virtual table `signal_fts`. The `content_hash` field enables incremental rebuild (only reindex changed files).
+
+**What this enables immediately:** Relational queries ("critical signals with lifecycle=detected, sorted by date"), tag-based filtering, lifecycle state reports, occurrence counting, and `gsd-tools kb stats` KB health dashboard. These were previously impossible without reading all 198+ files.
+
+**Deferred:** MCP server wrapper (v1.21). Vector embeddings (not needed at current scale). Signal-to-issue promotion fields (v1.21 territory — schema reserves `promoted_to` name but does not implement it).
+
+---
+
+### 2. Signal Schema Extensions (`get-shit-done/references/signal-detection.md`)
+
+**New YAML frontmatter fields (additive, backward-compatible):**
+
+```yaml
+lifecycle: detected|proposed|in_progress|blocked|remediated|verified|invalidated
+disposition: fix|formalize|monitor|investigate|defer
+qualified_by: []
+superseded_by: ""
+polarity: negative|positive|mixed|neutral   # adds 'mixed' to existing enum
+remediation:
+  phase: ""
+  commit: ""
+  method: code-fix|workflow-change|convention|config
+  date: ""
+  verified: false
+```
+
+**Lifecycle wiring (new behavior in `collect-signals.md`):**
+
+After signal synthesis, the collect-signals workflow reads completed plans' `resolves_signals` frontmatter field (which already exists since Phase 34) and calls `gsd-tools kb transition <id> remediated` for each matching signal. This is the simplest wiring that closes the 0% remediation tracking gap.
+
+**New CLI subcommand chain:**
+```
+gsd-tools kb transition <signal-id> remediated --reason "resolved in phase 53-02"
     |
     v
-Auto-collect signals (Feature 1)
-    |
-    v
-Orchestrator checks sensors.ci.enabled
-    |
-    v (if enabled)
-Task(gsd-ci-sensor)
-    +-- reads devops.ci_provider from config
-    +-- checks gh CLI availability
-    +-- queries recent CI runs matching phase commits
-    +-- returns JSON signal candidates
-    |
-    v
-Merged with other sensor outputs
-    |
-    v
-Signal synthesizer (existing -- no changes)
+Updates: .planning/knowledge/signals/.../sig-*.md frontmatter (lifecycle field)
+         .planning/knowledge/kb.db (SQLite row)
 ```
 
-### Feature 3: Auto-Reflection Triggering
+---
 
-**Goal:** Automatically trigger reflection after signal collection, closing the detect-reflect-learn loop without manual commands.
+### 3. Telemetry Module (`lib/telemetry.cjs`)
 
-**Integration point:** Two potential trigger locations:
-1. After auto-collect-signals completes (Feature 1 flow)
-2. After manual `/gsd:collect-signals` completes
+**Integration layer:** New CLI module, same pattern as `automation.cjs`.
 
-**Architecture decision: When to auto-reflect**
-
-Reflection is expensive (reads KB, analyzes patterns, proposes triage, distills lessons). Running it after every signal collection is wasteful if few signals were collected.
-
-**Recommendation: Conditional auto-reflection with threshold.**
-
-```
-Signal collection complete
-    |
-    v
-Check auto_reflect config
-    |
-    v (if enabled)
-Check threshold: signals_written >= N (default: 3)
-    |
-    v (if threshold met)
-Task(reflect workflow)
-    |
-    v
-Report results inline
-```
-
-**Config addition to feature-manifest.json:**
-
-```json
-{
-  "signal_collection": {
-    "schema": {
-      "auto_reflect": {
-        "type": "boolean",
-        "default": false,
-        "description": "Automatically trigger reflection after signal collection"
-      },
-      "auto_reflect_threshold": {
-        "type": "number",
-        "default": 3,
-        "min": 1,
-        "max": 10,
-        "description": "Minimum signals collected before auto-reflection triggers"
-      }
-    }
-  }
-}
-```
-
-**Default: false.** Auto-reflection is opt-in because it significantly extends execution time and context budget. Users who want the full automation loop enable it explicitly.
-
-**Implementation location:** End of `collect-signals.md` workflow (not in execute-phase.md). This ensures auto-reflection fires whether signals were collected manually or automatically.
-
-**New step in collect-signals.md after present_results:**
-
-```markdown
-<step name="auto_reflect">
-Check if auto-reflection should trigger:
-
-```bash
-AUTO_REFLECT=$(node -e "try { const c = require('./.planning/config.json'); console.log(c.signal_collection?.auto_reflect === true) } catch(e) { console.log('false') }")
-THRESHOLD=$(node -e "try { const c = require('./.planning/config.json'); console.log(c.signal_collection?.auto_reflect_threshold || 3) } catch(e) { console.log('3') }")
-```
-
-If AUTO_REFLECT is true AND SIGNALS_WRITTEN >= THRESHOLD:
-
-Invoke the reflect workflow inline:
-```
-Task(
-  prompt="Run reflection for phase {PADDED_PHASE}.
-  Follow the reflect.md workflow.",
-  subagent_type="general-purpose",
-  description="Auto-reflect after signal collection"
-)
-```
-</step>
-```
-
-### Feature 4: Health Check Hooks
-
-**Goal:** Run health checks automatically at strategic lifecycle points using Claude Code hooks, beyond the current explicit-only `/gsd:health-check` command.
-
-**Integration points:** Hook events in `.claude/settings.json`.
-
-**Current health check frequency modes (from feature-manifest.json):**
-
-| Mode | Current Implementation |
-|------|----------------------|
-| `milestone-only` | Called from `complete-milestone.md` workflow |
-| `on-resume` | Called from `resume-project.md` workflow |
-| `every-phase` | Called from `execute-phase.md` workflow |
-| `explicit-only` | Only via `/gsd:health-check` command |
-
-Currently these are workflow-level checks (the workflow reads the config and decides whether to invoke health-check). There are no hook-level implementations.
-
-**Proposed hook-level health checks:**
-
-| Hook Event | Trigger | Health Check Scope | Config Guard |
-|-----------|---------|-------------------|--------------|
-| `SessionStart` (startup) | New session starts | Quick (default tier) | `frequency: "on-resume"` or `"every-phase"` |
-| `SessionStart` (resume) | Session resumed | Quick (default tier) | `frequency: "on-resume"` or `"every-phase"` |
-| `Stop` | Main agent finishes | None (metrics only) | Always (lightweight) |
-
-**Architecture decision: Hook script vs inline workflow**
-
-Health check hooks should be LIGHTWEIGHT hook scripts (like existing `gsd-check-update.js`), not full workflow invocations. Hooks run synchronously in the agent loop -- a full health check with all tiers would block interaction.
-
-**Recommendation: Two new hook scripts.**
-
-**Script 1: `hooks/gsd-health-check-quick.js`**
-
-A fast SessionStart hook that runs default-tier checks only (KB integrity, config validity, stale artifacts). Reports findings as `additionalContext` so Claude is aware of workspace issues at session start.
-
+**Slot in gsd-tools.cjs router:**
 ```javascript
-// gsd-health-check-quick.js
-// Runs on SessionStart if health_check.frequency is "on-resume" or "every-phase"
-// Returns additionalContext with health status
-
-const fs = require('fs');
-const path = require('path');
-
-let input = '';
-process.stdin.on('data', chunk => input += chunk);
-process.stdin.on('end', () => {
-  const data = JSON.parse(input);
-  const cwd = data.cwd || process.cwd();
-  const configPath = path.join(cwd, '.planning', 'config.json');
-
-  // Check if health check should run
-  let frequency = 'milestone-only';
-  try {
-    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    frequency = config.health_check?.frequency || 'milestone-only';
-  } catch (e) { /* no config = skip */ }
-
-  const source = data.source; // "startup", "resume", "clear", "compact"
-  const shouldRun = (
-    (frequency === 'every-phase') ||
-    (frequency === 'on-resume' && (source === 'resume' || source === 'startup'))
-  );
-
-  if (!shouldRun) { process.exit(0); return; }
-
-  // Run quick checks...
-  const issues = [];
-  // KB-01, CFG-01, STALE-01 checks
-  // ...
-
-  if (issues.length > 0) {
-    const output = {
-      hookSpecificOutput: {
-        hookEventName: 'SessionStart',
-        additionalContext: `Health check found ${issues.length} issue(s): ${issues.join('; ')}. Run /gsd:health-check --fix for details.`
-      }
-    };
-    process.stdout.write(JSON.stringify(output));
-  }
-  process.exit(0);
-});
-```
-
-**Script 2: `hooks/gsd-session-metrics.js`**
-
-A Stop hook that records session-end metrics (context usage, duration estimate) for future analysis. This does NOT block Claude from stopping -- it runs as a side-effect.
-
-```javascript
-// gsd-session-metrics.js
-// Runs on Stop to record session metrics
-// Async: true (does not block)
-
-const fs = require('fs');
-const path = require('path');
-
-let input = '';
-process.stdin.on('data', chunk => input += chunk);
-process.stdin.on('end', () => {
-  const data = JSON.parse(input);
-  const cwd = data.cwd || process.cwd();
-
-  // Record session metrics to a local cache file
-  const metricsFile = path.join(cwd, '.planning', '.session-metrics.json');
-  const metrics = {
-    session_id: data.session_id,
-    ended_at: new Date().toISOString(),
-    // Additional metrics could be computed here
-  };
-
-  try {
-    let existing = [];
-    if (fs.existsSync(metricsFile)) {
-      existing = JSON.parse(fs.readFileSync(metricsFile, 'utf8'));
-    }
-    existing.push(metrics);
-    // Keep last 50 entries
-    if (existing.length > 50) existing = existing.slice(-50);
-    fs.writeFileSync(metricsFile, JSON.stringify(existing, null, 2));
-  } catch (e) { /* silent fail */ }
-
-  process.exit(0);
-});
-```
-
-**Settings.json changes:**
-
-```json
-{
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          { "type": "command", "command": "node .claude/hooks/gsd-check-update.js" }
-        ]
-      },
-      {
-        "hooks": [
-          { "type": "command", "command": "node .claude/hooks/gsd-version-check.js" }
-        ]
-      },
-      {
-        "hooks": [
-          { "type": "command", "command": "node .claude/hooks/gsd-health-check-quick.js" }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          { "type": "command", "command": "node .claude/hooks/gsd-session-metrics.js", "async": true }
-        ]
-      }
-    ]
-  }
+case 'telemetry': {
+  // subcommands: summary, session, phase, baseline, enrich
 }
 ```
 
-### Feature 5: Plan Checker Semantic Validation
+**Data sources (all read-only, no new instrumentation):**
+```
+~/.claude/usage-data/session-meta/*.json   (268 sessions, pre-aggregated)
+~/.claude/usage-data/facets/*.json          (109 sessions, AI quality summaries)
+```
 
-**Goal:** Enhance the plan checker to go beyond structural validation into semantic validation -- detecting contradictions, unrealistic estimates, missing integration points, and anti-patterns in plan content.
+**Key enrichment:** Join session-meta + facets by `session_id`, filter by `project_path` matching `resolveWorktreeRoot(cwd)` to aggregate across worktree sessions correctly.
 
-**Integration point:** Existing `agents/gsd-plan-checker.md`, invoked by `plan-phase.md` workflow step 10.
+**Output:** `gsd-tools telemetry baseline --project get-shit-done-reflect` writes `.planning/baseline.json` for pre/post intervention comparison.
 
-**Current plan checker dimensions (7):**
+**What this does NOT do:** Token cost calculation (avoids pricing table maintenance per constraint 4 from MILESTONE-CONTEXT.md). Per-message JSONL parsing (session-meta is sufficient for v1.20 baselines; JSONL-level granularity is v1.21+ if needed).
 
-1. Requirement Coverage
-2. Task Completeness
-3. Dependency Correctness
-4. Key Links Planned
-5. Scope Sanity
-6. Verification Derivation
-7. Context Compliance (if CONTEXT.md exists)
-
-**Proposed new dimensions:**
-
-### Dimension 8: Semantic Coherence
-
-Detects contradictions and inconsistencies across tasks within and between plans.
-
-| Check | What It Detects | Example |
-|-------|----------------|---------|
-| Task contradiction | Two tasks do opposite things | Task 1: "Add field X to schema", Task 3: "Remove field X from schema" |
-| Conflicting dependencies | Plan uses library A but different plan uses competing library B for same purpose | Plan 01 uses `jose` for JWT, Plan 02 imports `jsonwebtoken` |
-| Stale references | Task references file/component from a previous phase that was refactored | Task references `auth.ts` but Phase 10 renamed it to `auth/index.ts` |
-| Naming inconsistency | Tasks use different names for the same concept | "user profile" vs "account settings" vs "profile page" for the same feature |
-
-### Dimension 9: Estimation Realism
-
-Validates that task complexity matches the context budget constraints.
-
-| Check | What It Detects | Example |
-|-------|----------------|---------|
-| Complexity undercount | Task marked as 1 file but action implies multiple | "Create API with auth, validation, error handling, tests" -> 1 file |
-| Missing test tasks | Code tasks without corresponding test tasks (when TDD is configured) | New endpoint without test |
-| Infrastructure assumptions | Task assumes infrastructure exists without checking | "Deploy to staging" but no staging env configured |
-
-### Dimension 10: Signal Awareness
-
-Cross-references plans against triaged signals to validate `resolves_signals` linkage.
-
-| Check | What It Detects | Example |
-|-------|----------------|---------|
-| Missing resolution | Triaged signal with `decision: address` not referenced in any plan's `resolves_signals` | Signal about recurring test failures, no plan addresses it |
-| Invalid signal reference | `resolves_signals` references non-existent or archived signal | `resolves_signals: [sig-2026-01-15-missing]` |
-| Incomplete resolution | Plan claims to resolve signal but tasks do not address root cause | Signal about missing error handling, plan only adds logging |
-
-**Implementation approach:** These are ADDITIONS to the existing plan checker agent spec. No new agents needed. The plan checker gains new verification dimensions that run alongside existing ones.
-
-The plan checker already reads: PLAN.md files, ROADMAP.md, CONTEXT.md. For Dimension 10 (Signal Awareness), it additionally needs the triaged signals context that the planner already receives via the `<triaged_signals>` block. The `plan-phase.md` orchestrator passes this to the checker.
+**Bridge file extension (pending spike E validation):** `hooks/gsd-statusline.js` extended to write `cost.total_cost_usd` and `rate_limits` fields to `claude-ctx-{session}.json` bridge file — IF spike E confirms these fields are available in the statusline payload. This is conditional on spike results, not a guaranteed v1.20 deliverable.
 
 ---
 
-## Component Boundary Analysis
+### 4. Spike Design Reviewer Agent (`agents/gsd-spike-design-reviewer.md`)
 
-### New Components
+**New component.** An independent critique agent invoked before spike execution.
 
-| Component | Type | Location | Purpose |
-|-----------|------|----------|---------|
-| `gsd-ci-sensor.md` | Agent spec | `agents/` | CI/CD signal detection |
-| `gsd-health-check-quick.js` | Hook script | `hooks/` | Quick health check on SessionStart |
-| `gsd-session-metrics.js` | Hook script | `hooks/` | Session metrics on Stop |
+**Integration point:** `get-shit-done/workflows/run-spike.md`, between DESIGN.md presentation and execution:
 
-### Modified Components
+```
+Current: design → user_review → execution
+v1.20:   design → design_reviewer [NEW] → user_sees_critique → execution
+```
 
-| Component | Type | Location | Changes |
-|-----------|------|----------|---------|
-| `execute-phase.md` | Workflow | `get-shit-done/workflows/` | Add `auto_collect_signals` step |
-| `collect-signals.md` | Workflow | `get-shit-done/workflows/` | Add `auto_reflect` step; add CI sensor spawning |
-| `gsd-plan-checker.md` | Agent spec | `agents/` | Add Dimensions 8-10 |
-| `plan-phase.md` | Workflow | `get-shit-done/workflows/` | Pass triaged signals to plan checker |
-| `feature-manifest.json` | Config schema | `get-shit-done/` | Add `auto_collect`, `auto_reflect`, `auto_reflect_threshold`, `sensors.ci` |
-| `.claude/settings.json` | Hook config | `.claude/` | Add SessionStart health check, Stop metrics |
+**Key design requirements from spike-epistemology-research.md:**
+- Must use a DIFFERENT model from the one that wrote DESIGN.md (Longino's diversity requirement, F02 self-evaluation degeneracy). Cross-model is structural, not optional.
+- Produces a critique document, NOT a pass/fail verdict (quality improvement, not gatekeeping).
+- The spike designer sees the critique AND can proceed with documented justification (Feyerabend escape valve).
+- The critique and response are recorded as artifacts alongside DESIGN.md.
 
-### Unchanged Components
+**Three-tier enforcement model (from spike-epistemology-research.md Section 6.3):**
+- **Tier 1 (structural):** Reviewer is invoked. Cross-model. Critique + response recorded.
+- **Tier 2 (cultural):** Severity assessment, progressiveness assessment — prompted in reviewer context, not enforced.
+- **Tier 3 (warned):** Single-metric-only decisions, evaluation-framework entanglement, circular auxiliary assumptions — design reviewer flags them, designer can override with justification.
 
-| Component | Why Unchanged |
-|-----------|---------------|
-| `gsd-signal-synthesizer.md` | Already handles arbitrary sensor count; CI sensor output merges into existing flow |
-| `gsd-artifact-sensor.md` | Existing detection patterns unchanged |
-| `gsd-git-sensor.md` | Existing detection patterns unchanged |
-| `gsd-reflector.md` | Already handles being invoked by workflow; auto-trigger is orchestrator-level |
-| `reflect.md` | Already supports programmatic invocation via Task() |
-| `knowledge-store.md` | No schema changes needed |
-| `gsd-statusline.js` | Status line unchanged |
-| `gsd-check-update.js` | Update check unchanged |
-| `gsd-version-check.js` | Version check unchanged |
+**Auxiliary hypothesis register:** DESIGN.md template gains a new section (additive to existing template) listing load-bearing auxiliaries (what is assumed, not tested). The design reviewer checks claims against the register.
+
+**DECISION.md template extension:** Adds `decided/provisional/deferred` as first-class outcome types alongside the existing `confirmed/rejected/inconclusive`. This addresses the structural pressure toward premature closure (gap 2.4).
 
 ---
 
-## Data Flow: Complete Automation Loop
+### 5. Log Sensor Cross-Runtime Adapter (`agents/gsd-log-sensor.md`)
 
+**Modified component.** The existing log sensor (Claude Code only) gains a runtime adapter layer.
+
+**Architecture change:**
 ```
-Phase Execution Complete (execute-phase.md)
-    |
-    v
-[1] Verify Phase Goal (gsd-verifier)
-    |
-    v
-[2] Auto-Collect Signals (if signal_collection.auto_collect: true)
-    |
-    +-- spawn collect-signals workflow inline
-    |   +-- Task(gsd-artifact-sensor) ----+
-    |   +-- Task(gsd-git-sensor) ---------+-- parallel
-    |   +-- Task(gsd-ci-sensor) ----------+
-    |   |
-    |   +-- MERGE sensor outputs
-    |   |
-    |   +-- Task(gsd-signal-synthesizer)
-    |   |   +-- trace filter
-    |   |   +-- cross-sensor dedup
-    |   |   +-- KB dedup
-    |   |   +-- recurrence detection
-    |   |   +-- passive verification
-    |   |   +-- rigor enforcement
-    |   |   +-- cap enforcement
-    |   |   +-- WRITE signals to KB
-    |   |
-    |   +-- present results
-    |   |
-    |   +-- [3] Auto-Reflect (if auto_reflect: true AND signals >= threshold)
-    |       |
-    |       +-- spawn reflect workflow inline
-    |           +-- Task(gsd-reflector)
-    |           |   +-- lifecycle-weighted pattern detection
-    |           |   +-- triage proposals
-    |           |   +-- lesson distillation
-    |           |   +-- remediation suggestions
-    |           |
-    |           +-- handle triage (per autonomy mode)
-    |           +-- handle lessons (per autonomy mode)
-    |           +-- persist reflection report
-    |
-    v
-[4] Update Roadmap
-    |
-    v
-[5] Offer Next Steps
+Current:
+    gsd-log-sensor → Session Discovery (Claude Code JSONL only) → Fingerprinting → Triage → Signal
 
----
-
-Session Start (hooks layer, parallel)
-    +-- gsd-check-update.js (existing)
-    +-- gsd-version-check.js (existing)
-    +-- gsd-health-check-quick.js (NEW -- if frequency allows)
-
-Session End (hooks layer)
-    +-- gsd-session-metrics.js (NEW -- async, non-blocking)
+v1.20:
+    gsd-log-sensor → Runtime Detector → Format Adapter
+                                            |
+                          +----------------+----------------+
+                          v                                 v
+               Claude Code Adapter                  Codex CLI Adapter
+               (~/.claude/projects/...)             (~/.codex/state_5.sqlite + sessions/)
+                          |                                 |
+                          +----------------+----------------+
+                                           v
+                          Normalized Fingerprint Schema (runtime-agnostic)
+                                           v
+                          Structural Fingerprinting → Triage → Signal
 ```
 
----
+**Runtime-specific stages:** Session discovery and message extraction only. Stages 3+ (fingerprinting, triage, signal construction) are runtime-agnostic and unchanged.
 
-## Hook Architecture Deep Dive
-
-### Hook Input Schema (from official docs)
-
-All hooks receive JSON on stdin with common fields:
-
-```json
-{
-  "session_id": "abc123",
-  "transcript_path": "/path/to/transcript.jsonl",
-  "cwd": "/path/to/project",
-  "permission_mode": "default",
-  "hook_event_name": "Stop"
-}
-```
-
-**Event-specific fields:**
-
-| Event | Additional Fields |
-|-------|------------------|
-| `SessionStart` | `source` ("startup", "resume", "clear", "compact"), `model` |
-| `Stop` | `stop_hook_active` (bool), `last_assistant_message` (string) |
-| `SubagentStop` | `stop_hook_active`, `agent_id`, `agent_type`, `agent_transcript_path`, `last_assistant_message` |
-| `PostToolUse` | `tool_name`, `tool_input`, `tool_response`, `tool_use_id` |
-
-### Hook Output Schema
-
-**SessionStart hooks** can return `additionalContext` via JSON:
-
-```json
-{
-  "hookSpecificOutput": {
-    "hookEventName": "SessionStart",
-    "additionalContext": "Health check found 2 issues..."
-  }
-}
-```
-
-**Stop hooks** can force continuation with `decision: "block"`:
-
-```json
-{
-  "decision": "block",
-  "reason": "Signals need to be collected before ending"
-}
-```
-
-**Critical constraint for Stop hooks:** The `stop_hook_active` field prevents infinite loops. When a Stop hook forces continuation and Claude stops again, `stop_hook_active` will be `true`. The hook MUST check this field and exit 0 to avoid infinite continuation loops.
-
-### Hook Design Principles for GSD
-
-1. **Hooks are side-effect only.** They record metrics, check health, inject context. They do NOT orchestrate complex multi-agent workflows.
-2. **Hooks are fast.** SessionStart hooks should complete in <1s. Use `async: true` for anything that takes longer.
-3. **Hooks are resilient.** Silent failure (exit 0) is always preferred over blocking the session with errors.
-4. **Hooks read config.** Each hook reads `.planning/config.json` to determine if it should run, respecting the user's configured frequency/thresholds.
-5. **Hooks follow the build pattern.** Source in `hooks/`, compiled to `hooks/dist/`, installed to `.claude/hooks/` by `bin/install.js`.
-
----
-
-## CI Sensor Architecture Deep Dive
-
-### Detection Strategy
-
-The CI sensor queries recent CI runs for the current repository and extracts signal candidates from failures and anomalies.
-
-```
-gsd-ci-sensor
-    |
-    +-- Step 1: Check CI provider config
-    |   read devops.ci_provider from config.json
-    |   if "none" -> return empty signals
-    |
-    +-- Step 2: Determine phase commit range
-    |   Same approach as gsd-git-sensor
-    |   git log --oneline --grep="(${PHASE})"
-    |
-    +-- Step 3: Query CI runs
-    |   For GitHub Actions:
-    |   gh run list --limit 10 --json status,conclusion,headSha,name,databaseId
-    |   Filter to runs matching phase commits
-    |
-    +-- Step 4: Analyze failures
-    |   For each failed run:
-    |   gh run view {id} --json jobs
-    |   Parse failed jobs and steps
-    |   Extract failure messages
-    |
-    +-- Step 5: Detect patterns
-    |   +-- Build failures (compilation, lint)
-    |   +-- Test failures (test step failed)
-    |   +-- Deploy failures (deploy step failed)
-    |   +-- Flaky tests (pass on re-run)
-    |
-    +-- Step 6: Return JSON
-        ## SENSOR OUTPUT
-        ```json
-        { "sensor": "ci", "phase": N, "signals": [...] }
-        ```
-        ## END SENSOR OUTPUT
-```
-
-### CI Sensor Resilience
-
-| Condition | Behavior |
-|-----------|----------|
-| `gh` CLI not installed | Return empty signals with warning note |
-| `gh` not authenticated | Return empty signals with warning note |
-| No CI runs found | Return empty signals (clean result) |
-| API rate limit | Return empty signals with warning note |
-| Non-GitHub CI | Return empty signals (only GitHub Actions supported initially) |
-
-The sensor MUST NOT fail. It follows the same resilience pattern as the existing sensors: partial failures are logged but do not block signal collection.
-
-### gh CLI Dependencies
-
-The CI sensor requires `gh` (GitHub CLI). This is NOT a new dependency for GSD Reflect -- the existing release workflow already uses `gh`. However, it IS optional. The sensor gracefully degrades to empty results if `gh` is unavailable.
-
+**Codex session discovery uses SQLite:**
 ```bash
-# Availability check
-gh --version 2>/dev/null
-if [ $? -ne 0 ]; then
-  # Return empty signals, log note
-fi
+sqlite3 ~/.codex/state_5.sqlite \
+  "SELECT rollout_path FROM threads WHERE cwd = '$(pwd)' ORDER BY created_at DESC"
+```
 
-# Auth check
-gh auth status 2>/dev/null
-if [ $? -ne 0 ]; then
-  # Return empty signals, log note
-fi
+This is strictly richer than Claude Code's directory-scan discovery, providing git_sha, git_branch, tokens_used for pre-filtering.
+
+**Token field mapping difference:** Claude Code token data is in nested `progress.data.message.message.usage`; Codex uses top-level `event_msg.payload.type = "token_count"` events. Codex additionally provides `reasoning_output_tokens` (Claude Code does not expose this).
+
+---
+
+### 6. Patch Sensor (`agents/gsd-patch-sensor.md`)
+
+**New sensor agent.** Detects source-vs-installed divergence and cross-runtime drift.
+
+**Two detection layers:**
+- **Layer 1 (source vs installed):** Compare npm source hashes against installed runtime file hashes via existing `gsd-file-manifest.json` mechanism. Detects: installer bugs, stale installs, format conversion errors.
+- **Layer 2 (cross-runtime installed):** Compare `.claude/` against `.codex/` installs after accounting for expected format differences (YAML→TOML, tool name remapping). Detects: missing files, semantic content divergence beyond format conversion, feature gaps.
+
+**Classification taxonomy:** bug / stale / customization / format-drift / feature-gap.
+
+**Integration points:**
+1. `bin/install.js` gains `checkCrossRuntimeParity()` function that runs after successful install — if `.codex/` exists with GSD installed, compare versions and offer `--codex` update (Approach B from cross-runtime-parity-research.md).
+2. `gsd-tools kb` gains a `distribution-check` subcommand (or the patch sensor can be invoked via collect-signals for the dev project).
+
+**Signal output:** Patch sensor follows the standard sensor contract — returns JSON signal candidates to `collect-signals.md` orchestrator. The synthesizer applies normal quality gates.
+
+**Scope note:** This sensor is most useful in the GSDR development repo itself. End-user projects are served by the installer's `saveLocalPatches` mechanism, which already runs before each install.
+
+---
+
+### 7. Cross-Model Review Command (`commands/gsd/cross-model-review.md`)
+
+**New command.** Formalizes the strongest positive pattern from the audit (cross-model review appeared in 35 positive patterns as P01-P08 cluster).
+
+**Design principle from spike-epistemology-research.md:** Do not over-formalize. The pattern works partly because it is context-responsive. The command should add structure (who reviews what, what categories of critique, how to record findings) without mandating rigid protocols that kill adaptiveness.
+
+**Command scope:** Works for any review target — phase plan, spike DESIGN.md, agent spec, workflow, architecture decision. Not scoped to spikes only.
+
+**Cross-runtime note:** This is actually enhanced on Codex because the user already runs cross-model review using `codex exec` on Dionysus while Claude Code runs on Apollo. The command should accommodate both "the user invokes this manually" and "the design reviewer agent invokes this as part of spike review."
+
+---
+
+### 8. Revise-Phase-Scope Command (`commands/gsd/revise-phase-scope.md`)
+
+**New command.** Highest-impact missing command identified in audit (N02).
+
+**Integration points:**
+- Reads `.planning/phases/{N}-*/` to understand current scope
+- Updates ROADMAP.md phase section with revised goals
+- Creates a revision artifact documenting what changed and why
+- Updates STATE.md
+
+**This is a pure workflow addition** — no new CLI modules or agents required. The command orchestrates existing tools (`gsd-tools state`, `gsd-tools roadmap`, existing templates) with new workflow logic for scope revision.
+
+---
+
+### 9. Offer-Next PR/CI Gate (`execute-phase.md` modification)
+
+**Modified component.** The `offer_next` step becomes structural, not advisory.
+
+**Current behavior (advisory):** Presents PR creation as an option after phase completes. The user can skip it entirely.
+
+**v1.20 behavior (structural on Claude Code):** After a phase on a non-main branch, PR creation and CI check are presented as a blocking checkpoint — the workflow will not advance to "next phase" framing until the user either confirms CI passed or explicitly overrides.
+
+**Cross-runtime:** This is workflow-text enforcement, not hook-dependent. Full parity on Codex.
+
+**Branch detection:** SessionStart hook (Claude Code) or workflow-invocation check (Codex) detects "quick task" branch vs "phase" branch to avoid triggering PR flow for ad-hoc work.
+
+---
+
+### 10. `.continue-here` Consumption Lifecycle
+
+**Modified component.** Currently `.continue-here` files accumulate without being consumed.
+
+**New behavior:**
+- `resume-work.md` workflow explicitly checks for and deletes `.continue-here` on pickup
+- `execute-phase.md` already cleans up `.continue-here` files after phase completion (line 289-292 in current source); this becomes more explicit and reliable
+- Post-session hook (Claude Code only) deletes stale `.continue-here` files; advisory reminder on Codex
+
+---
+
+### 11. Parallel Execution State Management
+
+**Modified component.** STATE.md conflict resolution for parallel worktrees.
+
+**Recommended approach (Approach 1 from measurement-infrastructure-research.md):**
+
+```
+Current: Single STATE.md (read-modify-write, merge conflicts on parallel worktrees)
+
+v1.20:
+  STATE.md              (coordination file — milestone, project reference, roadmap evolution)
+  .planning/state/
+    +-- main.json       (main branch worktree state)
+    +-- gsd/phase-55.json  (parallel worktree state, separate file)
+    +-- gsd/phase-56.json  (another parallel worktree, no conflicts)
+```
+
+**Implementation:** `resolveWorktreeRoot()` already exists in `core.cjs`. Extend `state.cjs`'s `writeStateMd()` to detect worktree context and route writes to per-worktree JSON files. `gsd-tools state json` reads all `state/*.json` files and merges for composite view.
+
+**Why not locking (Approach 2):** Lock files are per-directory and not shared across worktrees — the lock exists in each worktree's `.planning/` independently and cannot prevent git-merge-time conflicts. This approach is fundamentally mismatched to the problem.
+
+**Migration path to Approach 4 (append-only log):** Per-worktree JSON files are a stepping stone. If parallel execution becomes routine, each JSON file already represents an independent state stream that could be refactored as an event log without changing the interface.
+
+---
+
+## Data Flow Changes
+
+### Signal Lifecycle Flow (New)
+
+```
+Phase executes
+    → PLAN.md contains resolves_signals: [sig-id-1, sig-id-2]
+    → collect-signals.md runs post-phase
+    → artifact-sensor detects new signals → JSON
+    → log-sensor detects missed signals → JSON
+    → git-sensor detects patterns → JSON
+    → signal-synthesizer writes new signals to KB (.md files)
+    → [NEW] collect-signals reads resolves_signals from completed PLANs
+    → [NEW] gsd-tools kb transition sig-id-1 remediated
+    → [NEW] gsd-tools kb rebuild (incremental, via content hashing)
+    → kb.db updated (SQLite index reflects new state)
+    → future: gsd-tools kb query --lifecycle remediated shows closed signals
+```
+
+### Telemetry Baseline Flow (New)
+
+```
+Before v1.20 intervention:
+    gsd-tools telemetry baseline --project get-shit-done-reflect
+        → Reads ~/.claude/usage-data/session-meta/*.json
+        → Left-joins ~/.claude/usage-data/facets/*.json by session_id
+        → Filters by project_path matching current project
+        → Computes distributions (p25, median, p75, p90) for numeric fields
+        → Writes .planning/baseline.json
+
+After v1.20 deployment (N sessions later):
+    gsd-tools telemetry baseline --project get-shit-done-reflect --compare
+        → Same computation
+        → Compares against .planning/baseline.json
+        → Reports delta for each metric
+```
+
+### Spike Review Flow (New)
+
+```
+/gsd:spike DESIGN.md
+    → gsd-spike-runner.md: design phase
+    → [NEW] Invoke gsd-spike-design-reviewer (DIFFERENT model)
+    → Reviewer reads DESIGN.md + METHODOLOGY.md + auxiliary register
+    → Reviewer produces critique document (3 tiers: severity gaps, auxiliary issues, anti-pattern flags)
+    → Spike designer sees critique
+    → Designer responds: accept / acknowledge / dispute (all legitimate)
+    → [NEW] Critique + response recorded as CRITIQUE.md alongside DESIGN.md
+    → Execution proceeds
+```
+
+### KB Query Flow (New vs Old)
+
+```
+Old: agents read knowledge-surfacing.md → grep on .planning/knowledge/index.md
+     Limitation: full table scan, no relational queries, no lifecycle filtering
+
+New: agents read knowledge-surfacing.md → gsd-tools kb query --tags "..." --format json
+     If kb.db does not exist: fallback to grep on index.md (backward compat)
+     gsd-tools kb query --severity critical --lifecycle detected --format json
+     → returns structured JSON, no filesystem reads in agent context
 ```
 
 ---
 
-## Plan Checker Enhancement Architecture
+## Component Boundary Summary
 
-### Current Flow (plan-phase.md)
-
-```
-Planner creates PLAN.md files
-    |
-    v
-Plan checker receives:
-  - PLAN.md contents
-  - ROADMAP.md goal
-  - REQUIREMENTS.md
-  - CONTEXT.md (if exists)
-    |
-    v
-Run 7 verification dimensions
-    |
-    v
-Return VERIFICATION PASSED or ISSUES FOUND
-```
-
-### Enhanced Flow
-
-```
-Planner creates PLAN.md files
-    |
-    v
-Plan checker receives:
-  - PLAN.md contents
-  - ROADMAP.md goal
-  - REQUIREMENTS.md
-  - CONTEXT.md (if exists)
-  - Triaged signals context (NEW)      <-- from plan-phase.md step 7b
-    |
-    v
-Run 10 verification dimensions (7 existing + 3 new)
-    |
-    v
-Return VERIFICATION PASSED or ISSUES FOUND
-```
-
-**Change to plan-phase.md (step 10):** Pass `TRIAGED_SIGNALS` to the plan checker alongside existing context. The planner already loads this in step 7b -- the checker just needs to receive it too.
-
-```markdown
-Checker prompt:
-
-<verification_context>
-...existing fields...
-
-**Triaged Signals:**
-{TRIAGED_SIGNALS}
-</verification_context>
-```
-
-### Dimension Implementation Approach
-
-Dimensions 8 and 9 (Semantic Coherence, Estimation Realism) are **purely analytical** -- the plan checker reads plan content and applies judgment. No external data sources needed.
-
-Dimension 10 (Signal Awareness) requires the triaged signals context, which the workflow already has from step 7b. The checker validates:
-- `resolves_signals` array entries exist in KB
-- Tasks in the plan actually address the signal's root cause
-- No triaged `address` signals are orphaned (have no plan referencing them)
+| Layer | New Components | Modified Components |
+|-------|---------------|---------------------|
+| Commands | cross-model-review.md, revise-phase-scope.md | (none) |
+| Workflows | (none) | execute-phase.md, run-spike.md, collect-signals.md |
+| Agents | gsd-spike-design-reviewer.md, gsd-patch-sensor.md | gsd-log-sensor.md |
+| CLI Modules | telemetry.cjs, kb.cjs | gsd-tools.cjs (router), state.cjs (worktree routing) |
+| References | (none) | signal-detection.md, knowledge-surfacing.md |
+| Templates | DESIGN.md template (auxiliary register, CRITIQUE.md) | (none) |
+| Store | kb.db (SQLite, gitignored) | signal schema fields (additive) |
+| Hooks | (none) | gsd-statusline.js (bridge file fields, conditional) |
+| Installer | (none) | bin/install.js (cross-runtime parity check) |
 
 ---
 
-## Patterns to Follow
+## Build Order (Dependency Graph)
 
-### Pattern 1: Sensor Agent Pattern
+Dependencies flow upward — later items depend on earlier ones being complete.
 
-All sensor agents follow the same structure. The CI sensor MUST follow this pattern.
+### Phase A: Foundation (unblocked, can start immediately)
 
-```markdown
----
-name: gsd-{name}-sensor
-description: {one-liner}
-tools: Read, Bash, Glob, Grep
-color: {color}
----
+1. **Signal schema extension** (`signal-detection.md` + `frontmatter.cjs`)
+   - Additive fields only, zero breaking changes
+   - Unblocks lifecycle wiring in collect-signals
 
-<role>
-You are a sensor agent. You analyze {data source} and return structured
-signal candidates. You do NOT write to the knowledge base.
-</role>
+2. **`lib/kb.cjs` SQLite index**
+   - `rebuild`: parses YAML frontmatter into SQLite (depends on updated schema from #1)
+   - `query`, `stats`, `health`, `transition`, `link`, `search`
+   - Produces `kb.db` alongside `index.md` (backward compat)
+   - Unblocks knowledge-surfacing.md update and lifecycle wiring
 
-<execution_flow>
-## Step 1: Load inputs
-## Step 2: Detect signals
-## Step 3: Classify signals
-## Step 4: Runtime/Model detection
-## Step 5: Return JSON with delimiters
-</execution_flow>
-```
+3. **`lib/telemetry.cjs` module**
+   - Reads `~/.claude/usage-data/` — no dependencies on other v1.20 components
+   - `summary`, `session`, `phase`, `baseline`, `enrich` subcommands
+   - Produces `.planning/baseline.json` for pre-intervention measurement
 
-**Key constraints:**
-- Return ALL candidates including trace (synthesizer filters)
-- Use `## SENSOR OUTPUT` / `## END SENSOR OUTPUT` delimiters
-- Include `runtime` and `model` in each signal candidate
-- Cap at 5 signals per detection pattern, 15 total
-- Do NOT write to KB, do NOT call kb-rebuild-index.sh
+### Phase B: Structural Gates (depends on Phase A)
 
-### Pattern 2: Config-Guarded Feature Pattern
+4. **Lifecycle wiring in `collect-signals.md`**
+   - Reads `resolves_signals` from completed plan frontmatter
+   - Calls `gsd-tools kb transition` for matching signals
+   - Depends on #1 (schema) and #2 (kb.cjs transition command)
 
-New features follow the feature-manifest.json declarative pattern.
+5. **`knowledge-surfacing.md` update**
+   - Agents prefer `gsd-tools kb query` over grep
+   - Depends on #2 (kb.cjs query command)
 
-```json
-{
-  "feature_name": {
-    "scope": "project",
-    "introduced": "1.17.0",
-    "config_key": "feature_name",
-    "schema": {
-      "setting": {
-        "type": "boolean",
-        "default": false,
-        "description": "What this does"
-      }
-    }
-  }
-}
-```
+6. **`offer_next` PR/CI gate** (`execute-phase.md`)
+   - Structural enforcement of PR creation + CI check
+   - No module dependencies — workflow-text change
+   - Quick task branch detection (hook on Claude Code, CLI check on Codex)
 
-Every automation feature MUST:
-1. Have a config guard (default off for new automation, on for simple checks)
-2. Check config before running
-3. Degrade gracefully when disabled
-4. Be documented in feature-manifest.json
+7. **`.continue-here` consumption lifecycle** (`resume-work.md`, `execute-phase.md`)
+   - No module dependencies — workflow-text changes
+   - Pair with #6 (both are execute-phase modifications)
 
-### Pattern 3: Hook Script Pattern
+### Phase C: New Sensors and Agents (depends on Phase B)
 
-Hook scripts follow the existing patterns from `gsd-check-update.js` and `gsd-statusline.js`.
+8. **Log sensor cross-runtime adapter** (`gsd-log-sensor.md`)
+   - Codex session discovery via `state_5.sqlite`
+   - Format adapter for Codex JSONL structure
+   - Depends on existing sensor contract (unchanged) but benefits from Phase A schema
 
-```javascript
-#!/usr/bin/env node
-// Description of what this hook does
-// Called by {HookEvent} -- {when it fires}
+9. **Spike design reviewer agent** (`gsd-spike-design-reviewer.md`)
+   - New agent spec + `run-spike.md` modification
+   - DESIGN.md template gains auxiliary register section
+   - DECISION.md template gains decided/provisional/deferred outcome types
+   - Cross-model invocation built into workflow step
 
-const fs = require('fs');
-const path = require('path');
+10. **Patch sensor** (`gsd-patch-sensor.md`)
+    - New sensor agent + `bin/install.js` cross-runtime parity check
+    - Depends on existing sensor contract (unchanged)
 
-let input = '';
-process.stdin.setEncoding('utf8');
-process.stdin.on('data', chunk => input += chunk);
-process.stdin.on('end', () => {
-  try {
-    const data = JSON.parse(input);
-    const cwd = data.cwd || process.cwd();
+### Phase D: Workflow Commands (depends on Phase A, C)
 
-    // Read config to determine if this hook should run
-    // ...
+11. **`/gsdr:revise-phase-scope`** command
+    - Pure workflow addition, orchestrates existing gsd-tools subcommands
+    - No new modules required
 
-    // Do work
-    // ...
+12. **`/gsdr:cross-model-review`** command
+    - Formalizes existing positive pattern
+    - Light formalization — structure without rigidity
 
-    // Optional: return structured output
-    // process.stdout.write(JSON.stringify({ ... }));
-  } catch (e) {
-    // Silent fail -- never break the hook pipeline
-  }
-  process.exit(0);
-});
-```
+### Phase E: Parallel Execution (depends on Phase A)
 
-**Key constraints:**
-- Always read from stdin (JSON)
-- Always exit 0 on success or graceful failure
-- Exit 2 ONLY for blocking decisions (Stop hooks forcing continuation)
-- Use `async: true` in settings.json for non-critical hooks
-- Compile from `hooks/` to `hooks/dist/` via build:hooks
-- Source paths use `.claude/hooks/` (installed location)
+13. **Per-worktree state partitioning** (`state.cjs` + `core.cjs`)
+    - Extend `writeStateMd()` to route writes via `resolveWorktreeRoot()`
+    - `gsd-tools state json` merges per-worktree files for composite view
+    - Only needed when parallel phase execution is actively used
 
-### Pattern 4: Workflow Step Automation Pattern
+**Recommended sequencing:** A → B (lifecycle wiring + execute-phase gates) → C (sensors + spike reviewer) → D (commands) → E (parallel, if needed before milestone end).
 
-When adding automation to an existing workflow, follow this pattern:
-
-```markdown
-<step name="auto_{feature}">
-Read config to determine if automation should run:
-
-```bash
-ENABLED=$(node -e "try { const c = require('./.planning/config.json'); console.log(c.{config_key}?.{setting} === true) } catch(e) { console.log('false') }")
-```
-
-If ENABLED is true AND {preconditions met}:
-
-Invoke the target workflow via Task():
-```
-Task(
-  prompt="...",
-  subagent_type="general-purpose",
-  description="{action description}"
-)
-```
-
-If ENABLED is false: skip silently.
-</step>
-```
+Phases A and B items can be built in a single construction phase because they are all small. Items in C are mid-size independent parallel efforts. D items are quick. E is separately gated.
 
 ---
 
 ## Anti-Patterns to Avoid
 
-### Anti-Pattern 1: Hook-Based Orchestration
+### Anti-Pattern 1: MCP Server for KB (Premature)
+**What it is:** Building an MCP server to wrap the KB instead of CLI.
+**Why problematic:** 199 entries do not need server infrastructure. Adds operational complexity (config per machine, process management, offline failures) without solving the immediate query problem. philograph-mcp is the cautionary tale — PostgreSQL + pgvector for a use case that SQLite handles.
+**Instead:** CLI now (`gsd-tools kb`), MCP wrapper later (v1.21) when cross-machine access is genuinely needed. The CLI API becomes the MCP server's implementation without redesign.
 
-**What:** Using hooks (PostToolUse, Stop) to trigger complex multi-agent workflows.
+### Anti-Pattern 2: Mandatory Severity Thresholds in Spike Review
+**What it is:** "All findings must pass severity score X" automated gate.
+**Why problematic:** Produces gaming (designing experiments to hit the threshold). Severity is qualitative judgment, not a metric. Feyerabend: rigid rules suppress productive deviation.
+**Instead:** Design reviewer produces critique document with severity assessment. Designer responds. Three-tier enforcement (structural: reviewer invoked; cultural: assessment prompted; warned: anti-patterns flagged with override).
 
-**Why bad:** Hooks run in the main agent's context. A Stop hook that forces continuation and triggers signal collection + reflection would consume significant context budget of the already-finishing session. Hooks lack the workflow context (phase number, verification result) needed to make good decisions.
+### Anti-Pattern 3: Breaking the Single-Writer Principle
+**What it is:** Having `gsd-tools kb transition` update SQLite without updating `.md` files, or sensors writing directly to KB.
+**Why problematic:** SQLite is a derived cache. The `.md` files are the source of truth and the git history. Divergence between them creates data integrity problems.
+**Instead:** `gsd-tools kb transition` always updates both the `.md` frontmatter and the SQLite row atomically. `kb.db` is in `.gitignore` and reconstructable from files at any time.
 
-**Instead:** Use inline workflow steps in the appropriate orchestrator. The workflow has full context and can spawn subagents in fresh context windows.
+### Anti-Pattern 4: Telemetry Infrastructure Without Baseline First
+**What it is:** Building the telemetry module, deploying v1.20 changes, then computing baselines.
+**Why problematic:** Post-intervention baselines are contaminated by the interventions. You lose the ability to attribute changes to specific interventions.
+**Instead:** Run `gsd-tools telemetry baseline` before deploying any v1.20 structural changes. Write `.planning/baseline.json`. THEN deploy. Compare after N sessions.
 
-### Anti-Pattern 2: Sensor KB Writes
+### Anti-Pattern 5: State Locking for Cross-Worktree Conflicts
+**What it is:** Using `automation lock/unlock` to prevent concurrent STATE.md writes across worktrees.
+**Why problematic:** Lock files live in each worktree's `.planning/` directory independently. Worktree A's lock is invisible to worktree B. The conflict happens at git merge time, not at file write time. This does not solve the stated problem (measurement-infrastructure-research.md Section 6, Approach 2 analysis).
+**Instead:** Per-worktree JSON state files. Different filenames means no merge conflicts. Materialized view `gsd-tools state json` reads all files and merges.
 
-**What:** Having a new sensor (e.g., CI sensor) write directly to the knowledge base.
-
-**Why bad:** Violates the single-writer principle. The synthesizer enforces dedup, rigor, caps, and trace filtering. Bypassing it creates inconsistent KB state.
-
-**Instead:** All sensors return JSON. Only the synthesizer writes to KB.
-
-### Anti-Pattern 3: Always-On Automation
-
-**What:** Making auto-collect, auto-reflect, health check hooks all enabled by default.
-
-**Why bad:** Users who do not want automation get unexpected behavior. Combined automation significantly extends execution time. Context budget consumed by automation reduces quality of the primary work.
-
-**Instead:** Conservative defaults. `auto_collect: true` (lightweight, expected behavior). `auto_reflect: false` (expensive, opt-in). Health check hooks respect `frequency` config.
-
-### Anti-Pattern 4: Blocking Stop Hooks
-
-**What:** Using a Stop hook to force Claude to continue and run signal collection.
-
-**Why bad:** `stop_hook_active` infinite loop risk. The session is already at high context usage when Stop fires. Forced continuation quality is poor. The Stop hook approach also loses phase context.
-
-**Instead:** Automation triggers live in the workflow, not in hooks. The Stop hook records metrics only (async, non-blocking).
-
-### Anti-Pattern 5: Editing .claude/ Directly
-
-**What:** Creating hook scripts directly in `.claude/hooks/` instead of `hooks/`.
-
-**Why bad:** The installer overwrites `.claude/` from npm source. Changes are lost on update. This is the lesson from Phase 22.
-
-**Instead:** Edit `hooks/` (npm source). Run `node bin/install.js --local` to copy to `.claude/hooks/`.
+### Anti-Pattern 6: Hardcoding Log Sensor to Claude Code JSONL
+**What it is:** Treating the Claude Code JSONL format as the universal log format.
+**Why problematic:** Codex CLI uses a different JSONL schema (`session_meta`, `event_msg`, `response_item`, `turn_context` event types). Codex also has `state_5.sqlite` for session discovery, which is richer than directory scanning.
+**Instead:** Format adapter pattern in the log sensor. Only session discovery and message extraction stages are runtime-specific. Triage, fingerprinting, and signal construction are runtime-agnostic.
 
 ---
 
-## Scalability Considerations
+## Confidence Assessment
 
-| Concern | At 5 phases | At 20 phases | At 50 phases |
-|---------|-------------|--------------|-------------|
-| Signal collection time | <30s (2 sensors) | <30s (sensors read phase artifacts only) | <30s (scoped to current phase) |
-| CI sensor queries | 1-2 gh API calls | 1-2 gh API calls | 1-2 gh API calls (scoped) |
-| Auto-reflection | ~60s (few signals) | ~90s (more patterns) | ~120s (many patterns, larger KB) |
-| KB index size | Small | Medium | Large -- may need pagination |
-| Health check quick | <1s | <1s | <2s (more stale artifact checks) |
-| Session metrics | Negligible | Negligible | Negligible |
-
-**Bottleneck:** KB index parsing in the reflector scales with total signal count across all phases. At 50 phases with 10 signals each (500 signals), index parsing and pattern detection may slow. This is a known concern addressed by the per-phase cap (10 signals max per phase) and the existing archival mechanism.
-
----
-
-## Build Order Rationale
-
-### Suggested Build Order
-
-1. **Auto-trigger signal collection** (Feature 1)
-   - Prerequisite: None (builds on existing collect-signals workflow)
-   - Modifies: execute-phase.md, feature-manifest.json
-   - Why first: Foundation for the automation loop. Other features build on this trigger point.
-
-2. **CI sensor** (Feature 2)
-   - Prerequisite: None (can be built independently)
-   - Creates: gsd-ci-sensor.md
-   - Modifies: collect-signals.md, feature-manifest.json
-   - Why second: New sensor slot. Can be tested with manual `/gsd:collect-signals` first, then integrated with auto-trigger.
-
-3. **Plan checker semantic validation** (Feature 5)
-   - Prerequisite: None (independent of automation loop)
-   - Modifies: gsd-plan-checker.md, plan-phase.md
-   - Why third: Independent feature with high value. Can be developed in parallel with CI sensor.
-
-4. **Health check hooks** (Feature 4)
-   - Prerequisite: None (independent of automation loop)
-   - Creates: gsd-health-check-quick.js, gsd-session-metrics.js
-   - Modifies: settings.json, hooks build system
-   - Why fourth: New hook scripts require build system changes. Lower priority than signal loop.
-
-5. **Auto-reflection triggering** (Feature 3)
-   - Prerequisite: Feature 1 (auto-collect must work first)
-   - Modifies: collect-signals.md, feature-manifest.json
-   - Why last: Depends on auto-collect working correctly. Most expensive feature (full reflection). Benefits from CI sensor being active (more signals to reflect on).
-
-### Dependency Graph
-
-```
-[1] Auto-collect signals
-    |
-    +---> [5] Auto-reflection (depends on auto-collect)
-
-[2] CI sensor (independent)
-
-[3] Plan checker enhancements (independent)
-
-[4] Health check hooks (independent)
-```
-
-Features 2, 3, and 4 are independent and can be parallelized if needed. Feature 5 must come after Feature 1.
+| Component | Confidence | Basis |
+|-----------|------------|-------|
+| SQLite KB index design | HIGH | Three open-source precedents (MarkdownDB, Palinode, sqlite-memory); SQLite universally available; codebase evidence (198 signal files, kb-rebuild-index.sh scalability ceiling) |
+| Signal schema extensions | HIGH | Grounded in audit data (0% remediation tracking, 35 positive signals unrecordable); additive-only, backward-compatible |
+| Telemetry module design | HIGH | Session-meta and facets schemas documented from actual files; integration follows established gsd-tools module pattern |
+| Spike design reviewer agent | MEDIUM-HIGH | Grounded in 4 independent sources (spike gap analysis, arxiv-sanity-mcp audit, epistemic-agency F02/I09, philosophy of science research); agent implementation details need validation |
+| Log sensor adapter design | MEDIUM | Format analysis from actual JSONL files is solid; extraction code needs testing against edge cases (subagent sessions, long sessions) |
+| Per-worktree state partitioning | MEDIUM-HIGH | Uses existing `resolveWorktreeRoot()` and `atomicWriteJson()`; untested in practice; STATE.md interface change is non-trivial |
+| Parallel execution (broader) | MEDIUM | Approach 1 is pragmatic; Approach 4 (event log) is the right long-term architecture but implementation complexity is uncertain |
+| Patch sensor | MEDIUM | Built on existing `saveLocalPatches()` mechanism (validated); classification taxonomy is proposed, not empirically validated |
+| Bridge file extension | LOW | Depends on spike E validating that statusline payload exposes cost/rate-limit fields; do not implement without spike |
 
 ---
 
 ## Sources
 
-- [Claude Code Hooks Reference](https://code.claude.com/docs/en/hooks) -- Official documentation for all hook events, input schemas, output schemas, and configuration (verified 2026-03-02)
-- Existing codebase analysis: all agent specs, workflow files, hook scripts, settings.json, feature-manifest.json read directly from the repository
-- [Claude Code Hooks Guide](https://claude.com/blog/how-to-configure-hooks) -- Practical guide for hook configuration
+**Custom research (mandatory reading, all ingested):**
+- `.planning/research/kb-architecture-research.md` — File+SQLite architecture, signal schema, query layer design
+- `.planning/research/measurement-infrastructure-research.md` — Telemetry module, parallel STATE.md approaches, baseline strategy
+- `.planning/research/cross-runtime-parity-research.md` — Capability matrix, log sensor adapter, patch sensor, Codex SQLite schema
+- `.planning/research/spike-epistemology-research.md` — Three-tier enforcement model, Lakatos/Mayo/Duhem-Quine applications, design reviewer requirements
+
+**Codebase (directly read):**
+- `get-shit-done/bin/gsd-tools.cjs` (router, 16 module imports)
+- `get-shit-done/bin/lib/sensors.cjs`, `automation.cjs`, `core.cjs` (module patterns)
+- `agents/gsd-signal-synthesizer.md`, `gsd-log-sensor.md`, `gsd-signal-collector.md` (sensor architecture)
+- `get-shit-done/workflows/collect-signals.md`, `execute-phase.md` (workflow integration points)
+- `.planning/knowledge/` structure (198 signal files, 0 lessons, kb-rebuild-index.sh)

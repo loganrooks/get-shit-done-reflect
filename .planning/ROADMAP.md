@@ -10,6 +10,168 @@
 - <details><summary>v1.17 Automation Loop (Phases 36-44) -- SHIPPED 2026-03-09</summary>See milestones/v1.17-ROADMAP.md</details>
 - <details><summary>v1.18 Upstream Sync & Deep Integration (Phases 45-54 + 48.1) -- SHIPPED 2026-03-30</summary>See milestones/v1.18-ROADMAP.md</details>
 
+## v1.20 Signal Infrastructure & Epistemic Rigor
+
+**Milestone Goal:** Replace advisory quality controls with structural enforcement, mature the signal system from detection-only to full lifecycle management with a queryable knowledge base, overhaul spike methodology with epistemologically rigorous experimental design, and establish measurement infrastructure for evidence-based workflow improvement.
+
+**Phases:** 10 (Phases 55-64)
+**Granularity:** Fine
+**Requirements:** 57 mapped
+
+## Phases
+
+- [x] **Phase 55: Upstream Mini-Sync** - Integrate upstream correctness fixes (state locking, milestone safety, frontmatter, installer) before any v1.20 work begins
+- [ ] **Phase 56: KB Schema & SQLite Foundation** - Signal schema evolution and SQLite index creation establish the queryable knowledge base substrate
+- [ ] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
+- [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
+- [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
+- [ ] **Phase 60: Sensor Pipeline & Cross-Runtime Adaptation** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
+- [ ] **Phase 61: Spike Methodology Overhaul** - Three-level confidence, cross-model design reviewer, template revisions, and findings verification (can proceed in parallel with Phase 60)
+- [ ] **Phase 62: Workflow Commands** - Four new commands closing workflow gaps identified by audit
+- [ ] **Phase 63: Spike Programme Infrastructure** - Programme-level spike management with Lakatosian progressiveness assessment
+- [ ] **Phase 64: Parallel Execution** - Per-worktree state files and overlap detection for parallel phase execution (separately gated)
+
+## Phase Details
+
+### Phase 55: Upstream Mini-Sync
+**Goal**: v1.20 builds on a correct substrate -- upstream TOCTOU, milestone safety, frontmatter, and installer fixes integrated before any new work begins
+**Depends on**: Nothing (must precede all other v1.20 work)
+**Requirements**: SYNC-01
+**Success Criteria** (what must be TRUE):
+  1. `gsd-tools` state operations use atomic writes that prevent TOCTOU race conditions
+  2. Milestone safety preserves 999.x backlog items during transitions without data loss
+  3. Frontmatter parsing handles quoted-comma values correctly
+  4. Installer reliability fixes applied and validated by existing test suite (628 tests pass)
+**Plans:** 4 plans
+Plans:
+- [x] 55-01-PLAN.md -- Adopt model-profiles.cjs and wholesale-replace 4 pure upstream modules
+- [x] 55-02-PLAN.md -- Hybrid-merge core.cjs, frontmatter.cjs, and config.cjs
+- [x] 55-03-PLAN.md -- Replace phase.cjs/roadmap.cjs with re-adjustments, hybrid-merge installer
+- [x] 55-04-PLAN.md -- Update router, adopt upstream tests, validate all 3 suites, run installer
+
+### Phase 56: KB Schema & SQLite Foundation
+**Goal**: Signal files support full lifecycle tracking, and a SQLite index makes the knowledge base queryable by structured fields
+**Depends on**: Phase 55
+**Requirements**: KB-01, KB-02, KB-03, KB-04a, KB-05, KB-09, KB-10, KB-11
+**Success Criteria** (what must be TRUE):
+  1. `gsd-tools kb rebuild` processes the existing 198-signal corpus without errors, producing a SQLite index with all frontmatter fields indexed
+  2. Signal files support lifecycle states (proposed/in_progress/blocked/verified/remediated), polarity (negative/positive/mixed), response disposition (fix/formalize/monitor/investigate), and qualification links (qualified_by/superseded_by)
+  3. Existing signal files with old schema parse successfully -- new fields default gracefully when absent, `source` field resolved to `detection_method` + `origin` via migration script
+  4. kb.db is gitignored and rebuildable from files at any time -- SQLite is a derived cache, files remain source of truth
+  5. package.json engines.node updated to >=22.5.0 with actionable error message on older Node versions
+**Plans**: TBD
+
+### Phase 57: Measurement & Telemetry Baseline
+**Goal**: Telemetry extraction tooling captures a pre-intervention baseline so that structural changes in subsequent phases can be attributed to specific interventions
+**Depends on**: Phase 56
+**Requirements**: TEL-01a, TEL-01b, TEL-02, TEL-04, TEL-05
+**Success Criteria** (what must be TRUE):
+  1. `gsd-tools telemetry summary` shows session overview, `telemetry session` shows single session detail, and `telemetry phase` shows sessions within a phase time window
+  2. `gsd-tools telemetry baseline` produces `.planning/baseline.json` with statistical computation from session-meta data
+  3. `.planning/baseline.json` is committed before any Phase 58 structural gates are deployed
+  4. Facets data (AI-generated session quality assessments) joined with session-meta by session_id, with all facets-derived fields annotated as AI-generated estimates with unknown accuracy
+**Plans**: TBD
+
+### Phase 58: Structural Enforcement Gates
+**Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion
+**Depends on**: Phase 57 (baseline must be captured first)
+**Requirements**: GATE-01, GATE-02, GATE-03, GATE-04, GATE-05, GATE-06, GATE-07, GATE-08, XRT-01
+**Success Criteria** (what must be TRUE):
+  1. Phase advancement via offer_next blocks until PR is created and CI passes -- user can override with documented justification logged to session
+  2. `gh pr merge` invocations pass `--merge` explicitly as the structural default, and quick task detects runtime code changes requiring branch+PR flow
+  3. `.continue-here` files are consumed on read and archived after session start, with staleness checks and upstream-adopted hard stop safety gates
+  4. Automation postlude fires structurally (SessionStop hook on Claude Code, workflow-enforced step on Codex) rather than by agent discretion
+  5. Every hook-dependent v1.20 feature specifies its Codex CLI degradation path in phase CONTEXT.md before implementation begins, and capability-matrix.md is updated
+**Plans**: TBD
+
+### Phase 59: KB Query, Lifecycle Wiring & Surfacing
+**Goal**: The knowledge base is fully queryable, signal lifecycle transitions are automated, and research/planning agents use structured queries instead of grep
+**Depends on**: Phase 56 (SQLite index must exist)
+**Requirements**: KB-04b, KB-04c, KB-06a, KB-06b, KB-07, KB-08
+**Success Criteria** (what must be TRUE):
+  1. `gsd-tools kb search` performs FTS5 full-text search across signal content, and `gsd-tools kb query` filters by lifecycle state and other structured fields
+  2. `gsd-tools kb link` traverses qualified_by/superseded_by relationships between signals and spikes
+  3. `gsd-tools kb transition` updates both the .md frontmatter AND the SQLite row atomically (dual-write invariant per KB-05)
+  4. When a plan with `resolves_signals` completes, collect-signals auto-transitions matching signals to remediated state
+  5. Research and planning agents use SQLite queries for KB retrieval, with graceful fallback to grep when kb.db does not exist
+**Plans**: TBD
+
+### Phase 60: Sensor Pipeline & Cross-Runtime Adaptation
+**Goal**: Log sensor and patch sensor are operational across both active runtimes, with automated parity verification after installation
+**Depends on**: Phase 58 (structural gates provide enforcement context for sensors)
+**Requirements**: SENS-01, SENS-02, SENS-03, SENS-04, SENS-05, SENS-06, SENS-07, XRT-02
+**Success Criteria** (what must be TRUE):
+  1. Log sensor integrates into collect-signals with progressive deepening (structural fingerprinting, intelligent triage, selective context expansion, signal construction) and reports parse failures as warnings rather than crashing
+  2. Log sensor cross-runtime adapter normalizes Claude Code JSONL and Codex JSONL to a common fingerprint schema, with Codex session discovery using state_5.sqlite
+  3. Patch sensor detects source-vs-installed file divergence using installer manifest SHA256, classifies divergences (bug/stale/customization/format-drift/feature-gap), and produces a developer-facing report
+  4. Post-install cross-runtime parity verification runs automatically after `node bin/install.js`, comparing installed files across detected runtimes
+  5. Patch compatibility checking validates patches against target runtime before cross-runtime application
+**Plans**: TBD
+**Note**: Can proceed in parallel with Phase 61 after Phase 58 completes -- independent workstreams with no shared dependencies
+
+### Phase 61: Spike Methodology Overhaul
+**Goal**: Spike experimental design is epistemologically rigorous -- designs are reviewed cross-model before execution, confidence is multi-dimensional, and findings are verified against evidence
+**Depends on**: Phase 58 (structural enforcement patterns inform reviewer agent design)
+**Requirements**: SPIKE-01, SPIKE-02, SPIKE-03, SPIKE-04, SPIKE-05, SPIKE-06, SPIKE-07, SPIKE-08, SPIKE-09, SPIKE-12
+**Success Criteria** (what must be TRUE):
+  1. Spike design reviewer agent (cross-model, different model from designer) evaluates experimental design before execution and produces CRITIQUE.md, not a pass/fail verdict
+  2. DECISION.md supports decided/provisional/deferred outcome types with three-level confidence (measurement validity, interpretation validity, extrapolation validity)
+  3. DESIGN.md includes auxiliary hypothesis register (Duhem-Quine), metric limitation documentation, and sample design section with representativeness argument
+  4. Cross-spike qualification mechanism appends qualification notes when spike N qualifies or invalidates spike M, with KB qualified_by links
+  5. After 3 spikes complete under new methodology, an evaluation assesses whether premature closure decreased and DECISION.md quality improved -- if formalization shows compliance theater, simplify
+**Plans**: TBD
+**Note**: Can proceed in parallel with Phase 60 after Phase 58 completes -- independent workstreams with no shared dependencies. SPIKE-08 (protocol adherence checkpoints) is gated on SPIKE-01 completion; auto-defers to v1.21 if SPIKE-01 ships late in this phase
+
+### Phase 62: Workflow Commands
+**Goal**: Four workflow gaps identified by the audit are closed with new commands that integrate into existing GSD patterns
+**Depends on**: Phase 59 (KB query layer enables structured retrieval in research command)
+**Requirements**: WF-01, WF-02, WF-03, WF-04
+**Success Criteria** (what must be TRUE):
+  1. `/gsdr:cross-model-review` launches background cross-model review with committed audit spec and structured response template -- opt-in, model choice configurable, review round count user-determined
+  2. `/gsdr:revise-phase-scope` performs mid-phase scope changes with ROADMAP.md and REQUIREMENTS.md update, commit, and re-discuss
+  3. `/gsdr:research` produces committed knowledge artifacts in `.planning/research/` with source citations, per-finding confidence levels, and stated limitations -- no code changes or spike overhead
+  4. `/gsdr:discuss-milestone` produces MILESTONE-CONTEXT.md with structured steering brief (working assumptions, open questions, epistemic guardrails, derived constraints, deferred ideas)
+**Plans**: TBD
+
+### Phase 63: Spike Programme Infrastructure
+**Goal**: Multi-spike research programmes have proper infrastructure -- shared assets, cross-spike tracking, and Lakatosian progressiveness assessment
+**Depends on**: Phase 61 (spike methodology must be operational)
+**Requirements**: SPIKE-10a, SPIKE-10b, SPIKE-10c
+**Success Criteria** (what must be TRUE):
+  1. Spike programmes have a directory structure with programme ROADMAP.md, shared data asset references, and programme-level metadata
+  2. Cross-spike tracking within programmes supports qualification links and progressive refinement without the 2-round per-spike limit applying at programme level
+  3. Programme lifecycle includes progressiveness assessment (Lakatosian ledger: is this programme progressive or degenerating?) and programme-level DECISION.md for overall conclusions
+**Plans**: TBD
+
+### Phase 64: Parallel Execution (Separately Gated)
+**Goal**: Non-overlapping phases can execute in parallel on separate worktrees without STATE.md merge conflicts
+**Depends on**: Phase 59 (state management infrastructure must be stable)
+**Requirements**: PAR-01, PAR-02, PAR-03
+**Success Criteria** (what must be TRUE):
+  1. Per-worktree state files (`.planning/state/{worktree-name}.json`) eliminate STATE.md merge conflicts, with upstream's orchestrator-owns-writes pattern adopted for intra-phase parallelism
+  2. `gsd-tools state` provides a composite view across worktree state files showing aggregated progress and per-worktree status
+  3. Phases with non-overlapping file scopes can execute in parallel on separate worktrees, with overlapping file scope detected and blocked before parallel dispatch
+**Plans**: TBD
+**Note**: Separately gated -- only triggered when parallel phase execution becomes a regular workflow pattern. Not automatically scheduled after Phase 63
+
+## Progress
+
+**Execution Order:**
+Phases execute sequentially 55 through 59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated.
+
+| Phase | Plans Complete | Status | Completed |
+|-------|----------------|--------|-----------|
+| 55. Upstream Mini-Sync | 4/4 | Complete | 2026-04-08 |
+| 56. KB Schema & SQLite Foundation | 0/TBD | Not started | - |
+| 57. Measurement & Telemetry Baseline | 0/TBD | Not started | - |
+| 58. Structural Enforcement Gates | 0/TBD | Not started | - |
+| 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
+| 60. Sensor Pipeline & Cross-Runtime Adaptation | 0/TBD | Not started | - |
+| 61. Spike Methodology Overhaul | 0/TBD | Not started | - |
+| 62. Workflow Commands | 0/TBD | Not started | - |
+| 63. Spike Programme Infrastructure | 0/TBD | Not started | - |
+| 64. Parallel Execution | 0/TBD | Not started | - |
+
 ## Overall Progress
 
 | Milestone | Phases | Plans | Status | Shipped |
@@ -21,5 +183,6 @@
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
 | v1.17 Automation Loop | 36-44 | 24 | Complete | 2026-03-09 |
 | v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | 37 | Complete | 2026-03-30 |
+| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 | TBD | In progress | - |
 
-**Totals:** 7 milestones, 55 phases (55 complete), 166 plans completed
+**Totals:** 8 milestones, 65 phases (56 complete, 9 in progress), 170 plans completed

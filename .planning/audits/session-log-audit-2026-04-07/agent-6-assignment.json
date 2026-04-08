@@ -1,0 +1,106 @@
+{
+  "agent": 6,
+  "sessions": [
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-get-shit-done-reflect",
+      "session_id": "7c46a5cd-a8d9-4ac3-b7a6-306a59e0c26c",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-get-shit-done-reflect/7c46a5cd-a8d9-4ac3-b7a6-306a59e0c26c.jsonl",
+      "events": 17,
+      "interest": 5,
+      "duration": 271.8,
+      "total_tokens": 74118964
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-vigil",
+      "session_id": "e75f3f5f-fc25-4862-aff3-869014f53706",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-vigil/e75f3f5f-fc25-4862-aff3-869014f53706.jsonl",
+      "events": 17,
+      "interest": 5,
+      "duration": 360.5,
+      "total_tokens": 59106632
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-vigil",
+      "session_id": "84be1fa4-1611-49df-9e16-1c8c8a04198f",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-vigil/84be1fa4-1611-49df-9e16-1c8c8a04198f.jsonl",
+      "events": 11,
+      "interest": 5,
+      "duration": 11739.4,
+      "total_tokens": 43969050
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-zlibrary-mcp",
+      "session_id": "3d2f2bc6-db75-42f7-8f7b-643bb54640de",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-zlibrary-mcp/3d2f2bc6-db75-42f7-8f7b-643bb54640de.jsonl",
+      "events": 8,
+      "interest": 4,
+      "duration": 10170.0,
+      "total_tokens": 49181472
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog",
+      "session_id": "3de8caf1-9f82-42fa-b9d6-55eb09cc9a32",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog/3de8caf1-9f82-42fa-b9d6-55eb09cc9a32.jsonl",
+      "events": 7,
+      "interest": 4,
+      "duration": 1512.6,
+      "total_tokens": 15255245
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-blackhole-animation",
+      "session_id": "85137d96-975f-490b-86b6-93206b2ac57f",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-blackhole-animation/85137d96-975f-490b-86b6-93206b2ac57f.jsonl",
+      "events": 7,
+      "interest": 5,
+      "duration": 530.1,
+      "total_tokens": 12056440
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-tain",
+      "session_id": "473146be-e53b-49aa-ba79-0662c23f0941",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-tain/473146be-e53b-49aa-ba79-0662c23f0941.jsonl",
+      "events": 4,
+      "interest": 4,
+      "duration": 96.7,
+      "total_tokens": 35423114
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-f1-modeling",
+      "session_id": "f91ab5d9-22db-4431-8043-6dd469f597be",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-f1-modeling/f91ab5d9-22db-4431-8043-6dd469f597be.jsonl",
+      "events": 3,
+      "interest": 3,
+      "duration": 33.3,
+      "total_tokens": 14961455
+    },
+    {
+      "machine": "dionysus",
+      "project": "-home-rookslog-workspace-projects-epistemic-agency",
+      "session_id": "433b417f-3714-465c-82ce-9ceaad4663cd",
+      "path": "/home/rookslog/.claude/projects/-home-rookslog-workspace-projects-epistemic-agency/433b417f-3714-465c-82ce-9ceaad4663cd.jsonl",
+      "events": 1,
+      "interest": 3,
+      "duration": 162.4,
+      "total_tokens": 10255916
+    },
+    {
+      "machine": "apollo",
+      "project": "-Users-rookslog-Development-blackhole-animation",
+      "session_id": "a1a7cc42-a639-4e9c-9e99-fe3234765e5f",
+      "path": "/Users/rookslog/.claude/projects/-Users-rookslog-Development-blackhole-animation/a1a7cc42-a639-4e9c-9e99-fe3234765e5f.jsonl",
+      "events": 1,
+      "interest": 2,
+      "duration": 28.2,
+      "total_tokens": 14971142
+    }
+  ],
+  "total_events": 76
+}

@@ -5,8 +5,8 @@
 | Metric | Value |
 |--------|-------|
 | Fork point | `2347fca` (upstream v1.11.1) |
-| Last upstream sync baseline | v1.22.4 (2026-03-10 fork audit freeze) |
-| Current upstream | v1.30.0 (2026-03-27) |
+| Last upstream sync baseline | v1.34.2 (2026-04-08 Phase 55 mini-sync, commit f7549d43) |
+| Current upstream | v1.34.2 (2026-04-08) |
 | Fork version | v1.17.5 |
 | Runtime architecture | gsd-tools.cjs (676-line thin router) + 16 lib/*.cjs modules (8,148 lines total) |
 | Fork-only modules | 5 (health-probe, automation, manifest, backlog, sensors) |

@@ -1,225 +1,301 @@
-# Project Research Summary
+# Research Summary: v1.20 Signal Infrastructure & Epistemic Rigor
 
-**Project:** GSD Reflect v1.18 — Upstream Sync & Deep Integration
-**Domain:** Fork maintenance — monolith-to-module migration, upstream feature adoption, config evolution
-**Researched:** 2026-03-10
-**Confidence:** HIGH
+**Project:** GSD Reflect v1.20
+**Domain:** Agentic workflow harness — KB infrastructure, spike methodology, measurement tooling, structural enforcement
+**Researched:** 2026-04-08
+**Confidence:** HIGH (9 research documents, all grounded in codebase evidence and live verification)
+
+---
 
 ## Executive Summary
 
-GSD Reflect v1.18 must absorb 244 upstream commits while preserving and strengthening the fork's self-improvement pipeline (signals, reflection, health scoring, automation). The upstream changes are structurally significant: a monolith-to-module refactor (6,651-line `gsd-tools.js` split into a 592-line dispatcher + 11 CJS modules), a file extension rename (`.js` to `.cjs`), a breaking config rename (`depth` to `granularity`), and four new features (context-monitor hook, Nyquist auditor, code-aware discuss-phase, supporting workflows). The fork's 2,126 lines of additions must be redistributed into 5 new modules plus minor extensions to 3 existing upstream modules.
+GSD Reflect v1.20 is not a feature expansion — it is an infrastructure correction. The cross-platform session-log audit of 100 sessions produced a single sharp finding: every failed advisory intervention had zero effect on behavior, and the 13 RECURRED findings are recurred precisely because the fixes were text, not structure. The milestone simultaneously addresses three interlocking deficits: (1) a knowledge base that can detect failures but cannot query them relationally, track their remediation, or link them to experimental evidence; (2) a spike workflow that prescribes methodological rigor but has no mechanism to enforce it, producing patterns of self-aware failure documented across 4 spikes in arxiv-sanity-mcp; and (3) a measurement gap so complete that there are no baselines against which any intervention's effect can be observed.
 
-The recommended approach is a strict incremental migration: modularization first, config migration second, feature adoption third. Modularization must precede feature adoption because all upstream workflows reference `gsd-tools.cjs` which does not exist in the fork's current structure. The `.js` to `.cjs` rename is the single most dangerous operation (touching 56+ files) and should be an isolated first commit with zero functional changes so failures are attributable to the rename alone. Config migration needs a new manifest `migrations` array to handle the `depth` to `granularity` rename declaratively, preserving the fork's additive-only philosophy while adding a controlled escape hatch for upstream breaking changes.
+The recommended approach treats these three deficits as a dependency chain rather than independent workstreams. The KB infrastructure (File + SQLite index via node:sqlite built-in) and signal schema extensions must come first because they are the foundation for lifecycle tracking and agent query capability. Structural workflow gates (offer_next PR/CI enforcement, .continue-here lifecycle, quick task branch detection) are the highest-urgency fixes because they address the most-recurred failure patterns. Spike methodology overhaul — centered on a cross-model design reviewer, three-level confidence framework, and DECIDED/PROVISIONAL/DEFERRED outcome types derived from Lakatos/Duhem-Quine/Mayo — addresses the experimental infrastructure needed for evidence-grounded improvement. Measurement infrastructure (telemetry baselines from 268 session-meta files + 109 facets files) must be computed before any v1.20 intervention is deployed, to preserve the ability to attribute changes to specific interventions.
 
-The primary risk is not breakage -- it is shallow adoption. Upstream features adopted without integration into the fork's signal/health/automation pipeline become "alienated patches": working code that delivers no epistemic value. Context-monitor must feed bridge-file data into automation's `resolve-level` (replacing the current wave-based estimation). Nyquist validation gaps must flow through the artifact sensor into signal collection. Discuss-phase code-awareness must be paired with KB-awareness. Cleanup workflows must exclude the fork's `knowledge/`, `deliberations/`, and `backlog/` directories. Three critical silent failure modes exist: bridge file not written (context-monitor is dead code), VALIDATION.md not scanned (Nyquist findings never become signals), and cleanup destroying the knowledge base.
+The three primary risks are: (1) over-formalization of productive informal practices, specifically cross-model review — the audit's single strongest positive pattern — which must remain opt-in and flexible or usage drops; (2) the SQLite index treated as source of truth rather than derived cache, repeating the KB data loss incident from sig-2026-02-11; (3) the token count reliability problem in session-meta (observed value of 109 input tokens for a 23-message/84-assistant-message session is implausibly low), which must be validated against JSONL-aggregated counts before baselines are trusted. MILESTONE-CONTEXT.md includes spike programme infrastructure in scope while FEATURES.md recommends deferring D-7 to v1.21 — this is a genuine tension that needs resolution during roadmap planning based on capacity.
+
+---
 
 ## Key Findings
 
-### Modular Migration Strategy
+### Recommended Stack
 
-See: [MODULAR-MIGRATION.md](./MODULAR-MIGRATION.md)
+The v1.20 stack requires zero new npm dependencies. The critical unlock is node:sqlite — a Node.js built-in added in v22.5.0 that provides synchronous SQLite access with FTS5 support, matching the existing gsd-tools.cjs synchronous execution model exactly. Both primary machines (Dionysus: Node 22.22.1, Apollo: expected LTS 22+) satisfy the constraint. The package.json engines.node field must be updated from >=16.7.0 to >=22.5.0. node:sqlite was live-tested on Dionysus: FTS5 virtual tables, prepared statement API (all(), get(), iterate(), run()), and transaction execution via db.exec('BEGIN; ...; COMMIT;') all confirmed working. The only visible artifact is an ExperimentalWarning on stderr (suppressed with --no-warnings; does not affect stdout JSON output).
 
-The monolith-to-module migration is **structurally clean** because all fork additions are additive (no upstream functions were modified), tests invoke via CLI subprocess (internal module structure is invisible to them), and 9 of 11 upstream modules need zero modification.
+**Core technologies:**
+- node:sqlite (Node.js built-in, >=22.5.0): SQLite KB index + Codex state_5.sqlite queries — zero npm dependency, synchronous API, FTS5 confirmed
+- node:fs, node:path, node:os, node:crypto (built-ins): telemetry module, patch sensor, cross-runtime adapters — already used throughout gsd-tools.cjs
+- Markdown + YAML frontmatter (no change): signal files remain source of truth; SQLite is derived cache
+- Inline JSONL parsing (split/filter/map): Codex session log parsing — no library needed
 
-**Migration order (8 steps, each a single reversible commit):**
-1. **Step 0 -- `.js` to `.cjs` rename** (56 file references, zero functional changes)
-2. **Step 1 -- Adopt upstream's modular skeleton** (11 `lib/*.cjs` modules + thin dispatcher)
-3. **Step 2 -- Extend `core.cjs`** with shared fork helpers (`loadManifest`, `loadProjectConfig`, `atomicWriteJson`)
-4. **Steps 3-7 -- Extract 5 new modules** in dependency order: `sensors.cjs` (simplest) -> `backlog.cjs` -> `manifest.cjs` -> `automation.cjs` -> `health-probe.cjs`
-5. **Step 8 -- Extend `frontmatter.cjs` and `init.cjs`** (signal schema, `--include` flag)
+**What NOT to add:** better-sqlite3 (native compilation), ccusage (reads different data paths, no GSD phase correlation), js-yaml (existing frontmatter.cjs sufficient), Python dependency in npm package.
 
-**Estimated effort:** 15-23 hours total.
+### Expected Features
 
-### Config Migration Architecture
+**Must have (table stakes — closes audit's top RECURRED findings):**
+- TS-1: --merge as default PR merge strategy (one-line fix)
+- TS-2/TS-3: offer_next PR/CI gate (structural) + .continue-here consumption lifecycle
+- TS-4: Quick task branch detection in runtime code
+- TS-5: Signal lifecycle state machine wired to workflows (reads resolves_signals from completed plans)
+- TS-6: Signal schema extensions (lifecycle, disposition, qualified_by, superseded_by, polarity:mixed, remediation)
+- TS-7/TS-8: gsd-tools kb rebuild (SQLite index) + gsd-tools kb query
+- TS-9: Log sensor cross-runtime adapter (Codex JSONL format, state_5.sqlite session discovery)
+- TS-10: Post-install cross-runtime parity verification
+- TS-11: /gsdr:revise-phase-scope command (highest-impact missing command N02)
+- TS-12: Three-level confidence framework (measurement/interpretation/extrapolation)
+- TS-13: Spike design reviewer agent (cross-model mandatory; critique document not pass/fail verdict)
 
-See: [CONFIG-MIGRATION.md](./CONFIG-MIGRATION.md)
+**Should have (differentiators):**
+- D-1: gsd-tools telemetry subcommand family (needs token count validation spike first)
+- D-2/D-3: gsd-tools kb stats dashboard + kb transition lifecycle commands
+- D-4: Signal qualified_by/superseded_by link traversal
+- D-5: Spike findings reviewer agent (depends on TS-13 stable)
+- D-6: /gsdr:cross-model-review command (opt-in, flexible — must not be over-formalized)
+- D-8: Auxiliary hypothesis register in DESIGN.md template
+- D-10: Patch sensor / gsd-tools distribution-check
+- D-12: DECIDED/PROVISIONAL/DEFERRED outcome types in DECISION.md
 
-The fork's manifest-driven config migration is architecturally superior to upstream's hardcoded inline approach but cannot handle renames or deletions today. The `depth` to `granularity` rename requires a new **`migrations` array** in `feature-manifest.json` -- an ordered list of declarative rename/transform operations that runs before the existing additive gap-fill.
+**Defer to v1.21:**
+- D-7: Spike programme infrastructure (Lakatosian research programme concept — correct architecture, premature to formalize broadly)
+- D-9: Parallel execution infrastructure (only valuable when parallel phases are a regular workflow)
+- Signal-to-issue promotion mechanism
+- MCP server for KB (CLI-first validates query API; MCP wrapper is ~200 lines once CLI exists)
+- Automated telemetry sensor
 
-**Key design decisions:**
-- Manifest `migrations[]` with condition guards (`has_key`, `missing_key`) and action types (`rename_with_mapping`)
-- Migrations run BEFORE additive gap-fill so renames create keys that gap-fill enriches
-- `KNOWN_TOP_LEVEL_KEYS` updated to include `granularity` (keep `depth` for migration detection)
-- Policy update: "additive-only with controlled exceptions" replacing strict "nothing is removed"
-- 7 version-jump test scenarios covering v1.12 through v1.18 starting configs
+**Anti-features (explicitly excluded):** Vector embeddings for KB, token cost dashboard, same-model spike design reviewer, mandatory severity thresholds, continental philosophy memory grounding (v1.22+).
 
-### Migration Testing Patterns
+### Architecture Approach
 
-See: [MIGRATION-TESTING.md](./MIGRATION-TESTING.md)
+The v1.20 architecture adds four capability domains to the existing 5-layer system (Command → Workflow → Agent → CLI modules → Knowledge Store) without changing the layer structure. New CLI modules (kb.cjs, telemetry.cjs) follow the established pattern exactly. The critical architectural invariant: SQLite is a derived cache (kb.db in .gitignore, reconstructable from .md files at any time). Every write operation that touches signal lifecycle state must update BOTH the .md frontmatter AND the SQLite row atomically.
 
-The current test suite (278 tests) has strong coverage of happy paths but **9 critical gaps**: no multi-version upgrade chains, no interrupted/crash recovery tests, no full-corpus namespace integrity tests, and zero tests for the forthcoming module redistribution.
+**Major components:**
+1. lib/kb.cjs — SQLite index: rebuild, query, stats, health, transition, link, search; new case 'kb': in gsd-tools.cjs router
+2. lib/telemetry.cjs — session-meta + facets extraction; joins 268 session-meta with 109 facets by session_id; filters by project via resolveWorktreeRoot(); produces .planning/baseline.json
+3. agents/gsd-spike-design-reviewer.md — cross-model reviewer invoked between DESIGN.md completion and execution; produces CRITIQUE.md; designer responds (accept/acknowledge/dispute all valid)
+4. agents/gsd-log-sensor.md (modified) — runtime adapter layer: Claude Code via encoded path, Codex via state_5.sqlite; normalized fingerprint schema after adapter stage
+5. agents/gsd-patch-sensor.md — two-layer divergence detection: source-vs-installed (installer manifest) and cross-runtime installed comparison
+6. Signal lifecycle wiring in collect-signals.md — reads resolves_signals from completed plans, calls gsd-tools kb transition
+7. execute-phase.md modifications — offer_next gate structural, .continue-here lifecycle enforced, quick task branch detection
+8. bin/install.js modification — checkCrossRuntimeParity() after successful install
 
-**Must-have tests for v1.18 (Priority 1, ~10 hours):**
-- Multi-version config upgrade (v0 to current)
-- Unknown field preservation
-- Config and KB migration idempotency
-- Nested KB directory preservation
-- Broken symlink handling
-- Full-corpus namespace integrity scan (zero stale references)
-- Behavioral equivalence for each extracted module
-- Dispatcher wiring for all new commands
+**Build order:** Phase A (schema + SQLite + telemetry) → Phase B (lifecycle wiring + workflow gates) → Phase C (log sensor + spike reviewer + patch sensor) → Phase D (workflow commands) → Phase E (parallel execution, separately gated).
 
-**Recommended new tooling:** `@fast-check/vitest` for property-based namespace rewriter fuzzing, `buildConfigForVersion()` test helper for version-jump scenarios, `captureDirectoryState()` for before/after comparison.
+### Critical Pitfalls
 
-### Integration Pitfalls
+1. **C1: SQLite index treated as source of truth** — dual-write invariant: every kb transition updates both .md frontmatter AND SQLite row; kb.db in .gitignore immediately; add roundtrip write test. KB data loss incident (sig-2026-02-11) is the direct historical precedent.
 
-See: [INTEGRATION-PITFALLS.md](./INTEGRATION-PITFALLS.md)
+2. **C2: Lifecycle wiring silently does nothing** — resolves_signals plan field has existed since Phase 34 and has never been read by anything; write an end-to-end integration test before shipping; run gsd-tools kb stats after phase to verify signals advanced from detected.
 
-The core risk is the **alienated patch anti-pattern**: adopted features that work correctly in isolation but have no inputs to or outputs from the fork's feedback mechanisms. The litmus test: "If this feature fires 100 times, does the fork learn anything?"
+3. **C3: Token count reliability used without validation** — 109 input_tokens for a 23-message/84-assistant-message session is implausibly low; validate against JSONL-aggregated counts for same sessions before any baseline is committed.
 
-**Top 5 pitfalls:**
+4. **C4: Hook-dependent features silently degrade on Codex** — Codex CLI v0.118.0 has no hook mechanism (confirmed by direct inspection); every hook-dependent feature must specify its Codex degradation path before implementation begins.
 
-1. **Silent bridge file absence (CRITICAL)** -- Context-monitor adopted but fork's statusline hook never writes the bridge file. Feature runs silently with no effect. Prevention: write bridge file FIRST, verify it exists, THEN adopt consumer.
+5. **C5: Spike design reviewer becomes a checklist agent** — must produce a critique document, use a different model from the designer, have METHODOLOGY.md lenses as context; if DECISION.md quality does not improve post-introduction, the reviewer is a rubber stamp.
 
-2. **VALIDATION.md invisible to artifact sensor (CRITICAL)** -- Nyquist writes validation results but artifact sensor only scans PLAN.md, SUMMARY.md, VERIFICATION.md. Prevention: update sensor scan targets in the SAME phase as Nyquist adoption.
+6. **C6: Over-formalization kills cross-model review** — the audit's single strongest positive pattern; /gsdr:cross-model-review must remain opt-in and flexible; monitor invocation frequency post-formalization.
 
-3. **Cleanup destroys knowledge base (CRITICAL)** -- Upstream cleanup has zero awareness of `.planning/knowledge/`, `.planning/deliberations/`, `.planning/backlog/`. Prevention: add explicit exclusion rules BEFORE first use.
-
-4. **Dual health systems (HIGH)** -- Fork has 11-probe `/gsdr:health-check`. Upstream adds simple `/gsd:health`. Both accessible creates confusion. Prevention: DO NOT adopt as separate command; extract unique checks as new probes.
-
-5. **Code-awareness overshadows KB-awareness (HIGH)** -- Discuss-phase scouts codebase but ignores knowledge base. The system knows what code exists but not what it learned. Prevention: KB surfacing step in SAME PR as code-awareness adoption.
+---
 
 ## Implications for Roadmap
 
-### Phase 1: Modularization Foundation
+### Tensions to Resolve Before Finalization
 
-**Rationale:** All upstream workflows reference `gsd-tools.cjs` which does not exist in the fork's current monolith structure. Every subsequent phase depends on path and module correctness. The `.js` to `.cjs` rename is the single most dangerous operation and must be isolated.
+**Tension 1: Spike programme infrastructure scope**
+MILESTONE-CONTEXT.md includes D-7 in v1.20 scope. FEATURES.md recommends deferral: only one project has exercised multi-spike programmes. If included, it belongs in a late phase with optional-scaffolding framing. Needs explicit roadmap decision.
 
-**Delivers:** Modular `lib/` directory with 16 CJS modules (11 upstream + 5 new fork modules), thin dispatcher entry point, all 278+ tests passing.
+**Tension 2: Telemetry baseline sequencing**
+ARCHITECTURE.md anti-pattern 4 is unambiguous: baseline must precede intervention deployment. This means telemetry CLI tools ship in Phase 1 (earliest) so baseline.json is committed before Phase 2 structural gates go live.
 
-**Addresses:** Steps 0-7 from MODULAR-MIGRATION.md. The `.cjs` rename, upstream skeleton adoption, core.cjs extensions, and all 5 module extractions (sensors, backlog, manifest, automation, health-probe).
+**Tension 3: Parallel execution priority**
+MILESTONE-CONTEXT.md marks D-9 in scope. FEATURES.md rates it Tier 3. Resolved by making Phase 6 separately gated — not scheduled automatically, only triggered when parallel execution becomes a regular workflow pattern.
 
-**Avoids:** Pitfall from INTEGRATION-PITFALLS.md: "Adopting features into the monolith and then modularizing later means rewriting integration code twice."
+### Phase 1: Foundation Infrastructure
+**Rationale:** Everything depends on this. Schema extensions enable lifecycle wiring. SQLite index enables relational queries and transitions. Telemetry CLI must ship here to capture baseline before structural changes are deployed.
+**Delivers:** lib/kb.cjs (rebuild, query, stats, health, transition, link, search), lib/telemetry.cjs (summary, session, phase, baseline, enrich), signal schema extensions, .planning/baseline.json, kb.db alongside index.md, updated knowledge-surfacing.md
+**Addresses:** TS-5, TS-6, TS-7, TS-8, D-1, D-2, D-3
+**Avoids:** C1 (dual-write invariant established), C3 (token validation spike runs before baselines committed), N5 (source field ambiguity resolved before SQLite schema finalized), N1 (kb.db gitignored immediately)
+**Research flag:** D-1 requires token count validation spike before baselines committed; internal Phase 1 gate, not a phase blocker
 
-### Phase 2: Config Migration & Breaking Changes
+### Phase 2: Structural Workflow Gates
+**Rationale:** Highest-urgency RECURRED failure pattern fixes. All are workflow-text changes with no new module dependencies. Ship as a cohesive batch targeting the execute-phase/resume-work postlude chain.
+**Delivers:** execute-phase.md with offer_next PR/CI structural gate and quick task branch detection, resume-work.md with .continue-here consumption lifecycle, --merge default (one-line fix), checkCrossRuntimeParity() in bin/install.js
+**Addresses:** TS-1, TS-2, TS-3, TS-4, TS-10
+**Avoids:** C4 (each gate specifies Codex degradation path before implementation)
+**Research flag:** NONE — insertion points clear; Codex degradation paths documented in cross-runtime-parity-research.md
 
-**Rationale:** The `depth` to `granularity` rename must be absorbed before feature adoption because upstream workflows reference `granularity`. Config migration infrastructure (`migrations[]` array) must exist before new features add config keys.
+### Phase 3: Sensor Pipeline and Cross-Runtime Adaptation
+**Rationale:** Mid-complexity independent workstreams. Log sensor adapter and patch sensor both follow existing sensor contract. TS-9 is the largest single engineering effort in the milestone.
+**Delivers:** gsd-log-sensor.md with Codex adapter (state_5.sqlite discovery, message extraction, normalized fingerprint schema), gsd-patch-sensor.md (source-vs-installed + cross-runtime comparison), gsd-tools distribution-check subcommand
+**Addresses:** TS-9, D-10
+**Avoids:** C4 (log sensor adapter defines Codex sensing path), M6 (patch sensor scope documented: in-project only; cross-project gap is v1.21)
+**Research flag:** TS-9 LIKELY NEEDS PHASE-LEVEL RESEARCH — Codex JSONL edge cases (subagent sessions, compacted sessions, very long sessions) require testing; format adapter completeness for Codex-specific fields not fully validated
 
-**Delivers:** Manifest v2 with `migrations` array, `depth-to-granularity` declarative migration, updated `KNOWN_TOP_LEVEL_KEYS`, workflow reference updates (3 files), version-migration.md policy update.
+### Phase 4: Spike Methodology Overhaul
+**Rationale:** Three-level confidence vocabulary (TS-12) is logically prior to design reviewer (TS-13), findings reviewer (D-5), and auxiliary register (D-8). Design reviewer must be designed correctly to avoid checklist theater. Cross-model review command can be built in parallel.
+**Delivers:** agents/gsd-spike-design-reviewer.md (cross-model, critique document, three-tier enforcement), updated run-spike.md (design reviewer as mandatory gate), DESIGN.md template with auxiliary hypothesis register, DECISION.md template with decided/provisional/deferred and three-level confidence, /gsdr:cross-model-review command (opt-in, flexible)
+**Addresses:** TS-12, TS-13, D-6, D-8, D-12
+**Avoids:** C5 (reviewer produces critique not checklist), C6 (cross-model-review remains opt-in), M4 (programme infrastructure is optional scaffolding), M5 (deferred outcome type requires specification of what question and what investigation)
+**Research flag:** TS-13 NEEDS PHASE-LEVEL RESEARCH — cross-model invocation mechanism, Longino-compatible prompt design, how to prevent 9-dimension spec from collapsing into a checklist; SPIKE-DESIGN-REVIEW-SPEC.md from arxiv-sanity-mcp is the starting point
 
-**Addresses:** All items from CONFIG-MIGRATION.md: schema extension, condition predicates, execution order, 7 version-jump scenarios, backward compatibility.
+### Phase 5: Workflow Commands and KB Enrichment
+**Rationale:** Quick wins that should not be blocked. /gsdr:revise-phase-scope is pure workflow with no module dependencies. Signal qualification links are schema-ready after Phase 1. Findings reviewer depends on TS-13 stable.
+**Delivers:** /gsdr:revise-phase-scope command, signal qualified_by/superseded_by link traversal queries, spike findings reviewer agent (if TS-13 validated)
+**Addresses:** TS-11, D-4, D-5
+**Research flag:** D-5 NEEDS PHASE-LEVEL RESEARCH — findings reviewer must assess evidence before seeing designer's claims; cross-model dispatch; protocol adherence verification
 
-**Avoids:** Pitfall: stale `depth` references in workflows causing config reads to fail.
-
-### Phase 3: Migration Test Hardening
-
-**Rationale:** Before adopting upstream features that stress the migration/installation pipeline, the test suite must cover the gaps identified in MIGRATION-TESTING.md. Ship-blocker tests (P1) are mandatory; robustness tests (P2) should be completed within the milestone.
-
-**Delivers:** ~14 new test groups covering multi-version upgrades, crash recovery, full-corpus namespace integrity, module behavioral equivalence, and cross-cutting patterns (idempotency, before/after invariants, fixture matrices).
-
-**Addresses:** Priority 1 and Priority 2 tests from MIGRATION-TESTING.md (~17 hours).
-
-**Avoids:** Pitfall: namespace rewriting misses new files; pitfall: regression in module extraction.
-
-### Phase 4: Context Monitor Integration
-
-**Rationale:** Context-monitor provides accurate context% data that improves ALL automation deferral decisions. This is foundational infrastructure that makes subsequent postlude features (Nyquist) more effective.
-
-**Delivers:** Bridge file writing in statusline hook, context-monitor hook adoption, `resolve-level` reading bridge file with wave-based fallback, `context-exhaustion` health probe, signal generation for context exhaustion + incomplete phases.
-
-**Addresses:** Context-monitor integration from INTEGRATION-PITFALLS.md with all 5 touchpoints (bridge enrichment, health scoring input, signal generation, automation deferral source, regime tracking).
-
-**Avoids:** Pitfall 1 (silent bridge file absence) by writing producer before adopting consumer. Pitfall 6 (context% divergence) by creating single helper function for context% retrieval.
-
-### Phase 5: Nyquist Auditor & Validation Pipeline
-
-**Rationale:** Nyquist is the most complex integration (new artifact type, new signal type, optional postlude step, new health probe). It benefits from modularization being complete and context-monitor providing accurate deferral data.
-
-**Delivers:** Nyquist agent spec + validate-phase workflow + command, VALIDATION.md as recognized artifact type, `validation_gap` signal type, optional postlude step (behind `workflow.nyquist_validation` config gate), `nyquist-coverage` health probe.
-
-**Addresses:** Nyquist integration from INTEGRATION-PITFALLS.md with all 5 touchpoints. Addresses the "undertested phases" reflection pattern.
-
-**Avoids:** Pitfall 2 (VALIDATION.md invisible to sensor) by updating artifact sensor in same phase. Pitfall 8 (postlude context budget) by gating Nyquist postlude behind config and adjusting budget offsets.
-
-### Phase 6: Code-Aware Discuss-Phase + KB Surfacing
-
-**Rationale:** Lowest risk adoption. Additive changes to an existing workflow. Independent of other phases. But KB surfacing must be built from scratch alongside code-awareness to avoid the alienated patch pattern.
-
-**Delivers:** Code-aware discuss-phase with `scout_codebase` step, `<code_context>` section in CONTEXT.md, KB surfacing step with query budget (~300 tokens), `<kb_context>` section, decision-lesson tension detection, compatibility guard for missing KB index.
-
-**Addresses:** Discuss-phase integration from INTEGRATION-PITFALLS.md.
-
-**Avoids:** Pitfall 5 (code-awareness overshadows KB-awareness) by building both in same phase.
-
-### Phase 7: Supporting Workflows & Cleanup
-
-**Rationale:** Least critical adoptions. Cleanup requires all prior integration work to be stable. Add-tests is self-contained. Health probe extraction is straightforward.
-
-**Delivers:** `add-tests.md` workflow + command, `cleanup.md` with fork-specific exclusion guards, health probe extractions from upstream's `health.md` added to existing architecture. Init module extensions (frontmatter signal schema, `--include` flag).
-
-**Addresses:** Supporting workflows from INTEGRATION-PITFALLS.md, Step 8 from MODULAR-MIGRATION.md.
-
-**Avoids:** Pitfall 3 (cleanup destroys KB) via explicit exclusion rules + tests. Pitfall 4 (dual health systems) by extracting probes, not adopting command.
+### Phase 6: Parallel Execution Infrastructure (Separately Gated)
+**Rationale:** Only needed when parallel phase execution becomes regular. Gate on actual need. Per-worktree state file approach uses existing resolveWorktreeRoot() and atomicWriteJson() — engineering is straightforward once the decision is made.
+**Delivers:** Per-worktree state files (state/{worktree-name}.json), writeStateMd() routing via resolveWorktreeRoot(), gsd-tools state json composite view
+**Addresses:** D-9
+**Avoids:** M1 (locking is explicitly the wrong approach; per-worktree files are correct)
+**Research flag:** MAYBE — Approach 1 design is clear; risk is in STATE.md migration compatibility
 
 ### Phase Ordering Rationale
 
-- **Modularization before everything** because all upstream references assume `gsd-tools.cjs` module structure. Without it, every adoption requires path translation shims.
-- **Config migration before feature adoption** because new features add config keys that depend on `granularity` (not `depth`) and the manifest `migrations` infrastructure.
-- **Test hardening before feature adoption** because feature adoption stresses the migration/installation pipeline and regressions must be caught.
-- **Context monitor before Nyquist** because Nyquist as a postlude step needs accurate context% for deferral decisions.
-- **Nyquist before discuss-phase** because Nyquist validation is more impactful (automated quality gating) while discuss-phase is a session-quality improvement.
-- **Supporting workflows last** because they are individually low-value and some (cleanup) require all prior work to be stable.
+- Phase 1 must precede all others — schema extensions and SQLite index are foundational
+- Phase 1 must capture baseline.json before Phase 2 ships — ARCHITECTURE.md anti-pattern 4 constraint
+- Phases 3 and 4 can proceed in parallel after Phase 2 — independent workstreams
+- Phase 5 is a catch-up phase; some items may ship earlier if capacity allows
+- Phase 6 is independently gated; do not schedule automatically
 
 ### Research Flags
 
-**Phases likely needing deeper research during planning:**
-- **Phase 5 (Nyquist Auditor):** New artifact type for sensors, new signal type, postlude budget recalculation -- no existing precedent in fork.
-- **Phase 4 (Context Monitor):** Bridge file integration with `resolve-level` has edge cases (stale files, multiple sessions) that may need investigation.
-- **Phase 6 (Discuss-Phase):** KB surfacing query design is new; adapt from research-phase patterns but may need tuning.
+Phases needing deeper research:
+- **Phase 3 (log sensor adapter):** Codex JSONL edge cases need testing against real files
+- **Phase 4 (spike design reviewer):** Cross-model invocation mechanism, Longino-compatible prompt design
+- **Phase 5 (spike findings reviewer):** Evidence-before-claims independence, cross-model dispatch pattern
 
-**Phases with standard patterns (skip research-phase):**
-- **Phase 1 (Modularization):** Fully mapped with exact line numbers, dependency graphs, per-step rollback. Mechanical work.
-- **Phase 2 (Config Migration):** Complete design with schema, implementation sequence, and test matrix.
-- **Phase 3 (Test Hardening):** Test patterns fully specified with code examples.
-- **Phase 7 (Supporting Workflows):** Straightforward adoption with well-defined rules.
+Phases with standard patterns (research not needed):
+- **Phase 1 (SQLite KB):** MarkdownDB/Palinode pattern well-validated; node:sqlite API verified on target machine
+- **Phase 2 (workflow gates):** Insertion points clear; Codex degradation paths fully documented
+- **Phase 6 (parallel execution):** Approach 1 design clear from measurement-infrastructure-research.md
+
+---
+
+## Consensus Findings Across All Research Documents
+
+| Finding | Sources |
+|---------|---------|
+| Advisory text consistently fails; structural enforcement required | FEATURES.md, PITFALLS.md, spike-methodology-gap-analysis.md, MILESTONE-CONTEXT.md |
+| Cross-model review is structurally necessary (F02: self-evaluation degenerates under shared noise) | FEATURES.md, spike-epistemology-research.md, PITFALLS.md, ARCHITECTURE.md |
+| Three-level confidence framework independently derived in 3 sources | FEATURES.md, spike-methodology-gap-analysis.md, spike-epistemology-research.md |
+| SQLite + files (not MCP server) is the right KB architecture for v1.20 | kb-architecture-research.md, STACK.md, ARCHITECTURE.md, FEATURES.md, PITFALLS.md |
+| Telemetry baseline must precede intervention deployment | measurement-infrastructure-research.md, ARCHITECTURE.md, PITFALLS.md |
+| resolves_signals plan field has existed since Phase 34 and has never been read by anything | kb-architecture-research.md, ARCHITECTURE.md, PITFALLS.md, MILESTONE-CONTEXT.md |
+| Codex CLI v0.118.0 has no hook mechanism; hook-dependent features need degradation paths | cross-runtime-parity-research.md, FEATURES.md, PITFALLS.md |
+| Over-formalization of cross-model review is a specific named risk | PITFALLS.md (C6), FEATURES.md (AF-6), ARCHITECTURE.md, spike-epistemology-research.md |
+| Session-meta token counts suspect; validation spike required before use | measurement-infrastructure-research.md, STACK.md, PITFALLS.md (C3) |
+| source field ambiguity must be resolved before SQLite schema is finalized | kb-architecture-research.md, PITFALLS.md (N5) |
+
+---
+
+## Disagreements and Tensions
+
+| Tension | Position A | Position B | Resolution |
+|---------|-----------|-----------|------------|
+| Spike programme (D-7) scope | MILESTONE-CONTEXT.md: in scope | FEATURES.md: defer to v1.21 | Roadmap decision needed; if included, mark as optional scaffolding in late phase |
+| Telemetry D-1 timing | FEATURES.md: Tier 3 | ARCHITECTURE.md: baseline must precede all other interventions | Build telemetry CLI in Phase 1 for baseline capture; defer automated sensor to v1.21 |
+| Parallel execution (D-9) | MILESTONE-CONTEXT.md: in scope | FEATURES.md: Tier 3, only valuable if parallel is regular | Phase 6 separately gated; not automatically scheduled |
+| Spike findings reviewer (D-5) timing | FEATURES.md: depends on TS-13 stable | ARCHITECTURE.md: Phase D | Phase 5, with explicit gate: TS-13 must be validated first |
+
+---
+
+## Open Questions Needing Resolution
+
+1. **Token count validation (pre-Phase 1 spike):** Are session-meta input_tokens post-caching residuals or gross counts? Compare 5 sessions against JSONL-aggregated counts. Determines primary vs supplementary source for baselines.
+
+2. **Cross-model invocation mechanism (pre-Phase 4):** How does run-spike.md dispatch the design reviewer to a different model? Via agent frontmatter model spec, explicit workflow step naming the model, or separate codex exec / claude -p invocation?
+
+3. **Spike programme scope decision:** Include D-7 in v1.20 or defer to v1.21? Needs explicit roadmap decision.
+
+4. **node:sqlite ExperimentalWarning in hook context:** Does --no-warnings need to be added to every hook script node invocation? Check whether any hook script processes stderr output.
+
+5. **Apollo Node.js version:** Confirmed 22.22.1 on Dionysus; Apollo assumed LTS 22+ but not directly verified. Confirm before updating package.json engines constraint.
+
+6. **source field backward-compatibility:** Resolving source -> detection_method + origin is a schema breaking change for 198 existing signal files. Confirm migration strategy handles all existing values without data loss.
+
+7. **Bridge file / spike E dependency:** If bridge file extension (cost/rate-limit fields in statusline) is in v1.20 scope, spike E needs explicit scheduling.
+
+---
+
+## Beyond Formal Scope (for Future Milestones)
+
+**For v1.21:**
+- Codex state_5.sqlite as cross-project session analysis source; cross-session aggregate token baselines
+- Codex history.jsonl as cross-session user message pattern source (unique: Claude Code lacks equivalent)
+- Reflection pipeline activation: 198 signals, 0 lessons; reflection engine exists but never runs; F21 (dual memory) identifies this as the highest-impact unbuilt improvement
+- Facets data correlation analysis: join facets outcome with session-meta features to answer "what metrics predict quality?"
+- Palinode-style hybrid search (BM25 + sqlite-vec with RRF) as migration path from FTS5 at scale
+- Codex memories vs Claude Code MEMORY.md divergence as shadow knowledge layer problem
+
+**For v1.22+:**
+- Continental philosophy grounding for KB (Stiegler, Ricoeur, Bergson, Derrida)
+- Kuhn normal vs revolutionary spike type distinction
+- Agentic memory systems literature survey via arxiv-sanity-mcp infrastructure
+
+---
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Modular Migration | HIGH | Direct codebase analysis -- exact line numbers, dependency graph verified, all claims checked against source |
-| Config Migration | HIGH | Direct code examination of both fork and upstream; exact commit diffs analyzed |
-| Migration Testing | HIGH | Grounded in current test suite audit + established testing literature; concrete code examples |
-| Integration Pitfalls | HIGH | Based on fork audit artifacts, upstream source inspection, and architectural analysis |
+| Stack (node:sqlite, module patterns) | HIGH | Live-tested on Dionysus; integration points verified; zero new npm dependencies |
+| Features (table stakes) | HIGH | Grounded in audit findings (R11, 6+ offer_next recurrences, R3), signal data, codebase |
+| Features (differentiators) | MEDIUM-HIGH | Grounded in arxiv-sanity-mcp spike corpus, epistemic-agency findings |
+| Architecture (build order, integration) | HIGH | All components read; custom research fully ingested; integration points verified |
+| Architecture (spike design reviewer quality) | MEDIUM-HIGH | 4 independent sources; agent implementation details need Phase 4 validation |
+| Pitfalls (critical C1-C6) | HIGH | Each grounded in historical precedent or direct inspection |
+| Cross-runtime format analysis | HIGH | Direct parsing of actual JSONL files from both runtimes; state_5.sqlite schema confirmed |
+| Cross-runtime extraction edge cases | MEDIUM | Format analysis solid; code needs testing against subagent/compacted sessions |
+| Telemetry (session-meta schema) | HIGH | Documented from actual files, 2 samples compared |
+| Telemetry (token count reliability) | LOW | Suspiciously low values; validation spike required |
+| Spike epistemology (philosophical framework) | MEDIUM-HIGH | Framework well-grounded in primary sources; translation to agentic workflow design is novel |
 
-**Overall confidence:** HIGH
-
-All four research files are grounded in direct codebase analysis rather than web research or inference. The modular migration and config migration strategies are particularly robust -- they include exact file references, line numbers, and dependency graphs verified against actual code. The pitfalls analysis benefits from real incident data (the KB data loss signal) and audit artifacts from the fork divergence analysis.
+**Overall confidence:** HIGH for what to build and in what order; MEDIUM for implementation details of high-complexity components (TS-9, TS-13).
 
 ### Gaps to Address
 
-- **Upstream function drift magnitude:** How many of the fork's copies of upstream functions have behavioral differences from upstream's current versions? This determines whether Step 1 (adopt modules) is a drop-in or needs reconciliation. Affects Phase 1 effort estimate.
+- **Token count reliability:** Validation spike before Phase 1 baselines committed
+- **Cross-model invocation mechanism:** Architectural decision needed before Phase 4
+- **Spike programme scope:** Roadmap-level decision (D-7 in v1.20 or v1.21)
+- **Apollo Node version:** Quick verification before package.json engines constraint update
+- **Bridge file / spike E dependency:** Schedule spike E if bridge file extension is in scope
+- **Log sensor edge cases:** Subagent sessions, compacted sessions, very long sessions — test against real Codex files
 
-- **Init function signature compatibility:** The fork's `cmdInitExecutePhase` has an extra `includes` parameter. How exactly to extend upstream's `init.cjs` needs validation during Phase 1 implementation.
-
-- **Upstream test adoption scope:** Should all 12 upstream `.test.cjs` files be adopted, or only the 3 corresponding to modified modules? Affects Phase 3 scope.
-
-- **Context% bridge file lifecycle:** How long do bridge files persist? What happens with concurrent sessions? The bridge file is the critical data link for context-monitor integration (Phase 4).
-
-- **Postlude chain context budget with Nyquist:** Adding Nyquist as postlude step 3-of-5 shifts all subsequent budget calculations. Real-world measurement needed during Phase 5 to validate that auto-reflect is not permanently deferred.
+---
 
 ## Sources
 
-### Primary (HIGH confidence) -- Direct Codebase Analysis
-- Fork monolith: `get-shit-done/bin/gsd-tools.js` (6,651 lines)
-- Upstream modular structure: `git show upstream/main:get-shit-done/bin/lib/` (11 modules)
-- Upstream dispatcher: `git show upstream/main:get-shit-done/bin/gsd-tools.cjs` (592 lines)
-- Fork audit artifacts: `.planning/fork-audit/00-SYNTHESIS.md` through `10-workflow-divergence.md`
-- Fork manifest: `get-shit-done/feature-manifest.json` (7 features)
-- Upstream commit `c298a1a` (depth -> granularity rename)
-- Test suites: `tests/unit/*.test.js`, `get-shit-done/bin/*.test.js`
+### Primary (HIGH confidence)
 
-### Secondary (HIGH confidence) -- Established Patterns
-- Migration testing patterns: Defacto, QASource, BrowserStack, Datalark, DQOps guides
-- Modular restructuring: DEV Community strangler fig pattern, JetBrains modular monolith guide
-- Property-based testing: fast-check library, @fast-check/vitest integration
-- Snapshot testing: Vitest snapshot guide, snapshot benchmarking best practices
+- `.planning/research/kb-architecture-research.md` — SQLite architecture, schema evolution, F21/F32/F37/F46
+- `.planning/research/measurement-infrastructure-research.md` — session-meta/facets schema, telemetry tooling, STATE.md conflict approaches
+- `.planning/research/cross-runtime-parity-research.md` — capability matrix, log sensor adapter, patch sensor, Codex SQLite schema
+- `.planning/research/spike-methodology-gap-analysis.md` — 11 gaps, 5 patterns from arxiv-sanity-mcp 4-spike corpus
+- `.planning/research/spike-epistemology-research.md` — Lakatos/Duhem-Quine/Mayo/Longino/Feyerabend applied; three-tier enforcement model
+- `.planning/research/STACK.md` — node:sqlite live verification, Node version constraints, module architecture
+- `.planning/research/FEATURES.md` — table stakes/differentiator classification, MVP tiers, anti-features
+- `.planning/research/ARCHITECTURE.md` — component inventory, build order, data flow changes, anti-patterns
+- `.planning/research/PITFALLS.md` — 6 critical pitfalls, 7 moderate pitfalls, phase-specific warnings
+- `.planning/MILESTONE-CONTEXT.md` — working assumptions, derived constraints, open questions, scope boundaries
 
-### Tertiary (MEDIUM confidence) -- Design Decisions
-- `migrations[]` array design: derived from analysis, no precedent in codebase; sound pattern but untested
-- KB surfacing query budget (300 tokens): estimate based on discuss-phase context constraints; needs validation
-- Postlude budget impact of Nyquist: analytical estimate; real-world measurement needed
+### Secondary (MEDIUM-HIGH confidence)
+
+- Node.js 22 sqlite docs — experimental built-in, stable behavior on 22.22.1
+- MarkdownDB (github.com/datopian/markdowndb) — file+SQLite pattern validation
+- Palinode (github.com/Paul-Kyle/palinode) — git-native memory with SQLite-vec + FTS5
+- sqlite-memory (github.com/sqliteai/sqlite-memory) — Markdown-based AI agent memory
+- Epistemic-agency repo — F02, F09, I09, F21, F32, F37, F46 directly applicable
+
+### Tertiary (referenced, not directly verified)
+
+- Lakatos: via SEP, Rubin 2024 secondary sources
+- Mayo: via NDPR review, error statistics papers
+- Duhem-Quine: via SEP, Fairfield ch.5
+- Longino: primary texts, secondary application
 
 ---
-*Research completed: 2026-03-10*
+
+*Research completed: 2026-04-08*
 *Ready for roadmap: yes*

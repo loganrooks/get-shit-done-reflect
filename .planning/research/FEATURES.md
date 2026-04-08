@@ -1,373 +1,260 @@
-# Feature Landscape: Automation Loop (v1.17)
+# Feature Landscape: v1.20 Signal Infrastructure & Epistemic Rigor
 
-**Domain:** Developer workflow automation -- CI integration, hook-based auto-triggering, intelligent plan validation, automated reflection scheduling
-**Researched:** 2026-03-02
-**Overall confidence:** HIGH (system internals are well-documented; Claude Code hooks API verified against official docs)
+**Domain:** Agentic workflow harness — signal infrastructure, experimental methodology, measurement tooling, structural enforcement
+**Researched:** 2026-04-08
+**Replaces:** Previous FEATURES.md (v1.17 Automation Loop — archived context)
+**Overall confidence:** HIGH (custom research on codebase evidence + audit data; ecosystem validation from research files)
+
+---
 
 ## Context
 
-GSD Reflect v1.16 shipped a complete signal lifecycle (detected -> triaged -> remediated -> verified) with manual commands (`/gsd:collect-signals`, `/gsd:reflect`, `/gsd:health-check`) and a plan checker agent (`gsd-plan-checker`) that validates structural completeness. The critical gap: everything requires human memory to invoke. Five consecutive CI failures went unnoticed during v1.16 development. The plan checker approved plans with wrong tool subcommands and invalid config keys.
+v1.20 addresses a fundamental finding from the session-log audit (100 sessions, 165 findings): every failed advisory intervention had exactly zero effect on behavior. The audit's sharpest finding is not "these features are broken" but "advisory text does not enforce." The milestone has two distinct but interacting problems:
 
-This feature analysis focuses exclusively on what the v1.17 Automation Loop milestone needs to close the detect -> act -> verify loop automatically.
+1. **Structural enforcement gap:** Workflow gates exist as text suggestions; agents bypass them under execution pressure.
+2. **Epistemic infrastructure gap:** The system detects failures but cannot measure them, cannot qualify them with experimental evidence, and cannot track whether fixes hold.
+
+The five feature clusters below address these gaps. Table stakes are what a workflow harness needs to stop repeating known failures. Differentiators are what make this system distinctively evidence-grounded rather than advice-heavy.
+
+**Custom research already completed (read before interpreting this document):**
+- KB architecture: `kb-architecture-research.md` — SQLite index design, schema evolution
+- Measurement infrastructure: `measurement-infrastructure-research.md` — telemetry schema, baseline strategy
+- Cross-runtime parity: `cross-runtime-parity-research.md` — capability matrix, log sensor adapter
+- Spike epistemology: `spike-epistemology-research.md` — Lakatos/Duhem-Quine/Mayo framework
+- Spike methodology gaps: `spike-methodology-gap-analysis.md` — 11 gaps, 5 failure patterns
 
 ---
 
 ## Table Stakes
 
-Features the automation loop must have to fulfill its purpose. Without these, the system remains manual and the v1.16 CI failure pattern repeats.
+Features the workflow harness must have to stop repeating known failure patterns. Not having these means the audit's 13 RECURRED findings will continue to recur.
 
-| # | Feature | Why Expected | Complexity | Dependencies | Notes |
-|---|---------|--------------|------------|--------------|-------|
-| TS-1 | **Auto-trigger signal collection after phase execution** | The whole point of signals is post-execution analysis. Requiring manual `/gsd:collect-signals` means it gets skipped. | Med | execute-phase workflow, collect-signals workflow | Modify execute-phase to call collect-signals as a postlude step after verification completes |
-| TS-2 | **CI sensor (GitHub Actions status)** | v1.16 had 5 consecutive CI failures that went unnoticed. Without a CI sensor, the system cannot detect its own broken builds. | Med | `gh` CLI, devops.ci_provider config, signal-detection rules | New sensor agent (`gsd-ci-sensor`) using `gh run list --status failure` |
-| TS-3 | **CI status check at session start** | If CI is red, the developer should know before writing more code. This is the minimum viable awareness. | Low | SessionStart hook, `gh` CLI, devops.ci_provider config | New hook script: `gsd-ci-status.js` in hooks/ |
-| TS-4 | **Health check auto-trigger via hooks** | Health check config already has `on-resume` and `every-phase` frequency options but no hook wiring. The config schema promises it but doesn't deliver. | Med | SessionStart hook, execute-phase workflow, health_check.frequency config | Wire the existing frequencies to actual hook triggers |
-| TS-5 | **Plan checker semantic validation: tool subcommand existence** | Plan checker approved a plan with `gsd-tools.js verify plan-structure` when the actual subcommand is different. Plans with wrong tool APIs waste execution context. | Med | gsd-plan-checker agent, gsd-tools.js CLI help output | Add validation dimension: parse tool invocations from plan `<action>` blocks, verify subcommands exist |
-| TS-6 | **Plan checker semantic validation: config key existence** | Plans referenced config keys that don't exist (e.g., `signal_collection.sensors.ci` before it was added). | Med | gsd-plan-checker agent, feature-manifest.json, config.json schema | Add validation dimension: extract config references from plan actions, validate against manifest schema |
-| TS-7 | **Fix CI wiring test failure** | `wiring-validation.test.js` checks `.claude/agents/` which doesn't exist in CI (it's a local install target). This is the immediate broken test that blocks CI from being green. | Low | tests/integration/wiring-validation.test.js | Change test to check `agents/` (npm source dir) instead of `.claude/agents/` |
+| # | Feature | Why Expected | Complexity | Existing Infra | Audit Evidence |
+|---|---------|--------------|------------|----------------|----------------|
+| TS-1 | **`--merge` as default PR merge strategy** | Squash merges destroy individual commits; recurring deviation documented twice in project memory | Low | `gh pr merge` call exists | Post-merge cleanup deviation ×2 |
+| TS-2 | **`offer_next` PR/CI gate (structural, not advisory)** | Current advisory text has zero enforcement; agents proceed to `offer_next` before CI is green | Med | execute-phase workflow exists | 6+ recurrences across audit |
+| TS-3 | **`.continue-here` lifecycle enforcement** | Files accumulate undeleted; consume-on-resume is advisory only | Med | resume-work workflow exists | sig: continue-here not deleted ×2 |
+| TS-4 | **Quick task branch detection in runtime code** | Agents create branches for quick tasks; detection is currently manual | Low | `resolveWorktreeRoot()` exists | sig: branch-not-deleted ×2 |
+| TS-5 | **Signal lifecycle state machine wired to workflows** | 0% remediation tracking across 198 signals; `resolves_signals` plan field exists but nothing reads it post-execution | Med | Plan frontmatter field exists | Audit R11 (0% remediation) |
+| TS-6 | **Signal schema: `lifecycle`, `disposition`, `polarity: mixed`** | Current binary `status` field cannot represent "fix in progress" vs "verified held"; no routing for what to do with a signal | Med | Existing signal files, backward-compatible | Audit R11; kb-architecture-research §2 |
+| TS-7 | **`gsd-tools kb rebuild` — SQLite index replacing shell script** | Current `kb-rebuild-index.sh` is O(all files), breaks at 1000+ entries; agents cannot do relational queries via grep on `index.md` | Med | `kb-rebuild-index.sh`, SQLite universally available | kb-architecture-research §1 |
+| TS-8 | **`gsd-tools kb query` — structured queries against SQLite** | Agents currently grep `index.md`; no tag-based or lifecycle-based filtering possible | Med | Depends on TS-7 | kb-architecture-research §3 |
+| TS-9 | **Log sensor cross-runtime adaptation** | Log sensor exists for Claude Code only; cross-runtime parity requires Codex adapter | High | `gsd-log-sensor.md` exists in source | cross-runtime-parity-research §3 |
+| TS-10 | **Post-install cross-runtime parity verification** | Codex install goes stale silently; R3 (discuss-phase fix shipped to Claude Code, never reached Codex) is a recurring class | Low | Installer `saveLocalPatches()` exists | Verification analysis R3 |
+| TS-11 | **`/gsdr:revise-phase-scope` command** | Highest-impact missing command (N02); phase scope changes currently require manual STATE.md surgery | Med | STATE.md management exists | MILESTONE-CONTEXT.md N02 |
+| TS-12 | **Three-level confidence framework in DECISION.md** | Single-dimension HIGH/MEDIUM/LOW conflates measurement accuracy with interpretation validity with extrapolation scope; independently derived in 3 sources | Low | DECISION.md template exists | spike-methodology-gap-analysis §6.3 |
+| TS-13 | **Spike design reviewer agent** | No independent review of experimental designs before execution; YOLO mode auto-approves all designs; same failure mode as plans without plan-checker | High | `gsd-plan-checker` analogy, SPIKE-DESIGN-REVIEW-SPEC.md written by user | spike-methodology-gap-analysis §7.1 (4 independent sources) |
+
+---
 
 ## Differentiators
 
-Features that go beyond closing the basic loop. Not strictly required but significantly improve the automation value.
+Features that make v1.20 distinctively evidence-grounded. Expected in mature workflow research systems but not baseline. Complexity and research uncertainty are higher.
 
 | # | Feature | Value Proposition | Complexity | Dependencies | Notes |
 |---|---------|-------------------|------------|--------------|-------|
-| D-1 | **Auto-trigger reflection after N phases** | Reflection accumulates value over time. Auto-triggering at configurable intervals (every 3 phases, at milestone boundaries) prevents signal debt from growing. | Med | reflect workflow, execute-phase workflow, new config key: `signal_lifecycle.auto_reflect_interval` | Add interval counter to STATE.md or config, check in execute-phase postlude |
-| D-2 | **CI sensor: branch protection bypass detection** | Detecting when commits bypassed branch protection (admin push) catches governance gaps. The 5 v1.16 failures were all admin-pushed. | Low | CI sensor (TS-2), `gh api` for branch protection status | Extension of CI sensor: `gh api repos/{owner}/{repo}/branches/{branch}/protection` |
-| D-3 | **CI sensor: test regression detection** | Beyond pass/fail, detect when test count drops between runs (tests removed or skipped). | Med | CI sensor (TS-2), `gh run view` for step details | Parse test output from CI run logs, compare counts across runs |
-| D-4 | **Plan checker semantic validation: directory existence** | Plans reference directories that don't exist yet (e.g., `get-shit-done/hooks/` when no hooks dir exists). | Low | gsd-plan-checker agent, filesystem | Add validation: check `<files>` paths have valid parent directories |
-| D-5 | **Plan checker semantic validation: cross-plan dependency correctness** | Plans reference outputs from other plans that haven't been created yet, or declare `resolves_signals` for signal IDs that don't exist. | Med | gsd-plan-checker agent, signal KB index | Validate signal IDs in `resolves_signals` frontmatter against KB index |
-| D-6 | **Configurable auto-trigger opt-out** | Some users may not want auto-collection or auto-reflection. Respect the existing `explicit-only` health check frequency pattern for signals too. | Low | feature-manifest.json, config.json | New config keys: `signal_collection.auto_collect` (boolean, default true), `signal_lifecycle.auto_reflect` (boolean, default false) |
-| D-7 | **PostToolUse hook for SUMMARY.md writes** | Instead of modifying execute-phase workflow directly, use a PostToolUse hook on Write tool that triggers signal collection when a SUMMARY.md file is written. More decoupled. | Med | PostToolUse hook, Write tool matcher | Hook script checks if `tool_input.file_path` matches `*-SUMMARY.md`, triggers collection. But: hooks run synchronously and signal collection is heavyweight -- workflow postlude is more appropriate. |
-| D-8 | **Stop hook for execute-phase completion** | Auto-trigger signal collection when the main agent stops after execute-phase, using the Stop hook. | Med | Stop hook, last_assistant_message parsing | Parse `last_assistant_message` for "Phase X: Complete" pattern to conditionally trigger. Fragile -- depends on output format. |
+| D-1 | **`gsd-tools telemetry` subcommand family** | Baseline measurement before any intervention; sessions correlated with phases; facets quality labels enable correlation analysis | High | session-meta (268 files), facets (109 files) | measurement-infrastructure-research §3; Option A (native module) recommended over ccusage wrapper |
+| D-2 | **`gsd-tools kb stats` — KB health dashboard** | Visibility into lifecycle state distribution, remediation rate, polarity breakdown; currently invisible | Low | Depends on TS-7 (SQLite index) | kb-architecture-research §3 |
+| D-3 | **`gsd-tools kb transition` — lifecycle state transitions** | Enables moving signals from `detected` → `in_progress` → `remediated` → `verified`; closes R11 | Med | Depends on TS-7, TS-6 | kb-architecture-research §3 |
+| D-4 | **Signal `qualified_by` / `superseded_by` links** | Enables spike-qualified-by-signal cross-referencing; without this, spike findings sit in isolation from KB signals | Low | Depends on TS-6 | kb-architecture-research §2 |
+| D-5 | **Spike findings reviewer agent** | Post-execution verification that conclusions follow from evidence; analogue to `gsd-verifier` for spikes | High | Depends on TS-13 (design reviewer), three-level confidence framework | spike-methodology-gap-analysis §7.2 |
+| D-6 | **`/gsdr:cross-model-review` command** | Strongest positive pattern in audit (P01-P08 cluster); different model provides genuinely independent error detection that same-model review cannot | Med | No new infra needed; command formalizes existing ad-hoc practice | spike-epistemology-research §5.2 (Longino); MILESTONE-CONTEXT.md |
+| D-7 | **Spike programme infrastructure** | Multi-spike investigations (arxiv-sanity-mcp experience) need shared data assets, progressiveness ledger, backward propagation | High | Depends on TS-12, TS-13, D-4 | spike-epistemology-research §2; spike-methodology-gap-analysis §6.5 |
+| D-8 | **Auxiliary hypothesis register in DESIGN.md template** | Makes load-bearing assumptions explicit before execution; catches Pattern 2 (metric reification) and Pattern 3 (circular evaluation) at design time | Med | Depends on TS-13 (design reviewer checks register) | spike-epistemology-research §3.2 (Duhem-Quine) |
+| D-9 | **Parallel phase execution infrastructure** | STATE.md conflict resolution for worktree-based parallel execution; enables concurrent phase work | High | `resolveWorktreeRoot()`, `atomicWriteJson()` | measurement-infrastructure-research §6; Approach 1 (per-worktree state files) recommended |
+| D-10 | **Patch sensor / distribution monitor** | Detects source-vs-installed divergence and cross-runtime stale installs; classifies divergence (bug/stale/customization) | Med | Installer `saveLocalPatches()` already exists | cross-runtime-parity-research §2, §4.4 |
+| D-11 | **Incident self-signal hook (automation postlude)** | When a session has high error rate, automatically surface a signal candidate; structural on Claude Code (PostToolUse hook), advisory on Codex | Med | PostToolUse hook (Claude Code only); Codex degrades to workflow step | MILESTONE-CONTEXT.md structural enforcement cluster |
+| D-12 | **DECIDED/PROVISIONAL/DEFERRED outcome types in DECISION.md** | Eliminates premature-closure pressure; spike with insufficient evidence can state "DEFERRED" rather than forcing a weak "DECIDED" | Low | Depends on TS-12 | spike-methodology-gap-analysis §7.4 |
+
+---
 
 ## Anti-Features
 
-Features to explicitly NOT build in this milestone. These are tempting but wrong for v1.17.
+Features to explicitly NOT build in v1.20. Each has a tempting rationale that should be resisted.
 
 | # | Anti-Feature | Why Avoid | What to Do Instead |
 |---|--------------|-----------|-------------------|
-| AF-1 | **Real-time CI webhook listener** | Would require a running server process. GSD is a CLI tool, not a service. Adds operational complexity far beyond the value. | Poll CI status at session start and during signal collection. `gh` CLI is sufficient. |
-| AF-2 | **Auto-remediation (fix issues without human)** | Premature automation. The detect -> triage -> remediate flow needs human judgment in the loop. Auto-fixing risks masking root causes. | Keep remediation as suggestions that surface during `/gsd:plan-phase`. The human decides what to fix. |
-| AF-3 | **Log sensor implementation** | Documented as M-B (Meta-Observability) scope. Requires spike for session log format and location. Mixing it into M-A creates scope creep. | Keep log sensor disabled. Build it in M-B. |
-| AF-4 | **Metrics sensor / token tracking** | Also M-B scope. Token usage tracking needs infrastructure that doesn't exist yet. | Defer to M-B milestone. |
-| AF-5 | **Cross-project CI monitoring** | Monitoring CI across multiple projects adds complexity without clear value for a single-developer workflow tool. | Keep CI sensor scoped to current project's repository. |
-| AF-6 | **Plan checker: code quality assessment** | Plan checker validates plans, not code. Adding linting or code quality checks blurs the boundary with `gsd-verifier` (post-execution) and established CI tools. | Let CI handle code quality. Plan checker validates plan structure and semantics. |
-| AF-7 | **Auto-trigger via PostToolUse hooks (for signal collection)** | PostToolUse hooks fire synchronously and block the tool response from reaching Claude. Signal collection spawns multiple subagents and takes 30-60 seconds. This would freeze the session. | Use workflow postlude in execute-phase (after verification, before "offer next"). Signal collection runs as a workflow step, not a hook side-effect. |
-| AF-8 | **Continuous background CI monitoring during session** | Running `gh run list` on a timer during the session would be noisy, consume API rate limits, and provide marginal value beyond session-start check. | Check CI once at session start. Check again during signal collection. |
+| AF-1 | **MCP server for KB query layer** | Over-engineering for 199 entries; adds process management, offline failure mode, per-machine config; problem is not cross-machine access yet (117 signals on apollo are a migration problem, not a live query problem) | Build SQLite + CLI first (TS-7, TS-8); MCP wrapper is ~200 lines once CLI exists — defer to v1.21 when cross-machine access is genuinely needed |
+| AF-2 | **Vector embeddings for KB search** | Semantic similarity search is not needed at 199 entries; FTS5 + tag matching covers all current query patterns | Use SQLite FTS5 for full-text search; if embeddings become valuable at scale, Palinode-style sqlite-vec extension is a migration path without storage model change |
+| AF-3 | **Signal-to-issue promotion mechanism** | Merges signal (observation) and issue (named problem) concepts prematurely; closing the door on v1.21 ontology design | Reserve `promoted_to` field name in schema; do NOT implement the promotion logic; v1.21 designs the signal/issue/opportunity ontology with full deliberation |
+| AF-4 | **Token cost dashboard / pricing table** | Pricing changes frequently; building a pricing table is ongoing maintenance overhead; cost calculation is a presentation concern | Extract token counts; apply pricing table at report time with a static JSON file; flag staleness; borrow ccusage's MIT-licensed pricing data if needed |
+| AF-5 | **Automated sensor for telemetry** | Build extraction tooling first; sensor before baselines is infrastructure before problem definition | Ship `gsd-tools telemetry` CLI subcommands; use them manually for baselines; automate in v1.21 once value of specific metrics is validated |
+| AF-6 | **Full Lakatos formalization as institutional procedure** | The risk of over-formalization (Feyerabend's critique) is real; rigid progressiveness assessment as a mandatory gate creates compliance without insight | Implement as vocabulary (progressive/degenerating in progressiveness ledger), not as gate; programme declaration is structural, progressiveness assessment is cultural judgment |
+| AF-7 | **Same-model spike design reviewer** | A same-model reviewer shares the blind spots of the spike designer; Longino's critique applies — it creates the appearance of review without epistemic benefit | Cross-model review is the minimum for genuine independence; the reviewer MUST use a different model than the designer (Longino §5.2, F02, I09) |
+| AF-8 | **Bayesian updating formalism for all spikes** | Binary spikes (does X work?) have binary verdicts that are fine; Bayesian updating is valuable for comparative and exploratory spikes but imposes unnecessary overhead on simple ones | Apply three-level confidence and severity assessment universally; apply Bayesian probability-shift reporting for comparative/exploratory spikes only |
+| AF-9 | **Cross-project distribution gap closure** | Non-GSDR projects using global GSD (v1.30.0 upstream) cannot receive GSDR patches; closing this requires upstream coordination | Patch sensor (D-10) detects and reports the gap; resolution is v1.21 scope (automation loop ungating, upstream coordination) |
+| AF-10 | **Continental philosophy grounding for KB** | Stiegler, Ricoeur, Bergson, Derrida on memory and retention are the right long-term framework, but applying them now prematurely formalizes concepts that are not yet stable | Signal schema additions (TS-6) should not close ontological doors; explicitly reserve field names for v1.21+ without implementing; v1.22+ for full philosophical grounding |
 
 ---
 
 ## Feature Dependencies
 
+### Structural dependencies (must be in place before dependent feature)
+
 ```
-TS-7 (Fix CI wiring test)
-  Independent, do first to unblock CI green status
+TS-7 (SQLite index rebuild)
+  → TS-8 (KB query subcommands)
+  → D-2 (KB stats dashboard)
+  → D-3 (lifecycle transitions)
 
-TS-3 (CI status at session start)
-  Independent, new hook script only
+TS-6 (signal schema extension)
+  → D-3 (lifecycle transitions — needs fields)
+  → D-4 (qualified_by links — needs fields)
+  → TS-5 (lifecycle wiring — needs lifecycle field)
 
-TS-2 (CI sensor)
-  Depends on: signal-detection.md rules (need new detection type)
-  Depends on: devops.ci_provider config (already exists in manifest)
-  Feeds into: TS-1 (auto-trigger includes CI sensor in collection)
+TS-12 (three-level confidence)
+  → TS-13 (design reviewer — needs vocabulary to apply)
+  → D-12 (DECIDED/PROVISIONAL/DEFERRED — extends same template)
+  → D-5 (findings reviewer — uses confidence framework)
 
-TS-1 (Auto-trigger signal collection)
-  Depends on: execute-phase workflow (modification point)
-  Benefits from: TS-2 (CI sensor available for collection)
-  Feeds into: D-1 (auto-reflect interval tracking)
-
-TS-4 (Health check auto-trigger)
-  Depends on: SessionStart hook infrastructure (already exists)
-  Depends on: health_check.frequency config (already exists)
-
-TS-5 (Plan checker: tool subcommands)
-  Depends on: gsd-plan-checker agent (modification)
-
-TS-6 (Plan checker: config keys)
-  Depends on: gsd-plan-checker agent (modification)
-  Depends on: feature-manifest.json (read for schema validation)
-
-D-1 (Auto-trigger reflection)
-  Depends on: TS-1 (auto-trigger signal collection must work first)
-  Depends on: execute-phase workflow or milestone boundary detection
-
-D-2 (Branch protection bypass detection)
-  Depends on: TS-2 (CI sensor, extension)
-
-D-3 (Test regression detection)
-  Depends on: TS-2 (CI sensor, extension)
-
-D-4 (Plan checker: directory existence)
-  Depends on: TS-5/TS-6 (plan checker enhancement infrastructure)
-
-D-5 (Plan checker: cross-plan signal validation)
-  Depends on: TS-5/TS-6 (plan checker enhancement infrastructure)
-
-D-6 (Configurable auto-trigger opt-out)
-  Depends on: TS-1, TS-4 (auto-triggers must exist before opt-out)
+TS-13 (spike design reviewer)
+  → D-5 (findings reviewer — parallel gate on exit)
+  → D-7 (programme infrastructure — design review is per-spike, programme tracks cross-spike)
+  → D-8 (auxiliary register — design reviewer checks it)
 ```
 
-### Execution Order Implications
+### Enabling dependencies (feature provides more value when combined)
 
-**Wave 1 (independent, no dependencies):**
-- TS-7 (fix wiring test) -- unblocks CI immediately
-- TS-3 (CI session start hook) -- standalone hook script
-- TS-5, TS-6, D-4 (plan checker enhancements) -- agent modification only
+```
+D-1 (telemetry baselines)
+  + TS-2 (offer_next gate) — baselines show whether gate reduces wasted sessions
+  + D-6 (cross-model review) — baselines measure review's effect on outcome quality
+  + D-11 (incident self-signal) — telemetry data triggers the signal
 
-**Wave 2 (depends on Wave 1 or needs new sensor):**
-- TS-2 (CI sensor) -- new agent, needs signal-detection rules update
-- TS-4 (health check auto-trigger) -- needs hook wiring
+D-6 (cross-model review)
+  + TS-13 (spike design reviewer) — cross-model IS the review model; both reinforce each other
+  + D-5 (findings reviewer) — findings review uses cross-model as the independence mechanism
 
-**Wave 3 (depends on Wave 2):**
-- TS-1 (auto-trigger signal collection) -- needs execute-phase modification, benefits from CI sensor
-- D-2, D-3 (CI sensor extensions) -- need CI sensor base
+D-7 (spike programme)
+  + D-4 (qualified_by links) — programme backward propagation uses qualification links
+  + TS-12, D-12 (confidence, deferral) — programme tracks provisional decisions over time
+```
 
-**Wave 4 (depends on Wave 3):**
-- D-1 (auto-trigger reflection) -- needs auto-trigger collection working
-- D-6 (opt-out config) -- needs auto-triggers to exist
+### Independent (can be built in any order)
+
+```
+TS-1 (--merge default) — one-line change, no dependencies
+TS-11 (/gsdr:revise-phase-scope) — workflow command, no new infra needed
+TS-10 (post-install parity check) — install.js extension, no dependencies
+D-9 (parallel execution) — per-worktree state files; depends on existing resolveWorktreeRoot only
+D-10 (patch sensor) — extends installer mechanism; can be built standalone
+```
+
+---
+
+## Complexity Assessment
+
+| Feature | Implementation Complexity | Epistemic Complexity | Reason |
+|---------|--------------------------|---------------------|--------|
+| TS-1 | Trivial (one flag) | Low | No design decisions |
+| TS-2 | Medium | Low | Workflow modification, clear insertion point |
+| TS-3 | Medium | Low | State machine in workflow text |
+| TS-4 | Low | Low | CLI check in `resolveWorktreeRoot()` |
+| TS-5 | Medium | Low | Reads `resolves_signals` field, updates signal file frontmatter + SQLite |
+| TS-6 | Low-Med | Low | Schema addition; backward-compatible; migration is defaults-based |
+| TS-7 | Medium | Low | Node.js YAML frontmatter parser → SQLite; well-validated pattern |
+| TS-8 | Medium | Low | SQL queries + JSON output formatter |
+| TS-9 | High | Medium | Two format adapters; edge cases (subagent sessions, very long sessions); Codex JSONL schema differs significantly |
+| TS-10 | Low | Low | Hash comparison in installer post-install step |
+| TS-11 | Medium | Low | Workflow command; STATE.md manipulation well-understood |
+| TS-12 | Low | HIGH | The epistemic design is substantive; implementation (template edit) is trivial; getting the three levels right requires spike epistemology research absorption |
+| TS-13 | High | HIGH | Agent design requires Longino-compatible independence (cross-model); 9 review dimensions; must produce critique documents not pass/fail verdicts |
+| D-1 | High | Medium | Session-meta + facets join; phase correlation via STATE.md timestamps; token count reliability validation spike needed |
+| D-2 | Low | Low | SQL aggregation queries; output formatting |
+| D-3 | Medium | Low | Read/modify/write signal frontmatter YAML; SQLite row update; idempotent |
+| D-4 | Low | Medium | Schema field addition; link traversal queries |
+| D-5 | High | HIGH | Must assess evidence independently before comparing with designer's claims; cross-model required; protocol adherence checking |
+| D-6 | Medium | Medium | Command formalizes existing practice; key design: over-formalization risk (don't kill adaptiveness) |
+| D-7 | High | HIGH | Programme declaration, progressiveness ledger, backward propagation, shared assets; Lakatosian design without Popperian rigidity |
+| D-8 | Low-Med | HIGH | Template section is trivial; getting the right auxiliary categories requires understanding Duhem-Quine operationalization |
+| D-9 | High | Medium | Per-worktree JSON state files; migration from STATE.md; resolveWorktreeRoot routing |
+| D-10 | Medium | Low | Hash comparison + classification taxonomy; `gsd-tools distribution-check` subcommand |
+| D-11 | Medium | Low | PostToolUse hook on Claude Code; workflow-step advisory on Codex |
+| D-12 | Low | Medium | DECISION.md template edit; three outcome types with guidance |
 
 ---
 
 ## MVP Recommendation
 
-**Must include (table stakes):**
-1. **TS-7** -- Fix CI wiring test. Immediate, unblocks CI. Trivial change.
-2. **TS-3** -- CI status at session start. Most visible, highest user impact. Low complexity.
-3. **TS-2** -- CI sensor. Core new capability that prevents the v1.16 failure pattern.
-4. **TS-1** -- Auto-trigger signal collection. Closes the primary automation gap.
-5. **TS-4** -- Health check auto-trigger. Delivers on existing config promises.
-6. **TS-5 + TS-6** -- Plan checker semantic validation. Prevents wasted execution context from bad plans.
+### Tier 1: Must ship (closes audit's top failure patterns, unblocks everything else)
 
-**Strongly recommended differentiators:**
-7. **D-1** -- Auto-trigger reflection at intervals. Prevents signal debt.
-8. **D-6** -- Configurable opt-out. Respects user autonomy.
+1. **TS-1** — one-line fix, ships first, removes recurring deviation
+2. **TS-2 + TS-3** — structural gates at PR/CI point (offer_next gate + continue-here lifecycle)
+3. **TS-6** — schema extension; foundational for KB and lifecycle work
+4. **TS-7 + TS-8** — SQLite index + queries; foundational for KB health and agent surfacing
+5. **TS-5** — lifecycle wiring (resolves_signals → signal state transition); closes R11
+6. **TS-12** — three-level confidence; low implementation cost, high epistemic payoff, unlocks TS-13
+7. **TS-13** — spike design reviewer; highest-evidence improvement in gap analysis (4 independent sources)
 
-**Defer to later phases within the milestone:**
-- D-2, D-3 (CI sensor extensions) -- nice but not critical for MVP loop closure
-- D-4, D-5 (plan checker extensions) -- valuable but lower priority than core semantic checks
-- D-7, D-8 (hook-based triggering alternatives) -- workflow postlude is simpler and better
+### Tier 2: High value, builds on Tier 1
 
----
+8. **TS-9** — log sensor cross-runtime adapter (high complexity but enables cross-runtime signal parity)
+9. **TS-10 + D-10** — post-install parity check + patch sensor (closes R3 class)
+10. **TS-11** — `/gsdr:revise-phase-scope` (highest-impact missing command)
+11. **D-2 + D-3** — KB dashboard + lifecycle transitions (low complexity, high visibility)
+12. **D-6** — `/gsdr:cross-model-review` (formalize strongest positive pattern)
+13. **D-12** — DECIDED/PROVISIONAL/DEFERRED (completes spike DECISION.md overhaul)
 
-## Detailed Feature Specifications
+### Tier 3: Significant but higher complexity or lower urgency
 
-### TS-1: Auto-Trigger Signal Collection After Phase Execution
+14. **D-1** — telemetry baselines (high value but needs token count validation spike first)
+15. **D-4** — qualification links (schema is ready via TS-6; integration with programme is v1.21)
+16. **D-5** — findings reviewer (depends on TS-13 being stable)
+17. **D-8** — auxiliary hypothesis register (extends spike DESIGN.md; value proportional to spike volume)
+18. **D-9** — parallel execution infrastructure (high complexity; only valuable if parallel phases become regular workflow)
+19. **D-11** — incident self-signal hook (medium complexity; hook-dependent, Codex degrades)
 
-**Trigger point:** Execute-phase workflow, after `verify_phase_goal` step completes (before `offer_next`).
+### Defer to v1.21
 
-**Implementation approach:** Add a new step `collect_phase_signals` in the execute-phase workflow between `update_roadmap` and `offer_next`:
-
-```
-<step name="collect_phase_signals">
-  Check if signal collection is enabled (signal_collection.auto_collect config, default true).
-  If enabled and phase verification passed or gaps_found:
-    Run signal collection for the completed phase using the collect-signals workflow.
-    Report: "Signals collected: {N} persisted, {M} filtered"
-  If verification is human_needed:
-    Skip signal collection (wait for human input).
-</step>
-```
-
-**Key decisions:**
-- Run inline in execute-phase context (not a separate session) because we need the phase number context
-- Skip if verification needs human input (signals from partial work are misleading)
-- Report collection results in the execute-phase completion output
-- Respect `signal_collection.auto_collect` config (default: true, can disable)
-
-**Config addition to feature manifest:**
-```json
-"auto_collect": {
-  "type": "boolean",
-  "default": true,
-  "description": "Automatically collect signals after phase execution"
-}
-```
-
-### TS-2: CI Sensor (GitHub Actions Status)
-
-**Architecture:** New sensor agent `gsd-ci-sensor.md` following the same pattern as `gsd-artifact-sensor.md` and `gsd-git-sensor.md`. Returns structured JSON to the signal synthesizer.
-
-**Detection capabilities:**
-1. **Failed workflow runs:** `gh run list --status failure --limit 10 --json databaseId,conclusion,headBranch,name,createdAt,headSha`
-2. **Consecutive failures:** Count sequential failures without an intervening success on the current branch
-3. **Recent failures correlated with phase commits:** Match failed run commit SHAs against phase commit range
-
-**Signal types produced:**
-- `ci-failure`: Individual CI failure (minor severity for 1, notable for 2-3, critical for 4+)
-- `ci-consecutive-failures`: Consecutive failures pattern (critical severity)
-- `ci-bypass`: Commits pushed despite CI failure (critical severity, requires D-2)
-
-**Prerequisites:**
-- `gh` CLI must be available and authenticated
-- `devops.ci_provider` must be `github-actions` (graceful no-op for other providers)
-- Repository must have GitHub Actions workflows
-
-**Error handling:**
-- If `gh` CLI not available: return empty signals with note "gh CLI not found"
-- If not authenticated: return empty signals with note "gh auth status check failed"
-- If no workflows configured: return empty signals (not an error)
-
-**Config addition to feature manifest (under `signal_collection.sensors`):**
-```json
-"ci": { "enabled": true, "model": "auto" }
-```
-
-### TS-3: CI Status Check at Session Start
-
-**Architecture:** New SessionStart hook script `gsd-ci-status.js` in hooks/ directory.
-
-**Behavior:**
-1. Read `.planning/config.json` for `devops.ci_provider`
-2. If not `github-actions`, exit silently
-3. Run `gh run list --branch {current-branch} --limit 1 --json conclusion,name,createdAt,url`
-4. If last run conclusion is `failure`:
-   - Output JSON with `additionalContext`: "WARNING: Last CI run failed ({workflow-name}, {time-ago}). Consider investigating before continuing. Run URL: {url}"
-5. If `gh` CLI unavailable or not authenticated, exit silently (non-blocking)
-
-**Hook registration (settings.json):**
-```json
-{
-  "matcher": "startup|resume",
-  "hooks": [{
-    "type": "command",
-    "command": "node .claude/hooks/gsd-ci-status.js",
-    "timeout": 15
-  }]
-}
-```
-
-**Key decisions:**
-- Run only on `startup` and `resume` (not `clear` or `compact` -- those are mid-session)
-- 15-second timeout (gh CLI can be slow on first auth)
-- Output as `additionalContext` so Claude sees it and can mention it, not just user
-- Non-blocking: exit 0 always, never exit 2 (CI being red should not block the session)
-
-### TS-4: Health Check Auto-Trigger via Hooks
-
-**Current state:** Health check has frequency config (`milestone-only`, `on-resume`, `every-phase`, `explicit-only`) but no hook wiring. The config is read and respected only by explicit `/gsd:health-check` invocation.
-
-**Implementation:**
-
-For `on-resume`:
-- Add SessionStart hook with matcher `resume` that checks `health_check.frequency` config
-- If frequency is `on-resume`, output additionalContext suggesting Claude run health check
-- This is a "nudge" approach (context injection) rather than forced execution because hooks cannot invoke slash commands
-
-For `every-phase`:
-- Add a step in execute-phase workflow (before plan execution) that checks `health_check.frequency`
-- If frequency is `every-phase`, run health check inline
-- Report results as part of phase execution output
-
-**Key decision -- nudge vs force:**
-- SessionStart hooks can inject context but cannot force Claude to run commands
-- The `additionalContext` approach adds "Health check configured for on-resume. Consider running /gsd:health-check." to Claude's context
-- Claude will typically follow the suggestion, but it is not guaranteed
-- For `every-phase`, embedding in execute-phase workflow is more reliable (workflow step, not hook)
-
-### TS-5 + TS-6: Plan Checker Semantic Validation
-
-**New verification dimensions added to gsd-plan-checker:**
-
-**Dimension 8: Tool API Validity**
-- Parse `<action>` blocks for `gsd-tools.js` invocations
-- Extract subcommand (e.g., `verify plan-structure`, `frontmatter get`, `commit`)
-- Validate subcommand exists by running `node gsd-tools.js help` and parsing available commands
-- Flag unknown subcommands as blockers
-
-**Dimension 9: Config Key Validity**
-- Parse `<action>` blocks for config key references (patterns: `config.{key}`, `config.json`, config field names)
-- Cross-reference against feature-manifest.json schema
-- Flag references to non-existent config keys as warnings
-- Flag references to config keys from features not yet introduced as blockers
-
-**Dimension 10: Directory/Path Validity (differentiator D-4, include if time permits)**
-- Parse `<files>` elements for file paths
-- Validate parent directories exist on disk
-- Flag paths with non-existent parent directories as warnings (may be created by the plan)
-- Distinguish "will be created" paths (parent exists) from "broken" paths (parent doesn't exist)
-
-**Implementation approach:**
-- Add dimensions to the existing verification flow in gsd-plan-checker.md
-- Run after existing 7 dimensions (structural checks first, semantic checks second)
-- Use existing issue format and severity levels
-- Tool API validation: shell out to `gsd-tools.js help` for command list
-- Config validation: read feature-manifest.json and parse schema keys
-
-### D-1: Auto-Trigger Reflection at Intervals
-
-**Mechanism:** Counter-based, checked in execute-phase workflow after signal collection.
-
-**Config addition:**
-```json
-"auto_reflect_interval": {
-  "type": "number",
-  "default": 0,
-  "min": 0,
-  "max": 20,
-  "description": "Auto-trigger reflection every N phases (0 = disabled)"
-}
-```
-
-**State tracking:** Add `phases_since_last_reflect` counter to STATE.md or a lightweight state file.
-
-**Trigger logic:**
-1. After signal collection completes in execute-phase postlude
-2. Increment `phases_since_last_reflect`
-3. If counter >= `auto_reflect_interval` AND `auto_reflect_interval` > 0:
-   - Run reflection workflow with project scope (not cross-project)
-   - Reset counter
-   - Report: "Auto-reflection triggered ({N} phases since last reflection)"
-
-**Milestone boundary trigger:** Always trigger reflection at milestone completion regardless of interval, via complete-milestone workflow.
+20. **D-7** — spike programme infrastructure (correct architecture; only one project has exercised multi-spike programmes; premature to formalize broadly)
 
 ---
 
-## Hook System Capabilities (Verified)
+## Phase-Specific Research Flags
 
-Based on official Claude Code hooks documentation (verified 2026-03-02):
+| Feature Cluster | Likely Needs Phase-Level Research | Reason |
+|----------------|-----------------------------------|--------|
+| TS-13 (spike design reviewer) | YES | Cross-model invocation mechanism; Longino-compatible prompt design; 9-dimension spec |
+| TS-9 (log sensor cross-runtime) | YES | Codex JSONL edge cases (subagent sessions, compacted sessions, very long sessions); format adapter testing |
+| D-1 (telemetry baselines) | YES — validation spike first | Token count reliability (suspiciously low values in session-meta); must validate against JSONL aggregation before trusting session-meta as primary source |
+| D-7 (spike programmes) | YES | Lakatosian design without institutional over-formalization; progressiveness assessment design |
+| D-9 (parallel execution) | MAYBE | Approach 1 (per-worktree state files) is relatively clear; risk is in STATE.md migration compatibility |
+| TS-2 (offer_next gate) | NO | Insertion point in execute-phase is clear; enforcement mechanism is workflow text + conditional step |
+| TS-7/TS-8 (SQLite KB) | NO | MarkdownDB/Palinode pattern is well-validated; schema is designed in kb-architecture-research.md |
+| TS-12 (three-level confidence) | NO | Template edit; vocabulary from spike epistemology research is ready |
 
-**Available hook events (16 total):**
-SessionStart, UserPromptSubmit, PreToolUse, PermissionRequest, PostToolUse, PostToolUseFailure, Notification, SubagentStart, SubagentStop, Stop, TeammateIdle, TaskCompleted, ConfigChange, WorktreeCreate, WorktreeRemove, PreCompact, SessionEnd
+---
 
-**Key constraints for GSD automation:**
-- SessionStart hooks can inject `additionalContext` into Claude's context (exit 0, JSON stdout)
-- PostToolUse hooks fire after tool completion but cannot inject follow-up commands
-- Stop hooks can prevent Claude from stopping (exit 2) but this risks infinite loops
-- Hooks receive `tool_input` and `tool_response` on PostToolUse (can inspect what was written)
-- Hooks run synchronously -- heavyweight operations (signal collection) should NOT be hooks
-- `async: true` is available for command hooks (runs in background, non-blocking)
-- SubagentStop hooks fire when subagents complete, can inspect `last_assistant_message`
+## Confidence Assessment
 
-**Implication for auto-triggering approach:**
-- Signal collection should be a workflow postlude step, NOT a hook
-- CI status check at session start is ideal for hooks (fast, non-blocking)
-- Health check nudge via SessionStart hook is appropriate (context injection)
-- Health check enforcement via execute-phase workflow step is more reliable
-
-## Claude Code Hook Input Available for Decision-Making
-
-| Hook Event | Key Fields Available | Useful For |
-|------------|---------------------|------------|
-| SessionStart | `source` (startup/resume/clear/compact), `model` | CI status check, health check nudge |
-| PostToolUse (Write) | `tool_input.file_path`, `tool_response.success` | Detecting SUMMARY.md writes (but not recommended for triggering) |
-| SubagentStop | `agent_type`, `last_assistant_message` | Detecting executor completion (fragile, depends on output format) |
-| Stop | `last_assistant_message`, `stop_hook_active` | Detecting execute-phase completion (fragile) |
-
-**Recommendation:** Use workflow modification (adding steps to execute-phase.md) for reliable triggering. Use hooks only for lightweight, non-blocking checks (CI status, health check nudge). The workflow approach is deterministic; the hook approach depends on parsing free-text output.
+| Area | Confidence | Basis |
+|------|------------|-------|
+| Table stakes identification | HIGH | Grounded in audit findings (R11, 6+ offer_next recurrences, R3), signal data, and codebase inspection |
+| Differentiator value | MEDIUM-HIGH | Grounded in arxiv-sanity-mcp spike corpus (4 spikes, 11 gaps, 5 patterns), epistemic-agency findings (F02, I09, F21, F32) |
+| Implementation complexity estimates | MEDIUM | Based on codebase inspection; actual complexity emerges during implementation |
+| Anti-feature rationale | HIGH | Each anti-feature has specific audit evidence, derived constraint, or philosophical argument |
+| Spike epistemology features (TS-12, TS-13, D-5, D-7, D-8) | MEDIUM | Philosophical framework is well-grounded; translation to agentic workflow design has no precedent in literature — these are novel applications |
+| Telemetry feature (D-1) | MEDIUM | Schema and tooling design is solid; token count reliability is LOW confidence (needs validation spike) |
+| Cross-runtime parity features (TS-9, TS-10, D-10) | MEDIUM-HIGH | Format analysis is thorough; adapter implementation needs testing against edge cases |
 
 ---
 
 ## Sources
 
-- [Claude Code Hooks Reference](https://code.claude.com/docs/en/hooks) -- Verified 2026-03-02, official documentation for all 16 hook events, matchers, input/output schemas
-- [Claude Code Settings](https://code.claude.com/docs/en/settings) -- Hook configuration locations and scope
-- [GitHub CLI `gh run list`](https://cli.github.com/manual/gh_run_list) -- CI status querying
-- [GitHub Blog: Work with GitHub Actions in your terminal with GitHub CLI](https://github.blog/news-insights/product-news/work-with-github-actions-in-your-terminal-with-github-cli/) -- `gh run` subcommands
-- Internal: `.claude/settings.json` -- existing hook configuration (SessionStart: update check, version check; StatusLine: statusline)
-- Internal: `get-shit-done/workflows/execute-phase.md` -- current execution flow, modification points
-- Internal: `get-shit-done/workflows/collect-signals.md` -- signal collection orchestration
-- Internal: `get-shit-done/workflows/reflect.md` -- reflection workflow with trigger modes
-- Internal: `agents/gsd-plan-checker.md` -- current 7 verification dimensions
-- Internal: `get-shit-done/feature-manifest.json` -- config schemas, sensor configuration
-- Internal: `.planning/deliberations/v1.17-plus-roadmap-deliberation.md` -- milestone scope and signals driving M-A
+**Audit evidence (direct codebase):**
+- `.planning/audits/session-log-audit-2026-04-07/reports/opus-synthesis.md` — 42 findings, 8 clusters
+- `.planning/audits/session-log-audit-2026-04-07/reports/positive-opus-synthesis.md` — 35 positive patterns
+- `.planning/audits/session-log-audit-2026-04-07/reports/verification-analysis.md` — 13 RECURRED findings
+- `.planning/MILESTONE-CONTEXT.md` — working assumptions, derived constraints, open questions
+
+**Custom research (read these for implementation details):**
+- `.planning/research/kb-architecture-research.md` — SQLite schema, migration strategy, epistemic-agency findings F21/F32/F37/F46
+- `.planning/research/measurement-infrastructure-research.md` — session-meta schema, facets schema, telemetry tooling design, STATE.md conflict resolution
+- `.planning/research/cross-runtime-parity-research.md` — capability matrix, Codex JSONL format, patch sensor design, distribution gap approaches
+- `.planning/research/spike-epistemology-research.md` — Lakatos/Duhem-Quine/Mayo/Longino/Feyerabend applied to spike design
+- `.planning/research/spike-methodology-gap-analysis.md` — 11 gaps from arxiv-sanity-mcp corpus, 5 failure patterns, priority matrix
+
+**Ecosystem validation:**
+- MarkdownDB, Palinode, sqlite-memory — file+SQLite pattern validation (kb-architecture-research §1)
+- ccusage v17.0.0 — considered and rejected as primary telemetry source (measurement-infrastructure-research §3)
+- Epistemic-agency repo — F02, F09, I09, F21, F32, F37 directly applicable (multiple research files)
