@@ -3072,12 +3072,14 @@ Also use the Read tool to read files and Bash to run commands.`
       expect(cmd).toContain('|| true')
     })
 
-    it('produces correct guarded command for statusline', () => {
+    it('produces correct guarded command for statusline with $CLAUDE_PROJECT_DIR anchor', () => {
       const cmd = buildLocalHookCommand('.claude', 'gsdr-statusline.js')
-      expect(cmd).toBe('test -f .claude/hooks/gsdr-statusline.js && node .claude/hooks/gsdr-statusline.js || true')
+      // #1906 upstream fix: anchor to $CLAUDE_PROJECT_DIR so path resolves correctly
+      // regardless of shell cwd; still wrapped with test -f guard for worktree safety
+      expect(cmd).toBe('test -f "$CLAUDE_PROJECT_DIR"/.claude/hooks/gsdr-statusline.js && node "$CLAUDE_PROJECT_DIR"/.claude/hooks/gsdr-statusline.js || true')
     })
 
-    it('produces correct guarded command for all 5 hooks', () => {
+    it('produces correct guarded command for all 5 hooks with $CLAUDE_PROJECT_DIR anchor', () => {
       const hooks = [
         'gsdr-statusline.js',
         'gsdr-check-update.js',
@@ -3087,14 +3089,14 @@ Also use the Read tool to read files and Bash to run commands.`
       ]
       for (const hookName of hooks) {
         const cmd = buildLocalHookCommand('.claude', hookName)
-        const expectedPath = '.claude/hooks/' + hookName
+        const expectedPath = '"$CLAUDE_PROJECT_DIR"/.claude/hooks/' + hookName
         expect(cmd).toBe(`test -f ${expectedPath} && node ${expectedPath} || true`)
       }
     })
 
     it('works with different dirName values (e.g. .gemini)', () => {
       const cmd = buildLocalHookCommand('.gemini', 'gsdr-statusline.js')
-      expect(cmd).toBe('test -f .gemini/hooks/gsdr-statusline.js && node .gemini/hooks/gsdr-statusline.js || true')
+      expect(cmd).toBe('test -f "$CLAUDE_PROJECT_DIR"/.gemini/hooks/gsdr-statusline.js && node "$CLAUDE_PROJECT_DIR"/.gemini/hooks/gsdr-statusline.js || true')
     })
 
     tmpdirTest('local install generates guarded hook commands in settings.json', async ({ tmpdir }) => {

@@ -460,12 +460,15 @@ function buildHookCommand(configDir, hookName) {
 
 /**
  * Build a worktree-safe hook command for local/project installs.
- * Wraps with shell existence guard so hooks exit 0 silently when .claude/ is absent
+ * Anchors to $CLAUDE_PROJECT_DIR so path resolution is correct regardless
+ * of the shell's current working directory (#1906 upstream fix). Also wraps
+ * with shell existence guard so hooks exit 0 silently when .claude/ is absent
  * (e.g., in git worktrees where .claude/ is gitignored and not present).
  */
 function buildLocalHookCommand(dirName, hookName) {
-  const hookPath = dirName + '/hooks/' + hookName;
-  return 'test -f ' + hookPath + ' && node ' + hookPath + ' || true';
+  const localPrefix = '"$CLAUDE_PROJECT_DIR"/' + dirName;
+  const hookPath = localPrefix + '/hooks/' + hookName;
+  return 'test -f ' + localPrefix + '/hooks/' + hookName + ' && node ' + hookPath + ' || true';
 }
 
 /**
@@ -1493,6 +1496,43 @@ function copyFlattenedCommands(srcDir, destDir, prefix, pathPrefix, runtime) {
 }
 
 /**
+ * Save user-generated files from destDir to an in-memory map before a wipe.
+ * (#1924 upstream fix: preserve USER-PROFILE.md and dev-preferences.md on re-install)
+ *
+ * @param {string} destDir - Directory that is about to be wiped
+ * @param {string[]} fileNames - Relative file names to preserve
+ * @returns {Map<string, string>} Map of fileName → file content
+ */
+function preserveUserArtifacts(destDir, fileNames) {
+  const saved = new Map();
+  for (const name of fileNames) {
+    const fullPath = path.join(destDir, name);
+    if (fs.existsSync(fullPath)) {
+      try {
+        saved.set(name, fs.readFileSync(fullPath, 'utf8'));
+      } catch { /* skip unreadable files */ }
+    }
+  }
+  return saved;
+}
+
+/**
+ * Restore user-generated files saved by preserveUserArtifacts after a wipe.
+ *
+ * @param {string} destDir - Directory that was wiped and recreated
+ * @param {Map<string, string>} saved - Map returned by preserveUserArtifacts
+ */
+function restoreUserArtifacts(destDir, saved) {
+  for (const [name, content] of saved) {
+    const fullPath = path.join(destDir, name);
+    try {
+      fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+      fs.writeFileSync(fullPath, content, 'utf8');
+    } catch { /* skip unwritable paths */ }
+  }
+}
+
+/**
  * Recursively copy directory, replacing paths in .md files
  * Deletes existing destDir first to remove orphaned files from previous versions
  * @param {string} srcDir - Source directory
@@ -1506,11 +1546,14 @@ function copyWithPathReplacement(srcDir, destDir, pathPrefix, runtime, isCommand
   const isOpencode = runtime === 'opencode';
   const dirName = getDirName(runtime);
 
-  // Clean install: remove existing destination to prevent orphaned files
+  // Clean install: remove existing destination to prevent orphaned files.
+  // Preserve user-generated artifacts (USER-PROFILE.md) across wipes (#1924).
+  const userArtifacts = preserveUserArtifacts(destDir, ['USER-PROFILE.md']);
   if (fs.existsSync(destDir)) {
     fs.rmSync(destDir, { recursive: true });
   }
   safeFs('mkdirSync', () => fs.mkdirSync(destDir, { recursive: true }), destDir);
+  restoreUserArtifacts(destDir, userArtifacts);
 
   const entries = fs.readdirSync(srcDir, { withFileTypes: true });
 
@@ -2027,53 +2070,43 @@ function uninstall(isGlobal, runtime = 'claude') {
       console.log(`  ${green}✓${reset} Removed GSD statusline from settings`);
     }
 
-    // Remove GSD hooks from SessionStart
-    if (settings.hooks && settings.hooks.SessionStart) {
-      const before = settings.hooks.SessionStart.length;
-      settings.hooks.SessionStart = settings.hooks.SessionStart.filter(entry => {
-        if (entry.hooks && Array.isArray(entry.hooks)) {
-          // Filter out GSD hooks
-          const hasGsdHook = entry.hooks.some(h =>
-            h.command && (
-              h.command.includes('gsdr-check-update') || h.command.includes('gsdr-statusline') || h.command.includes('gsdr-version-check') || h.command.includes('gsdr-ci-status') || h.command.includes('gsdr-health-check') ||
-              h.command.includes('gsd-check-update') || h.command.includes('gsd-statusline') || h.command.includes('gsd-version-check') || h.command.includes('gsd-ci-status') || h.command.includes('gsd-health-check')
-            )
-          );
-          return !hasGsdHook;
-        }
-        return true;
-      });
-      if (settings.hooks.SessionStart.length < before) {
-        settingsModified = true;
-        console.log(`  ${green}✓${reset} Removed GSD hooks from settings`);
-      }
-      // Clean up empty array
-      if (settings.hooks.SessionStart.length === 0) {
-        delete settings.hooks.SessionStart;
-      }
-    }
+    // Remove GSD hooks from settings — per-hook granularity to preserve
+    // user hooks that share an entry with a GSD hook (#1755 upstream fix)
+    const isGsdrHookCommand = (cmd) =>
+      cmd && (
+        cmd.includes('gsdr-check-update') || cmd.includes('gsdr-statusline') ||
+        cmd.includes('gsdr-version-check') || cmd.includes('gsdr-ci-status') ||
+        cmd.includes('gsdr-health-check') || cmd.includes('gsdr-context-monitor') ||
+        cmd.includes('gsdr-workflow-guard') ||
+        // Legacy gsd- prefix (pre-reflect branding)
+        cmd.includes('gsd-check-update') || cmd.includes('gsd-statusline') ||
+        cmd.includes('gsd-version-check') || cmd.includes('gsd-ci-status') ||
+        cmd.includes('gsd-health-check') || cmd.includes('gsd-context-monitor') ||
+        cmd.includes('gsd-workflow-guard')
+      );
 
-    // Remove GSD hooks from PostToolUse and AfterTool (Gemini uses AfterTool)
-    for (const eventName of ['PostToolUse', 'AfterTool']) {
+    for (const eventName of ['SessionStart', 'PostToolUse', 'AfterTool', 'PreToolUse', 'BeforeTool']) {
       if (settings.hooks && settings.hooks[eventName]) {
-        const before = settings.hooks[eventName].length;
-        settings.hooks[eventName] = settings.hooks[eventName].filter(entry => {
-          if (entry.hooks && Array.isArray(entry.hooks)) {
-            const hasGsdHook = entry.hooks.some(h =>
-              h.command && h.command.includes('gsdr-context-monitor')
-            );
-            return !hasGsdHook;
-          }
-          return true;
-        });
-        if (settings.hooks[eventName].length < before) {
+        const before = JSON.stringify(settings.hooks[eventName]);
+        settings.hooks[eventName] = settings.hooks[eventName]
+          .map(entry => {
+            if (!entry.hooks || !Array.isArray(entry.hooks)) return entry;
+            // Filter out individual GSD hooks, keep user hooks in the same entry
+            entry.hooks = entry.hooks.filter(h => !isGsdrHookCommand(h.command));
+            return entry.hooks.length > 0 ? entry : null;
+          })
+          .filter(Boolean);
+        if (JSON.stringify(settings.hooks[eventName]) !== before) {
           settingsModified = true;
-          console.log(`  ${green}✓${reset} Removed context monitor hook from settings`);
         }
         if (settings.hooks[eventName].length === 0) {
           delete settings.hooks[eventName];
         }
       }
+    }
+
+    if (settingsModified) {
+      console.log(`  ${green}✓${reset} Removed GSD hooks from settings`);
     }
 
     // Clean up empty hooks object
@@ -2127,6 +2160,15 @@ function uninstall(isGlobal, runtime = 'claude') {
         // Ignore JSON parse errors
       }
     }
+  }
+
+  // Remove the file manifest that the installer wrote at install time.
+  // Without this step the metadata file persists after uninstall (#1908).
+  const manifestPath = path.join(targetDir, MANIFEST_NAME);
+  if (fs.existsSync(manifestPath)) {
+    fs.rmSync(manifestPath, { force: true });
+    removedCount++;
+    console.log(`  ${green}✓${reset} Removed ${MANIFEST_NAME}`);
   }
 
   if (removedCount === 0) {
@@ -2903,18 +2945,27 @@ function install(isGlobal, runtime = 'claude') {
       settings.hooks.SessionStart = [];
     }
 
-    // Helper: add hook if missing, or upgrade unguarded command to guarded version
-    function ensureHook(hookSubstring, newCommand, label) {
+    // Helper: add hook if missing, or upgrade unguarded command to guarded version.
+    // Guard: only register if the hook file was actually installed (#1754 upstream).
+    // When hooks/dist/ is missing from the npm package, the copy step produces no
+    // files but the registration step ran unconditionally, causing hook errors on
+    // every tool invocation.
+    function ensureHook(hookSubstring, newCommand, label, hookFileName) {
+      const hookFile = path.join(targetDir, 'hooks', hookFileName);
       const existingEntry = settings.hooks.SessionStart.find(entry =>
         entry.hooks && entry.hooks.some(h => h.command && h.command.includes(hookSubstring))
       );
 
       if (!existingEntry) {
-        // Hook not present -- add it
-        settings.hooks.SessionStart.push({
-          hooks: [{ type: 'command', command: newCommand }]
-        });
-        console.log(`  ${green}✓${reset} Configured ${label} hook`);
+        if (fs.existsSync(hookFile)) {
+          // Hook not present -- add it
+          settings.hooks.SessionStart.push({
+            hooks: [{ type: 'command', command: newCommand }]
+          });
+          console.log(`  ${green}✓${reset} Configured ${label} hook`);
+        } else {
+          console.warn(`  ${yellow}⚠${reset}  Skipped ${label} hook — ${hookFileName} not found at target`);
+        }
       } else if (!isGlobal) {
         // Hook exists -- upgrade to guarded command if not already guarded
         const hook = existingEntry.hooks.find(h => h.command && h.command.includes(hookSubstring));
@@ -2925,10 +2976,10 @@ function install(isGlobal, runtime = 'claude') {
       }
     }
 
-    ensureHook('gsdr-check-update', updateCheckCommand, 'update check');
-    ensureHook('gsdr-version-check', versionCheckCommand, 'version check');
-    ensureHook('gsdr-ci-status', ciStatusCommand, 'CI status');
-    ensureHook('gsdr-health-check', healthCheckCommand, 'health check');
+    ensureHook('gsdr-check-update', updateCheckCommand, 'update check', 'gsdr-check-update.js');
+    ensureHook('gsdr-version-check', versionCheckCommand, 'version check', 'gsdr-version-check.js');
+    ensureHook('gsdr-ci-status', ciStatusCommand, 'CI status', 'gsdr-ci-status.js');
+    ensureHook('gsdr-health-check', healthCheckCommand, 'health check', 'gsdr-health-check.js');
 
     // Configure post-tool hook for context window monitoring
     // Uses direct push (not ensureHook) because this is PostToolUse, not SessionStart
@@ -2941,7 +2992,8 @@ function install(isGlobal, runtime = 'claude') {
       entry.hooks && entry.hooks.some(h => h.command && h.command.includes('gsdr-context-monitor'))
     );
 
-    if (!hasContextMonitorHook) {
+    const contextMonitorFile = path.join(targetDir, 'hooks', 'gsdr-context-monitor.js');
+    if (!hasContextMonitorHook && fs.existsSync(contextMonitorFile)) {
       settings.hooks[postToolEvent].push({
         matcher: 'Bash|Edit|Write|MultiEdit|Agent|Task',
         hooks: [
@@ -2953,6 +3005,8 @@ function install(isGlobal, runtime = 'claude') {
         ]
       });
       console.log(`  ${green}✓${reset} Configured context window monitor hook`);
+    } else if (!hasContextMonitorHook && !fs.existsSync(contextMonitorFile)) {
+      console.warn(`  ${yellow}⚠${reset}  Skipped context monitor hook — gsdr-context-monitor.js not found at target`);
     } else {
       // Migrate existing context monitor hooks: add matcher and timeout if missing
       for (const entry of settings.hooks[postToolEvent]) {
