@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: planning
-stopped_at: Phase 55 complete -- verification passed 4/4 must-haves. Ready to plan Phase 56.
-last_updated: "2026-04-08T21:00:00.000Z"
-last_activity: 2026-04-08 -- Phase 55 complete (4 plans, 661 tests pass, verification passed)
+stopped_at: Completed 56-01-PLAN.md
+last_updated: "2026-04-08T21:42:35.828Z"
+last_activity: 2026-04-08 -- Phase 55 complete
 progress:
   total_phases: 10
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 10
+  total_plans: 7
+  completed_plans: 5
+  percent: 71
 ---
 
 # Project State
@@ -21,26 +21,27 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 56 -- KB Schema & SQLite Foundation (ready to plan)
+**Current focus:** v1.20 Phase 56 -- KB Schema & SQLite Foundation (plan 01 complete, ready for plan 02)
 
 ## Current Position
 
 Phase: 56 of 64 (KB Schema & SQLite Foundation)
-Plan: --
-Status: Ready to plan
-Last activity: 2026-04-08 -- Phase 55 complete
+Plan: 02 (next)
+Status: In progress
+Last activity: 2026-04-08 -- Phase 56 Plan 01 complete
 
-Progress: [█.........] 10%
+Progress: [███████░░░] 71%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 4
+- Plans completed: 5
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
 - 55-04: 6min, 2 tasks, 4 files
+- 56-01: 6min, 3 tasks, 5 files
 
 **v1.18 Final:**
 
@@ -76,6 +77,11 @@ Recent decisions affecting current work:
 - [55-03]: buildLocalHookCommand: $CLAUDE_PROJECT_DIR anchor (#1906) combined with existing test -f worktree guard -- both protections active
 - [55-03]: uninstall per-hook granularity: isGsdrHookCommand covers both gsdr- (current) and gsd- (legacy) namespaces
 - [Phase 55-04]: gsd-tools.test.js: upstream path does not exist at f7549d43; restored fork version and added 9 correctness regression tests inline adapted from upstream atomic-write, locking, frontmatter test files
+- [56-01]: KB-01 lifecycle states corrected to Phase 31 model (detected/triaged/blocked/remediated/verified/invalidated); KB-01 draft used task/issue states (proposed/in_progress) which conflicted with all existing implementation
+- [56-01]: blocked added as optional lifecycle state between triaged and remediated -- compatible with Phase 31 model, useful for signals with external blockers
+- [56-01]: node:sqlite lazy-required via getDbSync() in kb.cjs -- prevents gsd-tools.cjs failing on Node <22.5.0 for non-KB commands (RESEARCH.md Pitfall 7)
+- [56-01]: source field deprecated in knowledge-store.md v2.1.0; detection_method + origin replace it with richer provenance semantics
+- [56-01]: kb.db gitignored per KB-05 dual-write invariant -- SQLite is derived cache, files are source of truth
 
 ### Pending Todos
 
@@ -99,6 +105,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-08
-Stopped at: Phase 55 complete. Verification passed 4/4. Ready to plan Phase 56.
+Last session: 2026-04-08T21:42:35.821Z
+Stopped at: Completed 56-01-PLAN.md
 Resume file: None
