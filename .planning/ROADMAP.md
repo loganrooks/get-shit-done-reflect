@@ -49,6 +49,16 @@ Plans:
 - [x] 55-03-PLAN.md -- Replace phase.cjs/roadmap.cjs with re-adjustments, hybrid-merge installer
 - [x] 55-04-PLAN.md -- Update router, adopt upstream tests, validate all 3 suites, run installer
 
+### Phase 55.1: Upstream Bug Patches (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 55
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 55.1 to break down)
+
 ### Phase 56: KB Schema & SQLite Foundation
 **Goal**: Signal files support full lifecycle tracking, and a SQLite index makes the knowledge base queryable by structured fields
 **Depends on**: Phase 55

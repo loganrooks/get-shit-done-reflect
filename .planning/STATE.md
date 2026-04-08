@@ -90,6 +90,10 @@ Recent decisions affecting current work:
 - [Phase 56-03]: Task 2 migration carry-forward: migration was pre-completed in Plan 02 (183 files), Task 2 became validation-only
 - [Phase 56-03]: Dual-write invariant proven on real 200-file corpus: delete kb.db + rebuild produces identical counts (199 signals, 1 spike, 0 errors)
 
+### Roadmap Evolution
+
+- Phase 55.1 inserted after Phase 55: Upstream Bug Patches (URGENT) — patch #2005 details-wrapped ROADMAP corruption, #1972 incomplete atomicWriteFileSync, #1981 worktree reset --soft data loss
+
 ### Pending Todos
 
 3 pending (carried from v1.18):
