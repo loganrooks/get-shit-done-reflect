@@ -216,6 +216,21 @@ Every failed intervention (13 RECURRED) used advisory text or documentation as t
 ### All artifacts persisted at
 `.planning/audits/session-log-audit-2026-04-07/` — 32 reports, 6 tool/prompt specs, 8 data files.
 
+### Thread 11: Informal Research as Workflow Gap
+
+This session encountered a task — "survey available telemetry across both platforms" — that doesn't fit any existing GSDR workflow:
+- `/gsdr:quick` expects code changes with atomic commits
+- `/gsdr:spike` expects a Build→Run→Document cycle (too heavy for a literature/docs survey)
+- `/gsdr:research-phase` belongs to a milestone phase (we don't have a milestone yet)
+
+The task is: "go read documentation, inspect file formats, survey open source projects, and produce an inventory document that informs future design." It's pre-milestone research that creates knowledge artifacts without code changes.
+
+This is a concrete instance of the broader forms-excess problem (Thread 20 in pre-v1.19): the harness's formal workflows cannot accommodate everything that productive development requires. The response so far has been informal work with deviation testimony — but this creates a shadow workflow that the signal system can't track.
+
+**Candidate response:** A lightweight `/gsdr:survey` or `/gsdr:research` command for pre-milestone investigation. Produces a committed document, tracked in state, but no plan/execute/verify overhead. Alternatively, expand `/gsdr:spike` to have a "research-only" mode that skips the Build→Run phases when the questions are answerable through reading rather than experimentation.
+
+**For now:** The telemetry survey is being done informally with the output at `.planning/audits/session-log-audit-2026-04-07/reports/telemetry-survey.md`. This deviation is noted.
+
 ## Open Questions for v1.20 Scoping
 
 1. How does signal-to-issue promotion concretely work? KB-native, GitHub integration, or both?
