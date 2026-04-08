@@ -2,9 +2,15 @@
 id: sig-2026-02-23-planner-skips-tdd-baseline
 type: signal
 project: get-shit-done-reflect
-tags: [planner, tdd, plan-quality, user-review, agent-behavior, gap-closure]
-created: 2026-02-23T18:00:00Z
-updated: 2026-02-23T18:00:00Z
+tags:
+  - planner
+  - tdd
+  - plan-quality
+  - user-review
+  - agent-behavior
+  - gap-closure
+created: "2026-02-23T18:00:00Z"
+updated: "2026-02-23T18:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,7 +18,8 @@ signal_type: deviation
 phase: 28
 plan: 0
 polarity: negative
-source: manual
+detection_method: manual
+origin: user-observation
 ---
 
 # Signal: Planner Agent Skips TDD RED Baseline Step

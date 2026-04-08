@@ -3,8 +3,8 @@ id: sig-2026-03-02-lifecycle-behaviors-unverifiable-without-runtime
 type: signal
 project: get-shit-done-reflect
 tags: [testing, deviation, workaround]
-created: 2026-03-02T00:00:00Z
-updated: 2026-03-02T00:00:00Z
+created: "2026-03-02T00:00:00Z"
+updated: "2026-03-02T00:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,7 +13,6 @@ signal_category: negative
 phase: 34
 plan: 4
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 gsd_version: 1.15.6+dev
@@ -22,21 +21,23 @@ lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-02T00:00:00Z"
 evidence:
   supporting:
-    - "VERIFICATION.md 'Human Verification Required' section lists 3 items that 'cannot be verified programmatically'"
+    - VERIFICATION.md 'Human Verification Required' section lists 3 items that 'cannot be verified programmatically'
     - "Item 1: End-to-End Planner Signal Awareness"
     - "Item 2: Automatic Remediation Triggering"
     - "Item 3: Passive Verification Triggering"
-    - "All three are workflow-level behaviors specified as instructions to agents, not code implementations"
+    - All three are workflow-level behaviors specified as instructions to agents, not code implementations
   counter:
-    - "The static verification of all 5 must-have truths passed (5/5 score)"
-    - "The lifecycle demo manually walked through all four lifecycle transitions, providing partial behavioral evidence"
-    - "The phase's documentation-only approach was a deliberate design choice accepted at planning time"
+    - The static verification of all 5 must-have truths passed (5/5 score)
+    - The lifecycle demo manually walked through all four lifecycle transitions, providing partial behavioral evidence
+    - The phase's documentation-only approach was a deliberate design choice accepted at planning time
 confidence: high
-confidence_basis: "The VERIFICATION.md explicitly identifies these as unverifiable at static analysis time, and the behaviors are implemented as agent instructions rather than testable code paths"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: The VERIFICATION.md explicitly identifies these as unverifiable at static analysis time, and the behaviors are implemented as agent instructions rather than testable code paths
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

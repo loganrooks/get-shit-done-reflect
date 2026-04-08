@@ -2,9 +2,14 @@
 id: sig-2026-03-26-model-alias-map-in-core-cjs-contains-stale
 type: signal
 project: get-shit-done-reflect
-tags: [upstream-bug, model-resolution, dead-code, stale-data, MODEL_ALIAS_MAP]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - upstream-bug
+  - model-resolution
+  - dead-code
+  - stale-data
+  - MODEL_ALIAS_MAP
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: workaround
 status: active
 severity: notable
@@ -13,7 +18,6 @@ signal_category: negative
 phase: 49
 plan: 3
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -32,10 +36,12 @@ evidence:
     - Dead code — map is exported but never consumed, so no runtime impact
 confidence: high
 confidence_basis: Direct code inspection of core.cjs with cross-reference to upstream commit
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

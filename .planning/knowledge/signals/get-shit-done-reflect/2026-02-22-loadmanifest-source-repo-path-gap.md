@@ -4,9 +4,15 @@ type: deviation
 severity: notable
 polarity: neutral
 phase: 23
-source: auto-collected
 date: 2026-02-22
-tags: [path-resolution, installer, source-repo, plan-spec-gap, auto-fix]
+tags:
+  - path-resolution
+  - installer
+  - source-repo
+  - plan-spec-gap
+  - auto-fix
+detection_method: automated
+origin: collect-signals
 ---
 
 # Plan-Specified Path Resolution Was Incomplete for Source-Repo Context

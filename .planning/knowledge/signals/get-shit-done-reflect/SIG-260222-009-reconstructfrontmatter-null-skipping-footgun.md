@@ -6,12 +6,18 @@ polarity: negative
 phase: 25
 plan: 01
 project: get-shit-done-reflect
-created: 2026-02-22T00:00:00Z
-tags: [frontmatter, serialization, null-handling, footgun, backlog]
+created: "2026-02-22T00:00:00Z"
+tags:
+  - frontmatter
+  - serialization
+  - null-handling
+  - footgun
+  - backlog
 status: active
-source: automated
 runtime: claude-code
 model: claude-sonnet-4-6
+detection_method: automated
+origin: collect-signals
 ---
 
 # reconstructFrontmatter Silently Drops JavaScript null Values

@@ -2,9 +2,13 @@
 id: sig-2026-02-17-release-process-fragile-manual-steps
 type: signal
 project: get-shit-done-reflect
-tags: [release-process, milestone-workflow, automation-gap, deviation]
-created: 2026-02-17T00:30:00Z
-updated: 2026-02-17T00:30:00Z
+tags:
+  - release-process
+  - milestone-workflow
+  - automation-gap
+  - deviation
+created: "2026-02-17T00:30:00Z"
+updated: "2026-02-17T00:30:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +16,13 @@ signal_type: struggle
 phase: 0
 plan: 0
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.14.1
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

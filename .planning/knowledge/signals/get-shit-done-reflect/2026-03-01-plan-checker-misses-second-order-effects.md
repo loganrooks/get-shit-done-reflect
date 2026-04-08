@@ -2,9 +2,15 @@
 id: sig-2026-03-01-plan-checker-misses-second-order-effects
 type: signal
 project: get-shit-done-reflect
-tags: [plan-checker, second-order-effects, review-gap, planning, assumption-verification, capability-gap]
-created: 2026-03-01T19:15:00Z
-updated: 2026-03-02T18:50:00Z
+tags:
+  - plan-checker
+  - second-order-effects
+  - review-gap
+  - planning
+  - assumption-verification
+  - capability-gap
+created: "2026-03-01T19:15:00Z"
+updated: "2026-03-02T18:50:00Z"
 durability: principle
 status: active
 severity: critical
@@ -12,7 +18,6 @@ signal_type: capability-gap
 phase: 35
 plan: planning
 polarity: negative
-source: manual
 occurrence_count: 2
 related_signals: [sig-2026-03-01-plan-checker-misses-tool-api-assumptions]
 runtime: claude-code
@@ -23,19 +28,21 @@ lifecycle_log:
   - "detected->triaged by reflector at 2026-03-02T18:50:00Z: address -- critical capability gap, clear enhancement path for plan checker"
 evidence:
   supporting:
-    - "Human review of Phase 35 plans discovered 6 gaps, 3 unvetted assumptions, 3 second-order effects that plan checker did not catch"
+    - Human review of Phase 35 plans discovered 6 gaps, 3 unvetted assumptions, 3 second-order effects that plan checker did not catch
     - "Config key mismatch: spike_sensitivity (flat) vs spike.sensitivity (nested) would have created conflicting schemas"
     - "Missing directory creation: KB spikes directory does not exist, plan would fail at write time"
-    - "Plan checker passed all 4 plans as PASSED without catching any of these issues"
+    - Plan checker passed all 4 plans as PASSED without catching any of these issues
   counter:
-    - "Plan checker successfully validates structural dimensions (requirement coverage, dependency DAG, file ownership)"
-    - "Second-order effect analysis may require codebase grounding that exceeds plan checker's current mandate"
+    - Plan checker successfully validates structural dimensions (requirement coverage, dependency DAG, file ownership)
+    - Second-order effect analysis may require codebase grounding that exceeds plan checker's current mandate
 triage:
   decision: address
   rationale: "Critical capability gap in plan checker. Human review catches issues that automated checker misses. Clear enhancement path: add semantic validation for file paths, tool commands, and config keys."
   priority: high
   by: reflector
   at: "2026-03-02T18:50:00Z"
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

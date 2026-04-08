@@ -2,22 +2,27 @@
 id: sig-2026-03-03-pr-created-against-upstream-not-fork
 type: signal
 project: get-shit-done-reflect
-tags: [pr-review, wrong-target, fork-awareness, upstream-pollution]
-created: 2026-03-03T00:00:00+11:00
-updated: 2026-04-02T21:00:00Z
+tags:
+  - pr-review
+  - wrong-target
+  - fork-awareness
+  - upstream-pollution
+created: "2026-03-03T00:00:00+11:00"
+updated: "2026-04-02T21:00:00Z"
 durability: convention
 status: remediated
 severity: critical
 signal_type: deviation
-phase: "36"
-plan: "01"
+phase: 36
+plan: 01
 polarity: negative
-source: manual
 occurrence_count: 2
 related_signals: [sig-2026-03-03-pr-review-targets-wrong-repo]
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.16.0+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

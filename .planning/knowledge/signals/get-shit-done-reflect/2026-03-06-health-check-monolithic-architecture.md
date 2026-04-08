@@ -5,7 +5,6 @@ signal_type: capability-gap
 severity: notable
 polarity: negative
 confidence: high
-source: deliberation-trigger
 lifecycle_state: detected
 status: active
 tags:
@@ -14,10 +13,12 @@ tags:
   - maintainability
   - extensibility
   - monolithic
-  - deliberation:health-check-maintainability
-date: "2026-03-06"
-phase: "41"
+  - "deliberation:health-check-maintainability"
+date: 2026-03-06
+phase: 41
 project: get-shit-done-reflect
+detection_method: manual
+origin: deliberation-trigger
 ---
 
 ## What Happened

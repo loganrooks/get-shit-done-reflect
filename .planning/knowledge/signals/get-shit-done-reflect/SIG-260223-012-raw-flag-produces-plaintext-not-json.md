@@ -5,9 +5,10 @@ type: deviation
 severity: notable
 polarity: negative
 phase: 26
-source: 26-01-SUMMARY.md
 status: open
 tags: [testing, tdd, cli-output]
+detection_method: automated
+origin: plan-summary
 ---
 
 # --raw flag produces plain-text, not JSON

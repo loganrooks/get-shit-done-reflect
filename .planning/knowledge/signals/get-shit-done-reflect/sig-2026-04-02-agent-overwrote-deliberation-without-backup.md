@@ -2,9 +2,14 @@
 id: sig-2026-04-02-agent-overwrote-deliberation-without-backup
 type: signal
 project: get-shit-done-reflect
-tags: [destructive-action, data-loss, deliberation, agent-behavior, quality-gate-bypass]
-created: 2026-04-02T18:00:00Z
-updated: 2026-04-02T18:00:00Z
+tags:
+  - destructive-action
+  - data-loss
+  - deliberation
+  - agent-behavior
+  - quality-gate-bypass
+created: "2026-04-02T18:00:00Z"
+updated: "2026-04-02T18:00:00Z"
 durability: principle
 status: active
 severity: critical
@@ -12,12 +17,14 @@ signal_type: deviation
 phase: between-milestones
 plan: 0
 polarity: negative
-source: manual
 occurrence_count: 1
-related_signals: [sig-2026-04-02-background-agent-bypassed-quality-gates-broke-global-install]
+related_signals:
+  - sig-2026-04-02-background-agent-bypassed-quality-gates-broke-global-install
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.18.0
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

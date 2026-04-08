@@ -2,9 +2,14 @@
 id: sig-2026-03-23-prose-wrapping-convention-gap
 type: signal
 project: get-shit-done-reflect
-tags: [formatting, conventions, deliberation-artifacts, review-artifacts, markdown]
-created: 2026-03-23T04:15:00Z
-updated: 2026-03-23T04:15:00Z
+tags:
+  - formatting
+  - conventions
+  - deliberation-artifacts
+  - review-artifacts
+  - markdown
+created: "2026-03-23T04:15:00Z"
+updated: "2026-03-23T04:15:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +17,13 @@ signal_type: deviation
 phase: 48
 plan: complete
 polarity: neutral
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.17.5+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

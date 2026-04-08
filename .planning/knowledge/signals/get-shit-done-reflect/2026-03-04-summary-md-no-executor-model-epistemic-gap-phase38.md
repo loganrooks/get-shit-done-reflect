@@ -3,8 +3,8 @@ id: sig-2026-03-04-summary-md-no-executor-model-epistemic-gap-phase38
 type: signal
 project: get-shit-done-reflect
 tags: [config, deviation]
-created: 2026-03-04T20:00:37Z
-updated: 2026-03-04T20:00:37Z
+created: "2026-03-04T20:00:37Z"
+updated: "2026-03-04T20:00:37Z"
 durability: convention
 status: active
 severity: notable
@@ -13,29 +13,29 @@ signal_category: negative
 phase: 38
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 2
 related_signals:
   - sig-2026-03-03-epistemic-gap-executor-model-not-recorded-phase36
   - sig-2026-03-02-summary-md-lacks-executor-model-provenance
 runtime: claude-code
 model: claude-sonnet-4-6
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-04T20:00:37Z"
 evidence:
   supporting:
-    - "Both SUMMARY.md files contain no explicit model field"
-    - "Config mismatch detection requires comparing model_profile against executor model -- impossible when not recorded"
-  counter:
-    - "SUMMARY.md template may not include a model field by design"
+    - Both SUMMARY.md files contain no explicit model field
+    - Config mismatch detection requires comparing model_profile against executor model -- impossible when not recorded
+  counter: [SUMMARY.md template may not include a model field by design]
 confidence: high
-confidence_basis: "The absence of model information in SUMMARY.md is directly observable."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: The absence of model information in SUMMARY.md is directly observable.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

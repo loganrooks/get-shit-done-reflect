@@ -3,8 +3,8 @@ id: sig-2026-03-04-stale-log-sensor-spec-disabled-by-default-text
 type: signal
 project: get-shit-done-reflect
 tags: [config, deviation, workaround]
-created: 2026-03-04T20:00:37Z
-updated: 2026-03-04T20:00:37Z
+created: "2026-03-04T20:00:37Z"
+updated: "2026-03-04T20:00:37Z"
 durability: workaround
 status: active
 severity: minor
@@ -13,30 +13,31 @@ signal_category: negative
 phase: 38
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 2
 related_signals:
   - sig-2026-03-02-gitignore-force-add-and-kb-external-deviations
   - sig-2026-03-02-quality-profile-sonnet-executor-mismatch
 runtime: claude-code
 model: claude-sonnet-4-6
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-04T20:00:37Z"
 evidence:
   supporting:
     - "VERIFICATION.md Anti-Patterns section explicitly flags: agents/gsd-log-sensor.md says 'disabled by default in the feature manifest' -- stale"
-    - "The manifest now uses {} default (empty object), making the log sensor effectively enabled by default"
+    - The manifest now uses {} default (empty object), making the log sensor effectively enabled by default
   counter:
-    - "VERIFICATION.md classifies this as 'Info' severity and 'Non-blocking'"
-    - "The functional behavior is correct -- stale text is in spec body, not frontmatter"
+    - VERIFICATION.md classifies this as 'Info' severity and 'Non-blocking'
+    - The functional behavior is correct -- stale text is in spec body, not frontmatter
 confidence: high
-confidence_basis: "Stale documentation explicitly identified in VERIFICATION.md Anti-Patterns section with file and line number."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Stale documentation explicitly identified in VERIFICATION.md Anti-Patterns section with file and line number.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

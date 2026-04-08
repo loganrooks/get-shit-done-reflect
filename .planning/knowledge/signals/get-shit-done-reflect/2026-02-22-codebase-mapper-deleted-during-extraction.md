@@ -2,9 +2,14 @@
 id: sig-2026-02-22-codebase-mapper-deleted-during-extraction
 type: signal
 project: get-shit-done-reflect
-tags: [extraction, quality, agent-specs, file-deletion, critical-loss]
-created: 2026-02-22T00:00:00Z
-updated: 2026-04-02T21:00:00Z
+tags:
+  - extraction
+  - quality
+  - agent-specs
+  - file-deletion
+  - critical-loss
+created: "2026-02-22T00:00:00Z"
+updated: "2026-04-02T21:00:00Z"
 durability: convention
 status: remediated
 severity: critical
@@ -12,7 +17,6 @@ signal_type: quality-issue
 phase: 22
 plan: 4
 polarity: negative
-source: automated
 occurrence_count: 1
 related_signals: [sig-2026-02-22-knowledge-surfacing-silently-removed]
 runtime: claude-code
@@ -23,17 +27,19 @@ lifecycle_log:
   - "detected->triaged by reflector at 2026-03-02T18:50:00Z: dismiss -- addressed by les-2026-02-28-extraction-plans-need-exhaustive-keep-lists, no recurrence since Phase 22"
 evidence:
   supporting:
-    - "gsd-codebase-mapper.md completely deleted during Phase 22 extraction and absent from repository for 3 days"
-    - "Commit 022d068 claims to modify codebase-mapper but diff shows only gsd-debugger.md changes"
-    - "Fix commit af34ff3 shows file as addition (743 insertions) indicating recreation from scratch"
+    - gsd-codebase-mapper.md completely deleted during Phase 22 extraction and absent from repository for 3 days
+    - Commit 022d068 claims to modify codebase-mapper but diff shows only gsd-debugger.md changes
+    - Fix commit af34ff3 shows file as addition (743 insertions) indicating recreation from scratch
   counter:
-    - "File was restored in fix commit af34ff3; no recurrence of file deletion in subsequent phases"
+    - File was restored in fix commit af34ff3; no recurrence of file deletion in subsequent phases
 triage:
   decision: dismiss
-  rationale: "Addressed by existing lesson les-2026-02-28-extraction-plans-need-exhaustive-keep-lists. File restored in fix commit. No recurrence since Phase 22."
+  rationale: Addressed by existing lesson les-2026-02-28-extraction-plans-need-exhaustive-keep-lists. File restored in fix commit. No recurrence since Phase 22.
   priority: low
   by: reflector
   at: "2026-03-02T18:50:00Z"
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

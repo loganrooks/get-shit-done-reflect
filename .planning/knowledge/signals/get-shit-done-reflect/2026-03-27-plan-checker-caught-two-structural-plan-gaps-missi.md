@@ -2,18 +2,21 @@
 id: sig-2026-03-27-plan-checker-caught-two-structural-plan-gaps-missi
 type: signal
 project: get-shit-done-reflect
-tags: [plan-quality, plan-checker, pre-execution-validation, commit-patterns]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - plan-quality
+  - plan-checker
+  - pre-execution-validation
+  - commit-patterns
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: principle
 status: active
 severity: notable
 signal_type: good-pattern
 signal_category: positive
 phase: 52
-plan: ""
+plan: 
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -33,10 +36,12 @@ evidence:
     - Two plans requiring revision in one phase may indicate planner underspecification rather than checker effectiveness
 confidence: high
 confidence_basis: Commit exists in git log with explicit message attributing changes to checker feedback; diff confirms only planning files modified (no execution artifacts)
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

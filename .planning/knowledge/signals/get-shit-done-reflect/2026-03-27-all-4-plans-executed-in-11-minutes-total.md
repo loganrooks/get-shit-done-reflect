@@ -3,17 +3,16 @@ id: sig-2026-03-27-all-4-plans-executed-in-11-minutes-total
 type: signal
 project: get-shit-done-reflect
 tags: [performance, deviation]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: principle
 status: active
 severity: notable
 signal_type: good-pattern
 signal_category: positive
 phase: 53
-plan: ""
+plan: 
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -34,10 +33,12 @@ evidence:
     - Plan 04 did encounter one unexpected reactive fix, so clean execution was not universal
 confidence: high
 confidence_basis: Duration figures come from plan summaries, task counts are directly verifiable, and verification report confirms all must-haves passed -- the combination makes this a well-evidenced positive signal
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

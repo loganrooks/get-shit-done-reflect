@@ -3,8 +3,8 @@ id: sig-2026-03-03-unplanned-autofix-extractatrefs-trailing-asterisk
 type: signal
 project: get-shit-done-reflect
 tags: [deviation, wiring-validation, testing]
-created: 2026-03-03T00:00:00Z
-updated: 2026-03-03T00:00:00Z
+created: "2026-03-03T00:00:00Z"
+updated: "2026-03-03T00:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,7 +13,6 @@ signal_category: negative
 phase: 36
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 2
 related_signals:
   - sig-2026-02-28-cross-plan-test-count-not-updated
@@ -28,14 +27,16 @@ evidence:
   supporting:
     - "SUMMARY.md Auto-fixed Issues: Rule 1 - Bug: extractAtRefs trailing asterisk stripping"
     - "Root cause: gsd-executor.md contains markdown bold syntax leak in @-reference"
-    - "Not in PLAN.md task specifications"
+    - Not in PLAN.md task specifications
   counter: []
 confidence: high
-confidence_basis: "SUMMARY.md explicitly records auto-fixed issues section"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: SUMMARY.md explicitly records auto-fixed issues section
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

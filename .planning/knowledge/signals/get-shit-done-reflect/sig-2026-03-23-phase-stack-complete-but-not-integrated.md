@@ -2,17 +2,22 @@
 id: sig-2026-03-23-phase-stack-complete-but-not-integrated
 type: signal
 project: get-shit-done-reflect
-tags: [git-workflow, branch-management, unpushed-work, no-ci-coverage, main-divergence, phase-stack]
-created: 2026-03-23T20:02:00-04:00
-updated: 2026-04-02T21:00:00Z
+tags:
+  - git-workflow
+  - branch-management
+  - unpushed-work
+  - no-ci-coverage
+  - main-divergence
+  - phase-stack
+created: "2026-03-23T20:02:00-04:00"
+updated: "2026-04-02T21:00:00Z"
 durability: convention
 status: remediated
 severity: critical
 signal_type: deviation
-phase: "48"
+phase: 48
 plan: null
 polarity: negative
-source: manual
 occurrence_count: 3
 related_signals:
   - sig-2026-03-06-no-ci-runs-phase42-unpushed-work
@@ -20,6 +25,8 @@ related_signals:
 runtime: codex-cli
 model: gpt-5.4
 gsd_version: 1.17.5+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

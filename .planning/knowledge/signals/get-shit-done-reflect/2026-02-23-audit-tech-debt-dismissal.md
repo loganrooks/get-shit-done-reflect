@@ -2,9 +2,15 @@
 id: sig-2026-02-23-audit-tech-debt-dismissal
 type: signal
 project: get-shit-done-reflect
-tags: [audit, tech-debt, agent-behavior, dismissal, thoroughness, milestone-completion]
-created: 2026-02-23T10:30:00Z
-updated: 2026-02-23T10:30:00Z
+tags:
+  - audit
+  - tech-debt
+  - agent-behavior
+  - dismissal
+  - thoroughness
+  - milestone-completion
+created: "2026-02-23T10:30:00Z"
+updated: "2026-02-23T10:30:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +18,13 @@ signal_type: deviation
 phase: 27
 plan: 0
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.15.0
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

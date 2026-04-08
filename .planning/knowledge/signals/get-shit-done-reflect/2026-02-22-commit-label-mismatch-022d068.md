@@ -2,9 +2,13 @@
 id: sig-2026-02-22-commit-label-mismatch-022d068
 type: signal
 project: get-shit-done-reflect
-tags: [commit-hygiene, audit-trail, mislabeled-commit, debugging]
-created: 2026-02-22T00:00:00Z
-updated: 2026-02-22T00:00:00Z
+tags:
+  - commit-hygiene
+  - audit-trail
+  - mislabeled-commit
+  - debugging
+created: "2026-02-22T00:00:00Z"
+updated: "2026-02-22T00:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +16,15 @@ signal_type: quality-issue
 phase: 22
 plan: 4
 polarity: negative
-source: automated
 occurrence_count: 1
-related_signals: [sig-2026-02-22-plan-22-03-incomplete-interrupted, sig-2026-02-22-codebase-mapper-deleted-during-extraction]
+related_signals:
+  - sig-2026-02-22-plan-22-03-incomplete-interrupted
+  - sig-2026-02-22-codebase-mapper-deleted-during-extraction
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.12.2
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

@@ -5,9 +5,10 @@ type: deviation
 severity: notable
 polarity: neutral
 phase: 27
-source: 27-01-SUMMARY.md
 status: resolved
 tags: [heuristics, natural-language, complexity-detection]
+detection_method: automated
+origin: plan-summary
 ---
 
 # Bare "and" in NL heuristics needs word-boundary matching

@@ -2,20 +2,26 @@
 id: sig-2026-02-16-stale-continue-here-files-not-cleaned
 type: signal
 project: get-shit-done-reflect
-tags: [continue-here, cleanup, phase-completion, milestone-archival, deviation]
-created: 2026-02-16T08:00:00Z
-updated: 2026-02-16T08:00:00Z
+tags:
+  - continue-here
+  - cleanup
+  - phase-completion
+  - milestone-archival
+  - deviation
+created: "2026-02-16T08:00:00Z"
+updated: "2026-02-16T08:00:00Z"
 durability: convention
 status: active
 severity: notable
 signal_type: deviation
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.14.0
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

@@ -2,9 +2,14 @@
 id: sig-2026-02-22-webfetch-best-practices-lost
 type: signal
 project: get-shit-done-reflect
-tags: [extraction, content-loss, webfetch, researcher-agents, protocol]
-created: 2026-02-22T00:00:00Z
-updated: 2026-03-02T18:50:00Z
+tags:
+  - extraction
+  - content-loss
+  - webfetch
+  - researcher-agents
+  - protocol
+created: "2026-02-22T00:00:00Z"
+updated: "2026-03-02T18:50:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,7 +17,6 @@ signal_type: quality-issue
 phase: 22
 plan: 3
 polarity: negative
-source: automated
 occurrence_count: 1
 related_signals: [sig-2026-02-22-knowledge-surfacing-silently-removed]
 runtime: claude-code
@@ -27,6 +31,8 @@ triage:
   priority: low
   by: reflector
   at: "2026-03-02T18:50:00Z"
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

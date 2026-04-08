@@ -2,9 +2,14 @@
 id: sig-2026-02-22-knowledge-surfacing-silently-removed
 type: signal
 project: get-shit-done-reflect
-tags: [extraction, quality, agent-specs, knowledge-surfacing, unauthorized-removal]
-created: 2026-02-22T00:00:00Z
-updated: 2026-04-02T21:00:00Z
+tags:
+  - extraction
+  - quality
+  - agent-specs
+  - knowledge-surfacing
+  - unauthorized-removal
+created: "2026-02-22T00:00:00Z"
+updated: "2026-04-02T21:00:00Z"
 durability: convention
 status: remediated
 severity: critical
@@ -12,7 +17,6 @@ signal_type: quality-issue
 phase: 22
 plan: 0
 polarity: negative
-source: automated
 occurrence_count: 1
 related_signals: [sig-2026-02-18-sonnet-45-quality-concern-phase22]
 runtime: claude-code
@@ -23,16 +27,18 @@ lifecycle_log:
   - "detected->triaged by reflector at 2026-03-02T18:50:00Z: dismiss -- addressed by les-2026-02-28-extraction-plans-need-exhaustive-keep-lists, no recurrence since Phase 22"
 evidence:
   supporting:
-    - "4 agent specs lost knowledge_surfacing sections during Phase 22 extraction without plan authorization"
-    - "Fix commit af34ff3 required 3 days later to restore all 4 sections"
+    - 4 agent specs lost knowledge_surfacing sections during Phase 22 extraction without plan authorization
+    - Fix commit af34ff3 required 3 days later to restore all 4 sections
   counter:
-    - "Fix was applied and content restored; no recurrence in subsequent extraction work"
+    - Fix was applied and content restored; no recurrence in subsequent extraction work
 triage:
   decision: dismiss
-  rationale: "Addressed by existing lesson les-2026-02-28-extraction-plans-need-exhaustive-keep-lists. No recurrence since Phase 22. Fix commit af34ff3 restored all content."
+  rationale: Addressed by existing lesson les-2026-02-28-extraction-plans-need-exhaustive-keep-lists. No recurrence since Phase 22. Fix commit af34ff3 restored all content.
   priority: low
   by: reflector
   at: "2026-03-02T18:50:00Z"
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

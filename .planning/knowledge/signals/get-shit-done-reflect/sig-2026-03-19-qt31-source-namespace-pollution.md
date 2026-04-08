@@ -2,20 +2,31 @@
 id: sig-2026-03-19-qt31-source-namespace-pollution
 type: signal
 project: get-shit-done-reflect
-tags: [namespace, dual-directory, source-pollution, ci-failure, wiring-test, collect-signals, codex, quick-task]
-created: 2026-03-19T00:00:00Z
+tags:
+  - namespace
+  - dual-directory
+  - source-pollution
+  - ci-failure
+  - wiring-test
+  - collect-signals
+  - codex
+  - quick-task
+created: "2026-03-19T00:00:00Z"
 severity: critical
 signal_type: deviation
 phase: quick-31
 polarity: negative
-source: manual
 occurrence_count: 1
-related_signals: [sig-2026-03-02-ci-failures-ignored-throughout-v116, sig-2026-03-19-stale-platform-claims-in-source]
+related_signals:
+  - sig-2026-03-02-ci-failures-ignored-throughout-v116
+  - sig-2026-03-19-stale-platform-claims-in-source
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.17.4
-updated: 2026-04-02T21:00:00Z
+updated: "2026-04-02T21:00:00Z"
 lifecycle_state: remediated
+detection_method: manual
+origin: user-observation
 ---
 
 # QT31 source namespace pollution broke CI

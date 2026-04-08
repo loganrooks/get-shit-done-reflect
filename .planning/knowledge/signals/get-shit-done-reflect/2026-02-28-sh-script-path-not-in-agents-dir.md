@@ -2,9 +2,14 @@
 id: sig-2026-02-28-sh-script-path-not-in-agents-dir
 type: signal
 project: get-shit-done-reflect
-tags: [deviation, plan-accuracy, path-resolution, installer, dual-directory]
-created: 2026-02-28T18:30:00Z
-updated: 2026-02-28T18:30:00Z
+tags:
+  - deviation
+  - plan-accuracy
+  - path-resolution
+  - installer
+  - dual-directory
+created: "2026-02-28T18:30:00Z"
+updated: "2026-02-28T18:30:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,7 +18,6 @@ signal_category: negative
 phase: 31
 plan: 3
 polarity: negative
-source: auto
 occurrence_count: 2
 related_signals: [SIG-20260222-loadmanifest-source-repo-path-gap]
 runtime: claude-code
@@ -24,18 +28,20 @@ lifecycle_log:
   - "created -> detected by gsd-signal-collector at 2026-02-28T18:30:00Z"
 evidence:
   supporting:
-    - "31-03-PLAN.md listed 'agents/kb-rebuild-index.sh' as the file to modify under files_modified"
+    - 31-03-PLAN.md listed 'agents/kb-rebuild-index.sh' as the file to modify under files_modified
     - "31-03-SUMMARY.md auto-fix #1: 'Plan references agents/kb-rebuild-index.sh but the file only exists at .claude/agents/kb-rebuild-index.sh. The installer comment (line 369) documents that .claude/agents/ is the source of truth for .sh scripts'"
-    - "The installer explicitly documents that .sh scripts live in .claude/agents/ (not agents/), unlike .md agent specs which live in agents/. This is a dual-directory architecture exception that the plan did not account for."
+    - The installer explicitly documents that .sh scripts live in .claude/agents/ (not agents/), unlike .md agent specs which live in agents/. This is a dual-directory architecture exception that the plan did not account for.
   counter:
-    - "The CLAUDE.md rule about always editing npm source directories is clear for .md files but the exception for .sh scripts is documented only in an installer comment -- this is an easy omission to make"
-    - "SIG-20260222-loadmanifest-source-repo-path-gap was already in the KB documenting a similar path-resolution issue; the pattern is known but not yet captured in a planning checklist"
+    - The CLAUDE.md rule about always editing npm source directories is clear for .md files but the exception for .sh scripts is documented only in an installer comment -- this is an easy omission to make
+    - SIG-20260222-loadmanifest-source-repo-path-gap was already in the KB documenting a similar path-resolution issue; the pattern is known but not yet captured in a planning checklist
 confidence: high
-confidence_basis: "Auto-fix was logged explicitly in SUMMARY.md with the reason. The plan's files_modified list directly shows the incorrect path. High confidence in both detection and cause."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Auto-fix was logged explicitly in SUMMARY.md with the reason. The plan's files_modified list directly shows the incorrect path. High confidence in both detection and cause.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

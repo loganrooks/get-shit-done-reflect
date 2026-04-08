@@ -2,9 +2,15 @@
 id: sig-2026-04-02-repeated-failure-to-self-signal-cleanup-hygiene
 type: signal
 project: get-shit-done-reflect
-tags: [meta-signal, agent-behavior, git-hygiene, cleanup, recurring-pattern, self-monitoring]
-created: 2026-04-02T19:00:00Z
-updated: 2026-04-02T19:00:00Z
+tags:
+  - meta-signal
+  - agent-behavior
+  - git-hygiene
+  - cleanup
+  - recurring-pattern
+  - self-monitoring
+created: "2026-04-02T19:00:00Z"
+updated: "2026-04-02T19:00:00Z"
 durability: principle
 status: active
 severity: critical
@@ -12,12 +18,16 @@ signal_type: capability-gap
 phase: between-milestones
 plan: 0
 polarity: negative
-source: manual
 occurrence_count: 2
-related_signals: [sig-2026-04-02-agent-failed-to-self-signal-on-failure-cascade, sig-2026-04-02-background-agent-bypassed-quality-gates-broke-global-install, sig-2026-04-02-agent-overwrote-deliberation-without-backup]
+related_signals:
+  - sig-2026-04-02-agent-failed-to-self-signal-on-failure-cascade
+  - sig-2026-04-02-background-agent-bypassed-quality-gates-broke-global-install
+  - sig-2026-04-02-agent-overwrote-deliberation-without-backup
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.18.1
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

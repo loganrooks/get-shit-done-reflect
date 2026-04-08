@@ -3,17 +3,16 @@ id: sig-2026-03-26-core-cjs-modified-in-plan-50-03-execution
 type: signal
 project: get-shit-done-reflect
 tags: [scope-creep, plan-accuracy, summary-accuracy]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: notable
 signal_type: deviation
 signal_category: negative
 phase: 50
-plan: ""
+plan: 
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -27,10 +26,12 @@ evidence:
   counter: []
 confidence: 0.9
 confidence_basis: Direct comparison of plan frontmatter files_modified against git log --name-only output; discrepancy confirmed in two places (wrong plan and inaccurate summary).
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

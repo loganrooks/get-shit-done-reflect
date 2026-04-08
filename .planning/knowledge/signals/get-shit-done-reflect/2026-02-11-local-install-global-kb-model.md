@@ -2,9 +2,14 @@
 id: sig-2026-02-11-local-install-global-kb-model
 type: signal
 project: get-shit-done-reflect
-tags: [install-model, local-install, global-kb, path-resolution, architecture]
-created: 2026-02-11T22:10:00Z
-updated: 2026-02-11T22:10:00Z
+tags:
+  - install-model
+  - local-install
+  - global-kb
+  - path-resolution
+  - architecture
+created: "2026-02-11T22:10:00Z"
+updated: "2026-02-11T22:10:00Z"
 durability: convention
 status: active
 severity: critical
@@ -14,9 +19,10 @@ plan: 0
 runtime: claude-code
 model: claude-opus-4-6
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: [sig-2026-02-11-agent-inline-research-context-bloat]
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

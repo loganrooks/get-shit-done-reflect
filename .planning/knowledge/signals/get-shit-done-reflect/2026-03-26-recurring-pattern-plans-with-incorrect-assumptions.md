@@ -2,18 +2,22 @@
 id: sig-2026-03-26-recurring-pattern-plans-with-incorrect-assumptions
 type: signal
 project: get-shit-done-reflect
-tags: [plan-underspecification, implementation-visibility, auto-fix, recurring-pattern, API-boundary]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - plan-underspecification
+  - implementation-visibility
+  - auto-fix
+  - recurring-pattern
+  - API-boundary
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: notable
 signal_type: struggle
 signal_category: negative
 phase: 50
-plan: ""
+plan: 
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -31,13 +35,15 @@ evidence:
   counter:
     - Plans 02 and 03 executed exactly as written with zero deviations, suggesting the pattern is not universal
     - All deviations were caught and corrected within the same plan execution without escalation
-    - "The fork's internal module structure is complex and not fully documented in plans"
+    - The fork's internal module structure is complex and not fully documented in plans
 confidence: medium
 confidence_basis: Pattern observed across 3 of 5 plans; consistent theme of incorrect internal structure assumptions requiring runtime adaptation
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

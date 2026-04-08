@@ -2,23 +2,29 @@
 id: sig-2026-03-23-missing-home-for-constellation-recommendations
 type: signal
 project: get-shit-done-reflect
-tags: [deliberations, governance, roadmap, workflow-gap, artifact-home, planning-routing]
-created: 2026-03-23T07:00:00Z
-updated: 2026-03-23T07:00:00Z
+tags:
+  - deliberations
+  - governance
+  - roadmap
+  - workflow-gap
+  - artifact-home
+  - planning-routing
+created: "2026-03-23T07:00:00Z"
+updated: "2026-03-23T07:00:00Z"
 durability: convention
 status: active
 severity: notable
 signal_type: custom
-phase: "48"
+phase: 48
 plan: null
 polarity: negative
-source: manual
 occurrence_count: 1
-related_signals:
-  - sig-2026-03-06-planner-deliberation-auto-reference-gap
+related_signals: [sig-2026-03-06-planner-deliberation-auto-reference-gap]
 runtime: codex-cli
 model: gpt-5.4
 gsd_version: 1.17.5+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

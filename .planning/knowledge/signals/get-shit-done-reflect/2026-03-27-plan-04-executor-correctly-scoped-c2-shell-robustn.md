@@ -2,9 +2,14 @@
 id: sig-2026-03-27-plan-04-executor-correctly-scoped-c2-shell-robustn
 type: signal
 project: get-shit-done-reflect
-tags: [surgical-edit, upstream-drift, shell-robustness, executor-judgment, C2]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - surgical-edit
+  - upstream-drift
+  - shell-robustness
+  - executor-judgment
+  - C2
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: principle
 status: active
 severity: minor
@@ -13,7 +18,6 @@ signal_category: positive
 phase: 52
 plan: 4
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -32,10 +36,12 @@ evidence:
     - The plan specified surgical application so this may be expected behavior, not an exceptional positive
 confidence: medium
 confidence_basis: Documented in key-decisions section with specific rationale for each non-patched file
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

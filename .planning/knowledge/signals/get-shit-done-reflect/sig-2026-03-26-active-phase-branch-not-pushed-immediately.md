@@ -2,17 +2,22 @@
 id: sig-2026-03-26-active-phase-branch-not-pushed-immediately
 type: signal
 project: get-shit-done-reflect
-tags: [git-workflow, branch-management, branch-publication, upstream-tracking, traceability, codex]
-created: 2026-03-26T22:05:43Z
-updated: 2026-03-26T22:05:43Z
+tags:
+  - git-workflow
+  - branch-management
+  - branch-publication
+  - upstream-tracking
+  - traceability
+  - codex
+created: "2026-03-26T22:05:43Z"
+updated: "2026-03-26T22:05:43Z"
 durability: convention
 status: active
 severity: notable
 signal_type: deviation
-phase: "49"
+phase: 49
 plan: null
 polarity: negative
-source: manual
 occurrence_count: 5
 related_signals:
   - sig-2026-03-23-phase-stack-complete-but-not-integrated
@@ -20,6 +25,8 @@ related_signals:
 runtime: codex-cli
 model: gpt-5.4
 gsd_version: 1.17.5+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

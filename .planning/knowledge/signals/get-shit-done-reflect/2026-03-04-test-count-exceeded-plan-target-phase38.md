@@ -3,8 +3,8 @@ id: sig-2026-03-04-test-count-exceeded-plan-target-phase38
 type: signal
 project: get-shit-done-reflect
 tags: [testing, deviation]
-created: 2026-03-04T20:00:37Z
-updated: 2026-03-04T20:00:37Z
+created: "2026-03-04T20:00:37Z"
+updated: "2026-03-04T20:00:37Z"
 durability: convention
 status: active
 severity: minor
@@ -13,28 +13,27 @@ signal_category: positive
 phase: 38
 plan: 2
 polarity: positive
-source: auto
 occurrence_count: 2
-related_signals:
-  - sig-2026-02-28-cross-plan-test-count-not-updated
+related_signals: [sig-2026-02-28-cross-plan-test-count-not-updated]
 runtime: claude-code
 model: claude-sonnet-4-6
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-04T20:00:37Z"
 evidence:
   supporting:
-    - "Plan 02 specified 'Aim for 8-10 tests covering the core scenarios'"
-    - "38-02 SUMMARY reports 11 unit tests created"
-  counter:
-    - "The difference (11 vs 8-10) is within a narrow range"
+    - Plan 02 specified 'Aim for 8-10 tests covering the core scenarios'
+    - 38-02 SUMMARY reports 11 unit tests created
+  counter: [The difference (11 vs 8-10) is within a narrow range]
 confidence: high
-confidence_basis: "Plan explicitly states '8-10 tests', SUMMARY confirms 11 tests."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Plan explicitly states '8-10 tests', SUMMARY confirms 11 tests.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

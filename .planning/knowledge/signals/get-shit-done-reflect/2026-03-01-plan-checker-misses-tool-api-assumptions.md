@@ -2,9 +2,14 @@
 id: sig-2026-03-01-plan-checker-misses-tool-api-assumptions
 type: signal
 project: get-shit-done-reflect
-tags: [plan-checker, assumption-verification, second-order-effects, review-gap, planning]
-created: 2026-03-01T22:00:00Z
-updated: 2026-03-02T18:50:00Z
+tags:
+  - plan-checker
+  - assumption-verification
+  - second-order-effects
+  - review-gap
+  - planning
+created: "2026-03-01T22:00:00Z"
+updated: "2026-03-02T18:50:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,7 +18,6 @@ signal_category: negative
 phase: 34
 plan: 0
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -25,24 +29,26 @@ lifecycle_log:
   - "detected->triaged by reflector at 2026-03-02T18:50:00Z: address -- part of plan checker capability gap cluster"
 evidence:
   supporting:
-    - "Plan 34-03 Task 1 uses `frontmatter extract` subcommand which does not exist in gsd-tools.js (only get/set/merge/validate exist)"
-    - "Field-not-found from `frontmatter get --field` returns error JSON that passes emptiness checks, would affect every future plan execution"
-    - "Plan checker verified all 4 plans as PASSED without catching either issue"
-    - "No second-order analysis performed by plan checker (triage-remediate-recur loops, context budget pressure, step ordering fragility)"
+    - Plan 34-03 Task 1 uses `frontmatter extract` subcommand which does not exist in gsd-tools.js (only get/set/merge/validate exist)
+    - Field-not-found from `frontmatter get --field` returns error JSON that passes emptiness checks, would affect every future plan execution
+    - Plan checker verified all 4 plans as PASSED without catching either issue
+    - No second-order analysis performed by plan checker (triage-remediate-recur loops, context budget pressure, step ordering fragility)
   counter:
-    - "Plan checker focuses on structural validation (requirement coverage, dependency DAG, file ownership) which it does well"
-    - "Tool API verification may be out of scope for a plan checker that doesn't execute code"
+    - Plan checker focuses on structural validation (requirement coverage, dependency DAG, file ownership) which it does well
+    - Tool API verification may be out of scope for a plan checker that doesn't execute code
 confidence: high
-confidence_basis: "Directly observed during manual review -- both the wrong subcommand and the error JSON handling gap were confirmed against actual gsd-tools.js source code"
+confidence_basis: Directly observed during manual review -- both the wrong subcommand and the error JSON handling gap were confirmed against actual gsd-tools.js source code
 triage:
   decision: address
-  rationale: "Part of plan checker capability gap cluster. Tool API assumptions are verifiable without execution (grep for command in tool source). Clear enhancement path."
+  rationale: Part of plan checker capability gap cluster. Tool API assumptions are verifiable without execution (grep for command in tool source). Clear enhancement path.
   priority: high
   by: reflector
   at: "2026-03-02T18:50:00Z"
-remediation: {}
-verification: {}
-recurrence_of: ""
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

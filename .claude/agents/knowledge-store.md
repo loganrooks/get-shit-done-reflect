@@ -1,7 +1,7 @@
 ---
 name: knowledge-store
 description: Complete reference specification for the GSD persistent knowledge store. Defines file formats, directory layout, schemas, naming conventions, indexing, lifecycle, and concurrency for all knowledge base operations.
-version: 2.0.0
+version: 2.1.0
 ---
 
 # Knowledge Store Reference
@@ -143,13 +143,18 @@ Added to frontmatter alongside common base fields:
 | `severity` | enum | yes | `critical`, `notable`, `minor`, or `trace` |
 | `signal_type` | enum | yes | `deviation`, `struggle`, `config-mismatch`, `capability-gap`, `epistemic-gap`, `baseline`, `improvement`, `good-pattern`, or `custom` |
 | `signal_category` | enum | no | `positive` or `negative` (defaults to `negative` for backward compatibility). This is the authoritative field for positive/negative classification. `polarity` is retained for backward compatibility but `signal_category` takes precedence when both are present. New signals MUST set both fields consistently. |
+| `response_disposition` | enum | no | `fix`, `formalize`, `monitor`, or `investigate`. Describes how the signal should be responded to. Some signals already carry this field (e.g., `response_disposition: formalize`). |
 | `phase` | number | no | Phase number where signal was captured |
 | `plan` | number | no | Plan number where signal was captured |
 | `polarity` | enum | no | `positive`, `negative`, or `neutral` (retained for backward compatibility; see `signal_category`) |
-| `source` | enum | no | `auto` or `manual` |
+| `source` | enum | no | DEPRECATED — use `detection_method` + `origin` instead. Retained for backward compatibility during migration. Was `auto` or `manual`. |
 | `occurrence_count` | number | no | Times this signal pattern has occurred (default: 1) |
 | `related_signals` | array | no | IDs of related signals for cross-referencing |
-| `lifecycle_state` | enum | no | Current lifecycle state: `detected`, `triaged`, `remediated`, `verified`, or `invalidated` (default: `detected`). Top-level field for index grep compatibility. |
+| `qualified_by` | array | no | Array of signal or spike IDs that qualify this signal's interpretation. Enables cross-signal and cross-spike references. |
+| `superseded_by` | string | no | Single signal ID that supersedes this signal. When set, this signal is considered replaced by the referenced signal. |
+| `detection_method` | enum | no | `manual`, `automated`, `sensor-artifact`, `sensor-git`, `sensor-ci`, `sensor-log`, or `unknown`. Richer detection provenance than the deprecated `source` field. |
+| `origin` | string | no | Freeform string identifying the specific tool or observation source (e.g., `user-observation`, `collect-signals`, `deliberation-trigger`, `plan-summary`). Richer origin tracking than the deprecated `source` field. |
+| `lifecycle_state` | enum | no | Current lifecycle state: `detected`, `triaged`, `blocked`, `remediated`, `verified`, or `invalidated` (default: `detected`). Top-level field for index grep compatibility. |
 | `lifecycle_log` | array | no | Array of quoted strings recording state transitions (default: `[]`). Entries MUST be quoted strings in YAML to protect special characters (colons, arrows). Example: `- "detected->triaged by reflector at 2026-02-28T10:00:00Z: rationale"` |
 | `evidence` | object | conditional | Contains `supporting` (array of strings) and `counter` (array of strings). Default: `{}`. REQUIRED when severity is `critical`. RECOMMENDED when severity is `notable`. OPTIONAL for `minor`. Not applicable for `trace` (not persisted to KB). |
 | `confidence` | enum | no | `high`, `medium`, or `low` (default: `medium`) |
@@ -185,12 +190,16 @@ Signals follow a lifecycle from detection through resolution. The lifecycle stat
                     +--> invalidated (terminal, with audit)
                     |
 detected --> triaged --> remediated --> verified
-   ^           |            |              |
+   ^           |    \        |              |
+   |           |     \       |              |
+   |           |      +--> blocked          |
    |           |            |              |
    +-----------+            +--------------+
    (regression: recurrence    (regression: recurrence
     resets to detected)        resets to detected)
 ```
+
+`blocked` is an optional holding state entered from `triaged` when an external blocker prevents remediation. When the blocker resolves, the signal returns to `triaged`.
 
 **State transitions:**
 
@@ -200,8 +209,10 @@ detected --> triaged --> remediated --> verified
 | detected | triaged | Triage decision made | reflector, human |
 | detected | invalidated | Counter-evidence overwhelms supporting | reflector, human |
 | triaged | remediated | Plan with resolves_signals completes | executor (auto), human |
+| triaged | blocked | External blocker identified | reflector, human |
 | triaged | detected | (regression) Recurrence detected | synthesizer |
 | triaged | invalidated | Counter-evidence overwhelms supporting | reflector, human |
+| blocked | triaged | Blocker resolved | reflector, human |
 | remediated | verified | Verification criteria met | synthesizer (passive), human |
 | remediated | detected | (regression) Recurrence detected | synthesizer |
 | verified | detected | (regression) Recurrence detected (severity escalated) | synthesizer |
@@ -541,12 +552,16 @@ The index at `.planning/knowledge/index.md` (or `~/.gsd/knowledge/index.md` fall
 FROZEN fields (detection payload -- never modified after creation):
 - `id`, `type`, `project`, `tags`, `created`, `durability`
 - `severity` (initial sensor assessment), `signal_type`, `signal_category`
-- `phase`, `plan`, `polarity`, `source`
-- `occurrence_count`, `related_signals`
+- `phase`, `plan`, `polarity`
+- `occurrence_count`, `related_signals`, `qualified_by`, `superseded_by`
+- `detection_method`, `origin`
 - `runtime`, `model`, `gsd_version`
 - `evidence.supporting` (initial), `evidence.counter` (initial)
 - `confidence` (initial), `confidence_basis` (initial)
 - `recurrence_of`
+
+DEPRECATED fields (retained for backward compatibility, do not set on new signals):
+- `source` -- DEPRECATED in v2.1.0. Use `detection_method` + `origin` instead. Retained so existing signals remain valid during migration. Run `gsd-tools kb migrate` to convert.
 
 MUTABLE fields (lifecycle -- modified by authorized agents):
 - `lifecycle_state`, `lifecycle_log`
@@ -613,7 +628,7 @@ MUTABLE fields (lifecycle -- modified by authorized agents):
 
 ---
 
-*Specification version: 2.0.0*
+*Specification version: 2.1.0*
 *Created: 2026-02-02*
-*Updated: 2026-02-28*
-*Phase: 01-knowledge-store (base), 31-signal-schema-foundation (lifecycle, epistemic, mutability, positive signals), 34-signal-plan-linkage (resolves_signals, verification_window, recurrence)*
+*Updated: 2026-04-08*
+*Phase: 01-knowledge-store (base), 31-signal-schema-foundation (lifecycle, epistemic, mutability, positive signals), 34-signal-plan-linkage (resolves_signals, verification_window, recurrence), 56-kb-schema-sqlite-foundation (response_disposition, qualified_by, superseded_by, detection_method, origin, blocked lifecycle state, source deprecation)*

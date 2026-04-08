@@ -2,9 +2,20 @@
 id: sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift
 type: signal
 project: get-shit-done-reflect
-tags: [migration,upgrade-project,config,local-install,global-install,knowledge-base,cross-runtime,codex,claude,hooks,path-resolution]
-created: 2026-03-20T22:15:00Z
-updated: 2026-03-20T22:15:00Z
+tags:
+  - migration
+  - upgrade-project
+  - config
+  - local-install
+  - global-install
+  - knowledge-base
+  - cross-runtime
+  - codex
+  - claude
+  - hooks
+  - path-resolution
+created: "2026-03-20T22:15:00Z"
+updated: "2026-03-20T22:15:00Z"
 durability: principle
 status: active
 severity: critical
@@ -12,26 +23,31 @@ signal_type: capability-gap
 phase: 48
 plan:
 polarity: negative
-source: manual
 occurrence_count: 1
-related_signals: [sig-2026-02-11-local-install-global-kb-model, sig-2026-03-17-no-platform-change-detection, sig-2026-03-19-stale-platform-claims-in-source, sig-2026-03-04-quality-profile-executor-model-unverifiable-phase38]
+related_signals:
+  - sig-2026-02-11-local-install-global-kb-model
+  - sig-2026-03-17-no-platform-change-detection
+  - sig-2026-03-19-stale-platform-claims-in-source
+  - sig-2026-03-04-quality-profile-executor-model-unverifiable-phase38
 runtime: codex-cli
 model: gpt-5.4
 gsd_version: 1.17.5+dev
 lifecycle_state: detected
 signal_category: negative
 confidence: high
-confidence_basis: "Direct inspection of installed Codex and Claude runtimes, multiple project configs, upgrade workflow, config template, KB resolution rules, and live workspace KB layouts."
+confidence_basis: Direct inspection of installed Codex and Claude runtimes, multiple project configs, upgrade workflow, config template, KB resolution rules, and live workspace KB layouts.
 evidence:
   supporting:
-    - "Version-migration spec still treats SessionStart hook detection as primary, but Codex runtime has no hook support."
-    - "Codex skills/workflows still hardcode global install paths and at least one skill hardcodes writes to ~/.gsd/knowledge."
-    - "Project-local KB creation is tied to installer execution when .planning already exists, not guaranteed by new-project or upgrade-project."
-    - "Multiple projects with .planning/config.json still lack .planning/knowledge and have project signals under ~/.gsd/knowledge."
-    - "Some projects have both local and global signal histories, showing that local KB activation is not a complete or authoritative transition."
+    - Version-migration spec still treats SessionStart hook detection as primary, but Codex runtime has no hook support.
+    - Codex skills/workflows still hardcode global install paths and at least one skill hardcodes writes to ~/.gsd/knowledge.
+    - Project-local KB creation is tied to installer execution when .planning already exists, not guaranteed by new-project or upgrade-project.
+    - Multiple projects with .planning/config.json still lack .planning/knowledge and have project signals under ~/.gsd/knowledge.
+    - Some projects have both local and global signal histories, showing that local KB activation is not a complete or authoritative transition.
   counter:
-    - "Manifest-driven config migration does correctly detect many additive config gaps."
-    - "Claude installs do have a working version-check hook and cache path."
+    - Manifest-driven config migration does correctly detect many additive config gaps.
+    - Claude installs do have a working version-check hook and cache path.
+detection_method: manual
+origin: user-observation
 ---
 
 # Cross-runtime upgrade, install precedence, and KB activation drift remain unmanaged

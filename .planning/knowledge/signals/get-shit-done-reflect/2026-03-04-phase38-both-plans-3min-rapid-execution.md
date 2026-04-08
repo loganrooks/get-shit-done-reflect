@@ -3,8 +3,8 @@ id: sig-2026-03-04-phase38-both-plans-3min-rapid-execution
 type: signal
 project: get-shit-done-reflect
 tags: [performance, deviation]
-created: 2026-03-04T20:00:37Z
-updated: 2026-03-04T20:00:37Z
+created: "2026-03-04T20:00:37Z"
+updated: "2026-03-04T20:00:37Z"
 durability: convention
 status: active
 severity: notable
@@ -13,12 +13,11 @@ signal_category: positive
 phase: 38
 plan: 1
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-sonnet-4-6
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-04T20:00:37Z"
@@ -26,16 +25,18 @@ evidence:
   supporting:
     - "38-01 SUMMARY: duration: 3min for rewriting collect-signals.md workflow and updating feature-manifest.json"
     - "38-02 SUMMARY: duration: 3min for retrofitting 3 sensor specs, adding 2 CLI commands, creating 11 unit tests"
-    - "10/10 verification pass on first attempt for both plans"
+    - 10/10 verification pass on first attempt for both plans
   counter:
-    - "Duration is self-reported in SUMMARY.md frontmatter"
-    - "Short duration could reflect highly prescribed plans reducing cognitive load"
+    - Duration is self-reported in SUMMARY.md frontmatter
+    - Short duration could reflect highly prescribed plans reducing cognitive load
 confidence: medium
-confidence_basis: "Duration is self-reported. Plans were highly detailed (pseudocode provided), which likely explains rapid execution."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Duration is self-reported. Plans were highly detailed (pseudocode provided), which likely explains rapid execution.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

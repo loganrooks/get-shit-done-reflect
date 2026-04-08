@@ -2,9 +2,14 @@
 id: sig-2026-03-01-comprehensive-verification-with-line-evidence
 type: signal
 project: get-shit-done-reflect
-tags: [verification, evidence-quality, good-pattern, phase-completion, must-haves]
-created: 2026-03-01T19:00:03Z
-updated: 2026-03-01T19:00:03Z
+tags:
+  - verification
+  - evidence-quality
+  - good-pattern
+  - phase-completion
+  - must-haves
+created: "2026-03-01T19:00:03Z"
+updated: "2026-03-01T19:00:03Z"
 durability: convention
 status: active
 severity: notable
@@ -13,13 +18,11 @@ signal_category: positive
 phase: 33
 plan: 0
 polarity: positive
-source: auto
 occurrence_count: 1
-related_signals:
-  - sig-2026-02-28-verification-drives-gap-closure-plan
+related_signals: [sig-2026-02-28-verification-drives-gap-closure-plan]
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.15.6+dev"
+gsd_version: 1.15.6+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-01T19:00:03Z"
@@ -31,14 +34,16 @@ evidence:
     - "33-VERIFICATION.md: 5 human verification items explicitly documented with test steps, expected outcomes, and rationale for why human is needed"
     - "33-VERIFICATION.md: Anti-patterns section confirms no TODO/FIXME/PLACEHOLDER in any source file"
   counter:
-    - "Phase 33 builds were agent specs and documentation, not code. Verification of documentation correctness is simpler than verification of code behavior."
-    - "The 5 human verification items remain unvalidated at the time of verification report generation."
+    - Phase 33 builds were agent specs and documentation, not code. Verification of documentation correctness is simpler than verification of code behavior.
+    - The 5 human verification items remain unvalidated at the time of verification report generation.
 confidence: high
-confidence_basis: "VERIFICATION.md is directly observable. 25/25 truths with line numbers is a high-quality verification artifact. Counter-evidence notes that documentation verification is inherently simpler than code verification."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: VERIFICATION.md is directly observable. 25/25 truths with line numbers is a high-quality verification artifact. Counter-evidence notes that documentation verification is inherently simpler than code verification.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

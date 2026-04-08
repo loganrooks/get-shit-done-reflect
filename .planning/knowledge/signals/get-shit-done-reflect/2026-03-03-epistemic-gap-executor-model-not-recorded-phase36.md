@@ -3,8 +3,8 @@ id: sig-2026-03-03-epistemic-gap-executor-model-not-recorded-phase36
 type: signal
 project: get-shit-done-reflect
 tags: [config, deviation]
-created: 2026-03-03T00:00:00Z
-updated: 2026-03-03T00:00:00Z
+created: "2026-03-03T00:00:00Z"
+updated: "2026-03-03T00:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,7 +13,6 @@ signal_category: negative
 phase: 36
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 2
 related_signals:
   - sig-2026-03-02-summary-md-lacks-executor-model-provenance
@@ -29,11 +28,13 @@ evidence:
   supporting: []
   counter: []
 confidence: low
-confidence_basis: "Low confidence by design -- flagging absence of evidence, not presence of a problem"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Low confidence by design -- flagging absence of evidence, not presence of a problem
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

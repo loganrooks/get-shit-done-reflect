@@ -21,6 +21,11 @@ tests/benchmarks/results.json
 # Reentrancy lockfiles
 .planning/.*.lock
 
+# KB SQLite index (derived cache -- rebuildable from signal files)
+.planning/knowledge/kb.db
+.planning/knowledge/kb.db-shm
+.planning/knowledge/kb.db-wal
+
 # Internal planning documents
 reports/
 RAILROAD_ARCHITECTURE.md

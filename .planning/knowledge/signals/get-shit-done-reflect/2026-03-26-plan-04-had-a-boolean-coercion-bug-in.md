@@ -2,9 +2,13 @@
 id: sig-2026-03-26-plan-04-had-a-boolean-coercion-bug-in
 type: signal
 project: get-shit-done-reflect
-tags: [boolean-coercion, assertion-bug, auto-fix, vitest]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - boolean-coercion
+  - assertion-bug
+  - auto-fix
+  - vitest
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,7 +17,6 @@ signal_category: negative
 phase: 50
 plan: 4
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -25,16 +28,18 @@ lifecycle_log:
 evidence:
   supporting:
     - "50-04-SUMMARY.md Auto-fix 2: 'automationFeature.schema.reflection returns an object (the schema definition), which when used in || expression produced the object rather than true, causing .toBe(true) to fail'"
-    - "Fix required adding !! coercion to convert truthy object to boolean"
+    - Fix required adding !! coercion to convert truthy object to boolean
   counter:
     - This is a common JavaScript truthiness pitfall and was caught at verification time before commit
-    - "The fix is minimal (adding !!)"
+    - The fix is minimal (adding !!)
 confidence: high
 confidence_basis: Directly documented in SUMMARY auto-fix section with exact cause
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

@@ -2,9 +2,13 @@
 id: sig-2026-03-06-reflection-counter-comment-code-mismatch
 type: signal
 project: get-shit-done-reflect
-tags: [code-quality, comment-accuracy, gsd-tools, reflection-counter]
-created: 2026-03-06T23:30:00Z
-updated: 2026-03-06T23:30:00Z
+tags:
+  - code-quality
+  - comment-accuracy
+  - gsd-tools
+  - reflection-counter
+created: "2026-03-06T23:30:00Z"
+updated: "2026-03-06T23:30:00Z"
 durability: convention
 status: active
 severity: minor
@@ -12,12 +16,11 @@ signal_type: deviation
 signal_category: negative
 phase: 42
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-06T23:30:00Z"
@@ -25,13 +28,15 @@ evidence:
   supporting:
     - "42-VERIFICATION.md Anti-Patterns: 'check action writes config.json (initializes defaults) even though comment says reads only'"
   counter:
-    - "Verifier classified this as 'Info' severity and 'Non-blocking'"
+    - Verifier classified this as 'Info' severity and 'Non-blocking'
 confidence: high
-confidence_basis: ""
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: 
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

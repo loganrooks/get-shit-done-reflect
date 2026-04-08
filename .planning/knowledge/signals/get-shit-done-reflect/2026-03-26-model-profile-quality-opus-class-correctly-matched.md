@@ -3,17 +3,16 @@ id: sig-2026-03-26-model-profile-quality-opus-class-correctly-matched
 type: signal
 project: get-shit-done-reflect
 tags: [config, model-profile]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
 signal_type: baseline
 signal_category: positive
 phase: 51
-plan: ""
+plan: 
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -31,10 +30,12 @@ evidence:
   counter: []
 confidence: high
 confidence_basis: All three SUMMARY.md frontmatter model fields explicitly state claude-opus-4-6, which is opus-class, matching the quality profile expectation in config.json.
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

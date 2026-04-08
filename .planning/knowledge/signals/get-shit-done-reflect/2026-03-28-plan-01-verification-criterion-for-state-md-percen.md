@@ -2,9 +2,13 @@
 id: sig-2026-03-28-plan-01-verification-criterion-for-state-md-percen
 type: signal
 project: get-shit-done-reflect
-tags: [state-sync, deviation, workflow, plan-accuracy]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - state-sync
+  - deviation
+  - workflow
+  - plan-accuracy
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,9 +17,12 @@ signal_category: negative
 phase: 54
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 2
-related_signals: [sig-2026-02-23-installer-clobbers-force-tracked-files, sig-2026-03-07-plan-files-modified-lists-unnecessary-change, sig-2026-02-28-sh-script-path-not-in-agents-dir, sig-2026-02-28-cross-plan-test-count-not-updated]
+related_signals:
+  - sig-2026-02-23-installer-clobbers-force-tracked-files
+  - sig-2026-03-07-plan-files-modified-lists-unnecessary-change
+  - sig-2026-02-28-sh-script-path-not-in-agents-dir
+  - sig-2026-02-28-cross-plan-test-count-not-updated
 runtime: claude-code
 model: claude-sonnet-4-6
 gsd_version: 1.17.5+dev
@@ -30,7 +37,7 @@ evidence:
     - This silent absorption means the commit history does not cleanly separate the planned work from the pre-existing drift
     - "54-01-SUMMARY.md Deviations: 'STATE.md had pre-existing dirty state from a prior session (frontmatter differed from committed version). This was incorporated into the Task 2 commit rather than treated as a separate concern.'"
   counter:
-    - "The 86% figure is accurate and reflects the real state of affairs"
+    - The 86% figure is accurate and reflects the real state of affairs
     - "Verification file (54-VERIFICATION.md) confirmed SC-2 satisfied: 'STATE.md: percent 100, status complete, completed_plans 37' (updated to 100% by Plan 05)"
     - Executor correctly identified and recorded the discrepancy rather than silently setting an incorrect value
     - The resulting STATE.md content was still accurate
@@ -38,10 +45,12 @@ evidence:
     - No test regressions or downstream issues resulted
 confidence: high
 confidence_basis: Explicit deviation recorded in SUMMARY.md with clear root cause explanation; executor reasoning is well-documented
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

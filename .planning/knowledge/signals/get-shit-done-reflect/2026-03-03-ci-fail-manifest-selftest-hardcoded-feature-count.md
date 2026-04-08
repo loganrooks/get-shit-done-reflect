@@ -2,22 +2,31 @@
 id: sig-2026-03-03-ci-fail-manifest-selftest-hardcoded-feature-count
 type: signal
 project: get-shit-done-reflect
-tags: [ci, testing, deviation, manifest, test-suite-gap, verify-step]
-created: 2026-03-03T18:30:00Z
-updated: 2026-04-02T20:00:00Z
+tags:
+  - ci
+  - testing
+  - deviation
+  - manifest
+  - test-suite-gap
+  - verify-step
+created: "2026-03-03T18:30:00Z"
+updated: "2026-04-02T20:00:00Z"
 durability: convention
 status: remediated
 severity: critical
 signal_type: deviation
 phase: 37
-plan: "01-03"
+plan: 01-03
 polarity: negative
-source: manual
 occurrence_count: 1
-related_signals: [sig-2026-03-03-ci-green-unconfirmed-fix-commits-local-only, sig-2026-03-02-ci-failures-ignored-throughout-v116]
+related_signals:
+  - sig-2026-03-03-ci-green-unconfirmed-fix-commits-local-only
+  - sig-2026-03-02-ci-failures-ignored-throughout-v116
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.16.0+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

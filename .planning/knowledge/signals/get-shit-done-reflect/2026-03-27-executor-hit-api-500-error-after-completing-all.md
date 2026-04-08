@@ -2,9 +2,13 @@
 id: sig-2026-03-27-executor-hit-api-500-error-after-completing-all
 type: signal
 project: get-shit-done-reflect
-tags: [api-error, orchestrator-recovery, executor-disruption, hooks]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - api-error
+  - orchestrator-recovery
+  - executor-disruption
+  - hooks
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,7 +17,6 @@ signal_category: negative
 phase: 52
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -31,10 +34,12 @@ evidence:
     - The orchestrator-written SUMMARY is complete and accurate; no information gap detected
 confidence: high
 confidence_basis: Explicitly stated in the SUMMARY deviations section; pattern of API 500 mid-execution is a concrete runtime event
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

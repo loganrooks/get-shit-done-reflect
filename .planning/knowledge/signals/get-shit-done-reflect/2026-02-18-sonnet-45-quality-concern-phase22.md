@@ -3,8 +3,8 @@ id: sig-2026-02-18-sonnet-45-quality-concern-phase22
 type: signal
 project: get-shit-done-reflect
 tags: [model-selection, quality, extraction]
-created: 2026-02-18T16:00:00Z
-updated: 2026-02-18T16:00:00Z
+created: "2026-02-18T16:00:00Z"
+updated: "2026-02-18T16:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +12,13 @@ signal_type: struggle
 phase: 22
 plan: 0
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: [sig-2026-02-18-task-tool-model-enum-no-sonnet-46]
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.12.2
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

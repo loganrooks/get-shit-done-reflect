@@ -2,9 +2,14 @@
 id: sig-2026-03-01-deferred-uat-checkpoint-pattern
 type: signal
 project: get-shit-done-reflect
-tags: [deferred-uat, human-verify, phase-completion, workflow, checkpoint]
-created: 2026-03-01T19:00:04Z
-updated: 2026-03-01T19:00:04Z
+tags:
+  - deferred-uat
+  - human-verify
+  - phase-completion
+  - workflow
+  - checkpoint
+created: "2026-03-01T19:00:04Z"
+updated: "2026-03-01T19:00:04Z"
 durability: convention
 status: active
 severity: minor
@@ -13,12 +18,11 @@ signal_category: positive
 phase: 33
 plan: 4
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.15.6+dev"
+gsd_version: 1.15.6+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-01T19:00:04Z"
@@ -28,11 +32,13 @@ evidence:
     - "33-04-SUMMARY.md patterns-established: 'Deferred UAT: human verification checkpoints that cannot be automated are explicitly deferred to /gsd:verify-work rather than leaving phase incomplete'"
   counter: []
 confidence: medium
-confidence_basis: "Pattern is documented in one plan summary. Needs additional instances to confirm it is a reusable pattern vs a one-off decision."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Pattern is documented in one plan summary. Needs additional instances to confirm it is a reusable pattern vs a one-off decision.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

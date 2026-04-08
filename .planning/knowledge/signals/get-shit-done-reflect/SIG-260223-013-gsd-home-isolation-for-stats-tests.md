@@ -5,9 +5,10 @@ type: struggle
 severity: notable
 polarity: negative
 phase: 26
-source: 26-03-SUMMARY.md
 status: open
 tags: [testing, isolation, environment]
+detection_method: automated
+origin: plan-summary
 ---
 
 # GSD_HOME isolation required for stats/global-directory tests

@@ -3,8 +3,8 @@ id: sig-2026-03-02-first-spike-full-lifecycle-completed
 type: signal
 project: get-shit-done-reflect
 tags: [deviation, testing]
-created: 2026-03-02T00:00:00Z
-updated: 2026-03-02T00:00:00Z
+created: "2026-03-02T00:00:00Z"
+updated: "2026-03-02T00:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,29 +13,30 @@ signal_category: positive
 phase: 35
 plan: 3
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-sonnet-4-6
-gsd_version: "1.15.6+dev"
+gsd_version: 1.15.6+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-02T00:00:00Z"
 evidence:
   supporting:
-    - "Plan 03 SUMMARY states spike 002 was the first spike to complete the full lifecycle"
+    - Plan 03 SUMMARY states spike 002 was the first spike to complete the full lifecycle
     - "KB entry confirmed: spk-2026-03-01-claude-code-session-log-location"
     - "VERIFICATION.md truth #7 VERIFIED with commit 93594f5"
   counter:
     - "Spike was executed manually, not via the /gsd:spike command"
-    - "Only one spike completed -- single data point for lifecycle validation"
+    - Only one spike completed -- single data point for lifecycle validation
 confidence: high
-confidence_basis: "Multiple independent artifacts confirm the milestone"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Multiple independent artifacts confirm the milestone
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

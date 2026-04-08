@@ -2,9 +2,15 @@
 id: sig-2026-03-28-offer-next-skips-pr-workflow
 type: signal
 project: get-shit-done-reflect
-tags: [git-workflow, phase-transition, offer-next, workflow-spec, devops, pr-workflow]
-created: 2026-03-28T07:15:00Z
-updated: 2026-03-28T07:15:00Z
+tags:
+  - git-workflow
+  - phase-transition
+  - offer-next
+  - workflow-spec
+  - devops
+  - pr-workflow
+created: "2026-03-28T07:15:00Z"
+updated: "2026-03-28T07:15:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +18,16 @@ signal_type: deviation
 phase: 53
 plan: 04
 polarity: negative
-source: manual
 occurrence_count: 4
-related_signals: [sig-2026-03-23-phase-stack-complete-but-not-integrated, sig-2026-03-26-active-phase-branch-not-pushed-immediately, sig-2026-03-03-post-merge-cleanup-not-automatic]
+related_signals:
+  - sig-2026-03-23-phase-stack-complete-but-not-integrated
+  - sig-2026-03-26-active-phase-branch-not-pushed-immediately
+  - sig-2026-03-03-post-merge-cleanup-not-automatic
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.17.5+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

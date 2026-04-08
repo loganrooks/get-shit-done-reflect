@@ -2,24 +2,31 @@
 id: sig-2026-03-02-ci-failures-ignored-throughout-v116
 type: signal
 project: get-shit-done-reflect
-tags: [ci, branch-protection, workflow-bypass, wiring-test, dual-directory, critical-process-failure]
-created: 2026-03-02T21:00:00Z
-updated: 2026-04-02T22:00:00Z
+tags:
+  - ci
+  - branch-protection
+  - workflow-bypass
+  - wiring-test
+  - dual-directory
+  - critical-process-failure
+created: "2026-03-02T21:00:00Z"
+updated: "2026-04-02T22:00:00Z"
 severity: critical
 signal_type: deviation
 signal_category: negative
 lifecycle_state: remediated
 confidence: high
-confidence_basis: "5 consecutive CI failures visible in gh run list, all showing same wiring-validation.test.js failure"
+confidence_basis: 5 consecutive CI failures visible in gh run list, all showing same wiring-validation.test.js failure
 evidence:
   supporting:
-    - "5 consecutive failures from 2026-03-01 to 2026-03-02 (test(33) through chore(v1.16 milestone))"
+    - 5 consecutive failures from 2026-03-01 to 2026-03-02 (test(33) through chore(v1.16 milestone))
     - "Branch protection bypass messages in every push: 'Bypassed rule violations for refs/heads/main'"
     - "Root cause: wiring-validation.test.js checks .claude/agents/ which doesn't exist in CI"
-    - "Last successful CI was v1.15.6 release on 2026-02-26"
+    - Last successful CI was v1.15.6 release on 2026-02-26
   counter: []
 phase: 35
-source: manual
+detection_method: manual
+origin: user-observation
 ---
 
 ## CI Failures Ignored Throughout v1.16 Milestone

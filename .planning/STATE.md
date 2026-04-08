@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: planning
-stopped_at: Phase 55 complete -- verification passed 4/4 must-haves. Ready to plan Phase 56.
-last_updated: "2026-04-08T21:00:00.000Z"
-last_activity: 2026-04-08 -- Phase 55 complete (4 plans, 661 tests pass, verification passed)
+stopped_at: Phase 56 complete -- verification passed 5/5. Ready to plan Phase 57.
+last_updated: "2026-04-08T23:00:00.000Z"
+last_activity: 2026-04-08 -- Phase 56 complete (3 plans, 467 tests pass, verification passed)
 progress:
   total_phases: 10
-  completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
-  percent: 10
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 7
+  percent: 20
 ---
 
 # Project State
@@ -21,26 +21,29 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 56 -- KB Schema & SQLite Foundation (ready to plan)
+**Current focus:** v1.20 Phase 57 -- Measurement & Telemetry Baseline (ready to plan)
 
 ## Current Position
 
-Phase: 56 of 64 (KB Schema & SQLite Foundation)
+Phase: 57 of 64 (Measurement & Telemetry Baseline)
 Plan: --
 Status: Ready to plan
-Last activity: 2026-04-08 -- Phase 55 complete
+Last activity: 2026-04-08 -- Phase 56 complete
 
-Progress: [█.........] 10%
+Progress: [██........] 20%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 4
+- Plans completed: 7
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
 - 55-04: 6min, 2 tasks, 4 files
+- 56-01: 6min, 3 tasks, 5 files
+- 56-02: 5min, 2 tasks, 3 files
+- 56-03: 10min, 2 tasks, 1 file
 
 **v1.18 Final:**
 
@@ -76,6 +79,16 @@ Recent decisions affecting current work:
 - [55-03]: buildLocalHookCommand: $CLAUDE_PROJECT_DIR anchor (#1906) combined with existing test -f worktree guard -- both protections active
 - [55-03]: uninstall per-hook granularity: isGsdrHookCommand covers both gsdr- (current) and gsd- (legacy) namespaces
 - [Phase 55-04]: gsd-tools.test.js: upstream path does not exist at f7549d43; restored fork version and added 9 correctness regression tests inline adapted from upstream atomic-write, locking, frontmatter test files
+- [56-01]: KB-01 lifecycle states corrected to Phase 31 model (detected/triaged/blocked/remediated/verified/invalidated); KB-01 draft used task/issue states (proposed/in_progress) which conflicted with all existing implementation
+- [56-01]: blocked added as optional lifecycle state between triaged and remediated -- compatible with Phase 31 model, useful for signals with external blockers
+- [56-01]: node:sqlite lazy-required via getDbSync() in kb.cjs -- prevents gsd-tools.cjs failing on Node <22.5.0 for non-KB commands (RESEARCH.md Pitfall 7)
+- [56-01]: source field deprecated in knowledge-store.md v2.1.0; detection_method + origin replace it with richer provenance semantics
+- [56-01]: kb.db gitignored per KB-05 dual-write invariant -- SQLite is derived cache, files are source of truth
+- [56-02]: Router case 'kb' and require('./lib/kb.cjs') were already wired during Plan 01 deviation -- Plan 02 added only the missing usage message entry
+- [56-02]: package.json engines.node bumped from >=16.7.0 to >=22.5.0; CHANGELOG.md Unreleased documents breaking change per KB-11
+- [56-02]: kb rebuild validated end-to-end: 200 files (199 signals + 1 spike), 0 errors, all 4 schema generations handled
+- [Phase 56-03]: Task 2 migration carry-forward: migration was pre-completed in Plan 02 (183 files), Task 2 became validation-only
+- [Phase 56-03]: Dual-write invariant proven on real 200-file corpus: delete kb.db + rebuild produces identical counts (199 signals, 1 spike, 0 errors)
 
 ### Pending Todos
 
@@ -99,6 +112,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-08
-Stopped at: Phase 55 complete. Verification passed 4/4. Ready to plan Phase 56.
+Last session: 2026-04-08T22:00:41.666Z
+Stopped at: Completed 56-03-PLAN.md
 Resume file: None

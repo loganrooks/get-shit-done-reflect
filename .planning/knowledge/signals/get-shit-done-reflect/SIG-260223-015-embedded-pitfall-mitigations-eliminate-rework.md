@@ -5,9 +5,10 @@ type: positive_pattern
 severity: notable
 polarity: positive
 phase: 27
-source: 27-02-PLAN.md, 27-02-SUMMARY.md
 status: resolved
 tags: [planning, tdd, pitfall-mitigation]
+detection_method: automated
+origin: plan-summary
 ---
 
 # Embedded pitfall mitigations in plans eliminate rework

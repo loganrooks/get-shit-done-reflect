@@ -23,11 +23,11 @@
 
 Dependencies: KB-09 -> KB-04a -> KB-04b/KB-04c -> KB-07 -> KB-08
 
-- [ ] **KB-01**: Signal schema supports lifecycle states (proposed -> in_progress -> blocked -> verified -> remediated) with transition validation
+- [x] **KB-01**: Signal schema supports lifecycle states (detected -> triaged -> blocked -> remediated -> verified -> invalidated) with transition validation. `blocked` is an optional holding state between triaged and remediated; all other states follow the Phase 31 model
   - *Motivation:* `signal: sig-2026-03-04-signal-lifecycle-representation-gap` | `pattern: R11 -- 0% remediation rate, 171/187 stuck in active`
-- [ ] **KB-02**: Signal schema supports polarity (negative/positive/mixed) and response disposition (fix/formalize/monitor/investigate)
+- [x] **KB-02**: Signal schema supports polarity (negative/positive/mixed) and response disposition (fix/formalize/monitor/investigate)
   - *Motivation:* `pattern: 35 positive patterns unrecordable in current schema` | `deliberation: Thread 1 signal/issue ontology -- anticipate future promotion without closing doors`
-- [ ] **KB-03**: Signal schema supports qualification links (qualified_by, superseded_by) for cross-signal and cross-spike references
+- [x] **KB-03**: Signal schema supports qualification links (qualified_by, superseded_by) for cross-signal and cross-spike references
   - *Motivation:* `research: spike-methodology-gap-analysis.md Gap 2.5 -- 2 retracted, 7 qualified claims required manual cross-spike report`
 - [ ] **KB-04a**: SQLite index built from signal files via node:sqlite with `gsd-tools kb rebuild` -- schema includes all frontmatter fields, kb.db gitignored, rebuildable from files
   - *Motivation:* `research: kb-architecture-research.md -- file+SQLite validated by 3 open-source precedents (MarkdownDB, Palinode, sqlite-memory)`
@@ -38,7 +38,7 @@ Dependencies: KB-09 -> KB-04a -> KB-04b/KB-04c -> KB-07 -> KB-08
 - [ ] **KB-04c**: Relationship traversal for qualified_by/superseded_by links via `gsd-tools kb link`
   - *Motivation:* `research: spike-methodology-gap-analysis.md -- cross-spike qualification requires navigable links`
   - *Dependencies:* KB-04a, KB-03
-- [ ] **KB-05**: SQLite index is a derived cache -- files remain source of truth, dual-write invariant enforced on every lifecycle transition, kb.db gitignored, rebuildable from files at any time
+- [x] **KB-05**: SQLite index is a derived cache -- files remain source of truth, dual-write invariant enforced on every lifecycle transition, kb.db gitignored, rebuildable from files at any time
   - *Motivation:* `signal: sig-2026-02-11-kb-data-loss-migration-gap -- direct historical precedent for cache-as-truth failure` | `research: PITFALLS.md C1`
   - *Note:* `~/.gsd/knowledge/` now houses both fork's subdirectory-based epistemic artifacts and upstream's flat JSON learnings -- document coexistence in implementation
 - [ ] **KB-06a**: `gsd-tools kb` read operations: query, search, stats, health, rebuild
@@ -52,12 +52,12 @@ Dependencies: KB-09 -> KB-04a -> KB-04b/KB-04c -> KB-07 -> KB-08
 - [ ] **KB-08**: KB surfacing in research/planning agents uses SQLite queries instead of grep-through-index for relevant signal/spike/lesson retrieval. Graceful fallback to grep when kb.db does not exist (fresh clone, first run)
   - *Motivation:* `research: ARCHITECTURE.md -- knowledge-surfacing.md updated to use kb query for structured retrieval`
   - *Dependencies:* KB-04b
-- [ ] **KB-09**: Existing signal files parse successfully with new schema. `source` field resolved to `detection_method` + `origin`. `kb rebuild` on current 198-signal corpus succeeds without data loss. Migration script provided for one-time field resolution
+- [x] **KB-09**: Existing signal files parse successfully with new schema. `source` field resolved to `detection_method` + `origin`. `kb rebuild` on current 198-signal corpus succeeds without data loss. Migration script provided for one-time field resolution
   - *Motivation:* `research: PITFALLS.md N5 -- source field ambiguity must be resolved before SQLite schema finalized`
   - *Dependencies:* KB-01, KB-02, KB-03 (schema must be defined before migration)
-- [ ] **KB-10**: `kb rebuild` and all query operations succeed against the current 198-signal corpus without file modification. New schema fields (lifecycle, polarity, disposition, qualified_by, superseded_by) default gracefully when absent from existing files
+- [x] **KB-10**: `kb rebuild` and all query operations succeed against the current 198-signal corpus without file modification. New schema fields (lifecycle, polarity, disposition, qualified_by, superseded_by) default gracefully when absent from existing files
   - *Motivation:* `review: R8 -- no backward compatibility testing requirement existed`
-- [ ] **KB-11**: package.json engines.node updated to >=22.5.0. `kb.cjs` includes version guard with actionable error message on older Node versions. CHANGELOG documents the breaking change
+- [x] **KB-11**: package.json engines.node updated to >=22.5.0. `kb.cjs` includes version guard with actionable error message on older Node versions. CHANGELOG documents the breaking change
   - *Motivation:* `review: R7 -- node:sqlite requires Node 22.5+, changing from >=16.7.0 is a breaking change`
 
 ### Measurement & Telemetry
@@ -221,14 +221,14 @@ Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | SYNC-01 | Phase 55 | Complete |
-| KB-01 | Phase 56 | Pending |
-| KB-02 | Phase 56 | Pending |
-| KB-03 | Phase 56 | Pending |
-| KB-04a | Phase 56 | Pending |
-| KB-05 | Phase 56 | Pending |
-| KB-09 | Phase 56 | Pending |
-| KB-10 | Phase 56 | Pending |
-| KB-11 | Phase 56 | Pending |
+| KB-01 | Phase 56 | Complete |
+| KB-02 | Phase 56 | Complete |
+| KB-03 | Phase 56 | Complete |
+| KB-04a | Phase 56 | Complete |
+| KB-05 | Phase 56 | Complete |
+| KB-09 | Phase 56 | Complete |
+| KB-10 | Phase 56 | Complete |
+| KB-11 | Phase 56 | Complete |
 | TEL-01a | Phase 57 | Pending |
 | TEL-01b | Phase 57 | Pending |
 | TEL-02 | Phase 57 | Pending |

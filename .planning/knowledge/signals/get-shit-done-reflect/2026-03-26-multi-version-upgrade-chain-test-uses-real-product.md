@@ -2,9 +2,14 @@
 id: sig-2026-03-26-multi-version-upgrade-chain-test-uses-real-product
 type: signal
 project: get-shit-done-reflect
-tags: [testing, integration-test, production-manifest, upgrade-chain, good-pattern]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - testing
+  - integration-test
+  - production-manifest
+  - upgrade-chain
+  - good-pattern
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: principle
 status: active
 severity: notable
@@ -13,7 +18,6 @@ signal_category: positive
 phase: 49
 plan: 4
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -32,10 +36,12 @@ evidence:
     - Using the production manifest as a test fixture means tests may break when manifest evolves — test is tightly coupled to production file
 confidence: high
 confidence_basis: Explicitly documented in SUMMARY.md and PLAN.md. Test design intent is stated and verified.
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

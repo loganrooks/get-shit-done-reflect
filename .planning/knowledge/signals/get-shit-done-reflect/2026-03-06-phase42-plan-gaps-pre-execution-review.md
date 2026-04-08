@@ -2,9 +2,16 @@
 id: sig-2026-03-06-phase42-plan-gaps-pre-execution-review
 type: signal
 project: get-shit-done-reflect
-tags: [plan-accuracy, pre-execution-review, plan-checker, second-order-effects, assumption-verification, capability-gap, phase-42]
-created: 2026-03-06T21:15:00Z
-updated: 2026-03-06T21:15:00Z
+tags:
+  - plan-accuracy
+  - pre-execution-review
+  - plan-checker
+  - second-order-effects
+  - assumption-verification
+  - capability-gap
+  - phase-42
+created: "2026-03-06T21:15:00Z"
+updated: "2026-03-06T21:15:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,15 +20,18 @@ signal_category: negative
 phase: 42
 plan: pre-execution
 polarity: negative
-source: manual
 occurrence_count: 3
-related_signals: [sig-2026-03-05-phase40-plan-gaps-pre-execution-review, sig-2026-03-01-plan-checker-misses-second-order-effects]
+related_signals:
+  - sig-2026-03-05-phase40-plan-gaps-pre-execution-review
+  - sig-2026-03-01-plan-checker-misses-second-order-effects
 confidence: high
-confidence_basis: "Third occurrence of same pattern across Phases 40, 42, and prior plan checker analysis"
+confidence_basis: Third occurrence of same pattern across Phases 40, 42, and prior plan checker analysis
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
 lifecycle_state: detected
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

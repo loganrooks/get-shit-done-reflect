@@ -3,8 +3,8 @@ id: sig-2026-03-26-plans-specified-test-assertions-using-internal-imp
 type: signal
 project: get-shit-done-reflect
 tags: [plan-underspecification, testing, deviation]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,7 +13,6 @@ signal_category: negative
 phase: 51
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -29,13 +28,15 @@ evidence:
     - This pattern of specifying expected test output using raw internal values (rather than what a user would observe) can cause test fragility
   counter:
     - Only one test assertion was affected — not a widespread issue in this phase
-    - "Plan's 'or' clause shows awareness of the ambiguity, just picked the wrong branch"
+    - Plan's 'or' clause shows awareness of the ambiguity, just picked the wrong branch
 confidence: medium
-confidence_basis: "The auto-fix documents the specific mismatch. The plan's own 'or' clause reveals uncertainty about the rendered form, suggesting the plan author did not verify what generateMigrationGuide actually outputs before specifying the assertion."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: The auto-fix documents the specific mismatch. The plan's own 'or' clause reveals uncertainty about the rendered form, suggesting the plan author did not verify what generateMigrationGuide actually outputs before specifying the assertion.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

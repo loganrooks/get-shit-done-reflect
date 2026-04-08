@@ -3,8 +3,8 @@ id: sig-2026-03-03-fix-chain-quick3-pre-v114-six-commits
 type: signal
 project: get-shit-done-reflect
 tags: [fix-chain, commit-patterns]
-created: 2026-03-03T00:00:00Z
-updated: 2026-04-02T22:00:00Z
+created: "2026-03-03T00:00:00Z"
+updated: "2026-04-02T22:00:00Z"
 durability: convention
 status: remediated
 severity: critical
@@ -13,7 +13,6 @@ signal_category: negative
 phase: 36
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -24,17 +23,19 @@ lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-03T00:00:00Z"
 evidence:
   supporting:
-    - "6 fix(quick-3) commits in sequence at position 278 in history"
+    - 6 fix(quick-3) commits in sequence at position 278 in history
   counter:
-    - "277 commits from phase 36 HEAD, predates v1.14"
-    - "Not adjacent to or overlapping phase 36 commits"
-    - "Intentional batched remediation of 6 known PR bugs"
+    - 277 commits from phase 36 HEAD, predates v1.14
+    - Not adjacent to or overlapping phase 36 commits
+    - Intentional batched remediation of 6 known PR bugs
 confidence: low
-confidence_basis: "Chain is real but not relevant to phase 36 -- git sensor found it in full history scan, predates current milestone"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Chain is real but not relevant to phase 36 -- git sensor found it in full history scan, predates current milestone
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

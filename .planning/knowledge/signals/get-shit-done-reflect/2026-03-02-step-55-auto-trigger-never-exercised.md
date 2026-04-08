@@ -3,8 +3,8 @@ id: sig-2026-03-02-step-55-auto-trigger-never-exercised
 type: signal
 project: get-shit-done-reflect
 tags: [deviation, testing, workaround]
-created: 2026-03-02T00:00:00Z
-updated: 2026-03-02T00:00:00Z
+created: "2026-03-02T00:00:00Z"
+updated: "2026-03-02T00:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,29 +13,30 @@ signal_category: negative
 phase: 35
 plan: 0
 polarity: negative
-source: auto
 occurrence_count: 2
 related_signals:
   - sig-2026-03-02-lifecycle-behaviors-unverifiable-without-runtime
 runtime: claude-code
 model: claude-sonnet-4-6
-gsd_version: "1.15.6+dev"
+gsd_version: 1.15.6+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-02T00:00:00Z"
 evidence:
   supporting:
-    - "VERIFICATION.md 'Human Verification Required' section explicitly lists step 5.5 auto_trigger as untested"
-    - "No SUMMARY.md describes a real plan-phase invocation that exercised step 5.5"
+    - VERIFICATION.md 'Human Verification Required' section explicitly lists step 5.5 auto_trigger as untested
+    - No SUMMARY.md describes a real plan-phase invocation that exercised step 5.5
   counter:
-    - "Step 5.5 code was verified by static inspection"
-    - "The researcher Genuine Gaps format was verified to match what step 5.5 expects"
+    - Step 5.5 code was verified by static inspection
+    - The researcher Genuine Gaps format was verified to match what step 5.5 expects
 confidence: high
-confidence_basis: "VERIFICATION.md directly flags this as an unverified human-test item"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: VERIFICATION.md directly flags this as an unverified human-test item
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

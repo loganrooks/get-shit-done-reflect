@@ -2,9 +2,13 @@
 id: sig-2026-02-11-signal-workflow-context-bloat
 type: signal
 project: get-shit-done-reflect
-tags: [context-bloat, workflow-overhead, signal-workflow, token-cost]
-created: 2026-02-11T22:01:00Z
-updated: 2026-02-11T22:01:00Z
+tags:
+  - context-bloat
+  - workflow-overhead
+  - signal-workflow
+  - token-cost
+created: "2026-02-11T22:01:00Z"
+updated: "2026-02-11T22:01:00Z"
 durability: convention
 status: active
 severity: notable
@@ -14,9 +18,10 @@ plan: 0
 runtime: claude-code
 model: claude-opus-4-6
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: [sig-2026-02-11-agent-inline-research-context-bloat]
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

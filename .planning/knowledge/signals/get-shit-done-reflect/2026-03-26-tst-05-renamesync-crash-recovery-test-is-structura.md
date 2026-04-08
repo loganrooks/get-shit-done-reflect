@@ -2,9 +2,14 @@
 id: sig-2026-03-26-tst-05-renamesync-crash-recovery-test-is-structura
 type: signal
 project: get-shit-done-reflect
-tags: [crash-recovery, test-coverage-gap, renameSync, os.homedir, kb-migration]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - crash-recovery
+  - test-coverage-gap
+  - renameSync
+  - os.homedir
+  - kb-migration
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,7 +18,6 @@ signal_category: negative
 phase: 50
 plan: 3
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -29,14 +33,16 @@ evidence:
     - The test verifies original data is preserved but cannot simulate the actual renameSync failure mode
   counter:
     - The test still serves documentation and partial coverage value
-    - "The verification report labels this 'Non-Blocking' and accepted the design decision"
+    - The verification report labels this 'Non-Blocking' and accepted the design decision
     - This is a known test environment constraint, not an unexpected failure
 confidence: high
 confidence_basis: Documented in both VERIFICATION.md and SUMMARY.md as a known constraint with explicit reasoning
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

@@ -2,9 +2,14 @@
 id: sig-2026-03-01-no-runtime-validation-all-static
 type: signal
 project: get-shit-done-reflect
-tags: [verification-gap, runtime-testing, agent-specs, static-analysis, deviation]
-created: 2026-03-01T19:00:05Z
-updated: 2026-03-01T19:00:05Z
+tags:
+  - verification-gap
+  - runtime-testing
+  - agent-specs
+  - static-analysis
+  - deviation
+created: "2026-03-01T19:00:05Z"
+updated: "2026-03-01T19:00:05Z"
 durability: convention
 status: active
 severity: notable
@@ -13,13 +18,11 @@ signal_category: negative
 phase: 33
 plan: 4
 polarity: negative
-source: auto
 occurrence_count: 2
-related_signals:
-  - sig-2026-02-28-verification-gap-triggered-unplanned-plan
+related_signals: [sig-2026-02-28-verification-gap-triggered-unplanned-plan]
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.15.6+dev"
+gsd_version: 1.15.6+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-01T19:00:05Z"
@@ -32,11 +35,13 @@ evidence:
     - "The deferred verification path (/gsd:verify-work) exists and the 10-point checklist is preserved in 33-04-PLAN.md."
     - "The underlying issues differ: original signal was about schema validation gaps for legacy data, this signal is about runtime testing of agent specs. The tag overlap (verification-gap, deviation) is thematic, not same root cause."
 confidence: medium
-confidence_basis: "Directly observable from VERIFICATION.md status field and 33-04-SUMMARY.md task completion. Recurrence match is mechanical (tag overlap), not causal."
-triage: {}
-remediation: {}
-verification: {}
+confidence_basis: Directly observable from VERIFICATION.md status field and 33-04-SUMMARY.md task completion. Recurrence match is mechanical (tag overlap), not causal.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
 recurrence_of: sig-2026-02-28-verification-gap-triggered-unplanned-plan
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

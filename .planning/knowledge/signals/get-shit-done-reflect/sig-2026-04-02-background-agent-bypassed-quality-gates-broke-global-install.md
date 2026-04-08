@@ -2,9 +2,16 @@
 id: sig-2026-04-02-background-agent-bypassed-quality-gates-broke-global-install
 type: signal
 project: get-shit-done-reflect
-tags: [installer, quality-gate-bypass, destructive-action, agent-delegation, path-rewriting, cascade-failure, parallelization]
-created: 2026-04-02T17:00:00Z
-updated: 2026-04-02T17:00:00Z
+tags:
+  - installer
+  - quality-gate-bypass
+  - destructive-action
+  - agent-delegation
+  - path-rewriting
+  - cascade-failure
+  - parallelization
+created: "2026-04-02T17:00:00Z"
+updated: "2026-04-02T17:00:00Z"
 durability: principle
 status: active
 severity: critical
@@ -12,12 +19,16 @@ signal_type: deviation
 phase: between-milestones
 plan: 0
 polarity: negative
-source: manual
 occurrence_count: 1
-related_signals: [sig-2026-02-23-installer-clobbers-force-tracked-files, sig-2026-02-17-release-process-fragile-manual-steps, sig-2026-03-30-release-workflow-forgotten-in-milestone-completion]
+related_signals:
+  - sig-2026-02-23-installer-clobbers-force-tracked-files
+  - sig-2026-02-17-release-process-fragile-manual-steps
+  - sig-2026-03-30-release-workflow-forgotten-in-milestone-completion
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.18.0
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

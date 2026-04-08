@@ -2,9 +2,14 @@
 id: sig-2026-02-22-plan-22-03-incomplete-interrupted
 type: signal
 project: get-shit-done-reflect
-tags: [execution, plan-incomplete, ordering, interruption, summary-delayed]
-created: 2026-02-22T00:00:00Z
-updated: 2026-02-22T00:00:00Z
+tags:
+  - execution
+  - plan-incomplete
+  - ordering
+  - interruption
+  - summary-delayed
+created: "2026-02-22T00:00:00Z"
+updated: "2026-02-22T00:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +17,13 @@ signal_type: deviation
 phase: 22
 plan: 3
 polarity: negative
-source: automated
 occurrence_count: 1
 related_signals: [sig-2026-02-22-out-of-order-plan-execution]
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.12.2
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

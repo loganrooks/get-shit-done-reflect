@@ -2,17 +2,23 @@
 id: sig-2026-03-24-local-branch-cleanup-and-lineage-drift
 type: signal
 project: get-shit-done-reflect
-tags: [git-workflow, branch-management, post-merge, local-cleanup, stale-lineage, remote-mismatch, codex]
-created: 2026-03-24T05:05:42Z
-updated: 2026-03-24T05:05:42Z
+tags:
+  - git-workflow
+  - branch-management
+  - post-merge
+  - local-cleanup
+  - stale-lineage
+  - remote-mismatch
+  - codex
+created: "2026-03-24T05:05:42Z"
+updated: "2026-03-24T05:05:42Z"
 durability: convention
 status: active
 severity: notable
 signal_type: deviation
-phase: "48.1"
-plan: "01"
+phase: 48.1
+plan: 01
 polarity: negative
-source: manual
 occurrence_count: 4
 related_signals:
   - sig-2026-02-16-branch-not-deleted-after-pr-merge
@@ -21,6 +27,8 @@ related_signals:
 runtime: codex-cli
 model: gpt-5.4
 gsd_version: 1.17.5
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

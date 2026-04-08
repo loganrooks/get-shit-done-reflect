@@ -6,12 +6,18 @@ polarity: positive
 phase: 25
 plan: 01
 project: get-shit-done-reflect
-created: 2026-02-22T00:00:00Z
-tags: [tdd, test-driven-development, plan-fidelity, cli-commands, execution-quality]
+created: "2026-02-22T00:00:00Z"
+tags:
+  - tdd
+  - test-driven-development
+  - plan-fidelity
+  - cli-commands
+  - execution-quality
 status: active
-source: automated
 runtime: claude-code
 model: claude-sonnet-4-6
+detection_method: automated
+origin: collect-signals
 ---
 
 # TDD Red-Green Approach Enables Zero-Deviation CLI Command Implementation
