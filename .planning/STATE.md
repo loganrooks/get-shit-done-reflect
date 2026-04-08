@@ -1,34 +1,34 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.18
-milestone_name: Upstream Sync & Deep Integration
-status: complete
-stopped_at: Completed 54-05-PLAN.md -- FORK-STRATEGY.md durable sync policy (INF-04) and Phase 54 final verification. v1.18 milestone complete.
-last_updated: "2026-03-28T21:35:00.000Z"
-last_activity: 2026-03-28 -- Phase 54-05 complete (INF-04 sync policy, all 9 INF requirements verified)
+milestone: v1.20
+milestone_name: Signal Infrastructure & Epistemic Rigor
+status: planning
+stopped_at: null
+last_updated: "2026-04-08T00:00:00.000Z"
+last_activity: 2026-04-08 -- Milestone v1.20 started
 progress:
-  total_phases: 11
-  completed_phases: 11
-  total_plans: 37
-  completed_plans: 37
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-30)
+See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.18 shipped. Planning next milestone.
+**Current focus:** v1.20 scoping — research phase for open design questions.
 
 ## Current Position
 
-Phase: 54 of 54 (Sync Retrospective & Governance)
-Plan: 5 of 5
-Status: complete
-Last activity: 2026-04-02 -- Completed quick task 260402-qnh: model resolver gsdr- prefix normalization (Issue #30)
+Phase: Not started (research + requirements definition)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-04-08 -- Milestone v1.20 started
 
 Progress: [████████████████████] 100%
 

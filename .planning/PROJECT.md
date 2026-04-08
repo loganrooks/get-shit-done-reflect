@@ -103,17 +103,74 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ### Active
 
-(Next milestone not yet defined — run /gsdr:new-milestone)
+## Current Milestone: v1.20 Signal Infrastructure & Epistemic Rigor
+
+**Goal:** Replace advisory quality controls with structural enforcement, mature the signal system from detection-only to full lifecycle management with a queryable knowledge base, overhaul spike methodology with epistemically rigorous experimental design, and establish measurement infrastructure for evidence-based workflow improvement.
+
+**Target features:**
+
+**KB Architecture & Signal System**
+- KB query layer (architecture TBD via spike: CLI, MCP server, or both) with SQLite index over file-based storage
+- Signal schema evolution: lifecycle states, polarity (negative/positive/mixed), response disposition (fix/formalize/monitor/investigate), qualification links (qualified-by, superseded-by)
+- Signal-to-issue/opportunity escalation model with developer control
+- KB developer experience: queryable, filterable, navigable signal/issue/opportunity views
+- Cross-machine KB discovery mechanism
+- Patch sensor: detect source vs installed divergence, classify as bug/customization/opportunity
+
+**Measurement & Telemetry**
+- Token usage extraction tooling from session-meta and JSONL data
+- Measurement baseline establishment for evidence-based intervention evaluation
+- Prediction framework: quantitative, qualitative, structural, interaction, temporal, and risk dimensions
+- Log sensor integration into collect-signals (progressive deepening, validated by audit)
+
+**Spike Methodology Overhaul**
+- Spike design reviewer agent (analogous to plan-checker for experiments)
+- Spike findings reviewer agent (analogous to verifier for experiments)
+- Spike programme/campaign infrastructure: shared assets, programme ROADMAP, cross-spike qualification
+- Template revisions: DECISION.md three-tier outcomes (decided/provisional/deferred), three-level confidence (measurement/interpretation/extrapolation), metric limitation documentation, sample design section
+- Epistemological framework informed by Lakatos (research programmes), Duhem-Quine (auxiliary hypotheses), Mayo (severe testing) — not naive Popperian falsificationism
+- Protocol adherence checkpoints: verify DESIGN.md methodology was actually followed
+- Cross-spike backward propagation and qualification mechanism
+
+**Structural Enforcement**
+- Gate enforcement: offer_next PR/CI, merge --merge default, quick task branch detection, .continue-here consumption lifecycle
+- Sensor model echo before dispatch
+- Automation postlude structural fix (hook where available, advisory where not)
+- Incident self-signal hook for cascade/destructive failures
+- Discuss-phase adoption completion (5 missing files from upstream adoption)
+
+**Workflow Gaps**
+- `/gsdr:cross-model-review` command with flexible protocol
+- `/gsdr:revise-phase-scope` for mid-phase scope changes
+- `/gsdr:research` lightweight pre-milestone research command
+- Parallel phase execution on worktrees for non-overlapping phases
+
+**Cross-Runtime Parity (Claude Code + Codex CLI)**
+- Enforce proper parity or graceful degradation for all new features across both runtimes
+- Codex CLI operational knowledge: parameters, context window, reasoning effort, prompt style differences
+- Patch compatibility checking before cross-runtime application
+- PID management and process lifecycle for concurrent Codex sessions
+- Cross-runtime distribution gap: ensure GSDR fixes reach projects running global GSD
+
+**Design constraints (from session handoff — things v1.20 must NOT do):**
+1. Don't bake KB storage format assumptions into the sensor pipeline — signals output in format a future graph-based KB could consume
+2. Don't hardcode single-machine paths — use abstraction layer extensible for cross-machine bridge
+3. Don't merge signal and issue concepts prematurely — build escalation, don't collapse the distinction
+4. Don't design token tooling around current pricing — capture raw counts + model identifiers, cost calculation separate and swappable
+5. Don't over-formalize cross-model review — the pattern works partly because it's informal
 
 ### Out of Scope
 
-- User-facing dashboard or web UI — GSD is CLI-native, signals are file-based
-- Real-time telemetry or metrics collection — this is reflection, not monitoring
+- User-facing dashboard or web UI — GSD is CLI-native
 - Multi-user collaboration on shared knowledge base — start with per-user, consider later
 - Automated code fixes based on signals — signals inform humans/agents, don't auto-patch
 - ML-based signal classification — heuristic rules are sufficient and debuggable
-- Database for knowledge base — file-based with index is sufficient at expected scale
 - Continuous background monitoring — event-driven checkpoints instead
+- Signal/issue ontology full design (promotion mechanisms, GitHub integration) — v1.21, informed by v1.20 schema groundwork
+- KB organization at scale (pruning, archiving, re-reading) — v1.21, after query layer establishes access patterns
+- Continental philosophy of memory grounding (Stiegler, Ricoeur, Bergson, Derrida) — v1.22+, requires arxiv-sanity-mcp operational for literature survey
+- Full Issue #17 completion (cross-runtime drift hardening, 9 acceptance criteria) — v1.21, v1.20 addresses KB authority subset
+- Automation loop ungating (0% fire rate → safe automatic triggering) — v1.21, after v1.20 postlude structural fix establishes reliable trigger
 - A parallel shadow CLI (`gsd-reflect-tools.js` / `fork-tools.js`) used to avoid upstream integration — v1.18 standard is upstream module adoption plus minimal in-place fork extensions where required
 - Full subagent parity in Codex CLI — Codex has no Task tool equivalent; graceful degradation instead
 - Windows-specific runtime support — macOS/Linux focus; Windows fixes from upstream can be adopted later
@@ -125,8 +182,16 @@ The system never makes the same mistake twice — signals capture what went wron
 
 ## Context
 
-Shipped v1.18 Upstream Sync & Deep Integration. The fork's monolithic CLI has been restructured into a modular architecture (674-line router + 16 lib/*.cjs modules), upstream features adopted and deeply integrated into the signal/automation/health/reflection pipeline, and durable governance policies formalized for future upstream syncs.
-3 milestone themes remain from post-v1.16 roadmap (see `.planning/deliberations/v1.17-plus-roadmap-deliberation.md`): Meta-Observability (M-B), Deliberation Intelligence (M-C), Parallelization (M-E). Cross-Platform Parity (M-D) was partially addressed by v1.18's multi-runtime installer hardening.
+Shipped v1.18 Upstream Sync & Deep Integration. v1.19 version slot burned by commit prefix incident (patch release used feat: prefix). v1.20 scoped from the most comprehensive audit the project has conducted: 100 sessions across 10 projects on 2 machines, 165 findings (42 negative, 35 positive unique patterns), 13 RECURRED findings where advisory-text fixes failed, model comparison experiment (5 models, clean vs contaminated prompts), and telemetry data source survey.
+
+**Evidence base:** `.planning/audits/session-log-audit-2026-04-07/` — 32 reports, verification analyses, synthesis documents, model comparison data. Key structural finding: every failed intervention used advisory text, not structural enforcement.
+
+**Open design questions for v1.20 research:**
+- KB architecture: CLI vs MCP server vs both? File+SQLite vs graph DB? What downstream effects does each choice have?
+- Spike epistemological framework: how to operationalize Lakatos (research programmes), Duhem-Quine (auxiliary hypotheses), Mayo (severe testing) without creating rigid institutional procedures
+- Parallel execution infrastructure: STATE.md conflict resolution, phase dependency mapping, worktree merge strategy
+- Signal/issue/opportunity exposure model: what do developers see? how does escalation work?
+- Token telemetry interpretive framework: which metrics are predictive of quality? (telemetry survey "Still Open" items 1-4)
 Tech stack: Node.js, Markdown specifications, YAML frontmatter, shell scripts, modular `gsd-tools.cjs` CLI router (674 lines) plus 16 `bin/lib/*.cjs` runtime modules (8,824 lines total).
 Architecture: Commands (thin orchestrators) → Workflows → Templates/References → Agents (with shared agent-protocol.md), Runtime layer (Node.js) for installation and hooks. Multi-sensor signal collection (artifact + git + CI sensors → synthesizer → KB). Health probes (modular .md specs executed by probe executor, including validation-coverage probe). Automation framework (4-level system with per-feature overrides, context-aware deferral via bridge files). Context-monitor hook for usage-based automation decisions.
 Knowledge base: `.planning/knowledge/` (project-local, version-controlled) with `~/.gsd/knowledge/` fallback. Contains `signals/`, `spikes/`, `reflections/` subdirectories, auto-generated `index.md`, lifecycle state machine, and provenance fields.
@@ -222,4 +287,4 @@ Test suite: 628 tests (419 vitest + 191 upstream node:test + 18 fork node:test),
 | Complementary divergence characterization for fork-upstream relationship | Binary "behind/ahead" framing misrepresents a fork with genuinely different higher-level concerns; 6-disposition taxonomy (converging, complementary, redundant, divergent, behind, N/A) provides nuanced classification | ✓ Good — feature overlap inventory used in v1.18 governance analysis |
 
 ---
-*Last updated: 2026-03-30 after v1.18 milestone completion*
+*Last updated: 2026-04-08 after v1.20 milestone start*
