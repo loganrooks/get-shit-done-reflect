@@ -23,7 +23,7 @@
 
 Dependencies: KB-09 -> KB-04a -> KB-04b/KB-04c -> KB-07 -> KB-08
 
-- [ ] **KB-01**: Signal schema supports lifecycle states (proposed -> in_progress -> blocked -> verified -> remediated) with transition validation
+- [ ] **KB-01**: Signal schema supports lifecycle states (detected -> triaged -> blocked -> remediated -> verified -> invalidated) with transition validation. `blocked` is an optional holding state between triaged and remediated; all other states follow the Phase 31 model
   - *Motivation:* `signal: sig-2026-03-04-signal-lifecycle-representation-gap` | `pattern: R11 -- 0% remediation rate, 171/187 stuck in active`
 - [ ] **KB-02**: Signal schema supports polarity (negative/positive/mixed) and response disposition (fix/formalize/monitor/investigate)
   - *Motivation:* `pattern: 35 positive patterns unrecordable in current schema` | `deliberation: Thread 1 signal/issue ontology -- anticipate future promotion without closing doors`
