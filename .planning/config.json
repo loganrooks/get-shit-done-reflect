@@ -42,7 +42,7 @@
     "stats": {
       "signal_collection": {
         "fires": 0,
-        "skips": 6,
+        "skips": 8,
         "last_triggered": null,
         "last_skip_reason": "level-1"
       },
@@ -66,7 +66,7 @@
       },
       "reflection": {
         "fires": 0,
-        "skips": 2,
+        "skips": 4,
         "last_triggered": null,
         "last_skip_reason": "disabled"
       }
@@ -75,7 +75,7 @@
       "auto_reflect": false,
       "threshold_phases": 3,
       "min_signals": 5,
-      "phases_since_last_reflect": 3,
+      "phases_since_last_reflect": 5,
       "last_reflect_at": "2026-03-07T05:46:29.846Z"
     }
   },
