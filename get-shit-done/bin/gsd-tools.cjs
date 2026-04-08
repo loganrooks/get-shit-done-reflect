@@ -85,7 +85,7 @@ async function main() {
   const command = args[0];
 
   if (!command) {
-    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe');
+    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb');
   }
 
   switch (command) {

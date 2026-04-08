@@ -6,6 +6,9 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+### Changed
+- **BREAKING: Node.js minimum version bumped from >=16.7.0 to >=22.5.0** -- required for built-in `node:sqlite` used by KB index commands (`gsd-tools kb rebuild|stats|migrate`)
+
 ## [1.19.0] - 2026-04-03
 
 ### Added
