@@ -15,7 +15,7 @@
 
 ### Upstream Mini-Sync
 
-- [ ] **SYNC-01**: Upstream correctness fixes integrated -- state locking (TOCTOU races, atomicWriteFileSync), milestone safety (999.x backlog preservation, data loss prevention), frontmatter quoted-comma fix, critical installer reliability fixes -- adopted from upstream v1.34.2 with thoughtful integration into fork extensions, not naive wholesale replace
+- [x] **SYNC-01**: Upstream correctness fixes integrated -- state locking (TOCTOU races, atomicWriteFileSync), milestone safety (999.x backlog preservation, data loss prevention), frontmatter quoted-comma fix, critical installer reliability fixes -- adopted from upstream v1.34.2 with thoughtful integration into fork extensions, not naive wholesale replace
   - *Motivation:* `research: upstream-drift-survey-2026-04-08.md -- 4 major versions of drift, correctness bugs in adopt-upstream modules affect v1.20 substrate`
   - *Dependencies:* None -- must precede all other v1.20 work
 
@@ -220,7 +220,7 @@ Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SYNC-01 | Phase 55 | Pending |
+| SYNC-01 | Phase 55 | Complete |
 | KB-01 | Phase 56 | Pending |
 | KB-02 | Phase 56 | Pending |
 | KB-03 | Phase 56 | Pending |

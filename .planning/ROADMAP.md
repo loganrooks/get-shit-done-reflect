@@ -20,7 +20,7 @@
 
 ## Phases
 
-- [ ] **Phase 55: Upstream Mini-Sync** - Integrate upstream correctness fixes (state locking, milestone safety, frontmatter, installer) before any v1.20 work begins
+- [x] **Phase 55: Upstream Mini-Sync** - Integrate upstream correctness fixes (state locking, milestone safety, frontmatter, installer) before any v1.20 work begins
 - [ ] **Phase 56: KB Schema & SQLite Foundation** - Signal schema evolution and SQLite index creation establish the queryable knowledge base substrate
 - [ ] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
@@ -44,10 +44,10 @@
   4. Installer reliability fixes applied and validated by existing test suite (628 tests pass)
 **Plans:** 4 plans
 Plans:
-- [ ] 55-01-PLAN.md -- Adopt model-profiles.cjs and wholesale-replace 4 pure upstream modules
-- [ ] 55-02-PLAN.md -- Hybrid-merge core.cjs, frontmatter.cjs, and config.cjs
-- [ ] 55-03-PLAN.md -- Replace phase.cjs/roadmap.cjs with re-adjustments, hybrid-merge installer
-- [ ] 55-04-PLAN.md -- Update router, adopt upstream tests, validate all 3 suites, run installer
+- [x] 55-01-PLAN.md -- Adopt model-profiles.cjs and wholesale-replace 4 pure upstream modules
+- [x] 55-02-PLAN.md -- Hybrid-merge core.cjs, frontmatter.cjs, and config.cjs
+- [x] 55-03-PLAN.md -- Replace phase.cjs/roadmap.cjs with re-adjustments, hybrid-merge installer
+- [x] 55-04-PLAN.md -- Update router, adopt upstream tests, validate all 3 suites, run installer
 
 ### Phase 56: KB Schema & SQLite Foundation
 **Goal**: Signal files support full lifecycle tracking, and a SQLite index makes the knowledge base queryable by structured fields
@@ -161,7 +161,7 @@ Phases execute sequentially 55 through 59, then 60 and 61 can proceed in paralle
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 55. Upstream Mini-Sync | 0/4 | Not started | - |
+| 55. Upstream Mini-Sync | 4/4 | Complete | 2026-04-08 |
 | 56. KB Schema & SQLite Foundation | 0/TBD | Not started | - |
 | 57. Measurement & Telemetry Baseline | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
@@ -185,4 +185,4 @@ Phases execute sequentially 55 through 59, then 60 and 61 can proceed in paralle
 | v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | 37 | Complete | 2026-03-30 |
 | v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 | TBD | In progress | - |
 
-**Totals:** 8 milestones, 65 phases (55 complete, 10 in progress), 166 plans completed
+**Totals:** 8 milestones, 65 phases (56 complete, 9 in progress), 170 plans completed
