@@ -55,11 +55,15 @@ Plans:
 **Requirements**: KB-01, KB-02, KB-03, KB-04a, KB-05, KB-09, KB-10, KB-11
 **Success Criteria** (what must be TRUE):
   1. `gsd-tools kb rebuild` processes the existing 198-signal corpus without errors, producing a SQLite index with all frontmatter fields indexed
-  2. Signal files support lifecycle states (proposed/in_progress/blocked/verified/remediated), polarity (negative/positive/mixed), response disposition (fix/formalize/monitor/investigate), and qualification links (qualified_by/superseded_by)
+  2. Signal files support lifecycle states (detected/triaged/blocked/remediated/verified/invalidated), polarity (negative/positive/mixed), response disposition (fix/formalize/monitor/investigate), and qualification links (qualified_by/superseded_by)
   3. Existing signal files with old schema parse successfully -- new fields default gracefully when absent, `source` field resolved to `detection_method` + `origin` via migration script
   4. kb.db is gitignored and rebuildable from files at any time -- SQLite is a derived cache, files remain source of truth
   5. package.json engines.node updated to >=22.5.0 with actionable error message on older Node versions
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 56-01-PLAN.md -- Create kb.cjs module with SQLite schema, rebuild, stats, migrate + align KB-01 lifecycle states
+- [ ] 56-02-PLAN.md -- Wire router, update package.json engines, gitignore kb.db, validate on real corpus
+- [ ] 56-03-PLAN.md -- KB test suite + run source field migration on 199-signal corpus
 
 ### Phase 57: Measurement & Telemetry Baseline
 **Goal**: Telemetry extraction tooling captures a pre-intervention baseline so that structural changes in subsequent phases can be attributed to specific interventions
@@ -162,7 +166,7 @@ Phases execute sequentially 55 through 59, then 60 and 61 can proceed in paralle
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 55. Upstream Mini-Sync | 4/4 | Complete | 2026-04-08 |
-| 56. KB Schema & SQLite Foundation | 0/TBD | Not started | - |
+| 56. KB Schema & SQLite Foundation | 0/3 | Not started | - |
 | 57. Measurement & Telemetry Baseline | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
