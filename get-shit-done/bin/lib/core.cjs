@@ -1344,13 +1344,17 @@ function resolveModelInternal(cwd, agentType) {
   if (profile === 'inherit') return 'inherit';
   const alias = agentModels[profile] || agentModels['balanced'] || 'sonnet';
 
-  // resolve_model_ids: true — map alias to full Claude model ID
-  // Prevents 404s when the Task tool passes aliases directly to the API
-  if (config.resolve_model_ids) {
-    return MODEL_ALIAS_MAP[alias] || alias;
+  // Fork: map 'opus' alias to 'inherit' for Claude Code compatibility.
+  // Claude Code uses 'inherit' to mean "use the best/default model" since 'opus'
+  // may not resolve correctly as a direct model specifier in all contexts.
+  // This only applies when resolve_model_ids is falsy (alias mode).
+  if (!config.resolve_model_ids) {
+    return alias === 'opus' ? 'inherit' : alias;
   }
 
-  return alias;
+  // resolve_model_ids: true — map alias to full Claude model ID
+  // Prevents 404s when the Task tool passes aliases directly to the API
+  return MODEL_ALIAS_MAP[alias] || alias;
 }
 
 // ─── Summary body helpers ─────────────────────────────────────────────────
