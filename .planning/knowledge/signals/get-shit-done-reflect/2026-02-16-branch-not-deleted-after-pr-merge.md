@@ -2,20 +2,25 @@
 id: sig-2026-02-16-branch-not-deleted-after-pr-merge
 type: signal
 project: get-shit-done-reflect
-tags: [git-workflow, branch-management, deviation, milestone-process]
-created: 2026-02-16T05:30:00Z
-updated: 2026-02-16T05:30:00Z
+tags:
+  - git-workflow
+  - branch-management
+  - deviation
+  - milestone-process
+created: "2026-02-16T05:30:00Z"
+updated: "2026-02-16T05:30:00Z"
 durability: convention
 status: active
 severity: notable
 signal_type: deviation
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.14.0
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

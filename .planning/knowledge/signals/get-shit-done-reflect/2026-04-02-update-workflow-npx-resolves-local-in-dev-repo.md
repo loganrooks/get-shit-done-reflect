@@ -2,9 +2,14 @@
 id: sig-2026-04-02-update-workflow-npx-resolves-local-in-dev-repo
 type: signal
 project: get-shit-done-reflect
-tags: [update-workflow, installer, npx, dogfooding, developer-ergonomics]
-created: 2026-04-02T23:00:00.000Z
-updated: 2026-04-02T23:00:00.000Z
+tags:
+  - update-workflow
+  - installer
+  - npx
+  - dogfooding
+  - developer-ergonomics
+created: "2026-04-02T23:00:00.000Z"
+updated: "2026-04-02T23:00:00.000Z"
 durability: workaround
 status: active
 severity: notable
@@ -12,12 +17,13 @@ signal_type: capability-gap
 phase: n/a
 plan: n/a
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: [sig-2026-04-02-dev-version-suffix-lacks-commit-traceability]
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.18.2+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

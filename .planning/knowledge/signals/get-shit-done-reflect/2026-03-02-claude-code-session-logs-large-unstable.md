@@ -3,8 +3,8 @@ id: sig-2026-03-02-claude-code-session-logs-large-unstable
 type: signal
 project: get-shit-done-reflect
 tags: [performance, data, workaround]
-created: 2026-03-02T00:00:00Z
-updated: 2026-03-02T00:00:00Z
+created: "2026-03-02T00:00:00Z"
+updated: "2026-03-02T00:00:00Z"
 durability: workaround
 status: active
 severity: notable
@@ -13,30 +13,31 @@ signal_category: negative
 phase: 35
 plan: 3
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-sonnet-4-6
-gsd_version: "1.15.6+dev"
+gsd_version: 1.15.6+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-02T00:00:00Z"
 evidence:
   supporting:
     - "Plan 03 SUMMARY: '181 session files totaling 442MB for one project; 326 debug files totaling 218MB'"
-    - "Individual sessions can be 11MB+"
-    - "Format should be treated as best-effort with graceful degradation"
+    - Individual sessions can be 11MB+
+    - Format should be treated as best-effort with graceful degradation
   counter:
-    - "JSONL format was consistent across versions 2.1.49 through 2.1.63"
-    - "Permissions are accessible"
-    - "Spike decision was 'enable SENSOR-07' not defer"
+    - JSONL format was consistent across versions 2.1.49 through 2.1.63
+    - Permissions are accessible
+    - Spike decision was 'enable SENSOR-07' not defer
 confidence: high
-confidence_basis: "Findings from direct file system inspection documented in spike 002 DECISION.md"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Findings from direct file system inspection documented in spike 002 DECISION.md
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

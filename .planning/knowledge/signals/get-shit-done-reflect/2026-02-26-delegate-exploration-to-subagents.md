@@ -3,8 +3,8 @@ id: sig-2026-02-26-delegate-exploration-to-subagents
 type: signal
 project: get-shit-done-reflect
 tags: [context-management, agent-delegation, workflow-efficiency]
-created: 2026-02-26T10:30:00Z
-updated: 2026-02-26T10:30:00Z
+created: "2026-02-26T10:30:00Z"
+updated: "2026-02-26T10:30:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +12,13 @@ signal_type: deviation
 phase: quick-9
 plan:
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.15.4
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

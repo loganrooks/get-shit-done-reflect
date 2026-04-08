@@ -2,22 +2,33 @@
 id: sig-2026-03-03-no-ci-verification-in-execute-phase-workflow
 type: signal
 project: get-shit-done-reflect
-tags: [ci, workflow-gap, execute-phase, verification, automation, signal-collection, architecture]
-created: 2026-03-03T18:35:00Z
-updated: 2026-03-03T18:35:00Z
+tags:
+  - ci
+  - workflow-gap
+  - execute-phase
+  - verification
+  - automation
+  - signal-collection
+  - architecture
+created: "2026-03-03T18:35:00Z"
+updated: "2026-03-03T18:35:00Z"
 durability: principle
 status: active
 severity: critical
 signal_type: deviation
 phase: 37
-plan: "01-03"
+plan: 01-03
 polarity: negative
-source: manual
 occurrence_count: 1
-related_signals: [sig-2026-03-03-ci-fail-manifest-selftest-hardcoded-feature-count, sig-2026-03-03-ci-green-unconfirmed-fix-commits-local-only, sig-2026-03-02-ci-failures-ignored-throughout-v116]
+related_signals:
+  - sig-2026-03-03-ci-fail-manifest-selftest-hardcoded-feature-count
+  - sig-2026-03-03-ci-green-unconfirmed-fix-commits-local-only
+  - sig-2026-03-02-ci-failures-ignored-throughout-v116
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.16.0+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

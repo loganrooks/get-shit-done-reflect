@@ -3,17 +3,16 @@ id: sig-2026-03-27-config-profile-is-quality-and-all-plans-executed
 type: signal
 project: get-shit-done-reflect
 tags: [config]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
 signal_type: baseline
 signal_category: positive
 phase: 53
-plan: ""
+plan: 
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -32,10 +31,12 @@ evidence:
   counter: []
 confidence: high
 confidence_basis: Model field is present in all four plan summaries and matches the quality profile expectation consistently
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

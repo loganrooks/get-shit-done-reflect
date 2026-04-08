@@ -2,9 +2,14 @@
 id: sig-2026-04-02-agent-defaults-to-self-execution-over-delegation
 type: signal
 project: get-shit-done-reflect
-tags: [agent-behavior, delegation, context-bloat, recurring-pattern, self-monitoring]
-created: 2026-04-02T19:30:00Z
-updated: 2026-04-02T19:30:00Z
+tags:
+  - agent-behavior
+  - delegation
+  - context-bloat
+  - recurring-pattern
+  - self-monitoring
+created: "2026-04-02T19:30:00Z"
+updated: "2026-04-02T19:30:00Z"
 durability: principle
 status: active
 severity: critical
@@ -12,12 +17,15 @@ signal_type: deviation
 phase: between-milestones
 plan: 0
 polarity: negative
-source: manual
 occurrence_count: 1
-related_signals: [sig-2026-04-02-repeated-failure-to-self-signal-cleanup-hygiene, sig-2026-04-02-agent-failed-to-self-signal-on-failure-cascade]
+related_signals:
+  - sig-2026-04-02-repeated-failure-to-self-signal-cleanup-hygiene
+  - sig-2026-04-02-agent-failed-to-self-signal-on-failure-cascade
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.18.1
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

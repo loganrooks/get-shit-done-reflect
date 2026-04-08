@@ -3,8 +3,8 @@ id: sig-2026-03-05-plan01-task1-prior-session-commit
 type: signal
 project: get-shit-done-reflect
 tags: [interrupted-execution, session-continuity]
-created: 2026-03-05T06:15:00Z
-updated: 2026-03-05T06:15:00Z
+created: "2026-03-05T06:15:00Z"
+updated: "2026-03-05T06:15:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,25 +13,24 @@ signal_category: negative
 phase: 38.1
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-05T06:15:00Z"
 evidence:
   supporting:
-    - "Summary states Task 1 was already committed by prior session"
-  counter:
-    - "Executor handled it cleanly"
-    - "No errors or rework resulted"
+    - Summary states Task 1 was already committed by prior session
+  counter: [Executor handled it cleanly, No errors or rework resulted]
 confidence: high
-confidence_basis: ""
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: 
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

@@ -8,21 +8,22 @@ tags:
   - deliberation
   - context-surfacing
   - workflow-integration
-created: 2026-03-06T00:00:00Z
-updated: 2026-03-06T00:00:00Z
+created: "2026-03-06T00:00:00Z"
+updated: "2026-03-06T00:00:00Z"
 durability: convention
 status: active
 severity: notable
 signal_type: capability-gap
-phase: "41"
-plan: ""
+phase: 41
+plan: 
 polarity: neutral
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: planning
-stopped_at: Completed 56-01-PLAN.md
-last_updated: "2026-04-08T21:42:35.828Z"
-last_activity: 2026-04-08 -- Phase 55 complete
+status: executing
+stopped_at: Completed 56-02-PLAN.md
+last_updated: "2026-04-08T21:45:59.304Z"
+last_activity: 2026-04-08 -- Phase 56 Plan 01 complete
 progress:
   total_phases: 10
   completed_phases: 1
   total_plans: 7
-  completed_plans: 5
-  percent: 71
+  completed_plans: 6
+  percent: 86
 ---
 
 # Project State
@@ -21,27 +21,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 56 -- KB Schema & SQLite Foundation (plan 01 complete, ready for plan 02)
+**Current focus:** v1.20 Phase 56 -- KB Schema & SQLite Foundation (plan 02 complete, ready for plan 03)
 
 ## Current Position
 
 Phase: 56 of 64 (KB Schema & SQLite Foundation)
-Plan: 02 (next)
+Plan: 03 (next)
 Status: In progress
-Last activity: 2026-04-08 -- Phase 56 Plan 01 complete
+Last activity: 2026-04-08 -- Phase 56 Plan 02 complete
 
-Progress: [███████░░░] 71%
+Progress: [█████████░] 86%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 5
+- Plans completed: 6
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
 - 55-04: 6min, 2 tasks, 4 files
 - 56-01: 6min, 3 tasks, 5 files
+- 56-02: 5min, 2 tasks, 3 files
 
 **v1.18 Final:**
 
@@ -82,6 +83,9 @@ Recent decisions affecting current work:
 - [56-01]: node:sqlite lazy-required via getDbSync() in kb.cjs -- prevents gsd-tools.cjs failing on Node <22.5.0 for non-KB commands (RESEARCH.md Pitfall 7)
 - [56-01]: source field deprecated in knowledge-store.md v2.1.0; detection_method + origin replace it with richer provenance semantics
 - [56-01]: kb.db gitignored per KB-05 dual-write invariant -- SQLite is derived cache, files are source of truth
+- [56-02]: Router case 'kb' and require('./lib/kb.cjs') were already wired during Plan 01 deviation -- Plan 02 added only the missing usage message entry
+- [56-02]: package.json engines.node bumped from >=16.7.0 to >=22.5.0; CHANGELOG.md Unreleased documents breaking change per KB-11
+- [56-02]: kb rebuild validated end-to-end: 200 files (199 signals + 1 spike), 0 errors, all 4 schema generations handled
 
 ### Pending Todos
 
@@ -105,6 +109,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-08T21:42:35.821Z
-Stopped at: Completed 56-01-PLAN.md
+Last session: 2026-04-08T21:45:21Z
+Stopped at: Completed 56-02-PLAN.md
 Resume file: None

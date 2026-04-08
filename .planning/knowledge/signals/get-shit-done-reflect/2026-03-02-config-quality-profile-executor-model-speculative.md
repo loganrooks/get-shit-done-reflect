@@ -3,8 +3,8 @@ id: sig-2026-03-02-config-quality-profile-executor-model-speculative
 type: signal
 project: get-shit-done-reflect
 tags: [config, deviation]
-created: 2026-03-02T00:00:00Z
-updated: 2026-03-02T18:50:00Z
+created: "2026-03-02T00:00:00Z"
+updated: "2026-03-02T18:50:00Z"
 durability: convention
 status: active
 severity: minor
@@ -12,7 +12,6 @@ signal_type: config-mismatch
 signal_category: negative
 phase: 34
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 gsd_version: 1.15.6+dev
@@ -23,22 +22,24 @@ lifecycle_log:
 evidence:
   supporting:
     - ".planning/config.json: model_profile = 'quality'"
-    - "None of the four SUMMARY.md files contain any reference to the executing model name"
+    - None of the four SUMMARY.md files contain any reference to the executing model name
   counter:
-    - "The SUMMARY.md files do not state executor model; absence of model information is not evidence of a mismatch"
-    - "Plans 01-03 completed in 2-3 minutes with zero deviations, consistent with capable model execution"
-    - "The phase produced correct outputs that passed 5/5 verification"
+    - The SUMMARY.md files do not state executor model; absence of model information is not evidence of a mismatch
+    - Plans 01-03 completed in 2-3 minutes with zero deviations, consistent with capable model execution
+    - The phase produced correct outputs that passed 5/5 verification
 confidence: low
-confidence_basis: "No SUMMARY.md files record executor model information, making this a speculative inference. Cannot confirm whether a model mismatch actually occurred."
+confidence_basis: No SUMMARY.md files record executor model information, making this a speculative inference. Cannot confirm whether a model mismatch actually occurred.
 triage:
   decision: address
-  rationale: "Part of config/model selection mismatch cluster. Root cause is lack of executor model provenance in SUMMARY.md template. Addressable by adding model field to template."
+  rationale: Part of config/model selection mismatch cluster. Root cause is lack of executor model provenance in SUMMARY.md template. Addressable by adding model field to template.
   priority: high
   by: reflector
   at: "2026-03-02T18:50:00Z"
-remediation: {}
-verification: {}
-recurrence_of: ""
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

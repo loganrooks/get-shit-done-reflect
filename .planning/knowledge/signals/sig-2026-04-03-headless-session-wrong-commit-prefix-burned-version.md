@@ -2,7 +2,13 @@
 id: sig-2026-04-03-headless-session-wrong-commit-prefix-burned-version
 type: signal
 project: get-shit-done-reflect
-tags: [headless-session, semver, commit-convention, release, delegation, patch-release]
+tags:
+  - headless-session
+  - semver
+  - commit-convention
+  - release
+  - delegation
+  - patch-release
 created: "2026-04-03T00:00:00Z"
 updated: "2026-04-03T00:00:00Z"
 durability: principle
@@ -12,13 +18,14 @@ signal_type: deviation
 phase: between-milestones
 plan: null
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals:
   - sig-2026-04-02-agent-defaults-to-self-execution-over-delegation
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.19.0"
+gsd_version: 1.19.0
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

@@ -2,9 +2,13 @@
 id: sig-2026-03-06-installer-file-churn-hotspot
 type: signal
 project: get-shit-done-reflect
-tags: [file-churn, hotspot, installer, testing]
-created: 2026-03-06T23:30:00Z
-updated: 2026-03-06T23:30:00Z
+tags:
+  - file-churn
+  - hotspot
+  - installer
+  - testing
+created: "2026-03-06T23:30:00Z"
+updated: "2026-03-06T23:30:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,26 +16,27 @@ signal_type: deviation
 signal_category: negative
 phase: 42
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-06T23:30:00Z"
 evidence:
   supporting:
-    - "bin/install.js modified 8 times in last 50 commits -- file churn hotspot"
-    - "tests/unit/install.test.js modified 5 times in last 50 commits -- file churn hotspot"
+    - bin/install.js modified 8 times in last 50 commits -- file churn hotspot
+    - tests/unit/install.test.js modified 5 times in last 50 commits -- file churn hotspot
   counter: []
 confidence: medium
 confidence_basis: "Merged from git sensor signals: bin/install.js (8 modifications) and tests/unit/install.test.js (5 modifications) in last 50 commits"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

@@ -2,9 +2,14 @@
 id: sig-2026-02-17-resume-work-misses-non-phase-handoffs
 type: signal
 project: get-shit-done-reflect
-tags: [resume-work, continue-here, pause-work, milestone-setup, workflow-gap]
-created: 2026-02-17T05:43:39Z
-updated: 2026-02-17T05:43:39Z
+tags:
+  - resume-work
+  - continue-here
+  - pause-work
+  - milestone-setup
+  - workflow-gap
+created: "2026-02-17T05:43:39Z"
+updated: "2026-02-17T05:43:39Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +17,13 @@ signal_type: deviation
 phase:
 plan:
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: [sig-2026-02-16-stale-continue-here-files-not-cleaned]
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.14.2
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

@@ -2,9 +2,13 @@
 id: sig-2026-02-11-agent-inline-research-context-bloat
 type: signal
 project: get-shit-done-reflect
-tags: [context-bloat, agent-behavior, research-orchestration, deviation]
-created: 2026-02-11T22:00:00Z
-updated: 2026-02-11T22:00:00Z
+tags:
+  - context-bloat
+  - agent-behavior
+  - research-orchestration
+  - deviation
+created: "2026-02-11T22:00:00Z"
+updated: "2026-02-11T22:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -14,9 +18,10 @@ plan: 0
 runtime: claude-code
 model: claude-opus-4-6
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

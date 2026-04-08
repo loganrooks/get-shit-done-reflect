@@ -2,9 +2,15 @@
 id: sig-2026-03-28-squash-merge-destroys-commit-history
 type: signal
 project: get-shit-done-reflect
-tags: [git-workflow, pr-merge, squash, traceability, commit-history, devops]
-created: 2026-03-28T07:30:00Z
-updated: 2026-03-28T07:30:00Z
+tags:
+  - git-workflow
+  - pr-merge
+  - squash
+  - traceability
+  - commit-history
+  - devops
+created: "2026-03-28T07:30:00Z"
+updated: "2026-03-28T07:30:00Z"
 durability: convention
 status: active
 severity: critical
@@ -12,12 +18,13 @@ signal_type: deviation
 phase: 53
 plan: 04
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: [sig-2026-03-28-offer-next-skips-pr-workflow]
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.17.5+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

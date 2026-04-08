@@ -2,9 +2,14 @@
 id: sig-2026-03-28-ci-cache-cross-project-pollution-bug-inf-01
 type: signal
 project: get-shit-done-reflect
-tags: [blocked, deviation, workaround, ci, config]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - blocked
+  - deviation
+  - workaround
+  - ci
+  - config
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,7 +18,6 @@ signal_category: negative
 phase: 54
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -38,10 +42,12 @@ evidence:
     - Upstream releasing 2 versions in 4 days during an active sync is a known risk that the governance policy now addresses
 confidence: high
 confidence_basis: Bug clearly described in plan with specific line reference; fix verified in VERIFICATION.md
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

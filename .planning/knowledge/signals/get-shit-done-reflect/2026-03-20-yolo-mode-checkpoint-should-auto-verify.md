@@ -8,21 +8,22 @@ tags:
   - orchestrator
   - verification
   - automation
-created: 2026-03-20T05:15:00.000Z
-updated: 2026-03-20T05:15:00.000Z
+created: "2026-03-20T05:15:00.000Z"
+updated: "2026-03-20T05:15:00.000Z"
 durability: convention
 status: active
 severity: notable
 signal_type: custom
-phase: "46"
-plan: "03"
+phase: 46
+plan: 03
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.17.5+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

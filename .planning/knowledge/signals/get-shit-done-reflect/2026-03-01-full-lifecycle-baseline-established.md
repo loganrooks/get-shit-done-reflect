@@ -2,9 +2,14 @@
 id: sig-2026-03-01-full-lifecycle-baseline-established
 type: signal
 project: get-shit-done-reflect
-tags: [signal-lifecycle, baseline, verification, remediation, lifecycle-completion]
-created: 2026-03-01T23:01:00Z
-updated: 2026-03-01T23:01:00Z
+tags:
+  - signal-lifecycle
+  - baseline
+  - verification
+  - remediation
+  - lifecycle-completion
+created: "2026-03-01T23:01:00Z"
+updated: "2026-03-01T23:01:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,30 +18,31 @@ signal_category: positive
 phase: 34
 plan: 4
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.15.6+dev"
+gsd_version: 1.15.6+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-01T23:01:00Z"
 evidence:
   supporting:
     - "sig-2026-02-28-verification-gap-triggered-unplanned-plan completed all 4 lifecycle transitions: detected -> triaged -> remediated -> verified"
-    - "lifecycle_log in the signal file shows all 4 transitions with timestamps and agent attribution"
+    - lifecycle_log in the signal file shows all 4 transitions with timestamps and agent attribution
     - "KB index shows the signal as lifecycle: verified after the demo"
-    - "frontmatter validate --schema signal passed after each mutation during the lifecycle demo"
+    - frontmatter validate --schema signal passed after each mutation during the lifecycle demo
   counter:
-    - "The lifecycle demo used manual-verification method rather than the passive absence-of-recurrence verification that would occur in production"
-    - "Only one signal has completed the full lifecycle -- this is a single data point, not a proven pattern"
+    - The lifecycle demo used manual-verification method rather than the passive absence-of-recurrence verification that would occur in production
+    - Only one signal has completed the full lifecycle -- this is a single data point, not a proven pattern
 confidence: medium
-confidence_basis: "The lifecycle demo is directly observable in the signal file and KB index. However, the manual verification method differs from the production passive verification path, reducing confidence that the full automated pipeline works end-to-end."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: The lifecycle demo is directly observable in the signal file and KB index. However, the manual verification method differs from the production passive verification path, reducing confidence that the full automated pipeline works end-to-end.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

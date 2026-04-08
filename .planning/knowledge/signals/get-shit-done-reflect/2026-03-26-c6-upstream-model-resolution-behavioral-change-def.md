@@ -2,9 +2,14 @@
 id: sig-2026-03-26-c6-upstream-model-resolution-behavioral-change-def
 type: signal
 project: get-shit-done-reflect
-tags: [upstream-drift, model-resolution, conflict, deferred, c6]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - upstream-drift
+  - model-resolution
+  - conflict
+  - deferred
+  - c6
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,7 +18,6 @@ signal_category: negative
 phase: 49
 plan: 3
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -32,10 +36,12 @@ evidence:
     - MODEL_ALIAS_MAP was adopted as the non-conflicting part of C6
 confidence: high
 confidence_basis: Explicitly documented in both PLAN.md (as anticipated fallback) and SUMMARY.md key-decisions. Scope reduction was deliberate and traced.
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

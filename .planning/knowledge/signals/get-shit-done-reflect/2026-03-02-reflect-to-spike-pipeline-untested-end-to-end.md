@@ -3,8 +3,8 @@ id: sig-2026-03-02-reflect-to-spike-pipeline-untested-end-to-end
 type: signal
 project: get-shit-done-reflect
 tags: [deviation, testing]
-created: 2026-03-02T00:00:00Z
-updated: 2026-03-02T00:00:00Z
+created: "2026-03-02T00:00:00Z"
+updated: "2026-03-02T00:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,31 +13,32 @@ signal_category: negative
 phase: 35
 plan: 0
 polarity: negative
-source: auto
 occurrence_count: 2
 related_signals:
   - sig-2026-03-02-lifecycle-behaviors-unverifiable-without-runtime
 runtime: claude-code
 model: claude-sonnet-4-6
-gsd_version: "1.15.6+dev"
+gsd_version: 1.15.6+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-02T00:00:00Z"
 evidence:
   supporting:
     - "Plan 03 SUMMARY states: '~/.gsd/knowledge/reflections/ directory does not exist'"
-    - "Pipeline verification was code-review only, not empirical"
+    - Pipeline verification was code-review only, not empirical
     - "VERIFICATION.md truth #9 states pipeline is verified by reading Section 12, not by observing a real spike candidate"
   counter:
-    - "The three trigger conditions are correctly specified in reflection-patterns.md"
-    - "Spike 002 was executed end-to-end manually"
-    - "VERIFICATION.md explicitly flags these as 'Human Verification Required'"
+    - The three trigger conditions are correctly specified in reflection-patterns.md
+    - Spike 002 was executed end-to-end manually
+    - VERIFICATION.md explicitly flags these as 'Human Verification Required'
 confidence: high
-confidence_basis: "The gap is directly and explicitly stated in multiple artifacts"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: The gap is directly and explicitly stated in multiple artifacts
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

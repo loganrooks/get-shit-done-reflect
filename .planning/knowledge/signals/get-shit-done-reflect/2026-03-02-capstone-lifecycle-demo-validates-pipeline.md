@@ -3,8 +3,8 @@ id: sig-2026-03-02-capstone-lifecycle-demo-validates-pipeline
 type: signal
 project: get-shit-done-reflect
 tags: [testing, workflow]
-created: 2026-03-02T00:00:00Z
-updated: 2026-03-02T00:00:00Z
+created: "2026-03-02T00:00:00Z"
+updated: "2026-03-02T00:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,7 +13,6 @@ signal_category: positive
 phase: 34
 plan: 4
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 gsd_version: 1.15.6+dev
@@ -22,18 +21,20 @@ lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-02T00:00:00Z"
 evidence:
   supporting:
-    - "34-04-PLAN.md Task 3 is explicitly designed as a lifecycle demonstration"
-    - "34-04-SUMMARY.md Lifecycle Demo Details table shows all four transitions"
+    - 34-04-PLAN.md Task 3 is explicitly designed as a lifecycle demonstration
+    - 34-04-SUMMARY.md Lifecycle Demo Details table shows all four transitions
     - "VERIFICATION.md Truth #5 verified via this demo"
   counter:
-    - "The demo used manual transitions rather than actual automated workflow execution"
-    - "VERIFICATION.md flags the triggered lifecycle behaviors as requiring human runtime testing"
+    - The demo used manual transitions rather than actual automated workflow execution
+    - VERIFICATION.md flags the triggered lifecycle behaviors as requiring human runtime testing
 confidence: high
-confidence_basis: "The capstone task and its outcomes are explicitly documented in both SUMMARY.md and VERIFICATION.md"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: The capstone task and its outcomes are explicitly documented in both SUMMARY.md and VERIFICATION.md
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

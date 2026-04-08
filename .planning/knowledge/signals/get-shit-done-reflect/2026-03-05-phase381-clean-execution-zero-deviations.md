@@ -2,9 +2,12 @@
 id: sig-2026-03-05-phase381-clean-execution-zero-deviations
 type: signal
 project: get-shit-done-reflect
-tags: [clean-execution, efficient-migration, high-verification-score]
-created: 2026-03-05T06:15:00Z
-updated: 2026-03-05T06:15:00Z
+tags:
+  - clean-execution
+  - efficient-migration
+  - high-verification-score
+created: "2026-03-05T06:15:00Z"
+updated: "2026-03-05T06:15:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,27 +16,27 @@ signal_category: positive
 phase: 38.1
 plan:
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-05T06:15:00Z"
 evidence:
   supporting:
-    - "All 3 plans report zero deviations"
-    - "12/12 verification"
-    - "12min total for 20-file migration"
-    - "214 tests with 8 new"
-  counter:
-    - "Plan 01 had partial prior execution understating duration"
+    - All 3 plans report zero deviations
+    - 12/12 verification
+    - 12min total for 20-file migration
+    - 214 tests with 8 new
+  counter: [Plan 01 had partial prior execution understating duration]
 confidence: high
-confidence_basis: ""
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: 
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

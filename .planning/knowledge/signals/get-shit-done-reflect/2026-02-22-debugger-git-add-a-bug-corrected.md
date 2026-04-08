@@ -2,9 +2,14 @@
 id: sig-2026-02-22-debugger-git-add-a-bug-corrected
 type: signal
 project: get-shit-done-reflect
-tags: [bug-fix, git-safety, debugger, extraction, positive-finding]
-created: 2026-02-22T00:00:00Z
-updated: 2026-02-22T00:00:00Z
+tags:
+  - bug-fix
+  - git-safety
+  - debugger
+  - extraction
+  - positive-finding
+created: "2026-02-22T00:00:00Z"
+updated: "2026-02-22T00:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +17,13 @@ signal_type: pattern
 phase: 22
 plan: 3
 polarity: positive
-source: automated
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.12.2
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

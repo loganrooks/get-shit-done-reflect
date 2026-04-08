@@ -2,22 +2,28 @@
 id: sig-2026-03-26-codex-signal-semantics-confusion
 type: signal
 project: get-shit-done-reflect
-tags: [codex, signal-semantics, knowledge-model, terminology, traceability]
-created: 2026-03-26T22:05:43Z
-updated: 2026-03-26T22:05:43Z
+tags:
+  - codex
+  - signal-semantics
+  - knowledge-model
+  - terminology
+  - traceability
+created: "2026-03-26T22:05:43Z"
+updated: "2026-03-26T22:05:43Z"
 durability: principle
 status: active
 severity: notable
 signal_type: custom
-phase: "49"
+phase: 49
 plan: null
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: codex-cli
 model: gpt-5.4
 gsd_version: 1.17.5+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

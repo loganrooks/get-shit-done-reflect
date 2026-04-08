@@ -2,9 +2,14 @@
 id: sig-2026-03-01-verification-gaps-require-human-testing
 type: signal
 project: get-shit-done-reflect
-tags: [epistemic-gap, verification, human-testing, runtime-behavior, workflow]
-created: 2026-03-01T23:04:00Z
-updated: 2026-03-01T23:04:00Z
+tags:
+  - epistemic-gap
+  - verification
+  - human-testing
+  - runtime-behavior
+  - workflow
+created: "2026-03-01T23:04:00Z"
+updated: "2026-03-01T23:04:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,31 +18,32 @@ signal_category: negative
 phase: 34
 plan: 0
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.15.6+dev"
+gsd_version: 1.15.6+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-01T23:04:00Z"
 evidence:
   supporting:
     - "34-VERIFICATION.md identifies 3 items requiring human test runs: planner signal awareness, automatic remediation triggering, passive verification after N phases"
-    - "These items 'cannot be verified programmatically and require a human test run'"
-    - "The lifecycle demo in 34-04 used manual-verification rather than the passive absence-of-recurrence path, leaving the automated path unverified"
-    - "Plan-phase workflow step 7b, execute-plan update_resolved_signals, and synthesizer Step 4c are all documented but untested in real execution"
+    - These items 'cannot be verified programmatically and require a human test run'
+    - The lifecycle demo in 34-04 used manual-verification rather than the passive absence-of-recurrence path, leaving the automated path unverified
+    - Plan-phase workflow step 7b, execute-plan update_resolved_signals, and synthesizer Step 4c are all documented but untested in real execution
   counter:
-    - "All code paths are fully specified in agent specs and workflow documentation with clear logic"
-    - "The verifier confirmed 5/5 must-have truths via static analysis, and the manual lifecycle demo proved the data model works"
-    - "Specification-level verification may be sufficient for documentation-only changes"
+    - All code paths are fully specified in agent specs and workflow documentation with clear logic
+    - The verifier confirmed 5/5 must-have truths via static analysis, and the manual lifecycle demo proved the data model works
+    - Specification-level verification may be sufficient for documentation-only changes
 confidence: low
-confidence_basis: "The epistemic gap is directly identified by the verifier itself. Low confidence because we are flagging what we do not know -- whether the runtime behavior matches the specification."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: The epistemic gap is directly identified by the verifier itself. Low confidence because we are flagging what we do not know -- whether the runtime behavior matches the specification.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

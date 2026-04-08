@@ -5,20 +5,29 @@ signal_type: capability-gap
 project: get-shit-done-reflect
 severity: notable
 lifecycle: detected
-source: manual
-tags: [plan-checker, producer-consumer, cross-workflow, implicit-dependencies, second-order-effects, template-consumer-gap]
-created: 2026-03-07T12:00:00Z
-updated: 2026-03-07T12:00:00Z
+tags:
+  - plan-checker
+  - producer-consumer
+  - cross-workflow
+  - implicit-dependencies
+  - second-order-effects
+  - template-consumer-gap
+created: "2026-03-07T12:00:00Z"
+updated: "2026-03-07T12:00:00Z"
 durability: principle
 status: active
-phase: "43"
+phase: 43
 plan: planning
 polarity: negative
 occurrence_count: 3
-related_signals: [sig-2026-03-06-plan-verification-misses-architectural-gaps, sig-2026-03-01-plan-checker-misses-second-order-effects]
+related_signals:
+  - sig-2026-03-06-plan-verification-misses-architectural-gaps
+  - sig-2026-03-01-plan-checker-misses-second-order-effects
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
+detection_method: manual
+origin: user-observation
 ---
 
 # Plan Checker Misses Producer-Consumer Gaps in Phase 43

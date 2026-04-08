@@ -2,22 +2,27 @@
 id: sig-2026-03-03-pr-review-targets-wrong-repo
 type: signal
 project: get-shit-done-reflect
-tags: [pr-review, wrong-target, disambiguation, recurring]
-created: 2026-03-03T00:00:00+11:00
-updated: 2026-03-03T00:00:00+11:00
+tags:
+  - pr-review
+  - wrong-target
+  - disambiguation
+  - recurring
+created: "2026-03-03T00:00:00+11:00"
+updated: "2026-03-03T00:00:00+11:00"
 durability: convention
 status: active
 severity: notable
 signal_type: deviation
-phase: "36"
-plan: "01"
+phase: 36
+plan: 01
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.16.0+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

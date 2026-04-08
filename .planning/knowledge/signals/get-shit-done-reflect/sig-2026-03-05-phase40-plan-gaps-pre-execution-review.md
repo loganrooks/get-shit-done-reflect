@@ -5,12 +5,21 @@ signal_type: plan-accuracy
 project: get-shit-done-reflect
 severity: critical
 lifecycle: remediated
-source: deliberation-trigger
-tags: [plan-accuracy, pre-execution-review, reentrancy, double-fire, output-corruption, context-estimation, test-coverage, phase-40]
-created: 2026-03-05T21:00:00Z
-updated: 2026-04-02T22:00:00Z
+tags:
+  - plan-accuracy
+  - pre-execution-review
+  - reentrancy
+  - double-fire
+  - output-corruption
+  - context-estimation
+  - test-coverage
+  - phase-40
+created: "2026-03-05T21:00:00Z"
+updated: "2026-04-02T22:00:00Z"
 status: remediated
-phase_context: "40"
+phase_context: 40
+detection_method: manual
+origin: deliberation-trigger
 ---
 
 # Pre-Execution Plan Review Finds 5 Gaps in Phase 40 Plans

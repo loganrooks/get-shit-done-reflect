@@ -2,18 +2,21 @@
 id: sig-2026-03-26-phase-51-maintains-clean-feat-test-docs-commit
 type: signal
 project: get-shit-done-reflect
-tags: [commit-patterns, plan-accuracy, plan-quality, good-pattern]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - commit-patterns
+  - plan-accuracy
+  - plan-quality
+  - good-pattern
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
 signal_type: baseline
 signal_category: positive
 phase: 51
-plan: ""
+plan: 
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -39,10 +42,12 @@ evidence:
     - Small sample size (3 plans) limits generalizability as a pattern indicator
 confidence: 0.9
 confidence_basis: All phase 51 commits reviewed; consistent feat/test/docs triplet observed with no fix commits requiring rework
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

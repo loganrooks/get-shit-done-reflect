@@ -3,8 +3,8 @@ id: sig-2026-03-04-drop-a-file-sensor-extensibility-pattern
 type: signal
 project: get-shit-done-reflect
 tags: [config, deviation]
-created: 2026-03-04T20:00:37Z
-updated: 2026-03-04T20:00:37Z
+created: "2026-03-04T20:00:37Z"
+updated: "2026-03-04T20:00:37Z"
 durability: principle
 status: active
 severity: notable
@@ -13,30 +13,31 @@ signal_category: positive
 phase: 38
 plan: 1
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-sonnet-4-6
-gsd_version: "1.16.0+dev"
+gsd_version: 1.16.0+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-04T20:00:37Z"
 evidence:
   supporting:
-    - "collect-signals.md now scans gsd-*-sensor.md dynamically -- no hardcoded sensor names"
-    - "Sensors not listed in config default to enabled"
+    - collect-signals.md now scans gsd-*-sensor.md dynamically -- no hardcoded sensor names
+    - Sensors not listed in config default to enabled
     - "VERIFICATION.md confirms: 'Any gsd-*-sensor.md file placed in agents directory will be auto-discovered'"
-    - "All 3 existing sensors conform to the standardized contract"
+    - All 3 existing sensors conform to the standardized contract
   counter:
-    - "Pattern relies on filesystem discovery which has OS-specific behavior"
-    - "The log sensor has stale documentation"
+    - Pattern relies on filesystem discovery which has OS-specific behavior
+    - The log sensor has stale documentation
 confidence: high
-confidence_basis: "The drop-a-file behavior is mechanically verified in VERIFICATION.md (10/10 truths)."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: The drop-a-file behavior is mechanically verified in VERIFICATION.md (10/10 truths).
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

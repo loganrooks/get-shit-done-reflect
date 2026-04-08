@@ -2,9 +2,15 @@
 id: sig-2026-04-02-agent-failed-to-self-signal-on-failure-cascade
 type: signal
 project: get-shit-done-reflect
-tags: [meta-signal, signal-awareness, capability-gap, self-monitoring, epistemic-gap, agent-behavior]
-created: 2026-04-02T17:00:00Z
-updated: 2026-04-02T17:00:00Z
+tags:
+  - meta-signal
+  - signal-awareness
+  - capability-gap
+  - self-monitoring
+  - epistemic-gap
+  - agent-behavior
+created: "2026-04-02T17:00:00Z"
+updated: "2026-04-02T17:00:00Z"
 durability: principle
 status: active
 severity: critical
@@ -12,12 +18,15 @@ signal_type: capability-gap
 phase: between-milestones
 plan: 0
 polarity: negative
-source: manual
 occurrence_count: 1
-related_signals: [sig-2026-04-02-background-agent-bypassed-quality-gates-broke-global-install, sig-2026-03-04-deliberation-skill-lacks-epistemic-verification]
+related_signals:
+  - sig-2026-04-02-background-agent-bypassed-quality-gates-broke-global-install
+  - sig-2026-03-04-deliberation-skill-lacks-epistemic-verification
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.18.0
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

@@ -2,9 +2,14 @@
 id: sig-2026-02-23-installer-clobbers-force-tracked-files
 type: signal
 project: get-shit-done-reflect
-tags: [installer, file-deletion, force-tracked, plan-accuracy, deviation]
-created: 2026-02-23T21:30:00Z
-updated: 2026-02-23T21:30:00Z
+tags:
+  - installer
+  - file-deletion
+  - force-tracked
+  - plan-accuracy
+  - deviation
+created: "2026-02-23T21:30:00Z"
+updated: "2026-02-23T21:30:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +17,13 @@ signal_type: deviation
 phase: 29
 plan: 02
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.12.2
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

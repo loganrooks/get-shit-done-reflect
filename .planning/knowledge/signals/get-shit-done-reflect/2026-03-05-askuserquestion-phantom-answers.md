@@ -2,9 +2,15 @@
 id: sig-2026-03-05-askuserquestion-phantom-answers
 type: signal
 project: get-shit-done-reflect
-tags: [deviation, askuserquestion, tool-behavior, discuss-phase, phantom-response, user-input]
-created: 2026-03-05T00:00:00Z
-updated: 2026-03-05T00:00:00Z
+tags:
+  - deviation
+  - askuserquestion
+  - tool-behavior
+  - discuss-phase
+  - phantom-response
+  - user-input
+created: "2026-03-05T00:00:00Z"
+updated: "2026-03-05T00:00:00Z"
 durability: convention
 status: active
 severity: critical
@@ -12,12 +18,13 @@ signal_type: deviation
 phase: 38
 plan:
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.16.0+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

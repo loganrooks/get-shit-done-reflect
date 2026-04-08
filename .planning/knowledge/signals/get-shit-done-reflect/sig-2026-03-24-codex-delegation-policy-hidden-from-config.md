@@ -2,23 +2,30 @@
 id: sig-2026-03-24-codex-delegation-policy-hidden-from-config
 type: signal
 project: get-shit-done-reflect
-tags: [codex, claude, cross-runtime, delegation-policy, spawn-agent, workflow-behavior, platform-parity]
-created: 2026-03-24T04:52:22Z
-updated: 2026-03-24T04:52:22Z
+tags:
+  - codex
+  - claude
+  - cross-runtime
+  - delegation-policy
+  - spawn-agent
+  - workflow-behavior
+  - platform-parity
+created: "2026-03-24T04:52:22Z"
+updated: "2026-03-24T04:52:22Z"
 durability: principle
 status: active
 severity: notable
 signal_type: capability-gap
-phase: "48.1"
-plan: "01"
+phase: 48.1
+plan: 01
 polarity: negative
-source: manual
 occurrence_count: 2
-related_signals:
-  - sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift
+related_signals: [sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift]
 runtime: codex-cli
 model: gpt-5.4
 gsd_version: 1.17.5
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

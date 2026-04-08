@@ -6,12 +6,19 @@ polarity: positive
 phase: 25
 plan: 02
 project: get-shit-done-reflect
-created: 2026-02-22T00:00:00Z
-tags: [architecture, silent-helper, auto-regeneration, index, backlog, output-control]
+created: "2026-02-22T00:00:00Z"
+tags:
+  - architecture
+  - silent-helper
+  - auto-regeneration
+  - index
+  - backlog
+  - output-control
 status: active
-source: automated
 runtime: claude-code
 model: claude-sonnet-4-6
+detection_method: automated
+origin: collect-signals
 ---
 
 # Silent Helper Pattern for Auto-Triggered Side Effects Without Double Output

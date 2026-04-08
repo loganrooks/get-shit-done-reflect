@@ -2,9 +2,14 @@
 id: sig-2026-02-28-cross-plan-test-count-not-updated
 type: signal
 project: get-shit-done-reflect
-tags: [deviation, testing, cross-plan-dependency, plan-accuracy, auto-fix]
-created: 2026-02-28T18:30:00Z
-updated: 2026-02-28T18:30:00Z
+tags:
+  - deviation
+  - testing
+  - cross-plan-dependency
+  - plan-accuracy
+  - auto-fix
+created: "2026-02-28T18:30:00Z"
+updated: "2026-02-28T18:30:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,7 +18,6 @@ signal_category: negative
 phase: 31
 plan: 3
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -25,17 +29,19 @@ lifecycle_log:
 evidence:
   supporting:
     - "31-03-SUMMARY.md auto-fix #2: 'Existing test real manifest is valid JSON with expected structure expected exactly 3 features, but Phase 31-01 added signal_lifecycle as a 4th feature to feature-manifest.json. Test was failing with 4 !== 3.'"
-    - "Plan 31-01 added signal_lifecycle to feature-manifest.json but its SUMMARY.md does not mention updating the test that counts features"
-    - "Plan 31-03 should have been written with awareness that a feature count assertion existed in the test suite, since it depends on 31-01"
+    - Plan 31-01 added signal_lifecycle to feature-manifest.json but its SUMMARY.md does not mention updating the test that counts features
+    - Plan 31-03 should have been written with awareness that a feature count assertion existed in the test suite, since it depends on 31-01
   counter:
-    - "Plan 31-03 was not responsible for managing test count assertions -- those belong to the plan that adds the feature (31-01). The dependency was implicit, not explicit."
-    - "The feature count assertion is a brittle test pattern; any future feature addition will hit the same issue regardless of plan coordination"
+    - Plan 31-03 was not responsible for managing test count assertions -- those belong to the plan that adds the feature (31-01). The dependency was implicit, not explicit.
+    - The feature count assertion is a brittle test pattern; any future feature addition will hit the same issue regardless of plan coordination
 confidence: medium
-confidence_basis: "Detection from SUMMARY.md auto-fix log is clear. Root cause assessment (cross-plan dependency not captured) is reasonable inference from plan structure."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Detection from SUMMARY.md auto-fix log is clear. Root cause assessment (cross-plan dependency not captured) is reasonable inference from plan structure.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

@@ -3,8 +3,8 @@ id: sig-2026-03-05-undeclared-claude-dir-scope-creep-plan02
 type: signal
 project: get-shit-done-reflect
 tags: [scope-creep, plan-accuracy, dual-directory]
-created: 2026-03-05T06:15:00Z
-updated: 2026-03-05T06:15:00Z
+created: "2026-03-05T06:15:00Z"
+updated: "2026-03-05T06:15:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,27 +13,27 @@ signal_category: negative
 phase: 38.1
 plan: 2
 polarity: negative
-source: auto
 occurrence_count: 2
-related_signals:
-  - sig-2026-03-02-plan-scope-declaration-mismatch-35-03-and-04
-gsd_version: "1.16.0+dev"
+related_signals: [sig-2026-03-02-plan-scope-declaration-mismatch-35-03-and-04]
+gsd_version: 1.16.0+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-05T06:15:00Z"
 evidence:
   supporting:
-    - "Plan 02 declared 8 files, commits also modified 8 undeclared .claude/ files"
-    - "Plan 03 declared 2 files, commit also modified 1 undeclared .claude/ file"
+    - Plan 02 declared 8 files, commits also modified 8 undeclared .claude/ files
+    - Plan 03 declared 2 files, commit also modified 1 undeclared .claude/ file
   counter:
-    - ".claude/ files are installer sync artifacts, expected in dual-directory architecture"
-    - "Extra file is an installer sync artifact"
+    - .claude/ files are installer sync artifacts, expected in dual-directory architecture
+    - Extra file is an installer sync artifact
 confidence: medium
 confidence_basis: "Merged with git sensor signal: Plan 38.1-03 touched 1 undeclared .claude/ installed copy beyond plan scope"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

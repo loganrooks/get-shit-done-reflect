@@ -2,9 +2,13 @@
 id: sig-2026-02-11-kb-script-wrong-location-and-path
 type: signal
 project: get-shit-done-reflect
-tags: [kb-management, path-resolution, architecture, misplaced-artifact]
-created: 2026-02-11T22:15:00Z
-updated: 2026-04-02T20:00:00Z
+tags:
+  - kb-management
+  - path-resolution
+  - architecture
+  - misplaced-artifact
+created: "2026-02-11T22:15:00Z"
+updated: "2026-04-02T20:00:00Z"
 durability: convention
 status: remediated
 severity: critical
@@ -14,9 +18,10 @@ plan: 0
 runtime: claude-code
 model: claude-opus-4-6
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: [sig-2026-02-11-local-install-global-kb-model]
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

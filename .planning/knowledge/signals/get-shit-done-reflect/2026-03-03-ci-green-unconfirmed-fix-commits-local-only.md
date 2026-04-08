@@ -2,9 +2,13 @@
 id: sig-2026-03-03-ci-green-unconfirmed-fix-commits-local-only
 type: signal
 project: get-shit-done-reflect
-tags: [ci, deviation, wiring-validation, dual-directory]
-created: 2026-03-03T00:00:00Z
-updated: 2026-04-02T22:00:00Z
+tags:
+  - ci
+  - deviation
+  - wiring-validation
+  - dual-directory
+created: "2026-03-03T00:00:00Z"
+updated: "2026-04-02T22:00:00Z"
 durability: convention
 status: remediated
 severity: critical
@@ -13,7 +17,6 @@ signal_category: negative
 phase: 36
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 2
 related_signals:
   - sig-2026-03-02-ci-failures-ignored-throughout-v116
@@ -29,17 +32,19 @@ evidence:
   supporting:
     - "VERIFICATION.md status: gaps_found, score: 4/5 must-haves verified"
     - "Truth #5 marked PARTIAL: fix commits local-only, not pushed to origin/main"
-    - "Phase goal explicitly includes 'CI is green on main' -- unconfirmed"
+    - Phase goal explicitly includes 'CI is green on main' -- unconfirmed
   counter:
-    - "Verifier classifies gap as 'operational, not a code defect'"
-    - "All 156 tests pass locally with 0 failures"
+    - Verifier classifies gap as 'operational, not a code defect'
+    - All 156 tests pass locally with 0 failures
     - "Clear remediation: push commits to origin/main"
 confidence: high
-confidence_basis: "VERIFICATION.md explicitly records gaps_found status"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: VERIFICATION.md explicitly records gaps_found status
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

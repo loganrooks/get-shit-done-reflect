@@ -2,18 +2,21 @@
 id: sig-2026-03-28-phase-identity-reframed-before-planning-began-2-co
 type: signal
 project: get-shit-done-reflect
-tags: [phase-scoping, commit-patterns, plan-quality, scope-change]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - phase-scoping
+  - commit-patterns
+  - plan-quality
+  - scope-change
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
 signal_type: deviation
 signal_category: negative
 phase: 54
-plan: ""
+plan: 
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -26,11 +29,13 @@ evidence:
   supporting: []
   counter: []
 confidence: 0.85
-confidence_basis: "Two distinct directory names appear in git history for the same phase number; the reframing commits are explicit in their subjects ('reframe phase as sync retrospective and governance')"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Two distinct directory names appear in git history for the same phase number; the reframing commits are explicit in their subjects ('reframe phase as sync retrospective and governance')
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

@@ -3,8 +3,8 @@ id: sig-2026-03-02-summary-md-lacks-executor-model-provenance
 type: signal
 project: get-shit-done-reflect
 tags: [config, deviation]
-created: 2026-03-02T00:00:00Z
-updated: 2026-03-02T00:00:00Z
+created: "2026-03-02T00:00:00Z"
+updated: "2026-03-02T00:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -12,7 +12,6 @@ signal_type: epistemic-gap
 signal_category: negative
 phase: 34
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals:
   - sig-2026-03-02-config-quality-profile-executor-model-speculative
@@ -24,13 +23,15 @@ evidence:
   supporting:
     - "34-01 through 34-04 SUMMARY.md: no 'model' or 'executor' field in frontmatter or body"
   counter:
-    - "The summary template may not require executor model recording -- this may be a template gap, not an execution gap"
+    - The summary template may not require executor model recording -- this may be a template gap, not an execution gap
 confidence: medium
-confidence_basis: "Direct observation across all four SUMMARY.md files in Phase 34"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Direct observation across all four SUMMARY.md files in Phase 34
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

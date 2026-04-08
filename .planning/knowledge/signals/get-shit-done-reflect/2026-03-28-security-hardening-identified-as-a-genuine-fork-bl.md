@@ -3,8 +3,8 @@ id: sig-2026-03-28-security-hardening-identified-as-a-genuine-fork-bl
 type: signal
 project: get-shit-done-reflect
 tags: [config, testing, blocked]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,7 +13,6 @@ signal_category: negative
 phase: 54
 plan: 3
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -30,14 +29,16 @@ evidence:
     - "54-04-SUMMARY.md: 'Security hardening (C10 + C10-ext) recommended as top priority for next sync cycle based on convergent evidence from three analyses'"
   counter:
     - The fork is a single-user scholarly tool, not a multi-tenant application — the security risk surface may be legitimately lower
-    - "Upstream's security.cjs focuses on prompt injection and path traversal scanning for a broader user base"
+    - Upstream's security.cjs focuses on prompt injection and path traversal scanning for a broader user base
     - "The signal cross-reference methodology itself flags limitations: 'Fork signals track process/epistemic concerns... Upstream issues track user-facing bugs'"
 confidence: medium
 confidence_basis: Three independent analyses converge on identifying security as a blind spot; however, scope applicability to a single-user fork is genuinely ambiguous
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

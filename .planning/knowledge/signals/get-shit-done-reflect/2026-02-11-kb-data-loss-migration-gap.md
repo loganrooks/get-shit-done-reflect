@@ -2,9 +2,13 @@
 id: sig-2026-02-11-kb-data-loss-migration-gap
 type: signal
 project: get-shit-done-reflect
-tags: [data-loss, kb-migration, critical-gap, installer-dependency]
-created: 2026-02-11T22:25:00Z
-updated: 2026-04-02T22:00:00Z
+tags:
+  - data-loss
+  - kb-migration
+  - critical-gap
+  - installer-dependency
+created: "2026-02-11T22:25:00Z"
+updated: "2026-04-02T22:00:00Z"
 durability: principle
 status: remediated
 severity: critical
@@ -14,9 +18,12 @@ plan: 0
 runtime: claude-code
 model: claude-opus-4-6
 polarity: negative
-source: manual
 occurrence_count: 1
-related_signals: [sig-2026-02-11-kb-script-wrong-location-and-path, sig-2026-02-11-local-install-global-kb-model]
+related_signals:
+  - sig-2026-02-11-kb-script-wrong-location-and-path
+  - sig-2026-02-11-local-install-global-kb-model
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

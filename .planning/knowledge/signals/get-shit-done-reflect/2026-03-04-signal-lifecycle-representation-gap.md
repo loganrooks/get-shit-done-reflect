@@ -2,9 +2,15 @@
 id: sig-2026-03-04-signal-lifecycle-representation-gap
 type: signal
 project: get-shit-done-reflect
-tags: [signal-lifecycle, meta-observability, representation-gap, capability-gap, feedback-loop, epistemic-gap]
-created: 2026-03-04T00:00:00Z
-updated: 2026-03-04T00:00:00Z
+tags:
+  - signal-lifecycle
+  - meta-observability
+  - representation-gap
+  - capability-gap
+  - feedback-loop
+  - epistemic-gap
+created: "2026-03-04T00:00:00Z"
+updated: "2026-03-04T00:00:00Z"
 durability: convention
 status: active
 severity: critical
@@ -12,12 +18,13 @@ signal_type: capability-gap
 phase: 38
 plan:
 polarity: negative
-source: deliberation-trigger
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.16.0+dev
+detection_method: manual
+origin: deliberation-trigger
 ---
 
 ## What Happened

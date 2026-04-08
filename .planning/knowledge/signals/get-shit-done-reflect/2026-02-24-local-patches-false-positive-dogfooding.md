@@ -2,9 +2,15 @@
 id: sig-2026-02-24-local-patches-false-positive-dogfooding
 type: signal
 project: get-shit-done-reflect
-tags: [update, local-patches, dogfooding, self-hosting, installer, false-positive]
-created: 2026-02-24T05:10:00Z
-updated: 2026-02-24T05:10:00Z
+tags:
+  - update
+  - local-patches
+  - dogfooding
+  - self-hosting
+  - installer
+  - false-positive
+created: "2026-02-24T05:10:00Z"
+updated: "2026-02-24T05:10:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +18,13 @@ signal_type: deviation
 phase: N/A
 plan: N/A
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.15.0
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

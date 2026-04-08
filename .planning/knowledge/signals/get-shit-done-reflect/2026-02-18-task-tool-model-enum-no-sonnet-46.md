@@ -3,8 +3,8 @@ id: sig-2026-02-18-task-tool-model-enum-no-sonnet-46
 type: signal
 project: get-shit-done-reflect
 tags: [config, model-selection, task-tool]
-created: 2026-02-18T16:00:00Z
-updated: 2026-03-02T18:50:00Z
+created: "2026-02-18T16:00:00Z"
+updated: "2026-03-02T18:50:00Z"
 durability: workaround
 status: active
 severity: critical
@@ -12,7 +12,6 @@ signal_type: config-mismatch
 phase: 22
 plan: 0
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -23,17 +22,19 @@ lifecycle_log:
   - "detected->triaged by reflector at 2026-03-02T18:50:00Z: address -- Task tool model enum limitation caused wrong model selection, related to recurring config mismatch pattern"
 evidence:
   supporting:
-    - "Task tool model parameter accepts only enum of sonnet/opus/haiku, not specific model IDs"
-    - "User requested claude-sonnet-4-6 but got Sonnet 4.5 via the sonnet enum value"
-    - "Plans 22-02, 22-03, and 22-04 executed with wrong model"
+    - Task tool model parameter accepts only enum of sonnet/opus/haiku, not specific model IDs
+    - User requested claude-sonnet-4-6 but got Sonnet 4.5 via the sonnet enum value
+    - Plans 22-02, 22-03, and 22-04 executed with wrong model
   counter:
-    - "Task tool enum limitation is an upstream platform constraint, not a GSD bug"
+    - Task tool enum limitation is an upstream platform constraint, not a GSD bug
 triage:
   decision: address
-  rationale: "Critical config mismatch caused 3 plans to execute with wrong model. Part of recurring model selection pattern. Addressable via model provenance recording and documentation of Task tool limitations."
+  rationale: Critical config mismatch caused 3 plans to execute with wrong model. Part of recurring model selection pattern. Addressable via model provenance recording and documentation of Task tool limitations.
   priority: high
   by: reflector
   at: "2026-03-02T18:50:00Z"
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

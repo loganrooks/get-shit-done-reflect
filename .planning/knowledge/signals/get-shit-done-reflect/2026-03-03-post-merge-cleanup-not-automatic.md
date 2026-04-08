@@ -2,22 +2,27 @@
 id: sig-2026-03-03-post-merge-cleanup-not-automatic
 type: signal
 project: get-shit-done-reflect
-tags: [git-workflow, branch-management, deviation, post-merge]
-created: 2026-03-03T00:00:00+11:00
-updated: 2026-03-03T00:00:00+11:00
+tags:
+  - git-workflow
+  - branch-management
+  - deviation
+  - post-merge
+created: "2026-03-03T00:00:00+11:00"
+updated: "2026-03-03T00:00:00+11:00"
 durability: convention
 status: active
 severity: notable
 signal_type: deviation
-phase: "36"
-plan: "01"
+phase: 36
+plan: 01
 polarity: negative
-source: manual
 occurrence_count: 2
 related_signals: [sig-2026-02-16-branch-not-deleted-after-pr-merge]
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.16.0+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

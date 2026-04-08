@@ -2,24 +2,31 @@
 id: sig-2026-03-28-eager-bypass-of-protocol-when-scope-needs-revision
 type: signal
 project: get-shit-done-reflect
-tags: [workflow-gap, protocol-bypass, scope-revision, discuss-phase, capability-gap, recurring]
-created: 2026-03-28T08:00:00Z
-updated: 2026-03-28T08:00:00Z
+tags:
+  - workflow-gap
+  - protocol-bypass
+  - scope-revision
+  - discuss-phase
+  - capability-gap
+  - recurring
+created: "2026-03-28T08:00:00Z"
+updated: "2026-03-28T08:00:00Z"
 durability: principle
 status: active
 severity: notable
 signal_type: capability-gap
-phase: "54"
+phase: 54
 plan: null
 polarity: negative
-source: manual
 occurrence_count: 1
 related_signals:
   - sig-2026-03-23-missing-home-for-constellation-recommendations
   - 2026-02-17-resume-work-misses-non-phase-handoffs
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.17.5+dev"
+gsd_version: 1.17.5+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

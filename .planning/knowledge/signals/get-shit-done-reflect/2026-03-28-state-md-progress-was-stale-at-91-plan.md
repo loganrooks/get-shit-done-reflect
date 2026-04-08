@@ -3,8 +3,8 @@ id: sig-2026-03-28-state-md-progress-was-stale-at-91-plan
 type: signal
 project: get-shit-done-reflect
 tags: [config, state-sync, deviation]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,7 +13,6 @@ signal_category: negative
 phase: 54
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -32,10 +31,12 @@ evidence:
     - This is a documentation freshness issue, not a functional regression — actual work was not affected
 confidence: high
 confidence_basis: Cross-referenced in both SUMMARY.md and RETROSPECTIVE.md; root cause identified as writeStateMd() not being called after plan completion
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

@@ -2,9 +2,13 @@
 id: sig-2026-03-27-plan-04-files-modified-declared-empty-but-automati
 type: signal
 project: get-shit-done-reflect
-tags: [deviation, cross-plan-debt, testing, plan-accuracy]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - deviation
+  - cross-plan-debt
+  - testing
+  - plan-accuracy
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,9 +17,13 @@ signal_category: negative
 phase: 53
 plan: 4
 polarity: neutral
-source: auto
 occurrence_count: 2
-related_signals: [sig-2026-02-23-installer-clobbers-force-tracked-files, sig-2026-03-07-plan-files-modified-lists-unnecessary-change, sig-2026-02-28-sh-script-path-not-in-agents-dir, sig-2026-02-28-cross-plan-test-count-not-updated, sig-2026-02-26-skipped-tdd-for-inject-version-scope]
+related_signals:
+  - sig-2026-02-23-installer-clobbers-force-tracked-files
+  - sig-2026-03-07-plan-files-modified-lists-unnecessary-change
+  - sig-2026-02-28-sh-script-path-not-in-agents-dir
+  - sig-2026-02-28-cross-plan-test-count-not-updated
+  - sig-2026-02-26-skipped-tdd-for-inject-version-scope
 runtime: claude-code
 model: claude-sonnet-4-6
 gsd_version: 1.17.5+dev
@@ -27,20 +35,22 @@ evidence:
     - "53-04-PLAN.md frontmatter: files_modified: []"
     - The failures stem from adding nyquist_validation to FEATURE_CAPABILITY_MAP without a matching feature-manifest.json entry
     - Commit d77a03b recorded in task 2 for the modification
-    - "Failures were deferred as 'out of scope' rather than resolved immediately"
+    - Failures were deferred as 'out of scope' rather than resolved immediately
     - "53-04-SUMMARY.md Files Created/Modified section: 'tests/unit/automation.test.js - Fixed 2 resolve-level tests to pass --context-pct 0, isolating them from host bridge files in /tmp/'"
     - "53-02-SUMMARY.md Decisions Made section: 'Pre-existing TST-08 test failures (2 tests) from Phase 53-01's nyquist_validation addition to FEATURE_CAPABILITY_MAP are outside this plan's scope; they require a corresponding feature-manifest.json entry'"
   counter:
-    - "The issue was not a regression in plan 01's own tests -- plan 01 passed its verification criteria"
+    - The issue was not a regression in plan 01's own tests -- plan 01 passed its verification criteria
     - The fix was small and prompted by an emergent test isolation issue, not a scope change
     - The plan was verification-only by design and the file modification was a reactive bugfix during that process
-    - "Plan 02's scope explicitly excluded this; the decision to defer was deliberate and documented"
+    - Plan 02's scope explicitly excluded this; the decision to defer was deliberate and documented
 confidence: high
 confidence_basis: Plan frontmatter explicitly declares empty files_modified; summary explicitly records one file modified with a commit hash -- direct contradiction in the artifacts
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

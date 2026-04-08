@@ -3,8 +3,8 @@ id: sig-2026-03-02-phase-35-zero-deviation-all-plans
 type: signal
 project: get-shit-done-reflect
 tags: [deviation]
-created: 2026-03-02T00:00:00Z
-updated: 2026-03-02T00:00:00Z
+created: "2026-03-02T00:00:00Z"
+updated: "2026-03-02T00:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,28 +13,29 @@ signal_category: positive
 phase: 35
 plan: 0
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-sonnet-4-6
-gsd_version: "1.15.6+dev"
+gsd_version: 1.15.6+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-02T00:00:00Z"
 evidence:
   supporting:
-    - "Plans 01-04 all report 'None' for deviations in SUMMARY.md"
+    - Plans 01-04 all report 'None' for deviations in SUMMARY.md
     - "VERIFICATION.md: 12/12 must-haves verified, 155 tests passing"
   counter:
-    - "Low duration per plan (2-4 minutes each) could indicate simpler tasks rather than execution excellence"
-    - "Some tasks produced no commits (verification-only tasks)"
+    - Low duration per plan (2-4 minutes each) could indicate simpler tasks rather than execution excellence
+    - Some tasks produced no commits (verification-only tasks)
 confidence: medium
-confidence_basis: "Duration and deviation data from SUMMARY.md frontmatter"
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Duration and deviation data from SUMMARY.md frontmatter
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

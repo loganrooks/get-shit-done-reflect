@@ -2,9 +2,14 @@
 id: sig-2026-03-04-deliberation-skill-lacks-epistemic-verification
 type: signal
 project: get-shit-done-reflect
-tags: [deliberation, epistemic-rigor, capability-gap, verification, meta-observability]
-created: 2026-03-04T00:00:00Z
-updated: 2026-03-04T00:00:00Z
+tags:
+  - deliberation
+  - epistemic-rigor
+  - capability-gap
+  - verification
+  - meta-observability
+created: "2026-03-04T00:00:00Z"
+updated: "2026-03-04T00:00:00Z"
 durability: convention
 status: active
 severity: critical
@@ -12,7 +17,6 @@ signal_type: capability-gap
 phase: 38
 plan:
 polarity: negative
-source: deliberation-trigger
 occurrence_count: 1
 related_signals:
   - sig-2026-03-04-signal-lifecycle-representation-gap
@@ -20,6 +24,8 @@ related_signals:
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.16.0+dev
+detection_method: manual
+origin: deliberation-trigger
 ---
 
 ## What Happened

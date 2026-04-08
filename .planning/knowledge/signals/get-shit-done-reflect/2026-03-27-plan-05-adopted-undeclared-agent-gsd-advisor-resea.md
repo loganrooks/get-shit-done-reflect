@@ -2,9 +2,15 @@
 id: sig-2026-03-27-plan-05-adopted-undeclared-agent-gsd-advisor-resea
 type: signal
 project: get-shit-done-reflect
-tags: [estimation, agent-spec, plan-accuracy, scope-creep, dependency-gap, adoption-workflow]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - estimation
+  - agent-spec
+  - plan-accuracy
+  - scope-creep
+  - dependency-gap
+  - adoption-workflow
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,9 +19,10 @@ signal_category: negative
 phase: 52
 plan: 5
 polarity: negative
-source: auto
 occurrence_count: 2
-related_signals: [sig-2026-03-05-undeclared-claude-dir-scope-creep-plan02, sig-2026-03-02-plan-scope-declaration-mismatch-35-03-and-04]
+related_signals:
+  - sig-2026-03-05-undeclared-claude-dir-scope-creep-plan02
+  - sig-2026-03-02-plan-scope-declaration-mismatch-35-03-and-04
 runtime: claude-code
 model: claude-sonnet-4-6
 gsd_version: 1.17.5+dev
@@ -24,7 +31,7 @@ lifecycle_log:
   - "created -> detected by gsdr-signal-synthesizer at 2026-03-29T08:00:00Z"
 evidence:
   supporting:
-    - "Plan 03 adopted discuss-phase.md (upstream, 1049 lines) which @-references agents/gsd-advisor-researcher.md"
+    - Plan 03 adopted discuss-phase.md (upstream, 1049 lines) which @-references agents/gsd-advisor-researcher.md
     - "Fix commit 5b03e80: fix(52-05): adopt advisor-researcher agent and verify full integration"
     - Actual files in phase 52-05 commits include agents/gsd-advisor-researcher.md (not declared)
     - Dependency only surfaced when wiring-validation.test.js ran in Plan 05
@@ -41,17 +48,19 @@ evidence:
     - Gap was caught and fixed within the same phase (Plan 05) with no quality impact on final output
     - Phase verification still passed 15/15 must-haves; no quality impact
     - Over-declaration is conservative planning — preferable to under-declaring and missing files
-    - "Upstream @-references are not always transitively visible during adoption planning"
-    - "Wholesale-replace workflow makes deep @-reference scanning expensive at planning time"
+    - Upstream @-references are not always transitively visible during adoption planning
+    - Wholesale-replace workflow makes deep @-reference scanning expensive at planning time
     - Extra file represents a legitimate Rule 3 (blocking) auto-fix per fork deviation rules
-    - "The dependency was implicit — upstream's discuss-phase.md references the agent without Plan 03 documenting the dependency"
+    - The dependency was implicit — upstream's discuss-phase.md references the agent without Plan 03 documenting the dependency
     - Executor correctly identified at runtime which files needed changes and which did not
 confidence: high
 confidence_basis: Direct comparison of declared files_modified in Plan 05 PLAN.md against git log --name-only for commits matching (52-05); SUMMARY.md confirms undeclared file with explicit deviation entry
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

@@ -2,9 +2,14 @@
 id: sig-2026-04-02-dev-version-suffix-lacks-commit-traceability
 type: signal
 project: get-shit-done-reflect
-tags: [version-tracing, installer, dev-builds, traceability, signals]
-created: 2026-04-02T22:55:00.000Z
-updated: 2026-04-02T22:55:00.000Z
+tags:
+  - version-tracing
+  - installer
+  - dev-builds
+  - traceability
+  - signals
+created: "2026-04-02T22:55:00.000Z"
+updated: "2026-04-02T22:55:00.000Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +17,13 @@ signal_type: capability-gap
 phase: n/a
 plan: n/a
 polarity: neutral
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.18.2+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

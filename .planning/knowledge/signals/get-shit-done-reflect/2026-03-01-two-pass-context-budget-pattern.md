@@ -2,9 +2,14 @@
 id: sig-2026-03-01-two-pass-context-budget-pattern
 type: signal
 project: get-shit-done-reflect
-tags: [context-management, two-pass-loading, performance, reflector, good-pattern]
-created: 2026-03-01T19:00:02Z
-updated: 2026-03-01T19:00:02Z
+tags:
+  - context-management
+  - two-pass-loading
+  - performance
+  - reflector
+  - good-pattern
+created: "2026-03-01T19:00:02Z"
+updated: "2026-03-01T19:00:02Z"
 durability: convention
 status: active
 severity: notable
@@ -13,14 +18,13 @@ signal_category: positive
 phase: 33
 plan: 3
 polarity: positive
-source: auto
 occurrence_count: 1
 related_signals:
   - sig-2026-02-11-signal-workflow-context-bloat
   - sig-2026-02-18-signal-workflow-context-bloat
 runtime: claude-code
 model: claude-opus-4-6
-gsd_version: "1.15.6+dev"
+gsd_version: 1.15.6+dev
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-01T19:00:02Z"
@@ -31,14 +35,16 @@ evidence:
     - "33-03-SUMMARY.md: 'Two-pass signal reading preserves context budget: index pass via shell commands (NOT extractFrontmatter), detail pass only for qualifying clusters'"
     - "33-VERIFICATION.md Truth 21: 'Reflector uses two-pass signal reading (index pass then detail pass for qualifying clusters only)' -- VERIFIED"
   counter:
-    - "The two-pass approach has not been tested at scale with the current 51 signals. Context savings are theoretical until runtime validation occurs."
-    - "If most clusters qualify (e.g., many patterns detected), the detail pass may still load most signal files, reducing the benefit."
+    - The two-pass approach has not been tested at scale with the current 51 signals. Context savings are theoretical until runtime validation occurs.
+    - If most clusters qualify (e.g., many patterns detected), the detail pass may still load most signal files, reducing the benefit.
 confidence: high
-confidence_basis: "Pattern is explicitly implemented in the reflector agent spec. Addresses documented context-bloat signals from Phases 31-32. Counter-evidence notes theoretical vs empirical savings."
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+confidence_basis: Pattern is explicitly implemented in the reflector agent spec. Addresses documented context-bloat signals from Phases 31-32. Counter-evidence notes theoretical vs empirical savings.
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

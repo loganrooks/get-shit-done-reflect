@@ -2,9 +2,17 @@
 id: sig-2026-03-26-plan-01-underspecified-upstream-runtime-file-exclu
 type: signal
 project: get-shit-done-reflect
-tags: [namespace-scan, automation, FEATURE_CAPABILITY_MAP, replacePathsInContent, upstream-runtime, snapshot-regression, plan-underspecification, auto-fix]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - namespace-scan
+  - automation
+  - FEATURE_CAPABILITY_MAP
+  - replacePathsInContent
+  - upstream-runtime
+  - snapshot-regression
+  - plan-underspecification
+  - auto-fix
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: minor
@@ -13,7 +21,6 @@ signal_category: negative
 phase: 50
 plan: 1
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -29,7 +36,7 @@ evidence:
     - Fix required adding isUpstreamRuntime() exclusion function and extra assertions to distinguish rewritten vs upstream file populations
     - "50-01-SUMMARY.md Auto-fix 2: 'Plan specified quoted path.join args (get-shit-done) as hook corpus input, but replacePathsInContent does NOT rewrite quoted strings without trailing slash -- that transformation is done by the hook installer's inline regex.'"
     - Snapshot expectation was wrong and had to be corrected to use get-shit-done/ paths (with trailing slash)
-    - "Assertions had to be rewritten against actual structure instead of plan's assumed structure"
+    - Assertions had to be rewritten against actual structure instead of plan's assumed structure
   counter:
     - The fix was discovered during Task 2 verification and corrected immediately
     - The correction produced correct behavior and the fix was self-contained
@@ -39,10 +46,12 @@ evidence:
     - The exclusion logic (isUpstreamRuntime) is arguably a correct design decision regardless of whether the plan specified it
 confidence: high
 confidence_basis: Directly documented in SUMMARY auto-fix section with explicit issue description and remediation
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened

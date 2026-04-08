@@ -2,22 +2,28 @@
 id: sig-2026-03-23-cross-model-review-chain-epistemic-discipline
 type: signal
 project: get-shit-done-reflect
-tags: [deliberation-reviews, cross-model-review, epistemic-discipline, review-methodology, positive-pattern]
-created: 2026-03-23T05:15:00Z
-updated: 2026-03-23T05:15:00Z
+tags:
+  - deliberation-reviews
+  - cross-model-review
+  - epistemic-discipline
+  - review-methodology
+  - positive-pattern
+created: "2026-03-23T05:15:00Z"
+updated: "2026-03-23T05:15:00Z"
 durability: convention
 status: active
 severity: notable
 signal_type: custom
-phase: "48"
+phase: 48
 plan: null
 polarity: positive
-source: manual
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.17.5+dev
+detection_method: manual
+origin: user-observation
 ---
 
 ## What Happened

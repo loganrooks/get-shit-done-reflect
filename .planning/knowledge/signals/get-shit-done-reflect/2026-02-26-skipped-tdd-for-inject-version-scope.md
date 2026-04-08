@@ -2,9 +2,14 @@
 id: sig-2026-02-26-skipped-tdd-for-inject-version-scope
 type: signal
 project: get-shit-done-reflect
-tags: [tdd, testing, deviation, regex, agent-behavior]
-created: 2026-02-26T20:30:00Z
-updated: 2026-02-26T20:30:00Z
+tags:
+  - tdd
+  - testing
+  - deviation
+  - regex
+  - agent-behavior
+created: "2026-02-26T20:30:00Z"
+updated: "2026-02-26T20:30:00Z"
 durability: convention
 status: active
 severity: notable
@@ -12,12 +17,13 @@ signal_type: deviation
 phase: none
 plan: none
 polarity: negative
-source: manual
 occurrence_count: 2
 related_signals: [sig-2026-02-23-planner-skips-tdd-baseline]
 runtime: claude-code
 model: claude-opus-4-6
 gsd_version: 1.15.5
+detection_method: manual
+origin: user-observation
 ---
 
 # Signal: Skipped TDD for injectVersionScope Change

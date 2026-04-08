@@ -2,9 +2,13 @@
 id: sig-2026-03-26-plan-05-task-1-findprojectroot-adoption-was-alread
 type: signal
 project: get-shit-done-reflect
-tags: [cross-plan-bleed, task-attribution, findProjectRoot, scope-drift]
-created: 2026-03-29T08:00:00Z
-updated: 2026-03-29T08:00:00Z
+tags:
+  - cross-plan-bleed
+  - task-attribution
+  - findProjectRoot
+  - scope-drift
+created: "2026-03-29T08:00:00Z"
+updated: "2026-03-29T08:00:00Z"
 durability: convention
 status: active
 severity: notable
@@ -13,7 +17,6 @@ signal_category: negative
 phase: 50
 plan: 5
 polarity: negative
-source: auto
 occurrence_count: 1
 related_signals: []
 runtime: claude-code
@@ -33,10 +36,12 @@ evidence:
     - Both 50-03 and 50-05 SUMMARY files document this transparently
 confidence: high
 confidence_basis: Explicitly documented in 50-05 SUMMARY deviations section with specific commit reference
-triage: {}
-remediation: {}
-verification: {}
-recurrence_of: ""
+triage: "{}"
+remediation: "{}"
+verification: "{}"
+recurrence_of: 
+detection_method: automated
+origin: collect-signals
 ---
 
 ## What Happened
