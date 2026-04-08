@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 55-02-PLAN.md -- hybrid-merge core.cjs, frontmatter.cjs, config.cjs with upstream v1.34.2
-last_updated: "2026-04-08T19:51:19.739Z"
-last_activity: "2026-04-08 -- Completed 55-01 (pure upstream module adoption: model-profiles.cjs + 4 pure modules from v1.34.2)"
+stopped_at: Completed 55-03-PLAN.md -- replace phase.cjs/roadmap.cjs with upstream v1.34.2, adopt complete-milestone.md, hybrid-merge installer with 7 reliability fixes
+last_updated: "2026-04-08T20:06:00.000Z"
+last_activity: "2026-04-08 -- Completed 55-03 (phase.cjs, roadmap.cjs, complete-milestone.md, installer hybrid merge)"
 progress:
   total_phases: 10
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
-  percent: 3
+  completed_plans: 3
+  percent: 75
 ---
 
 # Project State
@@ -26,17 +26,19 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 55 of 64 (Upstream Mini-Sync)
-Plan: 01 of 04 complete
+Plan: 03 of 04 complete
 Status: In progress
-Last activity: 2026-04-08 -- Completed 55-01 (pure upstream module adoption: model-profiles.cjs + 4 pure modules from v1.34.2)
+Last activity: 2026-04-08 -- Completed 55-03 (phase.cjs, roadmap.cjs, complete-milestone.md at v1.34.2; installer hybrid merge with 7 reliability fixes)
 
-Progress: [|.........] 3%
+Progress: [███████...] 75%
 
 ## Performance Metrics
 
 **v1.20 Current:**
-- Plans completed: 1
+- Plans completed: 3
 - 55-01: 1min, 2 tasks, 5 files
+- 55-02: 9min, 2 tasks, 5 files
+- 55-03: 9min, 2 tasks, 6 files
 
 **v1.18 Final:**
 - Plans completed: 37
@@ -64,6 +66,11 @@ Recent decisions affecting current work:
 - [Phase 55]: core.cjs: resolveModelInternal preserves fork gsdr- prefix normalization AND opus->inherit conversion (both fork-specific Claude Code behaviors)
 - [Phase 55]: config.cjs: cmdForkConfigGet replaced with cmdConfigGetGraceful fork envelope {key,value,found} -- upstream cmdConfigGet returns raw value, fork tests require envelope
 - [Phase 55]: model-profiles.cjs: 11 fork-only agents added after inline MODEL_PROFILES removed from core.cjs
+- [55-03]: phase.cjs and roadmap.cjs wholesale replaced -- fork versions were simplified subsets of upstream, not extensions; no unique fork additions to re-apply
+- [55-03]: complete-milestone.md C2 shell robustness guards already present in upstream v1.34.2 -- no re-application needed
+- [55-03]: installer: applied 7 of 11 upstream fixes; 4 not applicable (.sh hooks, package.json); all fork extensions preserved (replacePathsInContent, dual-directory, gsdr- branding)
+- [55-03]: buildLocalHookCommand: $CLAUDE_PROJECT_DIR anchor (#1906) combined with existing test -f worktree guard -- both protections active
+- [55-03]: uninstall per-hook granularity: isGsdrHookCommand covers both gsdr- (current) and gsd- (legacy) namespaces
 
 ### Pending Todos
 
