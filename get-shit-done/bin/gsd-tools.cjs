@@ -50,6 +50,7 @@ const backlog = require('./lib/backlog.cjs');
 const healthProbe = require('./lib/health-probe.cjs');
 const manifest = require('./lib/manifest.cjs');
 const automation = require('./lib/automation.cjs');
+const kb = require('./lib/kb.cjs');
 
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -676,6 +677,20 @@ async function main() {
         healthProbe.cmdHealthProbeValidationCoverage(cwd, raw);
       } else {
         error('Unknown health-probe. Available: signal-metrics, signal-density, automation-watchdog, validation-coverage');
+      }
+      break;
+    }
+
+    case 'kb': {
+      const subcommand = args[1];
+      if (subcommand === 'rebuild') {
+        kb.cmdKbRebuild(cwd, raw);
+      } else if (subcommand === 'stats') {
+        kb.cmdKbStats(cwd, raw);
+      } else if (subcommand === 'migrate') {
+        kb.cmdKbMigrate(cwd, raw);
+      } else {
+        error('Usage: gsd-tools kb <rebuild|stats|migrate>');
       }
       break;
     }
