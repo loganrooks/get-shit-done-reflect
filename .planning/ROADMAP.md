@@ -109,9 +109,10 @@ Plans:
   2. `gsd-tools telemetry baseline` produces `.planning/baseline.json` with statistical computation from session-meta data
   3. `.planning/baseline.json` is committed before any Phase 58 structural gates are deployed
   4. Facets data (AI-generated session quality assessments) joined with session-meta by session_id, with all facets-derived fields annotated as AI-generated estimates with unknown accuracy
-**Plans**: TBD (re-discussing phase with upgraded discuss-phase skill)
+**Plans**: 2 plans
 Plans:
-- [ ] TBD (prior plans archived to pre-upgrade-archive/ for comparison)
+- [ ] 57-01-PLAN.md -- Implement telemetry.cjs module and wire gsd-tools.cjs router (TEL-01a, TEL-01b, TEL-04, TEL-05)
+- [ ] 57-02-PLAN.md -- Tests for telemetry.cjs and capture .planning/baseline.json (TEL-02)
 
 ### Phase 57.2: Discuss-Phase Exploratory Mode Overhaul (INSERTED)
 
