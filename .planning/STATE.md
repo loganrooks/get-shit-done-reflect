@@ -136,11 +136,12 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-4 pending (3 carried from v1.18, 1 remaining):
+5 pending (3 carried from v1.18, 2 remaining):
 
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 - [HIGH] Local patch archive: versioned history instead of single-snapshot overwrite (installer)
 - [HIGH] Cross-model review skill needed sooner than Phase 62 — launching Codex for review is fragile manual CLI work; /gsdr:cross-model-review is Phase 62 (WF-01) but the need is immediate. Consider pulling forward or building a minimal utility skill. (workflow)
+- [MEDIUM] Ghost agent integration: gsd-ui-auditor and gsd-doc-verifier entries in model-profiles.cjs have no agent specs — caused by upstream sync pulling profiles without corresponding specs. Needs deliberation on whether to build these agents, stub them, or remove the profiles. (upstream-sync, deliberation)
 - [MEDIUM] Revisit provisional corpus grounding set (planning)
 
 ### Blockers/Concerns
