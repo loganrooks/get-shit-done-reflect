@@ -145,6 +145,21 @@ The checker doesn't just verify types — it checks whether each claim's justifi
 
 **Split claims** (one proposition with two separable statuses) are handled by tagging a claim with two types: `[evidenced/assumed]` — "the mechanism is evidenced, but whether it's sufficient is assumed."
 
+### Claim dependencies: the inferential web
+
+Claims don't exist in isolation — they form dependency webs where the legitimacy of one claim rests on the status of others. This applies broadly, not just to scope claims:
+
+- A `decided` scope boundary ("exclude Windows") depends on an `assumed` condition ("users are Mac/Linux developers"). If the assumption falls, the decision is undermined.
+- A `stipulated` threshold ("3 retry threshold") depends on an `assumed` premise ("most transient failures resolve within 3"). The threshold is only reasonable under that assumption.
+- A `projected` cross-phase contract ("Phase 5 will use this corpus") depends on an `assumed` assessment ("4 philosophy texts represent sufficient variety").
+- An `evidenced` claim ("22 exception handlers in src/") may support a `decided` claim ("use wrapper pattern for error handling"). If the evidence changes, the decision's basis changes.
+
+This is Brandom's inferential probe operationalized: "What else are you committed to by asserting this?" Each claim has inferential connections to other claims that determine whether its justification is legitimate.
+
+**Design implication:** The DISCUSSION-LOG.md should record dependency chains — which claims support which other claims. The context-checker should trace these: not just "is this claim typed correctly?" but "are the claims this depends on themselves solid?" An `evidenced` claim supporting a `decided` claim is strong. An `assumed` claim supporting a `decided` claim is a vulnerability — the decision looks settled but rests on untested ground.
+
+The reference doc (`references/claim-types.md`) should include guidance on recording dependencies: "When typing a claim, note which other claims it depends on. This makes the inferential structure visible and gives the checker something to trace."
+
 ## Tensions
 
 1. **7 types vs learnability**: 7 types is more than [grounded]/[open] but may be too many for agents to consistently assign. The audits suggest it's the right number — fewer loses important distinctions. But the proof is in execution.
