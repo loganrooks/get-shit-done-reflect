@@ -4,9 +4,16 @@
 > are available in each supported runtime. Workflows use `has_capability()`
 > patterns to branch behavior based on this matrix.
 
+> **Deprecation Notice (v1.20):** Gemini CLI and OpenCode columns are retained for
+> reference but are **community-maintained and not tested by the GSD Reflect team**.
+> The two supported runtimes are **Claude Code** and **Codex CLI**. The `--gemini`
+> and `--opencode` installer flags still work but produce unsupported configurations.
+> New workflows use binary Claude/Codex branching only -- no new `<capability_check>`
+> blocks will be added for Gemini CLI or OpenCode.
+
 ## Quick Reference
 
-| Capability | Claude Code | OpenCode | Gemini CLI | Codex CLI | Impact When Missing |
+| Capability | Claude Code | OpenCode [D] | Gemini CLI [D] | Codex CLI | Impact When Missing |
 |------------|:-----------:|:--------:|:----------:|:---------:|---------------------|
 | task_tool  |      Y      |    Y     |   Y [1]    |   Y [2]   | Sequential execution |
 | hooks      |      Y      |    N     |     Y      |     N     | Skip hook features   |
@@ -18,6 +25,7 @@
 > [3] Via tools.core (allowlist), tools.exclude (denylist), and per-sub-agent restrictions.
 > [4] STDIO, SSE, and Streamable HTTP transports. OAuth support.
 > [5] STDIO and Streamable HTTP transports. OAuth support.
+> [D] Deprecated: community-maintained, not tested by GSD Reflect team. See deprecation notice above.
 
 ## Format Reference
 
@@ -107,6 +115,8 @@ Codex CLI no longer lacks parallel delegation outright. Its main remaining runti
 
 ### Gemini CLI
 
+> **Deprecated:** Community-maintained, not tested by GSD Reflect team.
+
 | Feature | Status | Adaptation |
 |---------|--------|------------|
 | Parallel agents (task_tool) | Y [1] | Experimental, sequential only -- no parallel subagent execution |
@@ -116,6 +126,8 @@ Codex CLI no longer lacks parallel delegation outright. Its main remaining runti
 Gemini CLI is near-full capability. It supports tool permissions (via tools.core/tools.exclude), MCP servers (STDIO, SSE, Streamable HTTP), and hooks. The only limitation is that task_tool support is experimental and sequential -- parallel subagent execution is not yet available.
 
 ### OpenCode
+
+> **Deprecated:** Community-maintained, not tested by GSD Reflect team.
 
 | Feature | Status | Adaptation |
 |---------|--------|------------|

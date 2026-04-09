@@ -7,7 +7,7 @@ stopped_at: Phase 56 complete -- verification passed 5/5. Ready to plan Phase 57
 last_updated: "2026-04-08T23:00:00.000Z"
 last_activity: 2026-04-08 -- Phase 56 complete (3 plans, 467 tests pass, verification passed)
 progress:
-  total_phases: 10
+  total_phases: 11
   completed_phases: 2
   total_plans: 7
   completed_plans: 7
@@ -93,6 +93,8 @@ Recent decisions affecting current work:
 ### Roadmap Evolution
 
 - Phase 55.1 inserted after Phase 55: Upstream Bug Patches (URGENT) — patch #2005 details-wrapped ROADMAP corruption, #1972 incomplete atomicWriteFileSync, #1981 worktree reset --soft data loss
+- Phase 55.2 inserted after Phase 55.1: Codex Runtime Substrate -- runtime detection fixes, documentation drift corrections, parity smoke test. Derived from cross-model audit consensus (Claude, GPT-5.4 xhigh, Opus review, Sonnet review). Requirements: CODEX-01, CODEX-02, CODEX-05
+- Gemini CLI and OpenCode deprecated as tested runtimes -- narrowing to Claude Code + Codex CLI only. Community-maintained status in capability-matrix.md. Decision documented in `.planning/deliberations/drop-gemini-opencode-focus-codex.md`
 
 ### Pending Todos
 
