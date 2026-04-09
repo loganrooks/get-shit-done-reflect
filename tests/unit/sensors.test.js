@@ -175,7 +175,7 @@ config_schema: null
     expect(result.sensors[1].name).not.toContain('gsdr')
   })
 
-  tmpdirTest('prefers .claude/agents/ over agents/ directory', async ({ tmpdir }) => {
+  tmpdirTest('merges sensors from .claude/agents/ and agents/ directories', async ({ tmpdir }) => {
     // Create both .claude/agents/ with gsdr- and agents/ with gsd-
     const installedDir = path.join(tmpdir, '.claude', 'agents')
     await fs.mkdir(installedDir, { recursive: true })
@@ -204,9 +204,11 @@ config_schema: null
 `)
 
     const result = runSensors(tmpdir, 'list')
-    // Should only find alpha from .claude/agents/ (preferred), not beta from agents/
-    expect(result.sensors).toHaveLength(1)
-    expect(result.sensors[0].name).toBe('alpha')
+    // Multi-directory merge: finds sensors from both directories
+    expect(result.sensors).toHaveLength(2)
+    const names = result.sensors.map(s => s.name)
+    expect(names).toContain('alpha')
+    expect(names).toContain('beta')
   })
 
   tmpdirTest('shows last_status from last_skip_reason when present', async ({ tmpdir }) => {
@@ -227,6 +229,102 @@ config_schema: null
 
     const result = runSensors(tmpdir, 'list')
     expect(result.sensors[0].last_status).toBe('timeout')
+  })
+})
+
+describe('dual-format discovery', () => {
+  /**
+   * Helper: create a TOML sensor agent spec file
+   */
+  async function createTomlSensorSpec(agentsDir, name, opts = {}) {
+    const blindSpots = opts.blindSpots || null
+    const description = opts.description || `${name} sensor`
+
+    let content = `description = "${description}"
+sandbox_mode = "relaxed"
+developer_instructions = '''
+<role>Test sensor</role>
+`
+    if (blindSpots) {
+      content += `
+<blind_spots>
+${blindSpots}
+</blind_spots>
+`
+    }
+    content += `'''
+`
+
+    await fs.mkdir(agentsDir, { recursive: true })
+    await fs.writeFile(path.join(agentsDir, `gsdr-${name}-sensor.toml`), content)
+  }
+
+  tmpdirTest('discovers .toml sensor files', async ({ tmpdir }) => {
+    const agentsDir = path.join(tmpdir, '.claude', 'agents')
+    await createTomlSensorSpec(agentsDir, 'test', { description: 'Test sensor' })
+
+    const result = runSensors(tmpdir, 'list')
+    expect(result.sensors).toHaveLength(1)
+    expect(result.sensors[0].name).toBe('test')
+    // TOML sensors use default timeout of 45 (no frontmatter override)
+    expect(result.sensors[0].timeout).toBe(45)
+  })
+
+  tmpdirTest('multi-directory merge discovers from both .claude and .codex', async ({ tmpdir }) => {
+    // .claude/agents/ has an .md sensor
+    const claudeDir = path.join(tmpdir, '.claude', 'agents')
+    await createSensorSpec(claudeDir, 'alpha')
+
+    // .codex/agents/ has a .toml sensor
+    const codexDir = path.join(tmpdir, '.codex', 'agents')
+    await createTomlSensorSpec(codexDir, 'beta', { description: 'Beta sensor' })
+
+    const result = runSensors(tmpdir, 'list')
+    expect(result.sensors).toHaveLength(2)
+    const names = result.sensors.map(s => s.name)
+    expect(names).toContain('alpha')
+    expect(names).toContain('beta')
+  })
+
+  tmpdirTest('first-seen-wins deduplication across directories', async ({ tmpdir }) => {
+    // .claude/agents/ has dup as .md with timeout 30
+    const claudeDir = path.join(tmpdir, '.claude', 'agents')
+    await createSensorSpec(claudeDir, 'dup', { timeout: 30 })
+
+    // .codex/agents/ has dup as .toml (would use default timeout 45)
+    const codexDir = path.join(tmpdir, '.codex', 'agents')
+    await createTomlSensorSpec(codexDir, 'dup', { description: 'Dup sensor' })
+
+    const result = runSensors(tmpdir, 'list')
+    // Only one "dup" sensor should appear (from .claude, not .codex)
+    const dupSensors = result.sensors.filter(s => s.name === 'dup')
+    expect(dupSensors).toHaveLength(1)
+    // Should have timeout 30 from .claude's .md file, not 45 default from .toml
+    expect(dupSensors[0].timeout).toBe(30)
+  })
+
+  tmpdirTest('blind-spots works with .toml sensor files', async ({ tmpdir }) => {
+    const codexDir = path.join(tmpdir, '.codex', 'agents')
+    await createTomlSensorSpec(codexDir, 'toml', {
+      description: 'TOML sensor',
+      blindSpots: '- Cannot detect X\n- Cannot detect Y',
+    })
+
+    const result = runSensors(tmpdir, 'blind-spots')
+    expect(result.blind_spots).toHaveLength(1)
+    expect(result.blind_spots[0].sensor).toBe('toml')
+    expect(result.blind_spots[0].blind_spots).toContain('Cannot detect X')
+    expect(result.blind_spots[0].blind_spots).toContain('Cannot detect Y')
+  })
+
+  tmpdirTest('fallback to agents/ when no .claude or .codex exists', async ({ tmpdir }) => {
+    // Only create agents/ (no .claude or .codex)
+    const agentsDir = path.join(tmpdir, 'agents')
+    await createSensorSpec(agentsDir, 'fallback')
+
+    const result = runSensors(tmpdir, 'list')
+    expect(result.sensors).toHaveLength(1)
+    expect(result.sensors[0].name).toBe('fallback')
   })
 })
 

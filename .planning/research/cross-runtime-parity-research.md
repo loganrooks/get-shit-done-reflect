@@ -1,8 +1,35 @@
+---
+document_type: living-reference
+last_audited: "2026-04-09"
+last_audited_codex_version: "0.118.0"
+last_audited_claude_code_version: "1.0.39"
+audit_method: "GPT-5.4 cross-model drift audit + live CLI verification"
+next_audit_due: "2026-04-23"
+validation_status: current
+---
+
 # Cross-Runtime Parity Research: Claude Code vs Codex CLI for v1.20
 
 **Date:** 2026-04-08
-**Mode:** Custom Research (cross-runtime parity, sensor design, patch compatibility)
+**Mode:** Custom Research (cross-runtime parity, sensor design, patch compatibility) (living document -- re-validate using Validation Commands section when auditing)
 **Overall Confidence:** MEDIUM-HIGH (filesystem evidence + installed artifacts; Codex CLI documentation is sparse, so behavioral claims rely on observed session data)
+
+---
+
+## Validation Commands
+
+Run these commands to re-verify parity claims. If any output contradicts the document, update the relevant section and bump `last_audited`.
+
+| Claim | Validation Command | Expected Output |
+|-------|--------------------|-----------------|
+| Codex version | `codex --version` | 0.118.0 or later |
+| Codex hooks available | `codex features list \| grep codex_hooks` | `codex_hooks under development true` |
+| Codex multi-agent | `codex features list \| grep multi_agent` | `multi_agent stable true` |
+| Codex config location | `ls ~/.codex/config.toml` | File exists |
+| Project-local .codex | `ls .codex/config.toml` | File exists (in GSD dev repo) |
+| Claude Code hooks | `cat .claude/settings.json \| grep -c hooks` | Non-zero count |
+| Agent TOML files | `ls .codex/agents/*.toml` | Lists .toml agent files |
+| Skill directory format | `ls .codex/skills/*/SKILL.md` | Lists SKILL.md files in subdirectories |
 
 ---
 
@@ -12,7 +39,7 @@
 
 | Capability | Claude Code | Codex CLI | Parity Impact for v1.20 |
 |-----------|-------------|-----------|-------------------------|
-| **Hooks (SessionStart, PostToolUse)** | YES -- 4 SessionStart hooks, 1 PostToolUse hook configured | NO -- no hook mechanism exists | HIGH: automation postlude, update checks, context-monitor, statusline all hook-dependent |
+| **Hooks (SessionStart, PostToolUse)** | YES -- 4 SessionStart hooks, 1 PostToolUse hook configured | YES (under development) -- SessionStart, Stop, PreToolUse, PostToolUse, UserPromptSubmit via hooks.json; requires codex_hooks feature flag | MEDIUM: hooks available but under development flag; GSD hook installation to Codex deferred to Phase 60 |
 | **Agent/Task dispatch** | YES -- `Task()` style spawning, parallel waves | YES (different shape) -- Codex subagents/threads, parallel capable | MEDIUM: dispatch works but delegation patterns differ |
 | **MCP servers** | YES -- STDIO, SSE, Streamable HTTP | YES -- STDIO, Streamable HTTP | LOW: both support MCP; minor transport gap (no SSE in Codex) |
 | **Tool permissions** | YES -- `allowed-tools` frontmatter | NO -- all tools always available | LOW: GSD agents designed to work without restrictions |
@@ -40,11 +67,19 @@
 | PostToolUse | `gsdr-context-monitor.js` | Context bridge file tracking after Bash/Edit/Write/Agent/Task | Automation deferral, context tracking |
 | statusLine | `gsdr-statusline.js` | Persistent status display | UX feedback |
 
-**Codex CLI hook equivalents: NONE.**
+**Codex CLI hooks available (as of v0.118.0, under development):**
 
-Codex CLI v0.118.0 has no hook system. There is no `SessionStart`, `PostToolUse`, `PreCommit`, or equivalent lifecycle event mechanism. The `config.toml` format supports model, personality, trust levels, MCP servers, and agent definitions -- but no hooks.
+| Hook Type | Codex Version Added | Discovery | Notes |
+|-----------|-------------------|-----------|-------|
+| SessionStart | v0.115.0 | `~/.codex/hooks.json` or `<repo>/.codex/hooks.json` | Fires at session initialization |
+| SessionStop | v0.115.0 | Same as above | Fires at session end |
+| UserPromptSubmit | v0.116.0 | Same as above | Fires when user submits a prompt |
+| PreToolUse | v0.117.0 | Same as above | Fires before tool execution |
+| PostToolUse | v0.117.0 | Same as above | Fires after tool execution |
 
-**Implication:** Every v1.20 feature that relies on hooks must have an alternative enforcement path for Codex. The capability matrix already documents the degradation pattern: "Update checks on GSD command invocation." But for v1.20, several NEW features are hook-dependent:
+Codex hooks require the `codex_hooks` feature flag to be enabled in `config.toml` (currently `codex_hooks = true` under `[features]`). The feature flag status is "under development" -- hooks are functional but the API may change before graduating to "stable." Global hooks live at `~/.codex/hooks.json`, project-level hooks at `<repo>/.codex/hooks.json`.
+
+**Implication:** Codex hooks now exist but GSD does not yet install `hooks.json` for Codex. GSD hook installation to Codex is deferred to Phase 60 pending feature flag stabilization. In the interim, v1.20 features that rely on hooks must still have an alternative enforcement path for Codex. The capability matrix documents the degradation pattern: "Configure hooks.json when codex_hooks feature flag stable." For v1.20, several NEW features are hook-dependent:
 
 | v1.20 Feature | Hook Dependency | Degradation Strategy |
 |---------------|----------------|---------------------|

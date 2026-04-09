@@ -48,7 +48,8 @@ npm run build:hooks         # build hook scripts
 - `bin/install.js` — the installer (copies source to runtime config dirs)
 - `get-shit-done/bin/gsd-tools.cjs` — CLI runtime (~5,400 lines)
 - `get-shit-done/feature-manifest.json` — declarative feature/config schema
-- `~/.gsd/knowledge/` — cross-project knowledge base (signals, spikes, lessons)
+- `.planning/knowledge/` — project-local knowledge base (signals, spikes, lessons; primary)
+- `~/.gsd/knowledge/` — user-global KB fallback (legacy, used when project-local absent)
 
 ## Fork Conventions
 
