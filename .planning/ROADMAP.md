@@ -275,3 +275,17 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3 | TBD | In progress | - |
 
 **Totals:** 8 milestones, 67 phases (57 complete, 10 in progress), 173 plans completed
+
+## Backlog
+
+### Phase 999.1: Pipeline Enrichment Step Between Discuss and Plan (BACKLOG)
+
+**Goal:** Fork-specific pipeline stage between discuss-phase and plan-phase that produces EXPLORATION.md with epistemic challenges, working assumptions, and investigation mandates for the researcher/planner. Separates fork epistemic work from upstream discuss-phase workflow.
+**Trigger:** Post-telemetry evaluation — quality regression deliberation P4 tests whether discuss-phase modification alone achieves Phase-52-level quality. If not, this becomes urgent.
+**Derived from:** `.planning/deliberations/pipeline-enrichment-step-architecture.md` (concluded), `.planning/deliberations/exploratory-discuss-phase-quality-regression.md` (concluded)
+**Connected to:** epistemic-health Prescription 2 (adversarial deliberation), plan-phase "Decisions = LOCKED" contract rethink, adaptive harness design (complexity-responsive exploration depth)
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)
