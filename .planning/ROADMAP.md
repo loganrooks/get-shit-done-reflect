@@ -132,7 +132,12 @@ Plans:
   9. CONTEXT.md includes claim dependency section; decided claims resting on assumed claims flagged as vulnerabilities (DISC-10)
 Derived from: `.planning/deliberations/exploratory-discuss-phase-quality-regression.md`, `.planning/deliberations/pipeline-enrichment-step-architecture.md`, `.planning/deliberations/claim-type-ontology.md`
 Audit evidence: `.planning/audits/2026-04-09-discuss-phase-exploration-quality/` (7 artifacts), `.planning/audits/2026-04-09-*claim-audit*` (6 exploratory audits, 12 projects, ~85 CONTEXT.md files)
-**Plans:** TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 57.2-01-PLAN.md -- Create claim-types.md reference doc, cherry-pick upstream --chain flag, fix CONTEXT.md commit
+- [ ] 57.2-02-PLAN.md -- Restructure discuss-phase.md write_context template, update context.md template examples
+- [ ] 57.2-03-PLAN.md -- DISCUSSION-LOG.md justificatory sidecar, context-checker agent, researcher 7-type update
 
 ### Phase 57.3: Audit Workflow Infrastructure (INSERTED)
 
@@ -254,7 +259,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
 | 57. Measurement & Telemetry Baseline | 0/3 | Planned | - |
 | 57.1. Explore Skill Adoption | 1/1 | Complete   | 2026-04-09 |
-| 57.2. Discuss-Phase Exploratory Mode Overhaul | 0/TBD | Not started | - |
+| 57.2. Discuss-Phase Exploratory Mode Overhaul | 0/3 | Planned | - |
 | 57.3. Audit Workflow Infrastructure | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
