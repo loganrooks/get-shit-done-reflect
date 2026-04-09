@@ -24,7 +24,7 @@
 - [x] **Phase 56: KB Schema & SQLite Foundation** - Signal schema evolution and SQLite index creation establish the queryable knowledge base substrate
 - [ ] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
 - [x] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding (completed 2026-04-09)
-- [ ] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Fix exploratory mode regression: template sections, typed claim states, provenance, incentive decoupling, subagent design exploration
+- [x] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Typed claims (7 types + verification dimension), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher update, claim dependency webs, template enrichment
 - [ ] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
@@ -117,19 +117,27 @@ Plans:
 
 ### Phase 57.2: Discuss-Phase Exploratory Mode Overhaul (INSERTED)
 
-**Goal:** The discuss-phase exploratory mode produces genuinely exploratory CONTEXT.md files — with working assumptions, epistemic guardrails, derived constraints, generative questions, typed claim states, and traceable grounding — rather than the shallow locked-down specs the current mode produces. Includes structural fixes to the write_context template, incentive decoupling (separating epistemic status from auto-progression eligibility), and design exploration for a dedicated discuss-phase exploration subagent.
+**Goal:** CONTEXT.md becomes a rich research-guiding artifact with typed claims, dependency webs, and justificatory sidecar — not a shallow locked-down spec. The researcher gets a mandate to investigate assumptions, explore open questions, and check forward projections. A context-checker agent verifies claim integrity before planning begins.
 **Depends on:** Phase 55.2 (runtime substrate complete). Effectiveness revisited post-Phase 57 (telemetry baseline provides metrics to evaluate whether interventions helped)
-**Requirements:** DISC-01, DISC-02, DISC-03, DISC-04, DISC-05, DISC-06, DISC-07
+**Requirements:** DISC-01, DISC-02, DISC-03, DISC-04, DISC-05, DISC-06, DISC-07, DISC-08, DISC-09, DISC-10
 **Success Criteria** (what must be TRUE):
-  1. Exploratory-mode `write_context` template includes structural sections for working assumptions, derived constraints, epistemic guardrails, and structured open questions
-  2. Typed claim states replace bare [grounded]/[open] — vocabulary distinguishes between different epistemic situations (traced claims, working assumptions, framework commitments, observations, open questions, locked decisions)
-  3. Claims eligible for auto-progression during --auto require verifiable provenance with traceable citation; epistemic status labels are decoupled from auto-progression eligibility
-  4. Lightweight citation checker flags phantom or unresolvable references before downstream consumption
-  5. Upstream --chain flag merged and CONTEXT.md committed when `commit_docs: true`
-  6. Research questions use generative format (specifying research program, downstream decisions, reversibility) rather than binary yes/no
-Derived from: `.planning/deliberations/exploratory-discuss-phase-quality-regression.md`
-Audit evidence: `.planning/audits/2026-04-09-discuss-phase-exploration-quality/` (7 artifacts)
-**Plans:** TBD
+  1. Exploratory-mode `write_context` template includes structural sections for working assumptions, derived constraints, epistemic guardrails, and structured open questions (DISC-01)
+  2. 7 typed claim states (evidenced, decided, assumed, open, projected, stipulated, governing) + 3-level verification dimension (cited, reasoned, bare) replace bare [grounded]/[open]. Shared reference doc `references/claim-types.md` defines the ontology (DISC-02)
+  3. DISCUSSION-LOG.md enhanced as justificatory sidecar: per-claim justification meeting type-specific demands, claim dependency chains, context-checker verification log (DISC-03, DISC-08)
+  4. Context-checker agent runs post-discuss, pre-plan: verifies type assignments, surfaces untyped claims, checks citations, traces dependency chains, fixes CONTEXT.md in-place (DISC-04)
+  5. Upstream --chain flag merged and CONTEXT.md committed when `commit_docs: true` (DISC-05)
+  6. Main exploratory section renamed from "Implementation Decisions" to research-guiding framing (DISC-06)
+  7. Research questions use generative format specifying research program, downstream decisions, reversibility (DISC-07)
+  8. Researcher agent updated with type-to-action mapping consuming typed claims (DISC-09)
+  9. CONTEXT.md includes claim dependency section; decided claims resting on assumed claims flagged as vulnerabilities (DISC-10)
+Derived from: `.planning/deliberations/exploratory-discuss-phase-quality-regression.md`, `.planning/deliberations/pipeline-enrichment-step-architecture.md`, `.planning/deliberations/claim-type-ontology.md`
+Audit evidence: `.planning/audits/2026-04-09-discuss-phase-exploration-quality/` (7 artifacts), `.planning/audits/2026-04-09-*claim-audit*` (6 exploratory audits, 12 projects, ~85 CONTEXT.md files)
+**Plans:** 3 plans
+
+Plans:
+- [x] 57.2-01-PLAN.md -- Create claim-types.md reference doc, cherry-pick upstream --chain flag, fix CONTEXT.md commit
+- [x] 57.2-02-PLAN.md -- Restructure discuss-phase.md write_context template, update context.md template examples
+- [x] 57.2-03-PLAN.md -- DISCUSSION-LOG.md justificatory sidecar, context-checker agent, researcher 7-type update
 
 ### Phase 57.3: Audit Workflow Infrastructure (INSERTED)
 
@@ -251,7 +259,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
 | 57. Measurement & Telemetry Baseline | 0/3 | Planned | - |
 | 57.1. Explore Skill Adoption | 1/1 | Complete   | 2026-04-09 |
-| 57.2. Discuss-Phase Exploratory Mode Overhaul | 0/TBD | Not started | - |
+| 57.2. Discuss-Phase Exploratory Mode Overhaul | 3/3 | Complete | 2026-04-09 |
 | 57.3. Audit Workflow Infrastructure | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
@@ -275,3 +283,17 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3 | TBD | In progress | - |
 
 **Totals:** 8 milestones, 67 phases (57 complete, 10 in progress), 173 plans completed
+
+## Backlog
+
+### Phase 999.1: Pipeline Enrichment Step Between Discuss and Plan (BACKLOG)
+
+**Goal:** Fork-specific pipeline stage between discuss-phase and plan-phase that produces EXPLORATION.md with epistemic challenges, working assumptions, and investigation mandates for the researcher/planner. Separates fork epistemic work from upstream discuss-phase workflow.
+**Trigger:** Post-telemetry evaluation — quality regression deliberation P4 tests whether discuss-phase modification alone achieves Phase-52-level quality. If not, this becomes urgent.
+**Derived from:** `.planning/deliberations/pipeline-enrichment-step-architecture.md` (concluded), `.planning/deliberations/exploratory-discuss-phase-quality-regression.md` (concluded)
+**Connected to:** epistemic-health Prescription 2 (adversarial deliberation), plan-phase "Decisions = LOCKED" contract rethink, adaptive harness design (complexity-responsive exploration depth)
+**Requirements:** TBD
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (promote with /gsd-review-backlog when ready)

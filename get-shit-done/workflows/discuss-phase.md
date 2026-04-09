@@ -9,7 +9,7 @@ In interactive mode, you are also a thinking partner. The user is the visionary 
 
 | Mode | Default | Behavior |
 |------|---------|----------|
-| `exploratory` | Yes | Preserve uncertainty. Bias toward open questions. `--auto` selects only when strongly grounded by codebase or prior decisions — otherwise marks areas as "open question" for downstream agents to investigate. Philosophy section includes working assumptions and epistemic guardrails. |
+| `exploratory` | Yes | Preserve uncertainty. Bias toward open questions. `--auto` uses type-based progression rules per `references/claim-types.md` — `[open]` claims are never auto-ready and go to downstream agents for investigation. Template uses `<working_model>` sections with typed claims, constraints, guardrails, and generative open questions. |
 | `discuss` | No | Standard steering brief. `--auto` picks recommended defaults decisively. Current upstream behavior. |
 | `assumptions` | No | Codebase-first inference with minimal user interaction. Routes to `discuss-phase-assumptions.md` workflow. |
 </purpose>
@@ -57,26 +57,41 @@ Default to doing synthesis work yourself before asking anything. Ask only when a
 
 These additions modify the discussion posture without changing the step structure:
 
-- **Working assumptions, not decisions:** Frame captured choices as "working assumptions" rather than locked decisions. CONTEXT.md should use language like "current assumption" and "open to revision during planning" rather than "decided" or "locked."
-- **Epistemic guardrails:** When presenting options, explicitly note which options are grounded (codebase patterns, prior decisions, established conventions) vs speculative (no existing code support, novel pattern, multiple valid approaches). Mark grounded options with `[grounded]` and open options with `[open]`.
-- **Preserve genuine uncertainty:** If the user says "I'm not sure" or "either could work," record that as a legitimate outcome — do not push toward resolution. Downstream agents (researcher, planner) can investigate further.
-- **Auto-select grounding rule:** With `--auto` in exploratory mode, only auto-select options tagged `[grounded]`. For `[open]` options, record: `[auto] [Area] — Q: "[question]" → Open question (no grounded default — needs user input or research)`
+- **Typed claims, not bare markers:** Every claim in CONTEXT.md carries a type and optional verification level using `[type:verification]` notation (see `references/claim-types.md`). The 7 types are: evidenced, decided, assumed, open, projected, stipulated, governing. The 3 verification levels are: cited, reasoned, bare.
+- **Working model, not locked decisions:** Frame captured choices as part of a working model. `<working_model>` replaces `<decisions>` in exploratory mode. Language should signal "current understanding" rather than "locked choice."
+- **Preserve genuine uncertainty:** If the user says "I'm not sure" or "either could work," record as `[open]` -- a legitimate outcome. Downstream agents (researcher, planner) investigate further.
+- **Epistemic guardrails and constraints:** Derive constraints from requirements, prior phases, and codebase. Record guardrails that bound investigation. These are structural sections, not optional.
+- **Auto-select by type rules:** With `--auto` in exploratory mode, auto-progression eligibility is determined by claim type (see `references/claim-types.md` Auto-Progression Rules), NOT by a single binary grounded/open marker. Specifically:
+  - `[evidenced:cited]`, `[decided]`, `[stipulated]`, `[governing]` -> auto-ready
+  - `[assumed:reasoned]` or `[assumed:cited]` -> auto-ready (honest rationale provided)
+  - `[assumed:bare]` -> NOT auto-ready (needs at minimum a stated rationale)
+  - `[open]` -> NEVER auto-ready (requires research)
+  - `[projected]` -> auto-ready if the projected phase exists in ROADMAP.md
+  For claims that cannot auto-progress, record in the Open Questions section with generative format.
 </philosophy>
 
 <context_model>
-Treat CONTEXT.md as a phase steering brief with possible sections such as:
+Treat CONTEXT.md as a phase steering brief. Section availability depends on discuss mode:
+
+**Common sections (all modes):**
 - Phase Boundary
-- Working Model & Assumptions
-- Implementation Decisions
-- Derived Constraints
-- Open Questions
-- Epistemic Guardrails
-- Specific Ideas
 - Canonical References
 - Code Context
+- Specific Ideas
 - Deferred Ideas
 
-Only include sections that have content.
+**Exploratory mode sections** (replace `<decisions>` when `DISCUSS_MODE` is `exploratory`):
+- Working Model & Assumptions (`<working_model>`) -- typed claims using `references/claim-types.md` vocabulary
+- Derived Constraints (`<constraints>`)
+- Epistemic Guardrails (`<guardrails>`)
+- Open Questions (`<questions>`) -- generative format with research program, downstream decisions, reversibility
+- Claim Dependencies (`<dependencies>`) -- table recording inferential web
+
+**Discuss mode sections** (standard behavior):
+- Implementation Decisions (`<decisions>`)
+- Open Questions (table format)
+
+Only include sections that have content. Reference: `@get-shit-done/references/claim-types.md` for type vocabulary.
 </context_model>
 
 <synthesis_priority>
@@ -203,6 +218,11 @@ Exit workflow.
 - In `present_gray_areas`: auto-select all material gray areas without asking
 - In downstream synthesis: bias toward open questions, working assumptions, and guardrails rather than collapsing uncertainty into recommended defaults
 - After discussion completes, auto-advance to plan-phase only after writing a research-ready steering brief
+
+**Chain mode** -- If `--chain` is present in ARGUMENTS:
+- Discussion is fully interactive (questions, gray area selection -- same as default mode)
+- After discussion completes, auto-advance to plan-phase -> execute-phase (same as `--auto`)
+- This is the middle ground: user controls the discuss decisions, then plan+execute run autonomously
 </step>
 
 <step name="mode_routing">
@@ -238,13 +258,13 @@ DISCUSS_MODE=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get w
 
 3. **If `DISCUSS_MODE` is `exploratory`:**
    Proceed to `check_existing` with exploratory modifications active:
-   - Philosophy section gains **working assumptions** framing (see philosophy additions below)
-   - `--auto` behavior modified: only auto-select when strongly grounded
-   - Gray area presentation includes epistemic confidence markers
+   - Template uses `<working_model>` sections with typed claims (see philosophy additions and write_context template)
+   - `--auto` behavior modified: auto-progression by type rules per references/claim-types.md
+   - Gray area presentation includes typed claim markers
 
    Display (only if `--auto` is present):
    ```
-   Discuss mode: exploratory — preserving uncertainty, auto-selecting only when grounded.
+   Discuss mode: exploratory — preserving uncertainty, auto-progression by type rules.
    ```
 
 Continue to `check_existing`.
@@ -783,15 +803,15 @@ Each answer (or answer set, in batch mode) should reveal the next question or ne
   [auto] [Area] — Q: "[question text]" → Selected: "[chosen option]" (recommended default)
   ```
 
-- **`exploratory` mode:** For each area, Claude evaluates whether the recommended option is **grounded** (supported by codebase patterns, prior decisions, or established conventions). Only auto-select grounded options:
+- **`exploratory` mode:** For each area, Claude assigns a claim type per `references/claim-types.md` and evaluates auto-progression eligibility by type rules. Auto-select claims that are auto-ready:
   ```
-  [auto] [Area] — Q: "[question text]" → Selected: "[chosen option]" [grounded: existing pattern in src/...]
+  [auto] [Area] — Q: "[question text]" → Selected: "[chosen option]" [decided:reasoned] or [assumed:reasoned]
   ```
-  For ungrounded options (novel patterns, multiple equally valid approaches, no codebase precedent):
+  For claims that are NOT auto-ready (`[assumed:bare]`, `[open]`):
   ```
-  [auto] [Area] — Q: "[question text]" → Open question (no grounded default — needs user input or research)
+  [auto] [Area] — Q: "[question text]" → Open question ([open] — requires research)
   ```
-  Open questions are recorded in CONTEXT.md as working assumptions with `[open]` markers for downstream agents.
+  Open questions are recorded in CONTEXT.md's `<questions>` section with generative format (research program, downstream decisions, reversibility).
 
 After all areas are auto-resolved, skip the "Explore more gray areas" prompt and proceed directly to write_context.
 
@@ -886,9 +906,9 @@ This data is used to generate DISCUSSION-LOG.md in the `write_context` step.
 <step name="write_context">
 Create CONTEXT.md capturing decisions made.
 
-**Also generate DISCUSSION-LOG.md** — a full audit trail of the discuss-phase Q&A.
-This file is for human reference only (software audits, compliance reviews). It is NOT
-consumed by downstream agents (researcher, planner, executor).
+**Also generate DISCUSSION-LOG.md** — a justificatory sidecar consumed by the
+gsdr-context-checker for claim verification. Also serves as human-readable audit trail
+of discuss-phase decisions.
 
 **Find or create phase directory:**
 
@@ -908,6 +928,7 @@ mkdir -p ".planning/phases/${padded_phase}-${phase_slug}"
 
 **Gathered:** [date]
 **Status:** Ready for planning
+**Mode:** [Exploratory|Discuss] [--auto] [--chain] -- [brief mode description]
 
 <domain>
 ## Phase Boundary
@@ -916,6 +937,82 @@ mkdir -p ".planning/phases/${padded_phase}-${phase_slug}"
 
 </domain>
 
+<!-- MODE-CONDITIONAL: exploratory mode uses working_model sections, discuss mode uses decisions -->
+
+<!-- IF DISCUSS_MODE == exploratory -->
+<working_model>
+## Working Model & Assumptions
+
+### [Topic area 1 that was discussed]
+
+**Current state:** [Brief description of what exists now relevant to this topic]
+
+- [type:verification] Claim text
+- [type:verification] Another claim
+
+### [Topic area 2 that was discussed]
+
+**Current state:** [Brief description]
+
+- [type:verification] Claim text
+
+### Claude's Discretion
+[Areas where Claude has flexibility during planning/implementation]
+
+</working_model>
+
+<constraints>
+## Derived Constraints
+
+[Constraints derived from requirements, prior phases, signals, or code reality.
+Each constraint cites its derivation source.]
+
+- **DC-1:** [type:verification] Constraint text -- derived from [source]
+- **DC-2:** [type:verification] Constraint text -- derived from [source]
+
+</constraints>
+
+<guardrails>
+## Epistemic Guardrails
+
+[Bounds on investigation and implementation. What must NOT be assumed.
+Verification standards. Quality thresholds.]
+
+- **G-1:** [type:verification] Guardrail text
+- **G-2:** [type:verification] Guardrail text
+
+</guardrails>
+
+<questions>
+## Open Questions
+
+[Research questions in generative format. NOT binary yes/no.
+Each question specifies methodology, not just asks a question.]
+
+### Q1: [Question title]
+**Research program:** [How to investigate -- methodology, sources, experiments]
+**Downstream decisions affected:** [What depends on the answer]
+**Reversibility:** [Cost of getting this wrong -- HIGH/MEDIUM/LOW with explanation]
+
+### Q2: [Question title]
+**Research program:** [How to investigate]
+**Downstream decisions affected:** [What depends on the answer]
+**Reversibility:** [Cost of getting this wrong]
+
+</questions>
+
+<dependencies>
+## Claim Dependencies
+
+[Which claims depend on which. A decided claim resting on an assumed claim is a vulnerability.]
+
+| Claim | Depends On | Vulnerability |
+|-------|-----------|---------------|
+| [ref to claim] | [ref to supporting claim] | [HIGH/MEDIUM/LOW -- why] |
+
+</dependencies>
+
+<!-- ELSE IF DISCUSS_MODE == discuss -->
 <decisions>
 ## Implementation Decisions
 
@@ -935,6 +1032,7 @@ Each entry should include the todo title, original problem, and how it fits this
 If no todos were folded: omit this subsection entirely.]
 
 </decisions>
+<!-- ENDIF -->
 
 <canonical_refs>
 ## Canonical References
@@ -1035,6 +1133,7 @@ Created: .planning/phases/${PADDED_PHASE}-${SLUG}/${PADDED_PHASE}-CONTEXT.md
 ---
 
 **Also available:**
+- `/gsd:discuss-phase ${PHASE} --chain ${GSD_WS}` — re-run with auto plan+execute after
 - `/gsd:plan-phase ${PHASE} --skip-research ${GSD_WS}` — plan without research
 - `/gsd:ui-phase ${PHASE} ${GSD_WS}` — generate UI design contract before planning (if phase has frontend work)
 - Review/edit CONTEXT.md before continuing
@@ -1048,21 +1147,26 @@ Created: .planning/phases/${PADDED_PHASE}-${SLUG}/${PADDED_PHASE}-CONTEXT.md
 
 **File location:** `${phase_dir}/${padded_phase}-DISCUSSION-LOG.md`
 
+The DISCUSSION-LOG.md is a **justificatory sidecar** with three parts. It preserves the human-readable audit trail (Part 1) and adds machine-verifiable claim provenance (Part 2) and a placeholder for context-checker output (Part 3).
+
 ```markdown
 # Phase [X]: [Name] - Discussion Log
 
-> **Audit trail only.** Do not use as input to planning, research, or execution agents.
-> Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
+> **Justificatory sidecar.** Consumed by gsdr-context-checker for claim verification.
+> Also serves as human-readable audit trail of discuss-phase decisions.
 
 **Date:** [ISO date]
 **Phase:** [phase number]-[phase name]
+**Mode:** [discuss|exploratory] [--auto] [--chain]
 **Areas discussed:** [comma-separated list]
 
----
+***
+
+## Gray Areas (Audit Trail)
 
 [For each gray area discussed:]
 
-## [Area Name]
+### [Area Name]
 
 | Option | Description | Selected |
 |--------|-------------|----------|
@@ -1073,28 +1177,130 @@ Created: .planning/phases/${PADDED_PHASE}-${SLUG}/${PADDED_PHASE}-CONTEXT.md
 **User's choice:** [Selected option or free-text response]
 **Notes:** [Any clarifications, follow-up context, or rationale the user provided]
 
----
-
 [Repeat for each area]
 
-## Claude's Discretion
+### Claude's Discretion
 
 [List areas where user said "you decide" or deferred to Claude]
 
-## Deferred Ideas
+### Deferred Ideas
 
 [Ideas mentioned during discussion that were noted for future phases]
+
+***
+
+## Claim Justifications
+
+For each typed claim in CONTEXT.md, record the type-specific justification.
+Group by topic area matching Working Model / Decisions sections.
+See `references/claim-types.md` for justificatory expectations per type.
+
+### [Topic area 1]
+
+**[evidenced:cited] Claim text**
+- **Citation:** [file path, line, measurement, or artifact]
+- **Verification:** [how it was checked; current/stale status]
+
+**[decided:reasoned] Claim text**
+- **Alternatives considered:** [list of alternatives]
+- **Why rejected:** [rationale for each rejected alternative]
+- **User said:** [user's statement or directive, if any]
+
+**[assumed:reasoned] Claim text**
+- **Challenge protocol:** [what would falsify this]
+- **Evidence checked:** [what was checked, even if inconclusive]
+- **Why reasonable:** [rationale pending research]
+
+**[open] Claim text**
+- **What's been tried:** [investigation attempts so far]
+- **Why unresolved:** [what prevents resolution now]
+- **Research delegation:** [what the researcher should investigate]
+
+**[projected:reasoned] Claim text**
+- **Basis:** [evidence chain from current state to future need]
+- **Future phase:** [which phase/roadmap item this projects toward]
+
+**[stipulated:bare] Claim text**
+- **Acknowledged as choice:** [yes -- this is picked, not derived]
+- **Calibration evidence:** [any evidence for or against this value]
+- **Reasonable range:** [what values would also be defensible]
+
+**[governing:reasoned] Claim text**
+- **Source:** [deliberation, user value, philosophical framework, convention]
+- **Scope of governance:** [what this principle constrains]
+
+### [Topic area 2]
+
+[Repeat per-claim entries for each topic area]
+
+### Claim Dependencies
+
+[Replicate the dependency table from CONTEXT.md <dependencies> section]
+
+| Claim | Depends On | Vulnerability |
+|-------|-----------|---------------|
+| [ref to claim] | [ref to supporting claim] | [HIGH/MEDIUM/LOW -- why] |
+
+***
+
+## Context-Checker Verification Log
+
+This section is populated by the gsdr-context-checker agent after it runs.
+Leave this header and a placeholder line when first writing the file.
+
+*Awaiting context-checker run.*
 ```
 
 Write file.
 
-Commit phase context and discussion log:
+**Check commit_docs config** (from init context):
+If `commit_docs` is true, commit the files. If false, skip commit but still write the files.
 
 ```bash
-node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(${padded_phase}): capture phase context" --files "${phase_dir}/${padded_phase}-CONTEXT.md" "${phase_dir}/${padded_phase}-DISCUSSION-LOG.md"
+if [ "$commit_docs" = "true" ]; then
+  node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(${padded_phase}): capture phase context" --files "${phase_dir}/${padded_phase}-CONTEXT.md" "${phase_dir}/${padded_phase}-DISCUSSION-LOG.md"
+fi
 ```
 
-Confirm: "Committed: docs(${padded_phase}): capture phase context"
+Confirm: "Committed: docs(${padded_phase}): capture phase context" (or "Skipped commit — commit_docs is false" if not committing).
+</step>
+
+<step name="check_context">
+**Mode guard:** If `DISCUSS_MODE` is NOT `exploratory`, skip this step entirely and proceed to `update_state` (or `auto_advance`/`confirm_creation`).
+
+**Spawn the context-checker agent** to verify CONTEXT.md claim integrity:
+
+The gsdr-context-checker reads CONTEXT.md and DISCUSSION-LOG.md, verifies typed claims, surfaces untyped load-bearing assumptions, and appends a verification log to DISCUSSION-LOG.md.
+
+Provide the checker with:
+- **CONTEXT.md path:** `${phase_dir}/${padded_phase}-CONTEXT.md`
+- **DISCUSSION-LOG.md path:** `${phase_dir}/${padded_phase}-DISCUSSION-LOG.md`
+- **Reference doc:** `get-shit-done/references/claim-types.md`
+
+```
+Task(agent="gsdr-context-checker", input="Verify claim integrity for Phase ${PHASE}. CONTEXT.md: ${phase_dir}/${padded_phase}-CONTEXT.md, DISCUSSION-LOG.md: ${phase_dir}/${padded_phase}-DISCUSSION-LOG.md, Reference: get-shit-done/references/claim-types.md")
+```
+
+**After checker completes:** Read the checker's severity verdict from the verification log it appended to DISCUSSION-LOG.md.
+
+**Severity-to-action mapping:**
+
+- **PASS or INFO:** Continue to `auto_advance` (or `confirm_creation`).
+- **WARN:** Log warnings in output, continue to `auto_advance` (or `confirm_creation`).
+- **FAIL:** Display failures to user. If `--chain` or `--auto`, BLOCK auto-advance and show:
+  ```
+  Context-checker found blocking issues. Fix CONTEXT.md and re-run discuss-phase,
+  or continue manually with /gsdr:plan-phase.
+  ```
+  If interactive, show failures and offer to continue or fix.
+
+**Commit updated files** (checker may have modified CONTEXT.md and appended to DISCUSSION-LOG.md):
+
+```bash
+if [ "$commit_docs" = "true" ]; then
+  node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(${padded_phase}): context-checker verification" --files "${phase_dir}/${padded_phase}-CONTEXT.md" "${phase_dir}/${padded_phase}-DISCUSSION-LOG.md"
+fi
+```
 </step>
 
 <step name="update_state">
@@ -1116,10 +1322,10 @@ node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(state): record
 <step name="auto_advance">
 Check for auto-advance trigger:
 
-1. Parse `--auto` flag from $ARGUMENTS
-2. **Sync chain flag with intent** — if user invoked manually (no `--auto`), clear the ephemeral chain flag from any previous interrupted `--auto` chain. This does NOT touch `workflow.auto_advance` (the user's persistent settings preference):
+1. Parse `--auto` and `--chain` flags from $ARGUMENTS
+2. **Sync chain flag with intent** — if user invoked manually (no `--auto` and no `--chain`), clear the ephemeral chain flag from any previous interrupted `--auto` chain. This does NOT touch `workflow.auto_advance` (the user's persistent settings preference):
    ```bash
-   if [[ ! "$ARGUMENTS" =~ --auto ]]; then
+   if [[ ! "$ARGUMENTS" =~ --auto ]] && [[ ! "$ARGUMENTS" =~ --chain ]]; then
      node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-set workflow._auto_chain_active false 2>/dev/null
    fi
    ```
@@ -1129,12 +1335,12 @@ Check for auto-advance trigger:
    AUTO_CFG=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.auto_advance 2>/dev/null || echo "false")
    ```
 
-**If `--auto` flag present AND `AUTO_CHAIN` is not true:** Persist chain flag to config (handles direct `--auto` usage without new-project):
+**If `--auto` or `--chain` flag present AND `AUTO_CHAIN` is not true:** Persist chain flag to config (handles direct `--auto` or `--chain` usage without new-project):
 ```bash
 node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-set workflow._auto_chain_active true
 ```
 
-**If `--auto` flag present OR `AUTO_CHAIN` is true OR `AUTO_CFG` is true:**
+**If `--auto` flag present OR `--chain` flag present OR `AUTO_CHAIN` is true OR `AUTO_CFG` is true:**
 
 Display banner:
 ```
@@ -1161,7 +1367,7 @@ This keeps the auto-advance chain flat — discuss, plan, and execute all run at
 
   Auto-advance pipeline finished: discuss → plan → execute
 
-  Next: /gsd:discuss-phase ${NEXT_PHASE} --auto ${GSD_WS}
+  Next: /gsd:discuss-phase ${NEXT_PHASE} ${WAS_CHAIN ? "--chain" : "--auto"} ${GSD_WS}
   <sub>/clear first → fresh context window</sub>
   ```
 - **PLANNING COMPLETE** → Planning done, execution didn't complete:
@@ -1180,7 +1386,7 @@ This keeps the auto-advance chain flat — discuss, plan, and execute all run at
   Continue: /gsd:plan-phase ${PHASE} --gaps ${GSD_WS}
   ```
 
-**If neither `--auto` nor config enabled:**
+**If none of `--auto`, `--chain`, nor config enabled:**
 Route to `confirm_creation` step (existing behavior — show manual next steps).
 </step>
 
@@ -1196,10 +1402,12 @@ Route to `confirm_creation` step (existing behavior — show manual next steps).
 - Gray areas identified through intelligent analysis with code and prior decision annotations
 - User selected which areas to discuss
 - Each selected area explored until user satisfied (with code-informed and prior-decision-informed options)
-- In exploratory mode: options marked [grounded] or [open]; uncertainty preserved rather than resolved
-- In exploratory --auto: only grounded options auto-selected; open questions recorded as such
+- In exploratory mode: claims carry typed markers per references/claim-types.md; uncertainty preserved rather than resolved
+- In exploratory --auto: auto-progression by type rules per references/claim-types.md; open questions recorded as such
 - Scope creep redirected to deferred ideas
 - CONTEXT.md captures actual decisions (discuss mode) or working assumptions (exploratory mode)
+- `--chain` triggers interactive discuss followed by auto plan+execute (no auto-answering)
+- `--chain` and `--auto` both persist chain flag and auto-advance to plan-phase
 - CONTEXT.md includes canonical_refs section with full file paths to every spec/ADR/doc downstream agents need (MANDATORY — never omit)
 - CONTEXT.md includes code_context section with reusable assets and patterns
 - Deferred ideas preserved for future phases

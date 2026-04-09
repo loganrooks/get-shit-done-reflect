@@ -11,7 +11,7 @@ Lifecycle: open → concluded → adopted → evaluated → superseded
 -->
 
 **Date:** 2026-04-09
-**Status:** Open
+**Status:** Concluded
 **Trigger:** User observation during Phase 57.2 scoping — the current 57.2 plan (Discuss-Phase Exploratory Mode Overhaul) requires heavy modification of discuss-phase.md, which is primarily upstream code. User proposed an architectural alternative: insert a fork-specific enrichment step between discuss-phase and plan-phase, keeping discuss-phase close to upstream while doing the epistemic enrichment work in a new fork-only workflow. This reframe addresses both the quality regression AND fork maintenance cost.
 **Affects:** Phase 57.2 scope, discuss-phase.md, plan-phase pipeline, --chain workflow, ROADMAP.md (potentially all future phases)
 **Related:**
@@ -157,15 +157,26 @@ The insertion point is between write_context output and plan-phase invocation �
 
 ## Recommendation
 
-**Current leaning:** Option C (Hybrid) — this is where the conversation was heading. Workflow fixes in discuss-phase, epistemic enrichment in a new fork-specific step.
+**Conclusion: Defer enrichment step. Proceed with discuss-phase modification (Option A) for 57.2.**
 
-**Open questions blocking conclusion:**
-1. What should the enrichment step actually do — transform CONTEXT.md in-place, or produce a companion document?
-2. How does the typed claim vocabulary get introduced without modifying discuss-phase's internal vocabulary?
-3. What is the step's name, and does that name correctly signal its purpose?
-4. How does this interact with the explore skill (57.1) and the adversarial deliberation prescription?
-5. What does the enrichment step's output contract look like — what does plan-phase expect to receive?
-6. Should the enrichment step be mandatory (always runs in --chain/--auto) or merely default-on?
+The enrichment step architecture (Option B/C) is sound but premature. The deliberation surfaced important design insights — particularly that CONTEXT.md's locking mechanism is a two-sided problem (output format + plan-phase consumption contract), and that a separate pipeline stage could cleanly separate fork epistemic work from upstream workflow. However:
+
+1. **Immediate need is simpler:** CONTEXT.md already does valuable non-decision-locking work (environmental context, code context, references, design grey areas). The acute problem is that the template lacks sections for assumptions, guardrails, and structured questions. Adding those to discuss-phase.md is the direct fix.
+2. **Premature without telemetry:** We don't yet have measurement to know whether the discuss-phase modification is sufficient or whether a separate step is needed. Phase 57 (telemetry baseline) will provide that.
+3. **Plan-phase contract needs rethinking too:** The "Decisions = LOCKED" contract may need modification to handle working assumptions and challenged decisions. That's a broader change that should be designed after the discuss-phase improvements are in place and measured.
+4. **The enrichment step idea is preserved:** This deliberation captures the full design space. When telemetry shows whether discuss-phase modification alone is sufficient (quality regression deliberation P4 tests this), the enrichment step can be revisited with data.
+
+**What 57.2 should focus on:**
+- Enhance CONTEXT.md template with non-decision-locking content: working assumptions, epistemic guardrails, derived constraints, design grey areas as genuinely open, structured questions
+- Workflow fixes: --chain flag (DISC-05), CONTEXT.md commit gap
+- Typed claim states and citation integrity within discuss-phase
+- Expose problem context and situational context more richly
+
+**Deferred to post-telemetry (backlog 999.x):**
+- Enrichment step as separate pipeline stage (Option B/C from this deliberation)
+- Plan-phase contract modification ("Decisions = LOCKED" rethink)
+- ROADMAP annotations for per-phase exploration depth
+- Two-document output (CONTEXT.md + EXPLORATION.md)
 
 ## Predictions
 
@@ -191,10 +202,10 @@ Record predictions BEFORE implementation so they can't be retrofitted.
 Filled when status moves to `concluded` or `adopted`.
 -->
 
-**Decision:** —
-**Decided:** —
-**Implemented via:** —
-**Signals addressed:** —
+**Decision:** Defer enrichment step architecture. Proceed with discuss-phase modification (Phase 57.2 as originally scoped from quality regression deliberation). Enrichment step preserved as backlog item for post-telemetry evaluation.
+**Decided:** 2026-04-09
+**Implemented via:** Phase 57.2 (discuss-phase modification); enrichment step deferred to backlog 999.x
+**Signals addressed:** sig-2026-04-09-exploratory-mode-epistemic-quality-regression (via 57.2), sig-2026-04-09-discuss-phase-workflow-gaps (via 57.2)
 
 ## Evaluation
 

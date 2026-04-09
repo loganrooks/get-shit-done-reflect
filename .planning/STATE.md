@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: completed
-stopped_at: Phase 57.1 complete — verification passed 5/5
-last_updated: "2026-04-09T08:56:07.555Z"
-last_activity: 2026-04-09 -- Phase 57.1 complete (Explore Skill Adoption)
+stopped_at: Phase 57.2 complete — verification passed 9/9
+last_updated: "2026-04-09T12:00:00.000Z"
+last_activity: 2026-04-09 -- Phase 57.2 complete (Discuss-Phase Exploratory Mode Overhaul)
 progress:
-  total_phases: 15
-  completed_phases: 5
-  total_plans: 16
-  completed_plans: 13
-  percent: 81
+  total_phases: 16
+  completed_phases: 7
+  total_plans: 19
+  completed_plans: 16
+  percent: 84
 ---
 
 # Project State
@@ -26,17 +26,17 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.2 of 64 (Discuss-Phase Exploratory Mode Overhaul)
-Plan: --
+Plan: 3 of 3
 Status: Phase complete
-Last activity: 2026-04-09 -- Phase 57.1 complete (Explore Skill Adoption)
+Last activity: 2026-04-09 -- Phase 57.2 complete (Discuss-Phase Exploratory Mode Overhaul)
 
-Progress: [████████░░] 81%
+Progress: [████████░░] 84%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 12
+- Plans completed: 15
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -49,6 +49,9 @@ Progress: [████████░░] 81%
 - 55.2-02: 3min, 2 tasks, 2 files
 - 55.2-03: 3min, 2 tasks, 2 files
 - 57.1-01: 3min, 2 tasks, 6 files
+- 57.2-01: 4min, 2 tasks, 3 files
+- 57.2-02: 5min, 2 tasks, 2 files
+- 57.2-03: 4min, 3 tasks, 3 files
 
 **v1.18 Final:**
 
@@ -107,13 +110,21 @@ Recent decisions affecting current work:
 - [55.2-03]: Codex hooks documented as Y (under development) [6] with feature flag gating rather than flat Y -- reflects conditional availability pending codex_hooks flag stabilization
 - [55.2-03]: Living document pattern established for drift-prone references: YAML frontmatter with last_audited version, next_audit_due, and Validation Commands table with executable re-verification commands
 - [57.1-01]: Installer name: field stays gsd:explore (not gsdr:explore) in installed commands -- consistent with all 30+ commands; directory rename (gsd/ -> gsdr/) handles user-facing prefix, not frontmatter rewriting
+- [Phase 57.2]: claim-types.md uses 7 numbered sections: types table, verification dimension, notation syntax, non-types, dependencies, auto-progression, quick reference
+- [Phase 57.2]: commit_docs guard added as conditional wrapper around existing commit command rather than restructuring git_commit step
+- [Phase 57.2]: Mode-conditional write_context: exploratory uses 5 structural sections; discuss uses unchanged decisions
+- [Phase 57.2]: All [grounded] references replaced with type-based auto-progression rules per claim-types.md
+- [Phase 57.2]: Context template Example 4 added showing full exploratory mode output with working model, constraints, guardrails, generative questions, dependencies
+- [Phase 57.2]: DISCUSSION-LOG.md augmented (not replaced) -- Gray Areas audit trail preserved as Part 1, new parts added
+- [Phase 57.2]: Context-checker uses Task() dispatch, not inline step -- separately invokable agent (gsdr-context-checker)
+- [Phase 57.2]: Researcher types own findings bidirectionally using same [type:verification] vocabulary from claim-types.md
 
 ### Roadmap Evolution
 
 - Phase 55.1 inserted after Phase 55: Upstream Bug Patches (URGENT) — patch #2005 details-wrapped ROADMAP corruption, #1972 incomplete atomicWriteFileSync, #1981 worktree reset --soft data loss
 - Phase 55.2 inserted after Phase 55.1: Codex Runtime Substrate -- runtime detection fixes, documentation drift corrections, parity smoke test. Derived from cross-model audit consensus (Claude, GPT-5.4 xhigh, Opus review, Sonnet review). Requirements: CODEX-01, CODEX-02, CODEX-05
 - Gemini CLI and OpenCode deprecated as tested runtimes -- narrowing to Claude Code + Codex CLI only. Community-maintained status in capability-matrix.md. Decision documented in `.planning/deliberations/drop-gemini-opencode-focus-codex.md`
-- Phase 57.2 inserted after Phase 57: Discuss-Phase Exploratory Mode Overhaul -- template fix, typed claim states, provenance, incentive decoupling, subagent design exploration. Derived from `.planning/deliberations/exploratory-discuss-phase-quality-regression.md` (audit: `.planning/audits/2026-04-09-discuss-phase-exploration-quality/`). Requirements: DISC-01 through DISC-07
+- Phase 57.2 scope refined: 10 requirements (DISC-01 through DISC-10). Typed claims (7 types from 6 exploratory audits across 12 projects), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher agent update, claim dependency webs. Pipeline enrichment step deferred to backlog 999.1. Derived from 3 deliberations: `exploratory-discuss-phase-quality-regression.md`, `pipeline-enrichment-step-architecture.md`, `claim-type-ontology.md`
 - Phase 57.3 inserted after Phase 57.2: Audit Workflow Infrastructure -- formalize audit conventions, task spec preservation, epistemic ground rules. Depends on 57.2. Requirements: AUDIT-01, AUDIT-02
 - Execution reordered: 57.1 → 57.2 → 57.3 ship as patches before Phase 57 (telemetry). 57.2 dependency on 57 removed — regression fix ships now, effectiveness revisited post-telemetry
 
@@ -137,15 +148,20 @@ Recent decisions affecting current work:
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260408-snh | Implement v1.20 roadmap amendments: Phase 55.2, CODEX requirements, Gemini/OpenCode deprecation | 2026-04-09 | 68309db | [260408-snh](./quick/260408-snh-implement-v1-20-roadmap-amendments-inser/) |
+| Phase 57.2 P01 | 4min | 2 tasks | 3 files |
+| Phase 57.2 P02 | 5min | 2 tasks | 2 files |
+| Phase 57.2 P03 | 4min | 3 tasks | 3 files |
 
 ### Key Artifacts
 
 - Audit evidence base: `.planning/audits/session-log-audit-2026-04-07/` (32 reports, 100 sessions, 165 findings)
 - Research documents: `.planning/research/` (9 v1.20 research docs)
 - Milestone steering brief: `.planning/MILESTONE-CONTEXT.md`
+- Claim type audits: `.planning/audits/2026-04-09-*claim-audit*` (6 files, 12 projects, ~85 CONTEXT.md files)
+- Deliberations for 57.2: `exploratory-discuss-phase-quality-regression.md` (concluded), `pipeline-enrichment-step-architecture.md` (concluded, deferred), `claim-type-ontology.md` (concluded)
 
 ## Session Continuity
 
-Last session: 2026-04-09T08:56:07.548Z
-Stopped at: Phase 57.1 complete — verification passed 5/5
+Last session: 2026-04-09
+Stopped at: Phase 57.2 complete — verification passed 9/9. Next: PR → CI → signals → merge → patch release
 Resume file: None

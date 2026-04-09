@@ -1,7 +1,7 @@
 ---
 name: gsd:discuss-phase
-description: Create phase steering context before planning. Use --auto for autonomous mode.
-argument-hint: "<phase>"
+description: Create phase steering context before planning. Use --auto for autonomous mode. Use --chain for interactive discuss followed by automatic plan+execute.
+argument-hint: "<phase> [--auto] [--chain] [--batch] [--analyze] [--text]"
 allowed-tools:
   - Read
   - Write
