@@ -82,7 +82,6 @@ Plans:
 
 
 
-
 ### Phase 56: KB Schema & SQLite Foundation
 **Goal**: Signal files support full lifecycle tracking, and a SQLite index makes the knowledge base queryable by structured fields
 **Depends on**: Phase 55
@@ -108,7 +107,11 @@ Plans:
   2. `gsd-tools telemetry baseline` produces `.planning/baseline.json` with statistical computation from session-meta data
   3. `.planning/baseline.json` is committed before any Phase 58 structural gates are deployed
   4. Facets data (AI-generated session quality assessments) joined with session-meta by session_id, with all facets-derived fields annotated as AI-generated estimates with unknown accuracy
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 57-01-PLAN.md -- Create telemetry.cjs module with helpers, 3 subcommands (summary/session/enrich), and router wiring
+- [ ] 57-02-PLAN.md -- Add phase correlation command, baseline command with 8 metrics, and inline token validation
+- [ ] 57-03-PLAN.md -- Telemetry test suite and baseline.json capture/commit
 
 ### Phase 57.1: Explore Skill Adoption (INSERTED)
 
@@ -215,7 +218,7 @@ Phases execute sequentially 55 through 57.1, then 58-59, then 60 and 61 can proc
 | 55.1. Upstream Bug Patches | 2/2 | Complete | 2026-04-09 |
 | 55.2. Codex Runtime Substrate | 3/3 | Complete | 2026-04-09 |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
-| 57. Measurement & Telemetry Baseline | 0/TBD | Not started | - |
+| 57. Measurement & Telemetry Baseline | 0/3 | Not started | - |
 | 57.1. Explore Skill Adoption | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
