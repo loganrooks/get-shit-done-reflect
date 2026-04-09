@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: Ready to discuss
-stopped_at: Phase 57.1 planned (1 plan, verification passed)
-last_updated: "2026-04-09T08:46:19.186Z"
-last_activity: 2026-04-09 -- Phase 55.2 complete (Codex Runtime Substrate)
+status: Phase complete
+stopped_at: Completed 57.1-01-PLAN.md
+last_updated: "2026-04-09T08:52:06.790Z"
+last_activity: 2026-04-09 -- Phase 57.1 complete (Explore Skill Adoption)
 progress:
   total_phases: 15
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 16
-  completed_plans: 12
-  percent: 75
+  completed_plans: 13
+  percent: 81
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.1 -- Explore Skill Adoption (ready to discuss). Phases 57.1 → 57.2 → 57.3 ship as patches before Phase 57
+**Current focus:** v1.20 Phase 57.2 -- Discuss-Phase Exploratory Mode Overhaul. Phases 57.2 → 57.3 ship as patches before Phase 57
 
 ## Current Position
 
-Phase: 57.1 of 64 (Explore Skill Adoption)
+Phase: 57.2 of 64 (Discuss-Phase Exploratory Mode Overhaul)
 Plan: --
-Status: Ready to discuss
-Last activity: 2026-04-09 -- Phase 55.2 complete (Codex Runtime Substrate)
+Status: Phase complete
+Last activity: 2026-04-09 -- Phase 57.1 complete (Explore Skill Adoption)
 
-Progress: [████......] 42%
+Progress: [████████░░] 81%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 11
+- Plans completed: 12
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -48,6 +48,7 @@ Progress: [████......] 42%
 - 55.2-01: 3min, 2 tasks, 3 files
 - 55.2-02: 3min, 2 tasks, 2 files
 - 55.2-03: 3min, 2 tasks, 2 files
+- 57.1-01: 3min, 2 tasks, 6 files
 
 **v1.18 Final:**
 
@@ -105,6 +106,7 @@ Recent decisions affecting current work:
 - [55.2-02]: Helper functions (discoverSensorDirs, discoverSensors, parseSensorMetadata) exported for testability
 - [55.2-03]: Codex hooks documented as Y (under development) [6] with feature flag gating rather than flat Y -- reflects conditional availability pending codex_hooks flag stabilization
 - [55.2-03]: Living document pattern established for drift-prone references: YAML frontmatter with last_audited version, next_audit_due, and Validation Commands table with executable re-verification commands
+- [57.1-01]: Installer name: field stays gsd:explore (not gsdr:explore) in installed commands -- consistent with all 30+ commands; directory rename (gsd/ -> gsdr/) handles user-facing prefix, not frontmatter rewriting
 
 ### Roadmap Evolution
 
@@ -144,6 +146,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-09T08:46:19.180Z
-Stopped at: Phase 57.1 planned (1 plan, verification passed)
-Resume file: .planning/phases/57.1-explore-skill-adoption-inserted/57.1-01-PLAN.md
+Last session: 2026-04-09T08:52:06.790Z
+Stopped at: Completed 57.1-01-PLAN.md
+Resume file: .planning/phases/57.2-discuss-phase-exploratory-overhaul-inserted/

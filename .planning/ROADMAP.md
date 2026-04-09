@@ -23,7 +23,7 @@
 - [x] **Phase 55: Upstream Mini-Sync** - Integrate upstream correctness fixes (state locking, milestone safety, frontmatter, installer) before any v1.20 work begins
 - [x] **Phase 56: KB Schema & SQLite Foundation** - Signal schema evolution and SQLite index creation establish the queryable knowledge base substrate
 - [ ] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
-- [ ] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding
+- [x] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding (completed 2026-04-09)
 - [ ] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Fix exploratory mode regression: template sections, typed claim states, provenance, incentive decoupling, subagent design exploration
 - [ ] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
@@ -151,9 +151,9 @@ Derived from: `.planning/deliberations/exploratory-discuss-phase-quality-regress
   1. `/gsdr:explore` command, workflow, and reference files (questioning.md, domain-probes.md) are synced from upstream and installed locally
   2. The skill launches a Socratic conversation, offers mid-session research, and routes crystallized outputs to appropriate artifacts
   3. Existing upstream tests (if any) pass; manual verification of one explore session
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
-- [ ] 57.1-01-PLAN.md -- Adopt upstream explore skill files, create vitest test, verify installer
+- [x] 57.1-01-PLAN.md -- Adopt upstream explore skill files, create vitest test, verify installer
 
 ### Phase 58: Structural Enforcement Gates
 **Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion
@@ -250,7 +250,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | 55.2. Codex Runtime Substrate | 3/3 | Complete | 2026-04-09 |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
 | 57. Measurement & Telemetry Baseline | 0/3 | Planned | - |
-| 57.1. Explore Skill Adoption | 0/1 | Planned | - |
+| 57.1. Explore Skill Adoption | 1/1 | Complete   | 2026-04-09 |
 | 57.2. Discuss-Phase Exploratory Mode Overhaul | 0/TBD | Not started | - |
 | 57.3. Audit Workflow Infrastructure | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |

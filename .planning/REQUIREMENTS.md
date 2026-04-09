@@ -172,7 +172,7 @@ Dependencies: SPIKE-02 -> SPIKE-01 -> SPIKE-09. SPIKE-08 gated on SPIKE-01 compl
   - *Motivation:* `deliberation: Thread 11 -- telemetry survey didn't fit any existing workflow`
 - [ ] **WF-04**: `/gsdr:discuss-milestone` workflow produces a MILESTONE-CONTEXT.md with structured steering brief (working assumptions, open questions, epistemic guardrails, derived constraints, deferred ideas) analogous to discuss-phase CONTEXT.md
   - *Motivation:* `signal: sig-2026-04-08-no-discuss-milestone-workflow -- gap identified and signaled during this milestone's scoping`
-- [ ] **WF-05a**: `/gsdr:explore` command adopted from upstream `/gsd:explore` -- Socratic ideation skill with questioning.md reference, mid-session research offers, and artifact routing (notes, todos, seeds, requirements, phases). Minimal GSDR branding.
+- [x] **WF-05a**: `/gsdr:explore` command adopted from upstream `/gsd:explore` -- Socratic ideation skill with questioning.md reference, mid-session research offers, and artifact routing (notes, todos, seeds, requirements, phases). Minimal GSDR branding.
   - *Motivation:* `deliberation: explore-skill-adoption-and-dialogue-modes.md -- skill gap discovered during federated signal vision conversation`
 - [ ] **WF-05b**: `/gsdr:explore` enhanced with GSDR-specific questioning methodology (epistemic practice probes, assumption-surfacing, constraint-challenging), signal-aware exploration (KB queries during sessions via Phase 59 infrastructure), domain probes for harness/signal/epistemic domains replacing upstream web-app probes, and "no artifact" as valid outcome
   - *Motivation:* `deliberation: explore-skill-adoption-and-dialogue-modes.md -- upstream explore is instrumentalized Socratic method; GSDR needs genuine inquiry where exploration itself has value beyond artifacts`
@@ -316,7 +316,7 @@ Updated during roadmap creation.
 | WF-02 | Phase 62 | Pending |
 | WF-03 | Phase 62 | Pending |
 | WF-04 | Phase 62 | Pending |
-| WF-05a | Phase 57.1 | Pending |
+| WF-05a | Phase 57.1 | Complete |
 | WF-05b | Phase 62 | Pending |
 | SPIKE-10a | Phase 63 | Pending |
 | SPIKE-10b | Phase 63 | Pending |
