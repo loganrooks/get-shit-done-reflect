@@ -1,6 +1,6 @@
 ---
 title: "Explore Skill Adoption and Dialogue Modes in GSDR"
-status: open
+status: resolved
 date: 2026-04-09
 scope: roadmap
 planning_role: inform

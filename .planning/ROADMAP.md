@@ -14,20 +14,21 @@
 
 **Milestone Goal:** Replace advisory quality controls with structural enforcement, mature the signal system from detection-only to full lifecycle management with a queryable knowledge base, overhaul spike methodology with epistemologically rigorous experimental design, and establish measurement infrastructure for evidence-based workflow improvement.
 
-**Phases:** 11 (Phases 55-64 + 55.1, 55.2)
+**Phases:** 13 (Phases 55-64 + 55.1, 55.2, 57.1)
 **Granularity:** Fine
-**Requirements:** 60 mapped
+**Requirements:** 62 mapped
 
 ## Phases
 
 - [x] **Phase 55: Upstream Mini-Sync** - Integrate upstream correctness fixes (state locking, milestone safety, frontmatter, installer) before any v1.20 work begins
 - [x] **Phase 56: KB Schema & SQLite Foundation** - Signal schema evolution and SQLite index creation establish the queryable knowledge base substrate
 - [ ] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
+- [ ] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
 - [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
 - [ ] **Phase 61: Spike Methodology Overhaul** - Three-level confidence, cross-model design reviewer, template revisions, and findings verification (can proceed in parallel with Phase 60)
-- [ ] **Phase 62: Workflow Commands** - Four new commands closing workflow gaps identified by audit
+- [ ] **Phase 62: Workflow Commands** - Five commands closing workflow gaps identified by audit and deliberation
 - [ ] **Phase 63: Spike Programme Infrastructure** - Programme-level spike management with Lakatosian progressiveness assessment
 - [ ] **Phase 64: Parallel Execution** - Per-worktree state files and overlap detection for parallel phase execution (separately gated)
 
@@ -109,6 +110,17 @@ Plans:
   4. Facets data (AI-generated session quality assessments) joined with session-meta by session_id, with all facets-derived fields annotated as AI-generated estimates with unknown accuracy
 **Plans**: TBD
 
+### Phase 57.1: Explore Skill Adoption (INSERTED)
+
+**Goal:** The `/gsdr:explore` command exists and provides Socratic ideation sessions that route outputs to GSD artifacts (notes, todos, seeds, requirements, phases)
+**Depends on:** Nothing (standalone skill adoption, can proceed after any completed phase)
+**Requirements:** WF-05a
+**Success Criteria** (what must be TRUE):
+  1. `/gsdr:explore` command, workflow, and reference files (questioning.md, domain-probes.md) are synced from upstream and installed locally
+  2. The skill launches a Socratic conversation, offers mid-session research, and routes crystallized outputs to appropriate artifacts
+  3. Existing upstream tests (if any) pass; manual verification of one explore session
+**Plans:** TBD
+
 ### Phase 58: Structural Enforcement Gates
 **Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion
 **Depends on**: Phase 57 (baseline must be captured first)
@@ -160,14 +172,15 @@ Plans:
 **Note**: Can proceed in parallel with Phase 60 after Phase 58 completes -- independent workstreams with no shared dependencies. SPIKE-08 (protocol adherence checkpoints) is gated on SPIKE-01 completion; auto-defers to v1.21 if SPIKE-01 ships late in this phase
 
 ### Phase 62: Workflow Commands
-**Goal**: Four workflow gaps identified by the audit are closed with new commands that integrate into existing GSD patterns
-**Depends on**: Phase 59 (KB query layer enables structured retrieval in research command)
-**Requirements**: WF-01, WF-02, WF-03, WF-04
+**Goal**: Five workflow gaps identified by audit and deliberation are closed with commands that integrate into existing GSD patterns
+**Depends on**: Phase 59 (KB query layer enables structured retrieval in research and explore commands)
+**Requirements**: WF-01, WF-02, WF-03, WF-04, WF-05b
 **Success Criteria** (what must be TRUE):
   1. `/gsdr:cross-model-review` launches background cross-model review with committed audit spec and structured response template -- opt-in, model choice configurable, review round count user-determined
   2. `/gsdr:revise-phase-scope` performs mid-phase scope changes with ROADMAP.md and REQUIREMENTS.md update, commit, and re-discuss
   3. `/gsdr:research` produces committed knowledge artifacts in `.planning/research/` with source citations, per-finding confidence levels, and stated limitations -- no code changes or spike overhead
   4. `/gsdr:discuss-milestone` produces MILESTONE-CONTEXT.md with structured steering brief (working assumptions, open questions, epistemic guardrails, derived constraints, deferred ideas)
+  5. `/gsdr:explore` enhanced with GSDR-specific questioning.md (epistemic practice probes, assumption-surfacing), signal-aware exploration (KB queries during sessions), and "no artifact" as valid outcome
 **Plans**: TBD
 
 ### Phase 63: Spike Programme Infrastructure
@@ -194,7 +207,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute sequentially 55 through 59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated.
+Phases execute sequentially 55 through 57.1, then 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies).
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -203,6 +216,7 @@ Phases execute sequentially 55 through 59, then 60 and 61 can proceed in paralle
 | 55.2. Codex Runtime Substrate | 3/3 | Complete | 2026-04-09 |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
 | 57. Measurement & Telemetry Baseline | 0/TBD | Not started | - |
+| 57.1. Explore Skill Adoption | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
 | 60. Sensor Pipeline & Codex Parity | 0/TBD | Not started | - |
