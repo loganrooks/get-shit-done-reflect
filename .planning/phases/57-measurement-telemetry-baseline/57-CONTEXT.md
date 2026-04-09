@@ -99,15 +99,19 @@ Requirements: TEL-01a, TEL-01b, TEL-02, TEL-04, TEL-05
 
 ### Pre-Research Spike Findings (Landscape Characterizations)
 
-These findings come from three pre-research spikes (A, C, E) run as research-mode data analysis. They characterize the data landscape — they are NOT locked decisions. The researcher should feel free to challenge correlations, propose confounders, and investigate the opened territory. Full audit: `57-SPIKE-AUDIT.md`.
+Five pre-research spikes characterize the data landscape. They are NOT locked decisions — they open design space and seed the researcher with demonstrated questions. Full audit of methodology: `57-SPIKE-AUDIT.md`.
 
-**Methodological caveats applying to ALL spike findings below:**
-- Designs were embedded in agent prompts rather than reviewed as separate DESIGN.md files before execution (process deviation — orchestrator should write DESIGN.md first)
+**Methodological caveats applying to Tier 1 spikes (A, C, E):**
+- Designs were embedded in agent prompts rather than reviewed as separate DESIGN.md files before execution (process deviation)
 - DECISION.md framing is too closure-oriented; findings below are reframed as landscape characterizations
-- No confounders were systematically investigated beyond obvious ones
-- No confidence intervals or p-values reported (correlations are likely significant at N=106-264 but this is assumed, not demonstrated)
-- Multiple comparisons across 4+ correlations per spike inflate false discovery rate — individual findings may not survive correction
+- No confounders systematically investigated, no confidence intervals or p-values reported
+- Multiple comparisons across 4+ correlations per spike inflate false discovery rate
 - Pearson r on non-normal data (entropy bounded, tool_errors zero-inflated) may overstate linear relationships
+
+**Methodological improvement in Tier 2 spikes (007, 008):**
+- Orchestrator-authored DESIGN.md reviewed before execution — alternative hypotheses, failure modes, multi-level success criteria, scope boundaries, epistemic guardrails
+- DECISION.md includes "Opened Territory" and "Self-Critique" sections — markedly better epistemics
+- Clear signal for Phase 61: orchestrator-designed spikes produce better science than agent-self-designed spikes
 
 #### Spike A: Token Count Reliability — RESOLVED (spk-004)
 **Landscape:** `input_tokens` in session-meta = sum of post-cache residuals, typically 1-3 tokens per API call. Captures 0.001-0.74% of actual input processed. Cache hit ratio is 99.3-100%. `output_tokens` is reliable — matches JSONL within 0-8% for clean sessions, scales with actual generation work.
@@ -134,6 +138,36 @@ These findings come from three pre-research spikes (A, C, E) run as research-mod
 - **Unexamined confounders:** GSD vs ad-hoc error differential may be selection bias — structured tasks that naturally use GSD might inherently have fewer errors regardless of harness. Causation not established. Session fragmentation ↔ errors direction unknown (does fragmentation cause errors via context loss, or do error-prone tasks cause users to take breaks?). Pearson r on non-normal distributions (entropy bounded [0,~2.5], tool_errors zero-inflated with 55% zeros) may overstate linear relationship.
 - **What this opens:** Harness effectiveness — is it real or selection bias? Fragmentation root cause — which direction does causation flow? Collection gap archaeology — why is response_times missing in 54%?
 
+#### Spike 007: Data Integrity — 85.4% CLEAN CORPUS (spk-007)
+**Landscape:** The 268-session corpus is dominated by structurally valid, field-complete records. Quality issues are concentrated and mechanically separable, not diffuse. Schema is fully consistent — no field is systematically absent.
+- [evidenced:cited] 229/268 sessions (85.4%) classified Clean; 16 Caveated (extreme duration, explainable); 23 Excluded (3 malformed JSON + 20 ghost-initiation sessions with zero assistant turns). — spk-007 DECISION.md
+- [evidenced:cited] Ghost-initiation sessions are date-clustered (2026-02-26 through 2026-03-15), suggesting a version-specific or transient Claude Code behavior that has since stopped. — spk-007 DECISION.md
+- [evidenced:cited] 19,996-minute session is a genuine 14-day multi-day recording — `user_message_timestamps` validate the span exactly. Not a measurement artifact. — spk-007 DECISION.md
+- [evidenced:cited] Session-meta files are batch-regenerated (264/265 parseable files have mtime 1.9-39 days after start_time). Content is valid; file timestamps cannot proxy for session timing. — spk-007 DECISION.md
+- [evidenced:cited] 54% `user_response_times` gap confirmed in clean subset (52.8%) — architectural collection limitation, not quality failure. — spk-007 DECISION.md
+- [evidenced:cited] 103/265 sessions have macOS `/Users/` paths — corpus mixes two machines (dionysus + apollo). Cross-machine quality differential uncharacterized. — spk-007 DECISION.md
+- **Trust tier rules (deterministic):** Exclude if JSON parse failure OR (assistant_message_count=0 AND output_tokens=0). Caveat if duration_minutes>1000. One borderline session (421fa72b) slipped through — conservative baseline should use 228 sessions.
+- **What this opens:** Ghost-initiation root cause (version-specific bug?). Batch regeneration triggers (what causes Claude Code to recompute?). Cross-machine quality differential (do apollo sessions differ from dionysus?). Subagent-only sessions (a9f91386: 140 assistant turns, 0 user messages — what workflow?).
+- **Self-critique (from DECISION.md):** Classification assumes "non-zero assistant response + valid JSON = clean" which may be too permissive for token-sensitive analysis. Cross-session coherence (duplicate timestamps across sessions) was not checked. Temporal autocorrelation not tested — quality issues may overcount relative to post-March-2026 steady state.
+
+#### Spike 008: Cross-Runtime OTel & Statusline Bridge — PARTIAL (spk-008)
+**Landscape:** Codex and Claude Code have structurally non-equivalent telemetry surfaces. The "common OTel normalization" assumption needs revision.
+
+**Codex OTel (NEEDS VERIFICATION — see caveat below):**
+- [evidenced:cited] Codex v0.118.0 rejected `exporter = "console"` with error listing valid values: `none`, `statsig`, `otlp-http`, `otlp-grpc`. — spk-008 DECISION.md
+- **CRITICAL CAVEAT:** We tested `console` based on the Claude Code pattern, NOT because Codex docs said it would work. The Codex docs we fetched list `otlp-http | otlp-grpc | none` — `console` was never documented for Codex. This finding may reflect our incorrect test setup rather than a Codex limitation. The binary also reports `statsig` (undocumented), suggesting there may be other undocumented values. Newer Codex versions may differ. The researcher MUST verify this against current Codex documentation and community discussion before treating it as settled.
+- [evidenced:cited] Codex native JSONL `token_count` events are confirmed rich: per-turn and cumulative tokens, `reasoning_output_tokens`, `model_context_window`, full `rate_limits` with plan_type and reset timestamps. — spk-008 DECISION.md
+- [evidenced:cited] Undocumented `turn_context.truncation_policy = {"mode": "tokens", "limit": 10000}` — Codex applies 10K token context truncation by default. Not in prior research. — spk-008 DECISION.md
+
+**Claude Code OTel (PARTIAL — needs full interactive session):**
+- [evidenced:cited] Console OTel exporter works — `claude_code.session.count` COUNTER emitted with identity attributes (session.id, user.email, organization.id, terminal.type). — spk-008 partial log
+- [open] Full metric catalog (api_request, token.usage, tool_result, code_edit_tool) not yet observed — requires interactive session with actual tool use. User ran partial test, full characterization pending.
+
+**Statusline Bridge (CONFIRMED — most actionable finding):**
+- [evidenced:cited] `gsdr-statusline.js` receives full statusline payload including `cost.total_cost_usd`, `rate_limits.five_hour/seven_day`, `context_window.context_window_size`, but writes only 4 of 14+ available fields to bridge file. Extension is localized (lines 41-46), already in try/catch. — spk-008 DECISION.md
+- **What this opens:** Immediate bridge extension opportunity. Consolidated bridge file pattern (currently 2 separate bridge file types from different hooks). Whether `otlp-http` pointed at localhost can provide Codex OTel locally. The `credits: null` field on pro plan — what does it contain on other tiers?
+- **Self-critique (from DECISION.md):** Only one Codex session tested on one plan tier (pro). The test assumed `console` was valid based on Claude Code behavior — this was an experimental design error, not a Codex deficiency. The statusline finding required no experiment — just source code reading — and is the most actionable output despite being treated as secondary in the DESIGN.md.
+
 </working_model>
 
 <constraints>
@@ -143,7 +177,7 @@ These findings come from three pre-research spikes (A, C, E) run as research-mod
 - **DC-2:** [evidenced:cited] Node.js >= 22.5.0 required — already enforced by KB-11 for node:sqlite; telemetry.cjs inherits this floor — per REQUIREMENTS.md KB-11
 - **DC-3:** [decided:cited] Codex session data adapter is Phase 60 scope — build Claude Code adapter first, design normalization schema that Codex can plug into — per ROADMAP.md Phase 60 description
 - **DC-4:** [decided:cited] Cost calculation excluded from this phase — presentation-layer concern requiring pricing table maintenance; raw token counts are the Phase 57 deliverable, cost derivation is downstream — per measurement-infrastructure-research.md §3 recommendation
-- **DC-5:** [evidenced:cited] Token reliability must be validated before baseline commit — `input_tokens: 109` for 513-min session is a known data quality issue; inline validation is a blocker, not optional — per STATE.md Blockers
+- **DC-5:** [evidenced:cited] Token reliability RESOLVED by Spike A — `input_tokens` is post-cache residual (not workload proxy); `output_tokens` is reliable (0-8% JSONL match). Use output_tokens as primary token metric. STATE.md blocker cleared.
 - **DC-6:** [governing:cited] "Don't design token tooling around current pricing" — per MILESTONE-CONTEXT.md Derived Constraint 4. Schema should be pricing-agnostic.
 - **DC-7:** [governing:cited] "Don't bake KB storage format assumptions into sensor pipeline" — per MILESTONE-CONTEXT.md Derived Constraint 1. Telemetry output should be consumable by multiple downstream systems.
 
@@ -163,10 +197,11 @@ These findings come from three pre-research spikes (A, C, E) run as research-mod
 <questions>
 ## Open Questions
 
-### Q1: OTel integration architecture for future collection
-**Research program:** Survey how the new Claude Code OTel export (monitoring-usage docs) and Codex TOML OTel config interact with local session-meta data. Can OTel-exported data be consumed by gsd-tools as an alternative to file-based session-meta? What would a `telemetry export` subcommand look like that bridges session-meta → OTel format? Check if OTel event schema maps cleanly to our normalized schema.
-**Downstream decisions affected:** Whether telemetry.cjs should include OTel format output; whether Phase 60 Codex adapter should use OTel rather than direct JSONL parsing
-**Reversibility:** MEDIUM — schema design now constrains future OTel integration. Getting it wrong means refactoring, not rebuilding.
+### Q1: OTel integration architecture for future collection (UPDATED by Spike 008)
+**Spike 008 finding:** Codex v0.118.0 rejected `console` exporter — but this may be our test setup error, not a Codex limitation. Codex docs list `otlp-http | otlp-grpc | none` only. Claude Code console OTel works but only session.count captured so far. The "common OTel normalization" assumption needs revision — normalization must bridge Claude Code OTel + Codex native JSONL, which are structurally different sources.
+**Research program:** Verify Codex OTel capabilities against current docs and community (researcher should do online research). Test whether `otlp-http` pointed at a localhost collector provides Codex metrics locally. Complete Claude Code OTel characterization (full interactive session). Determine whether normalization should target OTel format or a custom schema that both sources feed into.
+**Downstream decisions affected:** Whether Phase 60 Codex adapter uses OTel or direct JSONL parsing; normalization schema design; whether bridge file extension is a better near-term path than OTel
+**Reversibility:** MEDIUM — schema design now constrains future integration.
 
 ### Q2: Cross-runtime normalization schema design
 **Research program:** Define a concrete normalized schema that accommodates both Claude Code session-meta (per-session aggregates with behavioral metrics) and Codex JSONL (per-turn token snapshots with turn_context). Test the schema against real data from both runtimes. Specifically resolve: how to represent runtime-only fields (user_interruptions, reasoning_output_tokens), how to abstract session enumeration across different directory structures, how to handle the per-session vs per-turn granularity difference.
@@ -370,19 +405,32 @@ These emerged from Tier 1 spike findings. They are NOT closed questions — they
 
 ## Open Questions
 
+### Resolved by Spikes
+
+| Question | Resolution | Spike |
+|----------|-----------|-------|
+| Are session-meta token counts post-caching residuals? | YES — input_tokens is cache-miss residual (1-3/call); output_tokens is reliable (0-8%). Use output_tokens as primary. | A (spk-004) |
+| What is the "clean" subset of session-meta data? | 229/268 (85.4%) clean, 16 caveated, 23 excluded. Deterministic trust tier rules. | 007 (spk-007) |
+| Does statusline payload include cost + rate limits? | YES — 14+ fields available, only 4 written. Extension is localized and low-risk. | 008 (spk-008) |
+
+### Still Open (for researcher)
+
 | Question | Why It Matters | Criticality | Status |
 |----------|----------------|-------------|--------|
-| Are session-meta token counts post-caching residuals or gross counts? | Determines whether baseline token metrics are meaningful | Critical | Spike A running — awaiting results |
-| What is the "clean" subset of session-meta data? | Malformed files + duration artifacts affect ALL baseline metrics | High | Spike-derived — 3 malformed files + 9 >1000min sessions found |
-| Is GSD effectiveness causal or selection bias? | 53% fewer errors is a headline finding — interpretation affects how we use the metric | Medium | Spike-derived — opened by Spike E |
-| Does session fragmentation cause errors or vice versa? | 5.6x error differential — direction of causation changes intervention design | Medium | Spike-derived — opened by Spike E |
-| What does "session quality" actually mean? | Facets outcome ≠ error count. Naive quality metrics may mislead | High | Spike-derived — opened by Spike C |
-| How does Claude Code OTel data compare to session-meta? | Determines future data source strategy | Medium | [open] — Q1, Spike B planned |
-| What normalized schema accommodates both runtimes? | Foundational for Phase 60 and all downstream consumers | High | [open] — Q2 in generative questions above |
-| Why is user_response_times missing in 54% of sessions? | Determines whether response_time metrics belong in baseline | Medium | Spike-derived — opened by Spike E |
+| Is GSD effectiveness causal or selection bias? | 53% fewer errors is headline finding — interpretation determines metric value | Medium | Spike E opened this; no causal analysis done |
+| Does session fragmentation cause errors or vice versa? | 5.6x error differential — direction changes intervention design | Medium | Spike E opened; causation unknown |
+| What does "session quality" actually mean? | Facets outcome ≠ error count. Need separate quality constructs? | High | Spike C opened; conceptual work needed |
+| Does Codex actually support local OTel inspection? | Our test may have used wrong config — `console` was our assumption, not docs | Medium | Spike 008 caveat; researcher must verify online |
+| What normalized schema accommodates both runtimes? | Foundational for Phase 60; OTel assumption revised by Spike 008 | High | Q2 — now must bridge OTel + native JSONL |
+| Why is user_response_times missing in 54%? | Determines whether response_time metrics belong in baseline | Medium | Spike E+007 confirmed gap is architectural, not corruption |
+| What triggers session-meta batch regeneration? | Affects whether metadata can become permanently stale | Low | Spike 007 opened; all files have 1.9-39 day mtime lag |
+| What workflow produces subagent-only sessions? | 140 assistant turns, 0 user messages — unmeasured population? | Low | Spike 007 opened (session a9f91386) |
+| What does the Codex `credits` field contain on other plans? | May expose credit-based billing data for cost normalization | Low | Spike 008 opened; null on pro plan |
+| Full Claude Code OTel metric catalog? | Only session.count observed so far — need api_request, token.usage, tool_result | Medium | Spike 008 Part 1 incomplete; run-claude-otel.sh ready |
 
 ---
 
 *Phase: 57-measurement-telemetry-baseline*
 *Context gathered: 2026-04-09*
 *Mode: exploratory --auto --chain (typed claims, auto-progression by type rules, open questions preserved for researcher)*
+*Pre-research spikes: 5 completed (A, C, E, 007, 008-partial) — findings are landscape characterizations, not locked decisions*
