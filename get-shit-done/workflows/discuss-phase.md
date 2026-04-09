@@ -203,6 +203,11 @@ Exit workflow.
 - In `present_gray_areas`: auto-select all material gray areas without asking
 - In downstream synthesis: bias toward open questions, working assumptions, and guardrails rather than collapsing uncertainty into recommended defaults
 - After discussion completes, auto-advance to plan-phase only after writing a research-ready steering brief
+
+**Chain mode** -- If `--chain` is present in ARGUMENTS:
+- Discussion is fully interactive (questions, gray area selection -- same as default mode)
+- After discussion completes, auto-advance to plan-phase -> execute-phase (same as `--auto`)
+- This is the middle ground: user controls the discuss decisions, then plan+execute run autonomously
 </step>
 
 <step name="mode_routing">
@@ -1035,6 +1040,7 @@ Created: .planning/phases/${PADDED_PHASE}-${SLUG}/${PADDED_PHASE}-CONTEXT.md
 ---
 
 **Also available:**
+- `/gsd:discuss-phase ${PHASE} --chain ${GSD_WS}` — re-run with auto plan+execute after
 - `/gsd:plan-phase ${PHASE} --skip-research ${GSD_WS}` — plan without research
 - `/gsd:ui-phase ${PHASE} ${GSD_WS}` — generate UI design contract before planning (if phase has frontend work)
 - Review/edit CONTEXT.md before continuing
@@ -1088,13 +1094,16 @@ Created: .planning/phases/${PADDED_PHASE}-${SLUG}/${PADDED_PHASE}-CONTEXT.md
 
 Write file.
 
-Commit phase context and discussion log:
+**Check commit_docs config** (from init context):
+If `commit_docs` is true, commit the files. If false, skip commit but still write the files.
 
 ```bash
-node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(${padded_phase}): capture phase context" --files "${phase_dir}/${padded_phase}-CONTEXT.md" "${phase_dir}/${padded_phase}-DISCUSSION-LOG.md"
+if [ "$commit_docs" = "true" ]; then
+  node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(${padded_phase}): capture phase context" --files "${phase_dir}/${padded_phase}-CONTEXT.md" "${phase_dir}/${padded_phase}-DISCUSSION-LOG.md"
+fi
 ```
 
-Confirm: "Committed: docs(${padded_phase}): capture phase context"
+Confirm: "Committed: docs(${padded_phase}): capture phase context" (or "Skipped commit — commit_docs is false" if not committing).
 </step>
 
 <step name="update_state">
@@ -1116,10 +1125,10 @@ node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(state): record
 <step name="auto_advance">
 Check for auto-advance trigger:
 
-1. Parse `--auto` flag from $ARGUMENTS
-2. **Sync chain flag with intent** — if user invoked manually (no `--auto`), clear the ephemeral chain flag from any previous interrupted `--auto` chain. This does NOT touch `workflow.auto_advance` (the user's persistent settings preference):
+1. Parse `--auto` and `--chain` flags from $ARGUMENTS
+2. **Sync chain flag with intent** — if user invoked manually (no `--auto` and no `--chain`), clear the ephemeral chain flag from any previous interrupted `--auto` chain. This does NOT touch `workflow.auto_advance` (the user's persistent settings preference):
    ```bash
-   if [[ ! "$ARGUMENTS" =~ --auto ]]; then
+   if [[ ! "$ARGUMENTS" =~ --auto ]] && [[ ! "$ARGUMENTS" =~ --chain ]]; then
      node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-set workflow._auto_chain_active false 2>/dev/null
    fi
    ```
@@ -1129,12 +1138,12 @@ Check for auto-advance trigger:
    AUTO_CFG=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.auto_advance 2>/dev/null || echo "false")
    ```
 
-**If `--auto` flag present AND `AUTO_CHAIN` is not true:** Persist chain flag to config (handles direct `--auto` usage without new-project):
+**If `--auto` or `--chain` flag present AND `AUTO_CHAIN` is not true:** Persist chain flag to config (handles direct `--auto` or `--chain` usage without new-project):
 ```bash
 node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-set workflow._auto_chain_active true
 ```
 
-**If `--auto` flag present OR `AUTO_CHAIN` is true OR `AUTO_CFG` is true:**
+**If `--auto` flag present OR `--chain` flag present OR `AUTO_CHAIN` is true OR `AUTO_CFG` is true:**
 
 Display banner:
 ```
@@ -1161,7 +1170,7 @@ This keeps the auto-advance chain flat — discuss, plan, and execute all run at
 
   Auto-advance pipeline finished: discuss → plan → execute
 
-  Next: /gsd:discuss-phase ${NEXT_PHASE} --auto ${GSD_WS}
+  Next: /gsd:discuss-phase ${NEXT_PHASE} ${WAS_CHAIN ? "--chain" : "--auto"} ${GSD_WS}
   <sub>/clear first → fresh context window</sub>
   ```
 - **PLANNING COMPLETE** → Planning done, execution didn't complete:
@@ -1180,7 +1189,7 @@ This keeps the auto-advance chain flat — discuss, plan, and execute all run at
   Continue: /gsd:plan-phase ${PHASE} --gaps ${GSD_WS}
   ```
 
-**If neither `--auto` nor config enabled:**
+**If none of `--auto`, `--chain`, nor config enabled:**
 Route to `confirm_creation` step (existing behavior — show manual next steps).
 </step>
 
@@ -1200,6 +1209,8 @@ Route to `confirm_creation` step (existing behavior — show manual next steps).
 - In exploratory --auto: only grounded options auto-selected; open questions recorded as such
 - Scope creep redirected to deferred ideas
 - CONTEXT.md captures actual decisions (discuss mode) or working assumptions (exploratory mode)
+- `--chain` triggers interactive discuss followed by auto plan+execute (no auto-answering)
+- `--chain` and `--auto` both persist chain flag and auto-advance to plan-phase
 - CONTEXT.md includes canonical_refs section with full file paths to every spec/ADR/doc downstream agents need (MANDATORY — never omit)
 - CONTEXT.md includes code_context section with reusable assets and patterns
 - Deferred ideas preserved for future phases
