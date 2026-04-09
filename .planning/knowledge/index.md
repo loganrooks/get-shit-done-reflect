@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-09T19:28:08Z
-**Total entries:** 233
+**Generated:** 2026-04-09T21:08:58Z
+**Total entries:** 235
 
-## Signals (228)
+## Signals (229)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -33,6 +33,7 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-09-orchestrator-skipped-log-sensor-despite-discovery | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
 | sig-2026-04-09-yaml-frontmatter-prepended-to-jsonl-files | get-shit-done-reflect | minor | detected | migration,format-mismatch,jsonl,frontmatter,audit-infrastructure | "2026-04-09 | active |
 | sig-2026-04-09-researcher-spawned-with-wrong-model-57-3 | get-shit-done-reflect | notable | detected | session-log,model-mismatch,repeated-instruction,user-correction,researcher-agent | "2026-04-09 | active |
 | sig-2026-04-09-plan02-files-modified-undercount-57-3 | get-shit-done-reflect | minor | detected | plan-quality,files-modified,frontmatter,plan-checker | "2026-04-09 | active |
@@ -236,18 +237,14 @@
 | sig-2026-02-11-signal-workflow-context-bloat | get-shit-done-reflect | notable | detected | tags: | "2026-02-11 | active |
 | sig-2026-02-11-agent-inline-research-context-bloat | get-shit-done-reflect | notable | detected | tags: | "2026-02-11 | active |
 
-## Spikes (5)
+## Spikes (6)
 
 | ID | Project | Outcome | Tags | Date | Status |
 |----|---------|---------|------|------|--------|
 | spk-2026-03-01-claude-code-session-log-location | get-shit-done-reflect | confirmed | logging,sensor,claude-code,signal-collection | 2026-03-01 | active |
 | spk-2026-04-09-cross-runtime-otel-bridge-validation | get-shit-done-reflect | partial | telemetry,otel,codex,statusline,cross-runtime,token-accounting,rate-limits | "2026-04-09 | partial |
 | spk-2026-04-09-token-count-reliability | get-shit-done-reflect | confirmed | telemetry,session-meta,tokens,data-quality,caching | "2026-04-09 | active |
+| spk-2026-04-09-session-data-integrity-characterization | get-shit-done-reflect | confirmed | telemetry,session-meta,data-quality,integrity | "2026-04-09 | active |
 | spk-2026-04-09-facets-accuracy-validation | get-shit-done-reflect | partial | telemetry,facets,data-quality,correlation | "2026-04-09 | active |
 | spk-2026-04-09-behavioral-metric-signal-to-noise | get-shit-done-reflect | confirmed | telemetry,behavioral-metrics,session-meta,signal-analysis | "2026-04-09 | active |
-
-## Lessons (0)
-
-| ID | Project | Category | Tags | Date | Status |
-|----|---------|----------|------|------|--------|
 
