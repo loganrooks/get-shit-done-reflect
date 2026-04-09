@@ -6,6 +6,18 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.19.1] - 2026-04-09
+
+### Fixed
+- **ROADMAP corruption with `<details>`-wrapped milestones** (upstream #2005): Rewrote `replaceInCurrentMilestone` to use positive milestone range lookup via new `findCurrentMilestoneRange` helper — supports heading, `<summary>`, and bullet milestone layouts. Updated 4 callers in phase.cjs and roadmap.cjs to pass `cwd` for version resolution
+- **Incomplete atomicWriteFileSync adoption** (upstream #1972): Extended `atomicWriteFileSync` to milestone.cjs (7 sites), phase.cjs (7 sites), frontmatter.cjs (2 sites) — zero `fs.writeFileSync` remaining in these modules
+- **Worktree reset --soft data loss** (upstream #1981): Added `worktree_branch_check` with `reset --hard` (not upstream's broken `reset --soft`) to 4 workflow files: execute-phase.md, execute-plan.md, quick.md, diagnose-issues.md
+
+### Added
+- 11 regression tests for upstream bug patches (4 for #2005, 7 structural for #1972/#1981)
+- Codex Runtime Substrate phase (55.2) added to roadmap with CODEX-01, CODEX-02, CODEX-05 requirements
+- Gemini CLI and OpenCode deprecated in capability-matrix.md — narrowed to Claude Code + Codex CLI
+
 ### Changed
 - **BREAKING: Node.js minimum version bumped from >=16.7.0 to >=22.5.0** -- required for built-in `node:sqlite` used by KB index commands (`gsd-tools kb rebuild|stats|migrate`)
 
