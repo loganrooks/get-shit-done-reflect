@@ -1,12 +1,14 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-09T09:30:28Z
-**Total entries:** 217
+**Generated:** 2026-04-09T12:00:00Z
+**Total entries:** 219
 
 ## Signals (216)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-04-09-shared-reference-doc-convergence-pattern | get-shit-done-reflect | notable | detected | shared-reference,convergence-point,agent-vocabulary,single-source-of-truth,claim-types | 2026-04-09 | active |
+| sig-2026-04-09-spec-workflow-runtime-verification-gap | get-shit-done-reflect | notable | detected | runtime-behavior,spec-verification,epistemic-gap,workflow-artifacts,human-verification | 2026-04-09 | active |
 | sig-2026-04-08-autonomous-discuss-plan-execute-pr-merge-pipeline | get-shit-done-reflect | notable | detected | autonomous-workflow,end-to-end,discuss-plan-execute,pr-workflow,ci-integration,positive-pattern | 2026-04-08 | active |
 | sig-2026-04-08-model-override-scope-leak-researcher-got-sonnet | get-shit-done-reflect | notable | detected | model-override,agent-dispatch,orchestrator-error,scope-leak,researcher | 2026-04-08 | active |
 | SIG-260222-008-known-top-level-keys-deduplication | get-shit-done-reflect | notable | detected | deduplication,constants,refactor,drift-prevention,module-level | 2026-02-22 | active |
