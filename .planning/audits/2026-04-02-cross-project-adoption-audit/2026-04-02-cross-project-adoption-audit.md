@@ -1,3 +1,13 @@
+---
+date: 2026-04-02
+audit_type: adoption_compliance
+scope: "GSD Reflect adoption patterns across 6+ projects"
+triggered_by: "manual: pre-milestone audit sweep"
+ground_rules: none
+migrated_from: .planning/cross-project-gsdr-adoption-audit-2026-04-02.md
+migrated_date: 2026-04-10
+tags: [adoption, cross-project, gsdr, v1.18]
+---
 # Cross-Project GSDR Adoption Audit (2026-04-02)
 
 ## Deviation Testimony

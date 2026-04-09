@@ -1,3 +1,13 @@
+---
+date: 2026-04-02
+audit_type: adoption_compliance
+scope: "Signal system usage and quality across GSD harness projects"
+triggered_by: "manual: pre-milestone audit sweep"
+ground_rules: none
+migrated_from: .planning/signal-audit-report-2026-04-02.md
+migrated_date: 2026-04-10
+tags: [signals, adoption, cross-project, v1.18]
+---
 # Signal Audit Report: get-shit-done-reflect
 **Generated**: 2026-04-02
 **Repository**: /home/rookslog/workspace/projects/get-shit-done-reflect
