@@ -906,9 +906,9 @@ This data is used to generate DISCUSSION-LOG.md in the `write_context` step.
 <step name="write_context">
 Create CONTEXT.md capturing decisions made.
 
-**Also generate DISCUSSION-LOG.md** — a full audit trail of the discuss-phase Q&A.
-This file is for human reference only (software audits, compliance reviews). It is NOT
-consumed by downstream agents (researcher, planner, executor).
+**Also generate DISCUSSION-LOG.md** — a justificatory sidecar consumed by the
+gsdr-context-checker for claim verification. Also serves as human-readable audit trail
+of discuss-phase decisions.
 
 **Find or create phase directory:**
 
@@ -1147,21 +1147,26 @@ Created: .planning/phases/${PADDED_PHASE}-${SLUG}/${PADDED_PHASE}-CONTEXT.md
 
 **File location:** `${phase_dir}/${padded_phase}-DISCUSSION-LOG.md`
 
+The DISCUSSION-LOG.md is a **justificatory sidecar** with three parts. It preserves the human-readable audit trail (Part 1) and adds machine-verifiable claim provenance (Part 2) and a placeholder for context-checker output (Part 3).
+
 ```markdown
 # Phase [X]: [Name] - Discussion Log
 
-> **Audit trail only.** Do not use as input to planning, research, or execution agents.
-> Decisions are captured in CONTEXT.md — this log preserves the alternatives considered.
+> **Justificatory sidecar.** Consumed by gsdr-context-checker for claim verification.
+> Also serves as human-readable audit trail of discuss-phase decisions.
 
 **Date:** [ISO date]
 **Phase:** [phase number]-[phase name]
+**Mode:** [discuss|exploratory] [--auto] [--chain]
 **Areas discussed:** [comma-separated list]
 
----
+***
+
+## Gray Areas (Audit Trail)
 
 [For each gray area discussed:]
 
-## [Area Name]
+### [Area Name]
 
 | Option | Description | Selected |
 |--------|-------------|----------|
@@ -1172,17 +1177,78 @@ Created: .planning/phases/${PADDED_PHASE}-${SLUG}/${PADDED_PHASE}-CONTEXT.md
 **User's choice:** [Selected option or free-text response]
 **Notes:** [Any clarifications, follow-up context, or rationale the user provided]
 
----
-
 [Repeat for each area]
 
-## Claude's Discretion
+### Claude's Discretion
 
 [List areas where user said "you decide" or deferred to Claude]
 
-## Deferred Ideas
+### Deferred Ideas
 
 [Ideas mentioned during discussion that were noted for future phases]
+
+***
+
+## Claim Justifications
+
+For each typed claim in CONTEXT.md, record the type-specific justification.
+Group by topic area matching Working Model / Decisions sections.
+See `references/claim-types.md` for justificatory expectations per type.
+
+### [Topic area 1]
+
+**[evidenced:cited] Claim text**
+- **Citation:** [file path, line, measurement, or artifact]
+- **Verification:** [how it was checked; current/stale status]
+
+**[decided:reasoned] Claim text**
+- **Alternatives considered:** [list of alternatives]
+- **Why rejected:** [rationale for each rejected alternative]
+- **User said:** [user's statement or directive, if any]
+
+**[assumed:reasoned] Claim text**
+- **Challenge protocol:** [what would falsify this]
+- **Evidence checked:** [what was checked, even if inconclusive]
+- **Why reasonable:** [rationale pending research]
+
+**[open] Claim text**
+- **What's been tried:** [investigation attempts so far]
+- **Why unresolved:** [what prevents resolution now]
+- **Research delegation:** [what the researcher should investigate]
+
+**[projected:reasoned] Claim text**
+- **Basis:** [evidence chain from current state to future need]
+- **Future phase:** [which phase/roadmap item this projects toward]
+
+**[stipulated:bare] Claim text**
+- **Acknowledged as choice:** [yes -- this is picked, not derived]
+- **Calibration evidence:** [any evidence for or against this value]
+- **Reasonable range:** [what values would also be defensible]
+
+**[governing:reasoned] Claim text**
+- **Source:** [deliberation, user value, philosophical framework, convention]
+- **Scope of governance:** [what this principle constrains]
+
+### [Topic area 2]
+
+[Repeat per-claim entries for each topic area]
+
+### Claim Dependencies
+
+[Replicate the dependency table from CONTEXT.md <dependencies> section]
+
+| Claim | Depends On | Vulnerability |
+|-------|-----------|---------------|
+| [ref to claim] | [ref to supporting claim] | [HIGH/MEDIUM/LOW -- why] |
+
+***
+
+## Context-Checker Verification Log
+
+This section is populated by the gsdr-context-checker agent after it runs.
+Leave this header and a placeholder line when first writing the file.
+
+*Awaiting context-checker run.*
 ```
 
 Write file.
@@ -1197,6 +1263,44 @@ fi
 ```
 
 Confirm: "Committed: docs(${padded_phase}): capture phase context" (or "Skipped commit — commit_docs is false" if not committing).
+</step>
+
+<step name="check_context">
+**Mode guard:** If `DISCUSS_MODE` is NOT `exploratory`, skip this step entirely and proceed to `update_state` (or `auto_advance`/`confirm_creation`).
+
+**Spawn the context-checker agent** to verify CONTEXT.md claim integrity:
+
+The gsdr-context-checker reads CONTEXT.md and DISCUSSION-LOG.md, verifies typed claims, surfaces untyped load-bearing assumptions, and appends a verification log to DISCUSSION-LOG.md.
+
+Provide the checker with:
+- **CONTEXT.md path:** `${phase_dir}/${padded_phase}-CONTEXT.md`
+- **DISCUSSION-LOG.md path:** `${phase_dir}/${padded_phase}-DISCUSSION-LOG.md`
+- **Reference doc:** `get-shit-done/references/claim-types.md`
+
+```
+Task(agent="gsdr-context-checker", input="Verify claim integrity for Phase ${PHASE}. CONTEXT.md: ${phase_dir}/${padded_phase}-CONTEXT.md, DISCUSSION-LOG.md: ${phase_dir}/${padded_phase}-DISCUSSION-LOG.md, Reference: get-shit-done/references/claim-types.md")
+```
+
+**After checker completes:** Read the checker's severity verdict from the verification log it appended to DISCUSSION-LOG.md.
+
+**Severity-to-action mapping:**
+
+- **PASS or INFO:** Continue to `auto_advance` (or `confirm_creation`).
+- **WARN:** Log warnings in output, continue to `auto_advance` (or `confirm_creation`).
+- **FAIL:** Display failures to user. If `--chain` or `--auto`, BLOCK auto-advance and show:
+  ```
+  Context-checker found blocking issues. Fix CONTEXT.md and re-run discuss-phase,
+  or continue manually with /gsdr:plan-phase.
+  ```
+  If interactive, show failures and offer to continue or fix.
+
+**Commit updated files** (checker may have modified CONTEXT.md and appended to DISCUSSION-LOG.md):
+
+```bash
+if [ "$commit_docs" = "true" ]; then
+  node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "docs(${padded_phase}): context-checker verification" --files "${phase_dir}/${padded_phase}-CONTEXT.md" "${phase_dir}/${padded_phase}-DISCUSSION-LOG.md"
+fi
+```
 </step>
 
 <step name="update_state">
