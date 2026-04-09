@@ -19,6 +19,20 @@
   - *Motivation:* `research: upstream-drift-survey-2026-04-08.md -- 4 major versions of drift, correctness bugs in adopt-upstream modules affect v1.20 substrate`
   - *Dependencies:* None -- must precede all other v1.20 work
 
+### Codex Substrate
+
+- [ ] **CODEX-01**: Runtime capability resolver (`automation.cjs`) correctly identifies `codex-cli` capabilities -- task_tool, hooks status (under development), sandbox modes. Heuristic fallback does not default to "constrained" for Codex.
+  - *Motivation:* GPT-5.4 audit confirmed `resolve-level --runtime codex-cli` returns capped result due to code only recognizing `claude-code` and `full`
+  - *Dependencies:* None
+
+- [ ] **CODEX-02**: Agent and sensor discovery works across `.md` (Claude Code) and `.toml` (Codex) formats, in both `.claude/` and `.codex/` paths. `sensors list`, `checkAgentsInstalled()`, and workflow sensor auto-discovery all handle both formats.
+  - *Motivation:* Claude audit G2 (sensor glob), GPT-5.4 audit sections 2-3 (agent verification), confirmed with proof commands
+  - *Dependencies:* None
+
+- [ ] **CODEX-05**: `cross-runtime-parity-research.md` exists as a living document recording last-audited Codex CLI version, validation commands used, and expected artifact shapes. Post-install smoke test validates Codex artifacts against this document.
+  - *Motivation:* GPT-5.4 drift audit monitoring section: "no durable record of what version was last audited"
+  - *Dependencies:* None
+
 ### KB Infrastructure
 
 Dependencies: KB-09 -> KB-04a -> KB-04b/KB-04c -> KB-07 -> KB-08
@@ -163,7 +177,7 @@ Dependencies: SPIKE-02 -> SPIKE-01 -> SPIKE-09. SPIKE-08 gated on SPIKE-01 compl
 
 - [ ] **XRT-01**: Every hook-dependent v1.20 feature specifies its Codex CLI degradation path in phase CONTEXT.md before implementation begins. Cross-runtime capability matrix (`capability-matrix.md`) updated when v1.20 features ship
   - *Motivation:* `research: cross-runtime-parity-research.md -- Codex CLI v0.118.0 has zero hook mechanism`
-- [ ] **XRT-02**: Patch compatibility checking validates patches against target runtime before cross-runtime application
+- [ ] **XRT-02**: Patch compatibility checking validates patches against Codex CLI target runtime before cross-runtime application
   - *Motivation:* `pattern: patches applied to Claude without checking Codex compatibility`
 
 ### Parallel Execution
@@ -257,6 +271,9 @@ Updated during roadmap creation.
 | SENS-06 | Phase 60 | Pending |
 | SENS-07 | Phase 60 | Pending |
 | XRT-02 | Phase 60 | Pending |
+| CODEX-01 | Phase 55.2 | Pending |
+| CODEX-02 | Phase 55.2 | Pending |
+| CODEX-05 | Phase 55.2 | Pending |
 | SPIKE-01 | Phase 61 | Pending |
 | SPIKE-02 | Phase 61 | Pending |
 | SPIKE-03 | Phase 61 | Pending |
@@ -279,8 +296,8 @@ Updated during roadmap creation.
 | PAR-03 | Phase 64 | Pending |
 
 **Coverage:**
-- v1.20 requirements: 57 total
-- Mapped to phases: 57
+- v1.20 requirements: 60 total
+- Mapped to phases: 60
 - Unmapped: 0
 
 ---

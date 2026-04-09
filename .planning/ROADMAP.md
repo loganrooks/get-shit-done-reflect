@@ -14,9 +14,9 @@
 
 **Milestone Goal:** Replace advisory quality controls with structural enforcement, mature the signal system from detection-only to full lifecycle management with a queryable knowledge base, overhaul spike methodology with epistemologically rigorous experimental design, and establish measurement infrastructure for evidence-based workflow improvement.
 
-**Phases:** 10 (Phases 55-64)
+**Phases:** 11 (Phases 55-64 + 55.1, 55.2)
 **Granularity:** Fine
-**Requirements:** 57 mapped
+**Requirements:** 60 mapped
 
 ## Phases
 
@@ -25,7 +25,7 @@
 - [ ] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
-- [ ] **Phase 60: Sensor Pipeline & Cross-Runtime Adaptation** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
+- [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
 - [ ] **Phase 61: Spike Methodology Overhaul** - Three-level confidence, cross-model design reviewer, template revisions, and findings verification (can proceed in parallel with Phase 60)
 - [ ] **Phase 62: Workflow Commands** - Four new commands closing workflow gaps identified by audit
 - [ ] **Phase 63: Spike Programme Infrastructure** - Programme-level spike management with Lakatosian progressiveness assessment
@@ -58,6 +58,22 @@ Plans:
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 55.1 to break down)
+
+### Phase 55.2: Codex Runtime Substrate (INSERTED)
+
+**Goal:** The harness correctly detects, adapts to, and verifies Codex CLI capabilities -- runtime detection is code-level accurate, agent/sensor discovery works across formats, and parity monitoring prevents silent drift.
+**Depends on:** Phase 55.1 (upstream bugs patched first)
+**Requirements:** CODEX-01, CODEX-02, CODEX-05
+**Success Criteria** (what must be TRUE):
+  1. Runtime capability resolver (`automation.cjs`) correctly identifies `codex-cli` capabilities without falling back to "constrained" heuristic
+  2. Agent and sensor discovery handles both `.md` (Claude Code) and `.toml` (Codex) formats in both `.claude/` and `.codex/` paths
+  3. Brownfield detection excludes `.codex/` directory from false-positive triggers
+  4. Documentation in capability-matrix.md accurately reflects live Codex CLI runtime behavior (config.toml not codex.toml, hooks under development, SKILL.md format, agents/*.toml registration)
+  5. `cross-runtime-parity-research.md` exists as living document recording last-audited Codex version and validation commands
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 55.2 to break down)
 
 ### Phase 56: KB Schema & SQLite Foundation
 **Goal**: Signal files support full lifecycle tracking, and a SQLite index makes the knowledge base queryable by structured fields
@@ -110,8 +126,8 @@ Plans:
   5. Research and planning agents use SQLite queries for KB retrieval, with graceful fallback to grep when kb.db does not exist
 **Plans**: TBD
 
-### Phase 60: Sensor Pipeline & Cross-Runtime Adaptation
-**Goal**: Log sensor and patch sensor are operational across both active runtimes, with automated parity verification after installation
+### Phase 60: Sensor Pipeline & Codex Parity
+**Goal**: Log sensor and patch sensor are operational across Claude Code and Codex CLI, with automated parity verification after installation
 **Depends on**: Phase 58 (structural gates provide enforcement context for sensors)
 **Requirements**: SENS-01, SENS-02, SENS-03, SENS-04, SENS-05, SENS-06, SENS-07, XRT-02
 **Success Criteria** (what must be TRUE):
@@ -176,11 +192,13 @@ Phases execute sequentially 55 through 59, then 60 and 61 can proceed in paralle
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 55. Upstream Mini-Sync | 4/4 | Complete | 2026-04-08 |
+| 55.1. Upstream Bug Patches | 0/TBD | Not started | - |
+| 55.2. Codex Runtime Substrate | 0/TBD | Not started | - |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
 | 57. Measurement & Telemetry Baseline | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
-| 60. Sensor Pipeline & Cross-Runtime Adaptation | 0/TBD | Not started | - |
+| 60. Sensor Pipeline & Codex Parity | 0/TBD | Not started | - |
 | 61. Spike Methodology Overhaul | 0/TBD | Not started | - |
 | 62. Workflow Commands | 0/TBD | Not started | - |
 | 63. Spike Programme Infrastructure | 0/TBD | Not started | - |
@@ -197,6 +215,6 @@ Phases execute sequentially 55 through 59, then 60 and 61 can proceed in paralle
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
 | v1.17 Automation Loop | 36-44 | 24 | Complete | 2026-03-09 |
 | v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | 37 | Complete | 2026-03-30 |
-| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 | TBD | In progress | - |
+| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2 | TBD | In progress | - |
 
 **Totals:** 8 milestones, 65 phases (57 complete, 8 in progress), 173 plans completed
