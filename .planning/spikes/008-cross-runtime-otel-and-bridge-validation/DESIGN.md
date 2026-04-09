@@ -1,6 +1,7 @@
+<!-- test comment -->
 ---
-status: designed
-round: 0
+status: partial
+round: 1
 mode: full
 type: comparative
 ---
