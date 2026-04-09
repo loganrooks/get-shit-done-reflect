@@ -151,8 +151,8 @@ Derived from: `.planning/deliberations/exploratory-discuss-phase-quality-regress
 **Plans:** 2 plans
 
 Plans:
-- [ ] 57.3-01-PLAN.md -- Create audit ground rules and conventions reference documents, add AUDIT-03 to REQUIREMENTS.md
-- [ ] 57.3-02-PLAN.md -- Migrate ~43 existing scattered audit artifacts to new conventions
+- [x] 57.3-01-PLAN.md -- Create audit ground rules and conventions reference documents, add AUDIT-03 to REQUIREMENTS.md
+- [x] 57.3-02-PLAN.md -- Migrate ~43 existing scattered audit artifacts to new conventions
 
 ### Phase 57.1: Explore Skill Adoption (INSERTED)
 
@@ -264,7 +264,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | 57. Measurement & Telemetry Baseline | 0/3 | Planned | - |
 | 57.1. Explore Skill Adoption | 1/1 | Complete   | 2026-04-09 |
 | 57.2. Discuss-Phase Exploratory Mode Overhaul | 3/3 | Complete | 2026-04-09 |
-| 57.3. Audit Workflow Infrastructure | 0/2 | Planned | - |
+| 57.3. Audit Workflow Infrastructure | 2/2 | Complete | 2026-04-09 |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
 | 60. Sensor Pipeline & Codex Parity | 0/TBD | Not started | - |
