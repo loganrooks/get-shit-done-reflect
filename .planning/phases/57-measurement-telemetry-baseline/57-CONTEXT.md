@@ -74,8 +74,7 @@ Requirements: TEL-01a, TEL-01b, TEL-02, TEL-04, TEL-05
 **Current state:** Research identified 8 baseline dimensions with statistical distributions. Token reliability is flagged as a blocker in STATE.md.
 
 - [decided:reasoned] `.planning/baseline.json` must be committed before Phase 58 structural gates ship — preserves ability to attribute changes to specific interventions; this is the core purpose of the phase (TEL-02)
-- [evidenced:cited] Token count reliability is questionable: `input_tokens: 109` for a 513-minute session with 23 user messages is implausibly low — appears to be post-caching residuals, not gross API counts. Confirmed by measurement-infrastructure-research.md §1 and STATE.md blocker
-- [decided:reasoned] Inline validation task (5-session comparison of session-meta tokens vs JSONL-aggregated tokens) resolves token reliability before baseline commit — bounded binary research, not a formal spike
+- [evidenced:cited] Token count reliability RESOLVED by Spike A (spk-004): `input_tokens` is post-cache residual (1-3 tokens/call), NOT a workload proxy. `output_tokens` IS reliable (0-8% JSONL match). Recommended hierarchy: output_tokens (primary) > assistant_message_count > input_tokens (cache-miss indicator only). See spike findings section for full characterization and caveats. STATE.md blocker cleared.
 - [assumed:reasoned] baseline.json includes a `token_validation` section documenting which token source was used, comparison methodology, and known limitations — transparency about data quality is non-negotiable given the token reliability concern
 - [assumed:reasoned] Statistical distributions (min, p25, median, p75, p90, max) for numeric fields — standard approach for baseline characterization that supports severity-of-testing (Mayo) by showing the full distribution, not just central tendency
 - [stipulated:reasoned] Facets-derived metrics computed on facets-matched subset only (109 of 268 sessions = 41% coverage), with n explicitly reported — acknowledged sampling limitation per TEL-05 annotation requirement. 41% is sufficient for hypothesis generation, not for definitive claims.
@@ -97,6 +96,43 @@ Requirements: TEL-01a, TEL-01b, TEL-02, TEL-04, TEL-05
 - Test fixture design for telemetry.test.js
 - Whether to include sparkline-style distribution visualization in CLI output
 - Internal helper function decomposition within telemetry.cjs
+
+### Pre-Research Spike Findings (Landscape Characterizations)
+
+These findings come from three pre-research spikes (A, C, E) run as research-mode data analysis. They characterize the data landscape — they are NOT locked decisions. The researcher should feel free to challenge correlations, propose confounders, and investigate the opened territory. Full audit: `57-SPIKE-AUDIT.md`.
+
+**Methodological caveats applying to ALL spike findings below:**
+- Designs were embedded in agent prompts rather than reviewed as separate DESIGN.md files before execution (process deviation — orchestrator should write DESIGN.md first)
+- DECISION.md framing is too closure-oriented; findings below are reframed as landscape characterizations
+- No confounders were systematically investigated beyond obvious ones
+- No confidence intervals or p-values reported (correlations are likely significant at N=106-264 but this is assumed, not demonstrated)
+- Multiple comparisons across 4+ correlations per spike inflate false discovery rate — individual findings may not survive correction
+- Pearson r on non-normal data (entropy bounded, tool_errors zero-inflated) may overstate linear relationships
+
+#### Spike A: Token Count Reliability — RESOLVED (spk-004)
+**Landscape:** `input_tokens` in session-meta = sum of post-cache residuals, typically 1-3 tokens per API call. Captures 0.001-0.74% of actual input processed. Cache hit ratio is 99.3-100%. `output_tokens` is reliable — matches JSONL within 0-8% for clean sessions, scales with actual generation work.
+- [evidenced:cited] `input_tokens` is NOT a workload proxy — a 513-min session showing 109 is correct (84 calls × ~1.3 tokens/call of cache-miss residual). Confirmed across 10 sessions. — spk-004 DECISION.md
+- [evidenced:cited] `output_tokens` IS a reliable workload proxy — never cached, matches JSONL within 0-8% for non-inherited sessions. — spk-004 DECISION.md
+- [evidenced:cited] JSONL aggregation is ALSO unreliable — streaming duplication (multiple entries per API call) and `/continue` inheritance (parent session appended) inflate counts. — spk-004 DECISION.md
+- **What this opens:** `input_tokens` could be repurposed as a cache-cold detection signal (values >100/call are anomalous). True cost accounting requires JSONL with deduplication logic — neither session-meta alone nor JSONL alone gives a clean picture.
+- **What could undermine this:** If Claude Code changes its caching strategy, the 99.3% cache-hit ratio may not hold. If session-meta generation changes (currently batch-processed, timestamps suggest periodic recomputation), the relationship between meta and JSONL may shift.
+
+#### Spike C: Facets Accuracy — PARTIAL SIGNAL (spk-005)
+**Landscape:** Facets contain validated signal in two dimensions and orthogonal-to-errors holistic judgments in two others. This is not "noise" vs "signal" — it's different constructs measuring different things.
+- [evidenced:cited] `friction_counts` ↔ `user_interruptions`: Spearman rho=0.55 (N=106). Zero-friction sessions have 87.5% zero-interruption rate vs 63.8% for friction>0. Monotonic progression across friction bins. — spk-005 DECISION.md
+- [evidenced:cited] `session_type` ↔ `duration_minutes`: 10x median span (single_task 6min vs multi_task 76min). Types are behaviorally distinguishable. — spk-005 DECISION.md
+- [evidenced:cited] `outcome` ↔ `tool_errors`: NOT correlated (fully_achieved mean 1.15 vs partially_achieved 1.21). Outcome is a holistic AI judgment orthogonal to error accumulation. — spk-005 DECISION.md
+- [evidenced:cited] `claude_helpfulness` ↔ error rate: Counterintuitively inverse — "unhelpful" sessions have 0 errors because they are abandoned/zero-work. Confounded by session complexity. — spk-005 DECISION.md
+- **Unexamined confounders:** Session length may drive both friction accumulation and interruption probability (rho=0.55 could be partially spurious). No session-length partial correlation was computed.
+- **What this opens:** What IS "quality" for an agentic session? Outcome ≠ errors. The question of quality constructs (technical quality vs goal achievement vs user experience) is unresolved and important.
+
+#### Spike E: Behavioral Metrics — CONFIRMED, 2 NEW DIMENSIONS (spk-006)
+**Landscape:** Two strong behavioral metrics discoverable from session-meta: session focus (entropy of message_hours) and session type (first_prompt categorization).
+- [evidenced:cited] `message_hours_entropy` is the strongest predictor found: Pearson r=0.48 with tool_errors, r=0.45 with interruptions (N=264, 99.6% coverage). Fragmented sessions have 5.6x tool errors of focused. — spk-006 DECISION.md
+- [evidenced:cited] `first_prompt_category` separates GSD (1.14 errors avg) from ad-hoc (2.26 errors avg, 2x differential), 47% fewer interruptions. 81.1% of sessions have classifiable first_prompt. — spk-006 DECISION.md
+- [evidenced:cited] `user_response_times` has weak signal (CV↔interruptions r=0.33) but 54% missing data and nearly no extreme-CV cases. Deferred. — spk-006 DECISION.md
+- **Unexamined confounders:** GSD vs ad-hoc error differential may be selection bias — structured tasks that naturally use GSD might inherently have fewer errors regardless of harness. Causation not established. Session fragmentation ↔ errors direction unknown (does fragmentation cause errors via context loss, or do error-prone tasks cause users to take breaks?). Pearson r on non-normal distributions (entropy bounded [0,~2.5], tool_errors zero-inflated with 55% zeros) may overstate linear relationship.
+- **What this opens:** Harness effectiveness — is it real or selection bias? Fragmentation root cause — which direction does causation flow? Collection gap archaeology — why is response_times missing in 54%?
 
 </working_model>
 
