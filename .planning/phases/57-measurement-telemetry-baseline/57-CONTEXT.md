@@ -69,9 +69,21 @@ Requirements: TEL-01a, TEL-01b, TEL-02, TEL-04, TEL-05
 - [governing:reasoned] **Metric reflexivity and openness** — the measurement framework must be open to its own revision. When a scenario or situation reveals that current metrics are insufficient, misleading, or asking the wrong question, the system should support adding, modifying, or retiring metrics without treating the current measurement set as canonical. Good measurement design includes the metacognitive capacity to question whether you're measuring the right things.
 - [stipulated:reasoned] **Epistemic humility convention**: Every metric output (human-readable and JSON) includes an `interpretive_notes` field documenting what the metric measures, what it does NOT measure, and at least one way the metric could mislead. This is a floor requirement per the governing principles above, not optional documentation.
 
+### Active Measurement: Telemetry System, Not Telemetry Consumer
+
+**Current state:** The current design mostly consumes what runtimes expose (session-meta, facets, OTel, JSONL). But some of the most valuable metrics are things neither Claude Code nor Codex tracks — they can only be computed by us, from our unique position as a harness that orchestrates work across sessions, phases, and milestones.
+
+- [governing:reasoned] **The telemetry system is an active measurement instrument, not a passive data consumer.** It should compute derived metrics, track harness-specific phenomena, and fill gaps in runtime telemetry. The model: raw data → computed signals that tell stories the raw data can't. Spike E demonstrated this: `message_hours_entropy` and `first_prompt_category` don't exist in any source — we derived them, and they're the strongest predictors found.
+- [assumed:reasoned] **Phase-correlated metrics** are unique to us: tokens-per-phase, errors-per-phase, completion rates, deviation frequency. Only a system that knows about STATE.md performance metrics can map sessions to phases. Neither runtime has this concept.
+- [assumed:reasoned] **Harness effectiveness metrics** — plan completion rate, spike outcome rate, signal remediation velocity, signal-to-lesson conversion — are GSD-specific phenomena that no external tool can measure.
+- [assumed:reasoned] **Context trajectory analysis** — the statusline bridge already captures context % per turn. Plotting the trajectory reveals patterns (steady growth, thrashing, cliff-edge compaction) that neither runtime exposes as a time series. This is active instrumentation, not passive consumption.
+- [open] **Cross-session pattern detection** — does a high-friction session predict a follow-up debugging session? Do interrupted sessions resume with higher or lower error rates? Neither runtime tracks inter-session relationships. This requires session sequencing and correlation logic we would build.
+- [open] **Hook-derived active metrics** — PostToolUse, Stop, SubagentStop hooks fire during execution and could compute live metrics (tool error streaks, agent spawn depth, compaction frequency, context pressure trajectory). These are real-time computed indicators, not post-hoc analysis. Where in Phase 57 vs Phase 60 (sensor pipeline) does this belong?
+- [projected:reasoned] **Custom monitoring harnesses** that actively compute metrics the runtimes don't expose should be a first-class design consideration, not an afterthought. The bridge file extension (Spike 008: 14 unwritten fields) is the simplest example; phase-correlated aggregation and cross-session patterns are more ambitious. Phase 60 (Sensor Pipeline) is the natural home for the active collection infrastructure, but the schema and metric definitions belong here in Phase 57.
+
 ### Baseline Scope and Format
 
-**Current state:** Research identified 8 baseline dimensions with statistical distributions. Token reliability is flagged as a blocker in STATE.md.
+**Current state:** Research identified 8 baseline dimensions with statistical distributions. Token reliability resolved by Spike A.
 
 - [decided:reasoned] `.planning/baseline.json` must be committed before Phase 58 structural gates ship — preserves ability to attribute changes to specific interventions; this is the core purpose of the phase (TEL-02)
 - [evidenced:cited] Token count reliability RESOLVED by Spike A (spk-004): `input_tokens` is post-cache residual (1-3 tokens/call), NOT a workload proxy. `output_tokens` IS reliable (0-8% JSONL match). Recommended hierarchy: output_tokens (primary) > assistant_message_count > input_tokens (cache-miss indicator only). See spike findings section for full characterization and caveats. STATE.md blocker cleared.
@@ -111,7 +123,7 @@ Five pre-research spikes characterize the data landscape. They are NOT locked de
 **Methodological improvement in Tier 2 spikes (007, 008):**
 - Orchestrator-authored DESIGN.md reviewed before execution — alternative hypotheses, failure modes, multi-level success criteria, scope boundaries, epistemic guardrails
 - DECISION.md includes "Opened Territory" and "Self-Critique" sections — markedly better epistemics
-- Clear signal for Phase 61: orchestrator-designed spikes produce better science than agent-self-designed spikes
+- [assumed:reasoned] Clear signal for Phase 61: orchestrator-designed spikes produce better science than agent-self-designed spikes <!-- typed by context-checker: comparative causal claim driving Phase 61 scope; assumes Tier 2 improvement not due to confounders (different subject matter, easier questions) -->
 
 #### Spike A: Token Count Reliability — RESOLVED (spk-004)
 **Landscape:** `input_tokens` in session-meta = sum of post-cache residuals, typically 1-3 tokens per API call. Captures 0.001-0.74% of actual input processed. Cache hit ratio is 99.3-100%. `output_tokens` is reliable — matches JSONL within 0-8% for clean sessions, scales with actual generation work.
@@ -146,7 +158,7 @@ Five pre-research spikes characterize the data landscape. They are NOT locked de
 - [evidenced:cited] Session-meta files are batch-regenerated (264/265 parseable files have mtime 1.9-39 days after start_time). Content is valid; file timestamps cannot proxy for session timing. — spk-007 DECISION.md
 - [evidenced:cited] 54% `user_response_times` gap confirmed in clean subset (52.8%) — architectural collection limitation, not quality failure. — spk-007 DECISION.md
 - [evidenced:cited] 103/265 sessions have macOS `/Users/` paths — corpus mixes two machines (dionysus + apollo). Cross-machine quality differential uncharacterized. — spk-007 DECISION.md
-- **Trust tier rules (deterministic):** Exclude if JSON parse failure OR (assistant_message_count=0 AND output_tokens=0). Caveat if duration_minutes>1000. One borderline session (421fa72b) slipped through — conservative baseline should use 228 sessions.
+- [evidenced:cited] **Trust tier rules (deterministic):** Exclude if JSON parse failure OR (assistant_message_count=0 AND output_tokens=0). Caveat if duration_minutes>1000. One borderline session (421fa72b) slipped through — conservative baseline should use 228 sessions. <!-- typed by context-checker: operational scope claim derived from spk-007 DECISION.md; directly constrains baseline computation -->
 - **What this opens:** Ghost-initiation root cause (version-specific bug?). Batch regeneration triggers (what causes Claude Code to recompute?). Cross-machine quality differential (do apollo sessions differ from dionysus?). Subagent-only sessions (a9f91386: 140 assistant turns, 0 user messages — what workflow?).
 - **Self-critique (from DECISION.md):** Classification assumes "non-zero assistant response + valid JSON = clean" which may be too permissive for token-sensitive analysis. Cross-session coherence (duplicate timestamps across sessions) was not checked. Temporal autocorrelation not tested — quality issues may overcount relative to post-March-2026 steady state.
 
