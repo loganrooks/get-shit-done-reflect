@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-09T21:50:14Z
-**Total entries:** 228
+**Generated:** 2026-04-09T21:51:53Z
+**Total entries:** 230
 
-## Signals (222)
+## Signals (224)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -33,6 +33,8 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-09-stale-worktrees-not-cleaned-after-execution | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
+| sig-2026-04-09-per-phase-signal-cap-causes-information-loss | get-shit-done-reflect | critical | detected | tags: | "2026-04-09 | active |
 | sig-2026-04-09-execute-phase-no-uncommitted-artifact-check | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
 | sig-2026-04-09-discuss-context-written-without-reading-research | get-shit-done-reflect | notable | detected | discuss-phase,context-gathering,workflow-gap,user-correction,epistemic-rigor | "2026-04-09 | active |
 | sig-2026-04-09-orchestrator-skipped-log-sensor-despite-discovery | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
