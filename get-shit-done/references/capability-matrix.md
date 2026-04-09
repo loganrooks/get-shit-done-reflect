@@ -16,7 +16,7 @@
 | Capability | Claude Code | OpenCode [D] | Gemini CLI [D] | Codex CLI | Impact When Missing |
 |------------|:-----------:|:--------:|:----------:|:---------:|---------------------|
 | task_tool  |      Y      |    Y     |   Y [1]    |   Y [2]   | Sequential execution |
-| hooks      |      Y      |    N     |     Y      |     N     | Skip hook features   |
+| hooks      |      Y      |    N     |     Y      |  Y [6]    | Skip hook features   |
 | tool_permissions | Y     |    Y     |   Y [3]    |     N     | All tools available  |
 | mcp_servers|      Y      |    Y     |   Y [4]    |   Y [5]   | Skip MCP features    |
 
@@ -25,16 +25,17 @@
 > [3] Via tools.core (allowlist), tools.exclude (denylist), and per-sub-agent restrictions.
 > [4] STDIO, SSE, and Streamable HTTP transports. OAuth support.
 > [5] STDIO and Streamable HTTP transports. OAuth support.
+> [6] Under development. Requires `codex_hooks = true` in config.toml. SessionStart, Stop, PreToolUse, PostToolUse, UserPromptSubmit supported as of v0.115.0-v0.117.0.
 > [D] Deprecated: community-maintained, not tested by GSD Reflect team. See deprecation notice above.
 
 ## Format Reference
 
 | Property | Claude Code | OpenCode | Gemini CLI | Codex CLI |
 |----------|-------------|----------|------------|-----------|
-| frontmatter | YAML | YAML (tools as map) | TOML | SKILL.md |
-| commands | commands/gsd/*.md | command/gsdr-*.md | commands/gsd/*.toml | skills/*.md |
-| agents | agents/gsdr-*.md | agents/gsdr-*.md | agents/gsdr-*.md | (via AGENTS.md) |
-| config | settings.json | opencode.json | settings.json | codex.toml |
+| frontmatter | YAML | YAML (tools as map) | TOML | TOML (agents), SKILL.md (skills) |
+| commands | commands/gsd/*.md | command/gsdr-*.md | commands/gsd/*.toml | skills/*/SKILL.md |
+| agents | agents/gsdr-*.md | agents/gsdr-*.md | agents/gsdr-*.md | agents/*.toml (config.toml registration) |
+| config | settings.json | opencode.json | settings.json | config.toml |
 
 ## Capability Details
 
@@ -58,13 +59,17 @@ Use `<capability_check name="parallel_execution">` before wave execution logic. 
 Pre/post tool execution hooks (SessionStart, Stop, etc.). Used for automatic update checks at session start, statusline integration, and pre-commit validation.
 
 **Available in:** Claude Code, Gemini CLI
-**Missing in:** OpenCode, Codex CLI
+**Missing in:** OpenCode
+**Conditional in:** Codex CLI (requires `codex_hooks` feature flag enabled in config.toml; hooks are "under development" as of v0.118.0)
 
 **Degraded behavior when missing:**
 Skip hook-dependent features entirely. No automatic update checks at session start, no statusline integration. Version checking happens on explicit GSD command invocation instead of automatically via session hooks. This is a graceful degradation -- the user still gets update notifications, just triggered differently.
 
+**Degraded behavior when conditional (Codex CLI):**
+Hooks are available but gated behind the `codex_hooks` feature flag. When the flag is enabled, SessionStart, Stop, PreToolUse, PostToolUse, and UserPromptSubmit hooks function via `hooks.json` (global at `~/.codex/hooks.json`, project-level at `<repo>/.codex/hooks.json`). GSD hook installation to Codex is deferred to Phase 60 -- for now, capability detection recognizes Codex hooks but does not install them.
+
 **How orchestrators adapt:**
-Use `<capability_check name="hooks_support">` before hook configuration. If hooks are available, configure them normally. Otherwise, skip hook setup and note that update checks run on command invocation.
+Use `<capability_check name="hooks_support">` before hook configuration. If hooks are available (Claude Code, Gemini CLI) or conditionally available (Codex CLI with feature flag), configure them normally. If hooks are absent (OpenCode) or the Codex feature flag is not enabled, skip hook setup and note that update checks run on command invocation.
 
 ### tool_permissions
 
@@ -96,7 +101,7 @@ MCP (Model Context Protocol) server integration. Allows agents to access externa
 All four supported runtimes now support MCP servers. This section is retained for documentation purposes -- if a future runtime lacks MCP support, the degraded behavior is: MCP-dependent features are skipped, MCP tool references in agent specs are excluded during format conversion, and agents function with their built-in tools only.
 
 **How orchestrators adapt:**
-No orchestrator adaptation needed. The installer preserves MCP tool references for all runtimes. MCP server configuration is handled at the runtime config level (settings.json, opencode.json, codex.toml).
+No orchestrator adaptation needed. The installer preserves MCP tool references for all runtimes. MCP server configuration is handled at the runtime config level (settings.json, opencode.json, config.toml).
 
 ## Degraded Behavior Summary
 
@@ -105,13 +110,13 @@ No orchestrator adaptation needed. The installer preserves MCP tool references f
 | Feature | Status | Adaptation |
 |---------|--------|------------|
 | Parallel agents (task_tool) | Y [1] | Use Codex subagents/threads rather than Claude-style `Task()` spawning |
-| Hooks | N | Update checks on GSD command invocation |
+| Hooks | Y (under development) [6] | Configure hooks.json when codex_hooks feature flag stable |
 | Tool permissions | N | All tools available to all agents |
 | MCP servers | Y | Full MCP support via STDIO and Streamable HTTP |
 
 > [1] Codex subagents are now a stable capability, but GSD orchestrators still need Codex-specific delegation flows instead of assuming Claude-style `Task()` semantics.
 
-Codex CLI no longer lacks parallel delegation outright. Its main remaining runtime gaps are session hooks and per-agent tool-permission controls, while multi-agent execution uses Codex-native subagent/thread flows rather than Claude's pane-centric task flow. The primary current limitation for GSD is integration shape, not absence of capability.
+Codex CLI no longer lacks parallel delegation outright. Its main remaining runtime gap is per-agent tool-permission controls. Session hooks are now conditionally available via the `codex_hooks` feature flag (under development as of v0.118.0), supporting SessionStart, Stop, PreToolUse, PostToolUse, and UserPromptSubmit events. Multi-agent execution uses Codex-native subagent/thread flows rather than Claude's pane-centric task flow. GSD hook installation to Codex is deferred to Phase 60 pending feature flag stabilization.
 
 ### Gemini CLI
 
