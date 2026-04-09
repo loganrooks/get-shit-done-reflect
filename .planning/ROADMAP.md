@@ -118,7 +118,7 @@ Plans:
 ### Phase 57.2: Discuss-Phase Exploratory Mode Overhaul (INSERTED)
 
 **Goal:** The discuss-phase exploratory mode produces genuinely exploratory CONTEXT.md files — with working assumptions, epistemic guardrails, derived constraints, generative questions, typed claim states, and traceable grounding — rather than the shallow locked-down specs the current mode produces. Includes structural fixes to the write_context template, incentive decoupling (separating epistemic status from auto-progression eligibility), and design exploration for a dedicated discuss-phase exploration subagent.
-**Depends on:** Phase 57 (telemetry tooling ships first; 57.2 then uses the improved discuss-phase for all subsequent phases)
+**Depends on:** Phase 55.2 (runtime substrate complete). Effectiveness revisited post-Phase 57 (telemetry baseline provides metrics to evaluate whether interventions helped)
 **Requirements:** DISC-01, DISC-02, DISC-03, DISC-04, DISC-05, DISC-06, DISC-07
 **Success Criteria** (what must be TRUE):
   1. Exploratory-mode `write_context` template includes structural sections for working assumptions, derived constraints, epistemic guardrails, and structured open questions
@@ -151,7 +151,9 @@ Derived from: `.planning/deliberations/exploratory-discuss-phase-quality-regress
   1. `/gsdr:explore` command, workflow, and reference files (questioning.md, domain-probes.md) are synced from upstream and installed locally
   2. The skill launches a Socratic conversation, offers mid-session research, and routes crystallized outputs to appropriate artifacts
   3. Existing upstream tests (if any) pass; manual verification of one explore session
-**Plans:** TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 57.1-01-PLAN.md -- Adopt upstream explore skill files, create vitest test, verify installer
 
 ### Phase 58: Structural Enforcement Gates
 **Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion
@@ -239,7 +241,7 @@ Derived from: `.planning/deliberations/exploratory-discuss-phase-quality-regress
 ## Progress
 
 **Execution Order:**
-Phases execute sequentially 55 through 57.3, then 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies). Phase 57.2 depends on Phase 57 (ships after telemetry tooling). Phase 57.3 depends on Phase 57.2 (typed claim vocabulary informs audit spec standards).
+Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch releases), then 57 → 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies). Phase 57.2 ships before Phase 57 as a patch (regression fix); effectiveness revisited post-telemetry. Phase 57.3 depends on Phase 57.2.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -248,7 +250,7 @@ Phases execute sequentially 55 through 57.3, then 58-59, then 60 and 61 can proc
 | 55.2. Codex Runtime Substrate | 3/3 | Complete | 2026-04-09 |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
 | 57. Measurement & Telemetry Baseline | 0/3 | Planned | - |
-| 57.1. Explore Skill Adoption | 0/TBD | Not started | - |
+| 57.1. Explore Skill Adoption | 0/1 | Planned | - |
 | 57.2. Discuss-Phase Exploratory Mode Overhaul | 0/TBD | Not started | - |
 | 57.3. Audit Workflow Infrastructure | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
