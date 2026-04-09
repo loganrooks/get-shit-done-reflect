@@ -115,6 +115,19 @@ function cmdAutomationResolveLevel(cwd, feature, options, raw) {
       // Explicit runtime flag
       hasHooks = options.runtime === 'claude-code' || options.runtime === 'full';
       hasTaskTool = options.runtime === 'claude-code' || options.runtime === 'full';
+
+      if (options.runtime === 'codex-cli') {
+        hasTaskTool = true;   // multi_agent stable true (codex features list)
+        hasHooks = false;     // Default false; conditionally true below
+        // Check if Codex hooks are enabled via config.toml feature flag
+        try {
+          const codexConfigPath = path.join(cwd, '.codex', 'config.toml');
+          if (fs.existsSync(codexConfigPath)) {
+            const content = fs.readFileSync(codexConfigPath, 'utf-8');
+            hasHooks = /codex_hooks\s*=\s*true/i.test(content);
+          }
+        } catch { /* hooks unavailable */ }
+      }
     } else {
       // Heuristic: check for .claude/settings.json with hooks
       try {
@@ -123,6 +136,16 @@ function cmdAutomationResolveLevel(cwd, feature, options, raw) {
           const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
           hasHooks = settings.hooks !== undefined;
           hasTaskTool = true; // Claude Code has task tool if settings exist
+        } else {
+          // Check for Codex config as fallback
+          const codexConfigPath = path.join(cwd, '.codex', 'config.toml');
+          if (fs.existsSync(codexConfigPath)) {
+            hasTaskTool = true;
+            try {
+              const content = fs.readFileSync(codexConfigPath, 'utf-8');
+              hasHooks = /codex_hooks\s*=\s*true/i.test(content);
+            } catch { /* hooks unavailable */ }
+          }
         }
       } catch {
         // settings.json not found or invalid -- assume constrained
