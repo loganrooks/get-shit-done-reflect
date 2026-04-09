@@ -4,9 +4,9 @@ type: signal
 project: get-shit-done-reflect
 tags: [plan-quality, files-modified, frontmatter, plan-checker]
 created: "2026-04-09T12:00:00Z"
-updated: "2026-04-09T12:00:00Z"
+updated: "2026-04-09T22:00:00Z"
 durability: convention
-status: active
+status: archived
 severity: minor
 signal_type: deviation
 signal_category: negative
@@ -24,6 +24,7 @@ gsd_version: "1.19.3+dev"
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsdr-signal-synthesizer at 2026-04-09T12:00:00Z"
+  - "archived by gsdr-signal-synthesizer at 2026-04-09T22:00:00Z: per-phase cap enforcement (phase 57 exceeded 10 signals)"
 evidence:
   supporting:
     - "Plan 02 frontmatter listed 27 paths in files_modified"

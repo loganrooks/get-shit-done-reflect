@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-09T21:08:58Z
-**Total entries:** 235
+**Generated:** 2026-04-09T21:25:45Z
+**Total entries:** 227
 
-## Signals (229)
+## Signals (221)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -33,22 +33,14 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-09-discuss-context-written-without-reading-research | get-shit-done-reflect | notable | detected | discuss-phase,context-gathering,workflow-gap,user-correction,epistemic-rigor | "2026-04-09 | active |
 | sig-2026-04-09-orchestrator-skipped-log-sensor-despite-discovery | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
-| sig-2026-04-09-yaml-frontmatter-prepended-to-jsonl-files | get-shit-done-reflect | minor | detected | migration,format-mismatch,jsonl,frontmatter,audit-infrastructure | "2026-04-09 | active |
-| sig-2026-04-09-researcher-spawned-with-wrong-model-57-3 | get-shit-done-reflect | notable | detected | session-log,model-mismatch,repeated-instruction,user-correction,researcher-agent | "2026-04-09 | active |
-| sig-2026-04-09-plan02-files-modified-undercount-57-3 | get-shit-done-reflect | minor | detected | plan-quality,files-modified,frontmatter,plan-checker | "2026-04-09 | active |
 | sig-2026-04-09-log-sensor-disabled-label-recurrence-57-3 | get-shit-done-reflect | notable | detected | session-log,log-sensor,stale-spec,repeated-instruction,user-correction,remediation-failure | "2026-04-09 | active |
-| sig-2026-04-09-git-sensor-blind-spot-single-fix-commits | get-shit-done-reflect | minor | detected | session-log,git-sensor,blind-spot,fix-commit,single-fix,user-provides-answer | "2026-04-09 | active |
-| sig-2026-04-09-ghost-agent-entries-in-model-profiles-no-spec | get-shit-done-reflect | minor | detected | tech-debt,ghost-agents,model-profiles,audit-infrastructure | "2026-04-09 | active |
 | sig-2026-04-09-ci-actions-setup-node-v4-deprecation | get-shit-done-reflect | notable | detected | ci,deprecation,github-actions,node-version | "2026-04-09 | active |
 | sig-2026-04-09-auto-progression-stopped-despite-auto-flag-57-3 | get-shit-done-reflect | notable | detected | session-log,auto-progression,repeated-instruction,user-correction,discuss-phase,workflow-gap | "2026-04-09 | active |
-| sig-2026-04-09-agent-used-upstream-gsd-tools-path-57-3 | get-shit-done-reflect | minor | detected | session-log,upstream-fork-confusion,wrong-tool-path,repeated-instruction,user-correction | "2026-04-09 | active |
 | sig-2026-04-09-agent-audit-outputs-ephemeral-no-artifact | get-shit-done-reflect | notable | detected | session-log,workflow-bypass,audit-artifact,traceability,ephemeral-output,user-provides-answer | "2026-04-09 | active |
 | sig-2026-04-09-upstream-gsd-install-coexists-with-fork | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
 | sig-2026-04-09-skill-references-upstream-gsd-tools-path | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
-| sig-2026-04-09-upstream-skill-adoption-zero-deviation-baseline | get-shit-done-reflect | notable | detected | baseline,upstream-adoption,zero-deviation,execution-quality,positive-pattern,skill-adoption | "2026-04-09 | active |
-| sig-2026-04-09-socratic-flow-unverifiable-by-static-inspection | get-shit-done-reflect | minor | detected | epistemic-gap,signal-collection,static-analysis,conversational-flow,verification-gap | "2026-04-09 | active |
-| sig-2026-04-09-rapid-3min-execution-prior-session-preextraction | get-shit-done-reflect | minor | detected | performance,execution-speed,prior-session-work,pre-extraction,positive-pattern | "2026-04-09 | active |
 | sig-2026-04-09-prior-signal-adoption-prevented-silent-file-drop | get-shit-done-reflect | notable | detected | signal-adoption,kb-utility,upstream-adoption,manifest,file-integrity,positive-pattern | "2026-04-09 | active |
 | sig-2026-04-09-log-sensor-stub-no-session-analysis-performed | get-shit-done-reflect | notable | detected | log-sensor,epistemic-gap,signal-collection,sensor-coverage,session-logs | "2026-04-09 | active |
 | sig-2026-04-09-git-verified-zero-deviation-exact-file-match | get-shit-done-reflect | notable | detected | zero-deviation,file-integrity,verification,execution-quality,positive-pattern,git-audit | "2026-04-09 | active |
