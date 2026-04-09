@@ -6,6 +6,23 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.19.3] - 2026-04-09
+
+### Added
+- **Typed claim ontology** (`references/claim-types.md`): 7 claim types (evidenced, decided, assumed, open, projected, stipulated, governing) with 3-level verification dimension (cited, reasoned, bare), notation syntax, dependency recording format, and auto-progression rules
+- **Context-checker agent** (`gsdr-context-checker`): Post-discuss claim verification — verifies type assignments, surfaces untyped load-bearing assumptions, traces dependency chains with FAIL/WARN/INFO severity tiers
+- **Exploratory mode structural sections**: CONTEXT.md in exploratory mode now produces Working Model & Assumptions, Derived Constraints, Epistemic Guardrails, Generative Open Questions, and Claim Dependencies sections
+- **`--chain` flag** for discuss-phase: Interactive discuss followed by auto plan+execute (cherry-picked from upstream 5e88db95)
+- **DISCUSSION-LOG.md justificatory sidecar**: 3-part format — Gray Areas audit trail, Claim Justifications (per-type demands), Context-Checker Verification Log
+
+### Changed
+- Researcher agent updated with 7-type consumption model — `[assumed]` claims are primary research targets, bidirectional typing of own findings
+- Auto-progression uses type-based rules instead of `[grounded]` gate
+- Context template updated with 4 examples including full exploratory mode example
+
+### Fixed
+- CONTEXT.md now committed when `commit_docs: true` in config (was silently skipping)
+
 ## [1.19.2] - 2026-04-09
 
 ### Added
