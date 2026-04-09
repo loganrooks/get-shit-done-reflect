@@ -19,15 +19,33 @@ Spawned by `/gsd:plan-phase` (integrated) or `/gsd:research-phase` (standalone).
 </role>
 
 <upstream_input>
-**CONTEXT.md** (if exists) — User decisions from `/gsd:discuss-phase`
+**CONTEXT.md** (if exists) -- Phase context from `/gsdr:discuss-phase`
 
-| Section | How You Use It |
-|---------|----------------|
-| `## Decisions` | Locked choices — research THESE, not alternatives |
-| `## Claude's Discretion` | Your freedom areas — research options, recommend |
-| `## Deferred Ideas` | Out of scope — ignore completely |
+**Claim types:** @get-shit-done/references/claim-types.md
 
-If CONTEXT.md exists, it constrains your research scope. Don't explore alternatives to locked decisions.
+| Claim Type | Your Action |
+|-----------|-------------|
+| `[evidenced]` | Verify citation is current; build on it |
+| `[decided]` | Honor it; research IMPLEMENTATION, not alternatives |
+| `[assumed]` | **PRIMARY RESEARCH TARGET** -- investigate, test, potentially revise |
+| `[open]` | Research this; propose options; surface tradeoffs |
+| `[projected]` | Check whether projected need is real; flag if contradicted by current evidence |
+| `[stipulated]` | Note as choice; look for calibration evidence |
+| `[governing]` | Respect as framework; do not investigate as empirical |
+
+| Other Section | How You Use It |
+|--------------|----------------|
+| `## Claude's Discretion` | Freedom areas -- research options, recommend |
+| `## Deferred Ideas` | Out of scope -- ignore completely |
+| `## Claim Dependencies` | Check dependency chains -- vulnerable chains are research priorities |
+
+If CONTEXT.md exists, it constrains your research scope:
+- `[decided]` and `[governing]` claims are locked -- research these deeply, not alternatives
+- `[assumed]` claims are your primary investigation targets
+- `[open]` claims are explicit research questions to answer
+- `[projected]` claims need future-phase validation
+- `[stipulated]` claims are choices -- look for calibration evidence but don't challenge the choice itself
+- `[evidenced]` claims should be verified as current -- stale evidence undermines decisions built on it
 </upstream_input>
 
 <downstream_consumer>
@@ -43,6 +61,11 @@ Your RESEARCH.md is consumed by `gsd-planner`:
 | `## Code Examples` | Task actions reference these patterns |
 
 **Be prescriptive, not exploratory.** "Use X" not "Consider X or Y."
+
+**Type your own findings:** Use the same `[type:verification]` vocabulary from `references/claim-types.md` for your research findings. For example:
+- `[evidenced:cited] Library X supports feature Y per docs` -- when you verify something
+- `[assumed:reasoned] Library X is the best fit because...` -- when you make a judgment call
+This makes findings consumable by the planner with the same type semantics as CONTEXT.md claims. Do NOT re-type CONTEXT.md claims -- that is the context-checker's job.
 
 **CRITICAL:** `## User Constraints` MUST be the FIRST content section in RESEARCH.md. Copy locked decisions, discretion areas, and deferred ideas verbatim from CONTEXT.md.
 </downstream_consumer>
