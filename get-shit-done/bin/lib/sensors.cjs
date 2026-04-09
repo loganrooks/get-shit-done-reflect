@@ -6,33 +6,55 @@ const fs = require('fs');
 const path = require('path');
 const { error, output } = require('./core.cjs');
 
-// ─── Commands ─────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function cmdSensorsList(cwd, raw) {
-  // 1. Discover sensors from file system
-  // Try .claude/agents/ first (runtime installed path), fall back to agents/ (dev path)
-  let agentsDir = path.join(cwd, '.claude', 'agents');
-  if (!fs.existsSync(agentsDir)) {
-    agentsDir = path.join(cwd, 'agents');
+/**
+ * Discover all agent directories that exist.
+ * Priority order: .claude/agents/ > .codex/agents/ > agents/
+ */
+function discoverSensorDirs(cwd) {
+  const candidates = [
+    path.join(cwd, '.claude', 'agents'),
+    path.join(cwd, '.codex', 'agents'),
+    path.join(cwd, 'agents'),
+  ];
+  return candidates.filter(d => fs.existsSync(d));
+}
+
+/**
+ * Discover sensors across all directories. First-seen-wins deduplication:
+ * if the same sensor name appears in multiple dirs, the earlier dir takes precedence.
+ */
+function discoverSensors(dirs) {
+  const sensorPattern = /^gsdr?-(.+)-sensor\.(md|toml)$/;
+  const seen = new Map(); // name -> { file, dir, ext }
+  for (const dir of dirs) {
+    let files;
+    try { files = fs.readdirSync(dir); } catch { continue; }
+    for (const file of files) {
+      const match = file.match(sensorPattern);
+      if (!match) continue;
+      const name = match[1];
+      const ext = match[2];
+      if (!seen.has(name)) {
+        seen.set(name, { file, dir, ext });
+      }
+    }
   }
-  if (!fs.existsSync(agentsDir)) {
-    error('No agents directory found. Run install first.');
-  }
+  return seen;
+}
 
-  // Find all sensor agent spec files
-  const allFiles = fs.readdirSync(agentsDir);
-  const sensorFiles = allFiles.filter(f => /^gsdr?-.*-sensor\.md$/.test(f));
+/**
+ * Parse sensor metadata from a file.
+ * .md files: extract YAML frontmatter fields.
+ * .toml files: use filename-derived name + defaults; extract explicit top-level keys if present.
+ */
+function parseSensorMetadata(filePath, ext) {
+  const content = fs.readFileSync(filePath, 'utf8');
+  const fmObj = {};
 
-  if (sensorFiles.length === 0) {
-    output({ sensors: [], message: 'No sensors discovered' }, raw);
-    return;
-  }
-
-  // 2. Parse each sensor's frontmatter for contract metadata
-  const sensors = sensorFiles.map(file => {
-    const content = fs.readFileSync(path.join(agentsDir, file), 'utf8');
+  if (ext === 'md') {
     const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
-    const fmObj = {};
     if (fmMatch) {
       const lines = fmMatch[1].split('\n');
       for (const line of lines) {
@@ -47,14 +69,47 @@ function cmdSensorsList(cwd, raw) {
         }
       }
     }
-    const name = file.replace(/^gsdr?-/, '').replace(/-sensor\.md$/, '');
-    return {
+  } else if (ext === 'toml') {
+    // Extract explicit top-level TOML keys if present (simple line-by-line regex)
+    for (const line of content.split('\n')) {
+      const snMatch = line.match(/^sensor_name\s*=\s*"([^"]+)"/);
+      if (snMatch) fmObj.sensor_name = snMatch[1];
+      const tsMatch = line.match(/^timeout_seconds\s*=\s*(\d+)/);
+      if (tsMatch) fmObj.timeout_seconds = parseInt(tsMatch[1], 10);
+      const csMatch = line.match(/^config_schema\s*=\s*"([^"]+)"/);
+      if (csMatch) fmObj.config_schema = csMatch[1];
+    }
+  }
+
+  return fmObj;
+}
+
+// ─── Commands ─────────────────────────────────────────────────────────────────
+
+function cmdSensorsList(cwd, raw) {
+  // 1. Discover sensors from file system (multi-directory, multi-format)
+  const dirs = discoverSensorDirs(cwd);
+  if (dirs.length === 0) {
+    error('No agents directory found. Run install first.');
+  }
+  const sensorMap = discoverSensors(dirs);
+  if (sensorMap.size === 0) {
+    output({ sensors: [], message: 'No sensors discovered' }, raw);
+    return;
+  }
+
+  // 2. Parse each sensor's metadata
+  const sensors = [];
+  for (const [name, { file, dir, ext }] of sensorMap) {
+    const filePath = path.join(dir, file);
+    const fmObj = parseSensorMetadata(filePath, ext);
+    sensors.push({
       name: fmObj.sensor_name || name,
       file,
       timeout_seconds: fmObj.timeout_seconds || 45,
       config_schema: fmObj.config_schema || null,
-    };
-  });
+    });
+  }
 
   // 3. Cross-reference config for enable/disable
   const configPath = path.join(cwd, '.planning', 'config.json');
@@ -99,27 +154,36 @@ function cmdSensorsList(cwd, raw) {
 }
 
 function cmdSensorsBlindSpots(cwd, sensorName, raw) {
-  // Same discovery logic as cmdSensorsList
-  let agentsDir = path.join(cwd, '.claude', 'agents');
-  if (!fs.existsSync(agentsDir)) {
-    agentsDir = path.join(cwd, 'agents');
-  }
-  if (!fs.existsSync(agentsDir)) {
+  // Multi-directory discovery (same as cmdSensorsList)
+  const dirs = discoverSensorDirs(cwd);
+  if (dirs.length === 0) {
     error('No agents directory found.');
   }
 
   const namePattern = sensorName
-    ? new RegExp('^gsdr?-' + sensorName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '-sensor\\.md$')
+    ? new RegExp('^gsdr?-' + sensorName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '-sensor\\.(md|toml)$')
     : null;
 
-  const allFiles = fs.readdirSync(agentsDir);
-  const sensorFiles = allFiles.filter(f => {
-    if (!/^gsdr?-.*-sensor\.md$/.test(f)) return false;
-    if (namePattern && !namePattern.test(f)) return false;
-    return true;
-  });
+  // Collect sensor files from all directories with dedup
+  const sensorPattern = /^gsdr?-.*-sensor\.(md|toml)$/;
+  const seenNames = new Set();
+  const sensorEntries = []; // { file, dir }
 
-  if (sensorFiles.length === 0) {
+  for (const dir of dirs) {
+    let allFiles;
+    try { allFiles = fs.readdirSync(dir); } catch { continue; }
+    for (const file of allFiles) {
+      if (!sensorPattern.test(file)) continue;
+      if (namePattern && !namePattern.test(file)) continue;
+      const name = file.replace(/^gsdr?-/, '').replace(/-sensor\.(md|toml)$/, '');
+      if (!seenNames.has(name)) {
+        seenNames.add(name);
+        sensorEntries.push({ file, dir });
+      }
+    }
+  }
+
+  if (sensorEntries.length === 0) {
     if (sensorName) {
       error('No sensor found matching "' + sensorName + '"');
     }
@@ -127,9 +191,9 @@ function cmdSensorsBlindSpots(cwd, sensorName, raw) {
     return;
   }
 
-  const blindSpots = sensorFiles.map(file => {
-    const content = fs.readFileSync(path.join(agentsDir, file), 'utf8');
-    const name = file.replace(/^gsdr?-/, '').replace(/-sensor\.md$/, '');
+  const blindSpots = sensorEntries.map(({ file, dir }) => {
+    const content = fs.readFileSync(path.join(dir, file), 'utf8');
+    const name = file.replace(/^gsdr?-/, '').replace(/-sensor\.(md|toml)$/, '');
     const match = content.match(/<blind_spots>([\s\S]*?)<\/blind_spots>/);
     return {
       sensor: name,
@@ -145,4 +209,8 @@ function cmdSensorsBlindSpots(cwd, sensorName, raw) {
 module.exports = {
   cmdSensorsList,
   cmdSensorsBlindSpots,
+  // Exported for testing
+  discoverSensorDirs,
+  discoverSensors,
+  parseSensorMetadata,
 };

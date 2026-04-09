@@ -175,7 +175,7 @@ config_schema: null
     expect(result.sensors[1].name).not.toContain('gsdr')
   })
 
-  tmpdirTest('prefers .claude/agents/ over agents/ directory', async ({ tmpdir }) => {
+  tmpdirTest('merges sensors from .claude/agents/ and agents/ directories', async ({ tmpdir }) => {
     // Create both .claude/agents/ with gsdr- and agents/ with gsd-
     const installedDir = path.join(tmpdir, '.claude', 'agents')
     await fs.mkdir(installedDir, { recursive: true })
@@ -204,9 +204,11 @@ config_schema: null
 `)
 
     const result = runSensors(tmpdir, 'list')
-    // Should only find alpha from .claude/agents/ (preferred), not beta from agents/
-    expect(result.sensors).toHaveLength(1)
-    expect(result.sensors[0].name).toBe('alpha')
+    // Multi-directory merge: finds sensors from both directories
+    expect(result.sensors).toHaveLength(2)
+    const names = result.sensors.map(s => s.name)
+    expect(names).toContain('alpha')
+    expect(names).toContain('beta')
   })
 
   tmpdirTest('shows last_status from last_skip_reason when present', async ({ tmpdir }) => {
