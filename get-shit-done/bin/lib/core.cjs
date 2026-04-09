@@ -1357,8 +1357,9 @@ function getAgentsDir() {
  * Check which GSD agents are installed on disk.
  * Returns an object with installation status and details.
  *
- * Recognises both standard format (gsd-planner.md) and Copilot format
- * (gsd-planner.agent.md). Copilot renames agent files during install (#1512).
+ * Recognises both standard format (gsd-planner.md), Copilot format
+ * (gsd-planner.agent.md), and TOML format (gsd-planner.toml, Codex CLI).
+ * Copilot renames agent files during install (#1512).
  *
  * @returns {{ agents_installed: boolean, missing_agents: string[], installed_agents: string[], agents_dir: string }}
  */
@@ -1378,10 +1379,11 @@ function checkAgentsInstalled() {
   }
 
   for (const agent of expectedAgents) {
-    // Check both .md (standard) and .agent.md (Copilot) file formats.
+    // Check .md (standard), .agent.md (Copilot), and .toml (Codex CLI) file formats.
     const agentFile = path.join(agentsDir, `${agent}.md`);
     const agentFileCopilot = path.join(agentsDir, `${agent}.agent.md`);
-    if (fs.existsSync(agentFile) || fs.existsSync(agentFileCopilot)) {
+    const agentFileToml = path.join(agentsDir, `${agent}.toml`);
+    if (fs.existsSync(agentFile) || fs.existsSync(agentFileCopilot) || fs.existsSync(agentFileToml)) {
       installed.push(agent);
     } else {
       missing.push(agent);

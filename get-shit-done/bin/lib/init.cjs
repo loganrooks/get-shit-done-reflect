@@ -212,7 +212,7 @@ function cmdInitNewProject(cwd, raw) {
       '.dart', '.m', '.mm', '.scala', '.groovy', '.lua',
       '.r', '.R', '.zig', '.ex', '.exs', '.clj',
     ]);
-    const skipDirs = new Set(['node_modules', '.git', '.planning', '.claude', '__pycache__', 'target', 'dist', 'build']);
+    const skipDirs = new Set(['node_modules', '.git', '.planning', '.claude', '.codex', '__pycache__', 'target', 'dist', 'build']);
     function findCodeFiles(dir, depth) {
       if (depth > 3) return false;
       let entries;
