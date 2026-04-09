@@ -74,9 +74,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 55.2-01-PLAN.md -- Runtime capability resolver, brownfield exclusion, agent TOML detection
-- [ ] 55.2-02-PLAN.md -- Multi-directory multi-format sensor discovery
-- [ ] 55.2-03-PLAN.md -- Capability matrix corrections and parity living document
+- [x] 55.2-01-PLAN.md -- Runtime capability resolver, brownfield exclusion, agent TOML detection
+- [x] 55.2-02-PLAN.md -- Multi-directory multi-format sensor discovery
+- [x] 55.2-03-PLAN.md -- Capability matrix corrections and parity living document
 
 
 
@@ -200,7 +200,7 @@ Phases execute sequentially 55 through 59, then 60 and 61 can proceed in paralle
 |-------|----------------|--------|-----------|
 | 55. Upstream Mini-Sync | 4/4 | Complete | 2026-04-08 |
 | 55.1. Upstream Bug Patches | 2/2 | Complete | 2026-04-09 |
-| 55.2. Codex Runtime Substrate | 0/3 | Not started | - |
+| 55.2. Codex Runtime Substrate | 3/3 | Complete | 2026-04-09 |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
 | 57. Measurement & Telemetry Baseline | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
