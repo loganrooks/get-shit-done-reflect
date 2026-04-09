@@ -292,4 +292,120 @@
 
 ## Context-Checker Verification Log
 
-*Awaiting context-checker run.*
+**Checked:** 2026-04-09
+**Agent:** gsdr-context-checker
+
+### Typed Claim Verification
+
+| Claim | Type | Verification | Status | Issue |
+|-------|------|-------------|--------|-------|
+| Session-meta files contain rich behavioral data... | evidenced | cited | PASS | Citation resolves: measurement-infrastructure-research.md exists; §1 content confirmed (tool_error_categories, user_interruptions confirmed present) |
+| Facets files provide AI-generated session quality signals | evidenced | cited | PASS | Citation resolves: measurement-infrastructure-research.md §2 confirmed; 109 files counted at filesystem path |
+| Claude Code now supports official OTel telemetry | evidenced | cited | PASS | URL cited; cannot directly resolve web URL, but claim is corroborated by spk-008 DECISION.md which confirms session.count emitted. NOTE: full 8-metric catalog not yet confirmed -- only session.count observed. WARN-level: claim asserts "8 metrics" per documentation but empirical confirmation is partial. |
+| Codex CLI supports OTel via TOML [otel] section | evidenced | cited | WARN | URL cited; Codex [otel] section existence confirmed by spk-008 DECISION.md (error message lists valid values). However, CONTEXT.md line 23 "supports OTel via TOML config" omits that console exporter does not work and local inspection requires OTLP infrastructure. The claim is technically accurate (the config section exists) but partially misleading given Spike 008 findings. Caveat is preserved in Spike section (line 170) but not in the Current State paragraph (line 23). |
+| Session logs (JSONL) are 442MB+ per project | evidenced | cited | PASS | Signal file confirms: sig-2026-03-02-claude-code-session-logs-large-unstable.md explicitly records 181 sessions = 442MB for one project |
+| Session-meta is the primary historical data source | decided | reasoned | PASS | Alternatives considered: JSONL (too large), OTel (going-forward only), hybrid (complexity). DISCUSSION-LOG records all three. Justification complete. |
+| JSONL is NOT a primary data source | decided | reasoned | PASS | Alternatives considered in DISCUSSION-LOG. Justification adequate. |
+| Schema should be compatible with OTel conventions | assumed | reasoned | PASS | Challenge protocol recorded: "If OTel conventions conflict with session-meta-derived schema, this assumption breaks." Reasonable. |
+| Phase 60 will build Codex adapter | projected | reasoned | PASS | ROADMAP.md Phase 60 confirmed to exist with status "Not started"; XRT-02 requirement confirmed. |
+| OTel export subcommand | open | bare | PASS | Research delegation recorded. What-has-been-tried documented. |
+| Focus on Claude Code + Codex CLI as two active runtimes | decided | cited | PASS | MILESTONE-CONTEXT.md §Cross-Runtime Parity confirmed to exist; deliberation drop-gemini-opencode-focus-codex.md confirmed to exist. |
+| Different telemetry surfaces per runtime | evidenced | cited | PASS | telemetry-research-codex.md §4 confirmed; per-turn vs per-session confirmed in file. |
+| Codex token accounting is per-turn, not per-tool | evidenced | cited | PASS | telemetry-research-codex.md §4 line confirmed: "three tool calls occur before one token_count event" |
+| Common normalized schema captures intersection | assumed | reasoned | PASS | Challenge protocol: "If intersection too small..." Evidence checked. Reasonable. |
+| Progressive refinement principle | governing | reasoned | PASS | Source attributed to user directive. Scope of governance defined. |
+| Every metric needs interpretive context | governing | reasoned | PASS | Source: MILESTONE-CONTEXT.md epistemic guardrail confirmed. |
+| Token usage at multiple granularities | decided | reasoned | PASS | Alternatives: per-session only, per-phase only. Rejected because user explicitly stated all levels. Direct quote cited in DISCUSSION-LOG. |
+| Session-meta provides error taxonomy | evidenced | cited | PASS | measurement-infrastructure-research.md §1 confirmed: tool_error_categories field with example values present. |
+| Behavioral metrics are first-class | assumed | reasoned | PASS | Challenge protocol recorded. Evidence checked (user_interruptions field exists). Reasonable. |
+| Harness effectiveness metric (open) | open | bare | PASS | Research program recorded. What-has-been-tried documented. |
+| Goodhart Law, Theory-ladenness, Mayo severity, Hacking, reflexivity | governing | reasoned | PASS | Sources named (Goodhart 1975, Kuhn 1962, Hanson 1958, Mayo 2018, Hacking 1983). Scope defined per claim. |
+| Epistemic humility convention (interpretive_notes) | stipulated | reasoned | PASS | Acknowledged as design choice. Calibration evidence cited. Reasonable range stated. |
+| baseline.json before Phase 58 | decided | reasoned | PASS | Alternatives considered: post-Phase-58 (contaminated), rolling (complex). ARCHITECTURE.md anti-pattern 4 verified to exist at .planning/research/ARCHITECTURE.md line 563. |
+| Token count reliability RESOLVED by Spike A | evidenced | cited | PASS | spk-004 DECISION.md confirmed to exist. Numbers match: 513-min session with 109 input_tokens, 84 API calls, 1.30 tokens/call. 0-8% output match confirmed. |
+| token_validation section in baseline.json | assumed | reasoned | PASS | Challenge protocol: if tokens are reliable, section unnecessary but still good practice. |
+| Statistical distributions for numeric fields | assumed | reasoned | PASS | Challenge protocol: if distribution skewed/multimodal, percentiles mislead. Evidence of likely skew noted. |
+| Facets on 41% subset with n reported (stipulated) | stipulated | reasoned | PASS | Acknowledged as choice. Coverage confirmed: 109/268 = 40.7% confirmed by filesystem count. |
+| DC-1: Zero external dependencies | evidenced | cited | PASS | PROJECT.md confirms zero-dependency philosophy (lines 178, 215, 225). kb.cjs uses node:sqlite built-in confirmed. |
+| DC-2: Node.js >= 22.5.0 | evidenced | cited | PASS | REQUIREMENTS.md KB-11 confirmed at line 74. |
+| DC-3: Codex adapter is Phase 60 scope | decided | cited | PASS | ROADMAP.md Phase 60 confirmed. |
+| DC-4: Cost calculation excluded | decided | cited | PASS | measurement-infrastructure-research.md §3 area confirmed (constraint from MILESTONE-CONTEXT mentioned). |
+| DC-5: Token reliability resolved | evidenced | cited | PASS | Duplicate of Spike A claim -- both resolve to spk-004 DECISION.md. |
+| DC-6: Don't design token tooling around current pricing | governing | cited | PASS | MILESTONE-CONTEXT.md Derived Constraint 4 confirmed at line 74: "Don't design token tooling around current pricing" |
+| DC-7: Don't bake KB storage format into sensor pipeline | governing | cited | PASS | MILESTONE-CONTEXT.md Derived Constraint 1 confirmed at line 71. |
+| input_tokens is NOT a workload proxy | evidenced | cited | PASS | spk-004 DECISION.md confirmed. Numbers match: 513-min session, 109 tokens, 84 calls, cache-hit 99.3-100%. |
+| output_tokens IS a reliable workload proxy | evidenced | cited | PASS | spk-004 DECISION.md confirmed. 0-8% JSONL match for clean sessions. |
+| JSONL aggregation is ALSO unreliable | evidenced | cited | PASS | spk-004 DECISION.md confirmed: streaming duplication and /continue inheritance documented. |
+| friction_counts vs user_interruptions rho=0.55 N=106 | evidenced | cited | PASS | spk-005 DECISION.md confirmed. Exact rho=0.55, N=106 (109 facets - 3 malformed), zero-friction 87.5% zero-interruption. |
+| session_type vs duration 10x span | evidenced | cited | PASS | spk-005 DECISION.md confirmed. single_task 6min vs multi_task 76min median. |
+| outcome vs tool_errors NOT correlated | evidenced | cited | PASS | spk-005 DECISION.md confirmed. fully_achieved mean 1.15 vs partially_achieved 1.21. |
+| claude_helpfulness inverse relationship | evidenced | cited | PASS | spk-005 DECISION.md confirmed. unhelpful sessions = 0 errors because abandoned/zero-work. |
+| message_hours_entropy r=0.48 N=264 | evidenced | cited | PASS | spk-006 DECISION.md confirmed. Pearson r=0.4805 with tool_errors, r=0.4513 with interruptions, N=264. |
+| first_prompt_category: GSD 1.14 vs ad-hoc 2.26, 47% fewer interruptions | evidenced | cited | PASS | spk-006 DECISION.md confirmed. GSD commanded=1.14, Ad-hoc=2.26, 47% fewer interruptions ("~50% lower tool error rates and ~47% lower interruption rates"). |
+| user_response_times weak signal r=0.33, 54% missing | evidenced | cited | PASS | spk-006 DECISION.md confirmed. r=0.3321, 45.7% coverage (=54.3% missing -- CONTEXT.md rounds to 54%). |
+| 229/268 sessions (85.4%) clean; 16 caveated; 23 excluded | evidenced | cited | PASS | spk-007 DECISION.md confirmed. Exact numbers match. |
+| Ghost-initiation sessions date-clustered (2026-02-26 to 2026-03-15) | evidenced | cited | PASS | spk-007 DECISION.md confirmed. Date range exact match. |
+| 19,996-minute session is genuine 14-day recording | evidenced | cited | PASS | spk-007 DECISION.md confirmed. user_message_timestamps validate span. |
+| Session-meta files batch-regenerated (264/265 have mtime 1.9-39 days after start_time) | evidenced | cited | PASS | spk-007 DECISION.md confirmed. 264/265 parseable sessions confirmed. Median mtime lag 6.2 days, p95=28.2 days. |
+| 54% user_response_times gap confirmed in clean subset | evidenced | cited | PASS | spk-007 DECISION.md confirmed. 52.8% missing in clean subset (121/229). |
+| 103/265 sessions have macOS /Users/ paths | evidenced | cited | PASS | spk-007 DECISION.md line 200 confirmed: "103/265 sessions have /Users/rookslog/ project paths (macOS)". |
+| Trust tier rules (deterministic) | evidenced | cited | PASS | spk-007 DECISION.md confirmed. Rules: exclude if JSON parse failure OR (assistant_message_count=0 AND output_tokens=0). 421fa72b borderline slipthrough documented. Already typed by prior context-checker run. |
+| Codex v0.118.0 rejected exporter=console | evidenced | cited | PASS | spk-008 DECISION.md confirmed. Exact error message documented. Valid values: none, statsig, otlp-http, otlp-grpc. |
+| Codex JSONL token_count events confirmed rich | evidenced | cited | PASS | spk-008 DECISION.md confirmed. per-turn tokens, reasoning_output_tokens, model_context_window, rate_limits with plan_type. |
+| Codex 10K token context truncation (turn_context.truncation_policy) | evidenced | cited | PASS | spk-008 DECISION.md confirmed. "mode: tokens, limit: 10000" documented as undocumented finding. |
+| Claude Code console OTel works -- session.count emitted | evidenced | cited | PASS | spk-008 DECISION.md confirmed. claude_code.session.count COUNTER confirmed with identity attributes. |
+| gsdr-statusline.js writes only 4 of 14+ fields to bridge file | evidenced | cited | PASS | spk-008 DECISION.md confirmed. Lines 41-46 extension point. 4 fields written, 12+ unwritten. |
+| [assumed:reasoned] Tier 2 spikes produce better science than Tier 1 | assumed | reasoned | PASS | Already typed by prior context-checker run. Challenge: "assumes Tier 2 improvement not due to confounders" noted. |
+| router case kb at line 684 in gsd-tools.cjs | decided | reasoned | PASS | grep confirmed: line 684 of gsd-tools.cjs contains "case 'kb':" |
+| 18 existing lib modules | decided | reasoned | PASS | Filesystem count confirmed: 18 .cjs files in get-shit-done/bin/lib/ |
+
+### Untyped Claims Surfaced
+
+| Claim Text | Proposed Type | Location | Severity | Rationale |
+|-----------|---------------|----------|----------|-----------|
+| "GSD sessions have 53% fewer errors and 47% fewer interruptions than ad-hoc" (Spike-derived follow-up, line 405) | [assumed:bare] | spikes section, From Spike E, line 405 | WARN | Load-bearing: drives Q4 and the causal research program. The "53%" figure is NOT in spk-006 DECISION.md, which says "~50% lower tool error rates" (1.14 vs 2.26 = 49.6%). Source of "53%" is unknown -- likely overstated. Should be corrected to ~50% and cited. Tagged in CONTEXT.md with correction comment. |
+| "Spike A (token reliability -- awaiting results)" under Spike Execution Summary (line 411-412) | stale fact | spikes section, Spike Execution Summary | WARN | Internal contradiction: lines 89, 128, and the Resolved table (line 424) all confirm Spike A is RESOLVED. The Spike Execution Summary still says "Running." This is a stale update artifact. Tagged in CONTEXT.md. |
+| "Some of the most valuable metrics are things neither Claude Code nor Codex tracks -- they can only be computed by us" (Current state preamble, line 74) | [assumed:bare] | working_model Progressive Metric Design current state | WARN | Load-bearing: justifies the entire "harness-computed metrics" design direction (phase-correlated metrics, harness effectiveness metrics). Not typed, not evidenced, not challenged. The Spike E finding (first_prompt_category, message_hours_entropy) is correctly cited as demonstration, but the broader claim that computed metrics are "most valuable" is an assumption, not a finding. The subsequent typed bullets [assumed:reasoned] on phase-correlated and harness-effectiveness metrics are correctly typed -- but the preamble sentence making the broader claim is untyped. INFO-level since the typed bullets immediately below it carry the epistemic weight. |
+| "Codex CLI stores per-session JSONL at ~/.codex/sessions/ and supports OTel via TOML config" (Current state, line 23) | [evidenced:bare] | working_model Data Source Strategy current state | INFO | Partially supported by spk-008 (Codex JSONL confirmed) and external docs (TOML section exists). The OTel part is misleading without the caveat that console exporter is unavailable. Not load-bearing since the typed bullets below fully qualify this. The Spike 008 section and Q1 carry the caveat forward correctly. |
+
+### Dependency Chain Audit
+
+| Chain | Verdict |
+|-------|---------|
+| [decided] Session-meta primary -> [evidenced] 268 files with rich schema | PASS: LOW vulnerability is accurate. 268 files confirmed at filesystem, schema confirmed in measurement-infrastructure-research.md. |
+| [decided] baseline.json before Phase 58 -> [decided] Inline token validation | PASS: MEDIUM vulnerability is accurate. Both decided claims. Token validation is now moot given Spike A resolved token reliability -- but the decision to do inline validation is still reasonable. |
+| [assumed] Normalized schema compatible with OTel -> [open] Q1 OTel architecture | PASS: MEDIUM vulnerability is accurate. Spike 008 has partially updated Q1 (Codex OTel console unavailable; normalization must bridge OTel + JSONL). The assumed claim is now more tenuous given Spike 008 findings, but vulnerability is correctly marked MEDIUM. |
+| [assumed] Behavioral metrics first-class -> [evidenced] session-meta has user_interruptions, tool_error_categories | PASS: LOW vulnerability accurate. Fields confirmed in measurement-infrastructure-research.md. |
+| [governing] Progressive refinement -> [evidenced] tool_error_categories provides type breakdown | PASS: LOW vulnerability accurate. Governing principle not fragile. |
+| [stipulated] Facets 41% subset -> [evidenced] 109 of 268 have facets | PASS: LOW vulnerability accurate. 109/268 = 40.7% confirmed by filesystem count. |
+| [projected] Phase 60 Codex adapter -> [open] Q2 normalization schema | PASS: HIGH vulnerability is accurate. Phase 60 exists in ROADMAP.md but schema is unresolved. Spike 008 makes schema harder (must bridge OTel + native JSONL, not just two OTel streams). HIGH is correct and may be understated. |
+| [governing] Goodhart Law -> [governing] Metrics as indicators not targets | PASS: LOW vulnerability accurate. Meta-level principle; no empirical dependency. |
+| Unrecorded dependency: [evidenced:cited] Codex console OTel rejected -> [assumed:reasoned] Schema compatible with OTel | WARN: The Spike 008 finding that Codex has no console OTel and normalization must bridge structurally different sources directly weakens the [assumed:reasoned] schema-OTel-compatibility claim. This dependency is not in the dependency table. The claim acknowledges OTel architecture as MEDIUM vulnerability (Q1), so it is captured implicitly, but the specific spike finding that changes the normalization picture is not explicitly recorded as a dependency update. |
+
+### Spike Caveat Preservation Audit
+
+The user explicitly requested verification that spike caveats are not stripped in downstream presentation.
+
+| Caveat | Preserved? | Location |
+|--------|-----------|----------|
+| Spike 008 CRITICAL CAVEAT: Codex console rejection may reflect our test setup error, not Codex limitation | YES | CONTEXT.md line 170, Q1 (line 213), Still Open table (line 435) |
+| Spike 008: Claude Code OTel catalog incomplete (only session.count observed) | YES | CONTEXT.md line 164, Still Open table (line 441) |
+| Spike E unexamined confounders: GSD vs ad-hoc may be selection bias, causation not established | YES | CONTEXT.md line 150 (Unexamined confounders), line 404-405, Still Open table (line 432) |
+| Spike E: Pearson r on non-normal distributions may overstate linear relationship | YES | CONTEXT.md line 150 |
+| Spike C unexamined confounder: session length may drive rho=0.55 (partially spurious) | YES | CONTEXT.md line 130 |
+| Spike 007 self-critique: classification may be too permissive for token-sensitive analysis | YES | CONTEXT.md line 151 |
+| Tier 1 spike methodology caveats: no confidence intervals, no systematic confounders, multiple comparison inflation | YES | CONTEXT.md lines 104-110 |
+
+All seven spike caveats confirmed preserved. Codex OTel CRITICAL CAVEAT is explicitly maintained in three locations and not presented as settled anywhere.
+
+### Summary
+
+- **Typed claims checked:** 55
+- **Pass:** 53 | **Warn:** 2 | **Fail:** 0
+- **Untyped claims surfaced:** 4 (1 WARN load-bearing, 1 WARN stale-status, 1 INFO preamble, 1 INFO current-state)
+- **Dependency vulnerabilities:** 1 unrecorded (Spike 008 -> assumed OTel compatibility); 8 recorded chains all accurate
+- **Spike caveat preservation:** 7/7 caveats confirmed preserved including Codex OTel CRITICAL CAVEAT
+- **Citation integrity:** All file-based citations resolve. Web URL citations (2) unverifiable by filesystem but corroborated by spike findings.
+- **Key finding:** "53% fewer errors" claim (line 405) does not appear in source spike (spk-006 says "~50%"). Tagged in CONTEXT.md. Not FAIL because it is in free-text prose (Spike-derived follow-up section), not an [evidenced:cited] typed claim. But it is a load-bearing number that drives the headline causal question.
+- **Internal inconsistency:** Spike Execution Summary says Spike A "Running" but rest of document (3 locations) shows it RESOLVED. Tagged in CONTEXT.md.
+- **Overall severity:** WARN
