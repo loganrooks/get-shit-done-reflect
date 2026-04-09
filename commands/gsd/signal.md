@@ -68,14 +68,12 @@ Threshold: 2+ patterns detected. Detection is suggestive -- mention to user and 
 4. Do NOT modify existing signals (immutable)
 5. If no matches: `related_signals: []`, `occurrence_count: 1`
 
-## Cap Enforcement (SGNL-09)
+## Volume Check (SGNL-09)
 
-Max 10 active signals per phase per project.
-- If count < 10: write normally
-- If count >= 10: compare new signal severity against lowest-severity existing signal
-  - new >= lowest: archive lowest (set status: archived), write new signal
-  - new < lowest: inform user, offer override
-Severity ordering: critical > notable.
+Soft target: ~10 active signals per phase per project.
+- Always persist manual signals regardless of count — the user explicitly chose to record
+- If count > 10 after writing: note in confirmation "Phase {X} now has {N} active signals (above soft target of 10)"
+- Do NOT archive existing signals to make room — quality is enforced by rigor gates, not quantity limits
 
 ## KB Path Resolution
 
@@ -153,9 +151,9 @@ Save this signal? (y/n)
 
 Apply SGNL-05 dedup logic above. Show related signals if matches found.
 
-## Step 6: Cap Check
+## Step 6: Volume Check
 
-Apply SGNL-09 cap enforcement above. Handle cap exceeded scenario.
+Note current signal count for this phase. If above soft target (~10), include count in confirmation output. Always persist — manual signals are never blocked by volume.
 
 ## Step 7: Write Signal File
 

@@ -6,7 +6,7 @@ tags: [epistemic-gap, signal-collection, static-analysis, conversational-flow, v
 created: "2026-04-09T09:14:51Z"
 updated: "2026-04-09T22:00:00Z"
 durability: convention
-status: archived
+status: active
 severity: minor
 signal_type: epistemic-gap
 signal_category: negative

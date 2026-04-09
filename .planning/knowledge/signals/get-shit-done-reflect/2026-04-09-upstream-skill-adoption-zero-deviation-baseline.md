@@ -6,7 +6,7 @@ tags: [baseline, upstream-adoption, zero-deviation, execution-quality, positive-
 created: "2026-04-09T09:14:51Z"
 updated: "2026-04-09T22:00:00Z"
 durability: principle
-status: archived
+status: active
 severity: notable
 signal_type: baseline
 signal_category: positive

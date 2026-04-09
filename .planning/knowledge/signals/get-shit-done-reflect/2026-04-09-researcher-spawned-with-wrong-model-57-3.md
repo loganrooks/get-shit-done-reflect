@@ -6,7 +6,7 @@ tags: [session-log, model-mismatch, repeated-instruction, user-correction, resea
 created: "2026-04-09T12:00:00Z"
 updated: "2026-04-09T22:00:00Z"
 durability: convention
-status: archived
+status: active
 severity: notable
 signal_type: deviation
 signal_category: negative

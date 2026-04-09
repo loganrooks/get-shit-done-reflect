@@ -6,7 +6,7 @@ tags: [migration, format-mismatch, jsonl, frontmatter, audit-infrastructure]
 created: "2026-04-09T12:00:00Z"
 updated: "2026-04-09T22:00:00Z"
 durability: workaround
-status: archived
+status: active
 severity: minor
 signal_type: deviation
 signal_category: negative

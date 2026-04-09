@@ -6,7 +6,7 @@ tags: [session-log, upstream-fork-confusion, wrong-tool-path, repeated-instructi
 created: "2026-04-09T12:00:00Z"
 updated: "2026-04-09T22:00:00Z"
 durability: convention
-status: archived
+status: active
 severity: minor
 signal_type: struggle
 signal_category: negative
