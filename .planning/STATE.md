@@ -7,11 +7,11 @@ stopped_at: Phase 55.2 complete — verification passed 5/5. Ready for Phase 57.
 last_updated: "2026-04-09T03:22:00.000Z"
 last_activity: 2026-04-09 -- Phase 55.2 complete (Codex Runtime Substrate)
 progress:
-  total_phases: 12
+  total_phases: 15
   completed_phases: 5
   total_plans: 12
   completed_plans: 12
-  percent: 42
+  percent: 33
 ---
 
 # Project State
@@ -111,13 +111,16 @@ Recent decisions affecting current work:
 - Phase 55.1 inserted after Phase 55: Upstream Bug Patches (URGENT) — patch #2005 details-wrapped ROADMAP corruption, #1972 incomplete atomicWriteFileSync, #1981 worktree reset --soft data loss
 - Phase 55.2 inserted after Phase 55.1: Codex Runtime Substrate -- runtime detection fixes, documentation drift corrections, parity smoke test. Derived from cross-model audit consensus (Claude, GPT-5.4 xhigh, Opus review, Sonnet review). Requirements: CODEX-01, CODEX-02, CODEX-05
 - Gemini CLI and OpenCode deprecated as tested runtimes -- narrowing to Claude Code + Codex CLI only. Community-maintained status in capability-matrix.md. Decision documented in `.planning/deliberations/drop-gemini-opencode-focus-codex.md`
+- Phase 57.2 inserted after Phase 57: Discuss-Phase Exploratory Mode Overhaul -- template fix, typed claim states, provenance, incentive decoupling, subagent design exploration. Derived from `.planning/deliberations/exploratory-discuss-phase-quality-regression.md` (audit: `.planning/audits/2026-04-09-discuss-phase-exploration-quality/`). Requirements: DISC-01 through DISC-07
+- Phase 57.3 inserted after Phase 57.2: Audit Workflow Infrastructure -- formalize audit conventions, task spec preservation, epistemic ground rules. Depends on 57.2. Requirements: AUDIT-01, AUDIT-02
 
 ### Pending Todos
 
-3 pending (carried from v1.18):
+4 pending (3 carried from v1.18, 1 remaining):
 
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 - [HIGH] Local patch archive: versioned history instead of single-snapshot overwrite (installer)
+- [HIGH] Cross-model review skill needed sooner than Phase 62 — launching Codex for review is fragile manual CLI work; /gsdr:cross-model-review is Phase 62 (WF-01) but the need is immediate. Consider pulling forward or building a minimal utility skill. (workflow)
 - [MEDIUM] Revisit provisional corpus grounding set (planning)
 
 ### Blockers/Concerns

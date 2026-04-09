@@ -1,12 +1,16 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-09T02:04:11Z
-**Total entries:** 203
+**Generated:** 2026-04-09T08:17:39Z
+**Total entries:** 207
 
-## Signals (202)
+## Signals (206)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-04-09-insert-phase-cli-incomplete-roadmap-update | get-shit-done-reflect | notable | detected | insert-phase,cli,roadmap,tooling-gap | "2026-04-09 | active |
+| sig-2026-04-09-exploratory-mode-epistemic-quality-regression | get-shit-done-reflect | critical | detected | discuss-phase,exploratory-mode,epistemic-rigor,decision-quality,premature-closure | "2026-04-09 | active |
+| sig-2026-04-09-discuss-phase-workflow-gaps | get-shit-done-reflect | notable | detected | discuss-phase,workflow,auto-progression,context-commit,config-awareness | "2026-04-09 | active |
+| sig-2026-04-09-auto-flag-scoping-ambiguity-discuss-vs-chain | get-shit-done-reflect | notable | detected | workflow-flags,discuss-phase,auto-proceed,flag-scoping,ux-ambiguity | "2026-04-09 | active |
 | sig-2026-04-09-state-md-stale-after-worktree-merge | get-shit-done-reflect | notable | detected | state-sync,worktree,merge-conflict,execute-phase,orchestrator-gap | "2026-04-09 | active |
 | sig-2026-04-08-autonomous-discuss-plan-execute-pr-merge-pipeline | get-shit-done-reflect | notable | detected | autonomous-workflow,end-to-end,discuss-plan-execute,pr-workflow,ci-integration,positive-pattern | 2026-04-08 | active |
 | sig-2026-04-08-model-override-scope-leak-researcher-got-sonnet | get-shit-done-reflect | notable | detected | model-override,agent-dispatch,orchestrator-error,scope-leak,researcher | 2026-04-08 | active |
