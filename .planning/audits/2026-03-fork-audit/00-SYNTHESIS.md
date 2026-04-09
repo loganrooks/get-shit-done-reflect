@@ -1,3 +1,14 @@
+---
+date: 2026-03-30
+audit_type: codebase_forensics
+scope: "Complete fork divergence analysis: upstream vs fork across all modules"
+triggered_by: "manual: pre-v1.20 fork status assessment"
+ground_rules: none
+output_files: [01-upstream-changes.md, 02-fork-additions.md, 03-dependencies-config.md, 04-design-rationale.md, 05-runtime-modifications.md, 06-tests-build.md, 07-module-mapping.md, 08-feature-overlap.md, 09-statusline-hooks.md, 10-workflow-divergence.md]
+migrated_from: .planning/fork-audit/
+migrated_date: 2026-04-10
+tags: [fork, upstream, codebase-analysis, v1.18]
+---
 # Fork Divergence Audit — Synthesis
 
 > **Date:** 2026-03-10

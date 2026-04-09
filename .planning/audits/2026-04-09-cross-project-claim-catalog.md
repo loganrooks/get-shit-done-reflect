@@ -1,3 +1,11 @@
+---
+date: 2026-04-09
+audit_type: claim_integrity
+scope: "Cross-project claim catalog -- claim patterns across 12 projects"
+triggered_by: "deliberation: claim-type-ontology.md"
+ground_rules: none
+tags: [claims, claim-types, catalog, cross-project]
+---
 # Cross-Project Claim Catalog
 **Date:** 2026-04-09
 **Purpose:** Catalog [grounded]/[open] claims from CONTEXT.md files across other GSD-managed projects to assess whether the proposed claim-type ontology is necessary and sufficient.

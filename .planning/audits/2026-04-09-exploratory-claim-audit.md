@@ -1,3 +1,11 @@
+---
+date: 2026-04-09
+audit_type: claim_integrity
+scope: "Exploratory claim audit -- initial claim type analysis"
+triggered_by: "deliberation: claim-type-ontology.md"
+ground_rules: none
+tags: [claims, claim-types, exploratory]
+---
 # Exploratory Epistemic Claim Audit
 **Date:** 2026-04-09
 **Scope:** All CONTEXT.md files in `.planning/phases/`

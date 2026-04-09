@@ -1,3 +1,12 @@
+---
+date: 2026-04-08
+audit_type: codebase_forensics
+auditor_model: gpt-5.4
+scope: "GSD harness codebase analysis for Codex integration points"
+triggered_by: "manual: part of codex drift audit session"
+ground_rules: none
+tags: [codex, harness, codebase-analysis, gpt-5.4]
+---
 # Codex CLI Compatibility Audit: Additional Findings Beyond Claude's 9
 
 Date: 2026-04-08

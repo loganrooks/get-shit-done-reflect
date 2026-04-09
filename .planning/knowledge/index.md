@@ -1,14 +1,12 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-09T12:00:00Z
-**Total entries:** 219
+**Generated:** 2026-04-09T18:02:22Z
+**Total entries:** 229
 
-## Signals (216)
+## Signals (228)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
-| sig-2026-04-09-shared-reference-doc-convergence-pattern | get-shit-done-reflect | notable | detected | shared-reference,convergence-point,agent-vocabulary,single-source-of-truth,claim-types | 2026-04-09 | active |
-| sig-2026-04-09-spec-workflow-runtime-verification-gap | get-shit-done-reflect | notable | detected | runtime-behavior,spec-verification,epistemic-gap,workflow-artifacts,human-verification | 2026-04-09 | active |
 | sig-2026-04-08-autonomous-discuss-plan-execute-pr-merge-pipeline | get-shit-done-reflect | notable | detected | autonomous-workflow,end-to-end,discuss-plan-execute,pr-workflow,ci-integration,positive-pattern | 2026-04-08 | active |
 | sig-2026-04-08-model-override-scope-leak-researcher-got-sonnet | get-shit-done-reflect | notable | detected | model-override,agent-dispatch,orchestrator-error,scope-leak,researcher | 2026-04-08 | active |
 | SIG-260222-008-known-top-level-keys-deduplication | get-shit-done-reflect | notable | detected | deduplication,constants,refactor,drift-prevention,module-level | 2026-02-22 | active |
@@ -21,6 +19,8 @@
 | SIG-260222-001-tdd-red-green-discipline-two-consecutive-plans | get-shit-done-reflect | notable | detected | tdd,testing,red-green,discipline,cli-commands | 2026-02-22 | active |
 | sig-2026-02-11-premature-spiking-no-research-gate | get-shit-done-reflect | notable | detected | spike-workflow,research-gate,workflow-ordering | 2026-02-11 | active |
 | sig-2026-02-11-spike-design-missing-feasibility | get-shit-done-reflect | notable | detected | spike-workflow,experimental-design,feasibility,template-gap | 2026-02-11 | active |
+| sig-2026-04-09-spec-workflow-runtime-verification-gap |  | notable | detected | runtime-behavior,spec-verification,epistemic-gap,workflow-artifacts,human-verification |  | active |
+| sig-2026-04-09-shared-reference-doc-convergence-pattern |  | notable | detected | shared-reference,convergence-point,agent-vocabulary,single-source-of-truth,claim-types |  | active |
 | sig-2026-04-03-discuss-mode-adoption-gap-silent-feature-drop |  | high | detected | upstream-adoption,verification-gap,discuss-phase,feature-drop,process-gap |  | open |
 | sig-2026-03-30-release-workflow-forgotten-in-milestone-completion |  | medium | detected | release-workflow,deployment,milestone-completion,process-gap,automation-opportunity |  | open |
 | sig-2026-03-30-audit-severity-downgrade-bias |  | medium | detected | audit-quality,severity-assessment,epistemic-gap,self-assessment-bias,milestone-audit |  | open |
@@ -33,6 +33,16 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-09-yaml-frontmatter-prepended-to-jsonl-files | get-shit-done-reflect | minor | detected | migration,format-mismatch,jsonl,frontmatter,audit-infrastructure | "2026-04-09 | active |
+| sig-2026-04-09-researcher-spawned-with-wrong-model-57-3 | get-shit-done-reflect | notable | detected | session-log,model-mismatch,repeated-instruction,user-correction,researcher-agent | "2026-04-09 | active |
+| sig-2026-04-09-plan02-files-modified-undercount-57-3 | get-shit-done-reflect | minor | detected | plan-quality,files-modified,frontmatter,plan-checker | "2026-04-09 | active |
+| sig-2026-04-09-log-sensor-disabled-label-recurrence-57-3 | get-shit-done-reflect | notable | detected | session-log,log-sensor,stale-spec,repeated-instruction,user-correction,remediation-failure | "2026-04-09 | active |
+| sig-2026-04-09-git-sensor-blind-spot-single-fix-commits | get-shit-done-reflect | minor | detected | session-log,git-sensor,blind-spot,fix-commit,single-fix,user-provides-answer | "2026-04-09 | active |
+| sig-2026-04-09-ghost-agent-entries-in-model-profiles-no-spec | get-shit-done-reflect | minor | detected | tech-debt,ghost-agents,model-profiles,audit-infrastructure | "2026-04-09 | active |
+| sig-2026-04-09-ci-actions-setup-node-v4-deprecation | get-shit-done-reflect | notable | detected | ci,deprecation,github-actions,node-version | "2026-04-09 | active |
+| sig-2026-04-09-auto-progression-stopped-despite-auto-flag-57-3 | get-shit-done-reflect | notable | detected | session-log,auto-progression,repeated-instruction,user-correction,discuss-phase,workflow-gap | "2026-04-09 | active |
+| sig-2026-04-09-agent-used-upstream-gsd-tools-path-57-3 | get-shit-done-reflect | minor | detected | session-log,upstream-fork-confusion,wrong-tool-path,repeated-instruction,user-correction | "2026-04-09 | active |
+| sig-2026-04-09-agent-audit-outputs-ephemeral-no-artifact | get-shit-done-reflect | notable | detected | session-log,workflow-bypass,audit-artifact,traceability,ephemeral-output,user-provides-answer | "2026-04-09 | active |
 | sig-2026-04-09-upstream-gsd-install-coexists-with-fork | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
 | sig-2026-04-09-skill-references-upstream-gsd-tools-path | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
 | sig-2026-04-09-upstream-skill-adoption-zero-deviation-baseline | get-shit-done-reflect | notable | detected | baseline,upstream-adoption,zero-deviation,execution-quality,positive-pattern,skill-adoption | "2026-04-09 | active |
@@ -231,4 +241,9 @@
 | ID | Project | Outcome | Tags | Date | Status |
 |----|---------|---------|------|------|--------|
 | spk-2026-03-01-claude-code-session-log-location | get-shit-done-reflect | confirmed | logging,sensor,claude-code,signal-collection | 2026-03-01 | active |
+
+## Lessons (0)
+
+| ID | Project | Category | Tags | Date | Status |
+|----|---------|----------|------|------|--------|
 

@@ -1,3 +1,11 @@
+---
+date: 2026-04-09
+audit_type: claim_integrity
+scope: "Typed claim audit batch 3 -- cross-project CONTEXT.md claim analysis"
+triggered_by: "deliberation: claim-type-ontology.md"
+ground_rules: none
+tags: [claims, claim-types, cross-project, batch-3]
+---
 # Claim Audit — Batch 3: Cross-Project CONTEXT.md Survey
 
 **Audited:** 2026-04-09

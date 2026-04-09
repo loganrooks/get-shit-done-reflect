@@ -1,3 +1,11 @@
+---
+date: 2026-04-09
+audit_type: claim_integrity
+scope: "Context claim catalog -- inventory of claim patterns in CONTEXT.md files"
+triggered_by: "deliberation: claim-type-ontology.md"
+ground_rules: none
+tags: [claims, claim-types, catalog, context]
+---
 # Context Claim Catalog — v1.20 Milestone, Phases 55–57.1
 
 **Audited:** 2026-04-09
