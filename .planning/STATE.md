@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 Phase: 57 of 64 (Measurement & Telemetry Baseline)
 Plan: --
 Status: Ready to plan
-Last activity: 2026-04-08 -- Phase 56 complete
+Last activity: 2026-04-09 -- Quick task 260408-snh complete (roadmap amendments)
 
 Progress: [██........] 20%
 
@@ -110,6 +110,12 @@ Recent decisions affecting current work:
 - Gitignore friction (pre-existing from v1.12, not blocking)
 - Token count reliability in session-meta (109 input_tokens for 513-minute session is implausibly low) -- validation spike required before baselines committed in Phase 57
 
+### Quick Tasks Completed
+
+| # | Description | Date | Commit | Directory |
+|---|-------------|------|--------|-----------|
+| 260408-snh | Implement v1.20 roadmap amendments: Phase 55.2, CODEX requirements, Gemini/OpenCode deprecation | 2026-04-09 | 68309db | [260408-snh](./quick/260408-snh-implement-v1-20-roadmap-amendments-inser/) |
+
 ### Key Artifacts
 
 - Audit evidence base: `.planning/audits/session-log-audit-2026-04-07/` (32 reports, 100 sessions, 165 findings)
@@ -118,6 +124,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-08T22:00:41.666Z
-Stopped at: Completed 56-03-PLAN.md
+Last session: 2026-04-09T00:37:47.710Z
+Stopped at: Completed quick task 260408-snh (roadmap amendments)
 Resume file: None
