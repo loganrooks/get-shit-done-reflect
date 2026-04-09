@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: completed
+status: in_progress
 stopped_at: Phase 57.3 complete — verification passed 5/5
 last_updated: "2026-04-09T18:00:00.000Z"
 last_activity: 2026-04-09 -- Phase 57.3 complete (Audit Workflow Infrastructure)
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.3 complete -- next: Phase 57 (Measurement & Telemetry Baseline)
+**Current focus:** v1.20 Phase 57 (Measurement & Telemetry Baseline) -- re-discussing with upgraded discuss-phase skill
 
 ## Current Position
 
-Phase: 57.3 of 64 (Audit Workflow Infrastructure)
-Plan: 2 of 2
-Status: Phase complete
-Last activity: 2026-04-09 -- Phase 57.3 complete (Audit Workflow Infrastructure)
+Phase: 57 of 64 (Measurement & Telemetry Baseline)
+Plan: 0 of TBD
+Status: Re-discussing (upgraded discuss-phase skill, prior artifacts archived)
+Last activity: 2026-04-09 -- Phase 57 re-discuss initiated
 
 Progress: [████████░░] 86%
 
@@ -158,7 +158,7 @@ Recent decisions affecting current work:
 | Phase 57.2 P01 | 4min | 2 tasks | 3 files |
 | Phase 57.2 P02 | 5min | 2 tasks | 2 files |
 | Phase 57.2 P03 | 4min | 3 tasks | 3 files |
-| Phase 57.3 P01 | 3 | 2 tasks | 3 files |
+| Phase 57.3 P01 | 3min | 2 tasks | 3 files |
 | Phase 57.3 P02 | 4min | 2 tasks | 34 files |
 
 ### Key Artifacts
@@ -172,5 +172,5 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-04-09
-Stopped at: Phase 57.3 complete — verification passed 5/5. Next: PR → CI → signals → merge → patch release
+Stopped at: Phase 57 re-discuss initiated — prior artifacts archived for comparison with upgraded discuss-phase output
 Resume file: None

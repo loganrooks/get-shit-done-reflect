@@ -25,7 +25,7 @@
 - [ ] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
 - [x] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding (completed 2026-04-09)
 - [x] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Typed claims (7 types + verification dimension), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher update, claim dependency webs, template enrichment
-- [ ] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents
+- [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
 - [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
@@ -109,11 +109,9 @@ Plans:
   2. `gsd-tools telemetry baseline` produces `.planning/baseline.json` with statistical computation from session-meta data
   3. `.planning/baseline.json` is committed before any Phase 58 structural gates are deployed
   4. Facets data (AI-generated session quality assessments) joined with session-meta by session_id, with all facets-derived fields annotated as AI-generated estimates with unknown accuracy
-**Plans**: 3 plans
+**Plans**: TBD (re-discussing phase with upgraded discuss-phase skill)
 Plans:
-- [ ] 57-01-PLAN.md -- Create telemetry.cjs module with helpers, 3 subcommands (summary/session/enrich), and router wiring
-- [ ] 57-02-PLAN.md -- Add phase correlation command, baseline command with 8 metrics, and inline token validation
-- [ ] 57-03-PLAN.md -- Telemetry test suite and baseline.json capture/commit
+- [ ] TBD (prior plans archived to pre-upgrade-archive/ for comparison)
 
 ### Phase 57.2: Discuss-Phase Exploratory Mode Overhaul (INSERTED)
 
@@ -261,7 +259,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | 55.1. Upstream Bug Patches | 2/2 | Complete | 2026-04-09 |
 | 55.2. Codex Runtime Substrate | 3/3 | Complete | 2026-04-09 |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
-| 57. Measurement & Telemetry Baseline | 0/3 | Planned | - |
+| 57. Measurement & Telemetry Baseline | 0/TBD | Re-discussing | - |
 | 57.1. Explore Skill Adoption | 1/1 | Complete   | 2026-04-09 |
 | 57.2. Discuss-Phase Exploratory Mode Overhaul | 3/3 | Complete | 2026-04-09 |
 | 57.3. Audit Workflow Infrastructure | 2/2 | Complete | 2026-04-09 |
