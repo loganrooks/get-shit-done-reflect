@@ -712,7 +712,7 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
         `(-\\s*\\[)[ ](\\]\\s*.*Phase\\s+${escapeRegex(phaseNum)}[:\\s][^\\n]*)`,
         'i'
       );
-      roadmapContent = replaceInCurrentMilestone(roadmapContent, checkboxPattern, `$1x$2 (completed ${today})`);
+      roadmapContent = replaceInCurrentMilestone(roadmapContent, checkboxPattern, `$1x$2 (completed ${today})`, cwd);
 
       // Progress table: update Status to Complete, add date (handles 4 or 5 column tables)
       const phaseEscaped = escapeRegex(phaseNum);
@@ -743,7 +743,7 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
       );
       roadmapContent = replaceInCurrentMilestone(
         roadmapContent, planCountPattern,
-        `$1${summaryCount}/${planCount} plans complete`
+        `$1${summaryCount}/${planCount} plans complete`, cwd
       );
 
       // Mark completed plan checkboxes (safety net for missed per-plan updates)

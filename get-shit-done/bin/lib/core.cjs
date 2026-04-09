@@ -1105,6 +1105,128 @@ function stripShippedMilestones(content) {
 }
 
 /**
+ * Resolve the current milestone version from STATE.md or ROADMAP.md content.
+ * Shared by findCurrentMilestoneRange and extractCurrentMilestone.
+ *
+ * @param {string} content - Full ROADMAP.md content
+ * @param {string} [cwd] - Working directory for reading STATE.md
+ * @returns {string|null} Version string (e.g. "v2.0") or null
+ */
+function resolveCurrentMilestoneVersion(content, cwd) {
+  // 1. Get current milestone version from STATE.md frontmatter
+  let version = null;
+  if (cwd) {
+    try {
+      const statePath = path.join(planningDir(cwd), 'STATE.md');
+      if (fs.existsSync(statePath)) {
+        const stateRaw = fs.readFileSync(statePath, 'utf-8');
+        const milestoneMatch = stateRaw.match(/^milestone:\s*(.+)/m);
+        if (milestoneMatch) {
+          version = milestoneMatch[1].trim();
+        }
+      }
+    } catch {}
+  }
+
+  // 2. Fallback: derive version from in-progress marker in ROADMAP.md itself
+  if (!version) {
+    const inProgressMatch = content.match(/🚧\s*\*\*v(\d+\.\d+)\s/);
+    if (inProgressMatch) {
+      version = 'v' + inProgressMatch[1];
+    }
+  }
+
+  return version;
+}
+
+/**
+ * Find the start and end offsets of the current milestone section in ROADMAP.md.
+ * Supports three layout formats:
+ *   1. Markdown headings: ## v2.0 Name, ## Roadmap v2.0: Name
+ *   2. <summary> tags: <summary>v2.0 Name -- IN PROGRESS</summary>
+ *   3. Bullet entries: - v2.0 Name
+ *
+ * @param {string} content - Full ROADMAP.md content
+ * @param {string} cwd - Working directory for reading STATE.md
+ * @returns {{ start: number, end: number }|null} Offsets or null if not found
+ */
+function findCurrentMilestoneRange(content, cwd) {
+  const version = resolveCurrentMilestoneVersion(content, cwd);
+  if (!version) return null;
+
+  const escapedVersion = escapeRegex(version);
+
+  // Try heading match first: ## v2.0 Name, ## Roadmap v2.0: Name
+  const headingPattern = new RegExp(
+    `(^#{1,3}\\s+.*${escapedVersion}[^\\n]*)`,
+    'mi'
+  );
+  const headingMatch = content.match(headingPattern);
+
+  if (headingMatch) {
+    const sectionStart = headingMatch.index;
+    const headingLevel = headingMatch[1].match(/^(#{1,3})\s/)[1].length;
+    const restContent = content.slice(sectionStart + headingMatch[0].length);
+    const nextMilestonePattern = new RegExp(
+      `^#{1,${headingLevel}}\\s+(?:.*v\\d+\\.\\d+|✅|📋|🚧)`,
+      'mi'
+    );
+    const nextMatch = restContent.match(nextMilestonePattern);
+    const sectionEnd = nextMatch
+      ? sectionStart + headingMatch[0].length + nextMatch.index
+      : content.length;
+    return { start: sectionStart, end: sectionEnd };
+  }
+
+  // Try <summary> match: <summary>...v2.0...</summary> inside <details>
+  const summaryPattern = new RegExp(
+    `<summary>[^<\\n]*${escapedVersion}[^<\\n]*</summary>`,
+    'i'
+  );
+  const summaryMatch = content.match(summaryPattern);
+
+  if (summaryMatch) {
+    // Find the enclosing <details> open tag before this <summary>
+    const beforeSummary = content.slice(0, summaryMatch.index);
+    const detailsOpenIdx = beforeSummary.lastIndexOf('<details>');
+    if (detailsOpenIdx === -1) return null;
+
+    // Find the matching </details> close tag after this <summary>
+    const afterDetails = content.slice(summaryMatch.index);
+    const detailsCloseMatch = afterDetails.match(/<\/details>/i);
+    if (!detailsCloseMatch) return null;
+
+    const sectionStart = detailsOpenIdx;
+    const sectionEnd = summaryMatch.index + detailsCloseMatch.index + '</details>'.length;
+    return { start: sectionStart, end: sectionEnd };
+  }
+
+  // Try bullet match: - v2.0 Name or * v2.0 Name
+  const bulletPattern = new RegExp(
+    `^[-*]\\s+[^\\n]*${escapedVersion}[^\\n]*`,
+    'mi'
+  );
+  const bulletMatch = content.match(bulletPattern);
+
+  if (bulletMatch) {
+    const sectionStart = bulletMatch.index;
+    const restContent = content.slice(sectionStart + bulletMatch[0].length);
+    // End at next bullet with a version, next heading, or EOF
+    const nextBulletOrHeading = new RegExp(
+      `^(?:[-*]\\s+[^\\n]*v\\d+\\.\\d+|#{1,3}\\s+)`,
+      'mi'
+    );
+    const nextMatch = restContent.match(nextBulletOrHeading);
+    const sectionEnd = nextMatch
+      ? sectionStart + bulletMatch[0].length + nextMatch.index
+      : content.length;
+    return { start: sectionStart, end: sectionEnd };
+  }
+
+  return null;
+}
+
+/**
  * Extract the current milestone section from ROADMAP.md by positive lookup.
  *
  * Instead of stripping <details> blocks (negative heuristic that breaks if
@@ -1123,66 +1245,13 @@ function stripShippedMilestones(content) {
 function extractCurrentMilestone(content, cwd) {
   if (!cwd) return stripShippedMilestones(content);
 
-  // 1. Get current milestone version from STATE.md frontmatter
-  let version = null;
-  try {
-    const statePath = path.join(planningDir(cwd), 'STATE.md');
-    if (fs.existsSync(statePath)) {
-      const stateRaw = fs.readFileSync(statePath, 'utf-8');
-      const milestoneMatch = stateRaw.match(/^milestone:\s*(.+)/m);
-      if (milestoneMatch) {
-        version = milestoneMatch[1].trim();
-      }
-    }
-  } catch {}
+  const range = findCurrentMilestoneRange(content, cwd);
+  if (!range) return stripShippedMilestones(content);
 
-  // 2. Fallback: derive version from getMilestoneInfo pattern in ROADMAP.md itself
-  if (!version) {
-    // Check for 🚧 in-progress marker
-    const inProgressMatch = content.match(/🚧\s*\*\*v(\d+\.\d+)\s/);
-    if (inProgressMatch) {
-      version = 'v' + inProgressMatch[1];
-    }
-  }
+  const beforeMilestones = content.slice(0, range.start);
+  const currentSection = content.slice(range.start, range.end);
 
-  if (!version) return stripShippedMilestones(content);
-
-  // 3. Find the section matching this version
-  // Match headings like: ## Roadmap v3.0: Name, ## v3.0 Name, etc.
-  const escapedVersion = escapeRegex(version);
-  const sectionPattern = new RegExp(
-    `(^#{1,3}\\s+.*${escapedVersion}[^\\n]*)`,
-    'mi'
-  );
-  const sectionMatch = content.match(sectionPattern);
-
-  if (!sectionMatch) return stripShippedMilestones(content);
-
-  const sectionStart = sectionMatch.index;
-
-  // Find the end: next milestone heading at same or higher level, or EOF
-  // Milestone headings look like: ## v2.0, ## Roadmap v2.0, ## ✅ v1.0, etc.
-  const headingLevel = sectionMatch[1].match(/^(#{1,3})\s/)[1].length;
-  const restContent = content.slice(sectionStart + sectionMatch[0].length);
-  const nextMilestonePattern = new RegExp(
-    `^#{1,${headingLevel}}\\s+(?:.*v\\d+\\.\\d+|✅|📋|🚧)`,
-    'mi'
-  );
-  const nextMatch = restContent.match(nextMilestonePattern);
-
-  let sectionEnd;
-  if (nextMatch) {
-    sectionEnd = sectionStart + sectionMatch[0].length + nextMatch.index;
-  } else {
-    sectionEnd = content.length;
-  }
-
-  // Return everything before the current milestone section (non-milestone content
-  // like title, overview) plus the current milestone section
-  const beforeMilestones = content.slice(0, sectionStart);
-  const currentSection = content.slice(sectionStart, sectionEnd);
-
-  // Also include any content before the first milestone heading (title, overview, etc.)
+  // Include any content before the current milestone section (title, overview, etc.)
   // but strip any <details> blocks in it (these are definitely shipped)
   const preamble = beforeMilestones.replace(/<details>[\s\S]*?<\/details>/gi, '');
 
@@ -1190,11 +1259,33 @@ function extractCurrentMilestone(content, cwd) {
 }
 
 /**
- * Replace a pattern only in the current milestone section of ROADMAP.md
- * (everything after the last </details> close tag). Used for write operations
- * that must not accidentally modify archived milestone checkboxes/tables.
+ * Replace a pattern only in the current milestone section of ROADMAP.md.
+ * When cwd is provided, uses positive range lookup (findCurrentMilestoneRange)
+ * to scope replacements correctly even when shipped milestones use <details>.
+ * When cwd is omitted, falls back to the original lastIndexOf('</details>')
+ * heuristic for backward compatibility.
+ *
+ * @param {string} content - Full ROADMAP.md content
+ * @param {RegExp|string} pattern - Pattern to match
+ * @param {string} replacement - Replacement string
+ * @param {string} [cwd] - Working directory for reading STATE.md
+ * @returns {string} Content with replacement applied in current milestone
  */
-function replaceInCurrentMilestone(content, pattern, replacement) {
+function replaceInCurrentMilestone(content, pattern, replacement, cwd) {
+  // When cwd is provided, use positive range lookup
+  if (cwd) {
+    const range = findCurrentMilestoneRange(content, cwd);
+    if (range) {
+      const before = content.slice(0, range.start);
+      const section = content.slice(range.start, range.end);
+      const after = content.slice(range.end);
+      return before + section.replace(pattern, replacement) + after;
+    }
+    // Range not found: fall through to full-content replace
+    return content.replace(pattern, replacement);
+  }
+
+  // Fallback: original heuristic (backward compat when cwd not provided)
   const lastDetailsClose = content.lastIndexOf('</details>');
   if (lastDetailsClose === -1) {
     return content.replace(pattern, replacement);

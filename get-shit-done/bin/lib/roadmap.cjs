@@ -318,7 +318,7 @@ function cmdRoadmapUpdatePlanProgress(cwd, phaseNum, raw) {
     const planCountText = isComplete
       ? `${summaryCount}/${planCount} plans complete`
       : `${summaryCount}/${planCount} plans executed`;
-    roadmapContent = replaceInCurrentMilestone(roadmapContent, planCountPattern, `$1${planCountText}`);
+    roadmapContent = replaceInCurrentMilestone(roadmapContent, planCountPattern, `$1${planCountText}`, cwd);
 
     // If complete: check checkbox
     if (isComplete) {
@@ -326,7 +326,7 @@ function cmdRoadmapUpdatePlanProgress(cwd, phaseNum, raw) {
         `(-\\s*\\[)[ ](\\]\\s*.*Phase\\s+${phaseEscaped}[:\\s][^\\n]*)`,
         'i'
       );
-      roadmapContent = replaceInCurrentMilestone(roadmapContent, checkboxPattern, `$1x$2 (completed ${today})`);
+      roadmapContent = replaceInCurrentMilestone(roadmapContent, checkboxPattern, `$1x$2 (completed ${today})`, cwd);
     }
 
     // Mark completed plan checkboxes (e.g. "- [ ] 50-01-PLAN.md", "- [ ] 50-01:", or "- [ ] **50-01**")
