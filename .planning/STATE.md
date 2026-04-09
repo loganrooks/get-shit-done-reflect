@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: planning
-stopped_at: Phase 55.2 complete — verification passed 5/5. Ready for Phase 57.
-last_updated: "2026-04-09T03:22:00.000Z"
+status: Ready to discuss
+stopped_at: Phase 57.1 context gathered
+last_updated: "2026-04-09T08:32:42.672Z"
 last_activity: 2026-04-09 -- Phase 55.2 complete (Codex Runtime Substrate)
 progress:
   total_phases: 15
-  completed_phases: 5
-  total_plans: 12
+  completed_phases: 4
+  total_plans: 15
   completed_plans: 12
-  percent: 33
+  percent: 80
 ---
 
 # Project State
@@ -21,11 +21,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57 -- Measurement & Telemetry Baseline (ready to plan)
+**Current focus:** v1.20 Phase 57.1 -- Explore Skill Adoption (ready to discuss). Phases 57.1 → 57.2 → 57.3 ship as patches before Phase 57
 
 ## Current Position
 
-Phase: 57 of 64 (Measurement & Telemetry Baseline)
+Phase: 57.1 of 64 (Explore Skill Adoption)
 Plan: --
 Status: Ready to discuss
 Last activity: 2026-04-09 -- Phase 55.2 complete (Codex Runtime Substrate)
@@ -113,6 +113,7 @@ Recent decisions affecting current work:
 - Gemini CLI and OpenCode deprecated as tested runtimes -- narrowing to Claude Code + Codex CLI only. Community-maintained status in capability-matrix.md. Decision documented in `.planning/deliberations/drop-gemini-opencode-focus-codex.md`
 - Phase 57.2 inserted after Phase 57: Discuss-Phase Exploratory Mode Overhaul -- template fix, typed claim states, provenance, incentive decoupling, subagent design exploration. Derived from `.planning/deliberations/exploratory-discuss-phase-quality-regression.md` (audit: `.planning/audits/2026-04-09-discuss-phase-exploration-quality/`). Requirements: DISC-01 through DISC-07
 - Phase 57.3 inserted after Phase 57.2: Audit Workflow Infrastructure -- formalize audit conventions, task spec preservation, epistemic ground rules. Depends on 57.2. Requirements: AUDIT-01, AUDIT-02
+- Execution reordered: 57.1 → 57.2 → 57.3 ship as patches before Phase 57 (telemetry). 57.2 dependency on 57 removed — regression fix ships now, effectiveness revisited post-telemetry
 
 ### Pending Todos
 
@@ -143,6 +144,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-09T03:22:00.000Z
-Stopped at: Phase 55.2 complete. Verification passed 5/5. Ready for Phase 57.
-Resume file: None
+Last session: 2026-04-09T08:32:42.666Z
+Stopped at: Phase 57.1 context gathered
+Resume file: .planning/phases/57.1-explore-skill-adoption-inserted/57.1-CONTEXT.md
