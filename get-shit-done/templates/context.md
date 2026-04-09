@@ -1,8 +1,8 @@
 # Phase Context Template
 
-Template for `.planning/phases/XX-name/{phase}-CONTEXT.md` - captures implementation decisions for a phase.
+Template for `.planning/phases/XX-name/{phase}-CONTEXT.md` - captures phase steering context. In discuss mode, captures implementation decisions. In exploratory mode, captures a working model with typed claims, constraints, guardrails, and generative open questions.
 
-**Purpose:** Document decisions that downstream agents need. Researcher uses this to know WHAT to investigate. Planner uses this to know WHAT choices are locked vs flexible.
+**Purpose:** Document decisions (discuss mode) or working model with typed claims (exploratory mode) that downstream agents need. Researcher uses this to know WHAT to investigate. Planner uses this to know WHAT choices are locked vs flexible.
 
 **Key principle:** Categories are NOT predefined. They emerge from what was actually discussed for THIS phase. A CLI phase has CLI-relevant sections, a UI phase has UI-relevant sections.
 
@@ -69,6 +69,8 @@ Template for `.planning/phases/XX-name/{phase}-CONTEXT.md` - captures implementa
 *Context gathered: [date]*
 ```
 
+**Note:** The template above shows the discuss-mode variant. In exploratory mode (`workflow.discuss_mode = exploratory`), the `<decisions>` section is replaced with: `<working_model>`, `<constraints>`, `<guardrails>`, `<questions>`, `<dependencies>`. See discuss-phase.md workflow for the full exploratory template. Claims use `[type:verification]` notation per `references/claim-types.md`.
+
 <good_examples>
 
 **Example 1: Visual feature (Post Feed)**
@@ -90,18 +92,18 @@ Display posts from followed users in a scrollable feed. Users can view posts and
 ## Implementation Decisions
 
 ### Layout style
-- Card-based layout, not timeline or list
-- Each card shows: author avatar, name, timestamp, full post content, reaction counts
-- Cards have subtle shadows, rounded corners — modern feel
+- [decided:reasoned] Card-based layout, not timeline or list -- consistent with existing Card component
+- [decided:reasoned] Each card shows: author avatar, name, timestamp, full post content, reaction counts
+- [decided:bare] Cards have subtle shadows, rounded corners -- modern feel
 
 ### Loading behavior
-- Infinite scroll, not pagination
-- Pull-to-refresh on mobile
-- New posts indicator at top ("3 new posts") rather than auto-inserting
+- [decided:reasoned] Infinite scroll, not pagination -- matches user expectation for social feeds
+- [decided:reasoned] Pull-to-refresh on mobile
+- [decided:reasoned] New posts indicator at top ("3 new posts") rather than auto-inserting
 
 ### Empty state
-- Friendly illustration + "Follow people to see posts here"
-- Suggest 3-5 accounts to follow based on interests
+- [decided:bare] Friendly illustration + "Follow people to see posts here"
+- [decided:bare] Suggest 3-5 accounts to follow based on interests
 
 ### Claude's Discretion
 - Loading skeleton design
@@ -151,19 +153,19 @@ CLI command to backup database to local file or S3. Supports full and incrementa
 ## Implementation Decisions
 
 ### Output format
-- JSON for programmatic use, table format for humans
-- Default to table, --json flag for JSON
-- Verbose mode (-v) shows progress, silent by default
+- [decided:reasoned] JSON for programmatic use, table format for humans -- matches pg_dump convention
+- [decided:reasoned] Default to table, --json flag for JSON
+- [decided:bare] Verbose mode (-v) shows progress, silent by default
 
 ### Flag design
-- Short flags for common options: -o (output), -v (verbose), -f (force)
-- Long flags for clarity: --incremental, --compress, --encrypt
-- Required: database connection string (positional or --db)
+- [decided:reasoned] Short flags for common options: -o (output), -v (verbose), -f (force)
+- [decided:reasoned] Long flags for clarity: --incremental, --compress, --encrypt
+- [decided:reasoned] Required: database connection string (positional or --db)
 
 ### Error recovery
-- Retry 3 times on network failure, then fail with clear message
-- --no-retry flag to fail fast
-- Partial backups are deleted on failure (no corrupt files)
+- [decided:reasoned] Retry 3 times on network failure, then fail with clear message
+- [decided:bare] --no-retry flag to fail fast
+- [decided:reasoned] Partial backups are deleted on failure (no corrupt files)
 
 ### Claude's Discretion
 - Exact progress bar implementation
@@ -213,19 +215,19 @@ Organize existing photo library into structured folders. Handle duplicates and a
 ## Implementation Decisions
 
 ### Grouping criteria
-- Primary grouping by year, then by month
-- Events detected by time clustering (photos within 2 hours = same event)
-- Event folders named by date + location if available
+- [decided:reasoned] Primary grouping by year, then by month -- natural temporal navigation
+- [decided:reasoned] Events detected by time clustering (photos within 2 hours = same event)
+- [decided:bare] Event folders named by date + location if available
 
 ### Duplicate handling
-- Keep highest resolution version
-- Move duplicates to _duplicates folder (don't delete)
-- Log all duplicate decisions for review
+- [decided:reasoned] Keep highest resolution version
+- [decided:reasoned] Move duplicates to _duplicates folder (don't delete) -- reversible approach
+- [decided:bare] Log all duplicate decisions for review
 
 ### Naming convention
-- Format: YYYY-MM-DD_HH-MM-SS_originalname.ext
-- Preserve original filename as suffix for searchability
-- Handle name collisions with incrementing suffix
+- [decided:reasoned] Format: YYYY-MM-DD_HH-MM-SS_originalname.ext -- sortable and searchable
+- [decided:reasoned] Preserve original filename as suffix for searchability
+- [decided:bare] Handle name collisions with incrementing suffix
 
 ### Claude's Discretion
 - Exact clustering algorithm
@@ -256,6 +258,129 @@ Organize existing photo library into structured folders. Handle duplicates and a
 *Context gathered: 2025-01-20*
 ```
 
+**Example 4: Exploratory mode (Search feature)**
+
+```markdown
+# Phase 8: Search & Indexing - Context
+
+**Gathered:** 2025-02-15
+**Status:** Ready for planning
+**Mode:** Exploratory --auto -- preserving uncertainty for researcher
+
+<domain>
+## Phase Boundary
+
+Full-text search across documents with relevance ranking. Users can search by content, metadata, and tags. Advanced query syntax is a separate phase.
+
+</domain>
+
+<working_model>
+## Working Model & Assumptions
+
+### Indexing approach
+**Current state:** Documents stored as markdown in /data/docs/. No existing search infrastructure.
+
+- [assumed:reasoned] Full-text indexing is preferable to grep-based search -- document corpus is ~10K files, grep would be too slow for interactive use
+- [open] Choice of search backend: SQLite FTS5 vs Elasticsearch vs Typesense. Depends on deployment constraints and query complexity needs
+- [decided:cited] Documents are UTF-8 markdown -- confirmed by `file --mime data/docs/* | grep -c utf-8` returning 100%
+
+### Relevance ranking
+- [assumed:bare] TF-IDF is sufficient for initial ranking -- no user feedback data exists yet for learning-to-rank
+- [projected:reasoned] Phase 12 will add user feedback signals for ranking refinement -- current ranking must be extensible
+- [stipulated:bare] Top-20 results displayed per query -- chosen as default, not derived from evidence
+
+### Claude's Discretion
+- Index update strategy (real-time vs batch)
+- Result snippet generation approach
+- Cache invalidation policy
+
+</working_model>
+
+<constraints>
+## Derived Constraints
+
+- **DC-1:** [evidenced:cited] Must work offline -- deployment target has no internet access (requirements.md line 14)
+- **DC-2:** [governing:reasoned] No external SaaS dependencies -- project principle from Phase 1 decisions
+
+</constraints>
+
+<guardrails>
+## Epistemic Guardrails
+
+- **G-1:** [governing:reasoned] Do not assume corpus size will stay at 10K -- design for 100K as upper bound
+- **G-2:** [stipulated:bare] Acceptable search latency: < 200ms p95 for single-term queries
+
+</guardrails>
+
+<questions>
+## Open Questions
+
+### Q1: Which search backend fits deployment constraints?
+**Research program:** Compare SQLite FTS5, Elasticsearch, and Typesense on: deployment footprint, query capability, index size for 10K-100K markdown docs. Test FTS5 locally with representative corpus subset.
+**Downstream decisions affected:** Infrastructure requirements, dependency footprint, query syntax complexity
+**Reversibility:** LOW -- search backend is a foundational choice affecting index format, query API, and all downstream features
+
+### Q2: Is TF-IDF ranking sufficient without user signals?
+**Research program:** Index 1K representative docs with FTS5, run 20 test queries, evaluate result quality subjectively. Compare with BM25 if available.
+**Downstream decisions affected:** Whether Phase 12 ranking refinement is needed sooner
+**Reversibility:** MEDIUM -- ranking algorithm is swappable but affects user-facing quality from day one
+
+</questions>
+
+<dependencies>
+## Claim Dependencies
+
+| Claim | Depends On | Vulnerability |
+|-------|-----------|---------------|
+| [stipulated] Top-20 results | [assumed] TF-IDF sufficient | MEDIUM -- if ranking is poor, showing 20 results amplifies bad ordering |
+| [projected] Phase 12 feedback signals | [assumed] TF-IDF sufficient for now | LOW -- if TF-IDF is insufficient, Phase 12 becomes urgent but current work is not wasted |
+| [decided] UTF-8 markdown | [evidenced] file --mime check | LOW -- if evidence is current, decision is solid |
+
+</dependencies>
+
+<canonical_refs>
+## Canonical References
+
+No external specs -- requirements fully captured in working model above.
+
+</canonical_refs>
+
+<code_context>
+## Existing Code Insights
+
+### Reusable Assets
+- No existing search infrastructure to build on
+
+### Established Patterns
+- Markdown processing utilities in src/lib/markdown.ts
+
+### Integration Points
+- Document store in /data/docs/ -- read-only access for indexing
+
+</code_context>
+
+<specifics>
+## Specific Ideas
+
+- "Search should feel instant -- like Spotlight on macOS"
+- Results should show context snippets with highlighted matches
+
+</specifics>
+
+<deferred>
+## Deferred Ideas
+
+- Advanced query syntax (boolean operators, field-specific search) -- Phase 10
+- Search analytics dashboard -- add to backlog
+
+</deferred>
+
+---
+
+*Phase: 08-search-indexing*
+*Context gathered: 2025-02-15*
+```
+
 </good_examples>
 
 <guidelines>
@@ -268,6 +393,17 @@ The output should answer: "What does the researcher need to investigate? What ch
 - "Retry 3 times on network failure, then fail"
 - "Group by year, then by month"
 - "JSON for programmatic use, table for humans"
+
+**Good typed claims (exploratory mode):**
+- "[assumed:reasoned] TF-IDF is sufficient -- no user feedback data exists yet"
+- "[decided:cited] Card layout -- consistent with existing Card component in src/components/"
+- "[open] Choice of search backend -- depends on deployment constraints"
+- "[stipulated:bare] 3 retry threshold -- chosen as default"
+
+**Bad typed claims:**
+- "[evidenced] It works well" (no citation for evidenced claim)
+- "[decided] Modern approach" (too vague, no rationale)
+- "[assumed] Standard practice" (no challenge protocol or reasoning)
 
 **Bad content (too vague):**
 - "Should feel modern and clean"
@@ -310,5 +446,14 @@ Capture uncertainties during phase discussion. Phase research will attempt to re
 2. Research attempts to resolve
 3. Unresolved critical questions may trigger spikes
 4. Resolved questions inform planning
+
+**Exploratory mode format** (replaces table above when `DISCUSS_MODE` is `exploratory`):
+
+Each question uses generative format specifying how to investigate, not just what to ask:
+
+### QN: [Question title]
+**Research program:** [Methodology -- what to read, test, compare]
+**Downstream decisions affected:** [What depends on the answer]
+**Reversibility:** [HIGH/MEDIUM/LOW -- cost of getting this wrong]
 
 </open_questions>
