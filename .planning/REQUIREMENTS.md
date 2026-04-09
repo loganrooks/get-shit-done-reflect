@@ -207,6 +207,8 @@ Dependencies: SPIKE-02 -> SPIKE-01 -> SPIKE-09. SPIKE-08 gated on SPIKE-01 compl
   - *Motivation:* `deliberation: exploratory-discuss-phase-quality-regression.md -- three audits during this session had ephemeral outputs, no task spec preservation, and fragile cross-model invocation`
 - [ ] **AUDIT-02**: Audit task specs include explicit epistemic ground rules: every claim cites file:line, every finding tested against disconfirming evidence before writing, distinction between what was measured and what the measure captures
   - *Motivation:* `audit: rigorous-comparative-audit-task-spec.md -- third audit produced substantially better results after explicit anti-verificationist instructions; first two exhibited the epistemic failures being investigated`
+- [ ] **AUDIT-03**: Existing scattered audit artifacts (~43 files across `.planning/audits/`, `.planning/fork-audit/`, `.planning/` root) migrated to new conventions: files moved to `.planning/audits/` with date-first naming, YAML frontmatter added per audit-conventions.md schema, content preserved without rewriting. Sensor trial files categorized separately (not audits)
+  - *Motivation:* `discuss-phase 57.3: user directed migration as in-scope -- "the existing mess in .planning/audits/ and .planning/ root" must be addressed alongside forward-looking infrastructure`
 
 ### Cross-Runtime Parity
 
