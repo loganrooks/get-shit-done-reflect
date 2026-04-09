@@ -5429,3 +5429,70 @@ describe('replaceInCurrentMilestone — <details>-wrapped shipped milestones (#2
     assert.ok(result.includes('[ ] Phase 2'), 'other checkboxes must remain unchanged');
   });
 });
+
+// ── Bug fix structural verification — #1972 atomicWriteFileSync, #1981 worktree_branch_check ──
+
+describe('Bug fix structural verification — #1972 atomicWriteFileSync, #1981 worktree_branch_check', () => {
+  const MILESTONE_PATH = path.join(__dirname, 'lib', 'milestone.cjs');
+  const PHASE_PATH = path.join(__dirname, 'lib', 'phase.cjs');
+  const FRONTMATTER_SRC_PATH = path.join(__dirname, 'lib', 'frontmatter.cjs');
+  const WORKFLOWS_DIR = path.join(__dirname, '..', 'workflows');
+
+  // #1972: All file writes in milestone/phase/frontmatter must use atomicWriteFileSync
+  test('#1972: milestone.cjs has no fs.writeFileSync calls', () => {
+    const src = fs.readFileSync(MILESTONE_PATH, 'utf-8');
+    assert.ok(
+      !/fs\.writeFileSync/.test(src),
+      'milestone.cjs must not contain fs.writeFileSync — use atomicWriteFileSync instead'
+    );
+    assert.ok(
+      src.includes('atomicWriteFileSync'),
+      'milestone.cjs must import atomicWriteFileSync from core.cjs'
+    );
+  });
+
+  test('#1972: phase.cjs has no fs.writeFileSync calls', () => {
+    const src = fs.readFileSync(PHASE_PATH, 'utf-8');
+    assert.ok(
+      !/fs\.writeFileSync/.test(src),
+      'phase.cjs must not contain fs.writeFileSync — use atomicWriteFileSync instead'
+    );
+    assert.ok(
+      src.includes('atomicWriteFileSync'),
+      'phase.cjs must import atomicWriteFileSync from core.cjs'
+    );
+  });
+
+  test('#1972: frontmatter.cjs has no fs.writeFileSync calls', () => {
+    const src = fs.readFileSync(FRONTMATTER_SRC_PATH, 'utf-8');
+    assert.ok(
+      !/fs\.writeFileSync/.test(src),
+      'frontmatter.cjs must not contain fs.writeFileSync — use atomicWriteFileSync instead'
+    );
+    assert.ok(
+      src.includes('atomicWriteFileSync'),
+      'frontmatter.cjs must import atomicWriteFileSync from core.cjs'
+    );
+  });
+
+  // #1981: All 4 workflow files must have worktree_branch_check with reset --hard
+  const WORKFLOW_FILES = ['execute-phase.md', 'execute-plan.md', 'quick.md', 'diagnose-issues.md'];
+
+  for (const file of WORKFLOW_FILES) {
+    test(`#1981: ${file} contains worktree_branch_check with reset --hard`, () => {
+      const src = fs.readFileSync(path.join(WORKFLOWS_DIR, file), 'utf-8');
+      assert.ok(
+        src.includes('worktree_branch_check'),
+        `${file} must contain worktree_branch_check block`
+      );
+      assert.ok(
+        src.includes('reset --hard'),
+        `${file} must use reset --hard (not --soft) for worktree correction`
+      );
+      assert.ok(
+        !src.includes('reset --soft'),
+        `${file} must NOT contain reset --soft — causes data loss (#1981)`
+      );
+    });
+  }
+});
