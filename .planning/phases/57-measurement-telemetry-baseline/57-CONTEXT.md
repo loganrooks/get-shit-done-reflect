@@ -252,41 +252,67 @@ Requirements: TEL-01a, TEL-01b, TEL-02, TEL-04, TEL-05
 <spikes>
 ## Pre-Research Spike Candidates
 
-Spikes to run BEFORE research-phase to resolve critical [open] claims and STATE.md blockers. Results update this CONTEXT.md directly, converting [open] claims to [evidenced] or [decided].
+Spikes to run BEFORE research-phase to resolve critical [open] claims and STATE.md blockers. Results update this CONTEXT.md directly, converting [open] claims to [evidenced] or [decided]. Additional spikes may surface during research (researcher proposes at step 5.5 of plan-phase).
 
-### Spike A: Token Count Reliability (CRITICAL — STATE.md blocker)
+### Tier 1: Critical — Run Now
+
+#### Spike A: Token Count Reliability (STATE.md blocker)
 - **Question:** Are session-meta `input_tokens`/`output_tokens` post-caching residuals, gross API counts, or something else?
-- **Method:** Compare 5 sessions' session-meta token totals vs JSONL-aggregated `usage.input_tokens` across all assistant entries. Compute ratio, characterize the discrepancy.
-- **Outcome type:** Binary — reliable (use as-is) or unreliable (document limitations, recommend alternative source for token metrics)
+- **Method:** Compare 5 sessions' session-meta token totals vs JSONL-aggregated `usage.input_tokens` across all assistant entries. Compute ratio, characterize the discrepancy pattern.
+- **Outcome type:** Binary — reliable (use as-is) or unreliable (document limitations, recommend alternative source)
 - **Resolves:** STATE.md blocker, DC-5, [open] claim on token reliability
-- **Status:** Ready to spike
+- **Status:** Run now (pure data analysis, no setup needed)
 
-### Spike B: OTel Data Quality
-- **Question:** What does Claude Code's OTel export actually produce? Does it overlap with session-meta behavioral data or is it orthogonal?
-- **Method:** Enable `CLAUDE_CODE_ENABLE_TELEMETRY=1` with `OTEL_METRICS_EXPORTER=console` and `OTEL_LOGS_EXPORTER=console`, run a short session with tool use, inspect console output against session-meta fields for same session.
-- **Outcome type:** Comparative — characterize overlap, unique fields per source, data quality
-- **Resolves:** Q1 (OTel integration architecture)
-- **Status:** Ready to spike (requires env var setup)
-
-### Spike C: Facets Accuracy Validation
+#### Spike C: Facets Accuracy Validation
 - **Question:** Do facets AI-generated assessments correlate with observable session-meta behavioral metrics?
 - **Method:** Cross-correlate across the 109 facets-matched sessions: `outcome` vs `tool_errors`, `friction_counts` vs `user_interruptions`, `session_type` vs `duration_minutes` and `tool_counts` patterns. Report correlation coefficients and notable outliers.
 - **Outcome type:** Exploratory — characterize signal-to-noise ratio of facets data
 - **Resolves:** G-3 calibration (how much weight to give facets), [stipulated] 41% coverage sufficiency
-- **Status:** Ready to spike
+- **Status:** Run now (pure data analysis on existing 109-session overlap)
 
-### Spike D: Reference Design Repository Survey
-- **Question:** What design patterns do existing telemetry/observability tools (ccusage, claude-spend, LiteLLM pricing registry) use that we should adopt or deliberately avoid?
-- **Method:** Research-mode spike — read source code of ccusage parser, claude-spend MODEL_PRICING table, LiteLLM model_prices_and_context_window.json. Document: normalization patterns, pricing table structure, cross-runtime abstractions, what they get right, what they miss.
-- **Outcome type:** Open inquiry — extract design principles, not pick a winner
-- **Resolves:** Q2 (normalization schema design), informs telemetry.cjs architecture
-- **Status:** Ready to spike (research-mode, no build phase)
+### Tier 2: Important — Run Before Planning
+
+#### Spike B: OTel Data Quality
+- **Question:** What does Claude Code's OTel export actually produce? Does it overlap with session-meta behavioral data or is it orthogonal?
+- **Method:** Enable `CLAUDE_CODE_ENABLE_TELEMETRY=1` with `OTEL_METRICS_EXPORTER=console` and `OTEL_LOGS_EXPORTER=console`, run a short session with tool use, inspect console output against session-meta fields for same session.
+- **Outcome type:** Comparative — characterize overlap, unique fields per source, data quality
+- **Resolves:** Q1 (OTel integration architecture)
+- **Status:** Requires manual env var setup — run separately
+
+#### Spike E: Behavioral Metric Signal-to-Noise
+- **Question:** Can we derive useful behavioral signals from `first_prompt` text, `message_hours[]` distribution, and `user_response_times[]` variance? Or is variance too high for these to be informative?
+- **Method:** Exploratory analysis across all 268 session-meta files. Compute: first_prompt GSD command frequency, message_hours entropy (session fragmentation), user_response_times variance and outlier patterns. Cross-reference with facets outcomes where available (109-session subset) to test whether behavioral patterns correlate with session quality.
+- **Outcome type:** Exploratory — characterize which derived behavioral metrics have enough signal to include in baseline
+- **Resolves:** Q3 (additional behavioral metrics from session-meta), informs baseline dimension selection
+- **Status:** Run now (pure data analysis)
+
+#### Spike F: Statusline Bridge Extension Validation (telemetry-survey Spike E)
+- **Question:** Does the Claude Code statusline payload actually include `cost.total_cost_usd` and `rate_limits.*` as documented? Can we extend the bridge file to write these?
+- **Method:** Inspect the live statusline payload during a session (the telemetry-research-claude.md documented the full schema but noted some fields "reportedly" exist — needs empirical confirmation). Check our existing `gsdr-statusline.js` hook to verify what fields it receives vs what it writes.
+- **Outcome type:** Binary — fields exist (extend bridge) or don't (document gap)
+- **Resolves:** Deferred idea "Bridge file extension", telemetry-survey spike candidate E
+- **Status:** Quick — can run alongside OTel spike (same session)
+
+### Tier 3: Conditional — Evaluate During Research
+
+#### Spike D: Reference Design Pattern Extraction (CONDITIONAL)
+- **Question:** What normalization patterns, pricing abstractions, or cross-runtime schemas do existing telemetry tools use that we should learn from?
+- **Candidates:** ccusage (Claude JSONL parser), claude-spend (pricing table), LiteLLM (cross-provider normalization)
+- **Outcome type:** Open inquiry — extract design principles, not adopt a solution
+- **Evaluation gate:** Only worth spiking if research identifies a GENUINELY promising, well-maintained tool. Criteria:
+  - Up-to-date and actively maintained (check last commit, issue responsiveness)
+  - Meaningful community adoption (but old+stars ≠ good, new+viral ≠ good)
+  - Solves a problem we actually have (not just interesting)
+  - Audit for quality: issues, responsiveness, architecture decisions
+- **Important caveat:** This is reference design extraction, NOT adoption. We have our own needs, requirements, and guiding philosophies. Never determine the whole approach around someone else's solution.
+- **Resolves:** Q2 (normalization schema), but research-phase may resolve this without spiking
+- **Status:** Defer to research — researcher evaluates whether any candidate is promising enough to warrant the investigation cost. If not, skip entirely.
 
 ### Spike Execution Plan
-- **Spikes A + C:** Run in parallel (pure data analysis on existing files, no external setup needed)
-- **Spike B:** Requires manual `CLAUDE_CODE_ENABLE_TELEMETRY=1` setup — run separately
-- **Spike D:** Research-mode, can run in parallel with A + C
-- **Remaining open questions:** Feed into research-phase via normal pipeline (researcher proposes additional spikes at step 5.5 if needed)
+- **Now (parallel):** Spikes A, C, E — pure data analysis on existing files, sonnet agents
+- **Before planning:** Spike B + F together (same session, requires env var setup)
+- **Conditional:** Spike D — researcher evaluates during research, spikes only if justified
+- **Remaining open questions:** Feed into research-phase via normal pipeline
 
 </spikes>
 
