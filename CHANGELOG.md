@@ -6,6 +6,9 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+### Added
+- `/gsdr:explore` command -- Socratic ideation skill adopted from upstream with questioning methodology, domain probes, and 6-type artifact routing (notes, todos, seeds, research questions, requirements, phases)
+
 ## [1.19.1] - 2026-04-09
 
 ### Fixed
