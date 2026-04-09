@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: planning
-stopped_at: Phase 56 complete -- verification passed 5/5. Ready to plan Phase 57.
-last_updated: "2026-04-08T23:00:00.000Z"
-last_activity: 2026-04-08 -- Phase 56 complete (3 plans, 467 tests pass, verification passed)
+status: executing
+stopped_at: Completed 55.1-01-PLAN.md
+last_updated: "2026-04-09T01:15:00.000Z"
+last_activity: 2026-04-09 -- Plan 55.1-01 complete (ROADMAP details corruption fix #2005)
 progress:
-  total_phases: 11
+  total_phases: 12
   completed_phases: 2
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 8
+  completed_plans: 8
   percent: 20
 ---
 
@@ -44,6 +44,7 @@ Progress: [██........] 20%
 - 56-01: 6min, 3 tasks, 5 files
 - 56-02: 5min, 2 tasks, 3 files
 - 56-03: 10min, 2 tasks, 1 file
+- 55.1-01: 4min, 2 tasks, 4 files
 
 **v1.18 Final:**
 
@@ -89,6 +90,9 @@ Recent decisions affecting current work:
 - [56-02]: kb rebuild validated end-to-end: 200 files (199 signals + 1 spike), 0 errors, all 4 schema generations handled
 - [Phase 56-03]: Task 2 migration carry-forward: migration was pre-completed in Plan 02 (183 files), Task 2 became validation-only
 - [Phase 56-03]: Dual-write invariant proven on real 200-file corpus: delete kb.db + rebuild produces identical counts (199 signals, 1 spike, 0 errors)
+- [55.1-01]: Extracted findCurrentMilestoneRange as internal helper (not exported) shared by extractCurrentMilestone and replaceInCurrentMilestone
+- [55.1-01]: replaceInCurrentMilestone falls back to lastIndexOf heuristic when cwd omitted -- backward compatibility preserved
+- [55.1-01]: resolveCurrentMilestoneVersion extracted as separate helper to avoid duplicating STATE.md reading logic
 
 ### Roadmap Evolution
 
@@ -124,6 +128,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-09T00:37:47.710Z
-Stopped at: Completed quick task 260408-snh (roadmap amendments)
-Resume file: None
+Last session: 2026-04-09T01:15:00.000Z
+Stopped at: Completed 55.1-01-PLAN.md
+Resume file: .planning/phases/55.1-upstream-bug-patches/55.1-01-SUMMARY.md
