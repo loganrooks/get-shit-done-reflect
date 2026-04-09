@@ -1,3 +1,11 @@
+---
+date: 2026-04-09
+audit_type: claim_integrity
+scope: "Typed claim audit batch 4 -- cross-project CONTEXT.md claim analysis"
+triggered_by: "deliberation: claim-type-ontology.md"
+ground_rules: none
+tags: [claims, claim-types, cross-project, batch-4]
+---
 # Claim Audit — Batch 4: CONTEXT.md Files
 **Date:** 2026-04-09
 **Auditor:** Claude (Sonnet 4.6)

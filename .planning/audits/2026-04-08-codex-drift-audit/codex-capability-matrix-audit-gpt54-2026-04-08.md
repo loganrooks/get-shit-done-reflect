@@ -1,3 +1,12 @@
+---
+date: 2026-04-08
+audit_type: adoption_compliance
+auditor_model: gpt-5.4
+scope: "Capability matrix accuracy vs actual Codex CLI behavior"
+triggered_by: "manual: part of codex drift audit session"
+ground_rules: none
+tags: [codex, capability-matrix, compliance, gpt-5.4]
+---
 ## Gaps the Claude Audit Missed
 
 1. Codex workflows still ask for `general-purpose` agents even though the installer only registers named `gsdr-*` roles. Evidence: `get-shit-done/workflows/plan-phase.md:126-131`, `get-shit-done/workflows/plan-phase.md:345-350`, `get-shit-done/workflows/new-project.md:432-473`, `get-shit-done/workflows/discuss-phase.md:634-649`, `get-shit-done/workflows/diagnose-issues.md:75-87`. Contrast with Codex install output at `bin/install.js:2754-2803`, which creates `agents/*.toml` and registers explicit `gsdr-*` names in `config.toml`. Impact: even with Codex subagents available, these workflows either bypass the intended role files or request agent types that Codex has not been taught about.

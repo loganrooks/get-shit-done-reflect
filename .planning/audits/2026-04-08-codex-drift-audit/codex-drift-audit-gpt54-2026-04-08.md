@@ -1,3 +1,13 @@
+---
+date: 2026-04-08
+audit_type: cross_model_review
+auditor_model: gpt-5.4
+scope: "GSD harness drift analysis -- installer, capability-matrix, cross-runtime parity"
+triggered_by: "manual: user-requested cross-model review"
+ground_rules: none
+output_files: [codex-drift-audit-gpt54-2026-04-08.md, codex-capability-matrix-audit-gpt54-2026-04-08.md, codex-harness-audit-gpt54-2026-04-08.md]
+tags: [codex, cross-model, drift, capability-matrix, gpt-5.4]
+---
 # Codex Drift Audit
 
 Audit target: `/home/rookslog/workspace/projects/get-shit-done-reflect`

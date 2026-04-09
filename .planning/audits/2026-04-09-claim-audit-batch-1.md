@@ -1,3 +1,11 @@
+---
+date: 2026-04-09
+audit_type: claim_integrity
+scope: "Typed claim audit batch 1 -- cross-project CONTEXT.md claim analysis"
+triggered_by: "deliberation: claim-type-ontology.md"
+ground_rules: none
+tags: [claims, claim-types, cross-project, batch-1]
+---
 # Epistemic Claim Audit — Batch 1
 
 **Date:** 2026-04-09
