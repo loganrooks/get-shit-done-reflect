@@ -104,7 +104,7 @@ These files outside `lib/*.cjs` have fork modifications. Source: `git diff v1.22
 | commands/gsd/discuss-phase.md | Thin orchestrator + fork context | Hybrid merge |
 | commands/gsd/new-project.md | Thin orchestrator + fork DevOps Context | Hybrid merge |
 | commands/gsd/quick.md | Thin orchestrator + fork additions | Hybrid merge |
-| get-shit-done/workflows/discuss-phase.md | Code-aware scouting + KB surfacing (Phase 52) + three-mode discuss system (v1.19: exploratory/discuss/assumptions with workflow.discuss_mode config) | Hybrid merge |
+| get-shit-done/workflows/discuss-phase.md | Code-aware scouting + KB surfacing (Phase 52) + three-mode discuss system (v1.19: exploratory/discuss/assumptions with workflow.discuss_mode config). **Pending adoption:** upstream --chain flag (commit 5e88db95, PR #1445) — 6-line change for discuss→plan auto-chaining. Scheduled for Phase 57.2 (DISC-05). | Hybrid merge |
 | get-shit-done/workflows/cleanup.md | FORK_PROTECTED_DIRS (Phase 53) | Hybrid merge |
 
 ### Templates & References

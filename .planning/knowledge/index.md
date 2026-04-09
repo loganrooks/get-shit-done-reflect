@@ -1,12 +1,24 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-09T02:04:11Z
-**Total entries:** 203
+**Generated:** 2026-04-09T09:17:11Z
+**Total entries:** 215
 
-## Signals (202)
+## Signals (214)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-04-09-upstream-skill-adoption-zero-deviation-baseline | get-shit-done-reflect | notable | detected | baseline,upstream-adoption,zero-deviation,execution-quality,positive-pattern,skill-adoption | "2026-04-09 | active |
+| sig-2026-04-09-socratic-flow-unverifiable-by-static-inspection | get-shit-done-reflect | minor | detected | epistemic-gap,signal-collection,static-analysis,conversational-flow,verification-gap | "2026-04-09 | active |
+| sig-2026-04-09-rapid-3min-execution-prior-session-preextraction | get-shit-done-reflect | minor | detected | performance,execution-speed,prior-session-work,pre-extraction,positive-pattern | "2026-04-09 | active |
+| sig-2026-04-09-prior-signal-adoption-prevented-silent-file-drop | get-shit-done-reflect | notable | detected | signal-adoption,kb-utility,upstream-adoption,manifest,file-integrity,positive-pattern | "2026-04-09 | active |
+| sig-2026-04-09-log-sensor-stub-no-session-analysis-performed | get-shit-done-reflect | notable | detected | log-sensor,epistemic-gap,signal-collection,sensor-coverage,session-logs | "2026-04-09 | active |
+| sig-2026-04-09-git-verified-zero-deviation-exact-file-match | get-shit-done-reflect | notable | detected | zero-deviation,file-integrity,verification,execution-quality,positive-pattern,git-audit | "2026-04-09 | active |
+| sig-2026-04-09-log-sensor-spec-disabled-label-causes-repeated-exclusion | get-shit-done-reflect | notable | detected | log-sensor,signal-collection,agent-spec,stale-metadata,recurring | "2026-04-09 | active |
+| sig-2026-04-09-exploration-outputs-lack-artifact-traceability | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
+| sig-2026-04-09-insert-phase-cli-incomplete-roadmap-update | get-shit-done-reflect | notable | detected | insert-phase,cli,roadmap,tooling-gap | "2026-04-09 | active |
+| sig-2026-04-09-exploratory-mode-epistemic-quality-regression | get-shit-done-reflect | critical | detected | discuss-phase,exploratory-mode,epistemic-rigor,decision-quality,premature-closure | "2026-04-09 | active |
+| sig-2026-04-09-discuss-phase-workflow-gaps | get-shit-done-reflect | notable | detected | discuss-phase,workflow,auto-progression,context-commit,config-awareness | "2026-04-09 | active |
+| sig-2026-04-09-auto-flag-scoping-ambiguity-discuss-vs-chain | get-shit-done-reflect | notable | detected | workflow-flags,discuss-phase,auto-proceed,flag-scoping,ux-ambiguity | "2026-04-09 | active |
 | sig-2026-04-09-state-md-stale-after-worktree-merge | get-shit-done-reflect | notable | detected | state-sync,worktree,merge-conflict,execute-phase,orchestrator-gap | "2026-04-09 | active |
 | sig-2026-04-08-autonomous-discuss-plan-execute-pr-merge-pipeline | get-shit-done-reflect | notable | detected | autonomous-workflow,end-to-end,discuss-plan-execute,pr-workflow,ci-integration,positive-pattern | 2026-04-08 | active |
 | sig-2026-04-08-model-override-scope-leak-researcher-got-sonnet | get-shit-done-reflect | notable | detected | model-override,agent-dispatch,orchestrator-error,scope-leak,researcher | 2026-04-08 | active |

@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: planning
-stopped_at: Phase 55.2 complete — verification passed 5/5. Ready for Phase 57.
-last_updated: "2026-04-09T03:22:00.000Z"
-last_activity: 2026-04-09 -- Phase 55.2 complete (Codex Runtime Substrate)
+status: completed
+stopped_at: Phase 57.1 complete — verification passed 5/5
+last_updated: "2026-04-09T08:56:07.555Z"
+last_activity: 2026-04-09 -- Phase 57.1 complete (Explore Skill Adoption)
 progress:
-  total_phases: 12
+  total_phases: 15
   completed_phases: 5
-  total_plans: 12
-  completed_plans: 12
-  percent: 42
+  total_plans: 16
+  completed_plans: 13
+  percent: 81
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57 -- Measurement & Telemetry Baseline (ready to plan)
+**Current focus:** v1.20 Phase 57.2 -- Discuss-Phase Exploratory Mode Overhaul. Phases 57.2 → 57.3 ship as patches before Phase 57
 
 ## Current Position
 
-Phase: 57 of 64 (Measurement & Telemetry Baseline)
+Phase: 57.2 of 64 (Discuss-Phase Exploratory Mode Overhaul)
 Plan: --
-Status: Ready to discuss
-Last activity: 2026-04-09 -- Phase 55.2 complete (Codex Runtime Substrate)
+Status: Phase complete
+Last activity: 2026-04-09 -- Phase 57.1 complete (Explore Skill Adoption)
 
-Progress: [████......] 42%
+Progress: [████████░░] 81%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 11
+- Plans completed: 12
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -48,6 +48,7 @@ Progress: [████......] 42%
 - 55.2-01: 3min, 2 tasks, 3 files
 - 55.2-02: 3min, 2 tasks, 2 files
 - 55.2-03: 3min, 2 tasks, 2 files
+- 57.1-01: 3min, 2 tasks, 6 files
 
 **v1.18 Final:**
 
@@ -105,19 +106,24 @@ Recent decisions affecting current work:
 - [55.2-02]: Helper functions (discoverSensorDirs, discoverSensors, parseSensorMetadata) exported for testability
 - [55.2-03]: Codex hooks documented as Y (under development) [6] with feature flag gating rather than flat Y -- reflects conditional availability pending codex_hooks flag stabilization
 - [55.2-03]: Living document pattern established for drift-prone references: YAML frontmatter with last_audited version, next_audit_due, and Validation Commands table with executable re-verification commands
+- [57.1-01]: Installer name: field stays gsd:explore (not gsdr:explore) in installed commands -- consistent with all 30+ commands; directory rename (gsd/ -> gsdr/) handles user-facing prefix, not frontmatter rewriting
 
 ### Roadmap Evolution
 
 - Phase 55.1 inserted after Phase 55: Upstream Bug Patches (URGENT) — patch #2005 details-wrapped ROADMAP corruption, #1972 incomplete atomicWriteFileSync, #1981 worktree reset --soft data loss
 - Phase 55.2 inserted after Phase 55.1: Codex Runtime Substrate -- runtime detection fixes, documentation drift corrections, parity smoke test. Derived from cross-model audit consensus (Claude, GPT-5.4 xhigh, Opus review, Sonnet review). Requirements: CODEX-01, CODEX-02, CODEX-05
 - Gemini CLI and OpenCode deprecated as tested runtimes -- narrowing to Claude Code + Codex CLI only. Community-maintained status in capability-matrix.md. Decision documented in `.planning/deliberations/drop-gemini-opencode-focus-codex.md`
+- Phase 57.2 inserted after Phase 57: Discuss-Phase Exploratory Mode Overhaul -- template fix, typed claim states, provenance, incentive decoupling, subagent design exploration. Derived from `.planning/deliberations/exploratory-discuss-phase-quality-regression.md` (audit: `.planning/audits/2026-04-09-discuss-phase-exploration-quality/`). Requirements: DISC-01 through DISC-07
+- Phase 57.3 inserted after Phase 57.2: Audit Workflow Infrastructure -- formalize audit conventions, task spec preservation, epistemic ground rules. Depends on 57.2. Requirements: AUDIT-01, AUDIT-02
+- Execution reordered: 57.1 → 57.2 → 57.3 ship as patches before Phase 57 (telemetry). 57.2 dependency on 57 removed — regression fix ships now, effectiveness revisited post-telemetry
 
 ### Pending Todos
 
-3 pending (carried from v1.18):
+4 pending (3 carried from v1.18, 1 remaining):
 
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 - [HIGH] Local patch archive: versioned history instead of single-snapshot overwrite (installer)
+- [HIGH] Cross-model review skill needed sooner than Phase 62 — launching Codex for review is fragile manual CLI work; /gsdr:cross-model-review is Phase 62 (WF-01) but the need is immediate. Consider pulling forward or building a minimal utility skill. (workflow)
 - [MEDIUM] Revisit provisional corpus grounding set (planning)
 
 ### Blockers/Concerns
@@ -140,6 +146,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-09T03:22:00.000Z
-Stopped at: Phase 55.2 complete. Verification passed 5/5. Ready for Phase 57.
+Last session: 2026-04-09T08:56:07.548Z
+Stopped at: Phase 57.1 complete — verification passed 5/5
 Resume file: None

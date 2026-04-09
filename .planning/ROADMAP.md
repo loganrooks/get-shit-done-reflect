@@ -14,16 +14,18 @@
 
 **Milestone Goal:** Replace advisory quality controls with structural enforcement, mature the signal system from detection-only to full lifecycle management with a queryable knowledge base, overhaul spike methodology with epistemologically rigorous experimental design, and establish measurement infrastructure for evidence-based workflow improvement.
 
-**Phases:** 13 (Phases 55-64 + 55.1, 55.2, 57.1)
+**Phases:** 15 (Phases 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3)
 **Granularity:** Fine
-**Requirements:** 62 mapped
+**Requirements:** 71 mapped
 
 ## Phases
 
 - [x] **Phase 55: Upstream Mini-Sync** - Integrate upstream correctness fixes (state locking, milestone safety, frontmatter, installer) before any v1.20 work begins
 - [x] **Phase 56: KB Schema & SQLite Foundation** - Signal schema evolution and SQLite index creation establish the queryable knowledge base substrate
 - [ ] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
-- [ ] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding
+- [x] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding (completed 2026-04-09)
+- [ ] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Fix exploratory mode regression: template sections, typed claim states, provenance, incentive decoupling, subagent design exploration
+- [ ] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
 - [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
@@ -82,7 +84,6 @@ Plans:
 
 
 
-
 ### Phase 56: KB Schema & SQLite Foundation
 **Goal**: Signal files support full lifecycle tracking, and a SQLite index makes the knowledge base queryable by structured fields
 **Depends on**: Phase 55
@@ -108,7 +109,38 @@ Plans:
   2. `gsd-tools telemetry baseline` produces `.planning/baseline.json` with statistical computation from session-meta data
   3. `.planning/baseline.json` is committed before any Phase 58 structural gates are deployed
   4. Facets data (AI-generated session quality assessments) joined with session-meta by session_id, with all facets-derived fields annotated as AI-generated estimates with unknown accuracy
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 57-01-PLAN.md -- Create telemetry.cjs module with helpers, 3 subcommands (summary/session/enrich), and router wiring
+- [ ] 57-02-PLAN.md -- Add phase correlation command, baseline command with 8 metrics, and inline token validation
+- [ ] 57-03-PLAN.md -- Telemetry test suite and baseline.json capture/commit
+
+### Phase 57.2: Discuss-Phase Exploratory Mode Overhaul (INSERTED)
+
+**Goal:** The discuss-phase exploratory mode produces genuinely exploratory CONTEXT.md files — with working assumptions, epistemic guardrails, derived constraints, generative questions, typed claim states, and traceable grounding — rather than the shallow locked-down specs the current mode produces. Includes structural fixes to the write_context template, incentive decoupling (separating epistemic status from auto-progression eligibility), and design exploration for a dedicated discuss-phase exploration subagent.
+**Depends on:** Phase 55.2 (runtime substrate complete). Effectiveness revisited post-Phase 57 (telemetry baseline provides metrics to evaluate whether interventions helped)
+**Requirements:** DISC-01, DISC-02, DISC-03, DISC-04, DISC-05, DISC-06, DISC-07
+**Success Criteria** (what must be TRUE):
+  1. Exploratory-mode `write_context` template includes structural sections for working assumptions, derived constraints, epistemic guardrails, and structured open questions
+  2. Typed claim states replace bare [grounded]/[open] — vocabulary distinguishes between different epistemic situations (traced claims, working assumptions, framework commitments, observations, open questions, locked decisions)
+  3. Claims eligible for auto-progression during --auto require verifiable provenance with traceable citation; epistemic status labels are decoupled from auto-progression eligibility
+  4. Lightweight citation checker flags phantom or unresolvable references before downstream consumption
+  5. Upstream --chain flag merged and CONTEXT.md committed when `commit_docs: true`
+  6. Research questions use generative format (specifying research program, downstream decisions, reversibility) rather than binary yes/no
+Derived from: `.planning/deliberations/exploratory-discuss-phase-quality-regression.md`
+Audit evidence: `.planning/audits/2026-04-09-discuss-phase-exploration-quality/` (7 artifacts)
+**Plans:** TBD
+
+### Phase 57.3: Audit Workflow Infrastructure (INSERTED)
+
+**Goal:** Audit sessions have proper infrastructure — date-first directories, task specs preserved alongside agent outputs, provenance metadata, epistemic ground rules for audit agents — so that audit findings are traceable, reproducible, and epistemically reliable.
+**Depends on:** Phase 57.2 (typed claim vocabulary and provenance format inform audit spec standards)
+**Requirements:** AUDIT-01, AUDIT-02
+**Success Criteria** (what must be TRUE):
+  1. Audit sessions produce date-first directories with task specs alongside agent outputs and provenance metadata
+  2. Audit task specs include explicit epistemic ground rules (cite file:line, test disconfirming evidence, distinguish measure from measured)
+Derived from: `.planning/deliberations/exploratory-discuss-phase-quality-regression.md` (meta-observation: three audits during deliberation exhibited the epistemic failures being investigated)
+**Plans:** TBD
 
 ### Phase 57.1: Explore Skill Adoption (INSERTED)
 
@@ -119,7 +151,9 @@ Plans:
   1. `/gsdr:explore` command, workflow, and reference files (questioning.md, domain-probes.md) are synced from upstream and installed locally
   2. The skill launches a Socratic conversation, offers mid-session research, and routes crystallized outputs to appropriate artifacts
   3. Existing upstream tests (if any) pass; manual verification of one explore session
-**Plans:** TBD
+**Plans:** 1/1 plans complete
+Plans:
+- [x] 57.1-01-PLAN.md -- Adopt upstream explore skill files, create vitest test, verify installer
 
 ### Phase 58: Structural Enforcement Gates
 **Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion
@@ -207,7 +241,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute sequentially 55 through 57.1, then 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies).
+Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch releases), then 57 → 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies). Phase 57.2 ships before Phase 57 as a patch (regression fix); effectiveness revisited post-telemetry. Phase 57.3 depends on Phase 57.2.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -215,8 +249,10 @@ Phases execute sequentially 55 through 57.1, then 58-59, then 60 and 61 can proc
 | 55.1. Upstream Bug Patches | 2/2 | Complete | 2026-04-09 |
 | 55.2. Codex Runtime Substrate | 3/3 | Complete | 2026-04-09 |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
-| 57. Measurement & Telemetry Baseline | 0/TBD | Not started | - |
-| 57.1. Explore Skill Adoption | 0/TBD | Not started | - |
+| 57. Measurement & Telemetry Baseline | 0/3 | Planned | - |
+| 57.1. Explore Skill Adoption | 1/1 | Complete   | 2026-04-09 |
+| 57.2. Discuss-Phase Exploratory Mode Overhaul | 0/TBD | Not started | - |
+| 57.3. Audit Workflow Infrastructure | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
 | 60. Sensor Pipeline & Codex Parity | 0/TBD | Not started | - |
@@ -236,6 +272,6 @@ Phases execute sequentially 55 through 57.1, then 58-59, then 60 and 61 can proc
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
 | v1.17 Automation Loop | 36-44 | 24 | Complete | 2026-03-09 |
 | v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | 37 | Complete | 2026-03-30 |
-| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2 | TBD | In progress | - |
+| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3 | TBD | In progress | - |
 
-**Totals:** 8 milestones, 65 phases (57 complete, 8 in progress), 173 plans completed
+**Totals:** 8 milestones, 67 phases (57 complete, 10 in progress), 173 plans completed
