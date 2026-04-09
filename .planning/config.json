@@ -12,7 +12,8 @@
     "text_mode": false,
     "research_before_questions": false,
     "discuss_mode": "exploratory",
-    "skip_discuss": false
+    "skip_discuss": false,
+    "_auto_chain_active": true
   },
   "health_check": {
     "frequency": "milestone-only",
@@ -42,7 +43,7 @@
     "stats": {
       "signal_collection": {
         "fires": 0,
-        "skips": 8,
+        "skips": 9,
         "last_triggered": null,
         "last_skip_reason": "level-1"
       },
@@ -75,7 +76,7 @@
       "auto_reflect": false,
       "threshold_phases": 3,
       "min_signals": 5,
-      "phases_since_last_reflect": 5,
+      "phases_since_last_reflect": 6,
       "last_reflect_at": "2026-03-07T05:46:29.846Z"
     }
   },
