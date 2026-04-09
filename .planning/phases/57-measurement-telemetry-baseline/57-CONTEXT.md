@@ -249,6 +249,47 @@ Requirements: TEL-01a, TEL-01b, TEL-02, TEL-04, TEL-05
 
 </deferred>
 
+<spikes>
+## Pre-Research Spike Candidates
+
+Spikes to run BEFORE research-phase to resolve critical [open] claims and STATE.md blockers. Results update this CONTEXT.md directly, converting [open] claims to [evidenced] or [decided].
+
+### Spike A: Token Count Reliability (CRITICAL — STATE.md blocker)
+- **Question:** Are session-meta `input_tokens`/`output_tokens` post-caching residuals, gross API counts, or something else?
+- **Method:** Compare 5 sessions' session-meta token totals vs JSONL-aggregated `usage.input_tokens` across all assistant entries. Compute ratio, characterize the discrepancy.
+- **Outcome type:** Binary — reliable (use as-is) or unreliable (document limitations, recommend alternative source for token metrics)
+- **Resolves:** STATE.md blocker, DC-5, [open] claim on token reliability
+- **Status:** Ready to spike
+
+### Spike B: OTel Data Quality
+- **Question:** What does Claude Code's OTel export actually produce? Does it overlap with session-meta behavioral data or is it orthogonal?
+- **Method:** Enable `CLAUDE_CODE_ENABLE_TELEMETRY=1` with `OTEL_METRICS_EXPORTER=console` and `OTEL_LOGS_EXPORTER=console`, run a short session with tool use, inspect console output against session-meta fields for same session.
+- **Outcome type:** Comparative — characterize overlap, unique fields per source, data quality
+- **Resolves:** Q1 (OTel integration architecture)
+- **Status:** Ready to spike (requires env var setup)
+
+### Spike C: Facets Accuracy Validation
+- **Question:** Do facets AI-generated assessments correlate with observable session-meta behavioral metrics?
+- **Method:** Cross-correlate across the 109 facets-matched sessions: `outcome` vs `tool_errors`, `friction_counts` vs `user_interruptions`, `session_type` vs `duration_minutes` and `tool_counts` patterns. Report correlation coefficients and notable outliers.
+- **Outcome type:** Exploratory — characterize signal-to-noise ratio of facets data
+- **Resolves:** G-3 calibration (how much weight to give facets), [stipulated] 41% coverage sufficiency
+- **Status:** Ready to spike
+
+### Spike D: Reference Design Repository Survey
+- **Question:** What design patterns do existing telemetry/observability tools (ccusage, claude-spend, LiteLLM pricing registry) use that we should adopt or deliberately avoid?
+- **Method:** Research-mode spike — read source code of ccusage parser, claude-spend MODEL_PRICING table, LiteLLM model_prices_and_context_window.json. Document: normalization patterns, pricing table structure, cross-runtime abstractions, what they get right, what they miss.
+- **Outcome type:** Open inquiry — extract design principles, not pick a winner
+- **Resolves:** Q2 (normalization schema design), informs telemetry.cjs architecture
+- **Status:** Ready to spike (research-mode, no build phase)
+
+### Spike Execution Plan
+- **Spikes A + C:** Run in parallel (pure data analysis on existing files, no external setup needed)
+- **Spike B:** Requires manual `CLAUDE_CODE_ENABLE_TELEMETRY=1` setup — run separately
+- **Spike D:** Research-mode, can run in parallel with A + C
+- **Remaining open questions:** Feed into research-phase via normal pipeline (researcher proposes additional spikes at step 5.5 if needed)
+
+</spikes>
+
 ## Open Questions
 
 | Question | Why It Matters | Criticality | Status |
