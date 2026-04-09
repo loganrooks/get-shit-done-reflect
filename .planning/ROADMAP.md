@@ -22,7 +22,7 @@
 
 - [x] **Phase 55: Upstream Mini-Sync** - Integrate upstream correctness fixes (state locking, milestone safety, frontmatter, installer) before any v1.20 work begins
 - [x] **Phase 56: KB Schema & SQLite Foundation** - Signal schema evolution and SQLite index creation establish the queryable knowledge base substrate
-- [ ] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
+- [x] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
 - [x] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding (completed 2026-04-09)
 - [x] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Typed claims (7 types + verification dimension), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher update, claim dependency webs, template enrichment
 - [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents
@@ -111,8 +111,8 @@ Plans:
   4. Facets data (AI-generated session quality assessments) joined with session-meta by session_id, with all facets-derived fields annotated as AI-generated estimates with unknown accuracy
 **Plans**: 2 plans
 Plans:
-- [ ] 57-01-PLAN.md -- Implement telemetry.cjs module and wire gsd-tools.cjs router (TEL-01a, TEL-01b, TEL-04, TEL-05)
-- [ ] 57-02-PLAN.md -- Tests for telemetry.cjs and capture .planning/baseline.json (TEL-02)
+- [x] 57-01-PLAN.md -- Implement telemetry.cjs module and wire gsd-tools.cjs router (TEL-01a, TEL-01b, TEL-04, TEL-05)
+- [x] 57-02-PLAN.md -- Tests for telemetry.cjs and capture .planning/baseline.json (TEL-02)
 
 ### Phase 57.2: Discuss-Phase Exploratory Mode Overhaul (INSERTED)
 
@@ -260,7 +260,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | 55.1. Upstream Bug Patches | 2/2 | Complete | 2026-04-09 |
 | 55.2. Codex Runtime Substrate | 3/3 | Complete | 2026-04-09 |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
-| 57. Measurement & Telemetry Baseline | 0/TBD | Re-discussing | - |
+| 57. Measurement & Telemetry Baseline | 2/2 | Complete | 2026-04-09 |
 | 57.1. Explore Skill Adoption | 1/1 | Complete   | 2026-04-09 |
 | 57.2. Discuss-Phase Exploratory Mode Overhaul | 3/3 | Complete | 2026-04-09 |
 | 57.3. Audit Workflow Infrastructure | 2/2 | Complete | 2026-04-09 |
