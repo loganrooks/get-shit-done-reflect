@@ -1,0 +1,28 @@
+Error: Input must be provided either through stdin or as a prompt argument when using --print
+{
+  descriptor: {
+    name: "claude_code.session.count",
+    type: "COUNTER",
+    description: "Count of CLI sessions started",
+    unit: "",
+    valueType: 1,
+    advice: {},
+  },
+  dataPointType: 3,
+  dataPoints: [
+    {
+      attributes: {
+        "user.id": "e877fabc671d5bb28b65593064fbf1704810daa67d3a5ae9dfaec26592382821",
+        "session.id": "0e50c8c2-c37d-4fac-9e81-b1baef928572",
+        "organization.id": "5687783b-f7d8-4612-a9eb-59685eb5bdad",
+        "user.email": "logan.rooks@mail.utoronto.ca",
+        "user.account_uuid": "eacd0be9-a1fb-46ec-8ac7-c2ff828cd788",
+        "user.account_id": "user_01Vzfa24aMKMSTqYwkKj1TQB",
+        "terminal.type": "vscode",
+      },
+      startTime: [ 1775762567, 613000000 ],
+      endTime: [ 1775762569, 302000000 ],
+      value: 1,
+    }
+  ],
+}
