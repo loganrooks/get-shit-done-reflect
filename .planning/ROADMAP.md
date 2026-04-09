@@ -71,10 +71,16 @@ Plans:
   3. Brownfield detection excludes `.codex/` directory from false-positive triggers
   4. Documentation in capability-matrix.md accurately reflects live Codex CLI runtime behavior (config.toml not codex.toml, hooks under development, SKILL.md format, agents/*.toml registration)
   5. `cross-runtime-parity-research.md` exists as living document recording last-audited Codex version and validation commands
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 55.2 to break down)
+- [ ] 55.2-01-PLAN.md -- Runtime capability resolver, brownfield exclusion, agent TOML detection
+- [ ] 55.2-02-PLAN.md -- Multi-directory multi-format sensor discovery
+- [ ] 55.2-03-PLAN.md -- Capability matrix corrections and parity living document
+
+
+
+
 
 ### Phase 56: KB Schema & SQLite Foundation
 **Goal**: Signal files support full lifecycle tracking, and a SQLite index makes the knowledge base queryable by structured fields
@@ -194,7 +200,7 @@ Phases execute sequentially 55 through 59, then 60 and 61 can proceed in paralle
 |-------|----------------|--------|-----------|
 | 55. Upstream Mini-Sync | 4/4 | Complete | 2026-04-08 |
 | 55.1. Upstream Bug Patches | 2/2 | Complete | 2026-04-09 |
-| 55.2. Codex Runtime Substrate | 0/TBD | Not started | - |
+| 55.2. Codex Runtime Substrate | 0/3 | Not started | - |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
 | 57. Measurement & Telemetry Baseline | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
