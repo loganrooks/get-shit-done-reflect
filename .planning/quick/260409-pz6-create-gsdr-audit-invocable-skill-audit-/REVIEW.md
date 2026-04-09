@@ -166,3 +166,20 @@ The same concern applies beyond audits. The verifier presupposes that plan must-
 - The frame-reflexivity step (Part 4) is a suggestion, not a tested practice. It could become performative (agents writing "I considered my biases" without actually doing so) if not grounded in specific questions about specific blind spots.
 - Whether `investigatory` should be its own family or a modifier applicable to any type ("run a phase_verification audit in investigatory mode") is an open design question.
 - The Heideggerian observation — that the form of questioning already determines what can show up as an answer — is philosophically deep but operationally hard to encode. Ground rules I1-I4 are a pragmatic approximation, not a full response. A fuller response would require the audit system to support mid-audit type switching when the investigation reveals the original type was wrong.
+
+---
+
+## A Note to the Agent Setting Up Phase 57.5
+
+This document subjected its own proposals to the same critique it applies to the existing audit taxonomy. That practice should not stop here.
+
+When you write the CONTEXT.md, the requirements, the agent spec, the command — at each step, ask what your design decisions are making easy to see and what they might be making hard to see. The audit skill will encode a type taxonomy, ground rules, body templates, inference heuristics. Each of these is productive — they give the audit structure and repeatability. But each also forecloses something. A type taxonomy makes certain kinds of audits legible and others invisible. Ground rules orient the auditor's attention in ways that are helpful for what they prepare for and limiting for what they don't. Body templates shape findings into forms that may not fit what the investigation actually discovered.
+
+You cannot design a system free of these tensions. The point is not to eliminate framing but to mark the remainder — to leave visible, in the design itself, the awareness that the design is partial. Concretely, this might mean:
+
+- When the type inference table maps context clues to types, note that the mapping is heuristic and that the user's situation may not decompose into the types offered
+- When ground rules are copied into task specs, include the frame-reflexivity question not as decoration but as a genuine check that the auditor is expected to engage with
+- When the body template structures the output, make clear it's a starting structure that the investigation can outgrow — and design the agent to recognize when the template is forcing findings into a shape they don't have
+- When the `investigatory` type is implemented, resist the temptation to make it a clean solution to the problem this document describes — it is itself partial, and its ground rules (I1-I4) have the same character as the rules they supplement
+
+The philosophical concern here — that our tools shape what we can think with them — doesn't resolve into a technical fix. It resolves into a practice: the practice of noticing when a framework is doing your thinking for you, and marking that. This document is one attempt at that practice. The Phase 57.5 implementation should continue it, in whatever form makes sense for the engineering work at hand.
