@@ -308,11 +308,27 @@ Spikes to run BEFORE research-phase to resolve critical [open] claims and STATE.
 - **Resolves:** Q2 (normalization schema), but research-phase may resolve this without spiking
 - **Status:** Defer to research — researcher evaluates whether any candidate is promising enough to warrant the investigation cost. If not, skip entirely.
 
-### Spike Execution Plan
-- **Now (parallel):** Spikes A, C, E — pure data analysis on existing files, sonnet agents
-- **Before planning:** Spike B + F together (same session, requires env var setup)
-- **Conditional:** Spike D — researcher evaluates during research, spikes only if justified
-- **Remaining open questions:** Feed into research-phase via normal pipeline
+### Spike-Derived Follow-Up Candidates (Opened Territory)
+
+These emerged from Tier 1 spike findings. They are NOT closed questions — they are areas of inquiry that the spikes *opened up*. Each represents demonstrated (not hypothetical) phenomena that the researcher or further spikes should explore. Spike findings should expand the design space, not collapse it.
+
+#### From Spike C (Facets Accuracy):
+- **Data integrity characterization** — 3 malformed session-meta files found (6f97ee28, 8576521c, 96ae5fc5), 9 sessions with >1000 min duration that are multi-day resumed contexts. How widespread are data quality issues across the 268-session corpus? What's the "clean" subset? Every baseline metric depends on this.
+- **Abandoned session detection** — "Unhelpful" facets sessions cluster with 0 tool errors because they're abandoned/zero-work, not actually unhelpful. Can we reliably detect and filter these? They contaminate behavioral baselines if included undifferentiated.
+- **What does "quality" mean?** — Outcome ↔ errors are NOT correlated. A "fully_achieved" session can have many errors (iterative debugging is productive error), and a "partially_achieved" session can have zero errors (clean execution that didn't finish). This challenges naive quality metrics and deserves deeper investigation.
+
+#### From Spike E (Behavioral Metrics):
+- **Harness effectiveness — causal or selection?** — GSD sessions have 53% fewer errors and 47% fewer interruptions than ad-hoc. Headline finding. But is the harness reducing errors, or do structured tasks (which tend to use GSD) inherently produce fewer errors? Understanding the causal structure matters for how we interpret this metric.
+- **Session fragmentation root cause** — Fragmented sessions have 5.6x tool errors. But direction of causation is unknown: does fragmentation cause errors (context loss), or do error-prone tasks cause fragmentation (user takes breaks from frustrating work)? Different causes → different interventions.
+- **Collection gap archaeology** — 54% of sessions missing `user_response_times`. Why? Are there session types that never populate it? Is it a Claude Code version issue? Understanding the gap informs whether to include response_time metrics in baseline or flag as unreliable.
+- **"Question" sessions as a distinct category** — N=11 sessions starting with questions have 3.64 avg tool errors (highest category). These appear to be debugging/clarification sessions where the harness is used for exploratory work outside structured workflows. A distinct pattern worth tracking.
+
+### Spike Execution Summary
+- **Completed:** Spikes C (facets — partial signal), E (behavioral — confirmed, 2 new baseline dimensions)
+- **Running:** Spike A (token reliability — awaiting results)
+- **Before planning:** Spike B + F together (requires env var setup)
+- **Conditional:** Spike D — researcher evaluates during research
+- **Spike-derived follow-ups:** Available for researcher or further spikes as warranted
 
 </spikes>
 
@@ -320,11 +336,14 @@ Spikes to run BEFORE research-phase to resolve critical [open] claims and STATE.
 
 | Question | Why It Matters | Criticality | Status |
 |----------|----------------|-------------|--------|
-| Are session-meta token counts post-caching residuals or gross counts? | Determines whether baseline token metrics are meaningful | Critical | Blocked — inline validation task will resolve |
-| Is 41% facets coverage sufficient for statistical analysis of quality metrics? | Affects confidence level of quality baseline | Medium | [open] — report n, let consumer decide |
-| Which metrics are actually predictive of session quality? | Informs which baseline dimensions to prioritize in future phases | Low (for Phase 57) | [open] — hypothesis-generating, not this phase's job |
-| How does Claude Code OTel data compare to session-meta? | Determines future data source strategy | Medium | [open] — Q1 in generative questions above |
+| Are session-meta token counts post-caching residuals or gross counts? | Determines whether baseline token metrics are meaningful | Critical | Spike A running — awaiting results |
+| What is the "clean" subset of session-meta data? | Malformed files + duration artifacts affect ALL baseline metrics | High | Spike-derived — 3 malformed files + 9 >1000min sessions found |
+| Is GSD effectiveness causal or selection bias? | 53% fewer errors is a headline finding — interpretation affects how we use the metric | Medium | Spike-derived — opened by Spike E |
+| Does session fragmentation cause errors or vice versa? | 5.6x error differential — direction of causation changes intervention design | Medium | Spike-derived — opened by Spike E |
+| What does "session quality" actually mean? | Facets outcome ≠ error count. Naive quality metrics may mislead | High | Spike-derived — opened by Spike C |
+| How does Claude Code OTel data compare to session-meta? | Determines future data source strategy | Medium | [open] — Q1, Spike B planned |
 | What normalized schema accommodates both runtimes? | Foundational for Phase 60 and all downstream consumers | High | [open] — Q2 in generative questions above |
+| Why is user_response_times missing in 54% of sessions? | Determines whether response_time metrics belong in baseline | Medium | Spike-derived — opened by Spike E |
 
 ---
 
