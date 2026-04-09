@@ -5281,3 +5281,151 @@ describe('splitInlineArray (REG-04) — quoted comma in frontmatter inline array
     assert.deepStrictEqual(result.key, ['a, b', 'c, d', 'e'], 'mixed quotes preserved');
   });
 });
+
+// ─── Bug #2005: ROADMAP corruption with <details>-wrapped milestones ─────────
+
+describe('extractCurrentMilestone — <summary> layout (#2005 sub-bug B)', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('extracts current milestone from <summary>-tagged layout', () => {
+    const { extractCurrentMilestone } = require(CORE_PATH);
+    const roadmap = [
+      '# Roadmap',
+      '',
+      '<details><summary>v1.0 Foo (Phases 1-3) -- SHIPPED</summary>',
+      '',
+      '## Phases',
+      '- [x] Phase 1: Setup',
+      '- [x] Phase 2: Build',
+      '- [x] Phase 3: Ship',
+      '</details>',
+      '',
+      '<details><summary>v2.0 Bar (Phases 4-6) -- IN PROGRESS</summary>',
+      '',
+      '## Phases',
+      '- [ ] Phase 4: Alpha',
+      '- [ ] Phase 5: Beta',
+      '- [ ] Phase 6: Release',
+      '</details>',
+    ].join('\n');
+
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'STATE.md'),
+      '---\nmilestone: v2.0\n---\n',
+      'utf-8'
+    );
+
+    const result = extractCurrentMilestone(roadmap, tmpDir);
+    assert.ok(result.includes('Phase 4'), 'must include Phase 4 from current milestone');
+    assert.ok(result.includes('Phase 5'), 'must include Phase 5 from current milestone');
+    assert.ok(!result.includes('shipped content') && !result.includes('Phase 1: Setup'),
+      'must NOT include shipped milestone content');
+  });
+
+  test('extracts current milestone from heading layout (regression guard)', () => {
+    const { extractCurrentMilestone } = require(CORE_PATH);
+    const roadmap = [
+      '# Roadmap',
+      '',
+      '<details><summary>v1.0 Foo -- SHIPPED</summary>',
+      '',
+      '- [x] Phase 1: Old',
+      '- [x] Phase 2: Old',
+      '</details>',
+      '',
+      '## v2.0 Current Milestone',
+      '',
+      '### Phase 4: Alpha',
+      '- [ ] 04-01-PLAN.md',
+      '',
+      '### Phase 5: Beta',
+      '- [ ] 05-01-PLAN.md',
+    ].join('\n');
+
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'STATE.md'),
+      '---\nmilestone: v2.0\n---\n',
+      'utf-8'
+    );
+
+    const result = extractCurrentMilestone(roadmap, tmpDir);
+    assert.ok(result.includes('Phase 4'), 'must include Phase 4');
+    assert.ok(result.includes('Phase 5'), 'must include Phase 5');
+    assert.ok(!result.includes('Phase 1: Old'), 'must NOT include shipped phases');
+  });
+});
+
+describe('replaceInCurrentMilestone — <details>-wrapped shipped milestones (#2005 sub-bug A)', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('scopes replacement to current milestone when shipped milestones use <details>', () => {
+    const { replaceInCurrentMilestone } = require(CORE_PATH);
+    const roadmap = [
+      '# Roadmap',
+      '',
+      '<details><summary>v1.0 Foo -- SHIPPED</summary>',
+      '',
+      '- [x] Phase 1: Old stuff',
+      '</details>',
+      '',
+      '## v2.0 Bar',
+      '',
+      '- [ ] Phase 4: Build',
+      '- [ ] Phase 5: Test',
+    ].join('\n');
+
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'STATE.md'),
+      '---\nmilestone: v2.0\n---\n',
+      'utf-8'
+    );
+
+    const result = replaceInCurrentMilestone(
+      roadmap,
+      /\[ \](.*Phase 4)/,
+      '[x]$1',
+      tmpDir
+    );
+    assert.ok(result.includes('[x] Phase 4'), 'Phase 4 checkbox must be checked');
+    assert.ok(result.includes('[ ] Phase 5'), 'Phase 5 checkbox must remain unchecked');
+    assert.ok(result.includes('[x] Phase 1'), 'shipped Phase 1 must remain unchanged');
+  });
+
+  test('falls back to lastIndexOf heuristic when cwd is not provided (backward compat)', () => {
+    const { replaceInCurrentMilestone } = require(CORE_PATH);
+    // Simple ROADMAP without <details> -- the original heuristic works fine here
+    const roadmap = [
+      '# Roadmap',
+      '',
+      '## v1.0 Current',
+      '',
+      '- [ ] Phase 1: Build',
+      '- [ ] Phase 2: Test',
+    ].join('\n');
+
+    // Call WITHOUT cwd -- must use original lastIndexOf heuristic
+    const result = replaceInCurrentMilestone(
+      roadmap,
+      /\[ \](.*Phase 1)/,
+      '[x]$1'
+    );
+    assert.ok(result.includes('[x] Phase 1'), 'replacement must work without cwd');
+    assert.ok(result.includes('[ ] Phase 2'), 'other checkboxes must remain unchanged');
+  });
+});
