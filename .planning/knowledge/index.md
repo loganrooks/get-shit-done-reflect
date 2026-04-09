@@ -1,19 +1,42 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-09T08:17:39Z
-**Total entries:** 207
+**Generated:** 2026-04-09T08:57:44Z
+**Total entries:** 208
 
-## Signals (206)
+## Signals (207)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-04-08-autonomous-discuss-plan-execute-pr-merge-pipeline | get-shit-done-reflect | notable | detected | autonomous-workflow,end-to-end,discuss-plan-execute,pr-workflow,ci-integration,positive-pattern | 2026-04-08 | active |
+| sig-2026-04-08-model-override-scope-leak-researcher-got-sonnet | get-shit-done-reflect | notable | detected | model-override,agent-dispatch,orchestrator-error,scope-leak,researcher | 2026-04-08 | active |
+| SIG-260222-008-known-top-level-keys-deduplication | get-shit-done-reflect | notable | detected | deduplication,constants,refactor,drift-prevention,module-level | 2026-02-22 | active |
+| SIG-260222-007-auto-detect-type-discrimination-files-vs-dirs | get-shit-done-reflect | notable | detected | auto-detect,filesystem,detection,file-exists,dir-exists,statSync | 2026-02-22 | active |
+| SIG-260222-006-migration-log-prepend-after-header | get-shit-done-reflect | notable | detected | migration-logging,markdown,ordering,reverse-chronological,log-format | 2026-02-22 | active |
+| SIG-260222-005-zero-touch-manifest-architecture | get-shit-done-reflect | notable | detected | manifest,architecture,extensibility,zero-touch,feature-addition | 2026-02-22 | active |
+| SIG-260222-004-step-number-collision-plan-vs-reality | get-shit-done-reflect | notable | detected | plan-spec,workflow-numbering,step-collision,deviation,workflow-files | 2026-02-22 | active |
+| SIG-260222-003-atomic-write-same-directory-tmp | get-shit-done-reflect | notable | detected | atomic-write,config-safety,filesystem,architecture,rename | 2026-02-22 | active |
+| SIG-260222-002-coerce-value-no-number-to-boolean | get-shit-done-reflect | notable | detected | type-coercion,config-migration,architecture,correctness,numbers | 2026-02-22 | active |
+| SIG-260222-001-tdd-red-green-discipline-two-consecutive-plans | get-shit-done-reflect | notable | detected | tdd,testing,red-green,discipline,cli-commands | 2026-02-22 | active |
+| sig-2026-02-11-premature-spiking-no-research-gate | get-shit-done-reflect | notable | detected | spike-workflow,research-gate,workflow-ordering | 2026-02-11 | active |
+| sig-2026-02-11-spike-design-missing-feasibility | get-shit-done-reflect | notable | detected | spike-workflow,experimental-design,feasibility,template-gap | 2026-02-11 | active |
+| sig-2026-04-03-discuss-mode-adoption-gap-silent-feature-drop |  | high | detected | upstream-adoption,verification-gap,discuss-phase,feature-drop,process-gap |  | open |
+| sig-2026-03-30-release-workflow-forgotten-in-milestone-completion |  | medium | detected | release-workflow,deployment,milestone-completion,process-gap,automation-opportunity |  | open |
+| sig-2026-03-30-audit-severity-downgrade-bias |  | medium | detected | audit-quality,severity-assessment,epistemic-gap,self-assessment-bias,milestone-audit |  | open |
+| sig-2026-02-23-plan-review-missing-tdd-and-race-condition |  | medium | detected | plan-quality,tdd,race-condition,human-intervention,workflow-improvement |  | open |
+| sig-2026-04-08-no-discuss-milestone-workflow | get-shit-done-reflect | notable | detected |  |  | active |
+| sig-2026-03-02-requirements-lack-motivation-traceability | get-shit-done-reflect | notable | detected | requirements,traceability,signal-lifecycle,template |  | detected |
+| SIG-260223-015 |  | notable | detected | planning,tdd,pitfall-mitigation |  | resolved |
+| SIG-260223-014 |  | notable | detected | heuristics,natural-language,complexity-detection |  | resolved |
+| SIG-260223-013 |  | notable | detected | testing,isolation,environment |  | open |
+| SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
+| sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
+| SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-09-exploration-outputs-lack-artifact-traceability | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
 | sig-2026-04-09-insert-phase-cli-incomplete-roadmap-update | get-shit-done-reflect | notable | detected | insert-phase,cli,roadmap,tooling-gap | "2026-04-09 | active |
 | sig-2026-04-09-exploratory-mode-epistemic-quality-regression | get-shit-done-reflect | critical | detected | discuss-phase,exploratory-mode,epistemic-rigor,decision-quality,premature-closure | "2026-04-09 | active |
 | sig-2026-04-09-discuss-phase-workflow-gaps | get-shit-done-reflect | notable | detected | discuss-phase,workflow,auto-progression,context-commit,config-awareness | "2026-04-09 | active |
 | sig-2026-04-09-auto-flag-scoping-ambiguity-discuss-vs-chain | get-shit-done-reflect | notable | detected | workflow-flags,discuss-phase,auto-proceed,flag-scoping,ux-ambiguity | "2026-04-09 | active |
 | sig-2026-04-09-state-md-stale-after-worktree-merge | get-shit-done-reflect | notable | detected | state-sync,worktree,merge-conflict,execute-phase,orchestrator-gap | "2026-04-09 | active |
-| sig-2026-04-08-autonomous-discuss-plan-execute-pr-merge-pipeline | get-shit-done-reflect | notable | detected | autonomous-workflow,end-to-end,discuss-plan-execute,pr-workflow,ci-integration,positive-pattern | 2026-04-08 | active |
-| sig-2026-04-08-model-override-scope-leak-researcher-got-sonnet | get-shit-done-reflect | notable | detected | model-override,agent-dispatch,orchestrator-error,scope-leak,researcher | 2026-04-08 | active |
 | sig-2026-04-03-headless-session-wrong-commit-prefix-burned-version | get-shit-done-reflect | critical | detected | tags: | "2026-04-03 | active |
 | sig-2026-04-02-quick-task-code-changes-committed-directly-to-main | get-shit-done-reflect | critical | detected | tags: | "2026-04-02 | active |
 | sig-2026-04-02-update-workflow-npx-resolves-local-in-dev-repo | get-shit-done-reflect | notable | detected | tags: | "2026-04-02 | active |
@@ -169,14 +192,6 @@
 | SIG-260222-011-silent-helper-pattern-for-auto-regeneration | get-shit-done-reflect | notable | detected | tags: | "2026-02-22 | active |
 | SIG-260222-010-tdd-red-green-enables-zero-deviation-execution | get-shit-done-reflect | notable | detected | tags: | "2026-02-22 | active |
 | SIG-260222-009-reconstructfrontmatter-null-skipping-footgun | get-shit-done-reflect | notable | detected | tags: | "2026-02-22 | active |
-| SIG-260222-008-known-top-level-keys-deduplication | get-shit-done-reflect | notable | detected | deduplication,constants,refactor,drift-prevention,module-level | 2026-02-22 | active |
-| SIG-260222-007-auto-detect-type-discrimination-files-vs-dirs | get-shit-done-reflect | notable | detected | auto-detect,filesystem,detection,file-exists,dir-exists,statSync | 2026-02-22 | active |
-| SIG-260222-006-migration-log-prepend-after-header | get-shit-done-reflect | notable | detected | migration-logging,markdown,ordering,reverse-chronological,log-format | 2026-02-22 | active |
-| SIG-260222-005-zero-touch-manifest-architecture | get-shit-done-reflect | notable | detected | manifest,architecture,extensibility,zero-touch,feature-addition | 2026-02-22 | active |
-| SIG-260222-004-step-number-collision-plan-vs-reality | get-shit-done-reflect | notable | detected | plan-spec,workflow-numbering,step-collision,deviation,workflow-files | 2026-02-22 | active |
-| SIG-260222-003-atomic-write-same-directory-tmp | get-shit-done-reflect | notable | detected | atomic-write,config-safety,filesystem,architecture,rename | 2026-02-22 | active |
-| SIG-260222-002-coerce-value-no-number-to-boolean | get-shit-done-reflect | notable | detected | type-coercion,config-migration,architecture,correctness,numbers | 2026-02-22 | active |
-| SIG-260222-001-tdd-red-green-discipline-two-consecutive-plans | get-shit-done-reflect | notable | detected | tdd,testing,red-green,discipline,cli-commands | 2026-02-22 | active |
 | sig-2026-02-22-webfetch-best-practices-lost | get-shit-done-reflect | notable | triaged | tags: | "2026-02-22 | active |
 | sig-2026-02-22-scope-creep-unauthorized-new-sections | get-shit-done-reflect | notable | triaged | tags: | "2026-02-22 | active |
 | sig-2026-02-22-protocol-section-13-fabricated-provenance | get-shit-done-reflect | notable | triaged | tags: | "2026-02-22 | active |
@@ -199,20 +214,6 @@
 | sig-2026-02-11-local-install-global-kb-model | get-shit-done-reflect | critical | detected | tags: | "2026-02-11 | active |
 | sig-2026-02-11-signal-workflow-context-bloat | get-shit-done-reflect | notable | detected | tags: | "2026-02-11 | active |
 | sig-2026-02-11-agent-inline-research-context-bloat | get-shit-done-reflect | notable | detected | tags: | "2026-02-11 | active |
-| sig-2026-02-11-premature-spiking-no-research-gate | get-shit-done-reflect | notable | detected | spike-workflow,research-gate,workflow-ordering | 2026-02-11 | active |
-| sig-2026-02-11-spike-design-missing-feasibility | get-shit-done-reflect | notable | detected | spike-workflow,experimental-design,feasibility,template-gap | 2026-02-11 | active |
-| sig-2026-04-03-discuss-mode-adoption-gap-silent-feature-drop |  | high | detected | upstream-adoption,verification-gap,discuss-phase,feature-drop,process-gap |  | open |
-| sig-2026-03-30-release-workflow-forgotten-in-milestone-completion |  | medium | detected | release-workflow,deployment,milestone-completion,process-gap,automation-opportunity |  | open |
-| sig-2026-03-30-audit-severity-downgrade-bias |  | medium | detected | audit-quality,severity-assessment,epistemic-gap,self-assessment-bias,milestone-audit |  | open |
-| sig-2026-02-23-plan-review-missing-tdd-and-race-condition |  | medium | detected | plan-quality,tdd,race-condition,human-intervention,workflow-improvement |  | open |
-| SIG-260223-015 |  | notable | detected | planning,tdd,pitfall-mitigation |  | resolved |
-| SIG-260223-014 |  | notable | detected | heuristics,natural-language,complexity-detection |  | resolved |
-| SIG-260223-013 |  | notable | detected | testing,isolation,environment |  | open |
-| SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
-| sig-2026-04-08-no-discuss-milestone-workflow | get-shit-done-reflect | notable | detected |  |  | active |
-| sig-2026-03-02-requirements-lack-motivation-traceability | get-shit-done-reflect | notable | detected | requirements,traceability,signal-lifecycle,template |  | detected |
-| sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
-| SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
 
 ## Spikes (1)
 
