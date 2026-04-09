@@ -1,157 +1,158 @@
-# Audit Skill Gap Analysis: What Phase 57's Planning Failure Revealed
+# Audit Skill Gap Analysis: What Phase 57 Revealed About Audit Design
 
 **Date:** 2026-04-09
-**Context:** Phase 57 CONTEXT.md contained a rich "Active Measurement" vision (lines 72-84) that was silently narrowed to a session-meta file reader during planning. The user wanted to run an investigatory audit to trace the causal chain. No `/gsdr:audit` command existed (57.3 gap). When we looked at the audit type taxonomy, no type matched the investigation needed.
+**Context:** Phase 57 produced a result that didn't match expectations. The user wanted to investigate what happened. No `/gsdr:audit` command existed (57.3 gap). When we looked at the audit type taxonomy, no existing type matched the investigation needed. The investigation we improvised revealed both a specific problem (Phase 57 scope) and a general problem (audit types can smuggle in assumptions about what went wrong before the investigation begins).
 
 ---
 
-## What We Actually Needed
+## Part 1: What We Actually Needed
 
-An audit that traces **scope/vision loss across the artifact pipeline**:
+Something went wrong with Phase 57. The CONTEXT.md described a rich vision for active measurement infrastructure. The implementation is a session-meta file reader. We wanted to understand what happened.
 
-```
-REQUIREMENTS → CONTEXT → RESEARCH → DISCUSSION-LOG → PLAN → IMPLEMENTATION
-     ↓              ↓          ↓             ↓            ↓          ↓
-  "session-meta   "active     "read         silence     "read      session-meta
-   reading"       measurement  session-meta  on the      session-   reader with
-                  instrument"  files"        boundary    meta"      percentiles"
-                                             question"
-```
+The investigation we ran (ad hoc, via an Explore agent) read the artifact chain in sequence: REQUIREMENTS → CONTEXT → RESEARCH → DISCUSSION-LOG → PLAN → IMPLEMENTATION. It found correlations — the scope appeared to narrow at each stage — and proposed a causal story: "three-stage narrowing by omission."
 
-The investigation required:
-1. Reading REQUIREMENTS to check if they were already narrow (they were)
-2. Reading CONTEXT.md to see the full vision (it was excellent)
-3. Reading RESEARCH.md to see if it honored or narrowed the context (it narrowed)
-4. Reading DISCUSSION-LOG to check if the scope boundary question was raised (it wasn't)
-5. Reading PLANs to see what was actually specified (only session-meta reading)
-6. Tracing the causal chain to find WHERE the narrowing happened
-7. Determining whether the narrowing was a deliberate decision or an omission
-8. Identifying what specific implementations were lost
-
-This is a **pipeline fidelity audit** — checking whether upstream intent survived translation through the artifact pipeline.
+But that causal story was already shaped by how we framed the investigation. We asked "where was the vision lost?" which presupposes that something was lost, that it happened at a locatable stage, and that the mechanism was loss rather than, say, legitimate scope management, agent capability limits, or a reasonable interpretation of ambiguous requirements. The investigation found what we were looking for — which is exactly the problem.
 
 ---
 
-## What the Current Taxonomy Offers (and Why It Doesn't Fit)
+## Part 2: What the Current Taxonomy Offers (and Why None of It Fits)
 
 | Existing Type | Why It Doesn't Match |
 |---|---|
-| `phase_verification` | Checks if a phase achieved its goal. Phase 57 "passed" verification — 10/10 must-haves. The problem isn't that it failed its goal, it's that the goal was wrong. |
-| `codebase_forensics` | Structural understanding of code. This isn't about code — it's about the planning artifact chain. |
-| `comparative_quality` | Compares quality across outputs. Closer — but it's comparing CONTEXT.md vision to PLAN scope, not comparing two implementations. |
-| `requirements_review` | Checks requirements coverage. Part of the picture — but the finding is that requirements were *too narrow*, not that they were uncovered. |
-| `claim_integrity` | Checks typed claims resolve. Could catch that `[open]` questions weren't answered, but the scope is much broader than claim checking. |
-| `milestone` | Cross-phase integration. Wrong granularity — this is intra-phase, artifact-to-artifact. |
-| `exploratory` | Open-ended, follow the question. This WORKS as an escape hatch but provides no structure for the specific thing we needed to do: trace information loss across a pipeline. |
+| `phase_verification` | Checks if a phase achieved its stated goal. Phase 57 "passed" 10/10. The problem isn't that it failed — it's that the goal may itself have been wrong, or the right goal at a different scope than expected. We don't know yet. |
+| `codebase_forensics` | Structural understanding of code. This isn't about code. |
+| `comparative_quality` | Compares quality across outputs. Closer — but already assumes quality is the axis. Maybe the issue is scope, or authority, or agent capability. |
+| `requirements_review` | Checks requirements coverage. Part of the picture — but presupposes requirements are the right unit of analysis. |
+| `claim_integrity` | Checks typed claims resolve. Could catch unanswered `[open]` questions, but the scope is broader. |
+| `exploratory` | Open-ended, follow the question. This WORKS as an escape hatch but provides no structure for the specific thing we needed: reading a sequence of artifacts and understanding what happened between them. |
+
+The deeper problem: every existing type presupposes a **form of failure** — structural (does it work?), epistemic (is it well-reasoned?), compliance (does it follow the rules?). What we needed was an investigation that didn't presuppose the form of failure — that could discover it.
 
 ---
 
-## The Missing Audit Type: Pipeline Fidelity
+## Part 3: The Missing Audit Type: Investigatory
 
-**What it is:** An investigation into whether upstream intent (requirements, context, governing principles, open questions) was faithfully transmitted through the artifact pipeline into the implemented output.
+### Why not "Pipeline Fidelity"
+
+Our first attempt at naming this type was `pipeline_fidelity` — "checking whether upstream intent survived translation through the artifact pipeline." This framing already contains the diagnosis:
+
+- "pipeline" assumes the artifact chain is the relevant unit of analysis
+- "fidelity" assumes the problem is faithfulness of transmission
+- "upstream intent" assumes there was a clear intent that should have been preserved
+- The implied cause is "information loss" — a knowledge transmission failure
+
+But we don't know any of that before the investigation. Maybe the requirements were correctly scoped and the CONTEXT.md was aspirational beyond what was feasible. Maybe the planner made a sound judgment call that wasn't documented. Maybe the problem isn't in the pipeline at all but in how we write requirements before discuss-phase runs. The framing shapes what the auditor looks for and what it can find.
+
+### What "Investigatory" means
+
+An **investigatory audit** starts from a discrepancy, anomaly, or concern — something that doesn't look right — and tries to understand what happened. It does NOT start from a hypothesis about the form of failure.
 
 **When to use it:**
-- "The implementation doesn't match what we discussed"
-- "Something was lost in translation"
-- "How did this get narrowed?"
-- "The plans don't reflect the context"
-- "The requirements don't capture what we agreed on"
-- "We had a rich discussion but the output is shallow"
+- "Something went wrong but I don't know what"
+- "This doesn't match what I expected"
+- "How did we end up here?"
+- "I want to understand what happened before deciding what to fix"
 
-**What makes it distinct from existing types:**
-- It's **cross-artifact** — reads 4-6 artifacts in sequence, not one artifact type
-- It's **causal** — traces which stage narrowed the scope and whether it was deliberate
-- It's **about omission** — the finding is often "X was never discussed" rather than "X was wrong"
-- It's **directional** — follows the pipeline from upstream (requirements/context) to downstream (plans/implementation), not the reverse (verification starts from implementation and checks against goals)
+**What makes it distinct:**
+- It's **pre-diagnostic** — the audit discovers the form of the problem, it doesn't presuppose it
+- It's **cross-artifact** when needed — but only because the investigation leads there, not because the type mandates it
+- It tolerates **multiple explanations** — findings should present competing interpretations, not collapse to a single root cause
+- It's **reflexive about its own framing** — see Part 4
 
-**Key investigation questions:**
-1. What was the upstream intent? (Read REQUIREMENTS, CONTEXT.md governing principles)
-2. At what stage was the intent narrowed? (Compare each artifact pair in the chain)
-3. Was the narrowing an explicit decision or an omission? (Check DISCUSSION-LOG for decision records)
-4. What specific capabilities/features were lost? (Diff upstream vision vs downstream implementation)
-5. What structural pattern enabled the loss? (e.g., "planner honors requirements but not context")
+**Key investigation questions (starting points, not script):**
+1. What was expected? What was delivered? What's the discrepancy?
+2. What artifacts are relevant? (Let the discrepancy guide artifact selection, not a fixed chain)
+3. For each relevant artifact: what does it say, what does it not say, what might explain the gap?
+4. What are at least two competing explanations for what happened?
+5. What evidence would distinguish between them?
+6. What do we still not know?
 
 **Ground rules needed (beyond core):**
-- **P1: Read the full artifact chain.** Start from the earliest upstream artifact (requirements or milestone context) and read forward through every intermediate artifact to the implementation. Do not skip artifacts — the narrowing may happen at any stage.
-- **P2: Distinguish explicit decisions from silence.** For each narrowing, check whether DISCUSSION-LOG records a deliberate decision. "We chose to defer X" is different from "X was never mentioned." Silence is a finding.
-- **P3: Check for unanswered questions.** If CONTEXT.md contains `[open]` questions about scope boundaries, verify they were resolved in DISCUSSION-LOG or RESEARCH.md before planning proceeded. Unanswered questions are load-bearing — they silently default to the narrower interpretation.
-- **P4: Don't blame the last stage.** The planner who wrote narrow PLANs may have been faithfully executing narrow REQUIREMENTS. The researcher who accepted narrow scope may have been faithfully following narrow requirements. Trace the root cause upstream.
+- **I1: Start from the discrepancy, not from a theory.** Describe what was expected and what was delivered before reading any artifacts. The gap between them is the investigation target — not a presupposed mechanism.
+- **I2: Let the investigation guide artifact selection.** Don't mandate which artifacts to read in advance. Follow the evidence — if the discrepancy points to the planning stage, read planning artifacts. If it points to requirements, read requirements. The artifact chain is a finding, not an input.
+- **I3: Present competing explanations.** For each finding, offer at least two interpretations. "The research narrowed scope" could mean the researcher made an error, OR the researcher correctly applied constraints the investigator hasn't understood yet. Don't collapse to one.
+- **I4: Name what the investigation cannot see.** Every investigation is conducted from a position with blind spots. What does this framing make visible? What might it obscure? What would a differently-framed investigation look for?
 
 **Body template:**
 
 ```
-## Upstream Intent
-[What REQUIREMENTS, CONTEXT.md, and governing principles specified]
+## The Discrepancy
+[What was expected vs. what was delivered — no causal claims yet]
 
-## Artifact Pipeline Trace
-[For each stage: what went in → what came out → what was lost → was loss explicit or implicit]
+## What Was Examined
+[Which artifacts, in what order, and why those artifacts]
 
-### Stage: Requirements → Context
-[...]
-### Stage: Context → Research  
-[...]
-### Stage: Research → Discussion
-[...]
-### Stage: Discussion → Plan
-[...]
-### Stage: Plan → Implementation
-[...]
+## What Was Found
+[Observations from each artifact — what it says, what it doesn't say]
 
-## Loss Inventory
-[Specific capabilities/features/metrics lost, with upstream citation]
+## Competing Explanations
+[At least two interpretations of the findings]
 
-## Root Cause
-[Which stage caused the narrowing, and what structural pattern enabled it]
+## What Distinguishes Them
+[What evidence would favor one explanation over another]
 
-## Structural Fix
-[What would prevent this loss pattern from recurring]
+## What Remains Unknown
+[Questions the investigation opened but could not answer]
+
+## Position of This Investigation
+[What this framing made visible; what it might have obscured; what a different investigation might find]
 ```
 
 ---
 
-## Implications for `/gsdr:audit` Design
+## Part 4: A General Concern About Audit Types and Prejudgment
 
-### 1. Add `pipeline_fidelity` as a new audit type
+This gap analysis revealed something that applies beyond the `investigatory` type: **every audit type smuggles in assumptions about the form of failure, and those assumptions shape what the auditor can find.**
 
-Family: **epistemic** (it's about knowledge transmission, not structural verification)
+- A `phase_verification` audit assumes the phase goal is the right standard. If the goal itself is wrong, verification passes and the real problem is invisible.
+- A `comparative_quality` audit assumes quality is the relevant axis and that comparison is the right method. If the problem is scope rather than quality, the audit finds nothing.
+- A `claim_integrity` audit assumes the typed claim vocabulary captures the relevant distinctions. Claims that don't fit the vocabulary are invisible.
+- A `requirements_review` assumes requirements are the authoritative scope source. If context/discussion should override requirements in certain cases, the audit can't see that.
 
-Ground rules: Core + E1, E2, E3 + P1, P2, P3, P4 (pipeline-specific extensions above)
+This isn't a flaw to fix — all inquiry is prejudiced in the Gadamerian sense. You can't ask a question without assumptions about what kind of answer you're looking for. But **certain prejudices are wrong for certain inquiries.** A structural audit is wrong when the problem is epistemic. A fidelity audit is wrong when the problem isn't about fidelity.
 
-This is NOT just another `exploratory` audit — it has a specific structure (artifact chain tracing) and specific investigation questions (where was intent narrowed, was it deliberate) that the exploratory template doesn't capture.
+**Suggestion for the audit skill:** Every audit type should include, either in its ground rules or as a final reflection step, a version of the question: *"What did the choice of this audit type make visible, and what might it have obscured? If the findings feel too clean or too expected, consider whether the type itself shaped the investigation toward a predetermined conclusion."*
 
-### 2. The type inference table needs a row for this
+This is not the same as Rule 4 (escape hatch), which asks "what didn't fit the template." This is more fundamental: "was this the right template to begin with?" Rule 4 catches excess within the frame. This catches whether the frame itself was appropriate.
+
+---
+
+## Part 5: Implications for `/gsdr:audit` Design
+
+### 1. Add `investigatory` as a new audit type
+
+Family: this is the question — it doesn't fit neatly into structural, epistemic, or compliance. It's pre-diagnostic. It might be its own family, or it might be the audit type you use when you don't yet know which family the problem belongs to. For now, treat it as its own category alongside the three families and the `exploratory` escape hatch.
+
+Ground rules: Core + I1, I2, I3, I4 (investigatory-specific, above)
+
+### 2. The type inference table
 
 | Context clue | Inferred type |
 |---|---|
-| "lost in translation", "narrowed", "doesn't match what we discussed", "vision dropped", "how did this happen", "not what I asked for" | pipeline_fidelity |
+| "what happened", "how did we end up here", "something went wrong", "doesn't match what I expected", "I want to understand before fixing" | investigatory |
 
-### 3. The auditor needs the artifact chain as input
+### 3. Distinguish from `exploratory`
 
-For `pipeline_fidelity` audits, the task spec should include the ordered list of artifacts to trace:
-```
-artifacts_chain:
-  - .planning/REQUIREMENTS.md (sections: TEL-01a, TEL-01b, TEL-02, TEL-04, TEL-05)
-  - .planning/phases/57-*/57-CONTEXT.md
-  - .planning/phases/57-*/57-RESEARCH.md
-  - .planning/phases/57-*/57-DISCUSSION-LOG.md
-  - .planning/phases/57-*/57-01-PLAN.md
-  - .planning/phases/57-*/57-02-PLAN.md
-  - get-shit-done/bin/lib/telemetry.cjs
-```
+`exploratory` is open-ended but forward-looking — "what should we think about X?" `investigatory` is open-ended but backward-looking — "what happened with X?" The body templates reflect this: exploratory asks "what might it mean," investigatory asks "what are competing explanations."
 
-The orchestrator can auto-derive this chain from the phase number + standard GSD artifact naming.
+### 4. Add a frame-reflexivity step to ALL audit types
 
-### 4. Consider whether `pipeline_fidelity` should be part of standard post-phase flow
+Not just investigatory — every type. A lightweight version of I4 as a closing step:
 
-The verifier (gsdr-verifier) checks "did the phase achieve its goal" — but the goal may itself be wrong (as in Phase 57). A pipeline fidelity check could run as an optional verification step that compares implementation not against PLAN must-haves (which the verifier does) but against CONTEXT.md governing principles (which nothing currently does).
+> "Did the choice of audit type shape what you found? What would a differently-typed audit have looked for?"
 
-This is architecturally different from verification: verification checks plan → implementation fidelity. Pipeline fidelity checks context → plan fidelity. Both are needed.
+This could be a sentence or a paragraph. It doesn't need to be a full section for every audit. But the question should be asked.
+
+### 5. Consider frame-reflexivity for other GSD workflows
+
+The same concern applies beyond audits. The verifier presupposes that plan must-haves are the right standard. The signal synthesizer presupposes that sensor-detected patterns are the right signals. The planner presupposes that requirements are the authoritative scope. Each of these framings is productive — and each has blind spots. Making those blind spots visible is a design principle, not just an audit feature.
 
 ---
 
-## What This Doesn't Cover (Known Limitations)
+## Part 6: What This Doesn't Cover (Known Limitations)
 
-- This analysis is based on one incident (Phase 57). The `pipeline_fidelity` type may need refinement after more cases.
-- The ground rules (P1-P4) are first-draft — they should be tested against the Phase 57 case and at least one other case before formalizing.
-- The relationship between `pipeline_fidelity` and `comparative_quality` is fuzzy — a comparative quality audit could technically catch the same issue if scoped correctly. The distinction is that pipeline_fidelity traces a causal chain while comparative_quality compares outputs.
-- Whether this should be a separate audit type or a structured variant of `exploratory` is a design question worth deliberating on after trying it.
+- This analysis is grounded in one incident (Phase 57). The `investigatory` type and its ground rules need testing against other cases before formalizing.
+- The relationship between `investigatory` and `exploratory` is deliberately left unresolved — they may merge, they may stay distinct, usage will clarify.
+- The frame-reflexivity step (Part 4) is a suggestion, not a tested practice. It could become performative (agents writing "I considered my biases" without actually doing so) if not grounded in specific questions about specific blind spots.
+- Whether `investigatory` should be its own family or a modifier applicable to any type ("run a phase_verification audit in investigatory mode") is an open design question.
+- The Heideggerian observation — that the form of questioning already determines what can show up as an answer — is philosophically deep but operationally hard to encode. Ground rules I1-I4 are a pragmatic approximation, not a full response. A fuller response would require the audit system to support mid-audit type switching when the investigation reveals the original type was wrong.
