@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: in_progress
-stopped_at: "Phase 57 Plan 01 complete -- telemetry.cjs module and router wiring done. Plan 02 (tests) remains."
-last_updated: "2026-04-09T20:37:58.480Z"
-last_activity: 2026-04-09 -- Phase 57 Plan 01 executed
+status: executing
+stopped_at: Completed 57-02-PLAN.md -- Phase 57 fully complete (telemetry module + tests + baseline)
+last_updated: "2026-04-09T20:48:20.160Z"
+last_activity: 2026-04-09
 progress:
   total_phases: 16
   completed_phases: 8
-  total_plans: 22
-  completed_plans: 19
-  percent: 86
+  total_plans: 20
+  completed_plans: 20
+  percent: 100
 ---
 
 # Project State
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57 of 64 (Measurement & Telemetry Baseline)
-Plan: 1 of 2
-Status: Plan 01 complete (telemetry.cjs module + router wiring)
-Last activity: 2026-04-09 -- Phase 57 Plan 01 executed
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-04-09
 
 Progress: [████████░░] 86%
 
@@ -126,6 +126,7 @@ Recent decisions affecting current work:
 - [Phase 57.3]: Sub-artifact files get minimal frontmatter (date, audit_type, scope) to satisfy must_haves constraint that every migrated artifact has frontmatter
 - [Phase 57.3]: JSONL session transcripts (3 root-level audits) receive frontmatter prepended without content format conversion per G-5 conservative migration
 - [Phase 57-01]: loadSessionMetaCorpus returns {sessions, stats} object for single-pass corpus stats; facets fields use facet_ prefix in enrich to avoid key collision; default distributions use clean tier only with includeCaveated opt-in
+- [Phase 57]: Baseline captured from main repo cwd to match session-meta project_path values (worktree resolveWorktreeRoot returns worktree path when .planning/ exists)
 
 ### Roadmap Evolution
 
@@ -162,6 +163,7 @@ Recent decisions affecting current work:
 | Phase 57.2 P03 | 4min | 3 tasks | 3 files |
 | Phase 57.3 P01 | 3min | 2 tasks | 3 files |
 | Phase 57.3 P02 | 4min | 2 tasks | 34 files |
+| Phase 57 P02 | 5min | 2 tasks | 2 files |
 
 ### Key Artifacts
 
@@ -173,6 +175,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-09
-Stopped at: Phase 57 Plan 01 complete -- telemetry.cjs module (5 subcommands) and gsd-tools router wiring done. Next: Plan 02 (tests)
-Resume file: .planning/phases/57-measurement-telemetry-baseline/57-01-SUMMARY.md
+Last session: 2026-04-09T20:48:20.155Z
+Stopped at: Completed 57-02-PLAN.md -- Phase 57 fully complete (telemetry module + tests + baseline)
+Resume file: None
