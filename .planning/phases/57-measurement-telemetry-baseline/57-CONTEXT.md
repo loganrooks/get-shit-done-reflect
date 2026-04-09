@@ -403,16 +403,15 @@ These emerged from Tier 1 spike findings. They are NOT closed questions — they
 - **What does "quality" mean?** — Outcome ↔ errors are NOT correlated. A "fully_achieved" session can have many errors (iterative debugging is productive error), and a "partially_achieved" session can have zero errors (clean execution that didn't finish). This challenges naive quality metrics and deserves deeper investigation.
 
 #### From Spike E (Behavioral Metrics):
-- **Harness effectiveness — causal or selection?** — [assumed:bare] GSD sessions have 53% fewer errors and 47% fewer interruptions than ad-hoc. Headline finding. But is the harness reducing errors, or do structured tasks (which tend to use GSD) inherently produce fewer errors? Understanding the causal structure matters for how we interpret this metric. <!-- context-checker WARN: Spike 006 DECISION.md says "~50% lower tool error rates" (1.14 vs 2.26 = 49.6% reduction); "53%" not found in source spike. Cite: spk-006 DECISION.md line 55. Correct value is ~50%. Also untyped load-bearing: drives Q4 and causal research program. -->
+- **Harness effectiveness — causal or selection?** — [assumed:bare] GSD sessions have ~50% fewer errors (1.14 vs 2.26 avg, spk-006) and ~47% fewer interruptions than ad-hoc. Headline finding. But is the harness reducing errors, or do structured tasks (which tend to use GSD) inherently produce fewer errors? Understanding the causal structure matters for how we interpret this metric.
 - **Session fragmentation root cause** — Fragmented sessions have 5.6x tool errors. But direction of causation is unknown: does fragmentation cause errors (context loss), or do error-prone tasks cause fragmentation (user takes breaks from frustrating work)? Different causes → different interventions.
 - **Collection gap archaeology** — 54% of sessions missing `user_response_times`. Why? Are there session types that never populate it? Is it a Claude Code version issue? Understanding the gap informs whether to include response_time metrics in baseline or flag as unreliable.
 - **"Question" sessions as a distinct category** — N=11 sessions starting with questions have 3.64 avg tool errors (highest category). These appear to be debugging/clarification sessions where the harness is used for exploratory work outside structured workflows. A distinct pattern worth tracking.
 
 ### Spike Execution Summary
-- **Completed:** Spikes C (facets — partial signal), E (behavioral — confirmed, 2 new baseline dimensions)
-- **Running:** Spike A (token reliability — awaiting results) <!-- context-checker WARN: stale status — Spike A is RESOLVED per line 89, line 128, and Open Questions resolved table (line 424). This "Running" status contradicts the rest of the document. -->
-- **Before planning:** Spike B + F together (requires env var setup)
-- **Conditional:** Spike D — researcher evaluates during research
+- **Completed:** Spike A (token reliability — resolved), C (facets — partial signal), E (behavioral — confirmed, 2 new baseline dimensions), 007 (data integrity — 85.4% clean corpus), 008 Parts 2+3 (Codex OTel rejected console; statusline bridge has 14 unwritten fields)
+- **Pending:** 008 Part 1 (Claude Code OTel full catalog — user ran partial test, full interactive session pending)
+- **Conditional:** Spike D (reference design) — researcher evaluates during research
 - **Spike-derived follow-ups:** Available for researcher or further spikes as warranted
 
 </spikes>
