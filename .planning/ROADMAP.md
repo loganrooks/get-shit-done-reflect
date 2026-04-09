@@ -57,8 +57,8 @@ Plans:
 **Plans:** 2 plans
 
 Plans:
-- [ ] 55.1-01-PLAN.md -- Fix ROADMAP corruption when milestone wrapped in details (#2005)
-- [ ] 55.1-02-PLAN.md -- Extend atomicWriteFileSync to 3 modules (#1972) and add worktree_branch_check (#1981)
+- [x] 55.1-01-PLAN.md -- Fix ROADMAP corruption when milestone wrapped in details (#2005)
+- [x] 55.1-02-PLAN.md -- Extend atomicWriteFileSync to 3 modules (#1972) and add worktree_branch_check (#1981)
 
 ### Phase 55.2: Codex Runtime Substrate (INSERTED)
 
@@ -193,7 +193,7 @@ Phases execute sequentially 55 through 59, then 60 and 61 can proceed in paralle
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 55. Upstream Mini-Sync | 4/4 | Complete | 2026-04-08 |
-| 55.1. Upstream Bug Patches | 0/2 | Not started | - |
+| 55.1. Upstream Bug Patches | 2/2 | Complete | 2026-04-09 |
 | 55.2. Codex Runtime Substrate | 0/TBD | Not started | - |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
 | 57. Measurement & Telemetry Baseline | 0/TBD | Not started | - |
