@@ -131,9 +131,17 @@ Ground rules: Core + I1, I2, I3, I4 (investigatory-specific, above)
 |---|---|
 | "what happened", "how did we end up here", "something went wrong", "doesn't match what I expected", "I want to understand before fixing" | investigatory |
 
-### 3. Distinguish from `exploratory`
+### 3. Relationship to `exploratory`
 
-`exploratory` is open-ended but forward-looking — "what should we think about X?" `investigatory` is open-ended but backward-looking — "what happened with X?" The body templates reflect this: exploratory asks "what might it mean," investigatory asks "what are competing explanations."
+The distinction between investigatory and exploratory is not a clean temporal split (backward vs. forward). Both are hermeneutically circular — they move between what happened and what it means for what comes next.
+
+An investigatory audit triggered by a breakdown doesn't just ask "what happened?" — the breakdown reveals structural conditions that were invisible during smooth functioning (Heidegger's *Unzuhandenheit*: when the hammer breaks, you see the workshop). Phase 57's discrepancy revealed things about requirements authority, verifier blind spots, and context-to-plan translation that matter for future phases, not just for understanding the past. Investigation is always already oriented toward redesign.
+
+Similarly, an exploratory audit is never purely forward-looking — you explore because something prompted the question, some concern or pattern noticed in past work.
+
+The real difference, if there is one, is closer to the *occasion*: investigatory is occasioned by **breakdown** (something obtruded, expectations were violated, a discrepancy demands attention), exploratory by **possibility** (a question beckons, an idea wants testing, a space opens for thinking). But even this distinction leaks — a breakdown can open possibilities, and an exploration can uncover breakdowns. The types are better understood as different starting orientations toward the same hermeneutic circle, not as fundamentally different kinds of inquiry.
+
+Practically: the body templates differ because they start from different places (discrepancy vs. question), but both should tolerate the investigation leading somewhere the starting orientation didn't anticipate. The investigatory template's "Competing Explanations" section and the exploratory template's "What It Might Mean" section are doing similar work from different angles.
 
 ### 4. Add a frame-reflexivity step to ALL audit types
 
