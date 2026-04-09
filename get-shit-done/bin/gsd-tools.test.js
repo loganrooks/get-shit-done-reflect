@@ -5281,3 +5281,218 @@ describe('splitInlineArray (REG-04) — quoted comma in frontmatter inline array
     assert.deepStrictEqual(result.key, ['a, b', 'c, d', 'e'], 'mixed quotes preserved');
   });
 });
+
+// ─── Bug #2005: ROADMAP corruption with <details>-wrapped milestones ─────────
+
+describe('extractCurrentMilestone — <summary> layout (#2005 sub-bug B)', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('extracts current milestone from <summary>-tagged layout', () => {
+    const { extractCurrentMilestone } = require(CORE_PATH);
+    const roadmap = [
+      '# Roadmap',
+      '',
+      '<details><summary>v1.0 Foo (Phases 1-3) -- SHIPPED</summary>',
+      '',
+      '## Phases',
+      '- [x] Phase 1: Setup',
+      '- [x] Phase 2: Build',
+      '- [x] Phase 3: Ship',
+      '</details>',
+      '',
+      '<details><summary>v2.0 Bar (Phases 4-6) -- IN PROGRESS</summary>',
+      '',
+      '## Phases',
+      '- [ ] Phase 4: Alpha',
+      '- [ ] Phase 5: Beta',
+      '- [ ] Phase 6: Release',
+      '</details>',
+    ].join('\n');
+
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'STATE.md'),
+      '---\nmilestone: v2.0\n---\n',
+      'utf-8'
+    );
+
+    const result = extractCurrentMilestone(roadmap, tmpDir);
+    assert.ok(result.includes('Phase 4'), 'must include Phase 4 from current milestone');
+    assert.ok(result.includes('Phase 5'), 'must include Phase 5 from current milestone');
+    assert.ok(!result.includes('shipped content') && !result.includes('Phase 1: Setup'),
+      'must NOT include shipped milestone content');
+  });
+
+  test('extracts current milestone from heading layout (regression guard)', () => {
+    const { extractCurrentMilestone } = require(CORE_PATH);
+    const roadmap = [
+      '# Roadmap',
+      '',
+      '<details><summary>v1.0 Foo -- SHIPPED</summary>',
+      '',
+      '- [x] Phase 1: Old',
+      '- [x] Phase 2: Old',
+      '</details>',
+      '',
+      '## v2.0 Current Milestone',
+      '',
+      '### Phase 4: Alpha',
+      '- [ ] 04-01-PLAN.md',
+      '',
+      '### Phase 5: Beta',
+      '- [ ] 05-01-PLAN.md',
+    ].join('\n');
+
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'STATE.md'),
+      '---\nmilestone: v2.0\n---\n',
+      'utf-8'
+    );
+
+    const result = extractCurrentMilestone(roadmap, tmpDir);
+    assert.ok(result.includes('Phase 4'), 'must include Phase 4');
+    assert.ok(result.includes('Phase 5'), 'must include Phase 5');
+    assert.ok(!result.includes('Phase 1: Old'), 'must NOT include shipped phases');
+  });
+});
+
+describe('replaceInCurrentMilestone — <details>-wrapped shipped milestones (#2005 sub-bug A)', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = createTempProject();
+  });
+
+  afterEach(() => {
+    cleanup(tmpDir);
+  });
+
+  test('scopes replacement to current milestone when shipped milestones use <details>', () => {
+    const { replaceInCurrentMilestone } = require(CORE_PATH);
+    const roadmap = [
+      '# Roadmap',
+      '',
+      '<details><summary>v1.0 Foo -- SHIPPED</summary>',
+      '',
+      '- [x] Phase 1: Old stuff',
+      '</details>',
+      '',
+      '## v2.0 Bar',
+      '',
+      '- [ ] Phase 4: Build',
+      '- [ ] Phase 5: Test',
+    ].join('\n');
+
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'STATE.md'),
+      '---\nmilestone: v2.0\n---\n',
+      'utf-8'
+    );
+
+    const result = replaceInCurrentMilestone(
+      roadmap,
+      /\[ \](.*Phase 4)/,
+      '[x]$1',
+      tmpDir
+    );
+    assert.ok(result.includes('[x] Phase 4'), 'Phase 4 checkbox must be checked');
+    assert.ok(result.includes('[ ] Phase 5'), 'Phase 5 checkbox must remain unchecked');
+    assert.ok(result.includes('[x] Phase 1'), 'shipped Phase 1 must remain unchanged');
+  });
+
+  test('falls back to lastIndexOf heuristic when cwd is not provided (backward compat)', () => {
+    const { replaceInCurrentMilestone } = require(CORE_PATH);
+    // Simple ROADMAP without <details> -- the original heuristic works fine here
+    const roadmap = [
+      '# Roadmap',
+      '',
+      '## v1.0 Current',
+      '',
+      '- [ ] Phase 1: Build',
+      '- [ ] Phase 2: Test',
+    ].join('\n');
+
+    // Call WITHOUT cwd -- must use original lastIndexOf heuristic
+    const result = replaceInCurrentMilestone(
+      roadmap,
+      /\[ \](.*Phase 1)/,
+      '[x]$1'
+    );
+    assert.ok(result.includes('[x] Phase 1'), 'replacement must work without cwd');
+    assert.ok(result.includes('[ ] Phase 2'), 'other checkboxes must remain unchanged');
+  });
+});
+
+// ── Bug fix structural verification — #1972 atomicWriteFileSync, #1981 worktree_branch_check ──
+
+describe('Bug fix structural verification — #1972 atomicWriteFileSync, #1981 worktree_branch_check', () => {
+  const MILESTONE_PATH = path.join(__dirname, 'lib', 'milestone.cjs');
+  const PHASE_PATH = path.join(__dirname, 'lib', 'phase.cjs');
+  const FRONTMATTER_SRC_PATH = path.join(__dirname, 'lib', 'frontmatter.cjs');
+  const WORKFLOWS_DIR = path.join(__dirname, '..', 'workflows');
+
+  // #1972: All file writes in milestone/phase/frontmatter must use atomicWriteFileSync
+  test('#1972: milestone.cjs has no fs.writeFileSync calls', () => {
+    const src = fs.readFileSync(MILESTONE_PATH, 'utf-8');
+    assert.ok(
+      !/fs\.writeFileSync/.test(src),
+      'milestone.cjs must not contain fs.writeFileSync — use atomicWriteFileSync instead'
+    );
+    assert.ok(
+      src.includes('atomicWriteFileSync'),
+      'milestone.cjs must import atomicWriteFileSync from core.cjs'
+    );
+  });
+
+  test('#1972: phase.cjs has no fs.writeFileSync calls', () => {
+    const src = fs.readFileSync(PHASE_PATH, 'utf-8');
+    assert.ok(
+      !/fs\.writeFileSync/.test(src),
+      'phase.cjs must not contain fs.writeFileSync — use atomicWriteFileSync instead'
+    );
+    assert.ok(
+      src.includes('atomicWriteFileSync'),
+      'phase.cjs must import atomicWriteFileSync from core.cjs'
+    );
+  });
+
+  test('#1972: frontmatter.cjs has no fs.writeFileSync calls', () => {
+    const src = fs.readFileSync(FRONTMATTER_SRC_PATH, 'utf-8');
+    assert.ok(
+      !/fs\.writeFileSync/.test(src),
+      'frontmatter.cjs must not contain fs.writeFileSync — use atomicWriteFileSync instead'
+    );
+    assert.ok(
+      src.includes('atomicWriteFileSync'),
+      'frontmatter.cjs must import atomicWriteFileSync from core.cjs'
+    );
+  });
+
+  // #1981: All 4 workflow files must have worktree_branch_check with reset --hard
+  const WORKFLOW_FILES = ['execute-phase.md', 'execute-plan.md', 'quick.md', 'diagnose-issues.md'];
+
+  for (const file of WORKFLOW_FILES) {
+    test(`#1981: ${file} contains worktree_branch_check with reset --hard`, () => {
+      const src = fs.readFileSync(path.join(WORKFLOWS_DIR, file), 'utf-8');
+      assert.ok(
+        src.includes('worktree_branch_check'),
+        `${file} must contain worktree_branch_check block`
+      );
+      assert.ok(
+        src.includes('reset --hard'),
+        `${file} must use reset --hard (not --soft) for worktree correction`
+      );
+      assert.ok(
+        !src.includes('reset --soft'),
+        `${file} must NOT contain reset --soft — causes data loss (#1981)`
+      );
+    });
+  }
+});

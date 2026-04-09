@@ -14,6 +14,34 @@ Flags are composable: `--discuss --research --full` gives discussion + research 
 Read all files referenced by the invoking prompt's execution_context before starting.
 </required_reading>
 
+<worktree_branch_check>
+**FIRST ACTION** before any other work: verify this worktree's branch is based on the correct commit.
+
+```bash
+# Check if worktree branch base matches expected
+EXPECTED_BASE=$(git log --format=%H -1 main 2>/dev/null || echo "unknown")
+ACTUAL_BASE=$(git merge-base HEAD main 2>/dev/null || echo "none")
+CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "unknown")
+```
+
+If `CURRENT_BRANCH` is `main` or `ACTUAL_BASE` does not match the expected feature branch base (i.e., the worktree was created from `main` instead of the feature branch):
+
+```bash
+# Safe to hard reset -- this check runs before any agent work has occurred
+git reset --hard {EXPECTED_BASE}
+
+# Verify correction succeeded
+if [ "$(git rev-parse HEAD)" != "{EXPECTED_BASE}" ]; then
+  echo "ERROR: Could not correct worktree base -- aborting to prevent data loss"
+  exit 1
+fi
+```
+
+If the branch base is correct: proceed immediately with no action needed.
+
+This check mitigates an issue where EnterWorktree creates branches from main instead of the current feature branch HEAD. Affects all platforms (not just Windows).
+</worktree_branch_check>
+
 <available_agent_types>
 Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
 - gsd-phase-researcher — Researches technical approaches for a phase

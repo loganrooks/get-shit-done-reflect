@@ -4,7 +4,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { escapeRegex, loadConfig, normalizePhaseName, comparePhaseNum, findPhaseInternal, getArchivedPhaseDirs, generateSlugInternal, getMilestonePhaseFilter, stripShippedMilestones, extractCurrentMilestone, replaceInCurrentMilestone, toPosixPath, planningDir, withPlanningLock, output, error, readSubdirectories, phaseTokenMatches } = require('./core.cjs');
+const { escapeRegex, loadConfig, normalizePhaseName, comparePhaseNum, findPhaseInternal, getArchivedPhaseDirs, generateSlugInternal, getMilestonePhaseFilter, stripShippedMilestones, extractCurrentMilestone, replaceInCurrentMilestone, toPosixPath, planningDir, withPlanningLock, output, error, readSubdirectories, phaseTokenMatches, atomicWriteFileSync } = require('./core.cjs');
 const { extractFrontmatter } = require('./frontmatter.cjs');
 const { writeStateMd, readModifyWriteStateMd, stateExtractField, stateReplaceField, stateReplaceFieldWithFallback, updatePerformanceMetricsSection } = require('./state.cjs');
 
@@ -360,7 +360,7 @@ function cmdPhaseAdd(cwd, description, raw, customId) {
 
     // Create directory with .gitkeep so git tracks empty folders
     fs.mkdirSync(dirPath, { recursive: true });
-    fs.writeFileSync(path.join(dirPath, '.gitkeep'), '');
+    atomicWriteFileSync(path.join(dirPath, '.gitkeep'), '');
 
     // Build phase entry
     const dependsOn = config.phase_naming === 'custom' ? '' : `\n**Depends on:** Phase ${typeof _newPhaseId === 'number' ? _newPhaseId - 1 : 'TBD'}`;
@@ -375,7 +375,7 @@ function cmdPhaseAdd(cwd, description, raw, customId) {
       updatedContent = rawContent + phaseEntry;
     }
 
-    fs.writeFileSync(roadmapPath, updatedContent, 'utf-8');
+    atomicWriteFileSync(roadmapPath, updatedContent, 'utf-8');
     return { newPhaseId: _newPhaseId, dirName: _dirName };
   });
 
@@ -452,7 +452,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
 
     // Create directory with .gitkeep so git tracks empty folders
     fs.mkdirSync(dirPath, { recursive: true });
-    fs.writeFileSync(path.join(dirPath, '.gitkeep'), '');
+    atomicWriteFileSync(path.join(dirPath, '.gitkeep'), '');
 
     // Build phase entry
     const phaseEntry = `\n### Phase ${_decimalPhase}: ${description} (INSERTED)\n\n**Goal:** [Urgent work - to be planned]\n**Requirements**: TBD\n**Depends on:** Phase ${afterPhase}\n**Plans:** 0 plans\n\nPlans:\n- [ ] TBD (run /gsd-plan-phase ${_decimalPhase} to break down)\n`;
@@ -476,7 +476,7 @@ function cmdPhaseInsert(cwd, afterPhase, description, raw) {
     }
 
     const updatedContent = rawContent.slice(0, insertIdx) + phaseEntry + rawContent.slice(insertIdx);
-    fs.writeFileSync(roadmapPath, updatedContent, 'utf-8');
+    atomicWriteFileSync(roadmapPath, updatedContent, 'utf-8');
     return { decimalPhase: _decimalPhase, dirName: _dirName };
   });
 
@@ -590,7 +590,7 @@ function updateRoadmapAfterPhaseRemoval(roadmapPath, targetPhase, isDecimal, rem
       }
     }
 
-    fs.writeFileSync(roadmapPath, content, 'utf-8');
+    atomicWriteFileSync(roadmapPath, content, 'utf-8');
   });
 }
 
@@ -712,7 +712,7 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
         `(-\\s*\\[)[ ](\\]\\s*.*Phase\\s+${escapeRegex(phaseNum)}[:\\s][^\\n]*)`,
         'i'
       );
-      roadmapContent = replaceInCurrentMilestone(roadmapContent, checkboxPattern, `$1x$2 (completed ${today})`);
+      roadmapContent = replaceInCurrentMilestone(roadmapContent, checkboxPattern, `$1x$2 (completed ${today})`, cwd);
 
       // Progress table: update Status to Complete, add date (handles 4 or 5 column tables)
       const phaseEscaped = escapeRegex(phaseNum);
@@ -743,7 +743,7 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
       );
       roadmapContent = replaceInCurrentMilestone(
         roadmapContent, planCountPattern,
-        `$1${summaryCount}/${planCount} plans complete`
+        `$1${summaryCount}/${planCount} plans complete`, cwd
       );
 
       // Mark completed plan checkboxes (safety net for missed per-plan updates)
@@ -759,7 +759,7 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
         roadmapContent = roadmapContent.replace(planCheckboxPattern, '$1x$2');
       }
 
-      fs.writeFileSync(roadmapPath, roadmapContent, 'utf-8');
+      atomicWriteFileSync(roadmapPath, roadmapContent, 'utf-8');
 
       // Update REQUIREMENTS.md traceability for this phase's requirements
       const reqPath = path.join(planningDir(cwd), 'REQUIREMENTS.md');
@@ -792,7 +792,7 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
             );
           }
 
-          fs.writeFileSync(reqPath, reqContent, 'utf-8');
+          atomicWriteFileSync(reqPath, reqContent, 'utf-8');
           requirementsUpdated = true;
         }
       }
