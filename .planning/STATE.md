@@ -113,7 +113,7 @@ Recent decisions affecting current work:
 - Phase 55.1 inserted after Phase 55: Upstream Bug Patches (URGENT) — patch #2005 details-wrapped ROADMAP corruption, #1972 incomplete atomicWriteFileSync, #1981 worktree reset --soft data loss
 - Phase 55.2 inserted after Phase 55.1: Codex Runtime Substrate -- runtime detection fixes, documentation drift corrections, parity smoke test. Derived from cross-model audit consensus (Claude, GPT-5.4 xhigh, Opus review, Sonnet review). Requirements: CODEX-01, CODEX-02, CODEX-05
 - Gemini CLI and OpenCode deprecated as tested runtimes -- narrowing to Claude Code + Codex CLI only. Community-maintained status in capability-matrix.md. Decision documented in `.planning/deliberations/drop-gemini-opencode-focus-codex.md`
-- Phase 57.2 inserted after Phase 57: Discuss-Phase Exploratory Mode Overhaul -- template fix, typed claim states, provenance, incentive decoupling, subagent design exploration. Derived from `.planning/deliberations/exploratory-discuss-phase-quality-regression.md` (audit: `.planning/audits/2026-04-09-discuss-phase-exploration-quality/`). Requirements: DISC-01 through DISC-07
+- Phase 57.2 scope refined: 10 requirements (DISC-01 through DISC-10). Typed claims (7 types from 6 exploratory audits across 12 projects), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher agent update, claim dependency webs. Pipeline enrichment step deferred to backlog 999.1. Derived from 3 deliberations: `exploratory-discuss-phase-quality-regression.md`, `pipeline-enrichment-step-architecture.md`, `claim-type-ontology.md`
 - Phase 57.3 inserted after Phase 57.2: Audit Workflow Infrastructure -- formalize audit conventions, task spec preservation, epistemic ground rules. Depends on 57.2. Requirements: AUDIT-01, AUDIT-02
 - Execution reordered: 57.1 → 57.2 → 57.3 ship as patches before Phase 57 (telemetry). 57.2 dependency on 57 removed — regression fix ships now, effectiveness revisited post-telemetry
 
@@ -143,9 +143,11 @@ Recent decisions affecting current work:
 - Audit evidence base: `.planning/audits/session-log-audit-2026-04-07/` (32 reports, 100 sessions, 165 findings)
 - Research documents: `.planning/research/` (9 v1.20 research docs)
 - Milestone steering brief: `.planning/MILESTONE-CONTEXT.md`
+- Claim type audits: `.planning/audits/2026-04-09-*claim-audit*` (6 files, 12 projects, ~85 CONTEXT.md files)
+- Deliberations for 57.2: `exploratory-discuss-phase-quality-regression.md` (concluded), `pipeline-enrichment-step-architecture.md` (concluded, deferred), `claim-type-ontology.md` (concluded)
 
 ## Session Continuity
 
-Last session: 2026-04-09T08:56:07.548Z
-Stopped at: Phase 57.1 complete — verification passed 5/5
-Resume file: None
+Last session: 2026-04-09
+Stopped at: Phase 57.2 pre-work complete — requirements refined, roadmap updated, 3 deliberations concluded, 7 audit files committed, backlog 999.1 added. Ready for /gsdr:discuss-phase 57.2
+Resume file: .planning/phases/57.2-discuss-phase-exploratory-overhaul-inserted/
