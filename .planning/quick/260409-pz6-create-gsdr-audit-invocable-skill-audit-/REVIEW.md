@@ -26,7 +26,7 @@ But that causal story was already shaped by how we framed the investigation. We 
 | `claim_integrity` | Checks typed claims resolve. Could catch unanswered `[open]` questions, but the scope is broader. |
 | `exploratory` | Open-ended, follow the question. This WORKS as an escape hatch but provides no structure for the specific thing we needed: reading a sequence of artifacts and understanding what happened between them. |
 
-The deeper problem: every existing type presupposes a **form of failure** — structural (does it work?), epistemic (is it well-reasoned?), compliance (does it follow the rules?). What we needed was an investigation that didn't presuppose the form of failure — that could discover it.
+The deeper problem: every existing type presupposes a **form of failure** — structural (does it work?), epistemic (is it well-reasoned?), compliance (does it follow the rules?). What we needed was an investigation that could hold the form of the problem open rather than presupposing it. But we should be careful not to overclaim — even "hold the form open" is a stance, not an escape from stance. The investigatory type has its own attunements (it privileges discrepancy, cross-artifact reading, competing explanations) which are productive for certain situations and limiting for others.
 
 ---
 
@@ -54,10 +54,10 @@ An **investigatory audit** starts from a discrepancy, anomaly, or concern — so
 - "I want to understand what happened before deciding what to fix"
 
 **What makes it distinct:**
-- It's **pre-diagnostic** — the audit discovers the form of the problem, it doesn't presuppose it
+- It tries to **hold diagnosis open** rather than closing on a form of failure early — but this is a matter of degree, not kind. Framing something as a "discrepancy" is already a diagnostic act. The investigatory audit doesn't escape prejudgment; it tries to stay aware of its own prejudgments longer and resist premature closure.
 - It's **cross-artifact** when needed — but only because the investigation leads there, not because the type mandates it
-- It tolerates **multiple explanations** — findings should present competing interpretations, not collapse to a single root cause
-- It's **reflexive about its own framing** — see Part 4
+- It tolerates **multiple explanations** — findings should present competing interpretations rather than collapsing to a single root cause. But note: asking for "competing explanations" still assumes the truth is among the candidates offered. Sometimes the right move is to realize the question itself needs reformulating, not that one of several answers is correct.
+- It's **reflexive about its own framing** — see Part 4. Though reflexivity is itself a frame, and no amount of self-awareness eliminates the situatedness of the inquiry.
 
 **Key investigation questions (starting points, not script):**
 1. What was expected? What was delivered? What's the discrepancy?
@@ -68,16 +68,16 @@ An **investigatory audit** starts from a discrepancy, anomaly, or concern — so
 6. What do we still not know?
 
 **Ground rules needed (beyond core):**
-- **I1: Start from the discrepancy, not from a theory.** Describe what was expected and what was delivered before reading any artifacts. The gap between them is the investigation target — not a presupposed mechanism.
+- **I1: Start from the situation, not from a theory.** Describe what was expected, what was delivered, and why those expectations are being treated as the standard — the choice of comparison point is already an interpretive act. The gap between expectation and delivery is a starting orientation, not a neutral fact.
 - **I2: Let the investigation guide artifact selection.** Don't mandate which artifacts to read in advance. Follow the evidence — if the discrepancy points to the planning stage, read planning artifacts. If it points to requirements, read requirements. The artifact chain is a finding, not an input.
 - **I3: Present competing explanations.** For each finding, offer at least two interpretations. "The research narrowed scope" could mean the researcher made an error, OR the researcher correctly applied constraints the investigator hasn't understood yet. Don't collapse to one.
-- **I4: Name what the investigation cannot see.** Every investigation is conducted from a position with blind spots. What does this framing make visible? What might it obscure? What would a differently-framed investigation look for?
+- **I4: Name the position of the investigation.** Every investigation is conducted from somewhere — with particular attunements, particular things it's prepared to notice, particular things it isn't. This isn't about cataloguing determinate "blind spots" (as if they're hidden objects waiting to be found) but about acknowledging what this particular way of looking is oriented toward and what it might not be oriented toward. What would a differently-situated investigation attend to?
 
 **Body template:**
 
 ```
-## The Discrepancy
-[What was expected vs. what was delivered — no causal claims yet]
+## The Situation
+[What was expected, what was delivered, and why those expectations are being treated as the standard. The framing of the discrepancy is itself a finding — what you choose to compare against shapes what counts as a gap.]
 
 ## What Was Examined
 [Which artifacts, in what order, and why those artifacts]
@@ -95,7 +95,7 @@ An **investigatory audit** starts from a discrepancy, anomaly, or concern — so
 [Questions the investigation opened but could not answer]
 
 ## Position of This Investigation
-[What this framing made visible; what it might have obscured; what a different investigation might find]
+[What this way of looking was oriented toward; what it might not have been oriented toward; what a differently-situated investigation might attend to]
 ```
 
 ---
@@ -121,7 +121,9 @@ This is not the same as Rule 4 (escape hatch), which asks "what didn't fit the t
 
 ### 1. Add `investigatory` as a new audit type
 
-Family: this is the question — it doesn't fit neatly into structural, epistemic, or compliance. It's pre-diagnostic. It might be its own family, or it might be the audit type you use when you don't yet know which family the problem belongs to. For now, treat it as its own category alongside the three families and the `exploratory` escape hatch.
+Family: this is genuinely unresolved. Adding `investigatory` as a fourth family alongside structural/epistemic/compliance preserves the family taxonomy while adding the type we needed — but it also reinforces the taxonomy as primary, which is part of what got us here. The families presuppose that failures come in these discrete forms, and adding one more form doesn't question whether "form of failure" is the right organizing principle.
+
+An alternative: `investigatory` isn't a family at all but a *mode* that any audit can operate in — "run this phase_verification audit in investigatory mode" would mean holding findings open to competing explanations rather than collapsing to pass/fail. Whether it's a type, a family, or a mode is a design question that should be resolved by use, not by theory.
 
 Ground rules: Core + I1, I2, I3, I4 (investigatory-specific, above)
 
