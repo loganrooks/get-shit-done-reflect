@@ -159,42 +159,94 @@ tags: [requirements, v1.20, review]
 
 ---
 
-## 3. Audit Type Taxonomy
+## 3. Audit Taxonomy: Three Orthogonal Axes
 
-Enum with escape hatch, matching the `signal_type` pattern from `knowledge-store.md`. [evidenced:cited] In 216 signals, the `custom` escape hatch was used 4 times (1.9%) -- all for genuinely novel observations, not as a dumping ground. This validates the enum-with-escape-hatch pattern.
+The v1 flat eight-type taxonomy — inherited from `signal_type`'s enum-with-escape-hatch pattern — conflated three orthogonal concerns under a single `audit_type` enum: *what* is being audited, *from what stance*, and *who does it*. The deliberation `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` traced the conflation: `cross_model_review` was always a way of *delegating* an audit, not a kind of audit; `exploratory` was always a *stance* an auditor could take toward any subject, not a separate category alongside structural and epistemic subjects. Holding them in one enum meant any real audit that mixed subject and stance and delegation had to force itself into a category that could only name one of the three. Templates compounded the error — they cannot compose across axes, so two demands from two dimensions had no way to meet in the same body.
 
-| Type | Family | Description |
-|------|--------|-------------|
-| `phase_verification` | structural | Checking code exists and works |
-| `milestone` | structural | Cross-phase integration |
-| `codebase_forensics` | structural | Structural understanding of codebase |
-| `cross_model_review` | epistemic | External perspective from different model |
+The reconstructive response is to decompose the single enum into three orthogonal axes — subject × orientation × delegation — and to replace templates with *obligations* that compose across the axes. A real audit situation presents a subject (or doesn't — see below), an orientation, and a delegation choice. The obligations attached to each axis compose into a flat list that the auditor addresses. This is hermeneutic composition, not algorithmic rule selection: where obligations tension, the auditor names the tension and navigates it, rather than resolving it by precedence.
+
+**Subject is optional for `investigatory` and `exploratory` orientations.** When Phase 57 started as an investigation into "the implementation doesn't match the vision," there was no subject yet — the investigation had to discover what it was investigating. The deliberation's Phase 57 case (concrete example 4, lines 197–210) names this as the load-bearing reason to let subject be omitted: forcing a subject at dispatch time pre-decides what the investigation is allowed to find.
+
+**The axes themselves are provisional.** Per DC-5 and G-6 from the phase CONTEXT.md, and per `.planning/deliberations/forms-excess-and-framework-becoming.md` as governing authority, the escape-hatch principle is extended from individual values to the decomposition itself. A fourth axis may be needed if practice reveals that the aporetic character of audit situations exceeds subject × orientation × delegation. The 3-axis model is an act of responsible positing that explicitly names itself as rewritable. Forms-excess names the pattern: "a formal system encounters something that exceeds its categories, and the system's response to the excess reveals something about the system itself" — and the 3-axis model is itself a formal system subject to this.
+
+### Axis 1 — Subject (what are you auditing?)
+
+Source: `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` lines 49–82.
+
+| Subject | Family | What it examines |
+|---|---|---|
+| `phase_verification` | structural | Did the phase achieve its stated goal? |
+| `milestone` | structural | Cross-phase integration and E2E flows |
+| `codebase_forensics` | structural | Code structure and wiring |
 | `requirements_review` | epistemic | Coverage, feasibility, tensions |
-| `comparative_quality` | epistemic | Investigating a specific quality question |
+| `comparative_quality` | epistemic | Quality comparison across outputs |
 | `claim_integrity` | epistemic | Typed claim verification |
-| `adoption_compliance` | compliance | How X is used across projects |
-| `exploratory` | (escape hatch) | Does not match any existing type |
+| `adoption_compliance` | compliance | Practice matches documented intent |
+| `process_review` | *new* | How well a process/workflow performed; methodology soundness |
+| `artifact_analysis` | *new* | Patterns in a corpus of artifacts |
 
-[governing:reasoned] This taxonomy is provisional and empirically derived from ~10 projects over ~2 months of practice. New types WILL emerge. Recurring use of `exploratory` signals a new type to formalize. Per constraint G-1 from CONTEXT.md: "Do not treat the 8-type taxonomy as exhaustive or final."
+`process_review` and `artifact_analysis` are **new subjects** discovered by testing the decomposition against real audit sessions in `.planning/deliberations/audit-taxonomy-retrospective-analysis.md`. They did not exist in the v1 taxonomy because the template paradigm had no room for them — meta-audits of processes and corpus-pattern audits were being forced into `exploratory` as the escape hatch. Giving them names makes the obligations attached to them addressable.
 
-### Family groupings
+`cross_model_review` has **exited the subject enum entirely**. It was never a kind of audit; it was always a way of *doing* an audit. The user's observation names it exactly: "cross_model_review doesn't seem like a type, that's more of a delegation." It now lives on Axis 3 as `audit_delegation: cross_model`. Any subject can be delegated across models; delegation is orthogonal to what is being audited.
 
-The 8 named types cluster into 3 families by what they verify:
+The `Family` column (structural / epistemic / compliance) is retained as a historical label attached to each subject, not as an authoritative typology. The v1 families were an interpretive clustering, not an empirically grounded partition, and the new subjects do not fit them. Treat the column as a convenience for readers familiar with the v1 taxonomy, not as a constraint on how subjects compose.
 
-- **Structural:** Does X exist and wire correctly? (`phase_verification`, `milestone`, `codebase_forensics`)
-- **Epistemic:** Are claims warranted and traceable? (`cross_model_review`, `requirements_review`, `comparative_quality`, `claim_integrity`)
-- **Compliance:** Does practice match intent? (`adoption_compliance`)
+**Each subject carries an epistemic profile** — a structured acknowledgment that every subject is oriented toward something, assumes something, and might miss something. The profile is what the orchestrator (and the auditor, and the reader of the audit output) consults when matching a situation to a subject, or when asking Rule 5's frame-reflexivity question at the close: *what would a differently-typed audit have looked for that this one didn't?*
 
-[assumed:reasoned] These families are interpretive, not observed. The clustering suggests different ground-rule emphasis (see `audit-ground-rules.md` Section 3) but may need revision as new types emerge.
+| Subject | Oriented toward | Assumes | Might miss |
+|---|---|---|---|
+| `phase_verification` | Structural completeness | Phase goal is the right standard | Goal itself being wrong; quality within passing criteria |
+| `requirements_review` | Coverage and feasibility | Requirements are the authoritative scope | Requirements that should exist but don't |
+| `process_review` | Methodology soundness | Process has a spec or expected behavior | Process working as designed but design is wrong |
+| `artifact_analysis` | Patterns in data | Corpus is representative; patterns are meaningful | What the corpus excludes; patterns that only appear across corpora |
+| `claim_integrity` | Claim warrant | Typed claim vocabulary captures the relevant distinctions | Claims that don't fit the vocabulary |
+| `codebase_forensics` | Code structure | Code is the ground truth | Documentation that should override code; design intent behind structure |
+| `comparative_quality` | Quality comparison | Comparison axis is meaningful | What the axis makes invisible; confounding variables |
+| `milestone` | Integration completeness | Phases should connect | Whether they should connect differently |
+| `adoption_compliance` | Practice matches intent | Intent is documented and correct | Intent that should change; undocumented reasonable deviations |
 
-### The escape hatch
+The profile table is not decoration. The `might miss` column is the substance: it names what the subject's own framing hides from view, which is what Rule 5 (frame-reflexivity) and the framework-invisibility obligation press auditors to notice. A subject is a partial view of its situation; naming the partiality is how the audit stays honest to it.
 
-`audit_type: exploratory` is the legitimate way to create an audit that does not match any existing type. These audits are first-class citizens:
+**Subject is optional for `investigatory` and `exploratory` orientations.** When the orientation is investigatory or exploratory, the subject field may be omitted — the investigation discovers its subject, or the exploration has no predetermined target. Under `standard` orientation, a subject is required.
 
-- They use the same frontmatter schema (date, scope, and all other fields)
-- They use the core ground rules from `audit-ground-rules.md`
-- Their body format is freeform (see Section 4, Exploratory template)
-- If a particular `exploratory` pattern recurs, it should be formalized as a new named type
+### Axis 2 — Orientation (from what stance?)
+
+Source: `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` lines 83–92.
+
+| Orientation | When | Key characteristic |
+|---|---|---|
+| `standard` (default) | You know what you're checking | Close on findings |
+| `investigatory` | Something went wrong; you don't know what yet | Hold diagnosis open, competing explanations |
+| `exploratory` | A question beckons; open-ended | Follow the question, don't force closure |
+
+Orientation is orthogonal to subject: any orientation can run against any subject (or, for investigatory and exploratory, against no subject at all). A `phase_verification × standard` audit closes on verdict; a `phase_verification × investigatory` audit holds the verdict open and surfaces competing explanations for whatever it finds. Same subject, different stance — the obligations composing into each audit differ because the orientation brings its own demands.
+
+**Investigatory and exploratory differ by occasion, not ontology.** Per CONTEXT.md G-5, the distinction is hermeneutic: `investigatory` is occasioned by *breakdown* — expectations were violated, something went wrong, diagnosis is needed. `exploratory` is occasioned by *possibility* — a question opens, curiosity beckons, no discrepancy is driving the work. Both orientations are hermeneutically circular; both hold findings loosely; both refuse forced closure. Their body structures differ because they start from different places: a discrepancy on one side, a question on the other.
+
+The relationship between investigatory and exploratory is **deliberately left as a design choice, not ontologically settled** (G-5). They may merge, stay distinct, or evolve differently as practice reveals which grain the distinction is really cutting at. The framework does not foreclose the evolution.
+
+### Axis 3 — Delegation (who does it?)
+
+Source: `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` lines 93–100.
+
+| Delegation | What it means |
+|---|---|
+| `self` (default) | Local `gsdr-auditor` agent dispatched via `Task()` |
+| `cross_model:{model_id}` | Dispatch to another model's CLI (e.g., `cross_model:gpt-5.4`, `cross_model:gemini`) |
+
+Delegation is orthogonal to both subject and orientation. Any subject can be audited under any orientation by any delegation mode — the orchestrator composes obligations from Axes 1 and 2 and hands the composed task spec to either the local agent or an external model invocation.
+
+**Cross-model delegation is currently fragile.** Per the deliberation (line 100), cross-model dispatch has shown "environment setup issues, agents finishing early, instructions not properly conveyed, lots of hand-holding." Recording this factually here is not a disclaimer — it is relevant context for orchestrators and auditors reading this reference. The retrospective's dispatch-hygiene obligation (new in v2, documented in `audit-ground-rules.md`) is the direct response: cross-model prompts must be audited for framing contamination before dispatch, and confounds must be declared in the audit frontmatter.
+
+### 3.4 The escape hatch — preserved and extended
+
+The v1 taxonomy had an escape hatch at the value level: `audit_type: exploratory` was the legitimate way to file an audit that did not match any named type. The v2 taxonomy preserves escape at the value level but extends it to the axes themselves.
+
+**At the value level.** A subject may be **omitted** under `investigatory` or `exploratory` orientation when no named subject from Axis 1 fits the situation. This is cleaner than the v1 convention of routing unclassified audits through `audit_type: exploratory`, because in v2 `exploratory` is primarily an orientation — the honest way to express "I don't yet know what I'm auditing, I just know I'm opening a question" is to set orientation to `exploratory` and leave `audit_subject` unset. The deliberation's concrete example 3 (`"Something about the way we handle phases feels off but I can't say what"` → no subject × exploratory × self) names this exact shape.
+
+**At the axis level.** Per DC-5 from the phase CONTEXT.md, the escape-hatch principle is now extended from taxonomy values to the axis decomposition itself. The 3-axis model is a working hypothesis validated against 13 audit sessions in the retrospective, but it is not claimed as exhaustive. A fourth axis may be needed if the aporetic character of audit situations outruns subject × orientation × delegation — recurring use of field-mismatch workarounds, repeated "none of these fit" observations in audit outputs, or patterns the excess section (see Section 4.2) keeps surfacing are the kinds of signals that would argue for it.
+
+Governing authority for this openness is `.planning/deliberations/forms-excess-and-framework-becoming.md`: *"a formal system encounters something that exceeds its categories, and the system's response to the excess reveals something about the system itself."* The 3-axis model is a formal system. It encounters audit situations that exceed it. How the system responds — whether it suppresses the excess, forces it into an existing axis, or opens a new axis — reveals something about the system. The escape hatch is the structural opening where that response is meant to occur.
 
 ---
 
