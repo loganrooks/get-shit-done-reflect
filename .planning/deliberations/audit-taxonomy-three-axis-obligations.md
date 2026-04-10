@@ -196,23 +196,73 @@ Phase 57.4 should formalize best practices for cross-model dispatch within the a
 
 ## Concrete Examples (from discussion)
 
-### Exploratory
-- "Curious about signal corpus evolution" → artifact_analysis × exploratory × self
-- "What patterns in how we write CONTEXT.md?" → process_review × exploratory × self
-- "Something about phases feels off" → no subject × exploratory × self
+### Exploratory combinations
 
-### Investigatory
-- Phase 57 case: "Implementation doesn't match vision" → no subject × investigatory × self
-- "Why do plans keep missing requirements?" → process_review × investigatory × self
-- "Get GPT 5.4 to investigate Phase 57" → no subject × investigatory × cross_model
+**"I'm curious about how our signal corpus has evolved"**
+→ `artifact_analysis` × `exploratory` × `self`
 
-### Standard
-- "Did Phase 57.4 achieve its goal?" → phase_verification × standard × self
-- "Have GPT 5.4 check our claim types" → claim_integrity × standard × cross_model
+Obligations: core + exploratory (follow the curiosity, name what wasn't looked at, don't force closure) + artifact_analysis (state corpus, look for patterns, note exclusions). The auditor reads the signal corpus, follows threads of interest — maybe they notice severity has been trending down, or that certain tag clusters never get triaged. They report what they found and what questions opened. No verdict required. "I noticed X but I'm not sure what it means yet" is fine.
 
-### Tension cases
-- "Check codebase and investigate anything surprising" → codebase_forensics × standard→investigatory (orientation shifts as surprises found)
-- "Explore whether our audit taxonomy works" → process_review × exploratory × self (meta-audit)
+**"What patterns exist in how we write CONTEXT.md files?"**
+→ `process_review` × `exploratory` × `self`
+
+Obligations: core + exploratory + process_review (compare against the discuss-phase spec, examine methodology assumptions). The auditor reads a sample of CONTEXT.md files, follows observations. Maybe they notice exploratory mode produces richer output than discuss mode. Maybe they notice certain sections are consistently shallow. They report patterns, don't force a verdict, name what they didn't look at (e.g., "I only read 10 of 85 files — this is a sample, not a census").
+
+**"Something about the way we handle phases feels off but I can't say what"**
+→ no subject × `exploratory` × `self`
+
+Obligations: core + exploratory only. No domain obligations. Maximum freedom. The auditor follows the curiosity wherever it leads — might end up in the roadmap, the signal corpus, the session logs. The obligation to "name what you found that you weren't looking for" is key here — the whole audit is about discovering what you weren't looking for.
+
+### Investigatory combinations
+
+**The Phase 57 case: "The implementation doesn't match the vision"**
+→ no subject × `investigatory` × `self`
+
+Obligations: core + investigatory (I1-I4, competing explanations, what remains unknown). No subject obligations — the investigation discovers the subject. It turned out to be about scope narrowing through the artifact pipeline, which is closest to process_review territory — but the investigation didn't know that at the start. The competing explanations obligation (I3) is what makes this different from a standard audit that would have closed on the first plausible explanation ("the researcher narrowed scope").
+
+**"Why do our plans keep missing requirements?"**
+→ `process_review` × `investigatory` × `self`
+
+Obligations: core + investigatory + process_review (compare against spec, examine methodology). The auditor starts with process_review domain knowledge (check the plan-phase workflow, check how requirements flow into plans) but holds diagnosis open per I1. Maybe the issue IS the planning process — or maybe it's upstream in requirements writing, or downstream in how "missing" is defined. Competing explanations (I3) are essential here. The process_review obligations (compare against spec) and investigatory obligations (competing explanations) may tension — "compare against spec" implies the spec is the standard, but the investigation might discover the spec itself is the problem. The auditor navigates this tension per the composition principle.
+
+**"Get GPT 5.4 to investigate what happened with Phase 57"**
+→ no subject × `investigatory` × `cross_model`
+
+Obligations: core + investigatory. The task spec goes to GPT 5.4 with all obligations embedded. Interesting because GPT 5.4 brings a genuinely different "position" (I4) — it hasn't been part of the project, hasn't been socialized into our conventions, might notice things we've become blind to. The I4 obligation ("name the position of the investigation") is especially rich here — the external model can honestly say "I'm approaching this without having been part of the decisions that led here."
+
+**"Something went wrong with the cross-model audit last time — have GPT 5.4 investigate"**
+→ `process_review` × `investigatory` × `cross_model`
+
+All three axes active. Subject: process (something in the cross-model workflow broke). Orientation: investigatory (hold diagnosis open). Delegation: cross-model (the reviewing model investigates). Obligations: core + investigatory (I1-I4) + process_review (compare against spec, examine methodology). The external model gets all of this in its task spec. I4 is especially rich here — GPT 5.4 naming its own position as an external model investigating a process it wasn't part of.
+
+### Standard combinations
+
+**"Did Phase 57.4 achieve its goal?"**
+→ `phase_verification` × `standard` × `self`
+
+Obligations: core + standard (close on findings, clear verdict) + phase_verification (run tests, check wiring, compare against success criteria). This is the routine case. The auditor checks each success criterion, runs verification commands, produces a clear PASS/FAIL. Suggested template available as scaffolding — Goal → Artifacts Checked → Findings → Verdict. For standard orientation, the suggested template is genuinely useful: it ensures consistency across routine verifications and makes outputs scannable.
+
+**"Are our requirements well-specified?"**
+→ `requirements_review` × `standard` × `self`
+
+Obligations: core + standard + requirements_review (read requirement text and assess specificity, check for missing requirements, assess feasibility). The auditor reads each requirement, assesses whether it specifies what it claims to. The "check for missing requirements" obligation is particularly valuable — it forces the auditor to look at negative space, not just check what's there.
+
+**"Have GPT 5.4 check our claim types"**
+→ `claim_integrity` × `standard` × `cross_model`
+
+Obligations: core + standard + claim_integrity (verify claims against citations, surface untyped assumptions, trace dependency chains). Task spec goes to GPT 5.4 with all obligations embedded. The external model checks each typed claim, verifies citations, flags phantom claims. Standard orientation because we know exactly what we're checking — the external perspective adds independence, not investigatory openness.
+
+### Tension and transition cases
+
+**"Check the codebase and investigate anything surprising"**
+→ `codebase_forensics` × starts `standard`, may shift to `investigatory`
+
+This is where the obligations model shines over templates. The auditor starts with standard + codebase_forensics obligations (examine code, trace data flow, close on findings). If something surprising appears, the investigatory obligations become relevant — present competing explanations for the surprise, name what remains unknown. Under the obligations model, this shift is natural: you accumulate obligations as the situation demands. No "switching templates." The composition principle says: name the tension ("I started verifying structure but found something that demands investigation"), show how you navigated it.
+
+**"Explore whether our audit taxonomy is doing what we think"**
+→ `process_review` × `exploratory` × `self`
+
+This is a meta-audit — auditing our own audit process. Exploratory because we're wondering, not investigating a breakdown. Process_review because the domain is our own methodology. The auditor reads audit-conventions.md, reads recent audit outputs, follows threads. Maybe they discover that the taxonomy is shaping what auditors find (exactly the REVIEW.md concern). The exploratory obligation "name what you found that you weren't looking for" is essential for meta-audits — the most important finding may be something the audit framework itself makes invisible.
 
 ## Open Questions
 
