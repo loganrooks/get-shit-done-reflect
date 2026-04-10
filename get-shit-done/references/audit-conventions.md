@@ -81,10 +81,14 @@ Model: `agents/knowledge-store.md` Section 3 (Common Base Schema). YAML frontmat
 
 ### Required fields
 
+Per DC-4 from the Phase 57.4 CONTEXT.md and the 3-axis taxonomy in Section 3, the single `audit_type` enum is replaced by three orthogonal axis fields:
+
 | Field | Type | Description |
 |-------|------|-------------|
 | `date` | YYYY-MM-DD | Date the audit was conducted (NOT the migration date) |
-| `audit_type` | enum | See type taxonomy in Section 3 |
+| `audit_subject` | enum \| omitted | One of 9 subjects per Section 3.1 (`phase_verification`, `milestone`, `codebase_forensics`, `requirements_review`, `comparative_quality`, `claim_integrity`, `adoption_compliance`, `process_review`, `artifact_analysis`). **Optional** for `investigatory` / `exploratory` orientations when the investigation has not yet identified a subject. |
+| `audit_orientation` | enum | `standard` (default) \| `investigatory` \| `exploratory` — per Section 3.2 |
+| `audit_delegation` | enum | `self` (default) \| `cross_model:{model_id}` (e.g., `cross_model:gpt-5.4`) — per Section 3.3 |
 | `scope` | string | What was audited -- concise description of the target |
 
 ### Recommended fields
@@ -94,7 +98,7 @@ Model: `agents/knowledge-store.md` Section 3 (Common Base Schema). YAML frontmat
 | `auditor_model` | string | Model identifier (e.g., `claude-sonnet-4-6`, `gpt-5.4`) |
 | `triggered_by` | string | What launched this audit (e.g., `deliberation: X`, `manual: user request`, `workflow: audit-milestone`) |
 | `task_spec` | string | Relative path to the task spec file within the session directory |
-| `ground_rules` | string | Which ground rule set was applied: `core`, `core+structural`, `core+epistemic`, `core+compliance`, `core+custom`, or `none` (for pre-infrastructure audits) |
+| `ground_rules` | string | Free-form label naming the composed obligation set applied to this audit. Under the obligations paradigm (Section 4), this is a composition label like `core+standard+phase_verification`, `core+investigatory+process_review`, or `core+exploratory` when subject is omitted. The v1 labels `core+structural`, `core+epistemic`, `core+compliance` are **legacy** — they describe the v1 type-family rule-set selection idiom and do not describe the v2 composed obligation set. The field survives; its value grammar has changed. |
 | `tags` | array | Searchable tags for cross-referencing |
 
 ### Optional fields
@@ -105,55 +109,61 @@ Model: `agents/knowledge-store.md` Section 3 (Common Base Schema). YAML frontmat
 | `predecessor_audits` | array | Prior audits on the same question (chain of inquiry) |
 | `migrated_from` | string | Original path before migration (only for migrated artifacts) |
 | `migrated_date` | YYYY-MM-DD | Date of migration (only for migrated artifacts) |
+| `audit_type` | enum | **Legacy (v1 compatibility).** Retained for backward compatibility with pre-57.4 artifacts. Migration rule: maps to `audit_subject` with `audit_orientation: standard` and `audit_delegation: self` as defaults. New audits SHOULD populate the three v2 axis fields (`audit_subject`, `audit_orientation`, `audit_delegation`); they MAY also populate `audit_type` for compatibility with any tooling or reader that still expects it. |
 
 ### Field count rationale
 
-Total: 3 required + 5 recommended + 4 optional = 12 fields. [stipulated:reasoned] The signal KB schema has ~15 total fields (most optional). Keeping audit frontmatter to ~12 avoids over-formalization (Pitfall 1 from RESEARCH.md: "if frontmatter has more fields than the signal KB schema, something is wrong").
+Total: **5 required** (`date`, `audit_subject`, `audit_orientation`, `audit_delegation`, `scope`) + **5 recommended** + **5 optional** (including the legacy `audit_type` row) = **15 fields**. [stipulated:reasoned] The signal KB schema has ~15 total fields (most optional). This phase ships at the signal KB schema budget. **Any further frontmatter additions require deliberation** (Pitfall 6 from Phase 57.4 RESEARCH.md: backward-compat frontmatter budget drift). If a future migration removes the legacy `audit_type` field, the count drops back to 14 and headroom returns; until then, no new fields without explicit review.
 
-### Example: minimal
+### Example: minimal (v2, standard orientation)
 
 ```yaml
 ---
 date: 2026-04-08
-audit_type: cross_model_review
-scope: "GSD harness drift analysis -- installer, capability-matrix, cross-runtime parity"
+audit_subject: phase_verification
+audit_orientation: standard
+audit_delegation: self
+scope: "Phase 57.4 plan 01 — rewrite audit-conventions.md for 3-axis taxonomy"
 ---
 ```
 
-### Example: full session
+### Example: full session (composed obligations, investigatory × process_review)
 
 ```yaml
 ---
 date: 2026-04-09
-audit_type: comparative_quality
+audit_subject: process_review
+audit_orientation: investigatory
+audit_delegation: self
 auditor_model: claude-sonnet-4-6
-scope: "CONTEXT.md quality regression: rich era (52-54) vs thin era (55-57)"
-triggered_by: "deliberation: exploratory-discuss-phase-quality-regression.md"
-task_spec: rigorous-comparative-audit-task-spec.md
-ground_rules: core+custom
+scope: "Why do our discuss-phase outputs keep treating superseded docs as authoritative?"
+triggered_by: "signal: sig-2026-04-10-discuss-phase-authority-weighting-gap"
+task_spec: authority-weighting-investigation-task-spec.md
+ground_rules: core+investigatory+process_review
 predecessor_audits:
-  - exploration-quality-audit.md
-  - outcome-comparison-audit.md
-  - audit-review-and-deepening.md
+  - 2026-04-09-discuss-phase-exploration-quality/rigorous-comparative-audit.md
 output_files:
-  - rigorous-comparative-audit.md
-tags: [discuss-phase, context-quality, epistemic-rigor, comparative]
+  - authority-weighting-investigation.md
+tags: [discuss-phase, authority-weighting, investigatory, process_review]
 ---
 ```
 
-### Example: migrated artifact
+### Example: migrated artifact (v1 legacy field coexists with v2 axis fields)
 
 ```yaml
 ---
 date: 2026-04-08
-audit_type: requirements_review
+audit_subject: requirements_review
+audit_orientation: standard
+audit_delegation: cross_model:gpt-5.4
+audit_type: requirements_review  # legacy v1 field, retained for backward compat
 auditor_model: gpt-5.4
 scope: "v1.20 requirements coverage, feasibility, tensions"
 triggered_by: "manual: pre-milestone review"
-ground_rules: none
+ground_rules: core+standard+requirements_review
 migrated_from: .planning/audits/v1.20-requirements-review.md
 migrated_date: 2026-04-XX
-tags: [requirements, v1.20, review]
+tags: [requirements, v1.20, review, migrated]
 ---
 ```
 
@@ -402,15 +412,15 @@ The audit infrastructure uses three layers with decreasing strictness:
 
 Required for ALL audit artifacts. The YAML frontmatter schema defined in Section 2. This layer ensures all audits are findable, searchable, and comparable regardless of type. Non-negotiable.
 
-### Layer 2: Type-aware body templates (structured but provisional)
+### Layer 2: Obligations (non-standard) and suggested scaffolds (standard) — structured but provisional
 
-Suggested body structures per audit family (Section 4). These templates encode the epistemic practices appropriate to each family. They are guides that capture what has worked, not rules that prescribe what must be. Provisional -- they will evolve as practice reveals better structures.
+Composed obligations for `investigatory`, `exploratory`, and multi-axis audits (Section 4.1–4.2); suggested body scaffolds for `standard`-orientation audits on the 7 v1 subjects that have scaffolds (Section 4.3). The obligations live in `audit-ground-rules.md` and compose across axes; the scaffolds are starting shapes the audit's question can depart from. Both are guides that capture what has worked, not rules that prescribe what must be. Provisional -- they will evolve as practice reveals better structures, and the "What the Obligations Didn't Capture" section in every audit output feeds the evolution.
 
 ### Layer 3: Escape hatch (open)
 
-`audit_type: exploratory` + freeform body for audits that don't match any existing type. This layer exists because the taxonomy is provisional and the world of possible audits exceeds any fixed classification. [stipulated:bare] Per the CONTEXT.md stipulated constraint: shared metadata (strict) + type-aware body templates (structured but provisional) + escape hatch (for types that don't exist yet).
+`audit_orientation: exploratory` (optionally with `audit_subject` omitted) + freeform body for audits that don't match any named subject or don't yet know what they're auditing. This layer exists because the taxonomy is provisional and the world of possible audits exceeds any fixed classification. [stipulated:bare] Per the CONTEXT.md stipulated constraint: shared metadata (strict) + obligations/scaffolds (structured but provisional) + escape hatch (for situations the current decomposition doesn't hold). Per DC-5, the escape hatch now extends to the axes themselves — not only to subject values (see Section 3.4).
 
-Recurring use of Layer 3 reveals new types to formalize into Layer 2. The system learns from its own excess.
+Recurring use of Layer 3 reveals new subjects to formalize into Layer 2, and — in the extended form — may eventually reveal a missing axis. The system learns from its own excess.
 
 ---
 
