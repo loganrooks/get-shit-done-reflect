@@ -310,5 +310,6 @@ Completed: `.planning/deliberations/audit-taxonomy-retrospective-analysis.md`
 ---
 
 *Deliberation opened: 2026-04-10*
-*Lifecycle: open — paused, not concluded*
+*Lifecycle: open — fed forward into implementation*
 *Paused: 2026-04-10 — user directed pause due to time constraints, not because the deliberation has concluded*
+*Fed forward: 2026-04-09 — user directed: keep the questions and knots and threads open, archive the stale CONTEXT.md and RESEARCH.md (which reflected the pre-deliberation flat-type design), restart the phase in knowledge that we are building on / correcting / responding to the failures of previous iterations. The deliberation is not concluded — its resolved decisions feed CONTEXT.md v2, its open questions travel with the implementation as living concerns, not as items to close before proceeding.*
