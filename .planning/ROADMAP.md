@@ -140,10 +140,15 @@ The phase ships the reconstructed formalization along three deliverable vehicles
 **Depends on:** Phase 57.3 (base infrastructure — directory conventions, frontmatter meta-schema, rule-copying protocol — must exist to be partially preserved and partially rewritten).
 **Scope authority:** `.planning/phases/57.4-audit-skill-investigatory-type/57.4-CONTEXT.md` (v2, post-deliberation restructuring, framing-corrected 2026-04-10). When this roadmap summary and CONTEXT.md diverge, **CONTEXT.md is authoritative**. For the audit formalization design itself (taxonomy, obligations, rules), **the deliberations are authoritative** — not the reference files, which are partially superseded and carry supersession banners.
 Derived from: `sig-2026-04-09-phase-573-deferred-audit-skill-no-command`, `sig-2026-04-10-discuss-phase-authority-weighting-gap` (signal that triggered the framing correction of this roadmap entry), `.planning/deliberations/phase-scope-translation-loss-audit-capability-gap.md` (triggering deliberation), `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` (**open — fed forward, not concluded**; primary design source for v2), `.planning/deliberations/audit-taxonomy-retrospective-analysis.md` (validates 3-axis model against 13 audit sessions), `.planning/deliberations/forms-excess-and-framework-becoming.md` (governing constraint on how formal systems handle excess — also carries the claim-type vocabulary concern surfaced during v2 discuss-phase), `.planning/phases/57.4-audit-skill-investigatory-type/pre-phase-archive/REVIEW.md` (original philosophical deconstruction, Rule 5 and I1-I4 source, still load-bearing).
-**Plans:** 0 plans
+**Plans:** 6 plans
 
 Plans:
-- [ ] TBD (run /gsd-plan-phase 57.4 to break down)
+- [ ] 57.4-01-PLAN.md — Rewrite audit-conventions.md (3-axis taxonomy, obligations paradigm, v2 frontmatter)
+- [ ] 57.4-02-PLAN.md — Rewrite audit-ground-rules.md (Rule 5, I1-I4, subject/orientation/cross-cutting obligations, composition principle)
+- [ ] 57.4-03-PLAN.md — Create /gsdr:audit command (commands/gsd/audit.md) with cross-model experimental dispatch
+- [ ] 57.4-04-PLAN.md — Create gsdr-auditor agent (agents/gsdr-auditor.md) + gsd-auditor model-profiles entry
+- [ ] 57.4-05-PLAN.md — Rewrite REQUIREMENTS.md WF-01 + add new AUDIT requirements for 3-axis model
+- [ ] 57.4-06-PLAN.md — Remove supersession banners, run installer sync, full verification suite
 
 ### Phase 57.2: Discuss-Phase Exploratory Mode Overhaul (INSERTED)
 
