@@ -14,7 +14,7 @@
 
 **Milestone Goal:** Replace advisory quality controls with structural enforcement, mature the signal system from detection-only to full lifecycle management with a queryable knowledge base, overhaul spike methodology with epistemologically rigorous experimental design, and establish measurement infrastructure for evidence-based workflow improvement.
 
-**Phases:** 15 (Phases 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3)
+**Phases:** 16 (Phases 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3, 57.4)
 **Granularity:** Fine
 **Requirements:** 71 mapped
 
@@ -26,6 +26,7 @@
 - [x] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding (completed 2026-04-09)
 - [x] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Typed claims (7 types + verification dimension), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher update, claim dependency webs, template enrichment
 - [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents
+- [ ] **Phase 57.4: Audit Skill & Investigatory Type** - Build /gsdr:audit command + gsdr-auditor agent, add investigatory audit type with frame-reflexive ground rules (I1-I4), update audit-conventions.md and audit-ground-rules.md
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
 - [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
@@ -113,6 +114,17 @@ Plans:
 Plans:
 - [x] 57-01-PLAN.md -- Implement telemetry.cjs module and wire gsd-tools.cjs router (TEL-01a, TEL-01b, TEL-04, TEL-05)
 - [x] 57-02-PLAN.md -- Tests for telemetry.cjs and capture .planning/baseline.json (TEL-02)
+
+### Phase 57.4: Audit Skill & Investigatory Type (INSERTED)
+
+**Goal:** The `/gsdr:audit` command exists and dispatches to a `gsdr-auditor` agent, the audit type taxonomy includes `investigatory` with frame-reflexive ground rules (I1-I4), and all audit types include a frame-reflexivity closing step. Two concerns: (1) operational — build the invocable audit skill that Phase 57.3 deferred, (2) epistemic — develop the investigatory type and frame-reflexivity practice that the Phase 57 investigation revealed as missing.
+**Requirements**: AUDIT-01, AUDIT-02 (forward compliance — the skill enforces what 57.3 established), TBD for new AUDIT-04 (investigatory type + frame-reflexivity)
+**Depends on:** Phase 57.3 (audit conventions and ground rules must exist)
+Derived from: `sig-2026-04-09-phase-573-deferred-audit-skill-no-command`, `deliberation: phase-scope-translation-loss-audit-capability-gap.md`, `.planning/phases/57.4-audit-skill-investigatory-type/pre-phase-archive/REVIEW.md`
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 57.4 to break down)
 
 ### Phase 57.2: Discuss-Phase Exploratory Mode Overhaul (INSERTED)
 
@@ -252,7 +264,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch releases), then 57 → 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies). Phase 57.2 ships before Phase 57 as a patch (regression fix); effectiveness revisited post-telemetry. Phase 57.3 depends on Phase 57.2.
+Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.4 (patch releases), then 57 → 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies). Phase 57.2 ships before Phase 57 as a patch (regression fix); effectiveness revisited post-telemetry. Phase 57.3 depends on Phase 57.2. Phase 57.4 depends on Phase 57.3.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -264,6 +276,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | 57.1. Explore Skill Adoption | 1/1 | Complete   | 2026-04-09 |
 | 57.2. Discuss-Phase Exploratory Mode Overhaul | 3/3 | Complete | 2026-04-09 |
 | 57.3. Audit Workflow Infrastructure | 2/2 | Complete | 2026-04-09 |
+| 57.4. Audit Skill & Investigatory Type | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
 | 60. Sensor Pipeline & Codex Parity | 0/TBD | Not started | - |
@@ -283,7 +296,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
 | v1.17 Automation Loop | 36-44 | 24 | Complete | 2026-03-09 |
 | v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | 37 | Complete | 2026-03-30 |
-| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3 | TBD | In progress | - |
+| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3, 57.4 | TBD | In progress | - |
 
 **Totals:** 8 milestones, 67 phases (57 complete, 10 in progress), 173 plans completed
 

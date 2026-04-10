@@ -137,14 +137,16 @@ Recent decisions affecting current work:
 - Phase 57.2 scope refined: 10 requirements (DISC-01 through DISC-10). Typed claims (7 types from 6 exploratory audits across 12 projects), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher agent update, claim dependency webs. Pipeline enrichment step deferred to backlog 999.1. Derived from 3 deliberations: `exploratory-discuss-phase-quality-regression.md`, `pipeline-enrichment-step-architecture.md`, `claim-type-ontology.md`
 - Phase 57.3 inserted after Phase 57.2: Audit Workflow Infrastructure -- formalize audit conventions, task spec preservation, epistemic ground rules. Depends on 57.2. Requirements: AUDIT-01, AUDIT-02
 - Execution reordered: 57.1 → 57.2 → 57.3 ship as patches before Phase 57 (telemetry). 57.2 dependency on 57 removed — regression fix ships now, effectiveness revisited post-telemetry
+- Phase 57.4 inserted after Phase 57: Audit Skill & Investigatory Type — build /gsdr:audit command + gsdr-auditor agent, add investigatory audit type with frame-reflexive ground rules. Two concerns: (1) operational — invocable audit skill that 57.3 deferred, (2) epistemic — investigatory type and frame-reflexivity practice revealed as missing by Phase 57 investigation. Derived from: `sig-2026-04-09-phase-573-deferred-audit-skill-no-command`, `deliberation: phase-scope-translation-loss-audit-capability-gap.md`, quick task 260409-pz6 REVIEW.md
 
 ### Pending Todos
 
-5 pending (3 carried from v1.18, 2 remaining):
+6 pending (3 carried from v1.18, 3 remaining):
 
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 - [HIGH] Local patch archive: versioned history instead of single-snapshot overwrite (installer)
 - [HIGH] Cross-model review skill needed sooner than Phase 62 — launching Codex for review is fragile manual CLI work; /gsdr:cross-model-review is Phase 62 (WF-01) but the need is immediate. Consider pulling forward or building a minimal utility skill. (workflow)
+- [MEDIUM] gsd-tools audit subcommand: encode audit type taxonomy + ground rule sets as structured data in lib/audit.cjs so the /gsdr:audit command can call `gsd-tools init audit` instead of parsing reference docs directly. Deferred per trial-before-formalize — ship command+agent first, formalize tooling once usage patterns emerge. (tooling, audit)
 - [MEDIUM] Ghost agent integration: gsd-ui-auditor and gsd-doc-verifier entries in model-profiles.cjs have no agent specs — caused by upstream sync pulling profiles without corresponding specs. Needs deliberation on whether to build these agents, stub them, or remove the profiles. (upstream-sync, deliberation)
 - [MEDIUM] Revisit provisional corpus grounding set (planning)
 
