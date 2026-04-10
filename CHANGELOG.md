@@ -6,6 +6,49 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+### Added
+
+#### Phase 57 — Measurement & Telemetry Baseline
+- **`telemetry` subcommand group** for `gsd-tools`: new `get-shit-done/bin/lib/telemetry.cjs` module (683 lines) extracting data from Claude Code session-meta files. Five subcommands wired through `gsd-tools.cjs`:
+  - `telemetry summary` — aggregate session stats across a corpus
+  - `telemetry session {id}` — per-session detail
+  - `telemetry phase {n}` — phase-scoped telemetry
+  - `telemetry baseline` — capture baseline snapshot
+  - `telemetry enrich {id}` — enrich session metadata with facets
+- **`.planning/baseline.json`** — baseline telemetry snapshot committed for Phase 58 structural-enforcement attribution
+- 354 lines of unit tests covering all five telemetry subcommands
+- Phase 57 architecture principles in CONTEXT.md: adaptive telemetry, layered measurement ("no data is raw"), active measurement as a design constraint
+
+#### Phase 57.3 — Audit Workflow Infrastructure
+- **`get-shit-done/references/audit-conventions.md`** — foundational audit conventions reference (format, naming, provenance metadata, schema). Subsequently rewritten by Phase 57.4 — see Changed
+- **`get-shit-done/references/audit-ground-rules.md`** — epistemic ground rules reference (cite file:line, test disconfirming evidence, distinguish measurement from the measure). Subsequently extended by Phase 57.4 — see Changed
+- `AUDIT-03` requirement: migration of ~43 existing scattered audit artifacts into dated directories (`.planning/audits/YYYY-MM-DD-{slug}/`) with YAML frontmatter; sensor trial files categorized separately
+
+#### Phase 57.4 — Audit Skill & Investigatory Type
+- **`/gsdr:audit` command** (`commands/gsd/audit.md`): new invocable audit skill. Self-contained 8-step orchestrator — reads conversation context, infers a 3-axis classification (subject × orientation × delegation), composes obligations from the matching axes, creates a session directory at `.planning/audits/YYYY-MM-DD-{slug}/`, writes a fully-formed task spec with all ground rules and obligations copied inline, and dispatches the executor agent. Supports two delegation modes: `self` (local `gsdr-auditor` agent) and `cross_model:{model_id}` (experimental — requires `--trust-cross-model` opt-in in auto mode, reliability spike pending)
+- **`gsdr-auditor` agent** (`agents/gsdr-auditor.md`) + `gsd-auditor` model profile entry — executor for `/gsdr:audit`, grounds Rule 5 and framework invisibility in specific questions, writes audit output per the task spec
+- **3-axis audit taxonomy** (`audit-conventions.md` §3): nine subjects (`phase_verification`, `milestone`, `codebase_forensics`, `requirements_review`, `comparative_quality`, `claim_integrity`, `adoption_compliance`, `process_review`, `artifact_analysis`) × three orientations (`standard`, `investigatory`, `exploratory`) × two delegation modes (`self`, `cross_model:{model_id}`). Axes compose orthogonally. Two new subjects added: `process_review` (methodology soundness) and `artifact_analysis` (patterns across a corpus)
+- **Obligations paradigm** (`audit-conventions.md` §4, `audit-ground-rules.md` §2): non-standard orientation audits compose obligations — core rules (1–5) + orientation obligations + subject obligations + conditional cross-cutting obligations — rather than filling per-type templates. Standard orientation may still use suggested scaffolds (templates-as-scaffolding, not templates-as-mandate)
+- **Composition Principle** (hermeneutic engagement): when obligations are in tension, name the tension, name what about the situation creates it, and show how you navigated it — responsive to both demands rather than picking one side. Ships with an explicit "Q1 untested" acknowledgment: the first real investigatory audits through `/gsdr:audit` are the empirical test of whether agents engage hermeneutically or collapse to a precedence rule
+- **Rule 5 (frame-reflexivity)** in audit core rules: *"Did the framing shape what you found?"* Distinct from Rule 4 (within-frame escape) — Rule 5 catches whether the frame itself was appropriate. Lightweight closing step for `standard`, full section for `investigatory`. Grounded in specific questions (e.g., *"If this audit had been classified differently, what would it have looked for that you didn't?"*) to prevent compliance theater. Empty Rule 5 answers are treated as a signal the frame is invisible, not a signal of neutrality
+- **I1–I4 investigatory ground rules**: (I1) start from the discrepancy, not a theory — the choice of comparison point is already an interpretive act; (I2) let the investigation guide artifact selection — the artifact chain is a finding, not an input; (I3) present competing explanations — at least two interpretations per finding; (I4) name the position of the investigation — every investigation is conducted from somewhere
+- **Three cross-cutting audit obligations** (apply conditionally across axes):
+  - **Chain integrity** — for audits using predecessor audit findings as evidence, re-verify each predecessor claim independently before incorporating
+  - **Dispatch hygiene** — for `cross_model` delegation, verify the delegation prompt does not contain framing that systematically biases findings (comparative framing, target counts, desired conclusions)
+  - **Framework invisibility** — for `investigatory` and `exploratory` audits, name a concrete finding that would not appear no matter how rigorously conducted because of how the audit's scope was framed
+- Requirements `AUDIT-04` through `AUDIT-09` added covering the taxonomy, obligations paradigm, Rule 5, I1–I4, cross-cutting obligations, and invocable skill
+
+### Changed
+
+- **Audit taxonomy rewritten** (Phase 57.4 supersedes Phase 57.3): the flat 8-type `audit_type` enum from Phase 57.3 is replaced by the 3-axis model (subject × orientation × delegation). Frontmatter uses three new fields (`audit_subject`, `audit_orientation`, `audit_delegation`) — `audit_type` retained as an optional legacy field for backward compatibility. New audits should use the 3-axis fields. Reference files `audit-conventions.md` and `audit-ground-rules.md` were rewritten rather than extended
+- **Audit body paradigm rewritten**: non-standard orientation audits no longer use per-type body templates; they compose obligations via the hermeneutic Composition Principle. Phase 57.3's type-family rules (S1–S2, E1–E3, C1) are superseded by orientation + subject + cross-cutting obligations
+- **`WF-01` absorbed into `/gsdr:audit`**: the planned standalone `/gsdr:cross-model-review` command from Phase 62 is folded into `/gsdr:audit` as an `audit_delegation: cross_model:{model_id}` mode. Phase 62 scope reduced from "Five workflow gaps" to "Four workflow gaps". WF-01 remains `[ ]` pending post-implementation reliability spike (Q2)
+
+### Fixed
+
+- **Per-phase signal cap caused information loss** (addresses `sig-2026-04-09-per-phase-signal-cap-causes-information-loss`): the hard cap of 10 signals per phase in `signal-detection.md` burned 17 legitimate observations during Phase 57 post-review (9 existing signals archived, 17 new candidates rejected). Replaced with a soft target — rigor gates enforce quality, not quantity limits. Updated `references/signal-detection.md`, `agents/gsd-signal-synthesizer.md`, `commands/gsd/collect-signals.md`, `commands/gsd/signal.md`
+- **Wiring-validation regression for self-contained commands**: `/gsdr:audit` is a self-contained orchestrator (no workflow file — like `deliberate.md`); added `audit.md` to `tests/integration/wiring-validation.test.js` self-contained commands exception set to prevent false failures on the required workflow `@-reference` check
+
 ## [1.19.3] - 2026-04-09
 
 ### Added
