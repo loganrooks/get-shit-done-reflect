@@ -1,15 +1,34 @@
 ---
 id: sig-2026-04-10-discuss-phase-authority-weighting-gap
-type: capability-gap
+type: signal
 severity: high
-phase: "57.4"
+phase: 57.4
 detected_by: human
 detection_method: conversation-review
 origin: phase-execution
 date: 2026-04-10
 lifecycle: detected
 polarity: negative
-tags: [discuss-phase, authority-weighting, deliberation-synthesis, context-checker-blind-spot, reference-doc-staleness, framing-failure, epistemic-gap]
+tags:
+
+  - discuss-phase
+  - authority-weighting
+  - deliberation-synthesis
+  - context-checker-blind-spot
+  - reference-doc-staleness
+  - framing-failure
+  - epistemic-gap
+
+occurrence_count: 2
+updated: "2026-04-10T21:55:15Z"
+status: active
+project: get-shit-done-reflect
+created: "2026-04-10T00:00:00Z"
+signal_type: capability-gap
+signal_category: negative
+lifecycle_state: detected
+confidence: high
+confidence_basis: Two independent observations in same phase, direct log evidence from session 09422ed4, original signal from direct user observation in session 9f036b2d.
 ---
 
 # Signal: Discuss-Phase Synthesize Under-Weights Recent Deliberations When Older Reference Files Exist
@@ -23,6 +42,7 @@ In fact, the `audit-taxonomy-three-axis-obligations.md` deliberation had **super
 > "audit-conventions unfortunately is outdated... there was a whole deliberation about why those two are actually insufficient, and now I am worried that they will be traced as authoritative... This phase isn't just about adding a skill and an agent, it is radically rethinking the formalization of the auditing workflow."
 
 The framing failure propagated into:
+
 - CONTEXT.md `<domain>` section — "Update audit-conventions.md and audit-ground-rules.md" framed as additive polishing rather than reconstructive rewrite
 - CONTEXT.md `<working_model>` — restructuring described as restructuring, but the "Current state:" prose treated the reference files as the ground truth being modified
 - CONTEXT.md DC-1 through DC-5 — five derived constraints with `[evidenced:cited]` markers pointing at the superseded sections of the reference files
@@ -95,3 +115,37 @@ The user and Claude applied a lightweight correction before proceeding to planni
 ---
 *Detected: 2026-04-10 during post-context-checker review of Phase 57.4 v2 discuss-phase output*
 *Origin: user correction after context-checker ran and passed with WARN*
+
+## Corroboration: Second Observation (added 2026-04-10T21:55:15Z by gsdr-signal-synthesizer)
+
+A second independent observation of the same failure mode was detected during Phase 57.4 execution context-loading (session `09422ed4-ff56-47ef-bb53-07be5ae834df`, approximately 2026-04-10T15:37:56Z). The log sensor captured the following direct evidence:
+
+- **Session 09422ed4 L147 (USER):** "yea audit-conventions unfortunately is outdated... there was a whole deliberation about why those two are actually insufficient"
+- **Session 09422ed4 L159 (USER):** "This feels like a signal that the most recent deliberations weren't weighted more heavily within this step of gathering context."
+
+### Significance of the Corroboration
+
+The Limitations section of this signal originally stated: *"One observation does not establish a pattern. This is a single case from a single phase."* The second observation crosses that threshold. Two independent occurrences of the same failure mode, in two different workflow phases (discuss-phase first, execution context-loading second), within the same phase (57.4), establish the pattern as structural rather than sporadic.
+
+Notably, the second observation occurred *during the execution of the phase that was meant to remediate the first observation*. The v2 CONTEXT.md was corrected between the two observations (supersession banners added, authority-direction documented), but the underlying context-loading behavior still defaulted to treating the reference files as primary authority during execution preamble. This suggests the remediation applied to discuss-phase (corrected CONTEXT.md for this specific phase) did not generalize to execution context-loading (which loaded its context fresh and hit the same gap).
+
+### Occurrence Count Update
+
+- `occurrence_count: 1` → `occurrence_count: 2`
+- Added project field to frontmatter (was missing, causing index to show empty project)
+- Added status: active
+
+### Implications for Remediation
+
+The original signal listed four implications. This corroboration sharpens three of them:
+
+1. **Authority-weighting capability is needed in multiple workflows, not just discuss-phase.** The failure mode recurred during execution context-loading, which means a discuss-phase-only fix is insufficient. The capability must be present (or the check must be enforced) at every workflow step that loads context from a reference-doc-plus-deliberation topology.
+
+2. **Supersession banners alone are insufficient.** Banners were added to the reference files between the two observations, but the second occurrence still happened. Either the banners were not consulted during context-loading, or the context-loading step's retrieval path did not see them, or the banners' format is not machine-actionable enough to change behavior.
+
+3. **The phase that ships audit-conventions.md rewrite must also ship the workflow-level check.** Otherwise the underlying pattern will recur in Phase 58+ when the next reference file enters a similar supersession state.
+
+### Related Signals Updated By This Corroboration
+
+- `sig-2026-04-10-phase-574-context-md-missing-reading-order.md` (sibling signal created in the same synthesizer run): documents a related self-referential failure in the same session — the authority lesson was documented but not placed in CONTEXT.md. Together these two signals describe a capability gap in context-placement reasoning that spans both discuss-phase and planning preamble.
+- `sig-2026-04-10-authority-weighting-guard-held-all-six-plans.md` (sibling signal): documents the positive counterpart — once the v2 CONTEXT.md was corrected, the six plans under execution held the authority-weighting guard without further drift. The guard works when the correction is explicit and documented. The corroboration here documents the case where the correction did NOT reach the context-loading step.
