@@ -321,7 +321,7 @@ Updated during roadmap creation.
 | SPIKE-08 | Phase 61 | Pending |
 | SPIKE-09 | Phase 61 | Pending |
 | SPIKE-12 | Phase 61 | Pending |
-| WF-01 | Phase 62 | Pending |
+| WF-01 | Phase 57.4 (pulled forward) | Pending |
 | WF-02 | Phase 62 | Pending |
 | WF-03 | Phase 62 | Pending |
 | WF-04 | Phase 62 | Pending |

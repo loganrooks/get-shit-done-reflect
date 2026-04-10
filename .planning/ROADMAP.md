@@ -26,7 +26,7 @@
 - [x] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding (completed 2026-04-09)
 - [x] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Typed claims (7 types + verification dimension), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher update, claim dependency webs, template enrichment
 - [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents
-- [ ] **Phase 57.4: Audit Skill & Investigatory Type** - Build /gsdr:audit command + gsdr-auditor agent, add investigatory audit type with frame-reflexive ground rules (I1-I4), update audit-conventions.md and audit-ground-rules.md
+- [ ] **Phase 57.4: Audit Skill & Investigatory Type** - Radically rethink the formalization of the auditing workflow: the Phase 57.3 flat 8-type taxonomy + template paradigm + ground rules 1-4 do not express the complexities of the auditing situation. This phase supersedes Phase 57.3's core design commitments with a 3-axis taxonomy (subject × orientation × delegation), an obligations-based output paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations from retrospective analysis (chain integrity, dispatch hygiene, framework invisibility). Deliverables: /gsdr:audit command + gsdr-auditor agent, rewritten audit-conventions.md and audit-ground-rules.md, formalized cross-model delegation (WF-01 pulled forward from Phase 62)
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
 - [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
@@ -117,10 +117,29 @@ Plans:
 
 ### Phase 57.4: Audit Skill & Investigatory Type (INSERTED)
 
-**Goal:** The `/gsdr:audit` command exists and dispatches to a `gsdr-auditor` agent, the audit type taxonomy includes `investigatory` with frame-reflexive ground rules (I1-I4), and all audit types include a frame-reflexivity closing step. Two concerns: (1) operational — build the invocable audit skill that Phase 57.3 deferred, (2) epistemic — develop the investigatory type and frame-reflexivity practice that the Phase 57 investigation revealed as missing.
-**Requirements**: AUDIT-01, AUDIT-02 (forward compliance — the skill enforces what 57.3 established), TBD for new AUDIT-04 (investigatory type + frame-reflexivity)
-**Depends on:** Phase 57.3 (audit conventions and ground rules must exist)
-Derived from: `sig-2026-04-09-phase-573-deferred-audit-skill-no-command`, `deliberation: phase-scope-translation-loss-audit-capability-gap.md`, `.planning/phases/57.4-audit-skill-investigatory-type/pre-phase-archive/REVIEW.md`
+**Goal:** This phase **radically rethinks the formalization of the auditing workflow**. Phase 57.3 produced the first formal audit infrastructure: a flat 8-type taxonomy, body templates per type, ground rules 1-4, type-family rule extensions, and the supporting reference files. After 57.3 shipped, the work of actually running audits (13 sessions plus 6 exploratory audits of audit quality) revealed that this formalization **does not express the complexities of the auditing situation**. What looked like "types" conflated three orthogonal concerns under one enum. Templates could not compose obligations across axes. Frame-reflexivity was absent. Chain integrity, dispatch hygiene, and framework invisibility were not enforced by any rule.
+
+This phase is the **reconstructive response**, not an extension. It **supersedes** core design commitments of Phase 57.3 while preserving compatible meta-rules (directory conventions, rule-copying protocol, core rules 1-4, escape-hatch principle). The reconstruction, authoritatively specified in `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` (open — fed forward) and validated in `audit-taxonomy-retrospective-analysis.md`, comprises:
+
+- **3-axis taxonomy** replacing the flat 8-type list: **subject** (9 subject types including 2 new — `process_review`, `artifact_analysis`), **orientation** (`standard` | `investigatory` | `exploratory`), **delegation** (`self` | `cross_model:{model_id}`).
+- **Obligations-based output paradigm** for non-standard orientations (templates remain for standard routine audits — the retrospective identified 3 populations: template / obligations / multi-agent). Obligations are things the audit must *address*, not sections it must *write*.
+- **Hermeneutic composition principle** governing how obligations from different axes interact: "name the tension, navigate situationally." Not an algorithm — a practice.
+- **Frame-reflexivity Rule 5** added to all orientations: "Did the framing shape what you found?" Distinct from Rule 4 (escape hatch within the frame) because Rule 5 catches whether the frame was the right one.
+- **I1-I4 investigatory ground rules** from the REVIEW.md analysis: start from discrepancy not theory; let investigation guide artifact selection; present competing explanations; name the position of the investigation.
+- **Three new obligations from retrospective analysis**: **chain integrity** (predecessor audit claims re-verified when inherited), **dispatch hygiene** (parallel agent prompts checked for framing bias), **framework invisibility** (audits must name what their framework cannot see).
+
+The phase ships the reconstructed formalization along three deliverable vehicles:
+
+1. **`/gsdr:audit` command + `gsdr-auditor` agent** — invocable skill dispatching under the 3-axis model, composing obligations per situation, handling session directories, copying ground rules into task specs, supporting cross-model delegation. This is the operational skill Phase 57.3 deferred.
+2. **Rewritten `audit-conventions.md` and `audit-ground-rules.md`** — replacing the flat taxonomy (Section 3 of audit-conventions.md), per-type body templates (Section 4), and type-family rule sets (S1-S2, E1-E3, C1 in audit-ground-rules.md) with the 3-axis model, obligations paradigm, Rule 5, I1-I4, and composition principle. Both files currently carry supersession banners pointing at the deliberations as primary authority pending this rewrite.
+3. **Formalized cross-model delegation (WF-01, pulled forward from Phase 62)** — cross-model dispatch as an `audit_delegation` mode rather than a standalone `/gsdr:cross-model-review` command. The audit command is the natural home since audits are the primary cross-model use case.
+
+**Two concerns held together without collapsing one into the other:** (1) **epistemic reconstruction (primary)** — the 3-axis model, obligations paradigm, Rule 5, I1-I4, and composition principle replace core design commitments of 57.3, not decorate them; (2) **operational delivery (secondary, instrumental)** — the skill is the vehicle by which the reconstruction enters practice.
+
+**Requirements**: AUDIT-01, AUDIT-02 (forward compliance — the skill enforces what 57.3 established *as reconstructed*); WF-01 (cross-model delegation, pulled forward from Phase 62 — now an `audit_delegation` mode); plus new requirements TBD for the 3-axis taxonomy, obligations paradigm, Rule 5, I1-I4, and three new obligations (these supersede the v1 "AUDIT-04" placeholder, which was a flat-taxonomy artifact that no longer describes the work).
+**Depends on:** Phase 57.3 (base infrastructure — directory conventions, frontmatter meta-schema, rule-copying protocol — must exist to be partially preserved and partially rewritten).
+**Scope authority:** `.planning/phases/57.4-audit-skill-investigatory-type/57.4-CONTEXT.md` (v2, post-deliberation restructuring, framing-corrected 2026-04-10). When this roadmap summary and CONTEXT.md diverge, **CONTEXT.md is authoritative**. For the audit formalization design itself (taxonomy, obligations, rules), **the deliberations are authoritative** — not the reference files, which are partially superseded and carry supersession banners.
+Derived from: `sig-2026-04-09-phase-573-deferred-audit-skill-no-command`, `sig-2026-04-10-discuss-phase-authority-weighting-gap` (signal that triggered the framing correction of this roadmap entry), `.planning/deliberations/phase-scope-translation-loss-audit-capability-gap.md` (triggering deliberation), `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` (**open — fed forward, not concluded**; primary design source for v2), `.planning/deliberations/audit-taxonomy-retrospective-analysis.md` (validates 3-axis model against 13 audit sessions), `.planning/deliberations/forms-excess-and-framework-becoming.md` (governing constraint on how formal systems handle excess — also carries the claim-type vocabulary concern surfaced during v2 discuss-phase), `.planning/phases/57.4-audit-skill-investigatory-type/pre-phase-archive/REVIEW.md` (original philosophical deconstruction, Rule 5 and I1-I4 source, still load-bearing).
 **Plans:** 0 plans
 
 Plans:
@@ -229,15 +248,14 @@ Plans:
 **Note**: Can proceed in parallel with Phase 60 after Phase 58 completes -- independent workstreams with no shared dependencies. SPIKE-08 (protocol adherence checkpoints) is gated on SPIKE-01 completion; auto-defers to v1.21 if SPIKE-01 ships late in this phase
 
 ### Phase 62: Workflow Commands
-**Goal**: Five workflow gaps identified by audit and deliberation are closed with commands that integrate into existing GSD patterns
+**Goal**: Four workflow gaps identified by audit and deliberation are closed with commands that integrate into existing GSD patterns. (WF-01 cross-model delegation was pulled forward to Phase 57.4 per `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` — cross-model dispatch is now an `audit_delegation` mode on `/gsdr:audit` rather than a standalone `/gsdr:cross-model-review` command. The WF-01 requirement text in REQUIREMENTS.md may need revision to reflect this absorption.)
 **Depends on**: Phase 59 (KB query layer enables structured retrieval in research and explore commands)
-**Requirements**: WF-01, WF-02, WF-03, WF-04, WF-05b
+**Requirements**: WF-02, WF-03, WF-04, WF-05b (WF-01 pulled forward to Phase 57.4)
 **Success Criteria** (what must be TRUE):
-  1. `/gsdr:cross-model-review` launches background cross-model review with committed audit spec and structured response template -- opt-in, model choice configurable, review round count user-determined
-  2. `/gsdr:revise-phase-scope` performs mid-phase scope changes with ROADMAP.md and REQUIREMENTS.md update, commit, and re-discuss
-  3. `/gsdr:research` produces committed knowledge artifacts in `.planning/research/` with source citations, per-finding confidence levels, and stated limitations -- no code changes or spike overhead
-  4. `/gsdr:discuss-milestone` produces MILESTONE-CONTEXT.md with structured steering brief (working assumptions, open questions, epistemic guardrails, derived constraints, deferred ideas)
-  5. `/gsdr:explore` enhanced with GSDR-specific questioning.md (epistemic practice probes, assumption-surfacing), signal-aware exploration (KB queries during sessions), and "no artifact" as valid outcome
+  1. `/gsdr:revise-phase-scope` performs mid-phase scope changes with ROADMAP.md and REQUIREMENTS.md update, commit, and re-discuss
+  2. `/gsdr:research` produces committed knowledge artifacts in `.planning/research/` with source citations, per-finding confidence levels, and stated limitations -- no code changes or spike overhead
+  3. `/gsdr:discuss-milestone` produces MILESTONE-CONTEXT.md with structured steering brief (working assumptions, open questions, epistemic guardrails, derived constraints, deferred ideas)
+  4. `/gsdr:explore` enhanced with GSDR-specific questioning.md (epistemic practice probes, assumption-surfacing), signal-aware exploration (KB queries during sessions), and "no artifact" as valid outcome
 **Plans**: TBD
 
 ### Phase 63: Spike Programme Infrastructure
