@@ -207,67 +207,75 @@ When an audit names a subject (Axis 1), that subject contributes its own obligat
 
 ## 4. How to Reference in Task Specs
 
-Include this snippet in audit task specs to apply the core ground rules. Copy the rules -- do not reference by URL, since the agent needs the rules in its context window, not a pointer to them.
+Include the obligations snippet below in every audit task spec. **Copy the rules -- do not reference by URL, since the agent needs the rules in its context window, not a pointer to them.** This surviving meta-rule is the embedding protocol: the v2 rewrite did not change it, and in fact the obligations model makes it more important. Under the v1 type-family design, a URL reference at least pointed to a fixed rule set; under the obligations design, the task spec composes obligations from three axes and the composition itself must land in the agent's context, not a pointer to a template for it.
 
-### Core rules only (all audit types):
+**"Rules" now covers obligations.** The meta-rule was originally written for the 4-rule core + per-type extensions model. In the obligations model, the things to copy into every task spec are: Core Rules 1-5, orientation obligations for the audit's orientation, subject obligations for the audit's subject (if named), and cross-cutting obligations for each condition that applies (chain integrity if the audit inherits from predecessors, dispatch hygiene if `cross_model`, framework invisibility for investigatory/exploratory). Each of these must be copied in full — the task spec is the only place the auditor will see them.
 
-```markdown
-## Epistemic Ground Rules
+**Order of obligations in the task spec (non-negotiable):** Core Rules first (1-5, unchanged across audits), then orientation obligations (what stance the audit takes), then subject obligations (what is being audited, when named), then cross-cutting obligations (composition-level practices). This order mirrors the composition from broadest to narrowest engagement: core rules apply to every audit, orientation frames the stance, subject scopes the engagement, cross-cutting catches what composition introduces.
 
-Per `get-shit-done/references/audit-ground-rules.md`, core rules:
-
-1. **Every factual claim cites file:line and quotes the relevant passage.**
-2. **For every finding, BEFORE writing it, ask: "What would disconfirm this?" and CHECK.**
-3. **Distinguish what you measured from what the measure captures.**
-
-And the escape hatch:
-
-4. **What did you encounter that these ground rules didn't prepare you for?**
-```
-
-### With type-specific extensions (example: epistemic audit):
+### Task-spec template snippet (copy as starting point; `/gsdr:audit` writes this)
 
 ```markdown
 ## Epistemic Ground Rules
 
-Per `get-shit-done/references/audit-ground-rules.md`, core rules:
+### Core Rules (every audit)
 
-1. **Every factual claim cites file:line and quotes the relevant passage.**
-2. **For every finding, BEFORE writing it, ask: "What would disconfirm this?" and CHECK.**
-3. **Distinguish what you measured from what the measure captures.**
+1. **Every factual claim cites file:line and quotes the relevant passage.** Do not assert what a file contains without opening it. Do not summarize without quoting.
+2. **For every finding, BEFORE writing it, ask "What would disconfirm this?" and CHECK.** Not rhetorical — actually look for counter-evidence before committing the finding.
+3. **Distinguish what you measured from what the measure captures.** Every measurement is a proxy. Name the gap between your metric and the thing you care about.
+4. **Rule 4 (escape hatch):** What did you encounter that these ground rules didn't prepare you for? If the answer is "nothing," consider whether the rules shaped your attention so thoroughly that you didn't notice what they excluded.
+5. **Rule 5 (frame-reflexivity):** Did the framing shape what you found? [Lightweight closing step for `standard` orientation. Full section for `investigatory`. Woven into "name what you didn't look at" for `exploratory`.]
+   - *Specific grounding questions to answer:*
+     1. "If this audit had been classified as a different subject (e.g., `{alt subject}` instead of `{current subject}`), what would it have looked for that you didn't?"
+     2. "If this audit had been classified with a different orientation, what would it have held open that you closed?"
+     3. "What about the current classification shapes what you are prepared to notice and what you are not? Name one concrete example."
+   - An empty Rule 5 ("I considered my biases" with no concrete consequence in the findings) is a signal that the frame is invisible to the auditor. Refuse compliance theater.
 
-And the escape hatch:
+### Orientation Obligations ({orientation})
 
-4. **What did you encounter that these ground rules didn't prepare you for?**
+[Copy orientation obligations in full from Section 3.1. For `investigatory`, that means I1-I4 verbatim plus "show what remains unknown" plus "show how you navigated tensions." For `exploratory`, all six exploratory obligations. For `standard`, all three standard obligations.]
 
-### Additional Rules for Epistemic Audits
+### Subject Obligations ({subject})
 
-5. **Read content, not metadata.** Do not count signals -- read 5-10 and describe content.
-6. **When you don't know something, say "I don't know."** Do not hedge with qualifications as a substitute for investigation.
-7. **Check whether cited artifacts still exist and support the claim.**
+[Copy the subject's row from the Section 3.2 table in full — if a subject is named. Omit this block if the audit has no subject.]
+
+### Cross-Cutting Obligations
+
+[Chain integrity — copy full text if the audit references any predecessor audit's findings.]
+[Dispatch hygiene — copy full text if `audit_delegation: cross_model:*`.]
+[Framework invisibility — copy full text, with the specific grounding question, if orientation is investigatory or exploratory. Encouraged but optional for standard.]
+
+### Composition Principle (if tensions emerge)
+
+[Copy the 4-step engagement from Section 5 verbatim. Name the tension, name what about the situation creates it, show how you navigated it responsive to both demands, let the resolution emerge from engagement rather than a precedence rule.]
 ```
 
-### Selecting which extensions to include:
-
-| Audit Type | Ground Rule Set | Extensions |
-|------------|----------------|------------|
-| `phase_verification` | `core+structural` | Rules S1, S2 |
-| `milestone` | `core+structural` | Rules S1, S2 |
-| `codebase_forensics` | `core+structural` | Rules S1, S2 |
-| `cross_model_review` | `core+epistemic` | Rules E1, E2, E3 |
-| `requirements_review` | `core+epistemic` | Rules E1, E2, E3 |
-| `comparative_quality` | `core+epistemic` | Rules E1, E2, E3 |
-| `claim_integrity` | `core+epistemic` | Rules E1, E2, E3 |
-| `adoption_compliance` | `core+compliance` | Rule C1 |
-| `exploratory` | `core` (minimum) | Add extensions as the audit's question demands |
+The template is a starting point, not a mandate. Agents writing task specs by hand should use it as-is; the `/gsdr:audit` command (Plan 03) composes it programmatically from the 3-axis classification, populating each placeholder with the full text from this reference. The template will be consumed by `gsdr-auditor` (Plan 04) as its ground-rules block.
 
 ---
 
-## 5. Governing Principle
+## 5. Composition Principle
+
+Obligations from different axes compose into a flat list. A single audit may carry Core Rules 1-5, orientation obligations (e.g., I1-I4 for investigatory), subject obligations (e.g., process_review's "compare against spec"), and cross-cutting obligations (chain integrity if predecessors exist; dispatch hygiene if cross-model; framework invisibility if investigatory). **These do not form a hierarchy. They form a set the auditor must engage with.**
+
+Obligations will tension against each other. The canonical example is the phase-57 investigatory case: I2 ("let the investigation guide artifact selection") tensions with a process_review subject obligation like "compare against spec" when the spec itself is part of what's being investigated — the investigation wants to follow the evidence where it leads, but the subject obligation wants the spec as the standard of comparison. These two obligations pull in opposite directions in that situation. The auditor must not pick a winner. The auditor must:
+
+1. **Name the tension.** Say what the two (or more) obligations are and how they pull differently *in this situation*. Not abstractly — concretely. "I2 says follow the evidence, S-process-review says compare against spec, and the spec is what I suspect is wrong, so obeying S would close off what I1 asks me to hold open."
+2. **Name what about the situation creates it.** The tension is not abstract; it is occasioned by particulars. What about *this* audit makes the obligations tension? Another investigation in the same subject might have no tension at all.
+3. **Show how you navigated it.** Responsive to both demands, not cleanly picking one side. The navigation is part of the finding — the reader needs to see both the reasoning and the fact that the reasoning was not a clean resolution.
+4. **The resolution emerges from engagement** with the situation, not from a precedence rule applied in advance. If you can write down in advance what would resolve every tension between these obligations, you haven't understood the principle — or the obligations can be collapsed to one, which is evidence that the framework is over-specified.
+
+This is a **hermeneutic principle, not an algorithmic one.** [governing:cited] Per `audit-taxonomy-three-axis-obligations.md` line 164: "If you find yourself cleanly ignoring one obligation in favor of another, you've likely stopped engaging with the tension." The sign of engaged composition is not a clean resolution — it is a navigated one, where both obligations leave traces in the finding. An audit whose tensions disappear into tidy prose probably had the tensions smoothed away by the writer, not resolved by the investigation.
+
+**Untested.** [governing:reasoned] Per CONTEXT.md Q1 (open question carried forward from the deliberation): this composition principle is written but has not been tested against real investigatory audits. The first investigatory audits conducted under this framework are the test. If agents consistently collapse tensions to clean resolution — either by silently honoring one side or by writing hermeneutic-sounding prose that doesn't actually navigate anything — the principle has failed its hermeneutic character and will need revision, algorithmic support, or both. The signal-deliberation-revision loop is how the framework learns; the first few uses of this principle should be scrutinized for collapse-to-one-side behavior and fed back.
+
+---
+
+## 6. Governing Principle
 
 Ground rules are practices that enable rigor, not checklists that define it. They should be understood as starting conditions for epistemic discipline, not exhaustive descriptions of what rigor requires.
 
-[governing:reasoned] Per the forms-excess deliberation (open, not concluded): "a formal system encounters something that exceeds its categories, and the system's response to the excess reveals something about the system itself." These ground rules are a formal system. They will encounter audits where the important finding lies in territory the rules do not cover. Rule 4 (the escape hatch) is the mechanism for that encounter -- but the encounter itself is not guaranteed by any rule. The auditor must remain alert to what the rules cannot see.
+[governing:reasoned] Per the forms-excess deliberation (open, not concluded): "a formal system encounters something that exceeds its categories, and the system's response to the excess reveals something about the system itself." These ground rules are a formal system. They will encounter audits where the important finding lies in territory the rules do not cover. Rule 4 (the escape hatch) and Rule 5 (frame-reflexivity) are the mechanisms for that encounter — Rule 4 for what escaped the rules, Rule 5 for whether the rules were the right rules — but the encounter itself is not guaranteed by any rule. The auditor must remain alert to what the rules cannot see.
 
 The strongest evidence for ground rules is also the narrowest: one deliberation session, one agent class (Sonnet), one question domain (CONTEXT.md quality). [governing:reasoned] The 3-audit progression proves that ground rules dramatically improve audit quality in that context. Whether the improvement generalizes across all audit types, agent classes, and question domains is plausible but not yet demonstrated. These rules should be treated as a strong starting position, not as settled science.
 
