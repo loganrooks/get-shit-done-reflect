@@ -37,7 +37,7 @@
     "always_confirm_destructive": true,
     "always_confirm_external_services": true
   },
-  "gsd_reflect_version": "1.19.2",
+  "gsd_reflect_version": "1.19.4",
   "health_check": {
     "frequency": "milestone-only",
     "stale_threshold_days": 7,

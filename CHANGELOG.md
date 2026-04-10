@@ -6,6 +6,8 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.19.4] - 2026-04-10
+
 ### Added
 
 #### Phase 57 — Measurement & Telemetry Baseline
