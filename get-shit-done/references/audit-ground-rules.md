@@ -95,57 +95,113 @@ If your answer to Rule 4 is "nothing," that may be accurate -- or it may indicat
 
 ---
 
-## 3. Type-Family Extensions
+## 3. Orientation, Subject, and Cross-Cutting Obligations
 
-Additional rules for specific audit families, derived from the 9 failure patterns cataloged during the audit-of-audits research. [assumed:reasoned] These families cluster observed audit types by what they verify: structural (does X exist and wire correctly), epistemic (are claims warranted and traceable), compliance (does practice match intent). The clustering is interpretive, not observed -- it may need revision as new audit types emerge.
+The v1 type-family rule-family model (select a rule set from `audit_type`) has been replaced. [governing:cited] Per `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` lines 102-112: "When two axes both contribute templates (orientation template + subject template), they may conflict. 'Which template wins?' is the wrong question — it imposes algorithmic precedence on what should be a situated judgment." The v2 design replaces type-family extensions with **composable obligation sets** drawn from three sources: orientation (stance), subject (what is being audited, when named), and cross-cutting obligations (applicable universally or conditionally).
 
-### 3.1 Structural Audits
+**Obligations are things to engage with, not sections to write.** The difference matters. "Write a Competing Explanations section" (template) is different from "you must present competing explanations" (obligation). The first dictates shape; the second dictates epistemic practice. The obligation lets the auditor weave competing explanations into the narrative wherever they emerge naturally, rather than forcing them into a pre-specified slot where they may feel performative. When two obligations tension, the auditor must engage with the tension rather than pick a winner — see Section 5 (Composition Principle).
 
-**Applies to:** `phase_verification`, `milestone`, `codebase_forensics`
+The three sources are additive. A standard × `phase_verification` audit carries: Core Rules 1-5 + standard orientation obligations + phase_verification subject obligations. An investigatory × (no subject) audit carries: Core Rules 1-5 + investigatory orientation obligations (I1-I4 plus unknowns and tensions) + the framework-invisibility cross-cutting obligation. A `cross_model` × investigatory × `process_review` audit carries everything above plus dispatch hygiene plus chain integrity (if the audit references predecessors). This is the composition the auditor must hold.
 
-**Rule S1: Run the test, don't just read it.**
+### 3.1 Orientation Obligations
 
-Verification must execute, not inspect. A test file that exists but fails is worse than no test file -- it provides false assurance. Run the command. Read the output. Report what happened.
+[evidenced:cited] Lifted from `audit-taxonomy-three-axis-obligations.md` lines 119-140 (standard, investigatory supplementary, exploratory) and `pre-phase-archive/REVIEW.md` lines 70-74 (I1-I4 verbatim).
 
-[assumed:reasoned] Derived from failure pattern 7 (verification checking structure not function): audits that confirmed "test file exists" without running the test missed failures that execution would have caught.
+#### Standard orientation
 
-**Rule S2: Check wiring, not just existence.**
+The routine case. You know what you're checking; the goal is to close on findings with evidence. Standard orientation is Population 1 in the retrospective — where templates work better than obligations, and where the auditor's job is consistency, not openness. Core Rules 1-5 still apply in full.
 
-A file that exists but isn't connected is not complete. An export that exists but isn't imported is dead code. A route that exists but isn't registered is unreachable. Trace the connection from definition to use.
+- **Close on findings with evidence.** Every finding lands — pass, fail, or explicit defer-with-reason. *(Why this matters: standard audits exist to produce verdicts. An inconclusive standard audit is not a finding of ambiguity; it's a signal that the orientation was wrong and the audit should have been investigatory.)*
+- **Produce a clear verdict or assessment.** At the scope level: did the audited thing meet its criterion? *(Why this matters: downstream decisions — ship, block, escalate — depend on the verdict. A buried or hedged verdict shifts the cost of ambiguity to the reader.)*
+- **Address all items in scope.** Don't partially address the subject. If scope is too large, the audit should narrow and state what was excluded, not silently skip. *(Why this matters: silent exclusions are the most common cause of false-pass standard audits. The reader sees "audit passed" and assumes it covered the whole scope.)*
 
-[assumed:reasoned] Derived from failure pattern 8 (plan-checker structural blindness): structural audits that confirmed file existence without checking import chains missed broken wiring.
+#### Investigatory orientation
 
-### 3.2 Epistemic Audits
+The Population 2 case from the retrospective. Something went wrong and you don't know what yet, or the form of failure is itself what's uncertain. The I1-I4 obligations come from REVIEW.md Part 3 (lines 70-74) verbatim — their phrasing is load-bearing and should not be paraphrased when copied into task specs.
 
-**Applies to:** `cross_model_review`, `requirements_review`, `comparative_quality`, `claim_integrity`
+- **I1 — Start from the discrepancy, not a theory.** Describe what was expected, what was delivered, and why those expectations are being treated as the standard — the choice of comparison point is already an interpretive act. *(Why this matters: investigations that start from a theory select evidence to confirm the theory. Investigations that start from the discrepancy remain open to evidence the theory is wrong. The gap between expectation and delivery is a starting orientation, not a neutral fact — name why the expectation is the expectation.)*
 
-**Rule E1: Read content, not metadata.**
+- **I2 — Let the investigation guide artifact selection.** Don't mandate which artifacts to read in advance. Follow the evidence — if the discrepancy points to the planning stage, read planning artifacts. If it points to requirements, read requirements. The artifact chain is a finding, not an input. *(Why this matters: a pre-specified reading list encodes a hypothesis about where the failure lies. The investigation should discover where to read from what it finds, not from what the orchestrator specified. If the orchestrator pre-selected artifacts, I2 is in tension with that pre-selection — surface the tension, don't silently honor the pre-selection.)*
 
-Do not count signals -- read 5-10 and describe their content. Do not count requirements -- read the requirement text and assess whether it specifies what it claims to specify. Do not count tests -- read the assertions and assess whether they test what matters.
+- **I3 — Present competing explanations.** For each finding, offer at least two interpretations. "The research narrowed scope" could mean the researcher made an error, OR the researcher correctly applied constraints the investigator hasn't understood yet. Don't collapse to one. *(Why this matters: an investigation that presents a single explanation has stopped investigating. The criterion for closing an investigation is not "I found an explanation" but "the evidence rules out the alternatives." An explanation without ruled-out alternatives is a hypothesis, not a finding.)*
 
-[evidenced:cited] Per `rigorous-comparative-audit-task-spec.md` line 36: "Do not say '28 signals generated.' Read 5-10 signals and describe what they contain."
+- **I4 — Name the position of the investigation.** Every investigation is conducted from somewhere — with particular attunements, particular things it's prepared to notice, particular things it isn't. This isn't about cataloguing determinate "blind spots" as if they're hidden objects waiting to be found, but about acknowledging what this particular way of looking is oriented toward and what a differently-situated investigation would attend to. *(Why this matters: every investigator is embedded. Pretending otherwise produces the illusion of neutrality, and that illusion hides the frame from both the auditor and the reader. Naming the position is the minimum epistemic hygiene of situated inquiry — and it also gives the reader the information they need to decide how far to trust the investigation's framing.)*
 
-**Rule E2: When you don't know something, say "I don't know."**
+Plus two additional investigatory obligations:
 
-Do not hedge with qualifications as a substitute for investigation. Do not write "this could be explained by X" unless you have checked whether X is actually the case. Admitting uncertainty is more honest and more useful than speculative hedging.
+- **Show what remains unknown.** Not everything needs resolution. Explicit unknowns are findings — they map the edge of the investigation. *(Why this matters: the temptation at the end of an investigation is to close on a story. Resisting that temptation — and naming what the story cannot yet explain — is what distinguishes an investigation from a speculation.)*
+- **Show how you navigated any tensions between obligations.** When investigatory obligations tension with subject obligations or with each other, the navigation itself is a finding. See the Composition Principle in Section 5. *(Why this matters: how an investigator resolves tensions reveals their working frame. Making that resolution explicit — rather than performing a clean synthesis — gives the reader the information they need to evaluate whether the navigation was sound.)*
 
-[evidenced:cited] Per `rigorous-comparative-audit-task-spec.md` line 39: "Do not hedge with qualifications as a substitute for investigation."
+#### Exploratory orientation
 
-**Rule E3: Check whether cited artifacts still exist and support the claim.**
+An exploratory audit starts from a question or curiosity, not from a discrepancy. It is allowed — indeed required — to change direction when the exploration leads somewhere unexpected. It is also allowed to end with "I don't know yet" as a valid conclusion. The exploratory posture is unfamiliar to agents trained to close on findings, so each obligation below is framed with its "why."
 
-Citations go stale. Files move. Content changes. A `[evidenced:cited]` claim whose citation no longer resolves is a phantom claim -- it looks warranted but isn't. Verify that the artifact exists, that the line number is approximately correct, and that the quoted passage supports the claim being made.
+- **State the question or curiosity that initiated the exploration.** *(Why this matters: an exploration without a stated question tends to drift toward whatever the auditor already knows. Stating the question anchors the exploration in its occasion and gives the reader something to measure the exploration against.)*
+- **Follow the question wherever it leads.** Permission to change direction is not optional — it's the posture. If what you find reframes the original question, that reframing is itself a finding. *(Why this matters: exploratory audits that stay on their initial track are indistinguishable from standard audits with vague scope. The permission to depart from the plan is what makes the exploration epistemically productive.)*
+- **Name what you found that you weren't looking for.** *(Why this matters: the most valuable findings of an exploratory audit are often the ones the question didn't anticipate. Naming them explicitly prevents the narrative from smoothing them into the original question's shape.)*
+- **Name what the exploration opened** — new questions, possibilities, directions worth pursuing. *(Why this matters: exploration produces openings, not closures. Unnamed openings vanish; named openings become seeds for future work.)*
+- **Name what you didn't look at.** Acknowledged partiality, not failure. *(Why this matters: every exploration is partial. Naming the partiality honestly is what distinguishes a useful exploration from one that implicitly claims comprehensiveness it doesn't have.)*
+- **"I don't know yet" is a valid conclusion.** *(Why this matters: forcing a closure on an exploration destroys its epistemic value. An exploration that ends in "I don't know yet" but has surfaced the right questions is worth more than one that ends in a confident but premature answer.)*
 
-[assumed:reasoned] Derived from failure pattern 2 (fabricated/phantom citations) and the context-checker's design (`gsdr-context-checker.md`), which treats phantom citations as FAIL-level severity.
+### 3.2 Subject Obligations
 
-### 3.3 Compliance Audits
+When an audit names a subject (Axis 1), that subject contributes its own obligation set. These are additive with orientation obligations and with the core rules. Lifted verbatim from `audit-taxonomy-three-axis-obligations.md` lines 142-154.
 
-**Applies to:** `adoption_compliance`
+| Subject | Obligations |
+|---|---|
+| `phase_verification` | Verify execution not just existence; check wiring definition→use; compare against success criteria |
+| `requirements_review` | Read requirement text, assess specificity; check for missing requirements (negative space); assess feasibility |
+| `process_review` | Compare execution against process spec/intent; examine methodology assumptions; check if process worked-as-designed vs. design is wrong |
+| `artifact_analysis` | State corpus and why it's representative; look for patterns AND anti-patterns; note what the corpus excludes |
+| `claim_integrity` | Verify claims against citations; surface untyped load-bearing assumptions; trace dependency chains |
+| `codebase_forensics` | Examine actual code not documentation; trace data flow; identify structural patterns |
+| `adoption_compliance` | Verify against actual practice not documented practice; survey multiple instances; classify deviations |
+| `milestone` | Check cross-phase integration; verify E2E flows; check interface mismatches between phases |
+| `comparative_quality` | Define comparison axis explicitly; compare like with like; note what axis makes invisible |
 
-**Rule C1: Verify against actual practice, not documented practice.**
+**Subject is optional when omitted.** For investigatory or exploratory orientations that begin without a named subject (the Phase 57 case — "something doesn't match what I expected" with no clear hypothesis about what kind of thing is wrong), the investigation discovers its subject as it proceeds. In those cases, Core + orientation obligations are the full obligation set; subject obligations come online only if and when a subject is identified mid-audit.
 
-Check what the code does, not what the README says. Check what the agent actually writes, not what the agent spec says it should write. Check what the workflow produces, not what the template defines. Documentation describes intent; practice reveals reality. When they diverge, practice is the ground truth for a compliance audit.
+**Subject obligations are additive, not authoritative.** A `process_review` audit that finds something outside the process_review obligation list has not violated anything — the subject obligations describe minimum engagement, not a ceiling.
 
-[assumed:reasoned] Derived from failure pattern 5 (invented automated workflow narratives): a prior audit claimed artifacts were "normal automated workflow products" without checking whether the workflows it attributed them to actually exist.
+### 3.3 Cross-Cutting Obligations
+
+[evidenced:cited] Three obligations from retrospective analysis (`audit-taxonomy-retrospective-analysis.md` Gaps 4, 5, 7) that cut across orientation and subject. Each addresses a failure mode the v1 type-family model could not catch because the failure mode was structural — it arose from how audits compose with each other, with delegation, and with their own framing, not from any single audit's type.
+
+#### Chain integrity
+
+[evidenced:cited] Verbatim from retrospective Gap 4 (lines 194-197):
+
+> "When audit B uses audit A's finding as evidence, and audit A had a quality failure, audit B inherits the failure invisibly. This is the single most consequential failure mode in the discuss-phase session chain. **Obligation:** For each finding that depends on a predecessor audit's claim, re-verify that claim independently before incorporating it. State the re-verification or state why it was not done."
+
+**Applicability:** Every non-first audit in a chain — i.e., every audit whose frontmatter populates `predecessor_audits:` or whose findings cite a prior audit's conclusion as evidence. The obligation is triggered by dependency, not by orientation or subject.
+
+**Why this matters:** The retrospective's most consequential finding was that audit quality failures propagate invisibly through chains. A single unverified claim in Audit 1 becomes the ground truth for Audits 2, 3, and 4 — and each downstream audit is graded on its own merits, so the failure appears nowhere in any individual audit's quality signals. Chain integrity creates a gate: you may not carry forward a claim you have not independently re-verified, or you must explicitly note that you did not and why.
+
+#### Dispatch hygiene
+
+[evidenced:cited] Verbatim from retrospective Gap 5 (lines 199-203):
+
+> "When running model comparison experiments or multi-agent parallel dispatch, the prompts themselves can contaminate the results (the contamination experiment in the session-log audit found 50% GPT inflation from framing effects). **Obligation:** For `cross_model` delegation, verify that the delegation prompt does not include framing that could systematically bias findings (comparative framing, target counts, desired conclusions). If the comparison is intentional, note it explicitly in the audit frontmatter as a confound."
+
+**Applicability:** Every `cross_model` delegation (Axis 3 = `cross_model:{model_id}`). Also relevant for any multi-agent parallel dispatch, even within a single model, where the dispatch prompts themselves could systematically bias what the sub-agents find.
+
+**Why this matters:** The session-log audit found that framing effects in the dispatch prompt produced ~50% inflation in GPT's findings relative to an unframed baseline. The audit that generated the inflation had no way to see that the framing was the cause — the contaminated findings looked exactly like honest findings. Dispatch hygiene is the obligation to audit your own prompt before trusting the output. If comparative framing is intentional (e.g., for an adversarial cross-check), that's fine — but the intention must be documented, not smuggled in.
+
+#### Framework invisibility
+
+[evidenced:cited] Verbatim from retrospective Gap 7 (lines 211-215):
+
+> "The obligations have I4 ('name the position of the investigation') but nothing that specifically asks: 'What does this audit's framework make invisible? What kinds of findings would not appear in this audit no matter how rigorously it was conducted?' **Obligation:** Name what your audit framework cannot see — not what you chose not to look at, but what the structure of the audit makes invisible."
+
+**Applicability:** Always present for investigatory and exploratory orientations (where the framework's partiality is most operative); optional but strongly encouraged for standard orientation.
+
+**Relationship to I4 and Rule 5.** Framework invisibility is distinct from both. I4 names the investigator's position — where they're looking from. Rule 5 asks whether the audit's *classification* (subject × orientation × delegation) was the right frame. Framework invisibility asks the deepest version of the question: **what kinds of findings cannot appear in this audit at all, because of how the audit's scope was structured?** The distinction is: I4 is about the auditor, Rule 5 is about the classification, framework invisibility is about the structural edges of what the audit can see no matter how well it's conducted.
+
+**Ground framework invisibility in a specific question (copy into task spec verbatim — generic prompts produce compliance theater):**
+
+> *"Name a concrete finding that would not appear no matter how rigorously this audit was conducted, because of how this audit's scope was framed. If you can't name one, that's suspicious — the framework is probably hiding something from you that it's also hiding from itself."*
+
+**Why this matters:** The retrospective's cross-project adoption audit was the only one of 13 sessions that already met this obligation — it named explicitly what the GSDR framework's own categories made invisible about how epistemic-agency had adapted rather than conformed. Every other audit in the 13-session corpus had structural edges the audit could not see. The point is not that audits can escape their framework — they cannot — but that naming the edge is the difference between an audit that knows it is partial and one that mistakes its partiality for completeness.
 
 ---
 
