@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 57.4-04-PLAN.md (gsdr-auditor agent + model-profiles entry)
-last_updated: "2026-04-10T19:45:47.027Z"
+stopped_at: "Completed 57.4-05-PLAN.md (REQUIREMENTS.md updates: WF-01 rewrite + AUDIT-04..09)"
+last_updated: "2026-04-10T19:56:22.007Z"
 last_activity: 2026-04-10
 progress:
   total_phases: 17
   completed_phases: 8
   total_plans: 26
-  completed_plans: 24
-  percent: 92
+  completed_plans: 25
+  percent: 96
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.4 of 64 (Audit Skill & Investigatory Type) — Plans created, ready to execute
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-04-10
 
@@ -148,6 +148,9 @@ Recent decisions affecting current work:
 - [Phase 57.4]: [57.4-04]: Only standard-orientation scaffold carries a Verdict section; investigatory and exploratory scaffolds explicitly do not close on verdicts — enacts Section 3.1 orientation obligation differences from audit-ground-rules.md
 - [Phase 57.4]: [57.4-04]: Framework invisibility appears as its own section in investigatory/exploratory output, distinct from I4 (auditor position) and Rule 5 (classification frame) — per audit-ground-rules.md Section 3.3 explicit distinction
 - [Phase 57.4]: [57.4-04]: Task 3 precondition (agent file exists before profile entry) explicitly verified via ls — prevented creating a third ghost alongside gsd-ui-auditor and gsd-doc-verifier
+- [Phase 57.4]: [57.4-05]: WF-01 rewritten as audit_delegation: cross_model:{model_id} mode on /gsdr:audit, kept [ ] partial pending Q2 reliability spike
+- [Phase 57.4]: [57.4-05]: AUDIT-04..09 added (3-axis taxonomy, obligations paradigm, Rule 5, I1-I4, cross-cutting obligations, invocable audit skill); motivation citations favor deliberations/retrospective as primary authority, reference files cited only as 'Implemented in' markers
+- [Phase 57.4]: [57.4-05]: WF-01 rewrite removed every mention of /gsdr:cross-model-review (not just marked deprecated) per plan verification; old command name does not live on as a conceptual anchor
 
 ### Roadmap Evolution
 
@@ -193,6 +196,7 @@ Recent decisions affecting current work:
 | Phase 57.4 P01 | 7min | 3 tasks | 1 files |
 | Phase 57.4 P03 | 5min | 2 tasks | 1 files |
 | Phase 57.4 P04 | 6min | 3 tasks | 2 files |
+| Phase 57.4 P05 | 3min | 2 tasks | 1 files |
 
 ### Key Artifacts
 
@@ -208,8 +212,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-10T19:45:29.509Z
-Stopped at: Completed 57.4-04-PLAN.md (gsdr-auditor agent + model-profiles entry)
+Last session: 2026-04-10T19:56:22.000Z
+Stopped at: Completed 57.4-05-PLAN.md (REQUIREMENTS.md updates: WF-01 rewrite + AUDIT-04..09)
 Resume file: None
 
 This session (2026-04-10):
