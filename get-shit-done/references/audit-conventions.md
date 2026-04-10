@@ -250,13 +250,38 @@ Governing authority for this openness is `.planning/deliberations/forms-excess-a
 
 ---
 
-## 4. Type-Aware Body Templates
+## 4. Output Paradigm: Obligations and Templates
 
-Suggested (not required) body structures for each audit family. The frontmatter is the strict layer; the body is the flexible layer. If the audit demands a different structure, use a different structure.
+The v1 output paradigm attached a body template to each audit type. Templates work well for routine, close-ended audits where consistency and scannability matter more than flexibility — but they cannot compose across axes, and the retrospective analysis of the discuss-phase audit chain showed that the audits most at risk of producing wrong or misleading findings were exactly the ones the templates couldn't hold: investigations, explorations, cross-cutting audits that mix subjects and stances. The v2 paradigm keeps templates where they earn their keep and replaces them with composable **obligations** where they don't.
 
-### 4.1 Structural audits
+### 4.1 Two populations
 
-**Applies to:** `phase_verification`, `milestone`, `codebase_forensics`
+`.planning/deliberations/audit-taxonomy-retrospective-analysis.md` identified three populations of audits in the 13-session corpus it analyzed. Two of them produce artifacts addressed at this reference-file level; the third (multi-agent parallel dispatch, "Population 3") is deferred per CONTEXT.md Q3 and is not treated here.
+
+**Population 1 — Standard routine audits.** A known subject, a known comparison point, and an expectation of closure. `phase_verification × standard × self` is the paradigm case: the phase has a stated goal, the audit checks whether the goal was met, and the output reports a verdict. Templates remain as *suggested scaffolding* for these audits because consistency across many instances matters — readers of VERIFICATION.md and MILESTONE-AUDIT.md expect to find the same sections in the same order, and auditors benefit from a starting shape that the audit's question can depart from when it needs to. The canonical examples are phase VERIFICATION.md files and milestone MILESTONE-AUDIT.md files produced by the `verify-phase` and `audit-milestone` workflows.
+
+**Population 2 — Investigatory, exploratory, and complex audits.** A subject that may not be known at dispatch time; an orientation that refuses premature closure; or obligations from multiple axes that the auditor must navigate. Templates fail here for a structural reason: two templates cannot merge, so an audit that inherits demands from both an investigatory orientation and a `process_review` subject has no way for the template paradigm to represent the compound demand. **Obligations replace templates** for this population because obligations compose — two obligation sets from two axes flatten into one list, and the composition principle (see `audit-ground-rules.md`) governs how the auditor navigates tensions between them. The deliberation's 8 concrete examples (`.planning/deliberations/audit-taxonomy-three-axis-obligations.md` lines 197–265) show what composition looks like in practice across exploratory, investigatory, and cross-cutting combinations.
+
+The complexity assessment — whether a given audit is template territory or obligations territory — is performed at dispatch time by the orchestrator (the `/gsdr:audit` command, Plan 03), not here. This reference file describes the paradigm; the command chooses for each situation. The populations are a descriptive framing, not a dispatch gate: an audit that starts as Population 1 may accumulate obligations mid-flight and shift into Population 2 (the deliberation's example 11, `codebase_forensics × starts standard, may shift to investigatory`, is the shape of this), and the orchestrator composes accordingly rather than enforcing a rigid partition.
+
+### 4.2 Obligations vs. templates — the difference that matters
+
+The distinction between obligations and templates is hermeneutic, not mechanical. Per `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` lines 111–125:
+
+- **Templates say:** "Write a *Competing Explanations* section." The auditor fills the section. Whatever counts as competing explanations lives inside a named container, and the container's presence is how the output signals that the obligation was honored.
+- **Obligations say:** "You must present competing explanations." The auditor weaves competing explanations into the narrative wherever they emerge naturally. There is no section heading to fill; there is a demand that the output must answer, and the output honors it by making competing explanations visible in whatever shape the audit's reasoning takes.
+
+Task specs written under the obligations paradigm say *"address these obligations"* — not *"fill these sections."* The shift is not cosmetic. It is the shift that lets obligations compose across axes: section headings from two templates cannot be merged without collision, but demand from two obligation sets can be held simultaneously as the auditor writes. It is also the shift that prevents compliance theater at the structural level — an auditor cannot satisfy an obligation by writing a section heading and leaving it empty, because the obligation lives in the content, not in the table of contents.
+
+**"What the Obligations Didn't Capture" is a mandatory named section in every audit output**, under both the template paradigm and the obligations paradigm (deliberation lines 174–176). It is the structural opening for excess: the auditor records findings that do not fit any obligation, any template, any expected shape. If this section is consistently substantial for a particular kind of audit, that is empirical evidence for a new subject type, a new orientation obligation, or a missing axis entirely — the excess section feeds back into taxonomy revision. It is the mechanism by which the framework stays open to what exceeds its current decomposition.
+
+### 4.3 Suggested scaffolding for standard-orientation audits
+
+Subject-specific scaffolds are retained as **optional suggestions** for `standard`-orientation audits only. The v1 type-family templates survive as starting shapes for the subjects they were originally attached to, not as mandated structure. Investigatory and exploratory orientations compose obligations instead — not because the old shapes are wrong, but because a composed obligation set cannot fit inside a pre-fixed template without losing its compositional character.
+
+**Before each scaffold below, the same caveat applies:** these are suggested structures for `standard`-orientation audits only. `investigatory` and `exploratory` orientations use obligations, not templates. If the audit accumulates obligations from non-standard orientation or from multi-subject composition, treat the scaffold as a starting shape you are free to depart from — and address the composed obligations from `audit-ground-rules.md` directly.
+
+#### Scaffold A — for `phase_verification`, `milestone`, `codebase_forensics` under standard orientation
 
 ```markdown
 ## Goal and Scope
@@ -280,11 +305,13 @@ Suggested (not required) body structures for each audit family. The frontmatter 
 ## Gaps Summary
 
 [Missing artifacts, broken connections, unverified claims]
+
+## What the Obligations Didn't Capture
+
+[Findings that don't fit any obligation. Mandatory section.]
 ```
 
-### 4.2 Epistemic audits
-
-**Applies to:** `cross_model_review`, `requirements_review`, `comparative_quality`, `claim_integrity`
+#### Scaffold B — for `requirements_review`, `comparative_quality`, `claim_integrity` under standard orientation
 
 ```markdown
 ## Question Being Investigated
@@ -309,11 +336,15 @@ Suggested (not required) body structures for each audit family. The frontmatter 
 ## Limitations of This Audit
 
 [What this audit could not see, what was outside its scope, what assumptions it made]
+
+## What the Obligations Didn't Capture
+
+[Findings that don't fit any obligation. Mandatory section.]
 ```
 
-### 4.3 Compliance audits
+Note: the v1 epistemic scaffold included `cross_model_review` as a subject row. Under v2, cross-model is a *delegation mode* — any subject can be run under `cross_model` delegation. When `requirements_review × standard × cross_model` runs, it uses the scaffold above; the cross-model nature of the dispatch is recorded in the frontmatter's `audit_delegation` field and in the dispatch-hygiene obligations that cross-model audits inherit from `audit-ground-rules.md`.
 
-**Applies to:** `adoption_compliance`
+#### Scaffold C — for `adoption_compliance` under standard orientation
 
 ```markdown
 ## Standard Being Checked
@@ -337,37 +368,29 @@ Suggested (not required) body structures for each audit family. The frontmatter 
 ## Recommendations
 
 [Suggested actions, prioritized by impact]
+
+## What the Obligations Didn't Capture
+
+[Findings that don't fit any obligation. Mandatory section.]
 ```
 
-### 4.4 Exploratory audits
+#### Scaffolds for `process_review` and `artifact_analysis`
 
-**Applies to:** `exploratory` (the escape hatch type)
+Deliberately left unspecified. These subjects are new in v2, discovered by the retrospective's analysis of audit sessions that had been forced through v1 templates. Until real `process_review` and `artifact_analysis` audits run under v2, any scaffold invented here would be speculation. Per Claude's Discretion in CONTEXT.md: **scaffolds will emerge from practice.** For now, auditors running these subjects under standard orientation compose obligations from `audit-ground-rules.md` and write whatever shape the situation demands — the "What the Obligations Didn't Capture" section remains mandatory.
 
-```markdown
-## Question or Motivation
+(The v1 exploratory body template has been absorbed into the `exploratory` orientation obligations; see `audit-ground-rules.md` — rewritten by Phase 57.4 Plan 02. `exploratory` is now an orientation, not a subject type, so its output shape is governed by the orientation obligations rather than by a template.)
 
-[Why this audit exists -- what prompted it]
+### 4.4 Obligation sets live in `audit-ground-rules.md`
 
-## What Was Examined
+This reference describes *that* obligations compose. It does not describe *how*, nor does it reproduce the obligation text. The canonical home for the obligation sets and the composition principle is `get-shit-done/references/audit-ground-rules.md` (rewritten by Phase 57.4 Plan 02 in parallel with this rewrite). That file carries:
 
-[Artifacts, code, signals, or other evidence reviewed]
+- **Core obligations** — the five rules every audit inherits (citation, disconfirmation, measure-vs-captured, escape hatch, and frame-reflexivity).
+- **Orientation obligations** — standard closes-on-findings; investigatory I1–I4 (hold diagnosis open, let the investigation guide artifact selection, present competing explanations, name the position of the investigation); exploratory follow-the-question.
+- **Subject obligations** — the 9-row table attaching obligations to each subject from Axis 1.
+- **Cross-cutting obligations** — chain integrity (for any audit that depends on a predecessor), dispatch hygiene (for any `cross_model` delegation), framework invisibility (for any audit that can carry the reflexive weight).
+- **The composition principle** — how the auditor navigates tensions between obligations from different axes, and why the navigation is hermeneutic rather than algorithmic.
 
-## What Was Found
-
-[Observations, with citations where possible]
-
-## What This Might Mean
-
-[Tentative interpretation -- clearly marked as provisional]
-
-## What Follow-Up Is Needed
-
-[Whether this should become a formalized audit type, what further investigation would clarify]
-```
-
-### Body template design note
-
-These templates are guides, not straitjackets. The escape hatch for body format is simply: write whatever the audit demands. A structural audit that discovers an epistemic issue should include epistemic-style analysis. A compliance audit that uncovers a structural gap should trace the wiring. The templates provide starting structure; the audit's question determines the final shape.
+When a task spec is written for a Population-2 audit, the orchestrator composes the obligation sets from the three axes and the cross-cutting rules into a flat list and copies the full text into the task spec. The auditor addresses the list. This reference file is where the reader learns that this is the shape of things; `audit-ground-rules.md` is where the actual obligations live.
 
 ---
 
