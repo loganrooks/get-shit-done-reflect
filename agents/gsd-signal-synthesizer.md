@@ -1,6 +1,6 @@
 ---
 name: gsd-signal-synthesizer
-description: Single KB writer that receives raw signal candidates from all sensors, deduplicates across sources, enforces epistemic rigor and trace filtering, applies per-phase caps, and writes qualifying signals to the knowledge base
+description: Single KB writer that receives raw signal candidates from all sensors, deduplicates across sources, enforces epistemic rigor and trace filtering, and writes qualifying signals to the knowledge base
 tools: Read, Write, Bash, Glob, Grep
 color: green
 ---
@@ -13,7 +13,7 @@ You are the signal synthesizer agent. You are the ONLY agent that writes signal 
 
 ## References
 
-- `~/.claude/get-shit-done/references/signal-detection.md` -- dedup rules (Section 9), cap rules (Section 10), severity classification (Section 6)
+- `~/.claude/get-shit-done/references/signal-detection.md` -- dedup rules (Section 9), signal guidelines (Section 10), severity classification (Section 6)
 - `~/.claude/agents/knowledge-store.md` -- signal schema, lifecycle rules, mutability boundary
 - `~/.claude/agents/kb-templates/signal.md` -- signal file template for creation
 
@@ -188,21 +188,17 @@ If validation fails, reject the signal and log:
 Schema rejection: {summary} -- {validation error}
 ```
 
-### Step 6: Per-Phase Cap Enforcement
+### Step 6: Per-Phase Signal Volume Check
 
-Apply signal-detection.md Section 10 rules:
+Report signal volume per signal-detection.md Section 10 guidelines:
 
 1. Count existing active signals for this phase and project in the KB index
 2. Count new signals about to be written
-3. If existing + new > 10 (per-phase cap):
-   - Sort ALL signals (existing + new) by severity (critical > notable > minor)
-   - Within same severity, prefer higher `occurrence_count`
-   - Keep the top 10, archive the rest
-   - For existing signals that need archiving: update their `status: archived` in frontmatter (this is the one permitted exception to immutability -- see knowledge-store.md Section 10)
-   - For new signals that do not fit: skip writing and log:
-     ```
-     Capped: {summary} -- per-phase cap exceeded
-     ```
+3. If existing + new > 10 (soft target):
+   - Note in report: "Phase {X} produced {N} signals — above soft target of 10, consistent with phase complexity ({M} sessions, {K} sensors)"
+   - **Persist all qualifying signals regardless of count** — quality is enforced by rigor gates (Steps 3-5), not quantity limits
+   - Do NOT archive existing signals to make room
+   - Do NOT skip writing new signals that passed rigor gates
 
 ### Step 7: Write Qualifying Signals
 
@@ -351,11 +347,11 @@ Return a structured report to the orchestrator:
 
 5. **Respect the mutability boundary.** Detection payload fields are FROZEN after creation. Lifecycle fields are mutable. See knowledge-store.md Section 10. The synthesizer creates signals (setting all fields once) but does not modify detection payload fields on existing signals. The synthesizer is also authorized to modify lifecycle fields on existing signals for recurrence regression (Step 4b) and passive verification (Step 4c).
 
-6. **The synthesizer is authorized to modify existing signal files** for archival during cap enforcement (Step 6), recurrence regression (Step 4b), and passive verification (Step 4c). All modifications are limited to lifecycle fields only (lifecycle_state, lifecycle_log, remediation, verification, updated, status). Detection payload fields remain frozen.
+6. **The synthesizer is authorized to modify existing signal files** for recurrence regression (Step 4b) and passive verification (Step 4c). All modifications are limited to lifecycle fields only (lifecycle_state, lifecycle_log, remediation, verification, updated, status). Detection payload fields remain frozen. Signals are NOT archived to make room for new signals — archival only happens through lifecycle transitions.
 
 7. **YAML sanitization is mandatory.** Evidence strings from sensors may contain colons, hashes, quotes, or leading dashes. Always quote string values in YAML frontmatter that contain special characters. Validate written files with `frontmatter validate` after writing. If post-write validation fails, delete the malformed file and log the error.
 
-8. **Per-project cap awareness.** The per-phase cap is 10 (signal-detection.md Section 10). There is no per-project cap enforced by the synthesizer. If a project accumulates excessive signals across many phases, this should be flagged as a gap for future work. The previous signal-collector used a per-project cap of 100 which is not carried forward here -- the per-phase cap of 10 is the primary constraint.
+8. **Signal volume awareness.** The per-phase soft target is ~10 (signal-detection.md Section 10). This is a reporting guideline, not a hard cap. Persist all signals that pass rigor gates regardless of count. Note high volume in the report with context about phase complexity. There is no per-project cap.
 
 9. **All paths use `~/` prefix in npm source.** The installer converts `~/` to `./` during installation. When referencing paths in this spec, use `~/` consistently.
 

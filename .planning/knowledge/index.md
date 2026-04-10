@@ -1,12 +1,14 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-09T19:28:08Z
-**Total entries:** 233
+**Generated:** 2026-04-10T22:07:37Z
+**Total entries:** 260
 
-## Signals (228)
+## Signals (254)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-04-10-researcher-model-override-leak-third-occurrence | get-shit-done-reflect | notable | detected | model-override,agent-dispatch,orchestrator-error,scope-leak,researcher-agent,recurring | 2026-04-10 | active |
+| sig-2026-04-09-phase-573-deferred-audit-skill-no-command | get-shit-done-reflect | notable | detected | audit-workflow,capability-gap,phase-scope,deferred-feature,invocable-skill,planning-gap | 2026-04-09 | active |
 | sig-2026-04-08-autonomous-discuss-plan-execute-pr-merge-pipeline | get-shit-done-reflect | notable | detected | autonomous-workflow,end-to-end,discuss-plan-execute,pr-workflow,ci-integration,positive-pattern | 2026-04-08 | active |
 | sig-2026-04-08-model-override-scope-leak-researcher-got-sonnet | get-shit-done-reflect | notable | detected | model-override,agent-dispatch,orchestrator-error,scope-leak,researcher | 2026-04-08 | active |
 | SIG-260222-008-known-top-level-keys-deduplication | get-shit-done-reflect | notable | detected | deduplication,constants,refactor,drift-prevention,module-level | 2026-02-22 | active |
@@ -33,6 +35,30 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-10-plan-phase-workflow-literal-subagent-type-misroute | get-shit-done-reflect | notable | detected | workflow,subagent-dispatch,plan-phase,gsdr-planner,registered-agent,misroute,dev-repo,session-log,recurring | "2026-04-10 | active |
+| sig-2026-04-10-plan-phase-postlude-6-plans-uncommitted-5-hours | get-shit-done-reflect | notable | detected | harness-gap,commit-patterns,plan-quality,workflow-integrity,postlude-gap,killed-agent-recovery | "2026-04-10 | active |
+| sig-2026-04-10-plan-04-purple-color-factual-premise-wrong | get-shit-done-reflect | minor | detected | plan-accuracy,plan-checker,codebase-state,color-collision,second-order-check | "2026-04-10 | active |
+| sig-2026-04-10-plan-03-scope-extension-wiring-validation-undeclared | get-shit-done-reflect | minor | detected | scope-creep,plan-accuracy,test-coupling,files-modified,retroactive-fix | "2026-04-10 | active |
+| sig-2026-04-10-plan-01-section-5-layer-3-scope-expansion | get-shit-done-reflect | minor | detected | scope-expansion,plan-boundaries,section-5,ground-rules-grammar,executor-discretion,second-order-check | "2026-04-10 | active |
+| sig-2026-04-10-phase-574-wave2-wiring-validation-transient-failure | get-shit-done-reflect | minor | detected | parallel-execution,wave-2,wiring-validation,test-failure,transient,self-healing | "2026-04-10 | active |
+| sig-2026-04-10-phase-574-pr45-ci-clean-mergeable-baseline | get-shit-done-reflect | notable | detected | ci,pr-checks,passing,mergeable,baseline,positive-pattern | "2026-04-10 | active |
+| sig-2026-04-10-phase-574-opus-quality-profile-alignment-baseline | get-shit-done-reflect | minor | detected | model-profile,quality-profile,opus-class,config-alignment,baseline,positive-pattern | "2026-04-10 | active |
+| sig-2026-04-10-phase-574-no-fix-chains-baseline | get-shit-done-reflect | minor | detected | fix-chain,commit-patterns,baseline,positive-pattern,plan-quality | "2026-04-10 | active |
+| sig-2026-04-10-phase-574-context-md-missing-reading-order | get-shit-done-reflect | minor | detected | session-log,user-correction,process-friction,context-checker-blind-spot,self-referential-gap,reading-order | "2026-04-10 | active |
+| sig-2026-04-10-orchestrator-deletes-partial-output-instead-of-archiving | get-shit-done-reflect | notable | detected | orchestrator-behavior,partial-output,delete-vs-archive,deviation-testimony,recurring-pattern,session-log,user-correction,destructive-action,evidence-preservation | "2026-04-10 | active |
+| sig-2026-04-10-main-branch-5-consecutive-ci-success-baseline | get-shit-done-reflect | minor | detected | ci,main-branch,passing,baseline,positive-pattern | "2026-04-10 | active |
+| sig-2026-04-10-composition-principle-q1-untested-epistemic-gap | get-shit-done-reflect | notable | detected | composition-principle,untested,audit-ground-rules,investigatory,hermeneutic,q1-spike-candidate,epistemic-disclosure | "2026-04-10 | active |
+| sig-2026-04-10-ci-test-regression-parse-inconclusive-recurrence | get-shit-done-reflect | minor | detected | ci,test-regression,epistemic-gap,parsing-limitation,sensor-capability-gap | "2026-04-10 | active |
+| sig-2026-04-10-ci-branch-protection-bypass-recurrence | get-shit-done-reflect | critical | detected | ci,branch-protection,bypass,main-branch,direct-push,recurring,admin-bypass | "2026-04-10 | active |
+| sig-2026-04-10-authority-weighting-guard-held-all-six-plans | get-shit-done-reflect | notable | detected | authority-weighting,deliberation-authority,self-citation-prevention,good-pattern,positive-pattern,sig-resolution | "2026-04-10 | active |
+| sig-2026-04-10-audit-references-expected-churn-during-rewrite | get-shit-done-reflect | notable | detected | file-churn,hotspot,agent-spec,reference-stability,rewrite-phase,expected-churn | "2026-04-10 | active |
+| sig-2026-04-10-discuss-phase-authority-weighting-gap | get-shit-done-reflect | high | detected | tags: | "2026-04-10 | active |
+| sig-2026-04-09-phase57-active-measurement-vision-dropped-at-planning | get-shit-done-reflect | critical | detected | tags: | "2026-04-09 | active |
+| sig-2026-04-09-stale-worktrees-not-cleaned-after-execution | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
+| sig-2026-04-09-per-phase-signal-cap-causes-information-loss | get-shit-done-reflect | critical | detected | tags: | "2026-04-09 | active |
+| sig-2026-04-09-execute-phase-no-uncommitted-artifact-check | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
+| sig-2026-04-09-discuss-context-written-without-reading-research | get-shit-done-reflect | notable | detected | discuss-phase,context-gathering,workflow-gap,user-correction,epistemic-rigor | "2026-04-09 | active |
+| sig-2026-04-09-orchestrator-skipped-log-sensor-despite-discovery | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
 | sig-2026-04-09-yaml-frontmatter-prepended-to-jsonl-files | get-shit-done-reflect | minor | detected | migration,format-mismatch,jsonl,frontmatter,audit-infrastructure | "2026-04-09 | active |
 | sig-2026-04-09-researcher-spawned-with-wrong-model-57-3 | get-shit-done-reflect | notable | detected | session-log,model-mismatch,repeated-instruction,user-correction,researcher-agent | "2026-04-09 | active |
 | sig-2026-04-09-plan02-files-modified-undercount-57-3 | get-shit-done-reflect | minor | detected | plan-quality,files-modified,frontmatter,plan-checker | "2026-04-09 | active |
@@ -141,7 +167,7 @@
 | sig-2026-03-06-no-ci-runs-phase42-unpushed-work | get-shit-done-reflect | notable | detected | ci,unpushed-work,no-ci-coverage | "2026-03-06 | active |
 | sig-2026-03-06-installer-file-churn-hotspot | get-shit-done-reflect | notable | detected | tags: | "2026-03-06 | active |
 | sig-2026-03-06-ci-test-regression-parse-inconclusive | get-shit-done-reflect | minor | detected | ci,test-regression,parsing-limitation | "2026-03-06 | active |
-| sig-2026-03-06-branch-protection-bypass-three-commits | get-shit-done-reflect | critical | remediated | tags: | "2026-03-06 | remediated |
+| sig-2026-03-06-branch-protection-bypass-three-commits | get-shit-done-reflect | critical | detected | tags: | "2026-03-06 | active |
 | sig-2026-03-06-phase42-plan-gaps-pre-execution-review | get-shit-done-reflect | notable | detected | tags: | "2026-03-06 | active |
 | sig-2026-03-06-planner-deliberation-auto-reference-gap | get-shit-done-reflect | notable | detected | tags: | "2026-03-06 | active |
 | sig-2026-03-05-phase40-plan-gaps-pre-execution-review | get-shit-done-reflect | critical | detected | tags: | "2026-03-05 | remediated |
@@ -236,18 +262,14 @@
 | sig-2026-02-11-signal-workflow-context-bloat | get-shit-done-reflect | notable | detected | tags: | "2026-02-11 | active |
 | sig-2026-02-11-agent-inline-research-context-bloat | get-shit-done-reflect | notable | detected | tags: | "2026-02-11 | active |
 
-## Spikes (5)
+## Spikes (6)
 
 | ID | Project | Outcome | Tags | Date | Status |
 |----|---------|---------|------|------|--------|
 | spk-2026-03-01-claude-code-session-log-location | get-shit-done-reflect | confirmed | logging,sensor,claude-code,signal-collection | 2026-03-01 | active |
 | spk-2026-04-09-cross-runtime-otel-bridge-validation | get-shit-done-reflect | partial | telemetry,otel,codex,statusline,cross-runtime,token-accounting,rate-limits | "2026-04-09 | partial |
 | spk-2026-04-09-token-count-reliability | get-shit-done-reflect | confirmed | telemetry,session-meta,tokens,data-quality,caching | "2026-04-09 | active |
+| spk-2026-04-09-session-data-integrity-characterization | get-shit-done-reflect | confirmed | telemetry,session-meta,data-quality,integrity | "2026-04-09 | active |
 | spk-2026-04-09-facets-accuracy-validation | get-shit-done-reflect | partial | telemetry,facets,data-quality,correlation | "2026-04-09 | active |
 | spk-2026-04-09-behavioral-metric-signal-to-noise | get-shit-done-reflect | confirmed | telemetry,behavioral-metrics,session-meta,signal-analysis | "2026-04-09 | active |
-
-## Lessons (0)
-
-| ID | Project | Category | Tags | Date | Status |
-|----|---------|----------|------|------|--------|
 

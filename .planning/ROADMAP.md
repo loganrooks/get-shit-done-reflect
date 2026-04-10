@@ -14,7 +14,7 @@
 
 **Milestone Goal:** Replace advisory quality controls with structural enforcement, mature the signal system from detection-only to full lifecycle management with a queryable knowledge base, overhaul spike methodology with epistemologically rigorous experimental design, and establish measurement infrastructure for evidence-based workflow improvement.
 
-**Phases:** 15 (Phases 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3)
+**Phases:** 16 (Phases 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3, 57.4)
 **Granularity:** Fine
 **Requirements:** 71 mapped
 
@@ -22,10 +22,11 @@
 
 - [x] **Phase 55: Upstream Mini-Sync** - Integrate upstream correctness fixes (state locking, milestone safety, frontmatter, installer) before any v1.20 work begins
 - [x] **Phase 56: KB Schema & SQLite Foundation** - Signal schema evolution and SQLite index creation establish the queryable knowledge base substrate
-- [ ] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
+- [x] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
 - [x] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding (completed 2026-04-09)
 - [x] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Typed claims (7 types + verification dimension), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher update, claim dependency webs, template enrichment
-- [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents
+- [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents *(core design commitments — flat 8-type taxonomy, template-based body structure, type-family ground rules — partially superseded by Phase 57.4 after running real audits revealed the flat taxonomy did not express the complexities of the auditing situation; see Phase 57.4 for the 3-axis reconstruction)*
+- [x] **Phase 57.4: Audit Skill & Investigatory Type** - Radically rethink the formalization of the auditing workflow: the Phase 57.3 flat 8-type taxonomy + template paradigm + ground rules 1-4 do not express the complexities of the auditing situation. This phase supersedes Phase 57.3's core design commitments with a 3-axis taxonomy (subject × orientation × delegation), an obligations-based output paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations from retrospective analysis (chain integrity, dispatch hygiene, framework invisibility). Deliverables: /gsdr:audit command + gsdr-auditor agent, rewritten audit-conventions.md and audit-ground-rules.md, formalized cross-model delegation (WF-01 pulled forward from Phase 62)
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
 - [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
@@ -109,9 +110,45 @@ Plans:
   2. `gsd-tools telemetry baseline` produces `.planning/baseline.json` with statistical computation from session-meta data
   3. `.planning/baseline.json` is committed before any Phase 58 structural gates are deployed
   4. Facets data (AI-generated session quality assessments) joined with session-meta by session_id, with all facets-derived fields annotated as AI-generated estimates with unknown accuracy
-**Plans**: TBD (re-discussing phase with upgraded discuss-phase skill)
+**Plans**: 2 plans
 Plans:
-- [ ] TBD (prior plans archived to pre-upgrade-archive/ for comparison)
+- [x] 57-01-PLAN.md -- Implement telemetry.cjs module and wire gsd-tools.cjs router (TEL-01a, TEL-01b, TEL-04, TEL-05)
+- [x] 57-02-PLAN.md -- Tests for telemetry.cjs and capture .planning/baseline.json (TEL-02)
+
+### Phase 57.4: Audit Skill & Investigatory Type (INSERTED)
+
+**Goal:** This phase **radically rethinks the formalization of the auditing workflow**. Phase 57.3 produced the first formal audit infrastructure: a flat 8-type taxonomy, body templates per type, ground rules 1-4, type-family rule extensions, and the supporting reference files. After 57.3 shipped, the work of actually running audits (13 sessions plus 6 exploratory audits of audit quality) revealed that this formalization **does not express the complexities of the auditing situation**. What looked like "types" conflated three orthogonal concerns under one enum. Templates could not compose obligations across axes. Frame-reflexivity was absent. Chain integrity, dispatch hygiene, and framework invisibility were not enforced by any rule.
+
+This phase is the **reconstructive response**, not an extension. It **supersedes** core design commitments of Phase 57.3 while preserving compatible meta-rules (directory conventions, rule-copying protocol, core rules 1-4, escape-hatch principle). The reconstruction, authoritatively specified in `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` (open — fed forward) and validated in `audit-taxonomy-retrospective-analysis.md`, comprises:
+
+- **3-axis taxonomy** replacing the flat 8-type list: **subject** (9 subject types including 2 new — `process_review`, `artifact_analysis`), **orientation** (`standard` | `investigatory` | `exploratory`), **delegation** (`self` | `cross_model:{model_id}`).
+- **Obligations-based output paradigm** for non-standard orientations (templates remain for standard routine audits — the retrospective identified 3 populations: template / obligations / multi-agent). Obligations are things the audit must *address*, not sections it must *write*.
+- **Hermeneutic composition principle** governing how obligations from different axes interact: "name the tension, navigate situationally." Not an algorithm — a practice.
+- **Frame-reflexivity Rule 5** added to all orientations: "Did the framing shape what you found?" Distinct from Rule 4 (escape hatch within the frame) because Rule 5 catches whether the frame was the right one.
+- **I1-I4 investigatory ground rules** from the REVIEW.md analysis: start from discrepancy not theory; let investigation guide artifact selection; present competing explanations; name the position of the investigation.
+- **Three new obligations from retrospective analysis**: **chain integrity** (predecessor audit claims re-verified when inherited), **dispatch hygiene** (parallel agent prompts checked for framing bias), **framework invisibility** (audits must name what their framework cannot see).
+
+The phase ships the reconstructed formalization along three deliverable vehicles:
+
+1. **`/gsdr:audit` command + `gsdr-auditor` agent** — invocable skill dispatching under the 3-axis model, composing obligations per situation, handling session directories, copying ground rules into task specs, supporting cross-model delegation. This is the operational skill Phase 57.3 deferred.
+2. **Rewritten `audit-conventions.md` and `audit-ground-rules.md`** — replacing the flat taxonomy (Section 3 of audit-conventions.md), per-type body templates (Section 4), and type-family rule sets (S1-S2, E1-E3, C1 in audit-ground-rules.md) with the 3-axis model, obligations paradigm, Rule 5, I1-I4, and composition principle. Both files currently carry supersession banners pointing at the deliberations as primary authority pending this rewrite.
+3. **Formalized cross-model delegation (WF-01, pulled forward from Phase 62)** — cross-model dispatch as an `audit_delegation` mode rather than a standalone `/gsdr:cross-model-review` command. The audit command is the natural home since audits are the primary cross-model use case.
+
+**Two concerns held together without collapsing one into the other:** (1) **epistemic reconstruction (primary)** — the 3-axis model, obligations paradigm, Rule 5, I1-I4, and composition principle replace core design commitments of 57.3, not decorate them; (2) **operational delivery (secondary, instrumental)** — the skill is the vehicle by which the reconstruction enters practice.
+
+**Requirements**: AUDIT-01, AUDIT-02 (forward compliance — the skill enforces what 57.3 established *as reconstructed*); WF-01 (cross-model delegation, pulled forward from Phase 62 — now an `audit_delegation` mode); plus new requirements TBD for the 3-axis taxonomy, obligations paradigm, Rule 5, I1-I4, and three new obligations (these supersede the v1 "AUDIT-04" placeholder, which was a flat-taxonomy artifact that no longer describes the work).
+**Depends on:** Phase 57.3 (base infrastructure — directory conventions, frontmatter meta-schema, rule-copying protocol — must exist to be partially preserved and partially rewritten).
+**Scope authority:** `.planning/phases/57.4-audit-skill-investigatory-type/57.4-CONTEXT.md` (v2, post-deliberation restructuring, framing-corrected 2026-04-10). When this roadmap summary and CONTEXT.md diverge, **CONTEXT.md is authoritative**. For the audit formalization design itself (taxonomy, obligations, rules), **the deliberations are authoritative** — not the reference files, which are partially superseded and carry supersession banners.
+Derived from: `sig-2026-04-09-phase-573-deferred-audit-skill-no-command`, `sig-2026-04-10-discuss-phase-authority-weighting-gap` (signal that triggered the framing correction of this roadmap entry), `.planning/deliberations/phase-scope-translation-loss-audit-capability-gap.md` (triggering deliberation), `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` (**open — fed forward, not concluded**; primary design source for v2), `.planning/deliberations/audit-taxonomy-retrospective-analysis.md` (validates 3-axis model against 13 audit sessions), `.planning/deliberations/forms-excess-and-framework-becoming.md` (governing constraint on how formal systems handle excess — also carries the claim-type vocabulary concern surfaced during v2 discuss-phase), `.planning/phases/57.4-audit-skill-investigatory-type/pre-phase-archive/REVIEW.md` (original philosophical deconstruction, Rule 5 and I1-I4 source, still load-bearing).
+**Plans:** 6 plans
+
+Plans:
+- [ ] 57.4-01-PLAN.md — Rewrite audit-conventions.md (3-axis taxonomy, obligations paradigm, v2 frontmatter)
+- [ ] 57.4-02-PLAN.md — Rewrite audit-ground-rules.md (Rule 5, I1-I4, subject/orientation/cross-cutting obligations, composition principle)
+- [ ] 57.4-03-PLAN.md — Create /gsdr:audit command (commands/gsd/audit.md) with cross-model experimental dispatch
+- [ ] 57.4-04-PLAN.md — Create gsdr-auditor agent (agents/gsdr-auditor.md) + gsd-auditor model-profiles entry
+- [ ] 57.4-05-PLAN.md — Rewrite REQUIREMENTS.md WF-01 + add new AUDIT requirements for 3-axis model
+- [ ] 57.4-06-PLAN.md — Remove supersession banners, run installer sync, full verification suite
 
 ### Phase 57.2: Discuss-Phase Exploratory Mode Overhaul (INSERTED)
 
@@ -138,6 +175,8 @@ Plans:
 - [x] 57.2-03-PLAN.md -- DISCUSSION-LOG.md justificatory sidecar, context-checker agent, researcher 7-type update
 
 ### Phase 57.3: Audit Workflow Infrastructure (INSERTED)
+
+**⚠️ Retrospective note (added 2026-04-10):** This phase completed its goal as originally scoped, but subsequent audit work revealed that its core design commitments — the flat 8-type taxonomy (`audit-conventions.md` Section 3), the template-based body structure (Section 4), and the type-family ground rule extensions (`audit-ground-rules.md` S1-S2, E1-E3, C1) — did not express the complexities of the auditing situation. Phase 57.4 **radically rethinks** this formalization: the flat taxonomy is restructured into a 3-axis model (subject × orientation × delegation), templates are replaced with an obligations paradigm for non-standard orientations, and frame-reflexivity Rule 5 + I1-I4 investigatory ground rules + three new obligations are added. The meta-rules established by 57.3 (directory conventions, frontmatter meta-schema, rule-copying protocol, core rules 1-4) **survive the rewrite** and are preserved as the base 57.4 builds on. See Phase 57.4 and `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` (open — fed forward) for the reconstruction. `audit-conventions.md` and `audit-ground-rules.md` currently carry supersession banners pending the 57.4 rewrite. This note does not invalidate Phase 57.3 — the phase shipped what it intended to ship, and the limits were only discoverable by actually running audits under the conventions it established.
 
 **Goal:** Audit sessions have proper infrastructure — date-first directories, task specs preserved alongside agent outputs, provenance metadata, epistemic ground rules for audit agents — so that audit findings are traceable, reproducible, and epistemically reliable.
 **Depends on:** Phase 57.2 (typed claim vocabulary and provenance format inform audit spec standards)
@@ -216,15 +255,14 @@ Plans:
 **Note**: Can proceed in parallel with Phase 60 after Phase 58 completes -- independent workstreams with no shared dependencies. SPIKE-08 (protocol adherence checkpoints) is gated on SPIKE-01 completion; auto-defers to v1.21 if SPIKE-01 ships late in this phase
 
 ### Phase 62: Workflow Commands
-**Goal**: Five workflow gaps identified by audit and deliberation are closed with commands that integrate into existing GSD patterns
+**Goal**: Four workflow gaps identified by audit and deliberation are closed with commands that integrate into existing GSD patterns. (WF-01 cross-model delegation was pulled forward to Phase 57.4 per `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` — cross-model dispatch is now an `audit_delegation` mode on `/gsdr:audit` rather than a standalone `/gsdr:cross-model-review` command. The WF-01 requirement text in REQUIREMENTS.md may need revision to reflect this absorption.)
 **Depends on**: Phase 59 (KB query layer enables structured retrieval in research and explore commands)
-**Requirements**: WF-01, WF-02, WF-03, WF-04, WF-05b
+**Requirements**: WF-02, WF-03, WF-04, WF-05b (WF-01 pulled forward to Phase 57.4)
 **Success Criteria** (what must be TRUE):
-  1. `/gsdr:cross-model-review` launches background cross-model review with committed audit spec and structured response template -- opt-in, model choice configurable, review round count user-determined
-  2. `/gsdr:revise-phase-scope` performs mid-phase scope changes with ROADMAP.md and REQUIREMENTS.md update, commit, and re-discuss
-  3. `/gsdr:research` produces committed knowledge artifacts in `.planning/research/` with source citations, per-finding confidence levels, and stated limitations -- no code changes or spike overhead
-  4. `/gsdr:discuss-milestone` produces MILESTONE-CONTEXT.md with structured steering brief (working assumptions, open questions, epistemic guardrails, derived constraints, deferred ideas)
-  5. `/gsdr:explore` enhanced with GSDR-specific questioning.md (epistemic practice probes, assumption-surfacing), signal-aware exploration (KB queries during sessions), and "no artifact" as valid outcome
+  1. `/gsdr:revise-phase-scope` performs mid-phase scope changes with ROADMAP.md and REQUIREMENTS.md update, commit, and re-discuss
+  2. `/gsdr:research` produces committed knowledge artifacts in `.planning/research/` with source citations, per-finding confidence levels, and stated limitations -- no code changes or spike overhead
+  3. `/gsdr:discuss-milestone` produces MILESTONE-CONTEXT.md with structured steering brief (working assumptions, open questions, epistemic guardrails, derived constraints, deferred ideas)
+  4. `/gsdr:explore` enhanced with GSDR-specific questioning.md (epistemic practice probes, assumption-surfacing), signal-aware exploration (KB queries during sessions), and "no artifact" as valid outcome
 **Plans**: TBD
 
 ### Phase 63: Spike Programme Infrastructure
@@ -251,7 +289,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch releases), then 57 → 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies). Phase 57.2 ships before Phase 57 as a patch (regression fix); effectiveness revisited post-telemetry. Phase 57.3 depends on Phase 57.2.
+Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.4 (patch releases), then 57 → 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies). Phase 57.2 ships before Phase 57 as a patch (regression fix); effectiveness revisited post-telemetry. Phase 57.3 depends on Phase 57.2. Phase 57.4 depends on Phase 57.3.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -259,10 +297,11 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | 55.1. Upstream Bug Patches | 2/2 | Complete | 2026-04-09 |
 | 55.2. Codex Runtime Substrate | 3/3 | Complete | 2026-04-09 |
 | 56. KB Schema & SQLite Foundation | 3/3 | Complete | 2026-04-08 |
-| 57. Measurement & Telemetry Baseline | 0/TBD | Re-discussing | - |
+| 57. Measurement & Telemetry Baseline | 2/2 | Complete | 2026-04-09 |
 | 57.1. Explore Skill Adoption | 1/1 | Complete   | 2026-04-09 |
 | 57.2. Discuss-Phase Exploratory Mode Overhaul | 3/3 | Complete | 2026-04-09 |
 | 57.3. Audit Workflow Infrastructure | 2/2 | Complete | 2026-04-09 |
+| 57.4. Audit Skill & Investigatory Type | 6/6 | Complete | 2026-04-10 |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
 | 60. Sensor Pipeline & Codex Parity | 0/TBD | Not started | - |
@@ -282,9 +321,9 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 (patch 
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
 | v1.17 Automation Loop | 36-44 | 24 | Complete | 2026-03-09 |
 | v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | 37 | Complete | 2026-03-30 |
-| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3 | TBD | In progress | - |
+| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3, 57.4 | TBD | In progress | - |
 
-**Totals:** 8 milestones, 67 phases (57 complete, 10 in progress), 173 plans completed
+**Totals:** 8 milestones, 67 phases (58 complete, 9 in progress), 179 plans completed
 
 ## Backlog
 

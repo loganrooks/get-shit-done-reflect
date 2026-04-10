@@ -4,7 +4,7 @@ type: signal
 project: get-shit-done-reflect
 tags: [baseline, upstream-adoption, zero-deviation, execution-quality, positive-pattern, skill-adoption]
 created: "2026-04-09T09:14:51Z"
-updated: "2026-04-09T09:14:51Z"
+updated: "2026-04-09T22:00:00Z"
 durability: principle
 status: active
 severity: notable
@@ -19,6 +19,7 @@ gsd_version: "1.19.1+dev"
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by gsdr-signal-synthesizer at 2026-04-09T09:14:51Z"
+  - "archived by gsdr-signal-synthesizer at 2026-04-09T22:00:00Z: per-phase cap enforcement (phase 57 exceeded 10 signals)"
 evidence:
   supporting:
     - "Upstream skill adoption pattern (git show + manifest + vitest conversion + installer verification) delivered zero-deviation phase"

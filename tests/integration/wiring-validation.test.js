@@ -335,12 +335,20 @@ describe('wiring validation', () => {
       const commandFiles = await readMdFiles('commands/gsd')
       const missingDelegation = []
 
+      // Self-contained commands: these commands ARE the orchestrator themselves
+      // and reference templates/reference files instead of a workflow file.
+      // They declare "This command IS the orchestrator" in their objective.
+      // See deliberate.md and audit.md for the canonical pattern.
+      const selfContainedCommands = new Set([
+        'deliberate.md',
+        'audit.md',
+      ])
+
       for (const file of commandFiles) {
         const hasExecutionContext = file.content.includes('<execution_context>')
         if (!hasExecutionContext) continue
 
-        // deliberate.md is self-contained (references templates/references, not a workflow)
-        if (file.name === 'deliberate.md') continue
+        if (selfContainedCommands.has(file.name)) continue
 
         const hasWorkflowRef = file.content.includes('get-shit-done/workflows/')
         if (!hasWorkflowRef) {

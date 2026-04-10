@@ -230,29 +230,22 @@ Before writing a new signal, check for related existing signals to avoid redunda
 
 **Cross-phase dedup:** Deduplication checks all active signals for the project, not just the current phase. A recurring auth issue in Phase 2 and Phase 3 should be cross-referenced.
 
-## 10. Per-Phase Signal Cap (SGNL-09)
+## 10. Per-Phase Signal Guidelines (SGNL-09)
 
-Prevents signal noise from overwhelming the knowledge base.
+Quality comes from rigor gates (trace filtering, dedup, evidence requirements), not artificial quantity limits.
 
-**Rules:**
-- Maximum **10** persistent signals per phase per project
-- Trace signals are never persisted and do not count toward the cap
-- `critical`, `notable`, and `minor` signals count toward the cap
+**Guidelines:**
+- **Soft target: ~10** signals per phase per project as a quality check, not a hard cap
+- Trace signals are never persisted and do not count
+- If a phase produces more than 10 qualifying signals, **persist all of them** — complex phases with extensive research, spikes, or multi-session discussion naturally produce more signals
+- The synthesizer should note when signal count exceeds the soft target and flag it in the report, but must NOT archive or reject signals solely to meet a numeric limit
 
-**Cap enforcement:**
-1. Before writing a new signal, count existing active signals for this phase and project
-2. If count < 10: write normally
-3. If count >= 10: compare new signal severity against the lowest-severity existing signal
-   - If new signal severity >= lowest existing severity: archive the lowest-severity signal (set `status: archived` in its frontmatter), then write the new signal
-   - If new signal severity < lowest existing severity: do not persist (log in report only)
+**When signal volume is high:**
+- Report the count with context: "Phase {X} produced {N} signals ({M} sessions, {K} sensors) — above soft target of 10, consistent with phase complexity"
+- Quality enforcement is through rigor gates (Section 7, 8, 9), not quantity caps
+- If signal quality is genuinely low (thin evidence, speculative causes, no supporting quotes), reject on rigor grounds — not on count
 
-**Severity ordering for cap comparison:** critical > notable > minor
-
-**Archival for cap replacement:**
-- Set `status: archived` in the replaced signal's frontmatter
-- This is the ONE exception to signal immutability -- archival status changes are permitted for cap management
-- Archived signals remain in their original file location
-- Archived signals are excluded from the index on next rebuild
+**No archival for cap replacement.** Signals are only archived through lifecycle transitions (remediated, verified, invalidated) — never to make room for new signals.
 
 ## 11. Detection Timing
 

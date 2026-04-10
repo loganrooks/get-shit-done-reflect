@@ -51,6 +51,7 @@ const healthProbe = require('./lib/health-probe.cjs');
 const manifest = require('./lib/manifest.cjs');
 const automation = require('./lib/automation.cjs');
 const kb = require('./lib/kb.cjs');
+const telemetry = require('./lib/telemetry.cjs');
 
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -85,7 +86,7 @@ async function main() {
   const command = args[0];
 
   if (!command) {
-    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb');
+    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry');
   }
 
   switch (command) {
@@ -691,6 +692,33 @@ async function main() {
         kb.cmdKbMigrate(cwd, raw);
       } else {
         error('Usage: gsd-tools kb <rebuild|stats|migrate>');
+      }
+      break;
+    }
+
+    case 'telemetry': {
+      const subcommand = args[1];
+      const telemetryRaw = raw;
+      if (subcommand === 'summary') {
+        const includeCaveated = args.includes('--include-caveated');
+        telemetry.cmdTelemetrySummary(cwd, { includeCaveated }, telemetryRaw);
+      } else if (subcommand === 'session') {
+        const sessionId = args[2];
+        if (!sessionId) error('Usage: gsd-tools telemetry session <session-id>');
+        telemetry.cmdTelemetrySession(cwd, sessionId, telemetryRaw);
+      } else if (subcommand === 'phase') {
+        const phaseNum = args[2];
+        if (!phaseNum) error('Usage: gsd-tools telemetry phase <phase-number>');
+        telemetry.cmdTelemetryPhase(cwd, phaseNum, telemetryRaw);
+      } else if (subcommand === 'baseline') {
+        const includeCaveated = args.includes('--include-caveated');
+        telemetry.cmdTelemetryBaseline(cwd, { includeCaveated }, telemetryRaw);
+      } else if (subcommand === 'enrich') {
+        const sessionId = args[2];
+        if (!sessionId) error('Usage: gsd-tools telemetry enrich <session-id>');
+        telemetry.cmdTelemetryEnrich(cwd, sessionId, telemetryRaw);
+      } else {
+        error('Usage: gsd-tools telemetry <summary|session|phase|baseline|enrich>');
       }
       break;
     }

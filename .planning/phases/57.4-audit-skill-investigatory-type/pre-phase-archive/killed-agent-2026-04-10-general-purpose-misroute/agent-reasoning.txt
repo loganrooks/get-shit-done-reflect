@@ -1,0 +1,75 @@
+I'll start by reading my role file and the authoritative context documents.
+
+---
+
+I have enough of the planner spec. Now let me read the CONTEXT.md and the other authoritative files.
+
+---
+
+Now the RESEARCH.md:
+
+---
+
+I have comprehensive context. Now let me quickly verify the reference files, model-profiles.cjs, and REQUIREMENTS.md to get exact line numbers for plans.
+
+---
+
+Now let me check the gsd-tools commands for the init and commit subcommands used by commands, and look at a command file to understand the exact Task dispatch pattern.
+
+---
+
+Good — no existing file at `agents/gsdr-auditor.md` or `commands/gsd/audit.md`. Let me confirm and check the phase directory state.
+
+---
+
+Now I have enough context. Let me check install.js briefly for the auto-pickup lines and verify the deliberation file exists:
+
+---
+
+Now I have a complete picture. Let me verify the triaged signal filenames exist so I can reference them correctly in resolves_signals:
+
+---
+
+The signals have varying filename conventions. I'll use the canonical `sig-*` IDs as stated in the triage context. Now I have everything I need. Let me design the plan decomposition.
+
+## Plan Design
+
+Based on dependency analysis, I'll use the suggested structure but with refinements:
+
+**Wave 1** (parallel, no dependencies — rewrite work first so command plans can cite them):
+- **57.4-01**: Rewrite `audit-conventions.md`
+- **57.4-02**: Rewrite `audit-ground-rules.md`
+
+**Wave 2** (depends on Wave 1):
+- **57.4-03**: Create `commands/gsd/audit.md` (orchestrator) — decides Q2 strategy
+- **57.4-04**: Create `agents/gsdr-auditor.md` (executor)
+- **57.4-05**: model-profiles.cjs integration (can be Wave 2 — independent of plans 3/4)
+
+**Wave 3** (final integration/cleanup):
+- **57.4-06**: REQUIREMENTS.md updates (WF-01 rewrite + new requirements)
+- **57.4-07**: Supersession banner removal + install sync + verification
+
+**Cross-model dispatch strategy:** I'll pick **ship-with-experimental-flag** because:
+1. RESEARCH.md §Q2 shows zero automated precedent; one working manual dispatch
+2. CONTEXT.md G-5 frames orientations as design choices not settled ontologies — cross-model shipping can be the same posture
+3. Spike-first blocks the entire phase on empirical work that cannot be pre-validated
+4. Ship-with-limit requires defining what "simple" means; ship-with-experimental is the honest stance
+5. The deliberation already flags cross-model as "currently fragile" — exposing this to the user honors G-3's anti-performativity principle
+
+Let me write the plans now.
+
+---
+
+Now Plan 03 (command orchestrator):
+
+---
+
+I'll start by reading the planner role file and then the phase context materials.
+
+---
+
+[Request interrupted by user for tool use]
+
+---
+
+[Request interrupted by user]
