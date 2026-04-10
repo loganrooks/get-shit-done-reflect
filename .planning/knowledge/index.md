@@ -1,12 +1,13 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-09T22:34:05Z
-**Total entries:** 241
+**Generated:** 2026-04-10T00:43:12Z
+**Total entries:** 242
 
-## Signals (235)
+## Signals (236)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
+| sig-2026-04-10-researcher-model-override-leak-third-occurrence | get-shit-done-reflect | notable | detected | model-override,agent-dispatch,orchestrator-error,scope-leak,researcher-agent,recurring | 2026-04-10 | active |
 | sig-2026-04-09-phase57-active-measurement-vision-dropped-at-planning | get-shit-done-reflect | critical | detected | tags: | "2026-04-09 | active |
 | sig-2026-04-09-stale-worktrees-not-cleaned-after-execution | get-shit-done-reflect | notable | detected | tags: | "2026-04-09 | active |
 | sig-2026-04-09-per-phase-signal-cap-causes-information-loss | get-shit-done-reflect | critical | detected | tags: | "2026-04-09 | active |
