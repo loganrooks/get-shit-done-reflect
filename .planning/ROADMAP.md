@@ -25,7 +25,7 @@
 - [x] **Phase 57: Measurement & Telemetry Baseline** - Telemetry extraction tooling and baseline capture before any structural interventions ship
 - [x] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding (completed 2026-04-09)
 - [x] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Typed claims (7 types + verification dimension), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher update, claim dependency webs, template enrichment
-- [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents
+- [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents *(core design commitments — flat 8-type taxonomy, template-based body structure, type-family ground rules — partially superseded by Phase 57.4 after running real audits revealed the flat taxonomy did not express the complexities of the auditing situation; see Phase 57.4 for the 3-axis reconstruction)*
 - [ ] **Phase 57.4: Audit Skill & Investigatory Type** - Radically rethink the formalization of the auditing workflow: the Phase 57.3 flat 8-type taxonomy + template paradigm + ground rules 1-4 do not express the complexities of the auditing situation. This phase supersedes Phase 57.3's core design commitments with a 3-axis taxonomy (subject × orientation × delegation), an obligations-based output paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations from retrospective analysis (chain integrity, dispatch hygiene, framework invisibility). Deliverables: /gsdr:audit command + gsdr-auditor agent, rewritten audit-conventions.md and audit-ground-rules.md, formalized cross-model delegation (WF-01 pulled forward from Phase 62)
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
@@ -171,6 +171,8 @@ Plans:
 
 ### Phase 57.3: Audit Workflow Infrastructure (INSERTED)
 
+**⚠️ Retrospective note (added 2026-04-10):** This phase completed its goal as originally scoped, but subsequent audit work revealed that its core design commitments — the flat 8-type taxonomy (`audit-conventions.md` Section 3), the template-based body structure (Section 4), and the type-family ground rule extensions (`audit-ground-rules.md` S1-S2, E1-E3, C1) — did not express the complexities of the auditing situation. Phase 57.4 **radically rethinks** this formalization: the flat taxonomy is restructured into a 3-axis model (subject × orientation × delegation), templates are replaced with an obligations paradigm for non-standard orientations, and frame-reflexivity Rule 5 + I1-I4 investigatory ground rules + three new obligations are added. The meta-rules established by 57.3 (directory conventions, frontmatter meta-schema, rule-copying protocol, core rules 1-4) **survive the rewrite** and are preserved as the base 57.4 builds on. See Phase 57.4 and `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` (open — fed forward) for the reconstruction. `audit-conventions.md` and `audit-ground-rules.md` currently carry supersession banners pending the 57.4 rewrite. This note does not invalidate Phase 57.3 — the phase shipped what it intended to ship, and the limits were only discoverable by actually running audits under the conventions it established.
+
 **Goal:** Audit sessions have proper infrastructure — date-first directories, task specs preserved alongside agent outputs, provenance metadata, epistemic ground rules for audit agents — so that audit findings are traceable, reproducible, and epistemically reliable.
 **Depends on:** Phase 57.2 (typed claim vocabulary and provenance format inform audit spec standards)
 **Requirements:** AUDIT-01, AUDIT-02, AUDIT-03
@@ -294,7 +296,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.
 | 57.1. Explore Skill Adoption | 1/1 | Complete   | 2026-04-09 |
 | 57.2. Discuss-Phase Exploratory Mode Overhaul | 3/3 | Complete | 2026-04-09 |
 | 57.3. Audit Workflow Infrastructure | 2/2 | Complete | 2026-04-09 |
-| 57.4. Audit Skill & Investigatory Type | 0/TBD | Not started | - |
+| 57.4. Audit Skill & Investigatory Type | 0/TBD | Discussed | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
 | 60. Sensor Pipeline & Codex Parity | 0/TBD | Not started | - |
