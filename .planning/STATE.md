@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: verifying
-stopped_at: Phase 57.4 context gathered
-last_updated: "2026-04-10T00:36:41.147Z"
-last_activity: 2026-04-09
+status: discussing
+stopped_at: Phase 57.4 discuss-phase v2 complete, framing-corrected post-context-checker, ready for plan-phase
+last_updated: "2026-04-10T16:36:04.000Z"
+last_activity: 2026-04-10
 progress:
   total_phases: 17
   completed_phases: 8
   total_plans: 20
   completed_plans: 20
-  percent: 100
+  percent: 90
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 58 (Structural Enforcement Gates) -- next up after Phase 57 complete
+**Current focus:** v1.20 Phase 57.4 (Audit Skill & Investigatory Type) — discuss-phase v2 complete + framing-corrected; ready for plan-phase. Phase 57.4 **radically rethinks the formalization of the auditing workflow** (3-axis taxonomy, obligations paradigm, Rule 5, I1-I4, three new obligations) and supersedes core design commitments of Phase 57.3.
 
 ## Current Position
 
-Phase: 57 of 64 (Measurement & Telemetry Baseline) — COMPLETE
-Plan: 2 of 2
-Status: Complete (verification passed 10/10)
-Last activity: 2026-04-09
+Phase: 57.4 of 64 (Audit Skill & Investigatory Type) — Discussed, ready for planning
+Plan: 0 of TBD
+Status: Discuss-phase v2 complete; framing-corrected 2026-04-10 post-context-checker; WARN verdict (non-blocking); context/roadmap/state/reference-files aligned with reconstructive framing
+Last activity: 2026-04-10
 
 Progress: [█████████░] 90%
 
@@ -128,6 +128,10 @@ Recent decisions affecting current work:
 - [Phase 57.3]: JSONL session transcripts (3 root-level audits) receive frontmatter prepended without content format conversion per G-5 conservative migration
 - [Phase 57-01]: loadSessionMetaCorpus returns {sessions, stats} object for single-pass corpus stats; facets fields use facet_ prefix in enrich to avoid key collision; default distributions use clean tier only with includeCaveated opt-in
 - [Phase 57]: Baseline captured from main repo cwd to match session-meta project_path values (worktree resolveWorktreeRoot returns worktree path when .planning/ exists)
+- [Phase 57.4 discuss-phase v2]: Restructured audit taxonomy from flat 8-type list to 3-axis model (subject × orientation × delegation) via deliberation `audit-taxonomy-three-axis-obligations.md` (open — fed forward, not concluded). Validated against 13 audit sessions in `audit-taxonomy-retrospective-analysis.md`. Obligations paradigm replaces templates for non-standard orientations, governed by hermeneutic composition principle. Three new obligations added from retrospective: chain integrity, dispatch hygiene, framework invisibility. Frame-reflexivity Rule 5 added to all orientations. I1-I4 investigatory ground rules added from REVIEW.md Part 3.
+- [Phase 57.4 WF-01 pull-forward]: WF-01 (cross-model delegation) pulled from Phase 62 into Phase 57.4. Cross-model dispatch becomes an `audit_delegation` mode on `/gsdr:audit` rather than a standalone `/gsdr:cross-model-review` command. Phase 62 goal updated: "Five workflow gaps" → "Four workflow gaps". REQUIREMENTS.md WF-01 row phase column: 62 → 57.4 (pulled forward). WF-01 requirement text still names the standalone command and may need revision to reflect absorption — flagged in ROADMAP.md Phase 62 note.
+- [Phase 57.4 framing correction 2026-04-10]: After context-checker ran on v2 CONTEXT.md (55 typed claims, 53 PASS / 1 WARN / 0 FAIL), post-checker review identified that v2 CONTEXT.md and first-pass ROADMAP edits were treating superseded reference files (`audit-conventions.md`, `audit-ground-rules.md`) as authoritative base rather than letting the 3-axis deliberation drive authority. The context-checker did not catch this because its verification dimension is citation integrity, not authority weighting. Signal logged as `sig-2026-04-10-discuss-phase-authority-weighting-gap` (capability-gap, severity high, first observation — needs corroboration). Corrections applied: conservative supersession banners added to both reference files + reinstall; CONTEXT.md `<domain>` rewritten as "radically rethinks the formalization" with epistemic reconstruction as primary concern and operational delivery as secondary vehicle; DC-1-5 rewritten (DC-4 retyped `[evidenced:cited]` → `[decided:reasoned]`, DC-5 retyped `[governing:cited]` → `[governing:reasoned]`); `<canonical_refs>` reordered with deliberations as primary authority; working model prose "Current state:" headings relabeled to "Superseded Phase 57.3 state"; new `<files_affected>` section added consolidating the file manifest; ROADMAP.md Phase 57.4 goal rewritten as reconstructive; Phase 57.3 bullet/detail annotated with supersession cross-reference; DISCUSSION-LOG.md appendix documenting the framing correction as a traceable follow-up.
+- [Phase 57.4 CONTEXT authority direction]: Authoritative scope for the v2 audit formalization design is the deliberations (`audit-taxonomy-three-axis-obligations.md`, `audit-taxonomy-retrospective-analysis.md`, `pre-phase-archive/REVIEW.md`, `forms-excess-and-framework-becoming.md`). The reference files are partially superseded prior artifacts carrying supersession banners. When planning: read banners → deliberations → CONTEXT.md, in that order. Do NOT cite the reference files as authority for the v2 taxonomy, templates, or ground rule sets — those are to-be-rewritten by this phase.
 
 ### Roadmap Evolution
 
@@ -138,6 +142,8 @@ Recent decisions affecting current work:
 - Phase 57.3 inserted after Phase 57.2: Audit Workflow Infrastructure -- formalize audit conventions, task spec preservation, epistemic ground rules. Depends on 57.2. Requirements: AUDIT-01, AUDIT-02
 - Execution reordered: 57.1 → 57.2 → 57.3 ship as patches before Phase 57 (telemetry). 57.2 dependency on 57 removed — regression fix ships now, effectiveness revisited post-telemetry
 - Phase 57.4 inserted after Phase 57: Audit Skill & Investigatory Type — build /gsdr:audit command + gsdr-auditor agent, add investigatory audit type with frame-reflexive ground rules. Two concerns: (1) operational — invocable audit skill that 57.3 deferred, (2) epistemic — investigatory type and frame-reflexivity practice revealed as missing by Phase 57 investigation. Derived from: `sig-2026-04-09-phase-573-deferred-audit-skill-no-command`, `deliberation: phase-scope-translation-loss-audit-capability-gap.md`, quick task 260409-pz6 REVIEW.md
+- Phase 57.4 scope reframed (2026-04-10) from "extension of Phase 57.3 audit infrastructure" to "**radical rethinking of the formalization of the auditing workflow**". The flat 8-type taxonomy, template-based output paradigm, and type-family ground rules from Phase 57.3 do not express the complexities of the auditing situation; Phase 57.4 supersedes these core design commitments with a 3-axis taxonomy (subject × orientation × delegation), obligations paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations (chain integrity, dispatch hygiene, framework invisibility). The operational skill (command + agent) is the vehicle for the reconstruction; the rewrite of `audit-conventions.md` and `audit-ground-rules.md` is the primary deliverable, not a side effect. Derived from: `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` (open — fed forward), `audit-taxonomy-retrospective-analysis.md` (validates 3-axis model against 13 audit sessions), `forms-excess-and-framework-becoming.md`, `sig-2026-04-10-discuss-phase-authority-weighting-gap` (triggered the framing correction after context-checker ran)
+- Phase 62 WF-01 pulled forward into Phase 57.4 (2026-04-10): cross-model delegation becomes an `audit_delegation` mode on `/gsdr:audit` rather than a standalone `/gsdr:cross-model-review` command. Phase 62 goal: "Five workflow gaps" → "Four workflow gaps". REQUIREMENTS.md WF-01 phase column updated. WF-01 requirement text (still names standalone command) flagged for potential revision in ROADMAP.md Phase 62 note; not yet rewritten pending 57.4 implementation settlement. Derived from: `audit-taxonomy-three-axis-obligations.md` (audits are primary cross-model use case)
 
 ### Pending Todos
 
@@ -175,9 +181,19 @@ Recent decisions affecting current work:
 - Milestone steering brief: `.planning/MILESTONE-CONTEXT.md`
 - Claim type audits: `.planning/audits/2026-04-09-*claim-audit*` (6 files, 12 projects, ~85 CONTEXT.md files)
 - Deliberations for 57.2: `exploratory-discuss-phase-quality-regression.md` (concluded), `pipeline-enrichment-step-architecture.md` (concluded, deferred), `claim-type-ontology.md` (concluded)
+- Deliberations for 57.4 (primary authority): `audit-taxonomy-three-axis-obligations.md` (open — fed forward, NOT concluded), `audit-taxonomy-retrospective-analysis.md` (complete — validates 3-axis model against 13 audit sessions), `forms-excess-and-framework-becoming.md` (open — governing constraint; also carries the claim-type vocabulary concern surfaced during v2 discuss-phase), `phase-scope-translation-loss-audit-capability-gap.md` (triggering deliberation)
+- Phase 57.4 working artifacts: `57.4-CONTEXT.md` (v2, framing-corrected 2026-04-10), `57.4-DISCUSSION-LOG.md` (includes context-checker verification log + Framing Correction appendix), `pre-phase-archive/REVIEW.md` (Rule 5 + I1-I4 source, still load-bearing), `pre-phase-archive/57.4-DISCUSSION-LOG-v1.md` (v1 verification work)
+- Reference files carrying 57.4 supersession banners (to be rewritten by this phase): `get-shit-done/references/audit-conventions.md`, `get-shit-done/references/audit-ground-rules.md`
+- New signals this session: `sig-2026-04-10-discuss-phase-authority-weighting-gap.md` (capability-gap, severity high; one observation, needs corroboration)
 
 ## Session Continuity
 
-Last session: 2026-04-10T00:36:41.140Z
-Stopped at: Phase 57.4 context gathered
-Resume file: .planning/phases/57.4-audit-skill-investigatory-type/57.4-CONTEXT.md
+Last session: 2026-04-10T16:36:04.000Z
+Stopped at: Phase 57.4 discuss-phase v2 complete + framing-corrected post-context-checker + all project files (CONTEXT, ROADMAP, REQUIREMENTS, STATE, reference file banners) aligned with reconstructive framing; ready for plan-phase
+Resume file: (none — .continue-here.md deleted per resume workflow; next session should read in this order: (1) supersession banners at top of audit-conventions.md and audit-ground-rules.md, (2) `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` + `audit-taxonomy-retrospective-analysis.md`, (3) `.planning/phases/57.4-audit-skill-investigatory-type/57.4-CONTEXT.md` (especially `<files_affected>` manifest), (4) `sig-2026-04-10-discuss-phase-authority-weighting-gap.md` for pattern context)
+
+This session (2026-04-10):
+- Context-checker ran on v2 CONTEXT.md: 53/55 PASS, 1 WARN (DC-4 type), 0 FAIL; verification log in DISCUSSION-LOG.md
+- User identified framing failure the checker was not positioned to catch: CONTEXT.md and first-pass ROADMAP edits were treating superseded reference docs as authoritative base
+- Signal logged, banners applied, CONTEXT.md + ROADMAP.md + REQUIREMENTS.md + STATE.md all rewritten to flow authority from deliberations
+- 7 commits on branch: c7c3a78e (signal), 3f6b405a (banners), 5eb336b1 (CONTEXT+DISCUSSION-LOG framing correction), 2d293a73 (ROADMAP+REQUIREMENTS reframe), f0948ca5 (CONTEXT polish + files_affected manifest), + 2 more for STATE and ROADMAP followup (this commit onwards)
