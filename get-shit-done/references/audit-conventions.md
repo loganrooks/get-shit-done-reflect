@@ -1,5 +1,23 @@
 # Audit Conventions Reference
 
+> **⚠️ STATUS: Partially superseded — to be rewritten by Phase 57.4**
+>
+> The flat 8-type taxonomy, the `audit_type` single-enum frontmatter field, and the type-aware body templates in this document **do not express the complexities of the auditing situation** and have been superseded by the v2 design. A deliberation found that what looked like "types" conflated three orthogonal concerns: *subject* (what is being audited), *orientation* (from what stance), and *delegation* (who does it). The template paradigm also cannot compose obligations across those axes.
+>
+> **Authoritative scope for the v2 audit formalization:**
+> - `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` — 3-axis model (subject × orientation × delegation), obligations-based output paradigm, composition principle, the aporia of epistemic humility (**open — fed forward, not concluded**)
+> - `.planning/deliberations/audit-taxonomy-retrospective-analysis.md` — validates the 3-axis model against 13 audit sessions; identifies three new obligations (chain integrity, dispatch hygiene, framework invisibility)
+> - `.planning/phases/57.4-audit-skill-investigatory-type/pre-phase-archive/REVIEW.md` — frame-reflexivity Rule 5, I1-I4 investigatory ground rules, the "mark the remainder" principle
+>
+> **Sections of this document still valid pending rewrite:**
+> - Section 1 (Directory Structure) — the `YYYY-MM-DD-{slug}/` convention and naming rules survive unchanged
+> - Section 2 Required fields `date` and `scope` — survive unchanged (`audit_type` is replaced by `audit_subject` + `audit_orientation` + `audit_delegation`, kept as legacy field for backward compatibility)
+> - Section 2 Recommended and Optional fields — survive unchanged
+>
+> Anything not listed above should be checked against the deliberations before use. **Phase 57.4 will rewrite the taxonomy (Section 3), body templates (Section 4), and related sections of this document.** Until that rewrite lands, downstream agents and workflows should treat those sections as provisional and cite the deliberations as primary authority.
+
+---
+
 Shared reference defining the directory structure, frontmatter schema, type taxonomy, and body template guidance for all audit artifacts. This document establishes the three-layer audit schema: shared metadata (strict), type-aware body templates (structured but provisional), and escape hatch (open).
 
 **Consuming agents and workflows:**

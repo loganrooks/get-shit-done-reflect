@@ -1,5 +1,23 @@
 # Audit Ground Rules Reference
 
+> **⚠️ STATUS: Partially superseded — to be rewritten by Phase 57.4**
+>
+> The **ground rule set** (Core Rules 1-4 plus type-family extensions), the **per-type rule selection model**, and the assumption that rules can be selected from a fixed family given an `audit_type` value have been superseded by the v2 design. The v2 audit formalization replaces "type families" with an **obligations-based output paradigm** composed from a 3-axis taxonomy (subject × orientation × delegation), adds **frame-reflexivity Rule 5** applicable to every audit, adds the **I1-I4 investigatory ground rules**, and introduces three new obligations from retrospective analysis: **chain integrity**, **dispatch hygiene**, **framework invisibility**. The composition of these obligations is hermeneutic, not algorithmic — governed by a composition principle that says "name the tension, navigate situationally".
+>
+> **Authoritative scope for the v2 audit ground rules:**
+> - `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` — obligation sets per axis, composition principle, the aporia of epistemic humility (**open — fed forward, not concluded**)
+> - `.planning/deliberations/audit-taxonomy-retrospective-analysis.md` — validates obligations model against 13 audit sessions; origin of chain integrity, dispatch hygiene, framework invisibility
+> - `.planning/phases/57.4-audit-skill-investigatory-type/pre-phase-archive/REVIEW.md` — Rule 5 (frame-reflexivity), I1-I4 investigatory ground rules, the "mark the remainder" principle
+>
+> **Sections of this document still valid pending rewrite:**
+> - **Core Rules 1-3** (cite evidence, test disconfirmation, distinguish measure from measured) — survive unchanged as core obligations for every audit
+> - **Rule 4** (escape hatch: "What exceeded these rules?") — survives unchanged, though it is joined by Rule 5 for frame-level excess
+> - **Section 4** (meta-rule on task spec embedding: "the agent needs the rules in its context window, not a pointer to them") — survives unchanged as the copying protocol, and is in fact reinforced by the obligations model
+>
+> Anything not listed above — including the type-family rule selection logic, the S1-S2 / E1-E3 / C1 extension sets, and the per-type selection matrix — should be checked against the deliberations before use. **Phase 57.4 will rewrite the type-family sections, add Rule 5 and I1-I4, and restructure the document around obligation composition.** Until that rewrite lands, downstream agents and workflows should treat those sections as provisional and cite the deliberations as primary authority.
+
+---
+
 Shared reference defining epistemic practices for all audit types. Ground rules are starting conditions for epistemic discipline, not exhaustive descriptions of what rigor requires.
 
 **Consuming agents and workflows:**
