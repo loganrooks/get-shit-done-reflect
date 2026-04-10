@@ -26,7 +26,7 @@
 - [x] **Phase 57.1: Explore Skill Adoption** - Quick adopt upstream /gsd:explore as /gsdr:explore with minimal GSDR branding (completed 2026-04-09)
 - [x] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Typed claims (7 types + verification dimension), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher update, claim dependency webs, template enrichment
 - [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents *(core design commitments — flat 8-type taxonomy, template-based body structure, type-family ground rules — partially superseded by Phase 57.4 after running real audits revealed the flat taxonomy did not express the complexities of the auditing situation; see Phase 57.4 for the 3-axis reconstruction)*
-- [ ] **Phase 57.4: Audit Skill & Investigatory Type** - Radically rethink the formalization of the auditing workflow: the Phase 57.3 flat 8-type taxonomy + template paradigm + ground rules 1-4 do not express the complexities of the auditing situation. This phase supersedes Phase 57.3's core design commitments with a 3-axis taxonomy (subject × orientation × delegation), an obligations-based output paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations from retrospective analysis (chain integrity, dispatch hygiene, framework invisibility). Deliverables: /gsdr:audit command + gsdr-auditor agent, rewritten audit-conventions.md and audit-ground-rules.md, formalized cross-model delegation (WF-01 pulled forward from Phase 62)
+- [x] **Phase 57.4: Audit Skill & Investigatory Type** - Radically rethink the formalization of the auditing workflow: the Phase 57.3 flat 8-type taxonomy + template paradigm + ground rules 1-4 do not express the complexities of the auditing situation. This phase supersedes Phase 57.3's core design commitments with a 3-axis taxonomy (subject × orientation × delegation), an obligations-based output paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations from retrospective analysis (chain integrity, dispatch hygiene, framework invisibility). Deliverables: /gsdr:audit command + gsdr-auditor agent, rewritten audit-conventions.md and audit-ground-rules.md, formalized cross-model delegation (WF-01 pulled forward from Phase 62)
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
 - [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
@@ -301,7 +301,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.
 | 57.1. Explore Skill Adoption | 1/1 | Complete   | 2026-04-09 |
 | 57.2. Discuss-Phase Exploratory Mode Overhaul | 3/3 | Complete | 2026-04-09 |
 | 57.3. Audit Workflow Infrastructure | 2/2 | Complete | 2026-04-09 |
-| 57.4. Audit Skill & Investigatory Type | 0/TBD | Discussed | - |
+| 57.4. Audit Skill & Investigatory Type | 6/6 | Complete | 2026-04-10 |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
 | 60. Sensor Pipeline & Codex Parity | 0/TBD | Not started | - |
@@ -323,7 +323,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.
 | v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | 37 | Complete | 2026-03-30 |
 | v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3, 57.4 | TBD | In progress | - |
 
-**Totals:** 8 milestones, 67 phases (57 complete, 10 in progress), 173 plans completed
+**Totals:** 8 milestones, 67 phases (58 complete, 9 in progress), 179 plans completed
 
 ## Backlog
 
