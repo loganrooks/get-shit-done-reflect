@@ -264,32 +264,51 @@ This is where the obligations model shines over templates. The auditor starts wi
 
 This is a meta-audit — auditing our own audit process. Exploratory because we're wondering, not investigating a breakdown. Process_review because the domain is our own methodology. The auditor reads audit-conventions.md, reads recent audit outputs, follows threads. Maybe they discover that the taxonomy is shaping what auditors find (exactly the REVIEW.md concern). The exploratory obligation "name what you found that you weren't looking for" is essential for meta-audits — the most important finding may be something the audit framework itself makes invisible.
 
-## Open Questions
+## Retrospective Analysis
 
-1. **Template precedence fully replaced by obligations?** Or should standard orientation retain full templates for consistency? The hybrid approach (templates for standard, obligations for investigatory/exploratory) is pragmatically safer but introduces two paradigms.
+Completed: `.planning/deliberations/audit-taxonomy-retrospective-analysis.md`
 
-2. **How do epistemic profiles get exposed to the orchestrator?** Do they live in audit-conventions.md as a table? In the agent spec? In a separate reference doc?
+13 distinct audit sessions analyzed. Key findings:
 
-3. **Does the obligations approach work for weaker agents?** The gold-standard audit was produced with ground rules but minimal template. But that was one case, one agent class. The retrospective analysis (below) should test this.
+**The framework enables better responses to situations.** The test is not "does our taxonomy classify better" but "does our framework help the person respond better to what they're facing?" Evidence:
+- **Discuss-phase chain:** Investigatory obligations from Audit 1 would have caught the specific quality failures that required 3 more audits to correct. One audit instead of four.
+- **Session-log audit:** I3 (competing explanations) and framework invisibility would have caught framing bias before the user had to manually intervene.
+- **Cross-project adoption:** Already met all investigatory obligations without knowing about them — the framework makes that quality reproducible rather than dependent on sophisticated framing.
+- **Raw log files:** The command + task spec + obligations would have produced an actual audit response where there was only a session dump.
+- **Codex drift audit:** Already excellent; the 3-axis model correctly reclassifies it from `cross_model_review` to `codebase_forensics × standard × cross_model:gpt-5.4`, enabling future situational retrieval.
 
-4. **Family assignment for new subjects:** `process_review` and `artifact_analysis` don't fit neatly into structural/epistemic/compliance. Is "process" a 4th family? Or do families become less important in the obligations model (since ground rules compose by subject, not family)?
+**The framework's value is twofold:**
+1. Raises the floor — for situations where the response would have been poor, obligations catch specific failures
+2. Makes the ceiling reproducible — for situations where the response was already good, the framework encodes those practices for anyone facing a similar situation
 
-## Next Step: Retrospective Analysis
+**Three populations confirmed:** Templates for routine standard audits (Population 1). Obligations for complex/investigatory/exploratory (Population 2). Multi-agent sessions need additional mechanisms (Population 3).
 
-Dispatch a sonnet agent to apply this 3-axis + obligations framework retrospectively to the audit corpus. For each audit in `.planning/audits/` and the audit-like artifacts in phase directories, classify under the new taxonomy and assess:
+**Seven gaps identified → six dissolve with formalization.** Most gaps (raw logs, dispatch hygiene, parallel enforcement, orientation escalation, multi-subject, dispatch hygiene) are symptoms of the absence of formalization, not framework design problems. Two genuinely persist: chain integrity (audit B inheriting audit A's fabricated claims) and framework invisibility (what the audit framework itself can't see). Both added as new obligations.
 
-1. What subject × orientation × delegation would this audit be?
-2. What obligations would have applied?
-3. Would the obligations have changed the approach or output?
-4. Where does the framework NOT fit — what does it make hard to express?
+## Resolved Open Questions
 
-**Source materials for the retrospective:**
-- `.planning/phases/57.3-audit-workflow-infrastructure/57.3-RESEARCH.md` — the original audit landscape survey
-- `.planning/phases/57.3-audit-workflow-infrastructure/57.3-CONTEXT.md` — the 8-type taxonomy with failure patterns
-- `.planning/audits/` — the actual audit artifacts (43 files migrated in 57.3)
-- `.planning/phases/57.4-audit-skill-investigatory-type/pre-phase-archive/REVIEW.md` — the Phase 57 investigation that triggered this
+1. **Templates vs. obligations:** Retrospective resolves it empirically. Templates for standard × routine subjects. Obligations for investigatory/exploratory. Hybrid approach (Approach D from discussion).
+
+2. **Epistemic profiles:** Live in audit-conventions.md as a table the orchestrator reads during type inference. Each subject type has: oriented_toward, assumes, might_miss.
+
+3. **Obligations with weaker agents:** The gold-standard audit and the cross-project adoption audit both demonstrate that well-framed obligations produce quality output. Suggested templates remain available as scaffolding for agents that need structural support.
+
+4. **Family assignment:** Families become less important in the obligations model. Ground rules compose by subject, not family. `process_review` and `artifact_analysis` don't need a family assignment — they contribute their own obligation sets directly.
+
+## Open Questions (remaining)
+
+5. **Ground rule composition conflicts:** When subject obligations and orientation obligations tension, the resolution is hermeneutic, not algorithmic. The auditor names the tension, names what about the situation creates it, shows how they navigated it responsive to both demands. Not a precedence rule but a practice. The composition principle is written but untested — first real investigatory audits will reveal whether agents can actually engage with it or whether they collapse to ignoring one side.
+
+6. **Cross-model delegation mechanics:** WF-01 pulled into 57.4. The audit command generates task specs for cross-model dispatch. Robust CLI invocation patterns, environment detection, instruction framing, output collection. Specific failure modes (agents finishing early, env misconfig, instruction degradation) need investigation during research.
+
+7. **The aporia of epistemic humility:** The framework cannot pre-emptively account for its own limitations without that accounting becoming performative. A "Known Limits" section would be exactly the performative confession that discharges the obligation to remain attentive. Instead, the framework creates structural openings (Rule 4, Rule 5, framework invisibility obligation, excess section) where limits are encountered in practice. Whether these function as genuine openings or performative gestures depends on the practice of the agents who use them — which is not something the framework can guarantee.
+
+   The practical stance: no "Known Limits" section. The operative mechanisms remain structural openings. When those mechanisms produce genuine encounters with the framework's edges, the signal-deliberation-revision loop is the response — not as resolution, but as continuation. The framework is never done encountering its limits because each revision creates new limits.
+
+   This question is deliberately left open. The aporia is not a problem to solve but a condition of the framework's existence. Attempts to resolve it (including this paragraph) risk becoming the performative gesture they describe. The deliberation acknowledges this recursion without claiming to have escaped it.
 
 ---
 
 *Deliberation opened: 2026-04-10*
-*Lifecycle: open*
+*Lifecycle: open — paused, not concluded*
+*Paused: 2026-04-10 — user directed pause due to time constraints, not because the deliberation has concluded*
