@@ -59,9 +59,29 @@ Every measurement is a proxy. Name the gap between your metric and the thing you
 
 [evidenced:cited] Per `rigorous-comparative-audit-task-spec.md` line 33: "If you count deviations, say: 'I counted deviations. Deviation count measures execution divergence from plan, NOT plan quality. A plan that locks wrong decisions will have zero deviations and be a worse plan.'"
 
+### Rule 5: Did the framing shape what you found? (Frame-reflexivity)
+
+Rule 5 is a core rule applying to every audit — it belongs alongside Rules 1-3, not in the Section 2 escape hatch. The v2 design adds it here because the concern Rule 5 addresses is structural, not exceptional: every audit is conducted from a classification (subject × orientation × delegation), and every classification makes some findings visible while hiding others. Rule 5 asks whether the classification was the right one to hold for this situation.
+
+[governing:cited] Per `.planning/phases/57.4-audit-skill-investigatory-type/pre-phase-archive/REVIEW.md` Part 4 (lines 103-116): "every audit type smuggles in assumptions about the form of failure, and those assumptions shape what the auditor can find... A `phase_verification` audit assumes the phase goal is the right standard. If the goal itself is wrong, verification passes and the real problem is invisible. A `comparative_quality` audit assumes quality is the relevant axis and that comparison is the right method. If the problem is scope rather than quality, the audit finds nothing."
+
+Rule 5 is distinct from Rule 4 and the two must not be collapsed. Per REVIEW.md lines 115-116: "This is not the same as Rule 4 (escape hatch), which asks 'what didn't fit the template.' This is more fundamental: 'was this the right template to begin with?' **Rule 4 catches excess within the frame. Rule 5 catches whether the frame itself was appropriate.**" An audit might have no Rule 4 excess — everything encountered fit within the rules — and still fail Rule 5, because the frame determined what could be encountered in the first place.
+
+**Orientation dependence.** The weight of Rule 5 scales with orientation, per REVIEW.md line 150. For **standard** orientation, Rule 5 is a lightweight closing step — one to three sentences at the end of the audit answering "Did the choice of audit type shape what you found? What would a differently-typed audit have looked for?" For **investigatory** orientation, Rule 5 is a full section — the frame-reflexivity is not decoration but part of the investigation, because an investigation that cannot see its own orientation is one that has quietly closed on a theory without knowing it. For **exploratory** orientation, Rule 5 weaves into the exploratory obligation "name what you didn't look at" — the framing itself is part of what wasn't looked at.
+
+**Specific grounding questions (copy these verbatim into every task spec, do not paraphrase — per RESEARCH.md Pitfall 2, generic prompts about "bias" produce compliance theater; specific questions produce engagement):**
+
+> 1. *"If this audit had been classified as a different subject (e.g., `{alternative subject}` instead of `{current subject}`), what would it have looked for that you didn't? What findings would that audit have produced that yours doesn't?"*
+> 2. *"If this audit had been classified with a different orientation (e.g., `investigatory` instead of `standard`), what would it have held open that you closed? What would it have investigated that you accepted?"*
+> 3. *"What about the current classification shapes what you are prepared to notice and what you are not? Name one concrete example."*
+
+**Anti-performativity warning.** Per REVIEW.md line 166 and the forms-excess deliberation: if your answer to Rule 5 is "nothing" or "I considered my biases" without a concrete consequence visible in the findings, **Rule 5 has not been engaged with — it has been performed**. An empty Rule 5 is not neutral. It is a signal that the frame is invisible to the auditor, which is exactly the failure mode the rule exists to catch. The auditor who cannot name what their frame hid from them is the auditor most hidden from their frame. This is compliance theater, and Rule 5 refuses it. If the specific questions above produce only empty answers after genuine engagement, write that result and name why no alternative reading surfaces — that too is a finding.
+
 ---
 
 ## 2. Escape Hatch Rule (Always Included)
+
+Section 2 originally housed Rule 4 alone. Under v2, Rule 4 is joined by Rule 5 (in Section 1) as a paired mechanism for keeping the ground rules from becoming a ceiling on rigor: **Rule 4 catches excess within the frame, Rule 5 catches whether the frame itself was appropriate**. Rule 4 remains here — in Section 2 rather than Section 1 — because it is an escape hatch by character: it asks what the rules failed to anticipate. Rule 5, by contrast, is a core rule that every audit must address, which is why Section 1 is its home. The two are complementary, not interchangeable.
 
 ### Rule 4: What did you encounter that these ground rules didn't prepare you for?
 
@@ -70,6 +90,8 @@ This rule is an invitation, not enforcement. It ensures the ground rules do not 
 [governing:cited] Per `.planning/deliberations/forms-excess-and-framework-becoming.md`: "the reviewer's checklist becomes the definition of rigor, foreclosing what rigor might require beyond it." An audit may discover that the important finding lies precisely in the territory these rules do not cover. Rule 4 creates space for the excess to leave traces.
 
 If your answer to Rule 4 is "nothing," that may be accurate -- or it may indicate the ground rules shaped your attention so thoroughly that you didn't notice what they excluded. Consider the possibility before answering.
+
+*See Rule 5 in Section 1 for the frame-level complement — Rule 4 asks what escaped the rules, Rule 5 asks whether the rules were the right rules.*
 
 ---
 
