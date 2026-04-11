@@ -46,7 +46,7 @@ Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_
 
 ## 2. Parse and Normalize Arguments
 
-Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`, `--skip-ui`, `--prd <filepath>`, `--reviews`, `--text`).
+Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`, `--skip-ui`, `--prd <filepath>`, `--reviews`, `--text`, `--bounce`, `--skip-bounce`).
 
 Set `TEXT_MODE=true` if `--text` is present in $ARGUMENTS OR `text_mode` from init JSON is `true`. When `TEXT_MODE` is active, replace every `AskUserQuestion` call with a plain-text numbered list and ask the user to type their choice number. This is required for Claude Code remote sessions (`/rc` mode) where TUI menus don't work through the Claude App.
 
@@ -929,6 +929,77 @@ After planner returns -> spawn checker again (step 10), increment iteration_coun
 Display: `Max iterations reached. {N} issues remain:` + issue list
 
 Offer: 1) Force proceed, 2) Provide guidance and retry, 3) Abandon
+
+## 12.5. Plan Bounce (Optional External Refinement)
+
+**Skip if:** `--skip-bounce` flag, `--gaps` flag, or bounce is not activated.
+
+**Activation:** Bounce runs when `--bounce` flag is present OR `workflow.plan_bounce` config is `true`. The `--skip-bounce` flag always wins (disables bounce even if config enables it). The `--gaps` flag also disables bounce (gap-closure mode should not modify plans externally).
+
+**Prerequisites:** `workflow.plan_bounce_script` must be set to a valid script path. If bounce is activated but no script is configured, display warning and skip:
+```
+⚠ Plan bounce activated but no script configured.
+Set workflow.plan_bounce_script to the path of your refinement script.
+Skipping bounce step.
+```
+
+**Read pass count:**
+```bash
+BOUNCE_PASSES=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.plan_bounce_passes --default 2)
+BOUNCE_SCRIPT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" config-get workflow.plan_bounce_script)
+```
+
+Display banner:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► BOUNCING PLANS (External Refinement)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Script: ${BOUNCE_SCRIPT}
+Max passes: ${BOUNCE_PASSES}
+```
+
+**For each PLAN.md file in the phase directory:**
+
+1. **Backup:** Copy `*-PLAN.md` to `*-PLAN.pre-bounce.md`
+```bash
+cp "${PLAN_FILE}" "${PLAN_FILE%.md}.pre-bounce.md"
+```
+
+2. **Invoke bounce script:**
+```bash
+"${BOUNCE_SCRIPT}" "${PLAN_FILE}" "${BOUNCE_PASSES}"
+```
+
+3. **Validate bounced plan — YAML frontmatter integrity:**
+After the script returns, check that the bounced file still has valid YAML frontmatter (opening and closing `---` delimiters with parseable content between them). If the bounced plan breaks YAML frontmatter validation, restore the original from the pre-bounce.md backup and continue to the next plan:
+```
+⚠ Bounced plan ${PLAN_FILE} has broken YAML frontmatter — restoring original from pre-bounce backup.
+```
+
+4. **Handle script failure:** If the bounce script exits non-zero, restore the original plan from the pre-bounce.md backup and continue to the next plan:
+```
+⚠ Bounce script failed for ${PLAN_FILE} (exit code ${EXIT_CODE}) — restoring original from pre-bounce backup.
+```
+
+**After all plans are bounced:**
+
+5. **Re-run plan checker on bounced plans:** Spawn gsd-plan-checker (same as step 10) on all modified plans. If a bounced plan fails the checker, restore original from its pre-bounce.md backup:
+```
+⚠ Bounced plan ${PLAN_FILE} failed checker validation — restoring original from pre-bounce backup.
+```
+
+6. **Commit surviving bounced plans:** If at least one plan survived both the frontmatter validation and the checker re-run, commit the changes:
+```bash
+node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" commit "refactor(${padded_phase}): bounce plans through external refinement" --files "${PHASE_DIR}/*-PLAN.md"
+```
+
+Display summary:
+```
+Plan bounce complete: {survived}/{total} plans refined
+```
+
+**Clean up:** Remove all `*-PLAN.pre-bounce.md` backup files after the bounce step completes (whether plans survived or were restored).
 
 ## 13. Requirements Coverage Gate
 
