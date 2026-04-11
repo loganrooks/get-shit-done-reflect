@@ -7,6 +7,11 @@ const path = require('path');
 const { escapeRegex, loadConfig, getMilestoneInfo, getMilestonePhaseFilter, normalizeMd, planningDir, planningPaths, output, error, atomicWriteFileSync } = require('./core.cjs');
 const { extractFrontmatter, reconstructFrontmatter } = require('./frontmatter.cjs');
 
+// Cache disk scan results from buildStateFrontmatter per cwd per process (#1967).
+// Avoids re-reading N+1 directories on every state write when the phase structure
+// hasn't changed within the same gsd-tools invocation.
+const _diskScanCache = new Map();
+
 /** Shorthand — every state command needs this path */
 function getStatePath(cwd) {
   return planningPaths(cwd).state;
@@ -737,28 +742,40 @@ function buildStateFrontmatter(bodyContent, cwd) {
     try {
       const phasesDir = planningPaths(cwd).phases;
       if (fs.existsSync(phasesDir)) {
-        const isDirInMilestone = getMilestonePhaseFilter(cwd);
-        const phaseDirs = fs.readdirSync(phasesDir, { withFileTypes: true })
-          .filter(e => e.isDirectory()).map(e => e.name)
-          .filter(isDirInMilestone);
-        let diskTotalPlans = 0;
-        let diskTotalSummaries = 0;
-        let diskCompletedPhases = 0;
+        // Use cached disk scan when available — avoids N+1 readdirSync calls
+        // on repeated buildStateFrontmatter invocations within the same process (#1967)
+        let cached = _diskScanCache.get(cwd);
+        if (!cached) {
+          const isDirInMilestone = getMilestonePhaseFilter(cwd);
+          const phaseDirs = fs.readdirSync(phasesDir, { withFileTypes: true })
+            .filter(e => e.isDirectory()).map(e => e.name)
+            .filter(isDirInMilestone);
+          let diskTotalPlans = 0;
+          let diskTotalSummaries = 0;
+          let diskCompletedPhases = 0;
 
-        for (const dir of phaseDirs) {
-          const files = fs.readdirSync(path.join(phasesDir, dir));
-          const plans = files.filter(f => f.match(/-PLAN\.md$/i)).length;
-          const summaries = files.filter(f => f.match(/-SUMMARY\.md$/i)).length;
-          diskTotalPlans += plans;
-          diskTotalSummaries += summaries;
-          if (plans > 0 && summaries >= plans) diskCompletedPhases++;
+          for (const dir of phaseDirs) {
+            const files = fs.readdirSync(path.join(phasesDir, dir));
+            const plans = files.filter(f => f.match(/-PLAN\.md$/i)).length;
+            const summaries = files.filter(f => f.match(/-SUMMARY\.md$/i)).length;
+            diskTotalPlans += plans;
+            diskTotalSummaries += summaries;
+            if (plans > 0 && summaries >= plans) diskCompletedPhases++;
+          }
+          cached = {
+            totalPhases: isDirInMilestone.phaseCount > 0
+              ? Math.max(phaseDirs.length, isDirInMilestone.phaseCount)
+              : phaseDirs.length,
+            completedPhases: diskCompletedPhases,
+            totalPlans: diskTotalPlans,
+            completedPlans: diskTotalSummaries,
+          };
+          _diskScanCache.set(cwd, cached);
         }
-        totalPhases = isDirInMilestone.phaseCount > 0
-          ? Math.max(phaseDirs.length, isDirInMilestone.phaseCount)
-          : phaseDirs.length;
-        completedPhases = diskCompletedPhases;
-        totalPlans = diskTotalPlans;
-        completedPlans = diskTotalSummaries;
+        totalPhases = cached.totalPhases;
+        completedPhases = cached.completedPhases;
+        totalPlans = cached.totalPlans;
+        completedPlans = cached.completedPlans;
       }
     } catch { /* intentionally empty */ }
   }
@@ -904,6 +921,10 @@ function releaseStateLock(lockPath) {
  * each other's changes (race condition with read-modify-write cycle).
  */
 function writeStateMd(statePath, content, cwd) {
+  // Invalidate disk scan cache before computing new frontmatter — the write
+  // may create new PLAN/SUMMARY files that buildStateFrontmatter must see.
+  // Safe for any calling pattern, not just short-lived CLI processes (#1967).
+  if (cwd) _diskScanCache.delete(cwd);
   const synced = syncStateFrontmatter(content, cwd);
   const lockPath = acquireStateLock(statePath);
   try {
