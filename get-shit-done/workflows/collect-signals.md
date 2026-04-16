@@ -318,7 +318,8 @@ After each sensor output is collected (success or failure), track stats:
 
 ```bash
 # On successful sensor output collection:
-node ~/.claude/get-shit-done-reflect/bin/gsd-tools.cjs automation track-event "sensor_{NAME}" fire
+# Persist the observed yield through the supported track-event write path.
+node ~/.claude/get-shit-done-reflect/bin/gsd-tools.cjs automation track-event "sensor_{NAME}" fire "signal-count={SIGNAL_COUNT}"
 
 # On sensor failure (parse error, agent error):
 node ~/.claude/get-shit-done-reflect/bin/gsd-tools.cjs automation track-event "sensor_{NAME}" skip "parse-error"

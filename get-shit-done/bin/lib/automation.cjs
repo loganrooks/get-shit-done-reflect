@@ -187,6 +187,45 @@ function cmdAutomationResolveLevel(cwd, feature, options, raw) {
   output(result, raw);
 }
 
+function parseTrackEventReason(event, reason) {
+  const parsed = {
+    metadata: {},
+    reason: reason || undefined,
+  };
+
+  if (!reason || event !== 'fire') {
+    return parsed;
+  }
+
+  const trimmed = String(reason).trim();
+  if (!trimmed) {
+    return parsed;
+  }
+
+  if (trimmed.startsWith('{')) {
+    try {
+      const payload = JSON.parse(trimmed);
+      if (Number.isFinite(payload.last_signal_count)) {
+        parsed.metadata.last_signal_count = Number(payload.last_signal_count);
+      }
+      if (typeof payload.reason === 'string' && payload.reason.trim()) {
+        parsed.reason = payload.reason.trim();
+      }
+      return parsed;
+    } catch {
+      // Fall through to lightweight key=value parsing.
+    }
+  }
+
+  const countMatch = trimmed.match(/(?:^|[;, ])(?:signal[-_ ]count|last_signal_count|count)=([0-9]+)/i);
+  if (countMatch) {
+    parsed.metadata.last_signal_count = Number(countMatch[1]);
+    parsed.reason = undefined;
+  }
+
+  return parsed;
+}
+
 function cmdAutomationTrackEvent(cwd, feature, event, reason, raw) {
   if (!feature || !event) {
     error('Usage: automation track-event <feature> <fire|skip> [reason]');
@@ -217,12 +256,18 @@ function cmdAutomationTrackEvent(cwd, feature, event, reason, raw) {
   }
 
   const stats = projectConfig.automation.stats[normalizedFeature];
+  const parsedReason = parseTrackEventReason(event, reason);
   if (event === 'fire') {
     stats.fires++;
     stats.last_triggered = new Date().toISOString();
+    stats.last_run_status = 'success';
+    if (parsedReason.metadata.last_signal_count !== undefined) {
+      stats.last_signal_count = parsedReason.metadata.last_signal_count;
+    }
   } else if (event === 'skip') {
     stats.skips++;
     stats.last_skip_reason = reason || 'unknown';
+    stats.last_run_status = 'skipped';
   }
 
   // Atomic write: write to tmp, then rename
@@ -230,7 +275,7 @@ function cmdAutomationTrackEvent(cwd, feature, event, reason, raw) {
   fs.writeFileSync(tmpPath, JSON.stringify(projectConfig, null, 2) + '\n');
   fs.renameSync(tmpPath, configPath);
 
-  output({ feature: normalizedFeature, event, stats }, raw);
+  output({ feature: normalizedFeature, event, reason: parsedReason.reason, stats }, raw);
 }
 
 function cmdAutomationLock(cwd, feature, options, raw) {
