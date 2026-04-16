@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: in_progress
-stopped_at: "Phase 57.5 Wave 2 complete -- runtime/derived and GSDR freshness plans landed. Plan 04 (Codex proof + retroactive demo) next."
-last_updated: "2026-04-16T20:14:40.000Z"
-last_activity: 2026-04-16 -- Phase 57.5 Wave 2 completed
+status: ready_to_plan
+stopped_at: "Phase 57.5 complete -- verifier passed 6/6 must-haves after registry-parity + loop-taxonomy gap closure; ready for next phase (57.6)."
+last_updated: "2026-04-16T20:48:28.000Z"
+last_activity: 2026-04-16 -- Phase 57.5 complete (Measurement Architecture & Retroactive Foundation)
 progress:
   total_phases: 19
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 30
-  completed_plans: 29
-  percent: 47
+  completed_plans: 30
+  percent: 52
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.5 (Measurement Architecture & Retroactive Foundation) — executing the 4-plan set derived from the measurement deliberation, the 2026-04-16 audit correction chain, and spikes 009/010. The substrate, runtime/derived, and GSDR-freshness slices are complete, and only the Codex proof plus retroactive demo remains.
+**Current focus:** v1.20 Phase 57.6 (Multi-Loop Coverage & Human Interface) — next up after Phase 57.5 completed with passed verification. Phase 57.6 extends coverage to the remaining loops, adds human-readable reporting, and demonstrates real diagnostic use of the measurement substrate.
 
 ## Current Position
 
-Phase: 57.5 of 64 (Measurement Architecture & Retroactive Foundation)
-Plan: 3 of 4
-Status: Plans 02/03 complete (runtime/derived + GSDR freshness). Next: Plan 04 final Codex proof and retroactive demo.
-Last activity: 2026-04-16 -- Phase 57.5 Wave 2 completed
+Phase: 57.5 of 64 (Measurement Architecture & Retroactive Foundation) — Complete
+Plan: 4 of 4
+Status: Phase complete; verifier passed 6/6 must-haves after one registry-parity gap closure. Next: Phase 57.6 (Multi-Loop Coverage & Human Interface).
+Last activity: 2026-04-16 -- Phase 57.5 complete (Measurement Architecture & Retroactive Foundation)
 
-Progress: [█████░░░░░] 47%
+Progress: [██████░░░░] 52%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 20
+- Plans completed: 21
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -57,6 +57,7 @@ Progress: [█████░░░░░] 47%
 - 57.5-01: 12min, 3 tasks, 7 files
 - 57.5-02: 6min, 3 tasks, 4 files
 - 57.5-03: 12min, 3 tasks, 8 files
+- 57.5-04: 16min, 3 tasks, 7 files
 
 **v1.18 Final:**
 
@@ -240,3 +241,5 @@ This session (2026-04-16):
 - Executed 57.5-01 on branch `gsd/phase-57.5-measurement-architecture-retroactive-foundation`, landing the measurement CLI/store/query substrate, test lock, and cache-artifact ignore rules
 - Executed 57.5-02 and 57.5-03 in parallel, landing the Claude runtime/derived extractor families plus the GSDR freshness/signal-yield path
 - Verified Wave 2 with targeted unit/integration runs and reconstructed the missing 57.5-02 summary after its executor stalled post-commit
+- Executed 57.5-04, adding the Codex metadata proof, shared mixed-runtime query semantics, telemetry compatibility, and retroactive corpus validation
+- Closed an initial verification gap by unifying rebuild/query/store on one 17-extractor registry path, declaring the six-loop catalog in code, and passing re-verification at 6/6 must-haves
