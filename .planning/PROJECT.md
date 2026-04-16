@@ -8,6 +8,10 @@ A self-improving, runtime-agnostic enhancement to the GSD (Get Shit Done) workfl
 
 The system never makes the same mistake twice — signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
 
+This capacity depends on epistemically rigorous measurement. Self-improvement requires not only the detection of mistakes (signals) but the judgment to demand adequate evidence and the rigor to produce it — wisdom and rigor chiasmically intertwined, not layered. The measurement system is not a utility feature but the substrate on which self-improvement's trustworthiness rests: it must structurally resist naive readings, surface what is not being measured, and track interpretations through competing readings, anomaly registers, intervention-outcome pairs, and revision classification rather than declaring them "verified."
+
+See `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` for the philosophical grounding (Merleau-Ponty's chiasm, post-Popperian epistemic rigor drawing on Kuhn/Lakatos/Longino/Hacking, Dewey's inquiry cycle) that motivates the MEAS- family and Phases 57.5/57.6/57.7.
+
 ## Requirements
 
 ### Validated

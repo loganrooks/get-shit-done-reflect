@@ -1,0 +1,69 @@
+{
+  "session_id": "f69f7597-ef46-4b59-9fe4-f746d1ef749f",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-03-11T22:11:50.346Z",
+  "duration_minutes": 401,
+  "user_message_count": 9,
+  "assistant_message_count": 159,
+  "tool_counts": {
+    "Agent": 5,
+    "Write": 9,
+    "ToolSearch": 1,
+    "TaskCreate": 6,
+    "Read": 26,
+    "Bash": 20,
+    "TaskUpdate": 12,
+    "Edit": 13,
+    "Grep": 2,
+    "Glob": 2
+  },
+  "languages": {
+    "Markdown": 47,
+    "JSON": 1
+  },
+  "git_commits": 2,
+  "git_pushes": 0,
+  "input_tokens": 229,
+  "output_tokens": 61975,
+  "first_prompt": "Implement the following plan:  # Plan: Arxiv Research Ecosystem — Continuation Strategy  ## Context  Two related projects form a research ecosystem:  1. **arxiv-scan** (`/scratch/arxiv-scan/`) — Unfin…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    1932.011,
+    194.625,
+    5.24,
+    263.994
+  ],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "Other": 1
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 1403,
+  "lines_removed": 65,
+  "files_modified": 14,
+  "message_hours": [
+    18,
+    18,
+    18,
+    19,
+    21,
+    21,
+    22,
+    0,
+    0
+  ],
+  "user_message_timestamps": [
+    "2026-03-11T22:11:45.852Z",
+    "2026-03-11T22:50:25.014Z",
+    "2026-03-11T22:53:57.447Z",
+    "2026-03-11T23:08:13.460Z",
+    "2026-03-12T01:54:59.912Z",
+    "2026-03-12T01:54:59.912Z",
+    "2026-03-12T02:00:43.141Z",
+    "2026-03-12T04:50:31.529Z",
+    "2026-03-12T04:50:31.529Z"
+  ]
+}

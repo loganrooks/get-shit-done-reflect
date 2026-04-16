@@ -1,0 +1,21 @@
+{
+  "underlying_goal": "Check for GSD updates and activate a Python virtual environment",
+  "goal_categories": {
+    "environment_setup": 4,
+    "package_management": 1
+  },
+  "outcome": "mostly_achieved",
+  "user_satisfaction_counts": {
+    "dissatisfied": 1,
+    "likely_satisfied": 1
+  },
+  "claude_helpfulness": "moderately_helpful",
+  "session_type": "multi_task",
+  "friction_counts": {
+    "misunderstood_request": 1
+  },
+  "friction_detail": "Claude checked the local GSD installation instead of the user/global installation as intended.",
+  "primary_success": "none",
+  "brief_summary": "User wanted to check for GSD updates (global) and activate a venv; Claude initially checked the wrong installation but corrected after feedback, and the venv activation was handled with caveats about shell persistence.",
+  "session_id": "7f692fc9-932f-4c7b-a7fc-661f5ac1d64d"
+}

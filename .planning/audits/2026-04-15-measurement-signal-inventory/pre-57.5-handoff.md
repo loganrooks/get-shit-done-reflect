@@ -1,7 +1,7 @@
 # Pre-Phase 57.5 Handoff
 
 **Originally written:** 2026-04-15
-**Last updated:** 2026-04-16 (third refresh — after spike 010 completed, MEAS- implications revised)
+**Last updated:** 2026-04-16 (eighth refresh — E6 complete; A6 capability-layer falsification via binary introspection; §6.22 MEAS-RUNTIME-COMPACT added; cross-runtime compaction symmetry restored)
 
 ---
 
@@ -9,16 +9,16 @@
 
 - ✅ Synthesis correction + extension authored, committed (`9e69c5ce`)
 - ✅ Spike 009 (thinking-summary as reasoning proxy in subagent dispatch) executed + sealed (`125000af`)
-- ✅ Spike 010 (same matrix in parent-session dispatch via headless `claude -p`) **executed this session** — outcome `partial`. H1/H2 confirmed, H3 falsified, H4 untestable. 5 new structural findings + 1 qualitative finding surfaced a load-bearing gap (see below).
+- ✅ Spike 010 (same matrix in parent-session dispatch via headless `claude -p`) — outcome `partial`. H1/H2 confirmed, H3 falsified, H4 untestable. 5 new structural findings + 1 qualitative finding surfaced a load-bearing gap.
 - ✅ Settings change applied (`showThinkingSummaries: true` in `~/.claude/settings.json`)
 - ✅ Memory updated with three new records (research-before-giving-up, thinking-redaction-controllable, session-meta-frozen)
-- ⏳ **Anomaly stress-testing (Section E, NEW)** — only A4 fully resolved of 8 anomalies (A1–A8); correction doc §8 OQ9 flagged the others as untested. Triage done, execution pending. **These come BEFORE governance** since they may refine what extractors the MEAS- spec needs.
-- ⏳ Governance updates (A1–A5) — NOT started; **MEAS- spec shape revised by spike 010 findings** (see A1 below); may be further revised by anomaly work
+- ✅ **Anomaly stress-tests E1–E6 COMPLETE + E5.8 empirical /insights test executed** (2026-04-16, uncommitted). Documents: `anomaly-stress-tests.md`, `e5.8-insights-experiment/{PREDICTIONS,RESULTS}.md`, `e5.8-insights-experiment/{pre,post}-snapshot/`. **16 new MEAS- proposals** surfaced + 4 candidate signals. E5 REFRAMED E3/E4's shutdown interpretation; E5.8 empirically confirmed E5's reframe AND surfaced a **two-path write model**; E6 **falsified** A6 at the capability layer (Claude Code has full `/compact` subsystem with `compact_boundary` emissions — synthesis's "ABSENT" reflected corpus-non-firing, not capability absence).
+- ⏳ Governance updates (A1–A5) — NOT started; **MEAS- spec shape further revised by E1–E6 findings + E5.8 empirical refinements** (16 new reqs from E1–E6 atop spike 010's 7 = **23 total candidates** for A1). Subfamily split is THREE-way: MEAS-RUNTIME + MEAS-DERIVED + MEAS-GSDR.
 - ⏳ External-data research (B4–B6) — NOT started
-- ⏳ `/gsdr:discuss-phase 57.5` — NOT started; **one new design question added** (reasoning-quality measurement gap)
+- ⏳ `/gsdr:discuss-phase 57.5` — NOT started; design questions unchanged from prior refresh but §E findings add governance texture
 - ⏳ Follow-up spikes queued — 3 original + 1 new (C4 marker-set calibration); C2 and C3 unchanged; C5 possible (LLM-as-judge for reasoning quality)
 
-If you have fresh context, **read this handoff + `correction-and-extensions-2026-04-16.md` + spike 009's `DECISION.md` + spike 010's `DECISION.md` + spike 010's `qualitative_comparison.md`**, then proceed with the recommended execution order at the bottom.
+If you have fresh context, **read this handoff + `correction-and-extensions-2026-04-16.md` + `anomaly-stress-tests.md` (E1–E6 + E5.8) + `e5.8-insights-experiment/RESULTS.md` + spike 009's `DECISION.md` + spike 010's `DECISION.md` + spike 010's `qualitative_comparison.md`**, then proceed with the recommended execution order at the bottom.
 
 ---
 
@@ -156,11 +156,58 @@ These come BEFORE governance (Section A) because they may refine what extractors
 - E5 (A2) findings close the "what to do with session-meta going forward" question
 - E6 (A6) findings determine cross-runtime compaction-symmetry status (synthesis §2.3 classification)
 
+### E-status refresh (2026-04-16, after E1+E2+E3+E4+E5 + E5.8 + E6)
+
+Deliverable: sibling doc `anomaly-stress-tests.md` + experiment dir `e5.8-insights-experiment/`. All six stress-tests + E5.8 empirical follow-up complete. **All uncommitted as of this refresh.**
+
+| # | Status | Outcome summary |
+|---|---|---|
+| E1 | ✅ **DONE** | A7 framing accurate; stats system works correctly. 2 latent gaps: `last_signal_count` never written (Phase 38 plan incomplete); skip_reason is free-form (no enum validation). Falsification pass refined one claim (sensor_log fires=2 ≠ others=5 because of later introduction). 3 new MEAS- reqs: §6.7 (automation_health extractor, P1), §6.8 (close last_signal_count gap, P2), §6.9 (canonicalize skip_reason, P3). GSDR-native. |
+| E2 | ✅ **DONE** | A8 framing accurate but surfaced **2 serious defects**: (1) freshness broken — every workflow calls `kb-rebuild-index.sh` which only updates markdown index; kb.db only rebuilt when human manually runs `gsd-tools.cjs kb rebuild`. (2) FTS5 virtual table is declared but never populated. Falsification pass confirmed both claims. 3 new MEAS- reqs: §6.10 (kb.db as first-class source, P1), §6.11 (fix freshness, P1), §6.12 (fix/drop FTS5, P3). GSDR-native. |
+| E3 | ✅ **DONE** | A5 framing partially right. Three defects found; meta_umc formula identified (`count(user records where content is string)`). **E5 REFRAMED** E3's "meta subsystem disabled" framing — see E5 entry. 3 new MEAS- reqs: §6.13 (human-turn extractor on JSONL, P2), §6.14 (meta_umc scope+lifecycle annotations, P1), §6.15 (coverage-audit, P3). Claude-runtime. |
+| E4 | ✅ **DONE** | A1 token semantics. Formula is partial (4/7 match, 3/7 fail). **E5 REFRAMED** E4.7 Test 3's shutdown-event framing (see E5 entry) — the mtime cluster is an `/insights`-invocation artifact, not a shutdown. E4's core claim (exclude meta tokens; use JSONL) stands. 2 new MEAS- reqs: §6.16 (reject meta tokens, P1) + §6.17 (JSONL-based token extractor, P1). Claude-runtime (DERIVED subfamily now — see E5). |
+| E5 | ✅ **DONE** | A2 reframed. **Original claim partially wrong:** subsystem was never disabled. Key findings: (1) zero files newer than 2026-03-16 despite 32 version bumps; (2) `/insights` still active in v2.1.110 (bug-fixed at v2.1.101); (3) discovered second mass-rewrite event at 2026-03-08T20:08 UTC; (4) subsystem is `/insights`-driven (bulk rewrites per invocation); (5) discovered `facets/*.json` = LLM-extracted semantic summaries. 3 new MEAS- reqs: §6.18 (reclassify session-meta as DERIVED, P2), §6.19 (**facets as first-class source**, P1), §6.20 (/insights mass-rewrite as provenance, P3). Subfamily split THREE-way: MEAS-RUNTIME + **MEAS-DERIVED** + MEAS-GSDR. |
+| E5.8 | ✅ **DONE** | Empirical /insights test via `claude -p` subprocess 11:07:26-11:08:46 EDT. Pre-snapshot + post-snapshot + predictions + results in `e5.8-insights-experiment/`. **E5 reframe confirmed empirically** — subsystem alive, strict incremental, schema unchanged (11 fields, zero drift), 203 new session-meta + 52 new facets filling 2026-03-27→2026-04-16 gap. Predictions scorecard: 5 confirmed + 1 barely + 3 falsified + 1 unverifiable + 1 partial. **Three new structural findings:** (1) **two-path write model** — /insights bulk + separate per-session-end trigger (subprocess's own session got meta file at 11:12:05, 3m19s after exit); (2) **facets has non-deterministic size-correlated budget filter** — 25.6% new vs 40.7% historical, mean user_msg 20.1 with facets vs 5.4 without; (3) **earlier "2,595 JSONL" claim was wrong** — counted subagents. Real: 211 parent + 2,365 subagent JSONLs. /insights processes parents only (209/211 covered). 1 new MEAS- req: §6.21 (MEAS-DERIVED-WRITE-PATH provenance metadata, P3). Methodological lesson: scope-cascade assumption burned user quota; captured in `feedback_scope_cascade_assumption.md`. |
+| E6 | ✅ **DONE** | A6 Codex compaction symmetry **falsified at capability layer**. Claude Code has full compaction subsystem: `/compact`, `/autocompact`, `/microcompact` slash commands; `autoCompactEnabled: true` default; `compact_boundary` system-subtype; `isCompactSummary: true` flag; Anthropic `compact-2026-01-12` beta. Binary introspection + authoritative docs confirm. Zero events machine-wide (2,577 JSONLs) because (a) 1M-context model raises threshold, (b) operator heavy `/clear` usage (49 invocations) substitutes pre-emptively. Synthesis §4.3 "ABSENT" is observed-corpus only, not capability. 1 new MEAS- req: §6.22 (MEAS-RUNTIME-COMPACT extractor, P2 — capability-level, low near-term data richness). Plus operator-habit feature: `clear_invocation_count` per session. Claude-runtime. |
+
+**Net MEAS- proposals from E1–E6 + E5.8: 16 new requirements** atop spike 010's 7 candidates, for **23 total** in the A1 governance scope. Breakdown:
+- E1 (§6.7, §6.8, §6.9): automation-health extractor + last_signal_count gap closure + skip_reason canonicalization
+- E2 (§6.10, §6.11, §6.12): kb.db as first-class source + freshness automation fix + FTS5 fix-or-drop
+- E3 (§6.13, §6.14, §6.15): human-turn extractor + meta_umc scope+lifecycle annotations + coverage audit
+- E4 (§6.16, §6.17): reject meta tokens as first-class + JSONL-based token extractor with msg_id dedup
+- E5 (§6.18, §6.19, §6.20): DERIVED subfamily classification + **facets/*.json as first-class MEAS- source** + /insights mass-rewrite provenance signal
+- E5.8 (§6.21): MEAS-DERIVED-WRITE-PATH — record bulk-cluster vs single-write provenance; §6.19 gains mandatory coverage-stratification clause (facets aggregate analysis MUST stratify by session size due to non-uniform filter)
+- E6 (§6.22): MEAS-RUNTIME-COMPACT — compaction-event extractor (Claude: `compact_boundary` + `isCompactSummary:true`; Codex: `compacted` + `replacement_history`) + `clear_invocation_count` as workflow-substitution signal
+
+Revised THREE-subfamily split (strengthened by E5):
+- **MEAS-RUNTIME-*** — Claude/Codex JSONL transcripts. Canonical source of truth. Subject to era boundaries (v2.1.78 transcript-token change, v2.1.69 redaction).
+- **MEAS-DERIVED-*** — Artifacts produced by `/insights` command (session-meta, facets, report.html). On-demand refresh; provenance = last `/insights` mtime. NOT continuous telemetry.
+- **MEAS-GSDR-*** — Our own artifacts (config.json.automation, kb.db, signal files). Versioned via `manifest_version`.
+
+**Side-signals surfaced by E2 + E6 (should be logged as signals):**
+- `sig-2026-04-16-kb-db-freshness-automation-missing` — every workflow calls the wrong rebuild script
+- `sig-2026-04-16-fts5-declared-but-unused` — dead schema declaration
+- `sig-2026-04-16-claude-compaction-mechanism-undocumented` (E6) — synthesis audit missed Claude compaction capability because Lane 2 scoped grep to 60 project JSONLs + feature didn't fire in sample; audit method should include binary introspection before concluding capability absence
+- `sig-2026-04-16-clear-invocations-substitute-for-compaction` (E6) — operator habit (49 `/clear` vs 0 `/compact` invocations in 211 sessions) is a measurable workflow signal; first-class `clear_invocation_count` feature
+
+**Correction noted:** anomaly-stress-tests.md §E2.2 Layer 5 text says FTS queries "fail with 'no such column: T.title'." That was my query-syntax error, not an FTS5 defect. Correct syntax runs silently with 0 results. Kept in the doc with a noted correction in §E2.7 rather than rewriting.
+
+**New artifact inventory:**
+- `.planning/audits/2026-04-15-measurement-signal-inventory/anomaly-stress-tests.md` (E1–E6 + E5.8 deliverable, UNCOMMITTED)
+- `.planning/audits/2026-04-15-measurement-signal-inventory/e5.8-insights-experiment/` (UNCOMMITTED)
+  - `PREDICTIONS.md` — 10 pre-registered predictions with contamination disclosure
+  - `RESULTS.md` — full analysis + scorecard + structural findings
+  - `pre-snapshot/{session-meta,facets,report.html}` — frozen March 15 state (268 + 109 + report)
+  - `post-snapshot/{session-meta,facets,report.html}` — frozen post-/insights state (471 + 161 + report)
+- `/tmp/e3_*.py`, `/tmp/e4_*.py`, `/tmp/insights_{stdout,stderr}.log` — discovery/runtime scripts; reconstructible from methodology descriptions
+
 ### A. Governance updates (was Section A in original handoff — still valid, scope updated by correction doc)
 
-**A1. REQUIREMENTS.md — add MEAS- family + GATE-09 + new requirements (UPDATED BY SPIKE 010)**
+**A1. REQUIREMENTS.md — add MEAS- family + GATE-09 + new requirements (UPDATED BY SPIKE 010 + E1–E6 + E5.8)**
 
-The correction doc's 6 candidates are revised by spike 010 findings. Final MEAS- spec shape:
+> **Note:** The 7 items below are the spike-010-era shape. E1–E6 + E5.8 added **16 more MEAS- candidates** (§6.7–§6.22) across three subfamilies (MEAS-RUNTIME, MEAS-DERIVED, MEAS-GSDR). See the **E-status refresh** below for the authoritative 23-candidate list and the three-subfamily split — A1 synthesis should work from that list, not just the 7 below.
+
+The correction doc's 6 candidates are revised by spike 010 findings. Final MEAS- spec shape (pre-E):
 
 1. **Thinking-summary composite extractor** (revised from correction doc #1 + spike 010 DECISION §5 and §6). Components:
    - `thinking_emitted` (bool) — `thinking_block_count > 0`; the primary emission-gate feature
@@ -245,6 +292,12 @@ Design: test candidate reasoning-quality mechanisms against matched outputs (spi
 
 Rationale: spike 010 qualitative finding #6 — summary length is NOT a quality proxy. Agent Performance loop will mis-rank agents if led by length alone. This gap is load-bearing for Phase 57.5 but unaddressed by any current spike. **Candidate for discuss-phase 57.5: in-scope or deferred?**
 
+**C7. NEW candidate — Compaction-symmetry intervention test (emerged from E6)**
+
+Design: run a deliberate long 200k-context Sonnet session (interactive, not 1M variant) until auto-compact fires. Capture the `compact_boundary` system-subtype record, verify `compact_metadata.{trigger, pre_tokens}` shape matches docs, confirm the `isCompactSummary: true` flag appears on the next assistant message. Low cost — one session, bounded by auto-compact threshold (~160k tokens).
+
+Rationale: E6's Test 3 (1M-context hypothesis explains non-firing) is consistency-tested but not intervention-tested. C7 would close that gap and produce a real `compact_boundary` record that the MEAS-RUNTIME-COMPACT extractor can be validated against. Pairs naturally with Q6 (cross-runtime controlled experiment) and with building the extractor in Phase 57.5.
+
 ### D. Discuss-phase 57.5
 
 `/gsdr:discuss-phase 57.5` with deliberation + audit + correction doc + spike 009 + spike 010 + governance commits as committed context.
@@ -256,7 +309,7 @@ Key design questions (revised after spike 010):
 3. **GSD-artifacts-only path vs session-data-integrated path for 57.5?** Same as original. GSD-only is broader retroactively; session-data is richer prospectively.
 4. **How much post-Popperian epistemic machinery in 57.5 vs 57.7?** Same as original.
 5. **Temporal features as first-class architectural concern.** Same as original.
-6. **Cross-runtime controlled experiment.** Same as original.
+6. **Cross-runtime controlled experiment.** Now with E6-added dimension: a long-session controlled run on each runtime also ground-truths the MEAS-RUNTIME-COMPACT extractor (symmetric `compact_boundary`/`compacted` emission shape). Prior to E6 this was Codex-only territory; compaction-event extractor is now a cross-runtime bridge signal.
 7. ~~Whether spike 010 should run BEFORE 57.5 planning~~ — **resolved: ran and completed before planning**; findings are now context for this discussion.
 8. **NEW — Reasoning-QUALITY measurement in Phase 57.5 scope?** Spike 010 qualitative finding #6: length is not a quality proxy. Agent Performance loop will mis-rank agents if led by length alone. Options:
    - (i) Include placeholder requirement + defer implementation to 57.6/57.7 (signals the gap)
@@ -264,21 +317,65 @@ Key design questions (revised after spike 010):
    - (iii) Run spike C5 during 57.5 execution as part of MEAS- prototyping
    - (iv) Defer quality measurement entirely to 57.6+ and scope 57.5 to emission+load only
 9. **NEW — Tool-use measurement strategy.** Headless dispatch does not exercise tool use (spike 010 observation); interactive sessions do but aren't easily dispatched programmatically. Is tool-use a 57.5 concern or deferred?
+10. **NEW (from E5) — Does `facets/*.json` change the reasoning-quality framing in Q8?** E5 discovered that `/insights` already produces LLM-extracted semantic per-session summaries (goal, outcome, friction, satisfaction). Options:
+    - (i) Adopt facets as primary MEAS-DERIVED source for Agent Performance loop; reshape C5 into a facets-reliability/coverage investigation rather than a measurement-design spike
+    - (ii) Treat facets as one input among several; still pursue C5 for complementary quality measures
+    - (iii) Reject facets (Anthropic-taxonomy coupling, opacity of the extraction prompt, on-demand refresh); proceed with C5 as designed
+    - Sub-questions: is it acceptable to depend on `/insights` scheduling discipline? How much of the facets schema do we want to adopt vs. re-derive?
 
 ---
 
-## Recommended execution order (revised: anomaly stress-testing now first)
+## Recommended execution order (original; superseded by "Execution order refresh" below)
+
+> **Historical record.** This section was the original plan when E6 was still deferred. The authoritative next-session guidance is in the **Execution order refresh** subsection below.
 
 1. **Read this handoff + correction doc + spike 009 DECISION.md + spike 010 DECISION.md + spike 010 qualitative_comparison.md** (~25 min)
-2. **Anomaly stress-testing E1–E5 (Section E)** — ~2-3 hrs sequential. E1/E2 quick (inspection), E3 empirical validation, E4/E5 short research/empirical. E6 (A6 compaction) can be deferred or converted to research-mode spike C6. Write up findings as sibling to correction doc.
-3. **Do governance updates A1–A5** (1–2 hrs) — now informed by anomaly findings. E1/E2 may add new MEAS- requirements (automation health, kb.db queries). E3 fixes an extractor bug. E4/E5 close session-meta questions.
+2. **Anomaly stress-testing E1–E6 (Section E)** — E1–E6 + E5.8 COMPLETE (2026-04-16). See E-status refresh table.
+3. **Do governance updates A1–A5** (1–2 hrs) — now informed by anomaly findings. E1/E2 added MEAS- requirements (automation health, kb.db queries). E3 fixes an extractor bug. E4/E5 close session-meta questions. E6 adds MEAS-RUNTIME-COMPACT + `clear_invocation_count`.
 4. **(Optional) Run B4–B6 as research tasks** — can happen during or after governance updates. Lightweight.
-5. **`/gsdr:discuss-phase 57.5`** — the NINE questions in section D above. Load-bearing inputs: spike 009, spike 010, correction doc, E1–E5 findings.
-6. **(Optional, after 57.5 planning) Run C2 + C3 + potentially C4/C5/C6** — investigation, real-tokenizer, marker-calibration, reasoning-quality, compaction. C3 highest-value next spike.
+5. **`/gsdr:discuss-phase 57.5`** — the TEN questions in section D above. Load-bearing inputs: spike 009, spike 010, correction doc, E1–E6 + E5.8 findings.
+6. **(Optional, after 57.5 planning) Run C2 + C3 + potentially C4/C5/C6/C7** — investigation, real-tokenizer, marker-calibration, reasoning-quality, compaction-symmetry. C3 highest-value next spike.
 
 Steps 1–2–3 + 5 are the critical path. Steps 4, 6 can happen in parallel or be deferred.
 
 **Changes from prior order:** anomaly stress-testing added as step 2, ahead of governance. Governance is now step 3 (informed by anomaly findings).
+
+### Execution order refresh (2026-04-16, after E1/E2/E3/E4/E5 + E5.8 + E6)
+
+Step 2 is done. Revised sequence for next session:
+
+1. ✅ Step 1 (onboarding reading) — done
+2. ✅ Step 2 complete (ALL SIX STRESS TESTS):
+   - ✅ E1, E2, E3, E4, E5 done + all five passed falsification passes (in `anomaly-stress-tests.md`)
+   - ✅ E5.8 done — empirical /insights test executed; E5 reframe confirmed; two-path write model + facets budget filter surfaced
+   - ✅ E6 done — A6 capability-layer falsified via binary introspection + authoritative docs; `/compact` subsystem confirmed; zero firing in corpus explained by 1M-context + `/clear`-habit. §6.22 MEAS-RUNTIME-COMPACT added
+   - ⚠️ E5 materially reframed E3 and E4's shutdown-event interpretation; E5.8 refined E5's single-path write model to two-path; E6 reframed synthesis §4.3 "ABSENT" as observed-corpus-only, not capability — see E-status table
+3. ⏳ Step 3 (governance A1–A5) — now has **23 MEAS- candidates** to synthesize (7 from spike 010 + 16 from E1–E6 + E5.8). First step: adopt the THREE-subfamily split (MEAS-RUNTIME + MEAS-DERIVED + MEAS-GSDR). E5's §6.19 (facets) is the highest-impact addition; E5.8 adds mandatory coverage-stratification clause for facets-based aggregate analysis; E6's §6.22 is capability-level (low near-term data richness — zero events in corpus — but restores cross-runtime compaction symmetry).
+4. ⏳ Step 4 (B4–B6) — unchanged
+5. ⏳ Step 5 (`/gsdr:discuss-phase 57.5`) — **question 10**: does §6.19's facets discovery change the framing of Q8 (reasoning-QUALITY measurement)? E5.8 partially answered this — facets coverage is size-biased, so facets alone cannot grade short-session agents. **New sub-point for Q6** (cross-runtime experiment): E6 reframes compaction-event extractor as symmetric, so a long-session controlled experiment on each runtime provides ground-truth for the MEAS-RUNTIME-COMPACT extractor as well.
+6. ⏳ Step 6 (spikes C2/C3/C4/C5/C6) — C5 scope shifts (facets reliability). **New optional spike C7**: compaction-symmetry intervention test — run deliberate long 200k-context Sonnet session until auto-compact fires, verify extractor output. Would tighten E6's Test-3 hedge ("consistency-tested, not intervention-tested").
+
+**Fresh-context entry point:** if resuming with cleared context, the FIRST action should be:
+1. Read this handoff (top to bottom)
+2. Read `anomaly-stress-tests.md` (§E1.6, §E2.7, §E3.7, §E4.7, §E5.7, §E5.8, §E6.2–§E6.7 are the sharpest refinements)
+3. Read `e5.8-insights-experiment/RESULTS.md` — the empirical grounding for E5 + E5.8 findings
+4. E5 + E5.8 are the most recent DERIVED-side findings; E6 is the most recent RUNTIME-side finding. Pay attention to: §E5.2 Layer 4 (the `/insights` discovery), §E5.4 §6.19 (facets as MEAS- source), §E5.8 Finding A (correcting the "2,595 JSONL" error → 211 parent sessions), §E5.8 Finding B (two-path write model), §E5.8 Finding C (facets coverage filter), §E6.2 Layer 2 (binary strings confirming `/compact` subsystem), §E6.4 (cache-trajectory + 1M-context hypothesis)
+5. Jump to governance A1 synthesis with the full **23-candidate** MEAS- list + three-subfamily split
+
+**Recommendation for next session:** A1 governance synthesis. All six stress-tests done.
+
+**Uncommitted files at end of this session (for cold-start diff awareness):**
+- `.planning/audits/2026-04-15-measurement-signal-inventory/anomaly-stress-tests.md` (E1–E6 + E5.8)
+- `.planning/audits/2026-04-15-measurement-signal-inventory/pre-57.5-handoff.md` (this file; eighth refresh)
+- `.planning/audits/2026-04-15-measurement-signal-inventory/e5.8-insights-experiment/` (full dir: PREDICTIONS.md, RESULTS.md, pre-snapshot/, post-snapshot/)
+- Memory updates: `project_session_meta_frozen.md` (rewritten), `feedback_scope_cascade_assumption.md` (new), `MEMORY.md` (index updated)
+- Pre-existing uncommitted: `.planning/config.json`, `.planning/migration-log.md` (v1.19.4+dev migration; NOT this work)
+
+**LIVE SIDE-EFFECTS OF E5.8 (not reverted — intentional):**
+- `~/.claude/usage-data/` contains 471 session-meta + 161 facets (post-/insights state, NOT the original 268 + 109 March 15 snapshot)
+- Original March 15 state preserved at `e5.8-insights-experiment/pre-snapshot/`
+- Post-run state preserved at `e5.8-insights-experiment/post-snapshot/`
+- Any future reference to "the frozen corpus" should specify `pre-snapshot/` to avoid confusion
 
 ---
 
@@ -289,6 +386,9 @@ Steps 1–2–3 + 5 are the critical path. Steps 4, 6 can happen in parallel or 
 - `.planning/audits/2026-04-15-measurement-signal-inventory/correction-and-extensions-2026-04-16.md`
 - `.planning/audits/2026-04-15-measurement-signal-inventory/{framing.md, lane-1..4-*.md}`
 - `.planning/audits/2026-04-10-phase-57-vision-drop-investigation/` (predecessor)
+
+**Anomaly stress-tests (UNCOMMITTED as of 2026-04-16 this session):**
+- `.planning/audits/2026-04-15-measurement-signal-inventory/anomaly-stress-tests.md` — contains E1, E2, E3, E4, E5, E5.8, E6 full writeups + per-E falsification passes (§E1.6, §E2.7, §E3.7, §E4.7, §E5.7, §E6.7). **Read alongside this handoff** — it's the authoritative record of E1–E6 findings, the 16 new MEAS- proposals, and the 4 candidate side-signals. **E5 materially reframes E3 and E4's shutdown-event interpretation — the /insights discovery is the single most architecturally-consequential finding in this whole audit line. E6 falsifies A6 at the capability layer via binary introspection — Claude Code has a full `/compact` subsystem.**
 
 **Deliberation (committed):**
 - `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md`

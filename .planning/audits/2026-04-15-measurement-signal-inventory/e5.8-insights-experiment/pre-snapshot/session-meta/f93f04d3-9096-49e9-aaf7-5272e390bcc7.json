@@ -1,0 +1,43 @@
+{
+  "session_id": "f93f04d3-9096-49e9-aaf7-5272e390bcc7",
+  "project_path": "/home/rookslog/workspace/projects/arxiv-sanity-mcp",
+  "start_time": "2026-03-10T03:26:24.562Z",
+  "duration_minutes": 2,
+  "user_message_count": 4,
+  "assistant_message_count": 13,
+  "tool_counts": {
+    "Bash": 2,
+    "Read": 6
+  },
+  "languages": {
+    "Markdown": 6
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 16,
+  "output_tokens": 663,
+  "first_prompt": "/gsd:discuss-phase 5 (infer from previous discussion what my answers to questions would be, be thorough in your inquiries into grey areas, it should be iterative, as you ask and answer questions, more…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    23,
+    23,
+    23,
+    23
+  ],
+  "user_message_timestamps": [
+    "2026-03-10T03:26:24.950Z",
+    "2026-03-10T03:26:24.556Z",
+    "2026-03-10T03:28:36.322Z",
+    "2026-03-10T03:28:36.322Z"
+  ]
+}

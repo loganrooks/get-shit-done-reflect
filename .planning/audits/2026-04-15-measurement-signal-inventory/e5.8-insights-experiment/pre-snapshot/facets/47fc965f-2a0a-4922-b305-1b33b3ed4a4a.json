@@ -1,0 +1,20 @@
+{
+  "underlying_goal": "Debug failing startup hooks, commit fixes, log a signal, and then deliberate on project direction and priorities",
+  "goal_categories": {
+    "debugging": 1,
+    "git_operations": 1,
+    "knowledge_management": 1,
+    "planning": 1
+  },
+  "outcome": "mostly_achieved",
+  "user_satisfaction_counts": {
+    "likely_satisfied": 3
+  },
+  "claude_helpfulness": "very_helpful",
+  "session_type": "multi_task",
+  "friction_counts": {},
+  "friction_detail": "",
+  "primary_success": "good_debugging",
+  "brief_summary": "User needed to debug failing ESM/CommonJS hook conflicts, commit fixes, log a signal, and begin project deliberation; all completed except the final deliberation was interrupted.",
+  "session_id": "47fc965f-2a0a-4922-b305-1b33b3ed4a4a"
+}

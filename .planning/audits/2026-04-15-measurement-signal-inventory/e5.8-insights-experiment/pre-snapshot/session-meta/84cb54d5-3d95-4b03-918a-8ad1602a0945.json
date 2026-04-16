@@ -1,0 +1,66 @@
+{
+  "session_id": "84cb54d5-3d95-4b03-918a-8ad1602a0945",
+  "project_path": "/home/rookslog",
+  "start_time": "2026-03-06T01:42:56.361Z",
+  "duration_minutes": 21,
+  "user_message_count": 10,
+  "assistant_message_count": 38,
+  "tool_counts": {
+    "ToolSearch": 1,
+    "Bash": 8,
+    "Read": 7,
+    "AskUserQuestion": 2
+  },
+  "languages": {
+    "Markdown": 5,
+    "Shell": 2
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 50,
+  "output_tokens": 5620,
+  "first_prompt": "/gsd:plan-phase 1",
+  "user_interruptions": 1,
+  "user_response_times": [
+    9.94,
+    9.94,
+    152.588,
+    184.576,
+    184.576
+  ],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "User Rejected": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    21,
+    21,
+    21
+  ],
+  "user_message_timestamps": [
+    "2026-03-06T01:42:56.631Z",
+    "2026-03-06T01:42:56.359Z",
+    "2026-03-06T01:43:01.109Z",
+    "2026-03-06T01:43:01.109Z",
+    "2026-03-06T01:43:06.088Z",
+    "2026-03-06T01:59:23.402Z",
+    "2026-03-06T01:59:23.402Z",
+    "2026-03-06T02:03:02.260Z",
+    "2026-03-06T02:03:34.248Z",
+    "2026-03-06T02:03:34.248Z"
+  ]
+}

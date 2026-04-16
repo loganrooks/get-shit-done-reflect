@@ -1,0 +1,17 @@
+{
+  "underlying_goal": "Prevent Mac laptop from sleeping while Claude Code is running tasks",
+  "goal_categories": {
+    "system_configuration": 1
+  },
+  "outcome": "fully_achieved",
+  "user_satisfaction_counts": {},
+  "claude_helpfulness": "very_helpful",
+  "session_type": "quick_question",
+  "friction_counts": {
+    "wrong_approach": 1
+  },
+  "friction_detail": "Claude initially suggested running caffeinate in a separate terminal instead of just running it directly in the session.",
+  "primary_success": "good_explanations",
+  "brief_summary": "User wanted to prevent Mac from sleeping during Claude Code session; achieved after a minor back-and-forth about running caffeinate directly.",
+  "session_id": "57f0f25c-c898-4ae1-b9ce-991bb13f871f"
+}

@@ -1,0 +1,79 @@
+{
+  "session_id": "20febdcd-c8ac-41da-b22e-7c7336cbb4eb",
+  "project_path": "/Users/rookslog/Development/get-shit-done-reflect",
+  "start_time": "2026-02-23T23:42:51.816Z",
+  "duration_minutes": 318,
+  "user_message_count": 12,
+  "assistant_message_count": 166,
+  "tool_counts": {
+    "Read": 21,
+    "Bash": 58,
+    "Glob": 4,
+    "Task": 1,
+    "Edit": 15,
+    "Write": 2,
+    "AskUserQuestion": 2,
+    "mcp__sequential-thinking__sequentialthinking": 1
+  },
+  "languages": {
+    "Markdown": 36,
+    "JSON": 2
+  },
+  "git_commits": 2,
+  "git_pushes": 4,
+  "input_tokens": 355,
+  "output_tokens": 7327,
+  "first_prompt": "isn't this tagging for the upstream? how does it affect us? why can't we release our own? can we somehow import the upstream release history / tagging without making it our forks? Or rather, should we…",
+  "user_interruptions": 1,
+  "user_response_times": [
+    119.694,
+    7.213,
+    33.548,
+    586.171,
+    343.835,
+    15.308,
+    15.308
+  ],
+  "tool_errors": 8,
+  "tool_error_categories": {
+    "Command Failed": 4,
+    "Other": 2,
+    "User Rejected": 1,
+    "File Not Found": 1
+  },
+  "uses_task_agent": true,
+  "uses_mcp": true,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 198,
+  "lines_removed": 43,
+  "files_modified": 6,
+  "message_hours": [
+    18,
+    18,
+    18,
+    18,
+    18,
+    19,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23
+  ],
+  "user_message_timestamps": [
+    "2026-02-23T23:42:52.067Z",
+    "2026-02-23T23:42:51.597Z",
+    "2026-02-23T23:42:52.067Z",
+    "2026-02-23T23:43:53.574Z",
+    "2026-02-23T23:43:53.574Z",
+    "2026-02-24T00:06:48.896Z",
+    "2026-02-24T04:40:04.341Z",
+    "2026-02-24T04:40:30.676Z",
+    "2026-02-24T04:50:47.797Z",
+    "2026-02-24T04:59:10.975Z",
+    "2026-02-24T04:59:46.328Z",
+    "2026-02-24T04:59:46.328Z"
+  ]
+}

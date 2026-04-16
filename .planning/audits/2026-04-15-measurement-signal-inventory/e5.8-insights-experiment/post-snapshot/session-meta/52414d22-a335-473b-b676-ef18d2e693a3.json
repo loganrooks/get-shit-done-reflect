@@ -1,0 +1,42 @@
+{
+  "session_id": "52414d22-a335-473b-b676-ef18d2e693a3",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-16T03:20:34.020Z",
+  "duration_minutes": 8,
+  "user_message_count": 1,
+  "assistant_message_count": 47,
+  "tool_counts": {
+    "Read": 31,
+    "Write": 2,
+    "Bash": 1
+  },
+  "languages": {
+    "Markdown": 29,
+    "YAML": 1,
+    "Python": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 65,
+  "output_tokens": 54062,
+  "first_prompt": "# Checkpoint 5 R5.16 Spec Bundle Cross-Vendor Review Prompt  Review the newly written `R5.16` propagation-audit spec bundle itself.  The question is not merely whether these specs are coherent enough…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "Other": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 454,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    23
+  ],
+  "user_message_timestamps": [
+    "2026-04-16T03:20:34.020Z"
+  ]
+}

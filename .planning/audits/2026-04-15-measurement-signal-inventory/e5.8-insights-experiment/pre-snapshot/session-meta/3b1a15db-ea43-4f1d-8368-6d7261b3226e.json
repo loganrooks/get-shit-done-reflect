@@ -1,0 +1,71 @@
+{
+  "session_id": "3b1a15db-ea43-4f1d-8368-6d7261b3226e",
+  "project_path": "/home/rookslog/workspace/projects/claude-notify",
+  "start_time": "2026-03-10T06:37:08.841Z",
+  "duration_minutes": 861,
+  "user_message_count": 11,
+  "assistant_message_count": 149,
+  "tool_counts": {
+    "Bash": 8,
+    "Read": 11,
+    "ToolSearch": 1,
+    "AskUserQuestion": 64,
+    "Write": 1
+  },
+  "languages": {
+    "Markdown": 6,
+    "JavaScript": 6
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 198,
+  "output_tokens": 31221,
+  "first_prompt": "/gsd:discuss-phase 2",
+  "user_interruptions": 0,
+  "user_response_times": [
+    114.78,
+    17.048,
+    6.655,
+    27.854,
+    33.921,
+    59.547,
+    17.021
+  ],
+  "tool_errors": 5,
+  "tool_error_categories": {
+    "User Rejected": 5
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 160,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    2,
+    2,
+    2,
+    2,
+    14,
+    15,
+    15,
+    15,
+    15,
+    16,
+    16
+  ],
+  "user_message_timestamps": [
+    "2026-03-10T06:37:09.793Z",
+    "2026-03-10T06:37:08.838Z",
+    "2026-03-10T06:38:34.324Z",
+    "2026-03-10T06:38:34.324Z",
+    "2026-03-10T18:40:05.061Z",
+    "2026-03-10T19:14:40.466Z",
+    "2026-03-10T19:17:16.702Z",
+    "2026-03-10T19:19:27.316Z",
+    "2026-03-10T19:57:15.403Z",
+    "2026-03-10T20:24:17.996Z",
+    "2026-03-10T20:52:12.825Z"
+  ]
+}

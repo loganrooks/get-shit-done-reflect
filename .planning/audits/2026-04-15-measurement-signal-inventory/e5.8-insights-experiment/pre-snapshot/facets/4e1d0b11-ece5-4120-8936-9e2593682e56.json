@@ -1,0 +1,20 @@
+{
+  "underlying_goal": "Execute phase 43 of a project workflow, collect retrospective signals from the completed phase, and commit uncommitted work",
+  "goal_categories": {
+    "workflow_execution": 1,
+    "status_check": 2,
+    "signal_collection": 1,
+    "commit_changes": 1
+  },
+  "outcome": "fully_achieved",
+  "user_satisfaction_counts": {
+    "likely_satisfied": 3
+  },
+  "claude_helpfulness": "essential",
+  "session_type": "multi_task",
+  "friction_counts": {},
+  "friction_detail": "",
+  "primary_success": "multi_file_changes",
+  "brief_summary": "User ran automated workflow commands to execute phase 43, collect signals, and commit outstanding changes — all completed successfully.",
+  "session_id": "4e1d0b11-ece5-4120-8936-9e2593682e56"
+}

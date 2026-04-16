@@ -1,0 +1,17 @@
+{
+  "underlying_goal": "Generate a usage insights report analyzing their Claude Code sessions",
+  "goal_categories": {
+    "warmup_minimal": 1
+  },
+  "outcome": "not_achieved",
+  "user_satisfaction_counts": {},
+  "claude_helpfulness": "slightly_helpful",
+  "session_type": "single_task",
+  "friction_counts": {
+    "user_rejected_action": 1
+  },
+  "friction_detail": "User interrupted the insights generation before it completed.",
+  "primary_success": "none",
+  "brief_summary": "User ran /insights to generate a usage report but interrupted the session before completion.",
+  "session_id": "2916bab2-1ff7-45b5-a51b-c7d7223c9cb6"
+}

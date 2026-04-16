@@ -1,0 +1,17 @@
+{
+  "underlying_goal": "Check for GSD plugin updates and install if available",
+  "goal_categories": {
+    "tool_update_check": 1
+  },
+  "outcome": "partially_achieved",
+  "user_satisfaction_counts": {
+    "likely_satisfied": 1
+  },
+  "claude_helpfulness": "very_helpful",
+  "session_type": "single_task",
+  "friction_counts": {},
+  "friction_detail": "",
+  "primary_success": "proactive_help",
+  "brief_summary": "User triggered a GSD update check; Claude found an update available (1.20.5 → 1.22.4) but user cancelled the install.",
+  "session_id": "c7475431-113b-43c0-a6b9-a21b76ad908c"
+}

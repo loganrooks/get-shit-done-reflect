@@ -1,0 +1,15 @@
+{
+  "underlying_goal": "Resume work on arxiv-sanity-mcp project by loading previous session context",
+  "goal_categories": {
+    "warmup_minimal": 1
+  },
+  "outcome": "unclear_from_transcript",
+  "user_satisfaction_counts": {},
+  "claude_helpfulness": "slightly_helpful",
+  "session_type": "single_task",
+  "friction_counts": {},
+  "friction_detail": "",
+  "primary_success": "none",
+  "brief_summary": "User triggered a resume-work command to restore project context, Claude presented status, but no substantive work followed before the session ended.",
+  "session_id": "7aa9357b-2ae4-4381-8a6e-ce23f48f7a8f"
+}

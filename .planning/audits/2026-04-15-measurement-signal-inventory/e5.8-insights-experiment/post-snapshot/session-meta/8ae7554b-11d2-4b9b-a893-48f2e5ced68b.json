@@ -1,0 +1,39 @@
+{
+  "session_id": "8ae7554b-11d2-4b9b-a893-48f2e5ced68b",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-15T22:28:23.798Z",
+  "duration_minutes": 6,
+  "user_message_count": 1,
+  "assistant_message_count": 31,
+  "tool_counts": {
+    "Read": 19,
+    "Glob": 1,
+    "Write": 1
+  },
+  "languages": {
+    "Markdown": 19,
+    "YAML": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 49,
+  "output_tokens": 54253,
+  "first_prompt": "# Checkpoint 4 Launch Bundle Cross-Vendor Review Prompt  Review the Checkpoint 4 workflow / harness excellence-audit spec bundle before it is checkpointed or used to launch any Checkpoint 4 audit lane…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 188,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    18
+  ],
+  "user_message_timestamps": [
+    "2026-04-15T22:28:23.798Z"
+  ]
+}

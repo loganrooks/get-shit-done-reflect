@@ -1,0 +1,49 @@
+{
+  "session_id": "3c433e02-7615-4c0e-b179-807806e58335",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-03-06T00:05:48.377Z",
+  "duration_minutes": 2,
+  "user_message_count": 4,
+  "assistant_message_count": 30,
+  "tool_counts": {
+    "ToolSearch": 1,
+    "Bash": 6,
+    "Grep": 3,
+    "Read": 3,
+    "Glob": 1,
+    "Edit": 2,
+    "Write": 2
+  },
+  "languages": {
+    "JavaScript": 5,
+    "Markdown": 2
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 34,
+  "output_tokens": 3103,
+  "first_prompt": "/gsd:quick /gsd:quick In bin/install.js, auto-run the hooks build step if hooks/dist/ doesn't exist. Around line 2220 where it checks `if                        (fs.existsSync(hooksSrc) && !isCodex)`,…",
+  "user_interruptions": 1,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 48,
+  "lines_removed": 1,
+  "files_modified": 3,
+  "message_hours": [
+    19,
+    19,
+    19,
+    19
+  ],
+  "user_message_timestamps": [
+    "2026-03-06T00:06:00.459Z",
+    "2026-03-06T00:06:00.459Z",
+    "2026-03-06T00:06:06.336Z",
+    "2026-03-06T00:06:14.130Z"
+  ]
+}

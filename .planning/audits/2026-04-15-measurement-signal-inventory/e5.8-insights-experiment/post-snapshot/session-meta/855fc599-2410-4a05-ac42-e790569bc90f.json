@@ -1,0 +1,68 @@
+{
+  "session_id": "855fc599-2410-4a05-ac42-e790569bc90f",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-11T23:55:48.493Z",
+  "duration_minutes": 31,
+  "user_message_count": 9,
+  "assistant_message_count": 78,
+  "tool_counts": {
+    "Read": 14,
+    "Bash": 7,
+    "ToolSearch": 1,
+    "TaskCreate": 5,
+    "Grep": 7,
+    "TaskUpdate": 7,
+    "Write": 4,
+    "Agent": 1
+  },
+  "languages": {
+    "Markdown": 18
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 168,
+  "output_tokens": 126649,
+  "first_prompt": "@.planning/audits/2026-04-11-phase-01-prep-quality-scope-audit/CLAUDE-SESSION-HANDOFF.md",
+  "user_interruptions": 2,
+  "user_response_times": [
+    115.098,
+    23.099,
+    23.171,
+    211.477,
+    223.612,
+    247.482
+  ],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "File Too Large": 2
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 774,
+  "lines_removed": 0,
+  "files_modified": 4,
+  "message_hours": [
+    19,
+    19,
+    19,
+    19,
+    20,
+    20,
+    20,
+    20,
+    20
+  ],
+  "user_message_timestamps": [
+    "2026-04-11T23:55:48.493Z",
+    "2026-04-11T23:55:48.294Z",
+    "2026-04-11T23:56:00.877Z",
+    "2026-04-11T23:58:30.683Z",
+    "2026-04-12T00:20:32.524Z",
+    "2026-04-12T00:20:32.596Z",
+    "2026-04-12T00:25:57.505Z",
+    "2026-04-12T00:26:09.640Z",
+    "2026-04-12T00:26:33.510Z"
+  ]
+}

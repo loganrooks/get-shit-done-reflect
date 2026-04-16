@@ -1,0 +1,58 @@
+{
+  "session_id": "d9b7930e-b777-46ff-97db-4903ef632f81",
+  "project_path": "/home/rookslog/workspace/projects/scholardoc",
+  "start_time": "2026-02-19T22:27:23.143Z",
+  "duration_minutes": 30,
+  "user_message_count": 7,
+  "assistant_message_count": 54,
+  "tool_counts": {
+    "Bash": 11,
+    "Read": 8,
+    "Task": 3,
+    "TaskOutput": 3,
+    "Edit": 1
+  },
+  "languages": {
+    "Markdown": 6
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 61,
+  "output_tokens": 7236,
+  "first_prompt": "/gsd:plan-phase 1.1 --research let's adopt tier 1 and tier 2",
+  "user_interruptions": 0,
+  "user_response_times": [
+    171.869,
+    171.869
+  ],
+  "tool_errors": 3,
+  "tool_error_categories": {
+    "Command Failed": 2,
+    "File Too Large": 1
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 1,
+  "lines_removed": 1,
+  "files_modified": 1,
+  "message_hours": [
+    17,
+    17,
+    17,
+    17,
+    17,
+    17,
+    17
+  ],
+  "user_message_timestamps": [
+    "2026-02-19T22:27:23.515Z",
+    "2026-02-19T22:27:23.133Z",
+    "2026-02-19T22:27:23.515Z",
+    "2026-02-19T22:27:26.555Z",
+    "2026-02-19T22:27:26.555Z",
+    "2026-02-19T22:30:45.639Z",
+    "2026-02-19T22:30:45.639Z"
+  ]
+}

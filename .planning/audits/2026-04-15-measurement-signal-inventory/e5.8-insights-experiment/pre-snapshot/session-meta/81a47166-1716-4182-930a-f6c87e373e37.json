@@ -1,0 +1,80 @@
+{
+  "session_id": "81a47166-1716-4182-930a-f6c87e373e37",
+  "project_path": "/Users/rookslog/Development/get-shit-done-reflect",
+  "start_time": "2026-03-05T01:16:46.038Z",
+  "duration_minutes": 195,
+  "user_message_count": 15,
+  "assistant_message_count": 55,
+  "tool_counts": {
+    "Bash": 9,
+    "AskUserQuestion": 22,
+    "Write": 1,
+    "ToolSearch": 2,
+    "Glob": 2
+  },
+  "languages": {
+    "Markdown": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 75,
+  "output_tokens": 16266,
+  "first_prompt": "/gsd:discuss-phase 38.1 @.planning/deliberations/project-local-knowledge-base.md we need to deliberate a bit more I feel, to think about what we should be addressing within this phase",
+  "user_interruptions": 3,
+  "user_response_times": [
+    193.745,
+    1099.799,
+    1101.207,
+    1103.569,
+    3258.045,
+    3261.836,
+    3263.906,
+    428.595
+  ],
+  "tool_errors": 3,
+  "tool_error_categories": {
+    "Command Failed": 2,
+    "Other": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 83,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    21,
+    21,
+    21,
+    23,
+    23,
+    23,
+    23
+  ],
+  "user_message_timestamps": [
+    "2026-03-05T01:16:46.303Z",
+    "2026-03-05T01:16:45.952Z",
+    "2026-03-05T01:17:20.329Z",
+    "2026-03-05T01:17:20.329Z",
+    "2026-03-05T01:23:57.204Z",
+    "2026-03-05T01:42:58.409Z",
+    "2026-03-05T01:42:59.817Z",
+    "2026-03-05T01:43:02.179Z",
+    "2026-03-05T02:38:04.637Z",
+    "2026-03-05T02:38:08.428Z",
+    "2026-03-05T02:38:10.498Z",
+    "2026-03-05T04:23:00.087Z",
+    "2026-03-05T04:23:03.031Z",
+    "2026-03-05T04:23:04.931Z",
+    "2026-03-05T04:31:10.552Z"
+  ]
+}

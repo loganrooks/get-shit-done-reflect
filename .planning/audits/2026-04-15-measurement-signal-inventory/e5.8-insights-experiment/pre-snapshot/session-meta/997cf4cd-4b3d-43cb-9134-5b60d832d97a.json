@@ -1,0 +1,45 @@
+{
+  "session_id": "997cf4cd-4b3d-43cb-9134-5b60d832d97a",
+  "project_path": "/home/rookslog/workspace/projects/scholardoc",
+  "start_time": "2026-03-13T02:36:39.909Z",
+  "duration_minutes": 8,
+  "user_message_count": 4,
+  "assistant_message_count": 16,
+  "tool_counts": {
+    "Agent": 2,
+    "Bash": 5,
+    "Glob": 1,
+    "Read": 1
+  },
+  "languages": {
+    "Markdown": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 20269,
+  "output_tokens": 698,
+  "first_prompt": "I want you to audit this codebase, insofar as I want you to evaluate the health of the code, of the docs, we are working within the get-shit-done-reflect framework so check (can refer to the user / lo…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    22,
+    22,
+    22,
+    22
+  ],
+  "user_message_timestamps": [
+    "2026-03-13T02:36:47.831Z",
+    "2026-03-13T02:36:47.831Z",
+    "2026-03-13T02:36:47.831Z",
+    "2026-03-13T02:41:28.793Z"
+  ]
+}

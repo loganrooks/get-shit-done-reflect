@@ -1,0 +1,62 @@
+{
+  "session_id": "c8b6b1c1-6726-4b10-a400-30ae2494a3d4",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-03-06T02:01:05.025Z",
+  "duration_minutes": 10,
+  "user_message_count": 8,
+  "assistant_message_count": 51,
+  "tool_counts": {
+    "ToolSearch": 3,
+    "Bash": 24,
+    "AskUserQuestion": 1,
+    "Read": 1,
+    "Edit": 2
+  },
+  "languages": {
+    "Markdown": 3
+  },
+  "git_commits": 1,
+  "git_pushes": 2,
+  "input_tokens": 61,
+  "output_tokens": 4900,
+  "first_prompt": "/gsd:plan-phase 41",
+  "user_interruptions": 1,
+  "user_response_times": [
+    353.285,
+    389.139,
+    18.92,
+    4.368
+  ],
+  "tool_errors": 3,
+  "tool_error_categories": {
+    "User Rejected": 1,
+    "Command Failed": 2
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 2,
+  "lines_removed": 11,
+  "files_modified": 1,
+  "message_hours": [
+    21,
+    21,
+    21,
+    21,
+    21,
+    21,
+    21,
+    21
+  ],
+  "user_message_timestamps": [
+    "2026-03-06T02:01:05.301Z",
+    "2026-03-06T02:01:05.021Z",
+    "2026-03-06T02:01:24.100Z",
+    "2026-03-06T02:01:24.100Z",
+    "2026-03-06T02:07:47.563Z",
+    "2026-03-06T02:08:23.417Z",
+    "2026-03-06T02:09:13.041Z",
+    "2026-03-06T02:10:33.871Z"
+  ]
+}

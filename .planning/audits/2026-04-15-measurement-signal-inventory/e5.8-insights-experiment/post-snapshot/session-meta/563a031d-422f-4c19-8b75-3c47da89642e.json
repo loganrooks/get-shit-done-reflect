@@ -1,0 +1,64 @@
+{
+  "session_id": "563a031d-422f-4c19-8b75-3c47da89642e",
+  "project_path": "/Users/rookslog/Development/get-shit-done-reflect",
+  "start_time": "2026-03-02T18:02:14.340Z",
+  "duration_minutes": 174,
+  "user_message_count": 8,
+  "assistant_message_count": 140,
+  "tool_counts": {
+    "Skill": 1,
+    "Read": 14,
+    "Bash": 41,
+    "Agent": 2,
+    "Grep": 3,
+    "Edit": 14,
+    "AskUserQuestion": 1
+  },
+  "languages": {
+    "Markdown": 24,
+    "JSON": 1,
+    "JavaScript": 3
+  },
+  "git_commits": 1,
+  "git_pushes": 1,
+  "input_tokens": 159,
+  "output_tokens": 29776,
+  "first_prompt": "shouldn't we have created a PR? to check if it passed CI integration before accepting the commit to main or what is best devops practice here for a project such as this? because it seems to have faile…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    193.384,
+    193.384,
+    379.787
+  ],
+  "tool_errors": 3,
+  "tool_error_categories": {
+    "Command Failed": 3
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 110,
+  "lines_removed": 253,
+  "files_modified": 5,
+  "message_hours": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    15,
+    15,
+    15
+  ],
+  "user_message_timestamps": [
+    "2026-03-02T18:02:14.460Z",
+    "2026-03-02T18:02:14.250Z",
+    "2026-03-02T18:02:21.161Z",
+    "2026-03-02T18:02:21.161Z",
+    "2026-03-02T18:02:24.673Z",
+    "2026-03-02T20:15:13.746Z",
+    "2026-03-02T20:15:13.746Z",
+    "2026-03-02T20:53:23.856Z"
+  ]
+}

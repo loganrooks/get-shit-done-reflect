@@ -1,0 +1,22 @@
+{
+  "underlying_goal": "Resume project work, complete a deliberation document with adoption planning, fix CI, merge PR, and pause with preserved context for next session",
+  "goal_categories": {
+    "project_management_workflow": 3,
+    "strategic_planning": 2,
+    "debugging": 1
+  },
+  "outcome": "fully_achieved",
+  "user_satisfaction_counts": {
+    "likely_satisfied": 3,
+    "satisfied": 1
+  },
+  "claude_helpfulness": "essential",
+  "session_type": "multi_task",
+  "friction_counts": {
+    "buggy_code": 1
+  },
+  "friction_detail": "CI failed due to wiring validation test not exempting the self-contained deliberate.md command, requiring a test fix.",
+  "primary_success": "multi_file_changes",
+  "brief_summary": "User resumed project work, concluded a deliberation, fixed CI, merged a PR, and paused with full context preserved for next session — all achieved successfully.",
+  "session_id": "3597f877-5548-4552-825d-8e52a4e15169"
+}

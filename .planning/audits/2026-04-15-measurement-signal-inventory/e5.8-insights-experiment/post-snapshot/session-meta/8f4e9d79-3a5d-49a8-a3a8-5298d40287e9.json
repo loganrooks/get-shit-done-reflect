@@ -1,0 +1,63 @@
+{
+  "session_id": "8f4e9d79-3a5d-49a8-a3a8-5298d40287e9",
+  "project_path": "/home/rookslog/workspace/projects/arxiv-sanity-mcp",
+  "start_time": "2026-03-19T22:45:37.369Z",
+  "duration_minutes": 25,
+  "user_message_count": 10,
+  "assistant_message_count": 31,
+  "tool_counts": {
+    "Bash": 8,
+    "Read": 10,
+    "Grep": 1
+  },
+  "languages": {
+    "Markdown": 10
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 35,
+  "output_tokens": 4103,
+  "first_prompt": "wait what remains with spike 2 remediation? and perhaps lets do 3. first",
+  "user_interruptions": 1,
+  "user_response_times": [
+    391.88,
+    963.332,
+    968.588,
+    973.66,
+    973.66,
+    973.66
+  ],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    18,
+    18,
+    18,
+    18,
+    18,
+    19,
+    19,
+    19,
+    19,
+    19
+  ],
+  "user_message_timestamps": [
+    "2026-03-19T22:45:37.369Z",
+    "2026-03-19T22:45:37.221Z",
+    "2026-03-19T22:45:41.448Z",
+    "2026-03-19T22:45:41.448Z",
+    "2026-03-19T22:53:20.464Z",
+    "2026-03-19T23:10:33.941Z",
+    "2026-03-19T23:10:39.197Z",
+    "2026-03-19T23:10:44.269Z",
+    "2026-03-19T23:10:44.269Z",
+    "2026-03-19T23:10:44.269Z"
+  ]
+}

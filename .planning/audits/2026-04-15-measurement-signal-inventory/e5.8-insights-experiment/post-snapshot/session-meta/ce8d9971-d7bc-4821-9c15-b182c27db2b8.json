@@ -1,0 +1,53 @@
+{
+  "session_id": "ce8d9971-d7bc-4821-9c15-b182c27db2b8",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-04-16T03:40:09.682Z",
+  "duration_minutes": 16,
+  "user_message_count": 7,
+  "assistant_message_count": 12,
+  "tool_counts": {
+    "Agent": 1
+  },
+  "languages": {},
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 62,
+  "output_tokens": 16864,
+  "first_prompt": "hello, are your thinking summaries exposed now in the logs? this is a test / experiment to see what changing the thinking summaries setting exposes",
+  "user_interruptions": 0,
+  "user_response_times": [
+    17.685,
+    53.924,
+    626.64,
+    15.86,
+    15.859,
+    15.859
+  ],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23
+  ],
+  "user_message_timestamps": [
+    "2026-04-16T03:40:59.683Z",
+    "2026-04-16T03:41:23.597Z",
+    "2026-04-16T03:42:50.686Z",
+    "2026-04-16T03:55:31.930Z",
+    "2026-04-16T03:56:07.091Z",
+    "2026-04-16T03:56:07.090Z",
+    "2026-04-16T03:56:07.090Z"
+  ]
+}

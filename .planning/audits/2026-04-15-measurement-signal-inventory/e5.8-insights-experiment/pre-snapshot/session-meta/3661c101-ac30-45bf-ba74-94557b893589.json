@@ -1,0 +1,69 @@
+{
+  "session_id": "3661c101-ac30-45bf-ba74-94557b893589",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-03-06T20:17:29.387Z",
+  "duration_minutes": 61,
+  "user_message_count": 10,
+  "assistant_message_count": 106,
+  "tool_counts": {
+    "ToolSearch": 3,
+    "Bash": 13,
+    "Read": 21,
+    "TaskCreate": 5,
+    "TaskUpdate": 10,
+    "Glob": 2,
+    "Agent": 5,
+    "Grep": 15
+  },
+  "languages": {
+    "Markdown": 16,
+    "JSON": 3,
+    "JavaScript": 2
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 130,
+  "output_tokens": 26646,
+  "first_prompt": "/gsdr:plan-phase 41 @.planning/deliberations/health-check-maintainability.md",
+  "user_interruptions": 0,
+  "user_response_times": [
+    294.666,
+    1118.726,
+    1118.726
+  ],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "Command Failed": 2
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    15,
+    15,
+    15,
+    15,
+    15,
+    15,
+    15,
+    15,
+    16,
+    16
+  ],
+  "user_message_timestamps": [
+    "2026-03-06T20:17:30.388Z",
+    "2026-03-06T20:17:29.385Z",
+    "2026-03-06T20:18:01.832Z",
+    "2026-03-06T20:18:01.832Z",
+    "2026-03-06T20:18:06.354Z",
+    "2026-03-06T20:18:51.486Z",
+    "2026-03-06T20:18:57.802Z",
+    "2026-03-06T20:54:17.238Z",
+    "2026-03-06T21:17:38.564Z",
+    "2026-03-06T21:17:38.564Z"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "session_id": "2ca72494-0ebc-42f2-a651-5f856b41b333",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-03-19T21:00:49.242Z",
+  "duration_minutes": 72,
+  "user_message_count": 3,
+  "assistant_message_count": 0,
+  "tool_counts": {},
+  "languages": {},
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 0,
+  "output_tokens": 0,
+  "first_prompt": "/gsdr:discuss-phase 4 --auto (create a CONTEXT.md that opens up the exploration space and consideration space for planning and research     to succeed and enforces some of the principles perhaps we ha…",
+  "user_interruptions": 1,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    18,
+    18,
+    18
+  ],
+  "user_message_timestamps": [
+    "2026-03-19T22:12:51.583Z",
+    "2026-03-19T22:12:51.583Z",
+    "2026-03-19T22:13:00.173Z"
+  ]
+}

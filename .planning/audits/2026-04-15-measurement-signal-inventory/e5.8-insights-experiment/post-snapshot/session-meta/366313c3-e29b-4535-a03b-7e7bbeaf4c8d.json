@@ -1,0 +1,55 @@
+{
+  "session_id": "366313c3-e29b-4535-a03b-7e7bbeaf4c8d",
+  "project_path": "/home/rookslog",
+  "start_time": "2026-02-27T04:21:53.448Z",
+  "duration_minutes": 3,
+  "user_message_count": 7,
+  "assistant_message_count": 28,
+  "tool_counts": {
+    "Read": 4,
+    "Glob": 1,
+    "Bash": 17
+  },
+  "languages": {
+    "Markdown": 4
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 35,
+  "output_tokens": 3102,
+  "first_prompt": "\"Read the memory files and continue the system organization. Wave 1 diagnosis is done — design the orchestration plan   for Wave 2 action workers using Codex. \" This is what you told me to say but can…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    129.257
+  ],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "Command Failed": 1,
+    "Other": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23
+  ],
+  "user_message_timestamps": [
+    "2026-02-27T04:21:54.054Z",
+    "2026-02-27T04:21:53.444Z",
+    "2026-02-27T04:21:54.054Z",
+    "2026-02-27T04:21:59.171Z",
+    "2026-02-27T04:21:59.164Z",
+    "2026-02-27T04:21:59.164Z",
+    "2026-02-27T04:24:14.683Z"
+  ]
+}

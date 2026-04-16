@@ -1,0 +1,71 @@
+{
+  "session_id": "f5b3031b-bd16-4f1c-91b9-5b1049f1f1c8",
+  "project_path": "/home/rookslog/workspace/projects/claude-notify",
+  "start_time": "2026-03-10T02:13:40.015Z",
+  "duration_minutes": 26,
+  "user_message_count": 11,
+  "assistant_message_count": 38,
+  "tool_counts": {
+    "Bash": 7,
+    "Read": 6,
+    "Agent": 4,
+    "Write": 1
+  },
+  "languages": {
+    "Markdown": 3,
+    "JSON": 1,
+    "JavaScript": 3
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 84,
+  "output_tokens": 13534,
+  "first_prompt": "I want to deliberate informally and then we can launch new-project based on what we were talking about before regarding setting this up properly, production-level quality, to deploy on other computers…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    216.227,
+    771.025,
+    71.977,
+    46.768,
+    20.626,
+    59.548
+  ],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "File Not Found": 1,
+    "Command Failed": 1
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 18,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    22,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22
+  ],
+  "user_message_timestamps": [
+    "2026-03-10T02:13:40.812Z",
+    "2026-03-10T02:13:40.011Z",
+    "2026-03-10T02:13:43.560Z",
+    "2026-03-10T02:13:43.560Z",
+    "2026-03-10T02:17:46.603Z",
+    "2026-03-10T02:31:41.703Z",
+    "2026-03-10T02:34:27.207Z",
+    "2026-03-10T02:35:29.574Z",
+    "2026-03-10T02:35:50.284Z",
+    "2026-03-10T02:36:30.893Z",
+    "2026-03-10T02:38:55.523Z"
+  ]
+}

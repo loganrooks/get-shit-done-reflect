@@ -1,0 +1,15 @@
+{
+  "underlying_goal": "User ran local commands to clear context and reconnect MCP server; no substantive request was made",
+  "goal_categories": {
+    "warmup_minimal": 1
+  },
+  "outcome": "unclear_from_transcript",
+  "user_satisfaction_counts": {},
+  "claude_helpfulness": "unhelpful",
+  "session_type": "single_task",
+  "friction_counts": {},
+  "friction_detail": "",
+  "primary_success": "none",
+  "brief_summary": "User only ran /clear and /mcp commands to reconnect an MCP server; no actual task was requested.",
+  "session_id": "a570686f-3952-47c5-8ba9-ed1f099982d3"
+}

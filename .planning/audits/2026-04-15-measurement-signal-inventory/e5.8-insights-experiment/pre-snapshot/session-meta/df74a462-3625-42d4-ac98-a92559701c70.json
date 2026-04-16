@@ -1,0 +1,49 @@
+{
+  "session_id": "df74a462-3625-42d4-ac98-a92559701c70",
+  "project_path": "/home/rookslog/workspace/projects/claude-notify",
+  "start_time": "2026-03-10T21:32:47.313Z",
+  "duration_minutes": 491,
+  "user_message_count": 3,
+  "assistant_message_count": 51,
+  "tool_counts": {
+    "Read": 14,
+    "Bash": 13,
+    "Glob": 1,
+    "Grep": 2,
+    "Write": 1
+  },
+  "languages": {
+    "Markdown": 2,
+    "JavaScript": 11,
+    "JSON": 2
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 3511,
+  "output_tokens": 7609,
+  "first_prompt": "Debug hooks are installed in ~/.claude/settings.json logging PermissionRequest, Notification, and Stop events to                   /tmp/hearkn-*-debug.jsonl. First run rm -f /tmp/hearkn-*-debug.jsonl…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 3,
+  "tool_error_categories": {
+    "File Not Found": 1,
+    "Other": 2
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 100,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    17,
+    17,
+    1
+  ],
+  "user_message_timestamps": [
+    "2026-03-10T21:32:48.354Z",
+    "2026-03-10T21:32:47.310Z",
+    "2026-03-11T05:40:18.201Z"
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "session_id": "343735bf-0e33-47f1-9bcf-6536dc3833ba",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-16T08:46:03.435Z",
+  "duration_minutes": 5,
+  "user_message_count": 1,
+  "assistant_message_count": 25,
+  "tool_counts": {
+    "Read": 17,
+    "Bash": 1,
+    "Write": 1
+  },
+  "languages": {
+    "Markdown": 18
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 44,
+  "output_tokens": 61664,
+  "first_prompt": "# Checkpoint 5 R5.17e Exclusion-Adjudication Reread Cross-Vendor Prompt  Run an independent cross-vendor reread of the split `R5.17d1/d2/d3/d4` exclusion adjudication stack.  This is not a generic rev…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 124,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    4
+  ],
+  "user_message_timestamps": [
+    "2026-04-16T08:46:03.435Z"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "underlying_goal": "Review, create, and merge a PR for phase 36 on their fork repo, with proper git cleanup afterward",
+  "goal_categories": {
+    "pr_review": 1,
+    "pr_creation": 1,
+    "pr_merge": 1,
+    "git_cleanup": 1,
+    "signal_creation": 3
+  },
+  "outcome": "mostly_achieved",
+  "user_satisfaction_counts": {
+    "dissatisfied": 3,
+    "likely_satisfied": 2
+  },
+  "claude_helpfulness": "moderately_helpful",
+  "session_type": "multi_task",
+  "friction_counts": {
+    "wrong_approach": 3,
+    "misunderstood_request": 1
+  },
+  "friction_detail": "Claude repeatedly targeted the wrong repo (reviewed wrong PR, created PR against upstream instead of fork) and failed to auto-cleanup after merge.",
+  "primary_success": "none",
+  "brief_summary": "User wanted to review and merge a phase 36 PR on their fork, but Claude repeatedly targeted the wrong repo and missed post-merge cleanup, requiring multiple corrections.",
+  "session_id": "54aef679-85bc-4a38-9ed2-f1ab4758c910"
+}

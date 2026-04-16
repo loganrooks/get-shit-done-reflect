@@ -1,0 +1,47 @@
+{
+  "session_id": "b6120c6c-b570-43e1-8487-a86c2efea4db",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-09T03:06:32.308Z",
+  "duration_minutes": 2,
+  "user_message_count": 3,
+  "assistant_message_count": 16,
+  "tool_counts": {
+    "Read": 1,
+    "Bash": 9,
+    "Grep": 1
+  },
+  "languages": {
+    "Markdown": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 25,
+  "output_tokens": 6951,
+  "first_prompt": "uh wait there were gaps weren't there? we were having major issues with codex might be worth running a log sensor session target at the codex logs for here",
+  "user_interruptions": 0,
+  "user_response_times": [
+    48.591
+  ],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "Other": 1,
+    "Command Failed": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    23,
+    23,
+    23
+  ],
+  "user_message_timestamps": [
+    "2026-04-09T03:06:39.038Z",
+    "2026-04-09T03:06:39.038Z",
+    "2026-04-09T03:08:01.870Z"
+  ]
+}

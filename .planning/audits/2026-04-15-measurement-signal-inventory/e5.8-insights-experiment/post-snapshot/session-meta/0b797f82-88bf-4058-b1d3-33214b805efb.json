@@ -1,0 +1,60 @@
+{
+  "session_id": "0b797f82-88bf-4058-b1d3-33214b805efb",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-04-16T08:29:36.813Z",
+  "duration_minutes": 365,
+  "user_message_count": 7,
+  "assistant_message_count": 93,
+  "tool_counts": {
+    "Read": 6,
+    "Bash": 29,
+    "ToolSearch": 1,
+    "TaskCreate": 5,
+    "TaskUpdate": 3,
+    "Write": 3,
+    "Edit": 8
+  },
+  "languages": {
+    "Markdown": 14,
+    "Python": 3
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 253,
+  "output_tokens": 176395,
+  "first_prompt": "@.planning/audits/2026-04-15-measurement-signal-inventory/pre-57.5-handoff.md",
+  "user_interruptions": 0,
+  "user_response_times": [
+    7.597,
+    202.948
+  ],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "Command Failed": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 487,
+  "lines_removed": 24,
+  "files_modified": 5,
+  "message_hours": [
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    10
+  ],
+  "user_message_timestamps": [
+    "2026-04-16T08:29:36.813Z",
+    "2026-04-16T08:29:36.567Z",
+    "2026-04-16T08:30:19.573Z",
+    "2026-04-16T08:30:28.249Z",
+    "2026-04-16T08:30:39.124Z",
+    "2026-04-16T08:34:29.209Z",
+    "2026-04-16T14:33:43.006Z"
+  ]
+}

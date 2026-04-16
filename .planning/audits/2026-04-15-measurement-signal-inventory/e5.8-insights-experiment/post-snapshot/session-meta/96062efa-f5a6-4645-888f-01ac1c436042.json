@@ -1,0 +1,36 @@
+{
+  "session_id": "96062efa-f5a6-4645-888f-01ac1c436042",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-16T06:08:31.122Z",
+  "duration_minutes": 1,
+  "user_message_count": 1,
+  "assistant_message_count": 18,
+  "tool_counts": {
+    "Read": 16
+  },
+  "languages": {
+    "Markdown": 16
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 42,
+  "output_tokens": 6940,
+  "first_prompt": "# Checkpoint 5 R5.17b Chain-Tail Exclusion Audit Cross-Vendor Prompt  Run an independent cross-vendor audit of prior chain-tail / representation exclusion judgments in Checkpoint 5.  This is not a gen…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    2
+  ],
+  "user_message_timestamps": [
+    "2026-04-16T06:08:31.122Z"
+  ]
+}

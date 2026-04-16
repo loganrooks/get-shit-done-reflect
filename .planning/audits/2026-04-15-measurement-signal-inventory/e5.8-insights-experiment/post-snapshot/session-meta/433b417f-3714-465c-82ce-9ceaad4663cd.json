@@ -1,0 +1,75 @@
+{
+  "session_id": "433b417f-3714-465c-82ce-9ceaad4663cd",
+  "project_path": "/home/rookslog/workspace/projects/epistemic-agency",
+  "start_time": "2026-03-27T02:09:50.029Z",
+  "duration_minutes": 157,
+  "user_message_count": 12,
+  "assistant_message_count": 114,
+  "tool_counts": {
+    "Bash": 52,
+    "Read": 5,
+    "Agent": 6,
+    "Skill": 2,
+    "Write": 1,
+    "Edit": 6,
+    "Grep": 1
+  },
+  "languages": {
+    "Markdown": 12
+  },
+  "git_commits": 2,
+  "git_pushes": 0,
+  "input_tokens": 145,
+  "output_tokens": 21052,
+  "first_prompt": "/gsdr:progress also check the chat history as well, what have we been up to?",
+  "user_interruptions": 0,
+  "user_response_times": [
+    18.244,
+    18.244,
+    499.74,
+    499.74,
+    56.417,
+    1973.024,
+    1973.024
+  ],
+  "tool_errors": 5,
+  "tool_error_categories": {
+    "Other": 3,
+    "Command Failed": 2
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 43,
+  "lines_removed": 9,
+  "files_modified": 3,
+  "message_hours": [
+    22,
+    22,
+    22,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    23,
+    0,
+    0
+  ],
+  "user_message_timestamps": [
+    "2026-03-27T02:10:07.442Z",
+    "2026-03-27T02:10:07.442Z",
+    "2026-03-27T02:10:07.442Z",
+    "2026-03-27T03:21:39.203Z",
+    "2026-03-27T03:21:39.203Z",
+    "2026-03-27T03:30:48.060Z",
+    "2026-03-27T03:30:48.060Z",
+    "2026-03-27T03:49:10.726Z",
+    "2026-03-27T03:49:21.648Z",
+    "2026-03-27T03:50:02.947Z",
+    "2026-03-27T04:45:58.019Z",
+    "2026-03-27T04:45:58.019Z"
+  ]
+}

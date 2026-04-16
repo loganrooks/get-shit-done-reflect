@@ -1,0 +1,42 @@
+{
+  "session_id": "0bf1649b-513d-46ab-9807-9aebe69eb66d",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-16T00:53:48.968Z",
+  "duration_minutes": 6,
+  "user_message_count": 1,
+  "assistant_message_count": 56,
+  "tool_counts": {
+    "Read": 38,
+    "Write": 2,
+    "Bash": 1
+  },
+  "languages": {
+    "Markdown": 33,
+    "YAML": 1,
+    "Python": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 72,
+  "output_tokens": 48112,
+  "first_prompt": "# Checkpoint 5 Spec Stack Gap-Exposure Cross-Vendor Prompt  Audit the current Checkpoint 5 candidate spec stack before any widened workflow or wrapper implementation lands.  This is a completeness-cha…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "Other": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 428,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    20
+  ],
+  "user_message_timestamps": [
+    "2026-04-16T00:53:48.968Z"
+  ]
+}

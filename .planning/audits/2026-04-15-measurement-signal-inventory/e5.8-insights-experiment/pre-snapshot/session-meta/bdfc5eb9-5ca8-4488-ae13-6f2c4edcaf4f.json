@@ -1,0 +1,60 @@
+{
+  "session_id": "bdfc5eb9-5ca8-4488-ae13-6f2c4edcaf4f",
+  "project_path": "/Users/rookslog/Development/get-shit-done-reflect",
+  "start_time": "2026-02-25T10:24:28.702Z",
+  "duration_minutes": 66,
+  "user_message_count": 8,
+  "assistant_message_count": 31,
+  "tool_counts": {
+    "Bash": 9,
+    "Read": 4,
+    "mcp__sequential-thinking__sequentialthinking": 5,
+    "Task": 3
+  },
+  "languages": {
+    "Markdown": 4
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 45,
+  "output_tokens": 3309,
+  "first_prompt": "/gsd:resume-work we have just patched, released and updated now as well and added a TODO, make sure you locate the correct (most recent) .continue-here.md which will be in the .planning directory at i…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    350.282,
+    304.994,
+    2953.323
+  ],
+  "tool_errors": 3,
+  "tool_error_categories": {
+    "Command Failed": 1,
+    "Other": 2
+  },
+  "uses_task_agent": true,
+  "uses_mcp": true,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    5,
+    6
+  ],
+  "user_message_timestamps": [
+    "2026-02-25T10:24:28.961Z",
+    "2026-02-25T10:24:28.559Z",
+    "2026-02-25T10:24:28.961Z",
+    "2026-02-25T10:26:01.113Z",
+    "2026-02-25T10:26:01.113Z",
+    "2026-02-25T10:32:27.119Z",
+    "2026-02-25T10:38:13.225Z",
+    "2026-02-25T11:30:06.515Z"
+  ]
+}

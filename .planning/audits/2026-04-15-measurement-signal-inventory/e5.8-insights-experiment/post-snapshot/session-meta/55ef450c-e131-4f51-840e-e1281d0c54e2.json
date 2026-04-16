@@ -1,0 +1,34 @@
+{
+  "session_id": "55ef450c-e131-4f51-840e-e1281d0c54e2",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-04-03T03:33:22.990Z",
+  "duration_minutes": 0,
+  "user_message_count": 1,
+  "assistant_message_count": 6,
+  "tool_counts": {
+    "Bash": 5
+  },
+  "languages": {},
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 12,
+  "output_tokens": 738,
+  "first_prompt": "echo \"PID: $!\"  You are implementing a critical patch for GSD Reflect. Go all the way to released patch on npm. Do not stop, do not ask questions, figure everything out yourself.  ## YOUR TASK  Implem…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    23
+  ],
+  "user_message_timestamps": [
+    "2026-04-03T03:33:22.990Z"
+  ]
+}

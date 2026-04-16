@@ -1,0 +1,61 @@
+{
+  "session_id": "364e9944-8a7b-48ac-9819-9b59e2bbfd0b",
+  "project_path": "/home/rookslog/workspace/projects/zlibrary-mcp",
+  "start_time": "2026-02-11T23:25:48.090Z",
+  "duration_minutes": 56,
+  "user_message_count": 8,
+  "assistant_message_count": 52,
+  "tool_counts": {
+    "Bash": 13,
+    "Read": 7,
+    "Glob": 2,
+    "Task": 4,
+    "Edit": 4
+  },
+  "languages": {
+    "JSON": 2,
+    "Markdown": 9
+  },
+  "git_commits": 1,
+  "git_pushes": 0,
+  "input_tokens": 83,
+  "output_tokens": 5407,
+  "first_prompt": "/gsd:execute-phase 14",
+  "user_interruptions": 0,
+  "user_response_times": [
+    1399.173,
+    253.184
+  ],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "Command Failed": 1,
+    "Other": 1
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 6,
+  "lines_removed": 6,
+  "files_modified": 1,
+  "message_hours": [
+    18,
+    18,
+    18,
+    18,
+    18,
+    18,
+    18,
+    19
+  ],
+  "user_message_timestamps": [
+    "2026-02-11T23:25:48.290Z",
+    "2026-02-11T23:25:48.083Z",
+    "2026-02-11T23:25:48.290Z",
+    "2026-02-11T23:25:51.348Z",
+    "2026-02-11T23:25:51.348Z",
+    "2026-02-11T23:49:53.820Z",
+    "2026-02-11T23:54:10.750Z",
+    "2026-02-12T00:21:41.498Z"
+  ]
+}

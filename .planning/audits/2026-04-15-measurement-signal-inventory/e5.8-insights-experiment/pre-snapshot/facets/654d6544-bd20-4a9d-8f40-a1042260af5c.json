@@ -1,0 +1,15 @@
+{
+  "underlying_goal": "No goal expressed - user only issued clear and exit commands",
+  "goal_categories": {
+    "warmup_minimal": 1
+  },
+  "outcome": "unclear_from_transcript",
+  "user_satisfaction_counts": {},
+  "claude_helpfulness": "unhelpful",
+  "session_type": "single_task",
+  "friction_counts": {},
+  "friction_detail": "",
+  "primary_success": "none",
+  "brief_summary": "User opened session and immediately cleared/exited without making any requests.",
+  "session_id": "654d6544-bd20-4a9d-8f40-a1042260af5c"
+}

@@ -1,0 +1,36 @@
+{
+  "session_id": "01db5837-235c-4ab1-8b7d-a7960fe0f9f0",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-04-02T08:15:16.724Z",
+  "duration_minutes": 0,
+  "user_message_count": 1,
+  "assistant_message_count": 7,
+  "tool_counts": {
+    "Bash": 4
+  },
+  "languages": {},
+  "git_commits": 1,
+  "git_pushes": 1,
+  "input_tokens": 10,
+  "output_tokens": 753,
+  "first_prompt": "The release v1.18.1 failed CI because the CHANGELOG.md entry contains `~/.claude/` which triggers the path leakage test.  Fix already applied locally: the CHANGELOG line was changed to say \"global run…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "Command Failed": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    4
+  ],
+  "user_message_timestamps": [
+    "2026-04-02T08:15:16.724Z"
+  ]
+}

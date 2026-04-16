@@ -10,7 +10,7 @@ tags:
   - active-measurement
   - requirements-anchoring
 created: "2026-04-09T21:50:00.000Z"
-updated: "2026-04-09T21:50:00.000Z"
+updated: "2026-04-16T23:00:00.000Z"
 durability: principle
 status: active
 severity: critical
@@ -62,3 +62,30 @@ Structural fixes needed:
 - Plan-phase must validate scope against CONTEXT.md governing principles and assumed-scope items, not just requirements
 - When CONTEXT.md contains `[open]` questions about scope boundaries, those must be resolved in DISCUSSION-LOG before planning proceeds
 - Requirements should be revisable during discuss-phase when context reveals richer scope
+
+## Correction (audited 2026-04-10, remediation: 57.5/57.6/57.7)
+
+The signal's critical framing ("silently dropped its core vision") was partially overstated per the dual-dispatch investigatory audit at `.planning/audits/2026-04-10-phase-57-vision-drop-investigation/`:
+
+- **Sonnet audit** confirmed the scope-narrowing cascade across four stages (requirements authorship → research summary → plan truth encoding → verification), each locally correct, collectively producing scope loss. Both truth signals were technically correct against their local standards.
+- **Codex audit** disconfirmed the "purely passive" claim: the shipped `telemetry.cjs` module has derived metrics (`message_hours_entropy`, `first_prompt_category`) and phase-scoped summaries, not just raw extraction. What was actually missing was the **definition/registration/extensibility layer** and explicit scope decisions about what goes where — not computation per se.
+
+**Refined framing:** the cascade is real (no explicit decision record at any stage); the consequence is narrower than "purely passive reader" — it's "no extensibility substrate for the active-measurement vision the CONTEXT.md articulated."
+
+**Remediation plan** (all load-bearing artifacts):
+- `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` — philosophical grounding (Merleau-Ponty chiasm, post-Popperian rigor, Dewey inquiry) and architectural commitments (three-layer separation, extractor registry, retroactive applicability, runtime dimension model, fallibilism machinery, named feedback loops)
+- Phase 57.5 (Measurement Architecture & Retroactive Foundation) — three-layer architecture + intervention-lifecycle + pipeline-integrity loops; retroactive demonstration across ~268 existing sessions
+- Phase 57.6 (Multi-Loop Coverage & Human Interface) — remaining four loops + text-first visualization + diagnostic application
+- Phase 57.7 (Content Analysis & Epistemic Deepening) — session-content extractors + automated distinguishing-feature suggestion + intervention-outcome tracking + revision classification
+- MEAS- requirement family (34 new requirements across MEAS-ARCH / MEAS-RUNTIME / MEAS-DERIVED / MEAS-GSDR subfamilies) added to REQUIREMENTS.md (2026-04-16)
+- GATE-09 (scope-translation ledger) added to Phase 58 as the **meta-fix** — enforces CONTEXT-claim mapping at phase close, citation requirement when RESEARCH/PLAN narrows scope, and verification that CONTEXT commitments were explicitly deferred rather than silently disappearing
+- PROJECT.md Core Value updated to express measurement infrastructure as the substrate on which self-improvement's trustworthiness rests
+
+**Preparatory audit work** (2026-04-15 → 2026-04-16):
+- `.planning/audits/2026-04-15-measurement-signal-inventory/` — 4-lane signal inventory of existing measurement sources (Claude session-meta, Claude JSONL, Codex JSONL, GSD artifacts) plus synthesis
+- `.planning/audits/2026-04-15-measurement-signal-inventory/correction-and-extensions-2026-04-16.md` — falsifies Anomaly A4 (thinking content "permanently empty"), promotes phantom-token billing asymmetry to A9, refines Decision 5 (cross-runtime markers) and adds Decision 6 (model-family gate on reasoning metrics)
+- `.planning/audits/2026-04-15-measurement-signal-inventory/anomaly-stress-tests.md` — E1-E6 + E5.8 stress-tests of remaining Anomaly Register items; surfaced 16 new MEAS- proposals (§6.7-§6.22), established the three-subfamily split (MEAS-RUNTIME + MEAS-DERIVED + MEAS-GSDR), and falsified synthesis §4.3's "ABSENT" compaction claim at the capability layer via binary introspection
+- `.planning/spikes/009-thinking-summary-as-reasoning-proxy/` — confirmed subagent dispatch context gates thinking content
+- `.planning/spikes/010-parent-session-thinking-summary-proxy/` — confirmed headless `claude -p` dispatch produces thinking; falsified length-as-quality-proxy via qualitative comparison
+
+**Signal status:** remains `active`. Will transition to `remediated` once Phases 57.5/57.6/57.7 ship and the MEAS- family is operational. Recurrence check at Phase 58 close.

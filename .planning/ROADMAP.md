@@ -14,9 +14,9 @@
 
 **Milestone Goal:** Replace advisory quality controls with structural enforcement, mature the signal system from detection-only to full lifecycle management with a queryable knowledge base, overhaul spike methodology with epistemologically rigorous experimental design, and establish measurement infrastructure for evidence-based workflow improvement.
 
-**Phases:** 16 (Phases 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3, 57.4)
+**Phases:** 19 (Phases 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3, 57.4, 57.5, 57.6, 57.7)
 **Granularity:** Fine
-**Requirements:** 71 mapped
+**Requirements:** 105 mapped
 
 ## Phases
 
@@ -27,7 +27,10 @@
 - [x] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Typed claims (7 types + verification dimension), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher update, claim dependency webs, template enrichment
 - [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents *(core design commitments — flat 8-type taxonomy, template-based body structure, type-family ground rules — partially superseded by Phase 57.4 after running real audits revealed the flat taxonomy did not express the complexities of the auditing situation; see Phase 57.4 for the 3-axis reconstruction)*
 - [x] **Phase 57.4: Audit Skill & Investigatory Type** - Radically rethink the formalization of the auditing workflow: the Phase 57.3 flat 8-type taxonomy + template paradigm + ground rules 1-4 do not express the complexities of the auditing situation. This phase supersedes Phase 57.3's core design commitments with a 3-axis taxonomy (subject × orientation × delegation), an obligations-based output paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations from retrospective analysis (chain integrity, dispatch hygiene, framework invisibility). Deliverables: /gsdr:audit command + gsdr-auditor agent, rewritten audit-conventions.md and audit-ground-rules.md, formalized cross-model delegation (WF-01 pulled forward from Phase 62)
-- [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
+- [ ] **Phase 57.5: Measurement Architecture & Retroactive Foundation** - Three-layer measurement architecture (raw → extractor registry → interpretation) that retroactively analyzes existing session and artifact corpora, with cross-platform schema from day one and minimum-viable post-Popperian epistemic machinery (competing interpretations, distinguishing features, anomaly register per interpretation). Covers intervention-lifecycle and pipeline-integrity loops; proves cross-platform with at least one Codex extractor
+- [ ] **Phase 57.6: Multi-Loop Coverage & Human Interface** - Extend extractor coverage to all remaining self-improvement loops (agent-performance, signal-quality, cross-session patterns, cross-runtime comparison), add human-readable text-first visualization, and demonstrate actual use of the system to diagnose an observed pattern end-to-end
+- [ ] **Phase 57.7: Content Analysis & Epistemic Deepening** - Session-content extractors (structural patterns in transcripts with documented privacy model), automated distinguishing-feature suggestion, intervention-outcome tracking, interpretation revision classification (progressive vs degenerating per Lakatos), full epistemic provenance on all interpretations
+- [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns, plus GATE-09 scope-translation ledger (meta-fix for Phase 57 scope-narrowing cascade)
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
 - [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
 - [ ] **Phase 61: Spike Methodology Overhaul** - Three-level confidence, cross-model design reviewer, template revisions, and findings verification (can proceed in parallel with Phase 60)
@@ -204,16 +207,65 @@ Plans:
 Plans:
 - [x] 57.1-01-PLAN.md -- Adopt upstream explore skill files, create vitest test, verify installer
 
+### Phase 57.5: Measurement Architecture & Retroactive Foundation (INSERTED)
+
+**Goal:** A three-layer measurement architecture (raw → extractor registry → interpretation) that retroactively analyzes existing session and artifact corpora, with cross-platform schema from day one and minimum-viable post-Popperian epistemic machinery (competing interpretations, distinguishing features, anomaly register per interpretation). Covers the intervention-lifecycle and pipeline-integrity feedback loops. This phase is the **particular fix** for the Phase 57 vision-drop audit's Finding A (requirements-anchoring trap) and Finding B (research-phase summary reframing).
+**Depends on:** Phase 57 (baseline extraction tooling exists to build on), Phase 56 (SQLite foundation for indexed queries)
+**Requirements:** MEAS-ARCH-01 through MEAS-ARCH-07, MEAS-ARCH-10, MEAS-RUNTIME-02, MEAS-RUNTIME-03, MEAS-RUNTIME-04, MEAS-RUNTIME-09, MEAS-RUNTIME-10, MEAS-DERIVED-01, MEAS-DERIVED-05, MEAS-DERIVED-06, MEAS-GSDR-01, MEAS-GSDR-02, MEAS-GSDR-04, MEAS-GSDR-05
+**Success Criteria** (what must be TRUE):
+  1. Three-layer separation (raw / extractor / interpretation) is implemented in code with the extractor registry as the extensibility point — adding an extractor requires writing a pure function and registering it, no core code changes
+  2. Extractor registry contains ~10-12 extractors covering the intervention-lifecycle and pipeline-integrity loops across all three subfamilies (MEAS-RUNTIME + MEAS-DERIVED + MEAS-GSDR), with at least one Codex extractor proving the cross-platform architecture works
+  3. Retroactive demonstration: all extractors run over the existing session corpus and GSD artifacts (SUMMARY.md, VERIFICATION.md, signal files, git log) without re-collection
+  4. CLI query interface returns JSON (agent-consumable) with runtime dimension model and four-class symmetry markers (`exposed` / `derived` / `not_available` / `not_applicable`)
+  5. Post-Popperian epistemic machinery v1: interpretations carry competing alternatives, distinguishing features, and anomaly registers; the query layer warns when distinguishing features aren't computed and surfaces anomaly accumulation
+  6. Metadata richness: model ID, GSD version, profile (quality/balanced/budget), runtime identity captured per session
+  7. kb.db freshness automation fix lands (MEAS-GSDR-05) — workflow call sites either unified through `kb-rebuild-index.sh` or migrated to `gsd-tools.cjs kb rebuild`
+Authority: `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` §3-§5 (Design Principles, Architectural Commitments, Phase Breakdown)
+Derived from: `.planning/audits/2026-04-10-phase-57-vision-drop-investigation/` (dual-dispatch audit identifying scope-narrowing cascade), `.planning/audits/2026-04-15-measurement-signal-inventory/` (4-lane signal inventory + correction-and-extensions + anomaly-stress-tests E1-E6 + E5.8), `.planning/spikes/009-thinking-summary-as-reasoning-proxy/`, `.planning/spikes/010-parent-session-thinking-summary-proxy/`, signal `sig-2026-04-09-phase57-active-measurement-vision-dropped-at-planning`
+**Plans:** TBD (requires /gsdr:discuss-phase 57.5)
+
+### Phase 57.6: Multi-Loop Coverage & Human Interface (INSERTED)
+
+**Goal:** Extend extractor coverage to all identified self-improvement loops (agent-performance, signal-quality, cross-session patterns, cross-runtime comparison), add human-readable text-first visualization, and demonstrate actual use of the system to diagnose at least one observed pattern end-to-end.
+**Depends on:** Phase 57.5
+**Requirements:** MEAS-ARCH-08, MEAS-RUNTIME-01, MEAS-RUNTIME-06, MEAS-RUNTIME-07, MEAS-RUNTIME-08, MEAS-DERIVED-02, MEAS-DERIVED-03, MEAS-DERIVED-04, MEAS-GSDR-03
+**Success Criteria** (what must be TRUE):
+  1. Extractors shipped for agent-performance, signal-quality, cross-session-patterns, and cross-runtime-comparison loops
+  2. Text-first human visualization: markdown tables, ASCII charts, terminal renderer, pre-built common reports per loop
+  3. Exploratory query interface (CLI, potentially REPL-style) for humans to investigate patterns interactively
+  4. Practical demonstration: the system is applied to diagnose at least one observed pattern, with the diagnosis documented as an interpretation object with competing readings, distinguishing features, and anomaly register
+  5. Expanded Codex coverage beyond the single proof-of-concept extractor from 57.5 (compaction extractor is a natural cross-runtime bridge)
+  6. Facets (MEAS-DERIVED-02) adopted with mandatory coverage-stratification clause on every aggregate analysis — stratify by session size
+Authority: `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` §5 Phase 57.6 scope
+**Plans:** TBD (requires /gsdr:discuss-phase 57.6)
+
+### Phase 57.7: Content Analysis & Epistemic Deepening (INSERTED)
+
+**Goal:** Extend the measurement system to session-content features and deepen the post-Popperian epistemic machinery — automated distinguishing-feature suggestion, intervention-outcome tracking, interpretation revision classification (progressive vs degenerating per Lakatos).
+**Depends on:** Phase 57.6
+**Requirements:** MEAS-ARCH-09, MEAS-RUNTIME-05, MEAS-RUNTIME-11, MEAS-GSDR-06
+**Success Criteria** (what must be TRUE):
+  1. Session-content extractors (structural patterns in transcripts — tool invocation sequences, intervention points, topic shifts) with documented privacy/storage model; no raw content re-exposure
+  2. Automated distinguishing-feature suggestion: when competing interpretations are presented, the system proposes uncomputed features that would discriminate between them
+  3. Intervention-outcome tracking: when an interpretation is acted on (e.g., GATE shipped), record the intervention, predicted outcome, and actual outcome; surface this as the strongest epistemic status available
+  4. Interpretation revision classification: track whether revisions to interpretations are progressive (generate new predictions) or degenerating (ad hoc accommodation of anomalies)
+  5. Full epistemic provenance on all interpretations (challenge survival count, anomaly register, intervention history, revision classification)
+  6. Reasoning-quality measurement operational — candidate mechanism selected from spike C5 (reference-density, concept-diversity, LLM-as-judge, or facets-based) and shipped for the Agent Performance loop
+  7. Phantom-thinking-token reconciler operational after spike C3 confirms real tokenizer; FTS5 resolved per MEAS-GSDR-06
+Authority: `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` §5 Phase 57.7 scope
+**Plans:** TBD (requires /gsdr:discuss-phase 57.7)
+
 ### Phase 58: Structural Enforcement Gates
-**Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion
-**Depends on**: Phase 57 (baseline must be captured first)
-**Requirements**: GATE-01, GATE-02, GATE-03, GATE-04, GATE-05, GATE-06, GATE-07, GATE-08, XRT-01
+**Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion, plus GATE-09 scope-translation ledger as the meta-fix for the Phase 57 scope-narrowing cascade
+**Depends on**: Phase 57.7 (measurement substrate needed for evaluating gate effectiveness; GATE-09 coordinates with measurement system to surface CONTEXT-claim deferrals)
+**Requirements**: GATE-01, GATE-02, GATE-03, GATE-04, GATE-05, GATE-06, GATE-07, GATE-08, GATE-09, XRT-01
 **Success Criteria** (what must be TRUE):
   1. Phase advancement via offer_next blocks until PR is created and CI passes -- user can override with documented justification logged to session
   2. `gh pr merge` invocations pass `--merge` explicitly as the structural default, and quick task detects runtime code changes requiring branch+PR flow
   3. `.continue-here` files are consumed on read and archived after session start, with staleness checks and upstream-adopted hard stop safety gates
   4. Automation postlude fires structurally (SessionStop hook on Claude Code, workflow-enforced step on Codex) rather than by agent discretion
   5. Every hook-dependent v1.20 feature specifies its Codex CLI degradation path in phase CONTEXT.md before implementation begins, and capability-matrix.md is updated
+  6. GATE-09 scope-translation ledger enforces that every load-bearing CONTEXT claim is mapped at phase close (implemented / explicitly deferred / rejected / left-open-blocking-planning); RESEARCH and PLAN scope narrowing relative to CONTEXT is cited with the originating claim and recorded as a decision; verification confirms CONTEXT commitments were explicitly deferred rather than silently disappearing
 **Plans**: TBD
 
 ### Phase 59: KB Query, Lifecycle Wiring & Surfacing
@@ -289,7 +341,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.4 (patch releases), then 57 → 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies). Phase 57.2 ships before Phase 57 as a patch (regression fix); effectiveness revisited post-telemetry. Phase 57.3 depends on Phase 57.2. Phase 57.4 depends on Phase 57.3.
+Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.4 (patch releases), then 57 → 57.5 → 57.6 → 57.7 → 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies). Phase 57.2 ships before Phase 57 as a patch (regression fix); effectiveness revisited post-telemetry. Phase 57.3 depends on Phase 57.2. Phase 57.4 depends on Phase 57.3. Phases 57.5/57.6/57.7 build the measurement infrastructure that Phase 58 (particularly GATE-09) depends on for evaluating gate effectiveness.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -302,6 +354,9 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.
 | 57.2. Discuss-Phase Exploratory Mode Overhaul | 3/3 | Complete | 2026-04-09 |
 | 57.3. Audit Workflow Infrastructure | 2/2 | Complete | 2026-04-09 |
 | 57.4. Audit Skill & Investigatory Type | 6/6 | Complete | 2026-04-10 |
+| 57.5. Measurement Architecture & Retroactive Foundation | 0/TBD | Not started | - |
+| 57.6. Multi-Loop Coverage & Human Interface | 0/TBD | Not started | - |
+| 57.7. Content Analysis & Epistemic Deepening | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
 | 60. Sensor Pipeline & Codex Parity | 0/TBD | Not started | - |
@@ -321,9 +376,9 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
 | v1.17 Automation Loop | 36-44 | 24 | Complete | 2026-03-09 |
 | v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | 37 | Complete | 2026-03-30 |
-| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3, 57.4 | TBD | In progress | - |
+| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1-57.7 | TBD | In progress | - |
 
-**Totals:** 8 milestones, 67 phases (58 complete, 9 in progress), 179 plans completed
+**Totals:** 8 milestones, 70 phases (58 complete, 12 in progress), 179 plans completed
 
 ## Backlog
 
