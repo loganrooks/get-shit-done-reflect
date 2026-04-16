@@ -1,0 +1,17 @@
+[2026-04-16T07:13:13Z] retry_failed.sh starting — claude=2.1.110 (Claude Code)
+[2026-04-16T07:13:13Z] Wave 1: cells 9 + 12
+[2026-04-16T07:13:13Z] RETRY cell=9 model=opus prompt=A effort=low rep=3
+[2026-04-16T07:13:13Z] RETRY cell=12 model=opus prompt=A effort=high rep=3
+[2026-04-16T07:13:24Z] RETRY cell=12 exit=0 dur=11s session_id=89b30c00-6a93-4284-8e7d-92ffc5618c82 note=''
+[2026-04-16T07:13:25Z] RETRY cell=9 exit=0 dur=12s session_id=8586a78e-c2ef-400d-b714-18deed378f56 note=''
+[2026-04-16T07:13:30Z] Wave 2: cells 21 + 31
+[2026-04-16T07:13:30Z] RETRY cell=21 model=opus prompt=B-notools effort=low rep=3
+[2026-04-16T07:13:30Z] RETRY cell=31 model=opus prompt=B-tools effort=low rep=1
+[2026-04-16T07:14:11Z] RETRY cell=21 exit=0 dur=41s session_id=fa3f5e1c-9f33-4ab5-9f38-92f239b886cb note=''
+[2026-04-16T07:14:21Z] RETRY cell=31 exit=0 dur=51s session_id=b58f70d6-479a-40f3-b4a0-8e0a84511567 note=''
+[2026-04-16T07:14:26Z] Wave 3: cells 35 + 36
+[2026-04-16T07:14:26Z] RETRY cell=35 model=opus prompt=B-tools effort=high rep=2
+[2026-04-16T07:14:26Z] RETRY cell=36 model=opus prompt=B-tools effort=high rep=3
+[2026-04-16T07:15:40Z] RETRY cell=35 exit=0 dur=74s session_id=304b5650-ac1a-4b51-83c2-4862a8b6f555 note=''
+[2026-04-16T07:15:41Z] RETRY cell=36 exit=0 dur=75s session_id=d9fa3b22-43d5-41a7-b115-90f09da88d39 note=''
+[2026-04-16T07:15:41Z] retry_failed.sh done
