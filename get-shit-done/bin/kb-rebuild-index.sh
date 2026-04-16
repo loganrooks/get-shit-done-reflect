@@ -7,6 +7,9 @@
 
 set -o pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+GSD_TOOLS="$SCRIPT_DIR/gsd-tools.cjs"
+
 # Project-local KB takes priority, then GSD_HOME, then user-global
 if [ -d ".planning/knowledge" ]; then
   KB_DIR=".planning/knowledge"
@@ -189,9 +192,19 @@ generated=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 # Atomic rename
 mv "$INDEX_TMP" "$INDEX"
 
+if [ ! -f "$GSD_TOOLS" ]; then
+  echo "ERROR: gsd-tools.cjs not found next to kb-rebuild-index.sh" >&2
+  exit 1
+fi
+
+if ! node "$GSD_TOOLS" kb rebuild --raw >/dev/null; then
+  echo "ERROR: gsd-tools.cjs kb rebuild failed; KB markdown index was updated but kb.db refresh did not complete" >&2
+  exit 1
+fi
+
 if [ "$has_lessons" = true ]; then
-  echo "Index rebuilt: ${total} entries (${signal_count} signals, ${spike_count} spikes, ${lesson_count} lessons)"
+  echo "Index and kb.db rebuilt: ${total} entries (${signal_count} signals, ${spike_count} spikes, ${lesson_count} lessons)"
 else
-  echo "Index rebuilt: ${total} entries (${signal_count} signals, ${spike_count} spikes)"
+  echo "Index and kb.db rebuilt: ${total} entries (${signal_count} signals, ${spike_count} spikes)"
 fi
 exit 0

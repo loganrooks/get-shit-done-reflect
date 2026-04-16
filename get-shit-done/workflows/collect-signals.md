@@ -386,7 +386,7 @@ Task(
     Read the KB index (at .planning/knowledge/index.md or ~/.gsd/knowledge/index.md fallback) for dedup checking.
     Apply all quality gates: trace filter, cross-sensor dedup, KB dedup, rigor enforcement, per-phase cap.
     Write qualifying signals to the KB signals directory (.planning/knowledge/signals/{PROJECT_NAME}/ or ~/.gsd/knowledge/signals/{PROJECT_NAME}/ fallback).
-    Rebuild index with: bash get-shit-done-reflect/bin/kb-rebuild-index.sh (or ~/.gsd/bin/kb-rebuild-index.sh fallback)
+    Rebuild the KB freshness path with: bash get-shit-done/bin/kb-rebuild-index.sh (or ~/.gsd/bin/kb-rebuild-index.sh fallback)
     Return your Synthesizer Report when complete."
 )
 ```
@@ -452,7 +452,7 @@ If signals were written, ensure the KB index is up to date (in case the synthesi
 if [ "$SIGNALS_WRITTEN" -gt 0 ]; then
   # KB path resolution -- project-local primary, user-global fallback
   if [ -d ".planning/knowledge" ]; then
-    bash get-shit-done-reflect/bin/kb-rebuild-index.sh
+    bash get-shit-done/bin/kb-rebuild-index.sh
   else
     bash ~/.gsd/bin/kb-rebuild-index.sh
   fi
