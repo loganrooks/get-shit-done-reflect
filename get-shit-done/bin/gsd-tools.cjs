@@ -24,6 +24,7 @@
  *   init execute-phase <phase> [--include state,config,roadmap]
  *   init plan-phase <phase> [--include state,roadmap,research,context,verification,uat,requirements]
  *   init progress [--include state,roadmap,project,config]
+ *   measurement rebuild|query -- rebuild/query the measurement substrate
  *   list-todos [area] -- enriched with priority/source/status fields
  *   config-set <key.path> <value> -- permissive (no allowlist)
  *   config-get <key.path> -- graceful (returns {found:false} for missing keys)
@@ -52,6 +53,7 @@ const manifest = require('./lib/manifest.cjs');
 const automation = require('./lib/automation.cjs');
 const kb = require('./lib/kb.cjs');
 const telemetry = require('./lib/telemetry.cjs');
+const measurement = require('./lib/measurement.cjs');
 
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -86,7 +88,7 @@ async function main() {
   const command = args[0];
 
   if (!command) {
-    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry');
+    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement');
   }
 
   switch (command) {
@@ -720,6 +722,11 @@ async function main() {
       } else {
         error('Usage: gsd-tools telemetry <summary|session|phase|baseline|enrich>');
       }
+      break;
+    }
+
+    case 'measurement': {
+      measurement.cmdMeasurement(cwd, args.slice(1), raw);
       break;
     }
 
