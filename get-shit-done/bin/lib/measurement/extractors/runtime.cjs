@@ -168,7 +168,8 @@ const runtimeSessionIdentityExtractor = defineExtractor({
   runtimes: ['claude-code'],
   reliability_tier: 'artifact_derived',
   features_produced: ['runtime_session_identity'],
-  serves_loop: ['pipeline_integrity', 'intervention_lifecycle'],
+  // agent_performance: value.model + value.profile provide the model/profile provenance this loop requires. cross_session_patterns: session_id + era_boundary enable cross-session clustering per loop theory_of_change.
+  serves_loop: ['pipeline_integrity', 'intervention_lifecycle', 'agent_performance', 'cross_session_patterns'],
   distinguishes: ['runtime_identity', 'era_boundary'],
   status_semantics: ['exposed', 'derived', 'not_available'],
   extract(extractor, context) {
@@ -206,7 +207,8 @@ const claudeSettingsAtStartExtractor = defineExtractor({
   runtimes: ['claude-code'],
   reliability_tier: 'artifact_derived',
   features_produced: ['claude_settings_at_start'],
-  serves_loop: ['pipeline_integrity'],
+  // agent_performance: showThinkingSummaries + effective_effort_level ARE runtime settings context per loop theory_of_change.
+  serves_loop: ['pipeline_integrity', 'agent_performance'],
   distinguishes: ['settings_at_start', 'effort_override'],
   status_semantics: ['exposed', 'derived', 'not_available'],
   extract(extractor, context) {
@@ -446,7 +448,8 @@ const runtimeEraBoundaryRegistryExtractor = defineExtractor({
   runtimes: ['claude-code'],
   reliability_tier: 'direct_observation',
   features_produced: ['runtime_era_boundary_registry'],
-  serves_loop: ['pipeline_integrity'],
+  // cross_session_patterns: era_boundary IS the era-boundary-comparability distinguishing feature of this loop (registry.cjs:84).
+  serves_loop: ['pipeline_integrity', 'cross_session_patterns'],
   distinguishes: ['era_partition', 'non_comparable_query_warning'],
   status_semantics: ['exposed', 'not_available'],
   extract(extractor, context) {

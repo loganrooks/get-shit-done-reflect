@@ -93,7 +93,8 @@ const sessionMetaProvenanceExtractor = defineExtractor({
   runtimes: ['claude-code'],
   reliability_tier: 'artifact_derived',
   features_produced: ['session_meta_provenance'],
-  serves_loop: ['pipeline_integrity'],
+  // signal_quality: session_meta provenance IS the signal_provenance distinguishing feature (registry.cjs:70) - distinguishes LLM-extracted facets from direct observation.
+  serves_loop: ['pipeline_integrity', 'signal_quality'],
   distinguishes: ['derived_lifecycle', 'manual_write_path', 'coverage_gaps'],
   status_semantics: ['derived', 'not_available'],
   extract(extractor, context) {
@@ -157,7 +158,8 @@ const sessionJsonlCoverageAuditExtractor = defineExtractor({
   runtimes: ['claude-code'],
   reliability_tier: 'artifact_derived',
   features_produced: ['session_jsonl_coverage_audit'],
-  serves_loop: ['pipeline_integrity'],
+  // cross_session_patterns: coverage gaps across sessions are THE coverage-stratification distinguishing feature (registry.cjs:85) - 57.5's two uncovered JSONL sessions (E5.8 Finding E) exemplify why.
+  serves_loop: ['pipeline_integrity', 'cross_session_patterns'],
   distinguishes: ['matched_sessions', 'unmatched_sessions', 'missing_runtime_source'],
   status_semantics: ['derived', 'not_available'],
   extract(extractor, context) {

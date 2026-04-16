@@ -322,7 +322,8 @@ const runtimeSourcePresenceExtractor = defineExtractor({
   runtimes: ['claude-code', 'codex-cli'],
   reliability_tier: 'artifact_derived',
   features_produced: ['runtime_source_presence'],
-  serves_loop: ['pipeline_integrity'],
+  // cross_runtime_comparison: runtime_source_presence IS the availability-marker distinguishing feature of this loop (registry.cjs:100) - symmetry emerges here.
+  serves_loop: ['pipeline_integrity', 'cross_runtime_comparison'],
   distinguishes: ['runtime_source_presence', 'runtime_coverage_gaps'],
   status_semantics: ['exposed', 'not_available', 'not_emitted'],
   extract(extractor, context) {

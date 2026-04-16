@@ -202,7 +202,8 @@ const codexRuntimeMetadataExtractor = defineExtractor({
   runtimes: ['codex-cli'],
   reliability_tier: 'direct_observation',
   features_produced: ['codex_runtime_metadata'],
-  serves_loop: ['pipeline_integrity', 'intervention_lifecycle'],
+  // agent_performance: reasoning_effort + sandbox_policy ARE reasoning-effort stratification (registry.cjs:56). cross_runtime_comparison: this extractor IS named in LOOP_DEFINITIONS.cross_runtime_comparison.named_metrics (registry.cjs:94).
+  serves_loop: ['pipeline_integrity', 'intervention_lifecycle', 'agent_performance', 'cross_runtime_comparison'],
   distinguishes: ['codex_runtime_identity', 'codex_reasoning_and_sandbox_provenance'],
   status_semantics: ['exposed', 'derived', 'not_available'],
   extract(extractor, context) {

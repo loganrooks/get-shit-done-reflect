@@ -137,7 +137,8 @@ function buildGsdrExtractors(registryApi) {
     runtimes: ['project'],
     reliability_tier: 'direct_observation',
     features_produced: ['automation_signal_yield'],
-    serves_loop: ['pipeline_integrity'],
+    // signal_quality: automation_signal_yield IS named in LOOP_DEFINITIONS.signal_quality.named_metrics (registry.cjs:64); signal_yield is a distinguishing feature (registry.cjs:71).
+    serves_loop: ['pipeline_integrity', 'signal_quality'],
     distinguishes: ['sensor_signal_yield', 'missing_signal_yield_persistence'],
     status_semantics: ['exposed', 'not_available', 'not_emitted'],
     extract(extractor, context) {
@@ -286,7 +287,8 @@ function buildGsdrExtractors(registryApi) {
     runtimes: ['project'],
     reliability_tier: 'artifact_derived',
     features_produced: ['kb_signal_stats'],
-    serves_loop: ['pipeline_integrity'],
+    // signal_quality: kb_signal_stats IS named in LOOP_DEFINITIONS.signal_quality.named_metrics (registry.cjs:63) - tagging here closes the gap between declaration and dispatch.
+    serves_loop: ['pipeline_integrity', 'signal_quality'],
     distinguishes: ['kb_signal_counts', 'kb_freshness_state'],
     status_semantics: ['derived', 'not_available', 'not_emitted'],
     extract(extractor, context) {
