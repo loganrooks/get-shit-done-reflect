@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: ready_to_plan
-stopped_at: Phase 57.4 complete — verifier passed 9/9 must-haves; /gsdr:audit skill shipped end-to-end; ready for next phase (58)
-last_updated: "2026-04-10T20:10:00.000Z"
-last_activity: 2026-04-10
+stopped_at: Phase 57.5 context captured from the measurement deliberation + audit correction chain; ready for plan-phase
+last_updated: "2026-04-16T18:58:57.000Z"
+last_activity: 2026-04-16
 progress:
-  total_phases: 17
+  total_phases: 19
   completed_phases: 9
   total_plans: 26
   completed_plans: 26
-  percent: 100
+  percent: 47
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.4 (Audit Skill & Investigatory Type) — discuss-phase v2 complete + framing-corrected; ready for plan-phase. Phase 57.4 **radically rethinks the formalization of the auditing workflow** (3-axis taxonomy, obligations paradigm, Rule 5, I1-I4, three new obligations) and supersedes core design commitments of Phase 57.3.
+**Current focus:** v1.20 Phase 57.5 (Measurement Architecture & Retroactive Foundation) — context captured from the measurement deliberation, the 2026-04-16 audit correction chain, and spikes 009/010. This phase builds the three-layer measurement architecture (`raw -> extractor registry -> interpretation`), lands the first intervention-lifecycle and pipeline-integrity extractors, repairs kb freshness, and proves the architecture is genuinely cross-runtime with at least one Codex extractor.
 
 ## Current Position
 
-Phase: 57.4 of 64 (Audit Skill & Investigatory Type) — Complete
-Plan: 6 of 6
-Status: Phase complete; verifier passed 9/9 must-haves; /gsdr:audit skill shipped end-to-end (command + agent + profile entry + v2 reference files + REQUIREMENTS.md updates + runtime install). Next: Phase 58 (Structural Enforcement Gates).
-Last activity: 2026-04-10
+Phase: 57.5 of 64 (Measurement Architecture & Retroactive Foundation) — Context ready
+Plan: 0 of TBD
+Status: Discuss-phase complete; context ready for planning. Next: Phase 57.5 plan-phase (architecture + first extractor wave + retroactive query foundation).
+Last activity: 2026-04-16
 
-Progress: [██████████] 100%
+Progress: [█████░░░░░] 47%
 
 ## Performance Metrics
 
@@ -71,6 +71,9 @@ v1.13-v1.18 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
 
+- [Roadmap/Requirements 2026-04-16]: MEAS family added (34 requirements across ARCH/RUNTIME/DERIVED/GSDR), Phases 57.5/57.6/57.7 inserted, and Phase 58 now depends on 57.7
+- [Pre-57.5 governance 2026-04-16]: source families are now explicit -- `RUNTIME` (transcripts), `DERIVED` (`/insights` products), and `GSDR` (our own artifacts/config/state); session-meta is no longer treated as live runtime telemetry
+- [Pre-57.5 evidence 2026-04-16]: thinking-summary length is usable for reasoning-load/emission questions only with strong gating/stratification; it is NOT a reasoning-quality proxy, so quality evaluation remains out of 57.5 scope
 - [55-01]: Adopted model-profiles.cjs as-is from upstream f7549d43; plan mentioned resolveModel but upstream exports getAgentToModelMapForProfile -- file correct as upstream version
 - [55-01]: Single commit for all 5 pure upstream modules per commit-per-merge-category strategy
 - [Roadmap]: 10 phases (55-64) derived from 53 requirements across 9 categories
@@ -166,6 +169,7 @@ Recent decisions affecting current work:
 - Phase 57.4 inserted after Phase 57: Audit Skill & Investigatory Type — build /gsdr:audit command + gsdr-auditor agent, add investigatory audit type with frame-reflexive ground rules. Two concerns: (1) operational — invocable audit skill that 57.3 deferred, (2) epistemic — investigatory type and frame-reflexivity practice revealed as missing by Phase 57 investigation. Derived from: `sig-2026-04-09-phase-573-deferred-audit-skill-no-command`, `deliberation: phase-scope-translation-loss-audit-capability-gap.md`, quick task 260409-pz6 REVIEW.md
 - Phase 57.4 scope reframed (2026-04-10) from "extension of Phase 57.3 audit infrastructure" to "**radical rethinking of the formalization of the auditing workflow**". The flat 8-type taxonomy, template-based output paradigm, and type-family ground rules from Phase 57.3 do not express the complexities of the auditing situation; Phase 57.4 supersedes these core design commitments with a 3-axis taxonomy (subject × orientation × delegation), obligations paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations (chain integrity, dispatch hygiene, framework invisibility). The operational skill (command + agent) is the vehicle for the reconstruction; the rewrite of `audit-conventions.md` and `audit-ground-rules.md` is the primary deliverable, not a side effect. Derived from: `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` (open — fed forward), `audit-taxonomy-retrospective-analysis.md` (validates 3-axis model against 13 audit sessions), `forms-excess-and-framework-becoming.md`, `sig-2026-04-10-discuss-phase-authority-weighting-gap` (triggered the framing correction after context-checker ran)
 - Phase 62 WF-01 pulled forward into Phase 57.4 (2026-04-10): cross-model delegation becomes an `audit_delegation` mode on `/gsdr:audit` rather than a standalone `/gsdr:cross-model-review` command. Phase 62 goal: "Five workflow gaps" → "Four workflow gaps". REQUIREMENTS.md WF-01 phase column updated. WF-01 requirement text (still names standalone command) flagged for potential revision in ROADMAP.md Phase 62 note; not yet rewritten pending 57.4 implementation settlement. Derived from: `audit-taxonomy-three-axis-obligations.md` (audits are primary cross-model use case)
+- Phases 57.5/57.6/57.7 inserted after Phase 57.4 (2026-04-16): Measurement Architecture & Retroactive Foundation, Multi-Loop Coverage & Human Interface, and Content Analysis & Epistemic Deepening. Derived from `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` and the 2026-04-15 measurement signal inventory correction chain.
 
 ### Pending Todos
 
@@ -213,16 +217,19 @@ Recent decisions affecting current work:
 - Phase 57.4 working artifacts: `57.4-CONTEXT.md` (v2, framing-corrected 2026-04-10), `57.4-DISCUSSION-LOG.md` (includes context-checker verification log + Framing Correction appendix), `pre-phase-archive/REVIEW.md` (Rule 5 + I1-I4 source, still load-bearing), `pre-phase-archive/57.4-DISCUSSION-LOG-v1.md` (v1 verification work)
 - Reference files carrying 57.4 supersession banners (to be rewritten by this phase): `get-shit-done/references/audit-conventions.md`, `get-shit-done/references/audit-ground-rules.md`
 - New signals this session: `sig-2026-04-10-discuss-phase-authority-weighting-gap.md` (capability-gap, severity high; one observation, needs corroboration)
+- Deliberation for 57.5 (primary authority): `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` (open — phase split and design authority)
+- Phase 57.5 evidence chain: `.planning/audits/2026-04-15-measurement-signal-inventory/` (handoff, correction-and-extensions, anomaly-stress-tests, E5.8 experiment) plus spikes 009 and 010
+- Phase 57.5 working artifacts: `57.5-CONTEXT.md` and `57.5-DISCUSSION-LOG.md` (captured 2026-04-16, context-checker pending)
 
 ## Session Continuity
 
-Last session: 2026-04-10T21:15:49.764Z
-Stopped at: Session resumed — Phase 57.4 execution complete + PR #45 open; post-phase followthrough chain pending (collect-signals → push → CI → review/merge → release → audit Phase 57)
-Resume file: Consumed `.planning/phases/57.4-audit-skill-investigatory-type/.continue-here.md`
+Last session: 2026-04-16T18:58:57.000Z
+Stopped at: Phase 57.5 discuss-phase complete; planning-ready context captured from the measurement deliberation, anomaly correction chain, and spike 009/010 decisions
+Resume artifact: `.planning/audits/2026-04-15-measurement-signal-inventory/pre-57.5-handoff.md`
 
-This session (2026-04-10):
+This session (2026-04-16):
 
-- Context-checker ran on v2 CONTEXT.md: 53/55 PASS, 1 WARN (DC-4 type), 0 FAIL; verification log in DISCUSSION-LOG.md
-- User identified framing failure the checker was not positioned to catch: CONTEXT.md and first-pass ROADMAP edits were treating superseded reference docs as authoritative base
-- Signal logged, banners applied, CONTEXT.md + ROADMAP.md + REQUIREMENTS.md + STATE.md all rewritten to flow authority from deliberations
-- 7 commits on branch: c7c3a78e (signal), 3f6b405a (banners), 5eb336b1 (CONTEXT+DISCUSSION-LOG framing correction), 2d293a73 (ROADMAP+REQUIREMENTS reframe), f0948ca5 (CONTEXT polish + files_affected manifest), + 2 more for STATE and ROADMAP followup (this commit onwards)
+- Resumed from the pre-57.5 handoff rather than a `.continue-here` checkpoint because governance (A1-A5) had already shipped and the next critical-path step was explicitly `/gsdr:discuss-phase 57.5`
+- Read the authority chain named in the handoff: the measurement deliberation, correction-and-extensions, anomaly stress tests, E5.8 results, spike 009 DECISION, spike 010 DECISION, and spike 010 qualitative comparison
+- Created `.planning/phases/57.5-measurement-architecture-retroactive-foundation/57.5-CONTEXT.md` and `57.5-DISCUSSION-LOG.md` in exploratory/auto mode
+- Updated STATE.md so resume/status no longer points at Phase 58 while the roadmap and handoff require 57.5 planning first
