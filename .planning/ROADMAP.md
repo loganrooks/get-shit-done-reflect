@@ -237,7 +237,16 @@ Derived from: `.planning/audits/2026-04-10-phase-57-vision-drop-investigation/` 
   5. Expanded Codex coverage beyond the single proof-of-concept extractor from 57.5 (compaction extractor is a natural cross-runtime bridge)
   6. Facets (MEAS-DERIVED-02) adopted with mandatory coverage-stratification clause on every aggregate analysis — stratify by session size
 Authority: `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` §5 Phase 57.6 scope
-**Plans:** TBD (requires /gsdr:discuss-phase 57.6)
+**Plans:** 7 plans
+
+Plans:
+- [ ] 57.6-01-PLAN.md — Layered serves_loop tag edits on 9 existing extractors (close 57.5 residual tech debt)
+- [ ] 57.6-02-PLAN.md — Stratification helper + canonical skip_reason enum in feature-manifest.json
+- [ ] 57.6-03-PLAN.md — Source loader extensions (thinking/clear/compaction scans in claude.cjs + codex.cjs)
+- [ ] 57.6-04-PLAN.md — Runtime + Codex extractors (thinking, marker density, clear invocation, compaction cross-runtime)
+- [ ] 57.6-05-PLAN.md — Derived + GSDR extractors (facets semantic, write-path provenance, insights mass-rewrite, skip-reason canonical) + automation warn-validation
+- [ ] 57.6-06-PLAN.md — Text-first report layer (primitives + dispatch + 6 per-loop templates + router)
+- [ ] 57.6-07-PLAN.md — Two committed diagnostic artifacts (vision-drop + facets coverage asymmetry)
 
 ### Phase 57.7: Content Analysis & Epistemic Deepening (INSERTED)
 
