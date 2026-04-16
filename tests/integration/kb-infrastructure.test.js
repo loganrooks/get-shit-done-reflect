@@ -12,6 +12,7 @@ const { installKBScripts, migrateKB, countKBEntries } = require('../../bin/insta
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..')
 const KB_CREATE_DIRS = path.join(REPO_ROOT, '.claude/agents/kb-create-dirs.sh')
 const KB_REBUILD_INDEX = path.join(REPO_ROOT, 'get-shit-done/bin/kb-rebuild-index.sh')
+const GSD_TOOLS = path.join(REPO_ROOT, 'get-shit-done/bin/gsd-tools.cjs')
 
 /** Run a KB shell script with HOME overridden to tmpdir and cwd set to tmpdir */
 function runKbScript(script, homeDir) {
@@ -363,6 +364,59 @@ Signal without explicit status field.
     expect(index).toContain('## Spikes (0)')
     expect(index).not.toContain('## Lessons')
     expect(index).toContain('**Total entries:** 1')
+  })
+
+  tmpdirTest('project-local KB rebuild refreshes kb.db alongside index.md', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, '.planning', 'knowledge')
+    await fs.mkdir(kbDir, { recursive: true })
+    await writeSignal(kbDir, 'local-signal.md', {
+      id: 'sig-2026-01-15-local',
+      project: 'local-project',
+    })
+
+    const output = runKbScript(KB_REBUILD_INDEX, tmpdir)
+
+    expect(output).toContain('Index and kb.db rebuilt')
+    expect(fsSync.existsSync(path.join(kbDir, 'index.md'))).toBe(true)
+    expect(fsSync.existsSync(path.join(kbDir, 'kb.db'))).toBe(true)
+
+    const stats = JSON.parse(execSync(`node "${GSD_TOOLS}" kb stats --cwd "${tmpdir}" --raw`, {
+      cwd: tmpdir,
+      env: { ...process.env, HOME: tmpdir },
+      encoding: 'utf8',
+      timeout: 10000,
+    }).trim())
+
+    expect(stats.total_signals).toBe(1)
+    expect(stats.by_project[0].project).toBe('local-project')
+  })
+
+  tmpdirTest('rerunning project-local rebuild refreshes kb.db after corpus changes', async ({ tmpdir }) => {
+    const kbDir = path.join(tmpdir, '.planning', 'knowledge')
+    await fs.mkdir(kbDir, { recursive: true })
+    await writeSignal(kbDir, 'first-signal.md', {
+      id: 'sig-2026-01-15-first',
+      project: 'refresh-project',
+    })
+
+    runKbScript(KB_REBUILD_INDEX, tmpdir)
+
+    await writeSignal(kbDir, 'second-signal.md', {
+      id: 'sig-2026-01-16-second',
+      project: 'refresh-project',
+    })
+
+    runKbScript(KB_REBUILD_INDEX, tmpdir)
+
+    const stats = JSON.parse(execSync(`node "${GSD_TOOLS}" kb stats --cwd "${tmpdir}" --raw`, {
+      cwd: tmpdir,
+      env: { ...process.env, HOME: tmpdir },
+      encoding: 'utf8',
+      timeout: 10000,
+    }).trim())
+
+    expect(stats.total_signals).toBe(2)
+    expect(stats.by_project[0].n).toBe(2)
   })
 })
 

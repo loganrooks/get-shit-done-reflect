@@ -183,6 +183,7 @@ function newestModifiedAt(records) {
 
 function loadGitHistory(cwd, observedAt, options = {}) {
   const limit = options.limit || 50;
+  const commitMarker = '__GSDR_COMMIT__';
   const scopePaths = [
     '.planning',
     'get-shit-done/bin/kb-rebuild-index.sh',
@@ -198,7 +199,7 @@ function loadGitHistory(cwd, observedAt, options = {}) {
         'log',
         `-n${limit}`,
         '--date=iso-strict',
-        '--pretty=format:%H%x1f%cI%x1f%an%x1f%s%x1e',
+        `--pretty=format:${commitMarker}%n%H%x1f%cI%x1f%an%x1f%s`,
         '--name-only',
         '--',
         ...scopePaths,
@@ -207,7 +208,7 @@ function loadGitHistory(cwd, observedAt, options = {}) {
     );
 
     const commits = output
-      .split('\x1e')
+      .split(commitMarker)
       .map(chunk => chunk.trim())
       .filter(Boolean)
       .map(chunk => {
