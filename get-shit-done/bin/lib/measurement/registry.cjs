@@ -9,6 +9,100 @@ const RUNTIME_SYMMETRY_MARKERS = [
   'asymmetric_only',
 ];
 const RELIABILITY_TIERS = ['direct_observation', 'artifact_derived', 'inferred', 'cross_runtime'];
+const LOOP_DEFINITIONS = Object.freeze({
+  intervention_lifecycle: Object.freeze({
+    label: 'Intervention Lifecycle',
+    keywords: ['intervention lifecycle', 'intervention', 'handoff', 'verification'],
+    named_metrics: [
+      'intervention_lifecycle_artifact_trace',
+      'runtime_session_identity',
+      'human_turn_count_jsonl',
+    ],
+    theory_of_change: 'Trace how plans, interventions, summaries, verifications, and commits propagate so phase changes can be diagnosed retroactively.',
+    distinguishing_features: [
+      'artifact trace completeness',
+      'handoff-to-summary continuity',
+      'runtime provenance continuity',
+    ],
+  }),
+  pipeline_integrity: Object.freeze({
+    label: 'Pipeline Integrity',
+    keywords: ['pipeline integrity', 'pipeline', 'freshness', 'registry', 'coverage'],
+    named_metrics: [
+      'automation_health',
+      'automation_signal_yield',
+      'kb_freshness_probe',
+      'runtime_jsonl_coverage',
+    ],
+    theory_of_change: 'Make hidden pipeline breakage visible so missing rebuilds, stale caches, and source gaps cannot silently distort measurements.',
+    distinguishing_features: [
+      'freshness state',
+      'coverage gaps',
+      'registry parity',
+    ],
+  }),
+  agent_performance: Object.freeze({
+    label: 'Agent Performance',
+    keywords: ['agent performance', 'performance', 'reasoning effort'],
+    named_metrics: [
+      'codex_runtime_metadata',
+      'runtime_session_identity',
+      'claude_settings_at_start',
+    ],
+    theory_of_change: 'Relate execution outcomes to model, profile, reasoning level, and runtime metadata so performance differences can be attributed instead of guessed.',
+    distinguishing_features: [
+      'model/profile provenance',
+      'reasoning-effort stratification',
+      'runtime settings context',
+    ],
+  }),
+  signal_quality: Object.freeze({
+    label: 'Signal Quality',
+    keywords: ['signal quality', 'signal quality loop', 'signal'],
+    named_metrics: [
+      'kb_signal_stats',
+      'automation_signal_yield',
+      'session_meta_provenance',
+    ],
+    theory_of_change: 'Evaluate whether the system is producing timely, trustworthy, and actionable signals rather than accumulating stale or low-value observations.',
+    distinguishing_features: [
+      'signal freshness',
+      'signal yield',
+      'signal provenance',
+    ],
+  }),
+  cross_session_patterns: Object.freeze({
+    label: 'Cross-Session Patterns',
+    keywords: ['cross session', 'cross-session', 'session patterns', 'patterns'],
+    named_metrics: [
+      'session_jsonl_coverage_audit',
+      'runtime_era_boundary_registry',
+      'runtime_session_identity',
+    ],
+    theory_of_change: 'Compare sessions across time while preserving era boundaries and coverage differences so apparent trends are not artifacts of corpus drift.',
+    distinguishing_features: [
+      'era-boundary comparability',
+      'coverage stratification',
+      'session clustering metadata',
+    ],
+  }),
+  cross_runtime_comparison: Object.freeze({
+    label: 'Cross-Runtime Comparison',
+    keywords: ['cross runtime', 'cross-runtime', 'runtime comparison', 'mixed runtime'],
+    named_metrics: [
+      'runtime_source_presence',
+      'codex_runtime_metadata',
+      'runtime_dimension',
+    ],
+    theory_of_change: 'Compare Claude, Codex, and project-local measurement surfaces without collapsing runtime asymmetry into a false notion of parity.',
+    distinguishing_features: [
+      'symmetry markers',
+      'availability markers',
+      'runtime-specific provenance',
+    ],
+  }),
+});
+const LOOP_KEYS = Object.freeze(Object.keys(LOOP_DEFINITIONS));
 const REQUIRED_EXTRACTOR_FIELDS = [
   'name',
   'source_family',
@@ -35,6 +129,15 @@ function normalizeStringList(value, fieldName, extractorName) {
     .filter(Boolean);
   if (normalized.length === 0) {
     throw new Error(`Extractor ${extractorName} must provide non-empty ${fieldName}`);
+  }
+  return [...new Set(normalized)];
+}
+
+function normalizeLoopList(value, fieldName, extractorName) {
+  const normalized = normalizeStringList(value, fieldName, extractorName)
+    .map(loop => loop.toLowerCase().replace(/[\s-]+/g, '_'));
+  for (const loop of normalized) {
+    assertEnum(loop, LOOP_KEYS, fieldName, extractorName);
   }
   return [...new Set(normalized)];
 }
@@ -72,7 +175,7 @@ function validateExtractorEntry(entry) {
   normalizeStringList(entry.raw_sources, 'raw_sources', extractorName);
   normalizeStringList(entry.runtimes, 'runtimes', extractorName);
   normalizeStringList(entry.features_produced, 'features_produced', extractorName);
-  normalizeStringList(entry.serves_loop, 'serves_loop', extractorName);
+  normalizeLoopList(entry.serves_loop, 'serves_loop', extractorName);
   normalizeStringList(entry.distinguishes, 'distinguishes', extractorName);
   assertEnum(String(entry.reliability_tier), RELIABILITY_TIERS, 'reliability_tier', extractorName);
 
@@ -96,7 +199,7 @@ function defineExtractor(definition) {
     runtimes: normalizeStringList(definition.runtimes, 'runtimes', definition.name),
     reliability_tier: String(definition.reliability_tier).trim(),
     features_produced: normalizeStringList(definition.features_produced, 'features_produced', definition.name),
-    serves_loop: normalizeStringList(definition.serves_loop, 'serves_loop', definition.name),
+    serves_loop: normalizeLoopList(definition.serves_loop, 'serves_loop', definition.name),
     distinguishes: normalizeStringList(definition.distinguishes, 'distinguishes', definition.name),
     status_semantics: definition.status_semantics
       ? normalizeStringList(definition.status_semantics, 'status_semantics', definition.name)
@@ -374,6 +477,30 @@ const DEFAULT_FAMILY_EXTRACTORS = {
   GSDR: [gsdrStateSurfaceExtractor, kbFreshnessProbeExtractor],
 };
 
+function loadBuiltInFamilyExtractors(options = {}) {
+  if (options.includePhaseExtractors === false) {
+    return {
+      RUNTIME: [],
+      DERIVED: [],
+      GSDR: [],
+    };
+  }
+
+  const { RUNTIME_EXTRACTORS } = require('./extractors/runtime.cjs');
+  const { DERIVED_EXTRACTORS } = require('./extractors/derived.cjs');
+  const { buildGsdrExtractors } = require('./extractors/gsdr.cjs');
+  const { CODEX_EXTRACTORS } = require('./extractors/codex.cjs');
+
+  return {
+    RUNTIME: [...RUNTIME_EXTRACTORS, ...CODEX_EXTRACTORS],
+    DERIVED: [...DERIVED_EXTRACTORS],
+    GSDR: [...buildGsdrExtractors({
+      defineExtractor,
+      buildFeatureRecord,
+    })],
+  };
+}
+
 function normalizeAdditionalExtractors(additionalExtractors) {
   const normalized = {
     RUNTIME: [],
@@ -394,11 +521,16 @@ function normalizeAdditionalExtractors(additionalExtractors) {
 }
 
 function buildRegistry(options = {}) {
+  const builtIn = loadBuiltInFamilyExtractors(options);
   const additional = normalizeAdditionalExtractors(options.additionalExtractors);
   const byFamily = new Map();
 
   for (const family of SOURCE_FAMILIES) {
-    const extractors = [...DEFAULT_FAMILY_EXTRACTORS[family], ...additional[family]];
+    const extractors = [
+      ...DEFAULT_FAMILY_EXTRACTORS[family],
+      ...builtIn[family],
+      ...additional[family],
+    ];
     byFamily.set(family, extractors);
   }
 
@@ -413,6 +545,7 @@ function buildRegistry(options = {}) {
   return {
     version: '1.0',
     families: SOURCE_FAMILIES,
+    loopCatalog: LOOP_DEFINITIONS,
     byFamily,
     extractors,
     byName: new Map(extractors.map(extractor => [extractor.name, extractor])),
@@ -433,6 +566,7 @@ function runRegistryExtractors(registry, context) {
 module.exports = {
   SOURCE_FAMILIES,
   FEATURE_AVAILABILITY_STATUSES,
+  LOOP_DEFINITIONS,
   RUNTIME_SYMMETRY_MARKERS,
   RELIABILITY_TIERS,
   REQUIRED_EXTRACTOR_FIELDS,

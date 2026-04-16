@@ -9,6 +9,7 @@ import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 const GSD_TOOLS = path.resolve(process.cwd(), 'get-shit-done/bin/gsd-tools.cjs')
 const REGISTRY_PATH = path.resolve(process.cwd(), 'get-shit-done/bin/lib/measurement/registry.cjs')
+const { buildRegistry, validateExtractorEntry } = require(REGISTRY_PATH)
 
 const [major, minor] = process.versions.node.split('.').map(Number)
 const hasNodeSqlite = major > 22 || (major === 22 && minor >= 5)
@@ -16,14 +17,18 @@ const describeIf = hasNodeSqlite ? describe : describe.skip
 
 function runMeasurement(tmpdir, args = []) {
   const command = ['measurement', ...args, '--raw'].join(' ')
-  const result = execSync(`node --no-warnings "${GSD_TOOLS}" ${command}`, {
+  let result = execSync(`node --no-warnings "${GSD_TOOLS}" ${command}`, {
     cwd: tmpdir,
     env: { ...process.env, HOME: path.join(tmpdir, 'home') },
     encoding: 'utf-8',
     timeout: 15000,
     stdio: ['pipe', 'pipe', 'pipe'],
   })
-  return JSON.parse(result.trim())
+  result = result.trim()
+  if (result.startsWith('@file:')) {
+    result = fs.readFileSync(result.slice('@file:'.length), 'utf-8')
+  }
+  return JSON.parse(result)
 }
 
 async function setupMeasurementProject(tmpdir) {
@@ -80,8 +85,6 @@ describeIf('measurement store bootstrap', () => {
 })
 
 describe('measurement registry contract', () => {
-  const { buildRegistry, validateExtractorEntry } = require(REGISTRY_PATH)
-
   tmpdirTest('default registry entries expose required metadata fields', async () => {
     const registry = buildRegistry()
     expect(registry.extractors.length).toBeGreaterThan(0)
@@ -115,6 +118,7 @@ describeIf('measurement query contract', () => {
   tmpdirTest('preserves provenance freshness and symmetry fields before full coverage exists', async ({ tmpdir }) => {
     await setupMeasurementProject(tmpdir)
 
+    const registry = buildRegistry()
     runMeasurement(tmpdir, ['rebuild'])
     const response = runMeasurement(tmpdir, ['query', 'overview'])
 
@@ -140,8 +144,17 @@ describeIf('measurement query contract', () => {
       'asymmetric_derived',
       'asymmetric_only',
     ])
+    expect(response.contract.loop_catalog).toHaveProperty('agent_performance')
+    expect(response.contract.loop_catalog.cross_runtime_comparison.named_metrics).toContain('runtime_dimension')
     expect(response.contract.runtime_symmetry_markers).toContain('asymmetric_only')
     expect(response.contract.feature_availability_statuses).toContain('not_available')
+    expect(response.provenance.store.registry_count).toBe(registry.extractors.length)
+    expect(response.provenance.live_overlay.extractor_count).toBe(registry.extractors.length)
+
+    const db = openMeasurementDb(tmpdir)
+    const registryCount = db.prepare('SELECT COUNT(*) AS count FROM extractor_registry').get().count
+    db.close()
+    expect(registryCount).toBe(registry.extractors.length)
 
     expect(response.features.length).toBeGreaterThan(0)
     const feature = response.features[0]

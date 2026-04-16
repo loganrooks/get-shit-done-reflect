@@ -287,9 +287,12 @@ describeIf('measurement retroactive mixed-runtime integration', () => {
 
     expect(rebuild.status).toBe('ok')
     expect(rebuild.store.db_path).toContain(path.join('.planning', 'measurement', 'measurement.db'))
+    expect(rebuild.registry.extractor_count).toBeGreaterThan(10)
 
     expect(response.provenance.store.present).toBe(true)
+    expect(response.provenance.store.registry_count).toBe(rebuild.registry.extractor_count)
     expect(response.provenance.live_overlay.enabled).toBe(true)
+    expect(response.provenance.live_overlay.extractor_count).toBe(rebuild.registry.extractor_count)
     expect(response.runtime_dimension.runtimes_observed).toContain('claude-code')
     expect(response.runtime_dimension.runtimes_observed).toContain('codex-cli')
     expect(response.runtime_dimension.availability_markers.exposed.count).toBeGreaterThan(0)
@@ -301,6 +304,8 @@ describeIf('measurement retroactive mixed-runtime integration', () => {
       'asymmetric_derived',
       'asymmetric_only',
     ])
+    expect(response.contract.loop_catalog.signal_quality.named_metrics).toContain('kb_signal_stats')
+    expect(response.contract.loop_catalog.cross_session_patterns.distinguishing_features).toContain('era-boundary comparability')
 
     const codexRow = response.features.find(feature => feature.extractor === 'codex_runtime_metadata')
     expect(codexRow).toBeTruthy()

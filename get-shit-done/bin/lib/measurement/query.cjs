@@ -4,13 +4,12 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const {
-  buildFeatureRecord,
   buildRegistry,
   FEATURE_AVAILABILITY_STATUSES,
+  LOOP_DEFINITIONS,
   RELIABILITY_TIERS,
   RUNTIME_SYMMETRY_MARKERS,
   SOURCE_FAMILIES,
-  defineExtractor,
   runRegistryExtractors,
 } = require('./registry.cjs');
 const {
@@ -22,15 +21,6 @@ const {
 const { loadClaude } = require('./sources/claude.cjs');
 const { loadCodex } = require('./sources/codex.cjs');
 const { loadGsdr } = require('./sources/gsdr.cjs');
-const { RUNTIME_EXTRACTORS } = require('./extractors/runtime.cjs');
-const { DERIVED_EXTRACTORS } = require('./extractors/derived.cjs');
-const { buildGsdrExtractors } = require('./extractors/gsdr.cjs');
-const { CODEX_EXTRACTORS } = require('./extractors/codex.cjs');
-
-const GSDR_EXTRACTORS = buildGsdrExtractors({
-  defineExtractor,
-  buildFeatureRecord,
-});
 
 const FRESHNESS_STATUSES = ['fresh', 'stale', 'unknown'];
 
@@ -426,26 +416,16 @@ function buildGsdrSourceSnapshots(cwd, gsdrRaw, observedAt) {
   ];
 }
 
-function buildPhaseCompleteRegistry() {
-  return buildRegistry({
-    additionalExtractors: {
-      RUNTIME: [...RUNTIME_EXTRACTORS, ...CODEX_EXTRACTORS],
-      DERIVED: [...DERIVED_EXTRACTORS],
-      GSDR: [...GSDR_EXTRACTORS],
-    },
-  });
-}
-
 function classifyQuestion(question) {
   const text = String(question || 'overview').toLowerCase();
-  const loops = [];
-
-  if (text.includes('pipeline')) loops.push('pipeline_integrity');
-  if (text.includes('intervention')) loops.push('intervention_lifecycle');
+  const loops = Object.entries(LOOP_DEFINITIONS)
+    .filter(([, definition]) => (definition.keywords || []).some(keyword => text.includes(keyword)))
+    .map(([loop]) => loop);
 
   return {
     normalized: text,
     loops,
+    available_loops: Object.keys(LOOP_DEFINITIONS),
     overview: loops.length === 0,
   };
 }
@@ -687,6 +667,7 @@ function buildContract() {
     runtime_symmetry_markers: RUNTIME_SYMMETRY_MARKERS,
     reliability_tiers: RELIABILITY_TIERS,
     freshness_statuses: FRESHNESS_STATUSES,
+    loop_catalog: LOOP_DEFINITIONS,
   };
 }
 
@@ -698,6 +679,7 @@ function loadStoreMetadata(cwd) {
       present: false,
       schema_version: STORE_SCHEMA_VERSION,
       rebuild_run_id: null,
+      registry_count: null,
       rebuilt_at: null,
     };
   }
@@ -710,6 +692,7 @@ function loadStoreMetadata(cwd) {
       present: true,
       schema_version: rebuildRun && rebuildRun.store_version ? rebuildRun.store_version : STORE_SCHEMA_VERSION,
       rebuild_run_id: rebuildRun ? rebuildRun.id : null,
+      registry_count: rebuildRun ? rebuildRun.registry_count : null,
       rebuilt_at: rebuildRun ? rebuildRun.completed_at : null,
     };
   } finally {
@@ -723,7 +706,7 @@ function queryMeasurement(cwd, options = {}) {
   const scope = options.scope || 'project';
   const runtimeFilter = options.runtime || null;
   const questionInfo = classifyQuestion(question);
-  const registry = buildPhaseCompleteRegistry();
+  const registry = options.registry || buildRegistry();
   const claude = loadClaude(cwd, {
     ...(options.claudeOptions || {}),
     ...(options.homeDir ? { homeDir: options.homeDir } : {}),
