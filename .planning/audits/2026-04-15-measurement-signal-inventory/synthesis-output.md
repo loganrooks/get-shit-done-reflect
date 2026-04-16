@@ -17,6 +17,8 @@ input_files:
 
 # Synthesis: Measurement Signal Inventory (4-Lane Composite)
 
+> **Correction (2026-04-16):** Anomaly A4 and Section 2.3 (thinking content as hard ceiling) have been falsified by subsequent research + intervention test. See `correction-and-extensions-2026-04-16.md` for corrected claim, new signals, updated architectural decisions, and expanded MEAS- implications. Original claims in this document are preserved for audit traceability per status downgrade prohibition.
+
 ## 1. Cross-Lane Signal Map
 
 Signals are grouped by the feedback loop they primarily serve. Each signal appears once under its primary loop; secondary loop coverage is noted in the "Also serves" column. The table is exhaustive across all four lanes.
