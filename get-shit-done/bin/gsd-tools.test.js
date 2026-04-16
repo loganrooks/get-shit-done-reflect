@@ -6,7 +6,7 @@ const { test, describe, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execSync, spawnSync } = require('child_process');
 
 const TOOLS_PATH = path.join(__dirname, 'gsd-tools.cjs');
 
@@ -26,6 +26,20 @@ function runGsdTools(args, cwd = process.cwd()) {
       error: err.stderr?.toString().trim() || err.message,
     };
   }
+}
+
+function runGsdToolsCapture(args, cwd = process.cwd()) {
+  const result = spawnSync('node', [TOOLS_PATH, ...args.split(' ')], {
+    cwd,
+    encoding: 'utf-8',
+    stdio: ['pipe', 'pipe', 'pipe'],
+  });
+  return {
+    success: result.status === 0,
+    status: result.status,
+    output: (result.stdout || '').trim(),
+    error: (result.stderr || '').trim(),
+  };
 }
 
 // Create temp directory structure
@@ -1160,6 +1174,38 @@ describe('init commands with --include flag', () => {
     assert.ok(output.roadmap_content, 'roadmap_content included');
     assert.ok(output.project_content, 'project_content included');
     assert.ok(output.config_content, 'config_content included');
+  });
+
+  test('init progress does not warn for valid fork config namespaces', () => {
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'STATE.md'), '# State');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'ROADMAP.md'), '# Roadmap');
+    fs.writeFileSync(path.join(tmpDir, '.planning', 'PROJECT.md'), '# Project');
+    fs.writeFileSync(
+      path.join(tmpDir, '.planning', 'config.json'),
+      JSON.stringify({
+        mode: 'yolo',
+        gsd_reflect_version: '1.19.4',
+        devops: {
+          ci_provider: 'none',
+          deploy_target: 'none',
+          commit_convention: 'freeform',
+          environments: [],
+        },
+        automation: {
+          reflection: {
+            auto_reflect: false,
+            threshold_phases: 3,
+            min_signals: 5,
+            phases_since_last_reflect: 3,
+            last_reflect_at: null,
+          },
+        },
+      })
+    );
+
+    const result = runGsdToolsCapture('init progress --include state,roadmap,project,config', tmpDir);
+    assert.ok(result.success, `Command failed: ${result.error}`);
+    assert.ok(!result.error.includes('unknown config key(s)'), `unexpected warning: ${result.error}`);
   });
 
   test('missing files return null in content fields', () => {
