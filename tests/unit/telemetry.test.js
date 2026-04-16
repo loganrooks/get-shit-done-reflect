@@ -3,8 +3,11 @@ import { tmpdirTest } from '../helpers/tmpdir.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { execSync } from 'node:child_process'
+import { createRequire } from 'node:module'
 
 const GSD_TOOLS = path.resolve(process.cwd(), 'get-shit-done/bin/gsd-tools.cjs')
+const require = createRequire(import.meta.url)
+const { DatabaseSync } = require('node:sqlite')
 
 /**
  * Helper: run a telemetry CLI command and parse JSON output
@@ -132,6 +135,100 @@ async function createFixtureCorpus(tmpdir) {
     first_prompt: '/gsd:plan-phase 57',
     message_hours: [10, 10, 11],
   })
+}
+
+async function createCodexFixture(tmpdir, sessionId = 'codex-telemetry-thread') {
+  const codexDir = path.join(tmpdir, 'home', '.codex')
+  const rolloutPath = path.join(
+    codexDir,
+    'sessions',
+    '2026',
+    '04',
+    '16',
+    `rollout-2026-04-16T20-15-10-${sessionId}.jsonl`
+  )
+  const stateStorePath = path.join(codexDir, 'state_5.sqlite')
+
+  await fs.mkdir(path.dirname(rolloutPath), { recursive: true })
+  await fs.writeFile(
+    rolloutPath,
+    [
+      JSON.stringify({
+        timestamp: '2026-04-16T20:15:12.547Z',
+        type: 'session_meta',
+        payload: {
+          id: sessionId,
+          timestamp: '2026-04-16T20:15:10.139Z',
+          cwd: tmpdir,
+          originator: 'codex-tui',
+          cli_version: '0.121.0',
+          model_provider: 'openai',
+          source: 'cli',
+        },
+      }),
+      JSON.stringify({
+        timestamp: '2026-04-16T20:15:12.551Z',
+        type: 'event_msg',
+        payload: { type: 'user_message', message: 'telemetry compatibility fixture' },
+      }),
+    ].join('\n')
+  )
+
+  await fs.mkdir(path.dirname(stateStorePath), { recursive: true })
+  const db = new DatabaseSync(stateStorePath)
+  db.exec(`
+    CREATE TABLE threads (
+      id TEXT PRIMARY KEY,
+      rollout_path TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      source TEXT NOT NULL DEFAULT 'cli',
+      model_provider TEXT NOT NULL,
+      cwd TEXT NOT NULL,
+      title TEXT NOT NULL DEFAULT '',
+      sandbox_policy TEXT NOT NULL,
+      approval_mode TEXT NOT NULL,
+      tokens_used INTEGER NOT NULL DEFAULT 0,
+      has_user_event INTEGER NOT NULL DEFAULT 0,
+      archived INTEGER NOT NULL DEFAULT 0,
+      archived_at INTEGER,
+      git_sha TEXT,
+      git_branch TEXT,
+      git_origin_url TEXT,
+      cli_version TEXT NOT NULL DEFAULT '',
+      first_user_message TEXT NOT NULL DEFAULT '',
+      agent_nickname TEXT,
+      agent_role TEXT,
+      memory_mode TEXT NOT NULL DEFAULT 'enabled',
+      model TEXT,
+      reasoning_effort TEXT,
+      agent_path TEXT,
+      created_at_ms INTEGER,
+      updated_at_ms INTEGER
+    )
+  `)
+  db.prepare(`
+    INSERT INTO threads (
+      id, rollout_path, created_at, updated_at, model_provider, cwd,
+      sandbox_policy, approval_mode, cli_version, model, reasoning_effort,
+      created_at_ms, updated_at_ms
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    sessionId,
+    rolloutPath,
+    1776370510,
+    1776370618,
+    'openai',
+    tmpdir,
+    JSON.stringify({ type: 'danger-full-access' }),
+    'never',
+    '0.121.0',
+    'gpt-5.4',
+    'xhigh',
+    1776370510139,
+    1776370618000
+  )
+  db.close()
 }
 
 // --- Tests ---
@@ -350,5 +447,35 @@ describe('telemetry summary with facets', () => {
     expect(result.facets_coverage.matched).toBe(1)
     expect(result.facets_coverage.total).toBe(3)
     expect(result.facets_coverage.coverage_pct).toBeCloseTo(33.3, 0)
+  })
+})
+
+describe('telemetry phase compatibility', () => {
+  tmpdirTest('phase telemetry exposes shared measurement compatibility without dropping legacy fields', async ({ tmpdir }) => {
+    await createFixtureCorpus(tmpdir)
+    await fs.mkdir(path.join(tmpdir, '.planning', 'phases', '57-retroactive-test'), { recursive: true })
+    await fs.writeFile(
+      path.join(tmpdir, '.planning', 'config.json'),
+      JSON.stringify({
+        gsd_reflect_version: '1.19.4+dev',
+        model_profile: 'quality',
+      }, null, 2)
+    )
+    await fs.writeFile(
+      path.join(tmpdir, '.planning', 'STATE.md'),
+      '# State\n\nTelemetry phase compatibility fixture.\n'
+    )
+    await createCodexFixture(tmpdir)
+
+    const result = runTelemetry(tmpdir, 'phase', ['57'])
+
+    expect(result.phase).toBe('57')
+    expect(result).toHaveProperty('session_count')
+    expect(result).toHaveProperty('time_window')
+    expect(result).toHaveProperty('_measurement_compatibility')
+    expect(result._measurement_compatibility.runtime_dimension.runtimes_observed).toContain('claude-code')
+    expect(result._measurement_compatibility.runtime_dimension.runtimes_observed).toContain('codex-cli')
+    expect(result._measurement_compatibility.runtime_dimension.availability_markers.exposed.count).toBeGreaterThan(0)
+    expect(result._measurement_compatibility.runtime_dimension.symmetry_markers.asymmetric_only.count).toBeGreaterThan(0)
   })
 })
