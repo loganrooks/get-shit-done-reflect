@@ -50,6 +50,67 @@ function safeStat(filePath) {
   }
 }
 
+function scanRolloutEvents(rolloutPath) {
+  const result = {
+    count: 0,
+    replacement_history_lengths: [],
+    context_compacted_events: 0,
+    scanned: false,
+    error: null,
+  };
+
+  if (!rolloutPath || typeof rolloutPath !== 'string') {
+    result.error = 'no_path';
+    return result;
+  }
+
+  if (!fs.existsSync(rolloutPath)) {
+    result.error = 'file_missing';
+    return result;
+  }
+
+  let raw;
+  try {
+    raw = fs.readFileSync(rolloutPath, 'utf8');
+  } catch (error) {
+    result.error = `read_error: ${error.code || error.message}`;
+    return result;
+  }
+
+  result.scanned = true;
+  let partialParse = false;
+
+  for (const line of raw.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+
+    let parsed;
+    try {
+      parsed = JSON.parse(line);
+    } catch {
+      partialParse = true;
+      continue;
+    }
+
+    const payload = parsed && typeof parsed === 'object' && parsed.payload && typeof parsed.payload === 'object'
+      ? parsed.payload
+      : parsed;
+
+    if (!payload || payload.type !== 'context_compacted') continue;
+
+    result.count++;
+    result.context_compacted_events++;
+    if (Array.isArray(payload.replacement_history)) {
+      result.replacement_history_lengths.push(payload.replacement_history.length);
+    }
+  }
+
+  if (partialParse) {
+    result.error = 'partial_parse';
+  }
+
+  return result;
+}
+
 function normalizeProjectPath(projectPath) {
   if (!projectPath) return null;
   const resolved = path.resolve(String(projectPath));
@@ -467,4 +528,5 @@ module.exports = {
   loadCodex,
   parseSandboxPolicy,
   readSessionMetaHeader,
+  scanRolloutEvents,
 };

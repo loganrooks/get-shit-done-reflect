@@ -351,6 +351,119 @@ function extractEffortOverride(records) {
   };
 }
 
+function scanThinkingBlocks(records) {
+  if (!Array.isArray(records) || records.length === 0) {
+    return {
+      emitted: false,
+      block_count: 0,
+      total_chars: 0,
+      visible_chars: 0,
+      over_visible_ratio: null,
+      dispatch_context: 'parent',
+    };
+  }
+
+  let blockCount = 0;
+  let totalChars = 0;
+  let visibleChars = 0;
+  let dispatchContext = 'parent';
+
+  for (const record of records) {
+    if (!record) continue;
+    if (record.isSidechain === true) {
+      dispatchContext = 'subagent';
+      break;
+    }
+
+    const entrypoint = typeof record.entrypoint === 'string' ? record.entrypoint.toLowerCase() : '';
+    if (dispatchContext === 'parent' && entrypoint.startsWith('sdk')) {
+      dispatchContext = 'headless';
+    }
+  }
+
+  for (const record of records) {
+    if (!record || record.type !== 'assistant') continue;
+    const content = record.message && record.message.content;
+    if (!Array.isArray(content)) continue;
+
+    for (const block of content) {
+      if (!block || typeof block !== 'object') continue;
+
+      if (block.type === 'thinking') {
+        const thinkingText = typeof block.thinking === 'string'
+          ? block.thinking
+          : (typeof block.text === 'string' ? block.text : '');
+        if (!thinkingText) continue;
+        blockCount++;
+        totalChars += thinkingText.length;
+        continue;
+      }
+
+      if (block.type === 'text' && typeof block.text === 'string') {
+        visibleChars += block.text.length;
+      }
+    }
+  }
+
+  return {
+    emitted: blockCount > 0,
+    block_count: blockCount,
+    total_chars: totalChars,
+    visible_chars: visibleChars,
+    over_visible_ratio: visibleChars > 0 ? totalChars / visibleChars : null,
+    dispatch_context: dispatchContext,
+  };
+}
+
+function countClearInvocations(records) {
+  if (!Array.isArray(records)) return 0;
+
+  let count = 0;
+  for (const record of records) {
+    if (!record || record.type !== 'user') continue;
+    const normalized = normalizeUserContent(record.message ? record.message.content : null);
+    if (normalized.text.includes('<command-name>/clear</command-name>')) {
+      count++;
+    }
+  }
+
+  return count;
+}
+
+function extractCompactionEvents(records) {
+  const result = {
+    count: 0,
+    triggers: {
+      manual: 0,
+      auto: 0,
+    },
+    pre_tokens: [],
+    summary_messages: 0,
+  };
+
+  if (!Array.isArray(records)) return result;
+
+  for (const record of records) {
+    if (!record) continue;
+
+    if (record.type === 'system' && record.subtype === 'compact_boundary') {
+      result.count++;
+      const metadata = record.compact_metadata || {};
+      if (metadata.trigger === 'manual') result.triggers.manual++;
+      if (metadata.trigger === 'auto') result.triggers.auto++;
+      if (typeof metadata.pre_tokens === 'number') {
+        result.pre_tokens.push(metadata.pre_tokens);
+      }
+    }
+
+    if (record.type === 'assistant' && record.isCompactSummary === true) {
+      result.summary_messages++;
+    }
+  }
+
+  return result;
+}
+
 function getClaudePaths(cwd, options = {}) {
   const homeDir = options.homeDir || os.homedir();
   return {
@@ -651,10 +764,12 @@ function buildFacetIndex(facetsDir) {
     const filePath = path.join(facetsDir, filename);
     const record = safeReadJson(filePath);
     if (!record || !record.session_id) continue;
+    const stat = safeStat(filePath);
     index.set(record.session_id, {
       path: filePath,
       record,
-      modified_at: toIso(safeStat(filePath) && safeStat(filePath).mtime),
+      modified_at: toIso(stat && stat.mtime),
+      mtime_ms: stat && stat.mtime ? stat.mtime.getTime() : null,
     });
   }
 
@@ -772,6 +887,7 @@ function loadClaude(cwd, options = {}) {
 
     const parentJsonl = linkParentJsonl(record, paths.projects_dir, parentIndex);
     const facetEntry = facetIndex.get(record.session_id) || null;
+    const sessionMetaStat = safeStat(filePath);
     const jsonlData = parentJsonl.status === 'matched' && parentJsonl.path
       ? parseJsonlFile(parentJsonl.path)
       : {
@@ -782,6 +898,9 @@ function loadClaude(cwd, options = {}) {
           first_timestamp: null,
           last_timestamp: null,
         };
+    const parentJsonlStat = parentJsonl.status === 'matched' && parentJsonl.path
+      ? safeStat(parentJsonl.path)
+      : null;
 
     if (facetEntry) matchedFacetIds.add(record.session_id);
 
@@ -793,7 +912,8 @@ function loadClaude(cwd, options = {}) {
       session_meta: {
         record,
         path: filePath,
-        modified_at: toIso(safeStat(filePath) && safeStat(filePath).mtime),
+        modified_at: toIso(sessionMetaStat && sessionMetaStat.mtime),
+        mtime_ms: sessionMetaStat && sessionMetaStat.mtime ? sessionMetaStat.mtime.getTime() : null,
         provenance: SESSION_META_PROVENANCE,
       },
       facets: facetEntry
@@ -802,16 +922,19 @@ function loadClaude(cwd, options = {}) {
             record: facetEntry.record,
             path: facetEntry.path,
             modified_at: facetEntry.modified_at,
+            mtime_ms: facetEntry.mtime_ms,
           }
         : {
             state: fs.existsSync(paths.facets_dir) ? 'unmatched' : 'source_unavailable',
             record: null,
             path: null,
             modified_at: null,
+            mtime_ms: null,
           },
       parent_jsonl: {
         ...parentJsonl,
         ...jsonlData,
+        mtime_ms: parentJsonlStat && parentJsonlStat.mtime ? parentJsonlStat.mtime.getTime() : null,
       },
       jsonl_usage: jsonlData.record_count > 0 ? aggregateAssistantUsage(jsonlData.records) : null,
       human_turns: jsonlData.record_count > 0 ? countHumanTurns(jsonlData.records) : null,
@@ -830,6 +953,17 @@ function loadClaude(cwd, options = {}) {
       },
     };
 
+    session.thinking = session.parent_jsonl.status === 'matched' && Array.isArray(session.parent_jsonl.records)
+      ? scanThinkingBlocks(session.parent_jsonl.records)
+      : {
+          emitted: false,
+          block_count: 0,
+          total_chars: 0,
+          visible_chars: 0,
+          over_visible_ratio: null,
+          dispatch_context: 'unavailable',
+        };
+
     loadResult.sessions.push(session);
   }
 
@@ -844,8 +978,10 @@ module.exports = {
   SESSION_META_PROVENANCE,
   aggregateAssistantUsage,
   classifyClaudeEra,
+  countClearInvocations,
   countHumanTurns,
   encodeClaudeProjectPath,
+  extractCompactionEvents,
   extractEffortOverride,
   getClaudePaths,
   isHumanTurnRecord,
