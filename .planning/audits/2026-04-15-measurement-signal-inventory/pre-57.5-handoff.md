@@ -1,7 +1,7 @@
 # Pre-Phase 57.5 Handoff
 
 **Originally written:** 2026-04-15
-**Last updated:** 2026-04-16 (eighth refresh — E6 complete; A6 capability-layer falsification via binary introspection; §6.22 MEAS-RUNTIME-COMPACT added; cross-runtime compaction symmetry restored)
+**Last updated:** 2026-04-16 (ninth refresh — governance A1–A5 SHIPPED in commit `5d236d6f`; MEAS- family + 57.5/57.6/57.7 phases + GATE-09 committed; coverage 60→94, milestone 16→19 phases, traceability populated)
 
 ---
 
@@ -12,13 +12,13 @@
 - ✅ Spike 010 (same matrix in parent-session dispatch via headless `claude -p`) — outcome `partial`. H1/H2 confirmed, H3 falsified, H4 untestable. 5 new structural findings + 1 qualitative finding surfaced a load-bearing gap.
 - ✅ Settings change applied (`showThinkingSummaries: true` in `~/.claude/settings.json`)
 - ✅ Memory updated with three new records (research-before-giving-up, thinking-redaction-controllable, session-meta-frozen)
-- ✅ **Anomaly stress-tests E1–E6 COMPLETE + E5.8 empirical /insights test executed** (2026-04-16, uncommitted). Documents: `anomaly-stress-tests.md`, `e5.8-insights-experiment/{PREDICTIONS,RESULTS}.md`, `e5.8-insights-experiment/{pre,post}-snapshot/`. **16 new MEAS- proposals** surfaced + 4 candidate signals. E5 REFRAMED E3/E4's shutdown interpretation; E5.8 empirically confirmed E5's reframe AND surfaced a **two-path write model**; E6 **falsified** A6 at the capability layer (Claude Code has full `/compact` subsystem with `compact_boundary` emissions — synthesis's "ABSENT" reflected corpus-non-firing, not capability absence).
-- ⏳ Governance updates (A1–A5) — NOT started; **MEAS- spec shape further revised by E1–E6 findings + E5.8 empirical refinements** (16 new reqs from E1–E6 atop spike 010's 7 = **23 total candidates** for A1). Subfamily split is THREE-way: MEAS-RUNTIME + MEAS-DERIVED + MEAS-GSDR.
+- ✅ **Anomaly stress-tests E1–E6 + E5.8 empirical /insights test** (2026-04-16). Documents: `anomaly-stress-tests.md`, `e5.8-insights-experiment/{PREDICTIONS,RESULTS}.md`, `e5.8-insights-experiment/{pre,post}-snapshot/`. **16 new MEAS- proposals** surfaced + 4 candidate signals. E5 REFRAMED E3/E4's shutdown interpretation; E5.8 empirically confirmed E5's reframe AND surfaced a **two-path write model**; E6 **falsified** A6 at the capability layer (Claude Code has full `/compact` subsystem with `compact_boundary` emissions — synthesis's "ABSENT" reflected corpus-non-firing, not capability absence). **Committed in `5d236d6f` alongside governance.**
+- ✅ **Governance updates (A1–A5) SHIPPED** in commit `5d236d6f` (2026-04-16). REQUIREMENTS.md gained a new Measurement Infrastructure section with 34 MEAS- requirements (10 ARCH + 11 RUNTIME + 6 DERIVED + 6 GSDR) + GATE-09 scope-translation ledger in Structural Enforcement; coverage 60→94 with traceability mapping. ROADMAP.md inserted Phases 57.5/57.6/57.7 with requirement mappings + success criteria from deliberation §5; Phase 58 Depends-on → 57.7; milestone 16→19 phases, 71→105 reqs; totals 67→70. PROJECT.md Core Value extended with chiasmic-measurement framing + pointer to deliberation. Signal `sig-2026-04-09-phase57-active-measurement-vision-dropped-at-planning` gained a Correction section acknowledging codex audit's disconfirmation of the "purely passive" framing + links to 57.5/57.6/57.7 remediation plan.
 - ⏳ External-data research (B4–B6) — NOT started
-- ⏳ `/gsdr:discuss-phase 57.5` — NOT started; design questions unchanged from prior refresh but §E findings add governance texture
-- ⏳ Follow-up spikes queued — 3 original + 1 new (C4 marker-set calibration); C2 and C3 unchanged; C5 possible (LLM-as-judge for reasoning quality)
+- ⏳ `/gsdr:discuss-phase 57.5` — NOT started; design questions unchanged but now have the full 34-requirement MEAS- spec + three-subfamily split committed to ground the discussion in
+- ⏳ Follow-up spikes queued — 3 original + 1 new (C4 marker-set calibration); C2 and C3 unchanged; C5 possible (LLM-as-judge for reasoning quality); C7 new (compaction-symmetry intervention test)
 
-If you have fresh context, **read this handoff + `correction-and-extensions-2026-04-16.md` + `anomaly-stress-tests.md` (E1–E6 + E5.8) + `e5.8-insights-experiment/RESULTS.md` + spike 009's `DECISION.md` + spike 010's `DECISION.md` + spike 010's `qualitative_comparison.md`**, then proceed with the recommended execution order at the bottom.
+If you have fresh context, **read this handoff + `correction-and-extensions-2026-04-16.md` + `anomaly-stress-tests.md` (E1–E6 + E5.8) + `e5.8-insights-experiment/RESULTS.md` + spike 009's `DECISION.md` + spike 010's `DECISION.md` + spike 010's `qualitative_comparison.md`**, then proceed to Step 5 (`/gsdr:discuss-phase 57.5`) — governance is done; the critical path now is the discussion that will shape the Phase 57.5 plan.
 
 ---
 
@@ -350,26 +350,27 @@ Step 2 is done. Revised sequence for next session:
    - ✅ E5.8 done — empirical /insights test executed; E5 reframe confirmed; two-path write model + facets budget filter surfaced
    - ✅ E6 done — A6 capability-layer falsified via binary introspection + authoritative docs; `/compact` subsystem confirmed; zero firing in corpus explained by 1M-context + `/clear`-habit. §6.22 MEAS-RUNTIME-COMPACT added
    - ⚠️ E5 materially reframed E3 and E4's shutdown-event interpretation; E5.8 refined E5's single-path write model to two-path; E6 reframed synthesis §4.3 "ABSENT" as observed-corpus-only, not capability — see E-status table
-3. ⏳ Step 3 (governance A1–A5) — now has **23 MEAS- candidates** to synthesize (7 from spike 010 + 16 from E1–E6 + E5.8). First step: adopt the THREE-subfamily split (MEAS-RUNTIME + MEAS-DERIVED + MEAS-GSDR). E5's §6.19 (facets) is the highest-impact addition; E5.8 adds mandatory coverage-stratification clause for facets-based aggregate analysis; E6's §6.22 is capability-level (low near-term data richness — zero events in corpus — but restores cross-runtime compaction symmetry).
-4. ⏳ Step 4 (B4–B6) — unchanged
-5. ⏳ Step 5 (`/gsdr:discuss-phase 57.5`) — **question 10**: does §6.19's facets discovery change the framing of Q8 (reasoning-QUALITY measurement)? E5.8 partially answered this — facets coverage is size-biased, so facets alone cannot grade short-session agents. **New sub-point for Q6** (cross-runtime experiment): E6 reframes compaction-event extractor as symmetric, so a long-session controlled experiment on each runtime provides ground-truth for the MEAS-RUNTIME-COMPACT extractor as well.
-6. ⏳ Step 6 (spikes C2/C3/C4/C5/C6) — C5 scope shifts (facets reliability). **New optional spike C7**: compaction-symmetry intervention test — run deliberate long 200k-context Sonnet session until auto-compact fires, verify extractor output. Would tighten E6's Test-3 hedge ("consistency-tested, not intervention-tested").
+3. ✅ **Step 3 (governance A1–A5) SHIPPED** in commit `5d236d6f` (2026-04-16). 34 MEAS- requirements synthesized from 23 candidate proposals (7 spike 010 + 16 E1–E6 + E5.8) under the three-subfamily split (MEAS-ARCH + MEAS-RUNTIME + MEAS-DERIVED + MEAS-GSDR). GATE-09 added to Phase 58. Phases 57.5/57.6/57.7 added to ROADMAP.md with per-phase requirement mappings derived from deliberation §5. Traceability populated (60→94 coverage). PROJECT.md Core Value updated. Signal correction section added. Authority docs (anomaly-stress-tests.md, e5.8-insights-experiment/, pre-57.5-handoff.md through eighth refresh) committed alongside for repo coherence.
+4. ⏳ Step 4 (B4–B6) — unchanged, optional, can happen in parallel with Step 5
+5. ⏳ Step 5 (`/gsdr:discuss-phase 57.5`) — **CRITICAL PATH, next action.** The discussion has the full 34-requirement MEAS- spec + three-subfamily split + Phase 57.5 success criteria as committed context to ground the 10 design questions. Key questions (carried forward): Q1 agent-performance measurement substrate choice (a/b/c/d); Q6 cross-runtime controlled experiment (E6 reframes compaction-event extractor as symmetric, so long-session controlled experiment provides ground-truth for MEAS-RUNTIME-COMPACT as well); Q8 reasoning-QUALITY measurement in-scope or deferred; Q10 does §6.19's facets discovery change the framing of Q8 (E5.8 partially answered: facets coverage is size-biased, so facets alone cannot grade short-session agents).
+6. ⏳ Step 6 (spikes C2/C3/C4/C5/C6/C7) — queued; run after 57.5 planning. C5 scope shifts toward facets-reliability investigation. **C7 new**: compaction-symmetry intervention test — deliberate long 200k-context Sonnet session until auto-compact fires, verify extractor output against docs; tightens E6's Test-3 hedge.
 
 **Fresh-context entry point:** if resuming with cleared context, the FIRST action should be:
 1. Read this handoff (top to bottom)
-2. Read `anomaly-stress-tests.md` (§E1.6, §E2.7, §E3.7, §E4.7, §E5.7, §E5.8, §E6.2–§E6.7 are the sharpest refinements)
-3. Read `e5.8-insights-experiment/RESULTS.md` — the empirical grounding for E5 + E5.8 findings
-4. E5 + E5.8 are the most recent DERIVED-side findings; E6 is the most recent RUNTIME-side finding. Pay attention to: §E5.2 Layer 4 (the `/insights` discovery), §E5.4 §6.19 (facets as MEAS- source), §E5.8 Finding A (correcting the "2,595 JSONL" error → 211 parent sessions), §E5.8 Finding B (two-path write model), §E5.8 Finding C (facets coverage filter), §E6.2 Layer 2 (binary strings confirming `/compact` subsystem), §E6.4 (cache-trajectory + 1M-context hypothesis)
-5. Jump to governance A1 synthesis with the full **23-candidate** MEAS- list + three-subfamily split
+2. Read REQUIREMENTS.md (the new Measurement Infrastructure section) + ROADMAP.md (Phases 57.5/57.6/57.7) to understand the committed scope
+3. Read `anomaly-stress-tests.md` (§E1.6, §E2.7, §E3.7, §E4.7, §E5.7, §E5.8, §E6.2–§E6.7 are the sharpest refinements; §6.7–§6.22 are the MEAS- proposals that became requirements)
+4. Read `e5.8-insights-experiment/RESULTS.md` — the empirical grounding for E5 + E5.8 findings
+5. E5 + E5.8 are the most recent DERIVED-side findings; E6 is the most recent RUNTIME-side finding. Pay attention to: §E5.2 Layer 4 (the `/insights` discovery), §E5.4 §6.19 (facets as MEAS- source), §E5.8 Finding A (correcting the "2,595 JSONL" error → 211 parent sessions), §E5.8 Finding B (two-path write model), §E5.8 Finding C (facets coverage filter), §E6.2 Layer 2 (binary strings confirming `/compact` subsystem), §E6.4 (cache-trajectory + 1M-context hypothesis)
+6. Jump to Step 5: `/gsdr:discuss-phase 57.5` with the full committed context
 
-**Recommendation for next session:** A1 governance synthesis. All six stress-tests done.
+**Recommendation for next session:** `/gsdr:discuss-phase 57.5`. Governance is done. All six stress-tests done. The discussion is the next load-bearing step — its output shapes the Phase 57.5 plan.
 
 **Uncommitted files at end of this session (for cold-start diff awareness):**
-- `.planning/audits/2026-04-15-measurement-signal-inventory/anomaly-stress-tests.md` (E1–E6 + E5.8)
-- `.planning/audits/2026-04-15-measurement-signal-inventory/pre-57.5-handoff.md` (this file; eighth refresh)
-- `.planning/audits/2026-04-15-measurement-signal-inventory/e5.8-insights-experiment/` (full dir: PREDICTIONS.md, RESULTS.md, pre-snapshot/, post-snapshot/)
-- Memory updates: `project_session_meta_frozen.md` (rewritten), `feedback_scope_cascade_assumption.md` (new), `MEMORY.md` (index updated)
-- Pre-existing uncommitted: `.planning/config.json`, `.planning/migration-log.md` (v1.19.4+dev migration; NOT this work)
+- `.planning/audits/2026-04-15-measurement-signal-inventory/pre-57.5-handoff.md` (ninth refresh — this file, recording Step 3 completion; will be committed with next follow-up)
+- Pre-existing uncommitted (unrelated to this work): `.planning/config.json`, `.planning/migration-log.md` (v1.19.4+dev migration)
+- Memory updates from prior sessions: `project_session_meta_frozen.md`, `feedback_scope_cascade_assumption.md`, `MEMORY.md` index
+
+All A1–A5 governance + authority docs are COMMITTED (`5d236d6f`).
 
 **LIVE SIDE-EFFECTS OF E5.8 (not reverted — intentional):**
 - `~/.claude/usage-data/` contains 471 session-meta + 161 facets (post-/insights state, NOT the original 268 + 109 March 15 snapshot)
