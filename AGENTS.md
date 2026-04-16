@@ -50,3 +50,8 @@ workflow areas, and list the test commands you ran.
 Never hand-edit `.claude/` copies; they are installer outputs and will be
 overwritten. Prefer source edits in `agents/`, `commands/`, and `get-shit-done/`,
 then rebuild or reinstall as needed.
+
+## Agent Reasoning Preference
+
+When spawning agents for work in this repository, use `xhigh` reasoning effort
+for all agents unless the user explicitly says otherwise.

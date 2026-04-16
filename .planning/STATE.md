@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: ready_to_plan
-stopped_at: Phase 57.5 context captured from the measurement deliberation + audit correction chain; ready for plan-phase
-last_updated: "2026-04-16T18:58:57.000Z"
+status: ready_to_execute
+stopped_at: Phase 57.5 planned as a 4-plan set (substrate, runtime/derived extractors, GSDR freshness, Codex proof); ready for execute-phase
+last_updated: "2026-04-16T19:34:00.000Z"
 last_activity: 2026-04-16
 progress:
   total_phases: 19
   completed_phases: 9
-  total_plans: 26
+  total_plans: 30
   completed_plans: 26
   percent: 47
 ---
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.5 (Measurement Architecture & Retroactive Foundation) — context captured from the measurement deliberation, the 2026-04-16 audit correction chain, and spikes 009/010. This phase builds the three-layer measurement architecture (`raw -> extractor registry -> interpretation`), lands the first intervention-lifecycle and pipeline-integrity extractors, repairs kb freshness, and proves the architecture is genuinely cross-runtime with at least one Codex extractor.
+**Current focus:** v1.20 Phase 57.5 (Measurement Architecture & Retroactive Foundation) — planned as a 4-plan execution set from the measurement deliberation, the 2026-04-16 audit correction chain, and spikes 009/010. The phase now has concrete plans for the substrate, the first runtime/derived extractor wave, the GSDR freshness path, and the Codex proof-of-architecture slice.
 
 ## Current Position
 
-Phase: 57.5 of 64 (Measurement Architecture & Retroactive Foundation) — Context ready
-Plan: 0 of TBD
-Status: Discuss-phase complete; context ready for planning. Next: Phase 57.5 plan-phase (architecture + first extractor wave + retroactive query foundation).
+Phase: 57.5 of 64 (Measurement Architecture & Retroactive Foundation) — Planned
+Plan: 1 of 4
+Status: Plan-phase complete; ready to execute. Next: Phase 57.5 execute-phase (substrate + store/query foundation first).
 Last activity: 2026-04-16
 
 Progress: [█████░░░░░] 47%
