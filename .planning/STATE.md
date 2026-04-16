@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: ready_to_execute
-stopped_at: Phase 57.5 planned as a 4-plan set (substrate, runtime/derived extractors, GSDR freshness, Codex proof); ready for execute-phase
-last_updated: "2026-04-16T19:34:00.000Z"
-last_activity: 2026-04-16
+status: in_progress
+stopped_at: "Phase 57.5 Plan 01 complete -- measurement substrate landed. Plans 02/03 (runtime/derived + GSDR freshness) next."
+last_updated: "2026-04-16T19:55:39.000Z"
+last_activity: 2026-04-16 -- Phase 57.5 Plan 01 executed
 progress:
   total_phases: 19
   completed_phases: 9
   total_plans: 30
-  completed_plans: 26
+  completed_plans: 27
   percent: 47
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.5 (Measurement Architecture & Retroactive Foundation) — planned as a 4-plan execution set from the measurement deliberation, the 2026-04-16 audit correction chain, and spikes 009/010. The phase now has concrete plans for the substrate, the first runtime/derived extractor wave, the GSDR freshness path, and the Codex proof-of-architecture slice.
+**Current focus:** v1.20 Phase 57.5 (Measurement Architecture & Retroactive Foundation) — executing the 4-plan set derived from the measurement deliberation, the 2026-04-16 audit correction chain, and spikes 009/010. The substrate plan is complete, and the runtime/derived plus GSDR wave is next.
 
 ## Current Position
 
-Phase: 57.5 of 64 (Measurement Architecture & Retroactive Foundation) — Planned
+Phase: 57.5 of 64 (Measurement Architecture & Retroactive Foundation)
 Plan: 1 of 4
-Status: Plan-phase complete; ready to execute. Next: Phase 57.5 execute-phase (substrate + store/query foundation first).
-Last activity: 2026-04-16
+Status: Plan 01 complete (measurement CLI/store/query substrate landed). Next: Plans 02/03 in parallel.
+Last activity: 2026-04-16 -- Phase 57.5 Plan 01 executed
 
 Progress: [█████░░░░░] 47%
 
@@ -36,7 +36,7 @@ Progress: [█████░░░░░] 47%
 
 **v1.20 Current:**
 
-- Plans completed: 17
+- Plans completed: 18
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -54,6 +54,7 @@ Progress: [█████░░░░░] 47%
 - 57.2-03: 4min, 3 tasks, 3 files
 - 57-01: 5min, 2 tasks, 2 files
 - 57-02: 5min, 2 tasks, 3 files
+- 57.5-01: 12min, 3 tasks, 7 files
 
 **v1.18 Final:**
 
@@ -233,3 +234,5 @@ This session (2026-04-16):
 - Read the authority chain named in the handoff: the measurement deliberation, correction-and-extensions, anomaly stress tests, E5.8 results, spike 009 DECISION, spike 010 DECISION, and spike 010 qualitative comparison
 - Created `.planning/phases/57.5-measurement-architecture-retroactive-foundation/57.5-CONTEXT.md` and `57.5-DISCUSSION-LOG.md` in exploratory/auto mode
 - Updated STATE.md so resume/status no longer points at Phase 58 while the roadmap and handoff require 57.5 planning first
+- Planned Phase 57.5 into four execution plans, tightened them against checker findings, and set the phase to `ready_to_execute`
+- Executed 57.5-01 on branch `gsd/phase-57.5-measurement-architecture-retroactive-foundation`, landing the measurement CLI/store/query substrate, test lock, and cache-artifact ignore rules
