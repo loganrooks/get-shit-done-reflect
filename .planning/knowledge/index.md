@@ -1,7 +1,7 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-10T22:07:37Z
-**Total entries:** 260
+**Generated:** 2026-04-16T05:32:06Z
+**Total entries:** 261
 
 ## Signals (254)
 
@@ -262,14 +262,20 @@
 | sig-2026-02-11-signal-workflow-context-bloat | get-shit-done-reflect | notable | detected | tags: | "2026-02-11 | active |
 | sig-2026-02-11-agent-inline-research-context-bloat | get-shit-done-reflect | notable | detected | tags: | "2026-02-11 | active |
 
-## Spikes (6)
+## Spikes (7)
 
 | ID | Project | Outcome | Tags | Date | Status |
 |----|---------|---------|------|------|--------|
+| spk-2026-04-16-thinking-summary-as-reasoning-proxy | get-shit-done-reflect | partial | measurement,phase-57.5,thinking-summaries,subagent-dispatch,claude-code-internals | 2026-04-16 | active |
 | spk-2026-03-01-claude-code-session-log-location | get-shit-done-reflect | confirmed | logging,sensor,claude-code,signal-collection | 2026-03-01 | active |
 | spk-2026-04-09-cross-runtime-otel-bridge-validation | get-shit-done-reflect | partial | telemetry,otel,codex,statusline,cross-runtime,token-accounting,rate-limits | "2026-04-09 | partial |
 | spk-2026-04-09-token-count-reliability | get-shit-done-reflect | confirmed | telemetry,session-meta,tokens,data-quality,caching | "2026-04-09 | active |
 | spk-2026-04-09-session-data-integrity-characterization | get-shit-done-reflect | confirmed | telemetry,session-meta,data-quality,integrity | "2026-04-09 | active |
 | spk-2026-04-09-facets-accuracy-validation | get-shit-done-reflect | partial | telemetry,facets,data-quality,correlation | "2026-04-09 | active |
 | spk-2026-04-09-behavioral-metric-signal-to-noise | get-shit-done-reflect | confirmed | telemetry,behavioral-metrics,session-meta,signal-analysis | "2026-04-09 | active |
+
+## Lessons (0)
+
+| ID | Project | Category | Tags | Date | Status |
+|----|---------|----------|------|------|--------|
 
