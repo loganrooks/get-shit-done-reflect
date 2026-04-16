@@ -12,7 +12,8 @@
 - ✅ Spike 010 (same matrix in parent-session dispatch via headless `claude -p`) **executed this session** — outcome `partial`. H1/H2 confirmed, H3 falsified, H4 untestable. 5 new structural findings + 1 qualitative finding surfaced a load-bearing gap (see below).
 - ✅ Settings change applied (`showThinkingSummaries: true` in `~/.claude/settings.json`)
 - ✅ Memory updated with three new records (research-before-giving-up, thinking-redaction-controllable, session-meta-frozen)
-- ⏳ Governance updates (A1–A5) — NOT started; **MEAS- spec shape revised by spike 010 findings** (see A1 below)
+- ⏳ **Anomaly stress-testing (Section E, NEW)** — only A4 fully resolved of 8 anomalies (A1–A8); correction doc §8 OQ9 flagged the others as untested. Triage done, execution pending. **These come BEFORE governance** since they may refine what extractors the MEAS- spec needs.
+- ⏳ Governance updates (A1–A5) — NOT started; **MEAS- spec shape revised by spike 010 findings** (see A1 below); may be further revised by anomaly work
 - ⏳ External-data research (B4–B6) — NOT started
 - ⏳ `/gsdr:discuss-phase 57.5` — NOT started; **one new design question added** (reasoning-quality measurement gap)
 - ⏳ Follow-up spikes queued — 3 original + 1 new (C4 marker-set calibration); C2 and C3 unchanged; C5 possible (LLM-as-judge for reasoning quality)
@@ -122,6 +123,38 @@ Spike artifacts: DESIGN.md, DECISION.md, analysis.md, qualitative_comparison.md,
 ---
 
 ## What remains
+
+### E. Anomaly stress-testing — NEW section, execute BEFORE governance
+
+The synthesis §5 Anomaly Register has 8 items (A1–A8), only one of which (A4) has been fully resolved. Correction doc §8 OQ9 explicitly flagged that "no comparable follow-up has been performed against A1, A2, A5, A6, A7, A8" — meaning the audit's "permanently empty" claim for A4 that was falsified could be symptomatic of other unexamined-but-flawed anomaly conclusions.
+
+These come BEFORE governance (Section A) because they may refine what extractors the MEAS- spec needs. A7 and A8 in particular expose measurement points that already exist in the harness, potentially obviating entire extractors.
+
+**Triage:**
+
+| # | Anomaly | Status | Action | Effort |
+|---|---------|--------|--------|--------|
+| E1 | **A7 — config.json automation stats** | Documented; `signal_collection fires=0 skips=13` | Inspect hook triggers; test why automated collection doesn't fire; document schema for MEAS- | ~15 min |
+| E2 | **A8 — kb.db SQLite signal index** | Documented as existing | `sqlite3 .planning/knowledge/kb.db .schema`; sample queries; check rebuild freshness; document for MEAS- | ~15 min |
+| E3 | **A5 — user_message_count overcount** | Known fix (filter `isMeta: true`) not validated | Sample 5-10 sessions; compare raw count vs filtered count vs human visual count; document exact filter rule | ~20 min |
+| E4 | **A1 — session-meta token semantics** | Partial: JSONL canonical, session-meta is "something else" | Empirical reverse-engineer: compare session-meta `input_tokens` to `sum(len(user_text_chars))/4` vs `len(user_Human_lines)` across sample sessions; identify formula | ~30 min |
+| E5 | **A2 — session-meta generation frozen** | Partial: B1 confirmed cutoff Mar 15, 2026 (v2.1.78/79) | Research: GitHub issues + Claude Code release notes for the specific v2.1.78/79 change that stopped generation; document as closed | ~20 min |
+| E6 | **A6 — Codex compaction, no Claude equivalent** | Unresolved: (1) Claude doesn't compact OR (2) logs it differently | Research-mode spike: docs/issues + empirically induce context pressure and observe JSONL; potential spike C6 | ~1-2 hrs |
+| (done) | **A4 — thinking permanently empty** | ✅ Falsified by correction doc + spike 010 | None | 0 |
+| (accept) | **A3 — format era boundaries** | Documented, load-bearing for 57.5 | None — accept and work within | 0 |
+| (spike) | **A9 — phantom thinking tokens** | Promoted from §7.3.b by correction doc | Queued as spike C3 (real tokenizer) | separate track |
+
+**Total effort: ~2-3 hrs for E1–E5 + optional ~1-2 hrs for E6.** E1 and E2 are pure inspection, no API calls. E3 is lightweight empirical. E4 and E5 are short research/empirical. E6 can be deferred or converted to a spike.
+
+**Deliverable:** append an "Anomaly follow-up (2026-04-17+)" section to `correction-and-extensions-2026-04-16.md` (or a new sibling doc `anomaly-stress-tests.md`) documenting each anomaly's stress-test outcome, in the same format the correction doc used for A4.
+
+**Why this matters for governance:** 
+- E1 (A7) findings may reveal automation-health signals that should be first-class MEAS- features (currently not in the spec)
+- E2 (A8) findings may reveal that signal-quality extractors should query kb.db rather than grep frontmatter
+- E3 (A5) findings fix a known extractor bug before it's encoded in the spec
+- E4 (A1) findings determine whether session-meta tokens should be a MEAS- field at all
+- E5 (A2) findings close the "what to do with session-meta going forward" question
+- E6 (A6) findings determine cross-runtime compaction-symmetry status (synthesis §2.3 classification)
 
 ### A. Governance updates (was Section A in original handoff — still valid, scope updated by correction doc)
 
@@ -234,17 +267,18 @@ Key design questions (revised after spike 010):
 
 ---
 
-## Recommended execution order (revised after spike 010)
+## Recommended execution order (revised: anomaly stress-testing now first)
 
-1. **Read this handoff + correction doc + spike 009 DECISION.md + spike 010 DECISION.md + spike 010 qualitative_comparison.md** (~25 min, add ~10 min vs previous handoff)
-2. **Do governance updates A1–A5** (1–2 hours) — critical path. The MEAS- requirements and ROADMAP entries should reflect: deliberation + correction document + spike 009 structural finding + spike 010 composite-feature revision + the reasoning-quality gap (A1 requirement #7 placeholder).
-3. **(Optional) Run B4–B6 as research tasks** — can happen during or after governance updates. Lightweight. Results inform discuss-phase but are not blocking.
-4. **`/gsdr:discuss-phase 57.5`** — the NINE questions in section D above (two new from spike 010: reasoning-quality scope + tool-use measurement strategy). Load-bearing inputs: spike 009 (subagent gate), spike 010 (headless viability + quality gap), correction doc (four-class symmetry). Key decision: whether to launch spike C5 (reasoning-quality) before or during 57.5, or defer.
-5. **(Optional, after 57.5 planning) Run C2 + C3 + potentially C4/C5** — investigation, real-tokenizer, marker-calibration, reasoning-quality. C3 is now highest-value next spike (spike 010 produced clean input data). C5 scope depends on discuss-phase decision.
+1. **Read this handoff + correction doc + spike 009 DECISION.md + spike 010 DECISION.md + spike 010 qualitative_comparison.md** (~25 min)
+2. **Anomaly stress-testing E1–E5 (Section E)** — ~2-3 hrs sequential. E1/E2 quick (inspection), E3 empirical validation, E4/E5 short research/empirical. E6 (A6 compaction) can be deferred or converted to research-mode spike C6. Write up findings as sibling to correction doc.
+3. **Do governance updates A1–A5** (1–2 hrs) — now informed by anomaly findings. E1/E2 may add new MEAS- requirements (automation health, kb.db queries). E3 fixes an extractor bug. E4/E5 close session-meta questions.
+4. **(Optional) Run B4–B6 as research tasks** — can happen during or after governance updates. Lightweight.
+5. **`/gsdr:discuss-phase 57.5`** — the NINE questions in section D above. Load-bearing inputs: spike 009, spike 010, correction doc, E1–E5 findings.
+6. **(Optional, after 57.5 planning) Run C2 + C3 + potentially C4/C5/C6** — investigation, real-tokenizer, marker-calibration, reasoning-quality, compaction. C3 highest-value next spike.
 
-Steps 1–2 + 4 are the critical path. Steps 3, 5 can happen in parallel or be deferred.
+Steps 1–2–3 + 5 are the critical path. Steps 4, 6 can happen in parallel or be deferred.
 
-**Removed from prior execution order:** the "Run spike 010 in background" step — completed this session.
+**Changes from prior order:** anomaly stress-testing added as step 2, ahead of governance. Governance is now step 3 (informed by anomaly findings).
 
 ---
 
