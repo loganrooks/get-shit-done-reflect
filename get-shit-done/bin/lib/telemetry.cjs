@@ -26,6 +26,8 @@ const os = require('node:os');
 
 const { output, error, resolveWorktreeRoot, atomicWriteJson } = require('./core.cjs');
 
+let _queryMeasurement = undefined;
+
 // --- Path resolution ---
 
 function getSessionMetaDir() {
@@ -34,6 +36,43 @@ function getSessionMetaDir() {
 
 function getFacetsDir() {
   return path.join(os.homedir(), '.claude', 'usage-data', 'facets');
+}
+
+function getQueryMeasurement() {
+  if (_queryMeasurement !== undefined) {
+    return _queryMeasurement;
+  }
+  try {
+    _queryMeasurement = require('./measurement/query.cjs').queryMeasurement;
+  } catch {
+    _queryMeasurement = null;
+  }
+  return _queryMeasurement;
+}
+
+function buildTelemetryMeasurementCompatibility(cwd, question = 'pipeline_integrity') {
+  const queryMeasurement = getQueryMeasurement();
+  if (!queryMeasurement) return null;
+
+  try {
+    const response = queryMeasurement(cwd, {
+      question,
+      scope: 'project',
+    });
+    return {
+      question: response.question,
+      runtime_dimension: response.runtime_dimension,
+      freshness: response.freshness,
+      provenance: {
+        store: response.provenance ? response.provenance.store : null,
+        live_overlay: response.provenance ? response.provenance.live_overlay : null,
+      },
+    };
+  } catch (compatError) {
+    return {
+      error: compatError.message,
+    };
+  }
 }
 
 // --- Trust tier filtering (spk-007) ---
@@ -392,6 +431,7 @@ function cmdTelemetrySession(cwd, sessionId, raw) {
 function cmdTelemetryPhase(cwd, phaseNum, raw) {
   const sessionMetaDir = getSessionMetaDir();
   const facetsDir = getFacetsDir();
+  const measurementCompatibility = buildTelemetryMeasurementCompatibility(cwd);
 
   // Try to derive phase time window
   let phaseStart = null;
@@ -464,6 +504,9 @@ function cmdTelemetryPhase(cwd, phaseNum, raw) {
   }
   if (windowSource === 'directory_timestamps') {
     result._caveat = 'Phase time window approximated from directory creation time to now. Sessions may include work outside this phase.';
+  }
+  if (measurementCompatibility) {
+    result._measurement_compatibility = measurementCompatibility;
   }
 
   if (raw) {
@@ -665,6 +708,7 @@ function cmdTelemetryEnrich(cwd, sessionId, raw) {
 // --- Exports ---
 
 module.exports = {
+  buildTelemetryMeasurementCompatibility,
   cmdTelemetrySummary,
   cmdTelemetrySession,
   cmdTelemetryPhase,
