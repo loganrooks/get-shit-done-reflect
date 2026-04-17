@@ -1,6 +1,6 @@
 # GSD Agent Reference
 
-> All 21 specialized agents — roles, tools, spawn patterns, and relationships. For architecture context, see [Architecture](ARCHITECTURE.md).
+> Role cards for 21 specialized agents — roles, tools, spawn patterns, and relationships. The `agents/` directory is the authoritative roster; see [Architecture](ARCHITECTURE.md) for context.
 
 ---
 
