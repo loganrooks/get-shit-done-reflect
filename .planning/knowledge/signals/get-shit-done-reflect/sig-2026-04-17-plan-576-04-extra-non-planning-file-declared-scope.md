@@ -27,6 +27,8 @@ related_signals:
 runtime: claude-code
 model: gpt-5.4
 gsd_version: "1.18.2+dev"
+provenance_schema: v1_legacy
+provenance_status: legacy_mixed
 detection_method: sensor-git
 origin: local
 environment:

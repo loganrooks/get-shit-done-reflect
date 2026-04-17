@@ -19,6 +19,8 @@ related_signals: []
 runtime: codex-cli
 model: gpt-5.4
 gsd_version: "1.18.2+dev"
+provenance_schema: v1_legacy
+provenance_status: legacy_mixed
 detection_method: sensor-artifact
 origin: local
 environment:
