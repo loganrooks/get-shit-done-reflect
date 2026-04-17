@@ -126,11 +126,16 @@ The `depends_on` field supports the knowledge surfacing system's freshness model
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `runtime` | enum | Runtime that created this entry: `claude-code`, `opencode`, `gemini-cli`, or `codex-cli` |
-| `model` | string | LLM model identifier (e.g., `claude-opus-4-6`, `o3`) |
-| `gsd_version` | string | GSD version that created this entry (e.g., `1.14.0`). Read from VERSION file or config.json |
+| `provenance_schema` | string | Provenance schema marker. New split-provenance signals use `v2_split`; legacy flat-only signals may be annotated as `v1_legacy`. |
+| `provenance_status` | string | Top-level provenance annotation for corpus-level caveats (for example `legacy_mixed`). Distinct from nested per-field `provenance_status` inside signature-like provenance objects. |
+| `about_work` | array | Role-aware work provenance entries describing the artifact/work under judgment. New signals SHOULD include this array. |
+| `detected_by` | object | Detector provenance for the sensor or observation process that surfaced the signal. |
+| `written_by` | object | Writer provenance for the synthesizer or command that persisted the signal file. |
+| `runtime` | enum | DEPRECATED compatibility echo derived from split provenance when available. Retained for one-milestone legacy reader support. |
+| `model` | string | DEPRECATED compatibility echo derived from split provenance when available. |
+| `gsd_version` | string | DEPRECATED compatibility echo derived from split provenance when available. |
 
-These fields are optional for backward compatibility. Existing entries without them remain valid. New entries SHOULD include all three when available.
+These fields are optional for backward compatibility. Existing entries without them remain valid. New signals SHOULD carry the split provenance fields; the flat `runtime` / `model` / `gsd_version` trio remains only as a compatibility bridge for legacy readers.
 
 ## 4. Type-Specific Extensions
 
@@ -555,7 +560,8 @@ FROZEN fields (detection payload -- never modified after creation):
 - `phase`, `plan`, `polarity`
 - `occurrence_count`, `related_signals`, `qualified_by`, `superseded_by`
 - `detection_method`, `origin`
-- `runtime`, `model`, `gsd_version`
+- `provenance_schema`, `provenance_status`, `about_work`, `detected_by`, `written_by`
+- `runtime`, `model`, `gsd_version` (legacy compatibility echoes)
 - `evidence.supporting` (initial), `evidence.counter` (initial)
 - `confidence` (initial), `confidence_basis` (initial)
 - `recurrence_of`

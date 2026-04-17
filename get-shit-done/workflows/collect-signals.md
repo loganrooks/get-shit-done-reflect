@@ -24,6 +24,7 @@ Orchestrate multi-sensor signal collection for a completed phase. Discovers sens
   - Sensor model selection: derive from model_profile via model-profiles.md Per-Runtime Resolution table
   - The orchestrator passes file PATHS to sensors, not file CONTENTS (prevents context bloat)
   - JSON extraction uses ## SENSOR OUTPUT / ## END SENSOR OUTPUT delimiters with fallback to fenced code block search
+  - Sensors emit detector provenance only (`detected_by`); the synthesizer adds `about_work[]`, `written_by`, schema markers, and legacy flat echoes
   - This pattern differs from map-codebase: mappers write files and return confirmations, sensors return data (JSON) to the orchestrator. The delimiter protocol ensures reliable data transfer across Task() boundaries.
 -->
 </purpose>
@@ -289,7 +290,7 @@ for ENTRY in ENABLED_SENSOR_RUNS:
       Apply signal-detection.md rules.
       Return your results as a JSON object with format:
       { sensor: '{NAME}', phase: N, signals: [...] }
-      Each signal needs: summary, signal_type, signal_category, severity, tags, evidence, confidence, confidence_basis, context."
+      Each signal needs: summary, signal_type, signal_category, severity, tags, evidence, confidence, confidence_basis, context, and detector provenance in detected_by. Do not infer about_work from the sensor runtime."
   )
 ```
 

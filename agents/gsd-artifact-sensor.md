@@ -56,9 +56,9 @@ You receive a phase number as input. From this you derive:
 
 ## Step 3: Detect Signals
 
-### 3.0 Runtime and Model Detection
+### 3.0 Detector Provenance Detection
 
-Before detecting signals, determine the runtime and model context:
+Before detecting signals, determine the detector-side runtime and model context for a `detected_by` payload. This is detector provenance only -- do NOT infer `about_work[]` from the sensor's own runtime identity.
 
 **Runtime detection:** Examine the path prefix in this agent spec file.
 - ~/.claude/ paths -> runtime: claude-code
@@ -70,9 +70,13 @@ Before detecting signals, determine the runtime and model context:
 The executing model knows its own identifier (e.g., claude-opus-4-6,
 claude-sonnet-4-20250514). Record this as the model value.
 
-Store both values for inclusion in all signal candidates created during this run.
-If runtime cannot be determined, omit the field. If model cannot be
-determined, omit the field.
+Build a detector provenance object with best-available facts:
+- `role: sensor`
+- `harness` from runtime detection
+- `platform` and `vendor` derived from `harness`
+- `model` from self-knowledge when available
+
+If a fact cannot be justified, omit it from the candidate payload. The synthesizer normalizes detector provenance into the final stored structure and applies `not_available` / compatibility echoes where required.
 
 For each plan that has both a PLAN.md and SUMMARY.md, apply detection rules from signal-detection.md:
 
@@ -125,8 +129,8 @@ For each candidate signal detected in Step 3:
 3. Set `source: auto`
 4. Set `signal_type` based on detection source (deviation, struggle, config-mismatch, capability-gap, epistemic-gap)
 5. Determine appropriate tags from the seeded taxonomy and signal content
-6. Set `runtime` from step 3.0 detection (omit if unknown)
-7. Set `model` from step 3.0 detection (omit if unknown)
+6. Set `detected_by` from step 3.0 detector provenance detection
+7. Do NOT infer `about_work[]` from the sensor runtime or model
 8. Build evidence object with `supporting` and `counter` arrays
 9. Set `confidence` (high/medium/low) and `confidence_basis`
 
@@ -163,8 +167,13 @@ The sensor MUST wrap its JSON output with structured delimiters for reliable ext
         "source_file": "path/to/source"
       },
       "polarity": "positive|negative|neutral",
-      "runtime": "claude-code",
-      "model": "model-identifier"
+      "detected_by": {
+        "role": "sensor",
+        "harness": "claude-code",
+        "platform": "claude",
+        "vendor": "anthropic",
+        "model": "model-identifier"
+      }
     }
   ]
 }
@@ -195,7 +204,7 @@ If no signals are detected, return an empty signals array:
 - Never write to the knowledge base -- you are a sensor, not a writer
 - Use judgment for edge cases -- detection rules are guidelines, not rigid algorithms
 - When in doubt about severity, prefer notable over trace (err toward persisting)
-- Include runtime and model provenance in every signal candidate when available
+- Include detector provenance in every signal candidate when available, but never claim detector provenance is sufficient to identify the work being judged
 </guidelines>
 
 <blind_spots>
