@@ -5,6 +5,7 @@ produced_by:
   - node get-shit-done/bin/gsd-tools.cjs measurement rebuild --raw
   - node get-shit-done/bin/gsd-tools.cjs measurement report intervention_lifecycle
   - node get-shit-done/bin/gsd-tools.cjs measurement report pipeline_integrity
+  - node get-shit-done/bin/gsd-tools.cjs measurement query "pipeline integrity" --raw
   - node get-shit-done/bin/gsd-tools.cjs measurement query "agent performance" --raw
   - manual interpretation synthesis against the Phase 57 audit chain
 observed_at: 2026-04-17T00:37:14.006Z
@@ -13,6 +14,10 @@ extractor_registry_size_at_diagnosis: 26
 loops_exercised:
   - intervention_lifecycle
   - pipeline_integrity
+revises: phase_57_5_live_registry_query
+revised_at: 2026-04-17T06:37:30Z
+revision_classification: unclassified
+revision_justification: "Phase 57.7 now exposes scope-narrowing-cascade evidence for the Phase 57 planning window via tool_invocation_sequence, topic_shift_markers, and intervention_points, but that evidence is still indirect: it does not show whether the active-measurement governing claim survived into 57-01-PLAN.md / 57-02-PLAN.md and it does not resolve any anomaly-register item from the original diagnostic, so the strongest honest classification is unclassified rather than progressive."
 ---
 
 # Diagnostic: Phase 57 Vision-Drop Cascade
@@ -155,6 +160,121 @@ failure rather than a destroyed evidence base.
 which distinguishing features are already observable versus still absent from
 the substrate. It does not claim that any remediation has already improved
 behavior, and it does not classify the revision as progressive or degenerating.
+That deferment is closed by the appended 57.7 revision note below.
+
+## Revision 2026-04-17: 57.7 Content Extraction Evidence
+
+### What 57.7 introduced
+
+- `tool_invocation_sequence` now computes `scope_narrowing_cascade_candidate`
+  rows for the representative Phase 57 planning-window sessions cited in this
+  diagnostic.
+- `topic_shift_markers` now exposes structural shift counts for those same
+  sessions without reopening transcript content.
+- `intervention_points` now exposes whether a planning-window session shows
+  structurally detectable mid-sequence intervention.
+
+### Per-reading structural check
+
+#### Reading A: Requirements Anchoring Trap
+
+**Previously uncomputed, now partially computed:**
+
+- `tool_invocation_sequence` is now live for the six representative planning
+  sessions already cited in this artifact:
+  - `1c4bcd36`: `10` distinct tools, `46` structural topic shifts
+  - `483b2e97`: `7` distinct tools, `22` structural topic shifts
+  - `2234de1f`: `8` distinct tools, `64` structural topic shifts
+  - `15436cda`: `8` distinct tools, `36` structural topic shifts
+  - `b84d9547`: `9` distinct tools, `48` structural topic shifts
+  - `09422ed4`: `5` distinct tools, `58` structural topic shifts
+- `intervention_points` fires once in this six-session slice:
+  - `1c4bcd36`: `1` intervention at turn `80 / 676`
+  - `483b2e97`, `2234de1f`, `15436cda`, `b84d9547`, `09422ed4`: `0`
+
+**Structural-check verdict:**
+
+- New distinguishing feature computed: YES
+- Anomaly-register item resolved: NO
+- Reading A classification: `unclassified`
+
+**Why not progressive:** 57.7 now shows the planning window as a rich,
+multi-tool, shift-heavy workflow rather than a content-free black box, but the
+original distinguishing feature was narrower: whether the governing active-
+measurement claim survived into `57-01-PLAN.md` / `57-02-PLAN.md`. These new
+rows still do not answer that claim-survival question directly.
+
+#### Reading B: Discuss-Phase Authority Weighting Gap
+
+**Status:** still out of 57.7 scope.
+
+- `kb_signal_stats` remains an aggregate surface, not a per-signal identity
+  lookup.
+- The authority-weighting signal is still cited through file-backed signal
+  artifacts rather than a measurement-native identity query.
+
+**Structural-check verdict:**
+
+- New distinguishing feature computed: NO
+- Anomaly-register item resolved: NO
+- Reading B classification: `unclassified`
+
+#### Reading C: Capability Insufficiency Caused the Drop
+
+**Status:** still weakened, but not newly resolved by 57.7.
+
+- The original diagnostic had already computed the core discriminant for this
+  reading: the April 8-10 planning slice was overwhelmingly `claude-opus-4-6`
+  at `high` / `xhigh` / `max` effective effort.
+- The new 57.7 content rows add structural activity detail, not a new capability
+  discriminant.
+
+**Structural-check verdict:**
+
+- New distinguishing feature computed: NO
+- Anomaly-register item resolved: NO
+- Reading C classification: `unclassified`
+
+#### Reading D: Pipeline Breakage Masqueraded as a Planning Failure
+
+**Status:** still weak, but not newly resolved by 57.7.
+
+- The new content rows themselves depend on matched planning-window JSONL and
+  therefore reinforce that the evidence chain exists.
+- The anomaly register is still real, but its freshness / availability items are
+  not resolved by this revision.
+
+**Structural-check verdict:**
+
+- New distinguishing feature computed: NO
+- Anomaly-register item resolved: NO
+- Reading D classification: `unclassified`
+
+### Overall classification
+
+`revision_classification: unclassified`
+
+57.7 closed part of the evidentiary gap by making `scope_narrowing_cascade_candidate`
+queryable, but it did not clear the stronger Lakatos-style bar for a
+progressive revision. The direct plan-content survival question and the
+measurement-native per-signal identity question both remain open.
+
+### Justification
+
+The revision is real: the diagnostic now has concrete structural evidence for
+the Phase 57 planning window that 57.6 did not have. The six representative
+sessions are no longer observable only through runtime identity and facet
+summaries; they now expose tool mix, topic-shift density, and intervention
+counts. That closes the "nothing structural is computable here" state.
+
+What it does not close is the original claim-survival question. The strongest
+reading in this artifact asked whether the active-measurement governing claim
+survived into the actual Phase 57 plan files or whether the handoff narrowed
+scope to the TEL requirements. `tool_invocation_sequence`,
+`topic_shift_markers`, and `intervention_points` narrow the planning-window
+description, but they do not inspect plan text and they do not resolve any
+anomaly-register item from the original diagnostic. Under G-7, the honest
+classification is therefore `unclassified`.
 
 ## Provenance
 
