@@ -126,6 +126,12 @@ function initSchema(db) {
     );
   `);
 
+  ensureColumn(db, 'signals', 'provenance_schema', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signals', 'provenance_status', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signals', 'about_work_json', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signals', 'detected_by_json', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signals', 'written_by_json', "TEXT DEFAULT ''");
+
   // Indexes for common query patterns
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_signals_severity ON signals(severity);
@@ -136,12 +142,6 @@ function initSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_signals_status ON signals(status);
     CREATE INDEX IF NOT EXISTS idx_signals_provenance_schema ON signals(provenance_schema);
   `);
-
-  ensureColumn(db, 'signals', 'provenance_schema', "TEXT DEFAULT ''");
-  ensureColumn(db, 'signals', 'provenance_status', "TEXT DEFAULT ''");
-  ensureColumn(db, 'signals', 'about_work_json', "TEXT DEFAULT ''");
-  ensureColumn(db, 'signals', 'detected_by_json', "TEXT DEFAULT ''");
-  ensureColumn(db, 'signals', 'written_by_json', "TEXT DEFAULT ''");
 
   // 57.7 MEAS-GSDR-06: drop signal_fts virtual table. Previously reserved for
   // Phase 59 full-text search, never populated, and external-content mode
