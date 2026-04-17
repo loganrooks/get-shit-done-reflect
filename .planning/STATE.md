@@ -210,7 +210,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-7 pending (3 carried from v1.18, 4 remaining):
+8 pending (3 carried from v1.18, 5 remaining):
 
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 - [HIGH] Local patch archive: versioned history instead of single-snapshot overwrite (installer)
@@ -219,6 +219,7 @@ Recent decisions affecting current work:
 - [MEDIUM] Ghost agent integration: gsd-ui-auditor and gsd-doc-verifier entries in model-profiles.cjs have no agent specs — caused by upstream sync pulling profiles without corresponding specs. Needs deliberation on whether to build these agents, stub them, or remove the profiles. (upstream-sync, deliberation)
 - [MEDIUM] Revisit provisional corpus grounding set (planning)
 - [MEDIUM] Add `max` model profile above `quality` so Codex can persist top-end `xhigh` reasoning for executors/verifiers instead of relying on manual spawn overrides. Keep `quality` backward-compatible; update model profile mapping, Codex resolution, and profile-selection/help surfaces. (tooling)
+- [MEDIUM] Track Codex auto-compact prompt handling in Phase 60 parity work so Codex/Claude comparison covers runtime continuity behavior, not just visible tool/capability parity. Decide whether compaction should explicitly restate workflow-critical norms for delegated flows. (planning)
 
 ### Blockers/Concerns
 
