@@ -16,7 +16,7 @@ function tryRequire(modulePath) {
 function buildHelpEnvelope() {
   return {
     command: 'measurement',
-    description: 'Measurement substrate commands for rebuildable store materialization and JSON-first querying.',
+    description: 'Measurement substrate commands for store materialization and interpretation-ready output.',
     subcommands: {
       rebuild: {
         usage: 'gsd-tools measurement rebuild',
@@ -25,6 +25,10 @@ function buildHelpEnvelope() {
       query: {
         usage: 'gsd-tools measurement query [question] [--scope project|runtime] [--runtime name]',
         description: 'Return an interpretation-ready JSON envelope from the measurement store.'
+      },
+      report: {
+        usage: 'gsd-tools measurement report <loop> [--no-stratification] [--runtime name]',
+        description: 'Render a text-first markdown+ASCII report for a loop (agent_performance, signal_quality, cross_session_patterns, cross_runtime_comparison, intervention_lifecycle, pipeline_integrity).'
       }
     }
   };
@@ -107,7 +111,22 @@ function cmdMeasurement(cwd, args, raw) {
     return;
   }
 
-  error('Usage: gsd-tools measurement <rebuild|query>');
+  if (subcommand === 'report') {
+    const dispatch = tryRequire('./measurement/report/dispatch.cjs');
+    if (!dispatch || !dispatch.cmdMeasurementReport) {
+      output(buildScaffoldResponse('report', cwd, { loop: rest[0] || null }), raw);
+      return;
+    }
+    const result = dispatch.cmdMeasurementReport(cwd, rest, raw);
+    if (raw || !result || !result.__text) {
+      output(result || {}, raw);
+    } else {
+      console.log(result.__text);
+    }
+    return;
+  }
+
+  error('Usage: gsd-tools measurement <rebuild|query|report>');
 }
 
 module.exports = {

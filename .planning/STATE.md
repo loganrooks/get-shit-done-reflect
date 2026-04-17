@@ -177,7 +177,7 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-6 pending (3 carried from v1.18, 3 remaining):
+7 pending (3 carried from v1.18, 4 remaining):
 
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 - [HIGH] Local patch archive: versioned history instead of single-snapshot overwrite (installer)
@@ -185,6 +185,7 @@ Recent decisions affecting current work:
 - [MEDIUM] gsd-tools audit subcommand: encode audit type taxonomy + ground rule sets as structured data in lib/audit.cjs so the /gsdr:audit command can call `gsd-tools init audit` instead of parsing reference docs directly. Deferred per trial-before-formalize — ship command+agent first, formalize tooling once usage patterns emerge. (tooling, audit)
 - [MEDIUM] Ghost agent integration: gsd-ui-auditor and gsd-doc-verifier entries in model-profiles.cjs have no agent specs — caused by upstream sync pulling profiles without corresponding specs. Needs deliberation on whether to build these agents, stub them, or remove the profiles. (upstream-sync, deliberation)
 - [MEDIUM] Revisit provisional corpus grounding set (planning)
+- [MEDIUM] Add `max` model profile above `quality` so Codex can persist top-end `xhigh` reasoning for executors/verifiers instead of relying on manual spawn overrides. Keep `quality` backward-compatible; update model profile mapping, Codex resolution, and profile-selection/help surfaces. (tooling)
 
 ### Blockers/Concerns
 
