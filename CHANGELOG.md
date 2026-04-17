@@ -6,6 +6,22 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.19.5] - 2026-04-17
+
+### Added
+- Phase 57.5-57.7 measurement shipping wave across runtime, derived, and GSDR surfaces: query/store/report infrastructure, Codex and Claude extraction coverage, intervention-point extraction, interpretation deepening, reasoning-token reconciliation, and reasoning-quality proxy support.
+- Honest-demo closeout artifacts for Phase 57.7, including diagnostic reports, privacy/intervention documentation, and the final demo report.
+- Codex compact-prompt override support: installer wiring for `experimental_compact_prompt_file`, a shipped GSD compact prompt template, and regression coverage for the installed config path.
+- Follow-on roadmap inserts for Phase 57.8 signal provenance work and Phase 60.1 telemetry/signal integration chain tests.
+
+### Changed
+- Strengthened root `AGENTS.md` guidance around source-vs-installed boundaries, live control surfaces, delegate-first workflow expectations, commit hygiene, and verification rules.
+- Migrated planning config and release-adjacent project metadata to the v1.19.4 schema while carrying forward 57.7 closeout state and knowledge-base artifacts.
+
+### Fixed
+- Removed dormant `signal_fts` schema usage and related regression coverage gaps in the measurement/KB path.
+- Unified measurement registry parity, loop taxonomy, freshness rebuild behavior, canonical `skip_reason` handling, and source guards across the 57.5-57.7 execution stack.
+
 ## [1.19.4] - 2026-04-10
 
 ### Added
