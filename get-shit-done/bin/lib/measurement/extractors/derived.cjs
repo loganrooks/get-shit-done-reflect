@@ -143,6 +143,75 @@ function findClusterMembership(clusterMap, filePath) {
   return null;
 }
 
+const REASONING_QUALITY_DECISION_REF = '.planning/spikes/012-C5-reasoning-quality-mechanism/DECISION.md';
+const REASONING_QUALITY_PROXY_LABEL = 'reasoning_quality_proxy_only';
+const REASONING_QUALITY_GRADER_INDEPENDENCE = 'self_graded';
+const REASONING_QUALITY_GRADER_NOTE = [
+  'PASS verdicts from self-grading remain subject to future independent-grader validation.',
+  'This proxy is not final epistemic closure for reasoning-quality claims.',
+].join(' ');
+const REASONING_QUALITY_OUTCOME_SCORES = Object.freeze({
+  fully_achieved: 1.5,
+  mostly_achieved: 1.0,
+  partially_achieved: 0.5,
+  not_achieved: 0,
+});
+const REASONING_QUALITY_HELPFULNESS_SCORES = Object.freeze({
+  essential: 1.4,
+  very_helpful: 1.25,
+  moderately_helpful: 0.75,
+  slightly_helpful: 0.25,
+  not_helpful: 0,
+});
+
+function frictionTotal(facet) {
+  if (!facet || !facet.friction_counts || typeof facet.friction_counts !== 'object') return 0;
+  return Object.values(facet.friction_counts).reduce((sum, value) => sum + (Number(value) || 0), 0);
+}
+
+function goalCategoryCount(facet) {
+  if (!facet || !facet.goal_categories) return 0;
+  if (Array.isArray(facet.goal_categories)) return facet.goal_categories.length;
+  if (typeof facet.goal_categories === 'object') return Object.keys(facet.goal_categories).length;
+  return 0;
+}
+
+function reasoningQualityProxyScore(facet) {
+  if (!facet) return null;
+
+  const satisfaction = facet.user_satisfaction_counts || {};
+  const likelySatisfied = Number(satisfaction.likely_satisfied) || 0;
+  const dissatisfied = Number(satisfaction.dissatisfied) || 0;
+  const totalFriction = frictionTotal(facet);
+  const goalCategories = goalCategoryCount(facet);
+
+  let score = 1.0;
+  score += facet.underlying_goal ? 0.25 : 0;
+  score += REASONING_QUALITY_OUTCOME_SCORES[facet.outcome] ?? 0.25;
+  score += REASONING_QUALITY_HELPFULNESS_SCORES[facet.claude_helpfulness] ?? 0.4;
+  score += facet.primary_success ? 0.25 : 0;
+  score += Math.min(0.5, likelySatisfied * 0.15);
+  score -= Math.min(1.0, dissatisfied * 0.25);
+  score -= Math.min(1.25, totalFriction * 0.2);
+  score += Math.min(0.25, goalCategories * 0.05);
+
+  return Math.max(1, Math.min(5, Number(score.toFixed(2))));
+}
+
+function reasoningQualityComponentSignals(facet) {
+  const satisfaction = facet && facet.user_satisfaction_counts ? facet.user_satisfaction_counts : {};
+  return {
+    has_underlying_goal: Boolean(facet && facet.underlying_goal),
+    outcome: facet && facet.outcome ? facet.outcome : null,
+    helpfulness: facet && facet.claude_helpfulness ? facet.claude_helpfulness : null,
+    primary_success_present: Boolean(facet && facet.primary_success),
+    likely_satisfied: Number(satisfaction.likely_satisfied) || 0,
+    dissatisfied: Number(satisfaction.dissatisfied) || 0,
+    friction_total: frictionTotal(facet),
+    distinct_goal_categories: goalCategoryCount(facet),
+  };
+}
+
 const sessionMetaProvenanceExtractor = defineExtractor({
   name: 'session_meta_provenance',
   source_family: 'DERIVED',
@@ -399,6 +468,96 @@ const facetsSemanticSummaryExtractor = defineExtractor({
   },
 });
 
+const reasoningQualityProxyExtractor = defineExtractor({
+  name: 'reasoning_quality_proxy',
+  source_family: 'DERIVED',
+  raw_sources: ['claude_facets', 'claude_session_meta'],
+  runtimes: ['claude-code'],
+  reliability_tier: 'inferred',
+  features_produced: ['reasoning_quality_proxy'],
+  serves_loop: ['agent_performance'],
+  distinguishes: ['reasoning_quality_signal', 'facets_backed_quality_inference'],
+  status_semantics: ['derived', 'not_available'],
+  extract(extractor, context) {
+    const claude = getClaudeDataset(context);
+
+    return claude.sessions.map(session => {
+      const hasFacet = Boolean(session.facets && session.facets.record);
+      if (!hasFacet) {
+        return buildFeatureRecord(extractor, {
+          feature_name: `reasoning_quality_proxy:${session.session_id}`,
+          runtime: 'claude-code',
+          availability_status: 'not_available',
+          symmetry_marker: 'asymmetric_only',
+          reliability_tier: 'inferred',
+          value: {
+            session_id: session.session_id,
+            reasoning_quality_proxy_score: null,
+            proxy_mechanism: 'facets-substitute',
+            proxy_label: REASONING_QUALITY_PROXY_LABEL,
+            skip_reason: 'facets_unavailable',
+          },
+          coverage: coverageForSession(session),
+          provenance: {
+            session_id: session.session_id,
+            facet_path: null,
+            mechanism: 'facets-substitute',
+            decision_ref: REASONING_QUALITY_DECISION_REF,
+            source_read: 'session.facets.record (direct, not computedFeatures)',
+            parallel_to_extractor: 'facets_semantic_summary',
+            grader_independence: REASONING_QUALITY_GRADER_INDEPENDENCE,
+            grader_independence_note: REASONING_QUALITY_GRADER_NOTE,
+            proxy_label: REASONING_QUALITY_PROXY_LABEL,
+          },
+          freshness: combineFreshness(context.observed_at, [session.session_meta && session.session_meta.path]),
+          notes: [
+            'Facet coverage gaps stay visible as not_available rather than being silently dropped from the proxy surface.',
+            'This extractor reads session.facets.record directly, not context.computedFeatures.',
+            'Summary length is never used as a reasoning-quality proxy.',
+          ],
+        });
+      }
+
+      const facet = session.facets.record;
+      return buildFeatureRecord(extractor, {
+        feature_name: `reasoning_quality_proxy:${session.session_id}`,
+        runtime: 'claude-code',
+        availability_status: 'derived',
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'inferred',
+        value: {
+          session_id: session.session_id,
+          reasoning_quality_proxy_score: reasoningQualityProxyScore(facet),
+          proxy_mechanism: 'facets-substitute',
+          proxy_label: REASONING_QUALITY_PROXY_LABEL,
+          component_signals: reasoningQualityComponentSignals(facet),
+        },
+        coverage: coverageForSession(session),
+        provenance: {
+          session_id: session.session_id,
+          facet_path: session.facets.path || null,
+          mechanism: 'facets-substitute',
+          decision_ref: REASONING_QUALITY_DECISION_REF,
+          source_read: 'session.facets.record (direct, not computedFeatures)',
+          parallel_to_extractor: 'facets_semantic_summary',
+          grader_independence: REASONING_QUALITY_GRADER_INDEPENDENCE,
+          grader_independence_note: REASONING_QUALITY_GRADER_NOTE,
+          proxy_label: REASONING_QUALITY_PROXY_LABEL,
+        },
+        freshness: combineFreshness(context.observed_at, [
+          session.session_meta && session.session_meta.path,
+          session.facets && session.facets.path,
+        ]),
+        notes: [
+          'This feature is a proxy only, not a truth-tracking reasoning-quality measure.',
+          'Summary length is never used as a reasoning-quality proxy.',
+          'This extractor reads session.facets.record directly, not context.computedFeatures.',
+        ],
+      });
+    });
+  },
+});
+
 const derivedWritePathProvenanceExtractor = defineExtractor({
   name: 'derived_write_path_provenance',
   source_family: 'DERIVED',
@@ -507,6 +666,7 @@ const DERIVED_EXTRACTORS = Object.freeze([
   sessionMetaProvenanceExtractor,
   sessionJsonlCoverageAuditExtractor,
   facetsSemanticSummaryExtractor,
+  reasoningQualityProxyExtractor,
   derivedWritePathProvenanceExtractor,
   insightsMassRewriteBoundaryExtractor,
 ]);
@@ -516,11 +676,13 @@ module.exports = {
   derivedWritePathProvenanceExtractor,
   facetsSemanticSummaryExtractor,
   insightsMassRewriteBoundaryExtractor,
+  reasoningQualityProxyExtractor,
   sessionJsonlCoverageAuditExtractor,
   sessionMetaProvenanceExtractor,
   derived_write_path_provenance: derivedWritePathProvenanceExtractor,
   facets_semantic_summary: facetsSemanticSummaryExtractor,
   insights_mass_rewrite_boundary: insightsMassRewriteBoundaryExtractor,
+  reasoning_quality_proxy: reasoningQualityProxyExtractor,
   session_jsonl_coverage_audit: sessionJsonlCoverageAuditExtractor,
   session_meta_provenance: sessionMetaProvenanceExtractor,
 };
