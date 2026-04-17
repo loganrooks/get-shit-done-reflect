@@ -7,11 +7,11 @@ stopped_at: Completed 57.7-10-PLAN.md
 last_updated: "2026-04-17T06:47:29Z"
 last_activity: 2026-04-17 -- Phase 57.7 Plan 10 complete (honest demo wave: unclassified revision + GATE-09 pending)
 progress:
-  total_phases: 20
+  total_phases: 22
   completed_phases: 12
   total_plans: 47
   completed_plans: 47
-  percent: 60
+  percent: 55
 ---
 
 # Project State
@@ -211,6 +211,8 @@ Recent decisions affecting current work:
 - Phase 57.4 scope reframed (2026-04-10) from "extension of Phase 57.3 audit infrastructure" to "**radical rethinking of the formalization of the auditing workflow**". The flat 8-type taxonomy, template-based output paradigm, and type-family ground rules from Phase 57.3 do not express the complexities of the auditing situation; Phase 57.4 supersedes these core design commitments with a 3-axis taxonomy (subject × orientation × delegation), obligations paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations (chain integrity, dispatch hygiene, framework invisibility). The operational skill (command + agent) is the vehicle for the reconstruction; the rewrite of `audit-conventions.md` and `audit-ground-rules.md` is the primary deliverable, not a side effect. Derived from: `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` (open — fed forward), `audit-taxonomy-retrospective-analysis.md` (validates 3-axis model against 13 audit sessions), `forms-excess-and-framework-becoming.md`, `sig-2026-04-10-discuss-phase-authority-weighting-gap` (triggered the framing correction after context-checker ran)
 - Phase 62 WF-01 pulled forward into Phase 57.4 (2026-04-10): cross-model delegation becomes an `audit_delegation` mode on `/gsdr:audit` rather than a standalone `/gsdr:cross-model-review` command. Phase 62 goal: "Five workflow gaps" → "Four workflow gaps". REQUIREMENTS.md WF-01 phase column updated. WF-01 requirement text (still names standalone command) flagged for potential revision in ROADMAP.md Phase 62 note; not yet rewritten pending 57.4 implementation settlement. Derived from: `audit-taxonomy-three-axis-obligations.md` (audits are primary cross-model use case)
 - Phases 57.5/57.6/57.7 inserted after Phase 57.4 (2026-04-16): Measurement Architecture & Retroactive Foundation, Multi-Loop Coverage & Human Interface, and Content Analysis & Epistemic Deepening. Derived from `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` and the 2026-04-15 measurement signal inventory correction chain.
+- Phase 57.8 inserted after Phase 57 (2026-04-17): Signal Provenance Split & Artifact Signature Blocks (URGENT). Narrow-slice telemetry→signal integration addressing audit `.planning/audits/2026-04-16-signal-provenance-audit/` Findings 1, 2, 4 & Recommendations 1-2 & 5: role-split signal provenance (about_work/detected_by/written_by), first-class signature blocks on PLAN/SUMMARY/VERIFICATION via `resolveModelInternal`, and version precedence fix. Epistemic prerequisite for Phase 58 — GATE-09's scope-translation ledger cannot attribute gate effectiveness without role-aware artifact provenance. Wider sensor-pipeline integration (reflection stratification, intervention-outcome loop extension, E2E real-agent tests) parked for later insertion after Phase 60.
+- Phase 60.1 inserted after Phase 60 (2026-04-17): Telemetry-Signal Integration & E2E Chain Tests (URGENT). Wider companion to 57.8's narrow provenance fix — sensors consume `buildSessionIdentityValue` from measurement/extractors/runtime.cjs, reflection stratifies by model/profile/reasoning_effort via `measurement/stratify.cjs`, intervention-outcome loop extended to signal lifecycle transitions, and the `tests/e2e/real-agent.test.js` todos are replaced with working discuss→plan→execute→verify→collect-signals chain tests. Depends on Phase 60 (sensor pipeline must exist before sensors can be rewired). Addresses audit `.planning/audits/2026-04-16-signal-provenance-audit/` Finding 3 (partial/asymmetric work-artifact signatures) and Recommendation 3 (treat telemetry as source).
 
 ### Pending Todos
 
