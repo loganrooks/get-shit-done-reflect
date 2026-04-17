@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: in_progress
-stopped_at: Completed Plan 08 of Phase 57.7 (Wave 4 in progress)
-last_updated: "2026-04-17T06:10:03Z"
-last_activity: 2026-04-17 -- Phase 57.7 Plan 08 complete (reasoning-token reconciler schema + guards)
+stopped_at: Completed Plan 09 of Phase 57.7 (Plan 10 demo wave pending)
+last_updated: "2026-04-17T06:17:10Z"
+last_activity: 2026-04-17 -- Phase 57.7 Plan 09 complete (facets-backed reasoning-quality proxy)
 progress:
   total_phases: 20
   completed_phases: 11
   total_plans: 47
-  completed_plans: 45
+  completed_plans: 46
   percent: 55
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — Plan 08 is complete: the unified `reasoning_tokens` seam is live, Claude is honestly schema-only per Spike 011, and Codex now emits an explicit absent-field guard instead of invented counts. Next up: finish Wave 4 with Plan `57.7-09` for the reasoning-quality proxy, then move to the Plan 10 demo wave.
+**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — Plan 09 is complete: the facets-backed `reasoning_quality_proxy` now ships as an inferred, proxy-only derived feature with self-graded provenance and explicit `facets_unavailable` rows. Next up: finish the phase with Plan 10's demo/regression wave.
 
 ## Current Position
 
 Phase: 57.7 of 64 (Content Analysis & Epistemic Deepening) — In Progress
-Plan: 8 of 10
-Status: Wave 4 in progress; Plans 07-08 landed and Plan 57.7-09 remains before the Plan 10 demo wave.
-Last activity: 2026-04-17 -- Phase 57.7 Plan 08 complete (reasoning-token reconciler schema + guards)
+Plan: 9 of 10
+Status: Wave 4 is complete; Plans 07-09 landed and Plan 10 remains as the demo/regression closeout wave.
+Last activity: 2026-04-17 -- Phase 57.7 Plan 09 complete (facets-backed reasoning-quality proxy)
 
 Progress: [██████░░░░] 55%
 
@@ -36,7 +36,7 @@ Progress: [██████░░░░] 55%
 
 **v1.20 Current:**
 
-- Plans completed: 36
+- Plans completed: 37
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -73,6 +73,7 @@ Progress: [██████░░░░] 55%
 - 57.7-06: 5min, 2 tasks, 5 files
 - 57.7-07: 11min, 3 tasks, 6 files
 - 57.7-08: 8min, 2 tasks, 4 files
+- 57.7-09: 7min, 2 tasks, 2 files
 
 **v1.18 Final:**
 
@@ -90,6 +91,8 @@ v1.13-v1.18 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
 
+- [Phase 57.7 Plan 09 2026-04-17]: `reasoning_quality_proxy` ships in `derived.cjs` as a `facets-substitute` proxy with `reliability_tier: inferred`, `proxy_label: reasoning_quality_proxy_only`, and `grader_independence: self_graded`; it reads `session.facets.record` directly rather than chaining through computed features.
+- [Phase 57.7 Plan 09 2026-04-17]: Missing facet coverage remains visible in the live feature surface as `not_available` with `skip_reason: facets_unavailable`; coverage gaps are evidence, not silent row drops.
 - [Phase 57.7 Plan 08 2026-04-17]: `reasoning_tokens_reconciler` ships as one unified cross-runtime axis even though the current corpus is entirely `not_available`; registering the seam and canonical skip reasons is the non-negotiable MEAS-RUNTIME-05 outcome.
 - [Phase 57.7 Plan 08 2026-04-17]: Claude remains schema-only with `tokenizer_unavailable` because Spike 011 ended `FAIL: schema-only` and `production_dependency_decision: reject_top_level_dependency_schema_only`; no `js-tiktoken` dependency was added in this plan.
 - [Phase 57.7 Plan 07 2026-04-17]: `queryMeasurement()` now deepens interpretations in a post-pass with a lazy registry singleton and canonical `extractFrontmatter()` joins, so the base interpretation builder stays stable while provenance remains resolution-on-demand.
