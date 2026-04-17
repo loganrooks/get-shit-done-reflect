@@ -186,6 +186,18 @@ function validateExtractorEntry(entry) {
     }
   }
 
+  if (entry.content_contract !== undefined && entry.content_contract !== null) {
+    const allowedContentContracts = ['derived_features_only', 'metadata_only', 'no_content_access'];
+    if (typeof entry.content_contract !== 'string') {
+      throw new Error(`Extractor ${extractorName} content_contract must be a string`);
+    }
+    if (!allowedContentContracts.includes(entry.content_contract)) {
+      throw new Error(
+        `Extractor ${extractorName} content_contract '${entry.content_contract}' not in ${allowedContentContracts.join(', ')}`
+      );
+    }
+  }
+
   return true;
 }
 
@@ -204,6 +216,7 @@ function defineExtractor(definition) {
     status_semantics: definition.status_semantics
       ? normalizeStringList(definition.status_semantics, 'status_semantics', definition.name)
       : FEATURE_AVAILABILITY_STATUSES,
+    content_contract: definition.content_contract ?? null,
     extract: null,
   };
 

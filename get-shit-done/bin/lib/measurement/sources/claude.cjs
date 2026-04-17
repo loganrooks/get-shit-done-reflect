@@ -464,6 +464,85 @@ function extractCompactionEvents(records) {
   return result;
 }
 
+function scanToolInvocationSequence(records) {
+  const sequence = [];
+  const toolCountPerTool = {};
+
+  for (const record of records || []) {
+    if (!record || record.type !== 'assistant') continue;
+    const content = record.message && record.message.content;
+    if (!Array.isArray(content)) continue;
+
+    for (const block of content) {
+      if (!block || block.type !== 'tool_use' || typeof block.name !== 'string') continue;
+      sequence.push(block.name);
+      toolCountPerTool[block.name] = (toolCountPerTool[block.name] || 0) + 1;
+    }
+  }
+
+  const distinctToolNames = Object.keys(toolCountPerTool);
+  const total = sequence.length;
+  let entropy = 0;
+
+  for (const name of distinctToolNames) {
+    const probability = toolCountPerTool[name] / total;
+    entropy -= probability * Math.log2(probability);
+  }
+
+  return {
+    sequence,
+    tool_count_per_tool: toolCountPerTool,
+    distinct_tool_count: distinctToolNames.length,
+    tool_sequence_entropy: total > 0 ? entropy : 0,
+  };
+}
+
+function toolCategoryFor(name) {
+  if (['Read', 'Grep', 'Glob', 'WebFetch'].includes(name)) return 'investigation';
+  if (['Edit', 'Write', 'MultiEdit'].includes(name)) return 'mutation';
+  if (['Bash'].includes(name)) return 'execution';
+  return 'other';
+}
+
+function scanTopicShiftMarkers(records) {
+  const clearCount = countClearInvocations(records);
+  const compaction = extractCompactionEvents(records);
+  const shiftPositions = [];
+  let lastCategory = null;
+  let toolCategoryShiftCount = 0;
+
+  for (let index = 0; index < (records || []).length; index++) {
+    const record = records[index];
+    if (!record || record.type !== 'assistant') continue;
+    const content = record.message && record.message.content;
+    if (!Array.isArray(content)) continue;
+
+    for (const block of content) {
+      if (!block || block.type !== 'tool_use' || typeof block.name !== 'string') continue;
+      const category = toolCategoryFor(block.name);
+      if (lastCategory !== null && category !== lastCategory) {
+        toolCategoryShiftCount++;
+        shiftPositions.push(index);
+      }
+      lastCategory = category;
+    }
+  }
+
+  const topicShiftCount = clearCount + compaction.count + toolCategoryShiftCount;
+  const totalTurns = (records || []).length;
+
+  return {
+    topic_shift_count: topicShiftCount,
+    clear_shifts: clearCount,
+    compaction_shifts: compaction.count,
+    tool_category_shifts: toolCategoryShiftCount,
+    mean_shift_interval_turns: topicShiftCount > 1 && totalTurns > 0
+      ? totalTurns / topicShiftCount
+      : null,
+    shift_positions: shiftPositions,
+  };
+}
+
 function getClaudePaths(cwd, options = {}) {
   const homeDir = options.homeDir || os.homedir();
   return {
@@ -990,4 +1069,7 @@ module.exports = {
   loadGsdContext,
   normalizeProjectPath,
   normalizeUserContent,
+  scanToolInvocationSequence,
+  scanTopicShiftMarkers,
+  toolCategoryFor,
 };
