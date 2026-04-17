@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: in_progress
-stopped_at: Completed Plan 09 of Phase 57.7 (Plan 10 demo wave pending)
-last_updated: "2026-04-17T06:17:10Z"
-last_activity: 2026-04-17 -- Phase 57.7 Plan 09 complete (facets-backed reasoning-quality proxy)
+stopped_at: Completed 57.7-10-PLAN.md
+last_updated: "2026-04-17T06:47:29Z"
+last_activity: 2026-04-17 -- Phase 57.7 Plan 10 complete (honest demo wave: unclassified revision + GATE-09 pending)
 progress:
   total_phases: 20
-  completed_phases: 11
+  completed_phases: 12
   total_plans: 47
-  completed_plans: 46
-  percent: 55
+  completed_plans: 47
+  percent: 60
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — Plan 09 is complete: the facets-backed `reasoning_quality_proxy` now ships as an inferred, proxy-only derived feature with self-graded provenance and explicit `facets_unavailable` rows. Next up: finish the phase with Plan 10's demo/regression wave.
+**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) is complete. The phase now closes with an honest demo/regression wave: the vision-drop diagnostic revision is explicitly `unclassified`, GATE-09 is surfaced as a pending intervention, and the live measurement query/report surface shows those joins without success theater. Next up: Phase 58 (Structural Enforcement Gates).
 
 ## Current Position
 
-Phase: 57.7 of 64 (Content Analysis & Epistemic Deepening) — In Progress
-Plan: 9 of 10
-Status: Wave 4 is complete; Plans 07-09 landed and Plan 10 remains as the demo/regression closeout wave.
-Last activity: 2026-04-17 -- Phase 57.7 Plan 09 complete (facets-backed reasoning-quality proxy)
+Phase: 57.7 of 64 (Content Analysis & Epistemic Deepening) — Complete
+Plan: 10 of 10
+Status: Wave 5 closed the phase; the demo/regression plan landed with a real revision record, a pending GATE-09 intervention sidecar, and a DEMO-REPORT that records both the live joins and the residual gaps.
+Last activity: 2026-04-17 -- Phase 57.7 Plan 10 complete (honest demo wave: unclassified revision + GATE-09 pending)
 
-Progress: [██████░░░░] 55%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 37
+- Plans completed: 38
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -74,6 +74,7 @@ Progress: [██████░░░░] 55%
 - 57.7-07: 11min, 3 tasks, 6 files
 - 57.7-08: 8min, 2 tasks, 4 files
 - 57.7-09: 7min, 2 tasks, 2 files
+- 57.7-10: 10min, 3 tasks, 3 files
 
 **v1.18 Final:**
 
@@ -91,6 +92,9 @@ v1.13-v1.18 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
 
+- [Phase 57.7 Plan 10 2026-04-17]: The vision-drop diagnostic revision ships as `unclassified`; 57.7 added real scope-narrowing evidence, but it did not clear the anomaly-resolution bar for a progressive revision.
+- [Phase 57.7 Plan 10 2026-04-17]: The live interpretation surface still joins by `phase_57_5_live_registry_query`, so the GATE-09 pending record is keyed there rather than to the diagnostic id in order to exercise the shipped query/report path honestly.
+- [Phase 57.7 Plan 10 2026-04-17]: No retrospective 57.5 `confirmed` intervention record was shipped; the closeout wave stayed with the required GATE-09 pending record under G-7's anti-success-theater rule.
 - [Phase 57.7 Plan 09 2026-04-17]: `reasoning_quality_proxy` ships in `derived.cjs` as a `facets-substitute` proxy with `reliability_tier: inferred`, `proxy_label: reasoning_quality_proxy_only`, and `grader_independence: self_graded`; it reads `session.facets.record` directly rather than chaining through computed features.
 - [Phase 57.7 Plan 09 2026-04-17]: Missing facet coverage remains visible in the live feature surface as `not_available` with `skip_reason: facets_unavailable`; coverage gaps are evidence, not silent row drops.
 - [Phase 57.7 Plan 08 2026-04-17]: `reasoning_tokens_reconciler` ships as one unified cross-runtime axis even though the current corpus is entirely `not_available`; registering the seam and canonical skip reasons is the non-negotiable MEAS-RUNTIME-05 outcome.
