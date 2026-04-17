@@ -1,5 +1,8 @@
 'use strict';
 
+const fs = require('node:fs');
+const path = require('node:path');
+
 const { loadGsdr } = require('../sources/gsdr.cjs');
 
 function normalizeRegistryApi(registryApi) {
@@ -70,6 +73,76 @@ function latestTriggeredAt(records) {
 
   if (timestamps.length === 0) return null;
   return new Date(Math.max(...timestamps)).toISOString();
+}
+
+function fileFreshness(filePath, observedAt) {
+  if (!filePath || !fsSafeExists(filePath)) {
+    return {
+      status: 'unknown',
+      observed_at: observedAt,
+      modified_at: null,
+      reasons: ['source_missing'],
+      stale_after_hours: 24,
+      age_hours: null,
+    };
+  }
+
+  const stat = fs.statSync(filePath);
+  const ageHours = Math.max(0, (Date.parse(observedAt) - stat.mtimeMs) / (60 * 60 * 1000));
+  return {
+    status: ageHours > 24 ? 'stale' : 'fresh',
+    observed_at: observedAt,
+    modified_at: stat.mtime.toISOString(),
+    reasons: ageHours > 24 ? [`age_hours=${ageHours.toFixed(2)}`] : [],
+    stale_after_hours: 24,
+    age_hours: Number(ageHours.toFixed(3)),
+  };
+}
+
+function combinePathFreshness(observedAt, paths) {
+  const normalizedPaths = (paths || []).filter(Boolean);
+  if (normalizedPaths.length === 0) {
+    return {
+      status: 'unknown',
+      observed_at: observedAt,
+      modified_at: null,
+      reasons: ['no_source_paths'],
+      stale_after_hours: 24,
+      age_hours: null,
+    };
+  }
+
+  const entries = normalizedPaths.map(filePath => fileFreshness(filePath, observedAt));
+  if (entries.some(entry => entry.status === 'stale')) {
+    return {
+      status: 'stale',
+      observed_at: observedAt,
+      modified_at: entries.find(entry => entry.modified_at)?.modified_at || null,
+      reasons: entries.flatMap(entry => entry.reasons || []),
+      stale_after_hours: 24,
+      age_hours: Math.max(...entries.map(entry => entry.age_hours || 0)),
+    };
+  }
+
+  if (entries.some(entry => entry.status === 'unknown')) {
+    return {
+      status: 'unknown',
+      observed_at: observedAt,
+      modified_at: entries.find(entry => entry.modified_at)?.modified_at || null,
+      reasons: entries.flatMap(entry => entry.reasons || []),
+      stale_after_hours: 24,
+      age_hours: entries.find(entry => entry.age_hours != null)?.age_hours || null,
+    };
+  }
+
+  return {
+    status: 'fresh',
+    observed_at: observedAt,
+    modified_at: entries.find(entry => entry.modified_at)?.modified_at || null,
+    reasons: [],
+    stale_after_hours: 24,
+    age_hours: Math.max(...entries.map(entry => entry.age_hours || 0)),
+  };
 }
 
 function buildGsdrExtractors(registryApi) {
@@ -346,11 +419,113 @@ function buildGsdrExtractors(registryApi) {
     },
   });
 
+  const skipReasonCanonicalExtractor = defineExtractor({
+    name: 'skip_reason_canonical',
+    source_family: 'GSDR',
+    raw_sources: ['planning_config'],
+    runtimes: ['project'],
+    reliability_tier: 'direct_observation',
+    features_produced: ['skip_reason_canonical'],
+    serves_loop: ['signal_quality', 'pipeline_integrity'],
+    distinguishes: ['skip_reason_vocabulary_drift', 'non_canonical_skip_reasons'],
+    status_semantics: ['exposed', 'not_available', 'not_emitted'],
+    extract(extractor, context) {
+      const gsdr = getGsdrRaw(context);
+      const gsdrConfig = gsdr.config || {};
+      const configExists = Boolean(gsdrConfig.exists);
+      const configData = gsdrConfig.data || null;
+      if (!configExists || !configData) {
+        return [buildFeatureRecord(extractor, {
+          feature_name: 'skip_reason_canonical',
+          runtime: 'project',
+          availability_status: 'not_available',
+          symmetry_marker: 'asymmetric_only',
+          reliability_tier: 'direct_observation',
+          value: { reason: 'no .planning/config.json or config.data empty' },
+          coverage: {},
+          provenance: { config_path: gsdrConfig.path || null },
+          freshness: combinePathFreshness(context.observed_at, []),
+          notes: ['Config absent; extractor cannot evaluate skip_reason canonicity.'],
+        })];
+      }
+
+      const manifestPath = path.resolve(__dirname, '..', '..', '..', '..', 'feature-manifest.json');
+      let canonical = [];
+      try {
+        canonical = JSON.parse(fs.readFileSync(manifestPath, 'utf8')).automation_skip_reasons || [];
+      } catch (_error) {
+        canonical = [];
+      }
+
+      if (canonical.length === 0) {
+        return [buildFeatureRecord(extractor, {
+          feature_name: 'skip_reason_canonical',
+          runtime: 'project',
+          availability_status: 'not_available',
+          symmetry_marker: 'asymmetric_only',
+          reliability_tier: 'direct_observation',
+          value: { reason: 'feature-manifest.automation_skip_reasons missing or empty' },
+          coverage: {},
+          provenance: { manifest_path: manifestPath },
+          freshness: combinePathFreshness(context.observed_at, [manifestPath]),
+          notes: ['Canonical enum unavailable — cannot classify.'],
+        })];
+      }
+
+      const stats = gsdrConfig.automation_stats || (configData.automation && configData.automation.stats) || {};
+      const featureKeys = Object.keys(stats);
+      if (featureKeys.length === 0) {
+        return [buildFeatureRecord(extractor, {
+          feature_name: 'skip_reason_canonical',
+          runtime: 'project',
+          availability_status: 'not_emitted',
+          symmetry_marker: 'asymmetric_only',
+          reliability_tier: 'direct_observation',
+          value: { canonical_enum: canonical, count_by_reason: {} },
+          coverage: { feature_count: 0 },
+          provenance: { manifest_path: manifestPath },
+          freshness: combinePathFreshness(context.observed_at, [manifestPath]),
+          notes: ['No automation features tracked yet.'],
+        })];
+      }
+
+      return featureKeys.map(featureKey => {
+        const featureStats = stats[featureKey] || {};
+        const lastSkipReason = featureStats.last_skip_reason || null;
+        const canonicalMatch = Boolean(lastSkipReason) && canonical.includes(lastSkipReason);
+        return buildFeatureRecord(extractor, {
+          feature_name: `skip_reason_canonical:${featureKey}`,
+          runtime: 'project',
+          availability_status: lastSkipReason ? 'exposed' : 'not_emitted',
+          symmetry_marker: 'asymmetric_only',
+          reliability_tier: 'direct_observation',
+          value: {
+            feature_key: featureKey,
+            last_skip_reason: lastSkipReason,
+            canonical: canonicalMatch,
+            canonical_match: canonicalMatch ? lastSkipReason : 'unknown',
+            count_by_reason: null,
+          },
+          coverage: { feature_key: featureKey },
+          provenance: {
+            manifest_path: manifestPath,
+            config_key: `automation.stats.${featureKey}.last_skip_reason`,
+          },
+          freshness: combinePathFreshness(context.observed_at, [manifestPath]),
+          notes: lastSkipReason && !canonicalMatch
+            ? ['Non-canonical skip_reason observed; may indicate vocabulary drift.']
+            : [],
+        });
+      });
+    },
+  });
+
   return [
     automationHealth,
     automationSignalYield,
     interventionLifecycleArtifactTrace,
     kbSignalStats,
+    skipReasonCanonicalExtractor,
   ];
 }
 
@@ -369,5 +544,6 @@ module.exports = {
     'automation_signal_yield',
     'intervention_lifecycle_artifact_trace',
     'kb_signal_stats',
+    'skip_reason_canonical',
   ],
 };

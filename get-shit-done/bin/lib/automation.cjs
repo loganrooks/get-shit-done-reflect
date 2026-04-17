@@ -226,6 +226,18 @@ function parseTrackEventReason(event, reason) {
   return parsed;
 }
 
+function readAutomationSkipReasons() {
+  const manifestPath = path.resolve(__dirname, '..', '..', 'feature-manifest.json');
+  try {
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    return Array.isArray(manifest.automation_skip_reasons)
+      ? manifest.automation_skip_reasons
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 function cmdAutomationTrackEvent(cwd, feature, event, reason, raw) {
   if (!feature || !event) {
     error('Usage: automation track-event <feature> <fire|skip> [reason]');
@@ -257,6 +269,7 @@ function cmdAutomationTrackEvent(cwd, feature, event, reason, raw) {
 
   const stats = projectConfig.automation.stats[normalizedFeature];
   const parsedReason = parseTrackEventReason(event, reason);
+  const skipReason = parsedReason.reason || 'unknown';
   if (event === 'fire') {
     stats.fires++;
     stats.last_triggered = new Date().toISOString();
@@ -265,8 +278,12 @@ function cmdAutomationTrackEvent(cwd, feature, event, reason, raw) {
       stats.last_signal_count = parsedReason.metadata.last_signal_count;
     }
   } else if (event === 'skip') {
+    const canonical = readAutomationSkipReasons();
+    if (parsedReason.reason && canonical.length > 0 && !canonical.includes(parsedReason.reason)) {
+      console.error(`automation track-event: warning: non-canonical skip_reason "${parsedReason.reason}" (not in automation_skip_reasons enum). Continuing.`);
+    }
     stats.skips++;
-    stats.last_skip_reason = reason || 'unknown';
+    stats.last_skip_reason = skipReason;
     stats.last_run_status = 'skipped';
   }
 

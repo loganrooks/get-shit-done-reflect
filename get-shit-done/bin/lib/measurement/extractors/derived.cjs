@@ -4,6 +4,7 @@ const fs = require('node:fs');
 
 const { buildFeatureRecord, defineExtractor } = require('../registry.cjs');
 const { loadClaude, SESSION_META_PROVENANCE } = require('../sources/claude.cjs');
+const { clusterByMtime, buildStratificationObject, classifySessionSize } = require('../stratify.cjs');
 
 function getClaudeDataset(context) {
   return context && context.claude ? context.claude : loadClaude(context.cwd, context && context.claudeOptions ? context.claudeOptions : {});
@@ -35,15 +36,31 @@ function fileFreshness(filePath, observedAt, staleAfterHours = 24) {
 }
 
 function combineFreshness(observedAt, paths) {
-  const entries = (paths || []).map(filePath => fileFreshness(filePath, observedAt));
+  const normalizedPaths = (paths || []).filter(Boolean);
+  if (normalizedPaths.length === 0) {
+    return {
+      status: 'unknown',
+      observed_at: observedAt,
+      modified_at: null,
+      stale_after_hours: 24,
+      age_hours: null,
+      reasons: ['no_source_paths'],
+    };
+  }
+
+  const entries = normalizedPaths.map(filePath => fileFreshness(filePath, observedAt));
   const statuses = entries.map(entry => entry.status);
+  const knownAges = entries
+    .map(entry => entry.age_hours)
+    .filter(ageHours => ageHours != null);
+  const maxAgeHours = knownAges.length > 0 ? Math.max(...knownAges) : null;
   if (statuses.includes('stale')) {
     return {
       status: 'stale',
       observed_at: observedAt,
       modified_at: entries.find(entry => entry.modified_at)?.modified_at || null,
       stale_after_hours: 24,
-      age_hours: Math.max(...entries.map(entry => entry.age_hours || 0)),
+      age_hours: maxAgeHours,
       reasons: entries.flatMap(entry => entry.reasons || []).filter(Boolean),
     };
   }
@@ -62,7 +79,7 @@ function combineFreshness(observedAt, paths) {
     observed_at: observedAt,
     modified_at: entries.find(entry => entry.modified_at)?.modified_at || null,
     stale_after_hours: 24,
-    age_hours: Math.max(...entries.map(entry => entry.age_hours || 0)),
+    age_hours: maxAgeHours,
     reasons: [],
   };
 }
@@ -84,6 +101,46 @@ function coverageForSession(session) {
     jsonl_state: session.parent_jsonl.status,
     facets_state: session.facets.state,
   };
+}
+
+function collectSessionAndFacetFiles(sessions) {
+  const allFiles = [];
+  for (const session of sessions || []) {
+    if (session.session_meta && session.session_meta.path && typeof session.session_meta.mtime_ms === 'number') {
+      allFiles.push({
+        path: session.session_meta.path,
+        mtime: session.session_meta.mtime_ms,
+        kind: 'session_meta',
+        session_id: session.session_id,
+      });
+    }
+    if (session.facets && session.facets.path && typeof session.facets.mtime_ms === 'number') {
+      allFiles.push({
+        path: session.facets.path,
+        mtime: session.facets.mtime_ms,
+        kind: 'facet',
+        session_id: session.session_id,
+      });
+    }
+  }
+  return allFiles;
+}
+
+function findClusterMembership(clusterMap, filePath) {
+  if (!clusterMap || clusterMap.size === 0 || !filePath) {
+    return null;
+  }
+
+  for (const [clusterId, cluster] of clusterMap.entries()) {
+    if (cluster.file_set.has(filePath)) {
+      return {
+        cluster_id: clusterId,
+        cluster,
+      };
+    }
+  }
+
+  return null;
 }
 
 const sessionMetaProvenanceExtractor = defineExtractor({
@@ -263,15 +320,202 @@ const sessionJsonlCoverageAuditExtractor = defineExtractor({
   },
 });
 
+const facetsSemanticSummaryExtractor = defineExtractor({
+  name: 'facets_semantic_summary',
+  source_family: 'DERIVED',
+  raw_sources: ['claude_facets', 'claude_session_meta'],
+  runtimes: ['claude-code'],
+  reliability_tier: 'artifact_derived',
+  features_produced: ['facets_semantic_summary'],
+  serves_loop: ['signal_quality', 'agent_performance'],
+  distinguishes: ['semantic_goal_distribution', 'friction_surface_map'],
+  status_semantics: ['derived', 'not_available', 'not_emitted'],
+  extract(extractor, context) {
+    const claude = getClaudeDataset(context);
+    const clusterMap = clusterByMtime(collectSessionAndFacetFiles(claude.sessions));
+
+    return claude.sessions.map(session => {
+      const hasFacet = Boolean(session.facets && session.facets.record);
+      const facet = hasFacet ? session.facets.record : null;
+      const stratification = buildStratificationObject({
+        session,
+        cluster_map: clusterMap,
+        session_meta_path: session.session_meta && session.session_meta.path,
+        has_facet: hasFacet,
+      });
+
+      if (!hasFacet) {
+        return buildFeatureRecord(extractor, {
+          feature_name: `facets_semantic_summary:${session.session_id}`,
+          runtime: 'claude-code',
+          availability_status: 'not_emitted',
+          symmetry_marker: 'asymmetric_only',
+          reliability_tier: 'artifact_derived',
+          value: {
+            session_id: session.session_id,
+            stratification,
+          },
+          coverage: coverageForSession(session),
+          provenance: { session_id: session.session_id, facet_path: null },
+          freshness: combineFreshness(context.observed_at, []),
+          notes: ['No facet file matched for this session — facets coverage asymmetry per E5.8 Finding C; absence is data.'],
+        });
+      }
+
+      return buildFeatureRecord(extractor, {
+        feature_name: `facets_semantic_summary:${session.session_id}`,
+        runtime: 'claude-code',
+        availability_status: 'derived',
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'artifact_derived',
+        value: {
+          session_id: session.session_id,
+          underlying_goal: facet.underlying_goal || null,
+          goal_categories: facet.goal_categories || [],
+          outcome: facet.outcome || null,
+          user_satisfaction_counts: facet.user_satisfaction_counts || null,
+          claude_helpfulness: facet.claude_helpfulness || null,
+          session_type: facet.session_type || null,
+          friction_counts: facet.friction_counts || null,
+          friction_detail: facet.friction_detail || null,
+          primary_success: facet.primary_success || null,
+          brief_summary: facet.brief_summary || null,
+          stratification,
+        },
+        coverage: coverageForSession(session),
+        provenance: { session_id: session.session_id, facet_path: session.facets.path || null },
+        freshness: combineFreshness(context.observed_at, [session.facets.path]),
+        notes: [
+          'Facets are LLM-extracted (reliability_tier: artifact_derived). NOT a quality proxy.',
+          'Stratification fields are MANDATORY per DC-4 / MEAS-DERIVED-02. Report layer must default to stratified view.',
+        ],
+      });
+    });
+  },
+});
+
+const derivedWritePathProvenanceExtractor = defineExtractor({
+  name: 'derived_write_path_provenance',
+  source_family: 'DERIVED',
+  raw_sources: ['claude_session_meta', 'claude_facets'],
+  runtimes: ['claude-code'],
+  reliability_tier: 'artifact_derived',
+  features_produced: ['derived_write_path_provenance'],
+  serves_loop: ['signal_quality', 'pipeline_integrity'],
+  distinguishes: ['bulk_vs_single_write_path', 'mtime_cluster_membership'],
+  status_semantics: ['derived', 'not_available'],
+  extract(extractor, context) {
+    const claude = getClaudeDataset(context);
+    const allFiles = collectSessionAndFacetFiles(claude.sessions);
+    const clusterMap = clusterByMtime(allFiles);
+
+    return allFiles.map(file => {
+      const membership = findClusterMembership(clusterMap, file.path);
+      return buildFeatureRecord(extractor, {
+        feature_name: `derived_write_path_provenance:${file.path}`,
+        runtime: 'claude-code',
+        availability_status: 'derived',
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'artifact_derived',
+        value: {
+          artifact_path: file.path,
+          artifact_kind: file.kind,
+          modified_at: new Date(file.mtime).toISOString(),
+          mtime_cluster_id: membership ? membership.cluster_id : null,
+          write_path: membership ? 'bulk' : 'single',
+          cluster_size: membership ? membership.cluster.size : null,
+          cluster_window_seconds: membership ? membership.cluster.window_seconds : null,
+        },
+        coverage: { artifact_path: file.path, artifact_kind: file.kind },
+        provenance: { cluster_algorithm: 'stratify.cjs:clusterByMtime window=2s min_cluster=5 per E5.8 Finding A' },
+        freshness: combineFreshness(context.observed_at, [file.path]),
+        notes: ['Classification is snapshot at observed_at. Re-running rebuild during an /insights run may shift membership — that is data per G-6, not a defect.'],
+      });
+    });
+  },
+});
+
+const insightsMassRewriteBoundaryExtractor = defineExtractor({
+  name: 'insights_mass_rewrite_boundary',
+  source_family: 'DERIVED',
+  raw_sources: ['claude_session_meta', 'claude_facets'],
+  runtimes: ['claude-code'],
+  reliability_tier: 'artifact_derived',
+  features_produced: ['insights_mass_rewrite_boundary'],
+  serves_loop: ['signal_quality', 'cross_session_patterns'],
+  distinguishes: ['insights_generation_batch', 'analysis_staleness_detection'],
+  status_semantics: ['derived', 'not_available'],
+  extract(extractor, context) {
+    const claude = getClaudeDataset(context);
+    const sessionFiles = claude.sessions
+      .filter(session => session.session_meta && session.session_meta.path && typeof session.session_meta.mtime_ms === 'number')
+      .map(session => ({
+        path: session.session_meta.path,
+        mtime: session.session_meta.mtime_ms,
+        session_id: session.session_id,
+        session,
+      }));
+    const clusterMap = clusterByMtime(sessionFiles);
+
+    return [...clusterMap.entries()].map(([batchId, cluster]) => {
+      const filesInCluster = sessionFiles.filter(sessionFile => cluster.file_set.has(sessionFile.path));
+      const sessionIds = filesInCluster.map(sessionFile => sessionFile.session_id);
+      const sessionsWithNewerJsonl = [];
+
+      for (const sessionFile of filesInCluster) {
+        const jsonlMtime = sessionFile.session.parent_jsonl && sessionFile.session.parent_jsonl.mtime_ms;
+        if (typeof jsonlMtime === 'number' && jsonlMtime > sessionFile.mtime) {
+          sessionsWithNewerJsonl.push(sessionFile.session_id);
+        }
+      }
+
+      return buildFeatureRecord(extractor, {
+        feature_name: `insights_mass_rewrite_boundary:${batchId}`,
+        runtime: 'claude-code',
+        availability_status: 'derived',
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'artifact_derived',
+        value: {
+          batch_id: batchId,
+          batch_mtime_window: {
+            start: cluster.window_start,
+            end: cluster.window_end,
+            duration_seconds: cluster.window_seconds,
+          },
+          session_ids_in_batch: sessionIds,
+          batch_size: cluster.size,
+          staleness: {
+            sessions_with_newer_jsonl: sessionsWithNewerJsonl,
+            stale_analysis_detected: sessionsWithNewerJsonl.length > 0,
+          },
+        },
+        coverage: { batch_id: batchId, session_count: cluster.size },
+        provenance: { cluster_algorithm: 'stratify.cjs:clusterByMtime window=2s min_cluster=5' },
+        freshness: combineFreshness(context.observed_at, filesInCluster.map(sessionFile => sessionFile.path)),
+        notes: ['A /insights batch is detected when ≥5 session-meta files share mtime within 2s. Staleness: JSONL appended after last batch.'],
+      });
+    });
+  },
+});
+
 const DERIVED_EXTRACTORS = Object.freeze([
   sessionMetaProvenanceExtractor,
   sessionJsonlCoverageAuditExtractor,
+  facetsSemanticSummaryExtractor,
+  derivedWritePathProvenanceExtractor,
+  insightsMassRewriteBoundaryExtractor,
 ]);
 
 module.exports = {
   DERIVED_EXTRACTORS,
+  derivedWritePathProvenanceExtractor,
+  facetsSemanticSummaryExtractor,
+  insightsMassRewriteBoundaryExtractor,
   sessionJsonlCoverageAuditExtractor,
   sessionMetaProvenanceExtractor,
+  derived_write_path_provenance: derivedWritePathProvenanceExtractor,
+  facets_semantic_summary: facetsSemanticSummaryExtractor,
+  insights_mass_rewrite_boundary: insightsMassRewriteBoundaryExtractor,
   session_jsonl_coverage_audit: sessionJsonlCoverageAuditExtractor,
   session_meta_provenance: sessionMetaProvenanceExtractor,
 };
