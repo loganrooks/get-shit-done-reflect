@@ -262,7 +262,18 @@ Plans:
   6. Reasoning-quality measurement operational — candidate mechanism selected from spike C5 (reference-density, concept-diversity, LLM-as-judge, or facets-based) and shipped for the Agent Performance loop
   7. Phantom-thinking-token reconciler operational after spike C3 confirms real tokenizer; FTS5 resolved per MEAS-GSDR-06
 Authority: `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` §5 Phase 57.7 scope
-**Plans:** TBD (requires /gsdr:discuss-phase 57.7)
+**Plans:** 10 plans
+Plans:
+- [ ] 57.7-01-PLAN.md -- Spike C3: tokenizer availability (Q1) — DESIGN, BUILD, RUN, DECISION
+- [ ] 57.7-02-PLAN.md -- Spike C5: reasoning-quality mechanism selection (Q2) — DESIGN, BUILD, RUN, DECISION
+- [ ] 57.7-03-PLAN.md -- MEAS-GSDR-06 FTS5 drop (schema migration + regression test)
+- [ ] 57.7-04-PLAN.md -- Content extractors: tool_invocation_sequence + topic_shift_markers (MEAS-ARCH-09 content slice 1/2)
+- [ ] 57.7-05-PLAN.md -- Content extractor: intervention_points with Q3 calibration (live or skip-gated)
+- [ ] 57.7-06-PLAN.md -- Distinguishes-metadata audit + PRIVACY.md + interventions/README.md (preconditions for Plan 07)
+- [ ] 57.7-07-PLAN.md -- Interpretation-layer deepening: suggester + intervention-outcome loader + revision history + provenance summary (MEAS-ARCH-09 post-Popperian machinery)
+- [ ] 57.7-08-PLAN.md -- MEAS-RUNTIME-05 phantom-thinking-token reconciler (ship mode per Plan 01 verdict)
+- [ ] 57.7-09-PLAN.md -- MEAS-RUNTIME-11 reasoning-quality proxy (mechanism per Plan 02 verdict; DC-4/G-5 labelling)
+- [ ] 57.7-10-PLAN.md -- Demonstration artifacts: revised vision-drop diagnostic + intervention-outcome records + DEMO-REPORT.md
 
 ### Phase 58: Structural Enforcement Gates
 **Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion, plus GATE-09 scope-translation ledger as the meta-fix for the Phase 57 scope-narrowing cascade
