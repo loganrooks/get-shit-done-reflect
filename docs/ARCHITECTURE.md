@@ -208,13 +208,17 @@ Runtime hooks that integrate with the host AI agent:
 |------|-------|---------|
 | `gsd-statusline.js` | `statusLine` | Displays model, task, directory, and context usage bar |
 | `gsd-context-monitor.js` | `PostToolUse` / `AfterTool` | Injects agent-facing context warnings at 35%/25% remaining |
-| `gsd-check-update.js` | `SessionStart` | Background check for new GSD versions |
+| `gsd-check-update.js` | `SessionStart` | Foreground trigger for the background update check |
+| `gsd-check-update-worker.js` | (helper) | Background worker spawned by `gsd-check-update.js`; no direct event registration |
 | `gsd-prompt-guard.js` | `PreToolUse` | Scans `.planning/` writes for prompt injection patterns (advisory) |
+| `gsd-read-injection-scanner.js` | `PostToolUse` | Scans Read tool output for injected instructions in untrusted content |
 | `gsd-workflow-guard.js` | `PreToolUse` | Detects file edits outside GSD workflow context (advisory, opt-in via `hooks.workflow_guard`) |
 | `gsd-read-guard.js` | `PreToolUse` | Advisory guard preventing Edit/Write on files not yet read in the session |
 | `gsd-session-state.sh` | `PostToolUse` | Session state tracking for shell-based runtimes |
 | `gsd-validate-commit.sh` | `PostToolUse` | Commit validation for conventional commit enforcement |
 | `gsd-phase-boundary.sh` | `PostToolUse` | Phase boundary detection for workflow transitions |
+
+See [`docs/INVENTORY.md`](INVENTORY.md#hooks-11-shipped) for the authoritative 11-hook roster.
 
 ### CLI Tools (`get-shit-done/bin/`)
 
@@ -411,18 +415,16 @@ UI-SPEC.md (per phase) ───────────────────
 
 ```
 ~/.claude/                          # Claude Code (global install)
-├── commands/gsd/*.md               # 81 slash commands
+├── commands/gsd/*.md               # Slash commands (authoritative roster: docs/INVENTORY.md)
 ├── get-shit-done/
 │   ├── bin/gsd-tools.cjs           # CLI utility
-│   ├── bin/lib/*.cjs               # 19 domain modules
-│   ├── workflows/*.md              # 78 workflow definitions
-│   ├── references/*.md             # 35 shared reference docs
+│   ├── bin/lib/*.cjs               # Domain modules (authoritative roster: docs/INVENTORY.md)
+│   ├── workflows/*.md              # Workflow definitions (authoritative roster: docs/INVENTORY.md)
+│   ├── references/*.md             # Shared reference docs (authoritative roster: docs/INVENTORY.md)
 │   └── templates/                  # Planning artifact templates
-├── agents/*.md                     # 33 agent definitions
-├── hooks/
-│   ├── gsd-statusline.js           # Statusline hook
-│   ├── gsd-context-monitor.js      # Context warning hook
-│   └── gsd-check-update.js         # Update check hook
+├── agents/*.md                     # Agent definitions (authoritative roster: docs/INVENTORY.md)
+├── hooks/*.js                      # Node.js hooks (statusline, guards, monitors, update check)
+├── hooks/*.sh                      # Shell hooks (session state, commit validation, phase boundary)
 ├── settings.json                   # Hook registrations
 └── VERSION                         # Installed version number
 ```

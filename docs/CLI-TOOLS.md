@@ -67,6 +67,13 @@ node gsd-tools.cjs state resolve-blocker --text "..."
 
 # Record session continuity
 node gsd-tools.cjs state record-session --stopped-at "..." [--resume-file path]
+
+# Phase start — update STATE.md Status/Last activity for a new phase
+node gsd-tools.cjs state begin-phase --phase N --name SLUG --plans COUNT
+
+# Agent-discoverable blocker signalling (used by discuss-phase / UI flows)
+node gsd-tools.cjs state signal-waiting --type TYPE --question "..." --options "A|B" --phase P
+node gsd-tools.cjs state signal-resume
 ```
 
 ### State Snapshot
@@ -356,6 +363,12 @@ node gsd-tools.cjs todo complete <filename>
 # UAT audit — scan all phases for unresolved items
 node gsd-tools.cjs audit-uat
 
+# Cross-artifact audit queue — scan `.planning/` for unresolved audit items
+node gsd-tools.cjs audit-open [--json]
+
+# Reverse-migrate a GSD-2 project into the current structure (backs `/gsd-from-gsd2`)
+node gsd-tools.cjs from-gsd2 [--path <dir>] [--force] [--dry-run]
+
 # Git commit with config checks
 node gsd-tools.cjs commit <message> [--files f1 f2] [--amend] [--no-verify]
 ```
@@ -414,3 +427,6 @@ User-facing entry point: `/gsd-graphify` (see [Command Reference](COMMANDS.md#gs
 | Profile Pipeline | `lib/profile-pipeline.cjs` | Session analysis pipeline |
 | Graphify | `lib/graphify.cjs` | Knowledge graph build/query/status/diff/snapshot (backs `/gsd-graphify`) |
 | Learnings | `lib/learnings.cjs` | Extract learnings from phases/SUMMARY artifacts (backs `/gsd-extract-learnings`) |
+| Audit | `lib/audit.cjs` | Phase/milestone audit queue handlers; `audit-open` helper |
+| GSD2 Import | `lib/gsd2-import.cjs` | Reverse-migration importer from GSD-2 projects (backs `/gsd-from-gsd2`) |
+| Intel | `lib/intel.cjs` | Queryable codebase intelligence index (backs `/gsd-intel`) |
