@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-16T05:32:06Z
-**Total entries:** 261
+**Generated:** 2026-04-17T01:18:14Z
+**Total entries:** 271
 
-## Signals (254)
+## Signals (263)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -35,6 +35,15 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-17-task-accounting-compressed-phase-summaries | get-shit-done-reflect | minor | detected | task-accounting,summary-granularity,execution-artifacts | "2026-04-17 | active |
+| sig-2026-04-17-plan-576-04-extra-non-planning-file-declared-scope | get-shit-done-reflect | minor | detected | scope-creep,plan-accuracy,measurement,tests | "2026-04-17 | active |
+| sig-2026-04-17-plan-07-rebuild-evidence-regenerated-later-run | get-shit-done-reflect | minor | detected | evidence-hygiene,rebuild-provenance,diagnostics | "2026-04-17 | active |
+| sig-2026-04-17-plan-07-honesty-first-uncomputed-diagnostics | get-shit-done-reflect | notable | detected | epistemic-discipline,diagnostics,honesty-first,uncomputed-boundaries | "2026-04-17 | active |
+| sig-2026-04-17-plan-06-prestaged-worktree-mixed-closeout-commit | get-shit-done-reflect | notable | detected | commit-hygiene,staged-worktree,shared-branch,traceability | "2026-04-17 | active |
+| sig-2026-04-17-plan-05-corrective-fixes-concurrent-edits-blocked | get-shit-done-reflect | notable | detected | verification-blocker,concurrent-edits,shared-branch,autofix,testing | "2026-04-17 | active |
+| sig-2026-04-17-plan-04-shared-test-coupling-wave-verification | get-shit-done-reflect | notable | detected | shared-tests,concurrent-wave,verification-ambiguity,parallel-execution | "2026-04-17 | active |
+| sig-2026-04-17-plan-03-live-corpus-shape-normalization-gap | get-shit-done-reflect | minor | detected | runtime-corpus,data-shape,normalization,claude-loader | "2026-04-17 | active |
+| sig-2026-04-17-plan-01-extra-verifier-justification-artifact | get-shit-done-reflect | notable | detected | verification,documentation,artifact-overdelivery,loop-coverage | "2026-04-17 | active |
 | sig-2026-04-10-plan-phase-workflow-literal-subagent-type-misroute | get-shit-done-reflect | notable | detected | workflow,subagent-dispatch,plan-phase,gsdr-planner,registered-agent,misroute,dev-repo,session-log,recurring | "2026-04-10 | active |
 | sig-2026-04-10-plan-phase-postlude-6-plans-uncommitted-5-hours | get-shit-done-reflect | notable | detected | harness-gap,commit-patterns,plan-quality,workflow-integrity,postlude-gap,killed-agent-recovery | "2026-04-10 | active |
 | sig-2026-04-10-plan-04-purple-color-factual-premise-wrong | get-shit-done-reflect | minor | detected | plan-accuracy,plan-checker,codebase-state,color-collision,second-order-check | "2026-04-10 | active |
@@ -262,10 +271,11 @@
 | sig-2026-02-11-signal-workflow-context-bloat | get-shit-done-reflect | notable | detected | tags: | "2026-02-11 | active |
 | sig-2026-02-11-agent-inline-research-context-bloat | get-shit-done-reflect | notable | detected | tags: | "2026-02-11 | active |
 
-## Spikes (7)
+## Spikes (8)
 
 | ID | Project | Outcome | Tags | Date | Status |
 |----|---------|---------|------|------|--------|
+| spk-2026-04-16-parent-session-thinking-summary-proxy | get-shit-done-reflect | partial | measurement,phase-57.5,thinking-summaries,headless-dispatch,claude-code-internals,effort-level,model-comparison | 2026-04-16 | active |
 | spk-2026-04-16-thinking-summary-as-reasoning-proxy | get-shit-done-reflect | partial | measurement,phase-57.5,thinking-summaries,subagent-dispatch,claude-code-internals | 2026-04-16 | active |
 | spk-2026-03-01-claude-code-session-log-location | get-shit-done-reflect | confirmed | logging,sensor,claude-code,signal-collection | 2026-03-01 | active |
 | spk-2026-04-09-cross-runtime-otel-bridge-validation | get-shit-done-reflect | partial | telemetry,otel,codex,statusline,cross-runtime,token-accounting,rate-limits | "2026-04-09 | partial |
@@ -273,9 +283,4 @@
 | spk-2026-04-09-session-data-integrity-characterization | get-shit-done-reflect | confirmed | telemetry,session-meta,data-quality,integrity | "2026-04-09 | active |
 | spk-2026-04-09-facets-accuracy-validation | get-shit-done-reflect | partial | telemetry,facets,data-quality,correlation | "2026-04-09 | active |
 | spk-2026-04-09-behavioral-metric-signal-to-noise | get-shit-done-reflect | confirmed | telemetry,behavioral-metrics,session-meta,signal-analysis | "2026-04-09 | active |
-
-## Lessons (0)
-
-| ID | Project | Category | Tags | Date | Status |
-|----|---------|----------|------|------|--------|
 
