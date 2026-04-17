@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: verifying
-stopped_at: Phase 57.7 context gathered; context-checker WARN (40/6/0); Q1/Q2/Q3/Q4/Q5 flagged for plan-phase
-last_updated: "2026-04-17T03:45:31.582Z"
-last_activity: 2026-04-17 -- Phase 57.6 complete (Multi-Loop Coverage & Human Interface)
+status: in_progress
+stopped_at: Completed 57.7-03-PLAN.md
+last_updated: "2026-04-17T05:12:34Z"
+last_activity: 2026-04-17 -- Phase 57.7 Plan 03 complete (MEAS-GSDR-06 FTS5 drop)
 progress:
   total_phases: 20
   completed_phases: 11
-  total_plans: 37
-  completed_plans: 37
-  percent: 100
+  total_plans: 47
+  completed_plans: 38
+  percent: 55
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — next up after Phase 57.6 completed with passed verification. Phase 57.7 deepens the measurement substrate with session-content extractors, distinguishing-feature suggestion, intervention-outcome tracking, and interpretation-revision classification.
+**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — in progress after Plan 03 resolved MEAS-GSDR-06 by removing the dormant `signal_fts` schema path. Next up: 57.7-04 content extractors and the `content_contract` fix.
 
 ## Current Position
 
-Phase: 57.6 of 64 (Multi-Loop Coverage & Human Interface) — Complete
-Plan: 7 of 7
-Status: Phase complete; verifier passed 6/6 must-haves. Next: Phase 57.7 (Content Analysis & Epistemic Deepening).
-Last activity: 2026-04-17 -- Phase 57.6 complete (Multi-Loop Coverage & Human Interface)
+Phase: 57.7 of 64 (Content Analysis & Epistemic Deepening) — In Progress
+Plan: 3 of 10
+Status: Plan 03 complete; MEAS-GSDR-06 resolved by dropping `signal_fts`. Next: 57.7-04.
+Last activity: 2026-04-17 -- Phase 57.7 Plan 03 complete (MEAS-GSDR-06 FTS5 drop)
 
 Progress: [██████░░░░] 55%
 
@@ -36,7 +36,7 @@ Progress: [██████░░░░] 55%
 
 **v1.20 Current:**
 
-- Plans completed: 28
+- Plans completed: 29
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -169,6 +169,8 @@ Recent decisions affecting current work:
 - [Phase 57.4-06]: Task 1 as verification-only gate (no commit): pre-removal checks confirm Plans 01-05 landed before banners are removed; failure aborts Task 2 rather than proceeding with a half-rewritten file
 - [Phase 57.4-06]: 9-subject cross-plan consistency check closes: all 9 subjects (phase_verification, milestone, codebase_forensics, requirements_review, comparative_quality, claim_integrity, adoption_compliance, process_review, artifact_analysis) present in both audit-conventions.md and audit-ground-rules.md — count distribution differs (conventions uses subjects in schema examples + taxonomy, ground-rules uses them in subject-obligations table) but all 9 names match
 - [Phase 57.4-06]: Full npm test returned 502 passed / 0 failed / 4 todo; RESEARCH.md Open Question about count-based assertions breaking from new file count is resolved negatively — tests did not contain file-count assertions sensitive to adding audit.md command or gsdr-auditor agent
+- [Phase 57.7]: MEAS-GSDR-06 resolved via option (b): drop signal_fts and keep ripgrep as the KB search fallback.
+- [Phase 57.7]: KB schema regression tests should verify migrations through the production kb rebuild path rather than exporting kb internals.
 
 ### Roadmap Evolution
 
@@ -218,6 +220,7 @@ Recent decisions affecting current work:
 | Phase 57.4 P04 | 6min | 3 tasks | 2 files |
 | Phase 57.4 P05 | 3min | 2 tasks | 1 files |
 | Phase 57.4 P06 | 3min | 3 tasks | 2 files |
+| Phase 57.7 P03 | 10min | 2 tasks | 3 files |
 
 ### Key Artifacts
 
@@ -236,8 +239,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-17T03:45:31.574Z
-Stopped at: Phase 57.7 context gathered; context-checker WARN (40/6/0); Q1/Q2/Q3/Q4/Q5 flagged for plan-phase
+Last session: 2026-04-17T05:12:02.489Z
+Stopped at: Completed 57.7-03-PLAN.md
 Resume artifact: `.planning/audits/2026-04-15-measurement-signal-inventory/pre-57.5-handoff.md`
 
 This session (2026-04-16):
