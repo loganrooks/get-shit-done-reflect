@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { extractFrontmatter } = require('../frontmatter.cjs');
 
 const {
   buildRegistry,
@@ -23,6 +24,14 @@ const { loadCodex } = require('./sources/codex.cjs');
 const { loadGsdr } = require('./sources/gsdr.cjs');
 
 const FRESHNESS_STATUSES = ['fresh', 'stale', 'unknown'];
+let _cachedRegistry = null;
+
+function getRegistryForInterpretations() {
+  if (_cachedRegistry === null) {
+    _cachedRegistry = buildRegistry();
+  }
+  return _cachedRegistry;
+}
 
 function safeStat(filePath) {
   try {
@@ -575,6 +584,175 @@ function deriveAnomalyRegister(features, sourceSnapshots) {
   return anomalies;
 }
 
+function baseFeatureName(featureName) {
+  return String(featureName || '').split(':')[0];
+}
+
+function suggestDistinguishingFeatures(interpretation, registryExtractors, computedFeatures) {
+  const computedByBase = new Map();
+  for (const feature of computedFeatures || []) {
+    const base = baseFeatureName(feature.feature);
+    if (!computedByBase.has(base)) {
+      computedByBase.set(base, new Set());
+    }
+    if (feature.extractor) {
+      computedByBase.get(base).add(feature.extractor);
+    }
+  }
+
+  const registryByName = new Map((registryExtractors || []).map(extractor => [extractor.name, extractor]));
+  const interpretationTerms = new Set();
+  for (const entry of interpretation && Array.isArray(interpretation.distinguishing_features)
+    ? interpretation.distinguishing_features
+    : []) {
+    const raw = typeof entry === 'string'
+      ? entry
+      : ((entry && entry.feature) || (entry && entry.name) || '');
+    if (!raw) continue;
+
+    const mappedExtractors = computedByBase.get(baseFeatureName(raw));
+    if (mappedExtractors && mappedExtractors.size > 0) {
+      for (const extractorName of mappedExtractors) {
+        const extractor = registryByName.get(extractorName);
+        for (const distinguishes of extractor && Array.isArray(extractor.distinguishes) ? extractor.distinguishes : []) {
+          interpretationTerms.add(distinguishes);
+        }
+      }
+      continue;
+    }
+
+    interpretationTerms.add(raw);
+  }
+
+  if (interpretationTerms.size === 0) return [];
+
+  const computedExtractorNames = new Set((computedFeatures || []).map(feature => feature.extractor).filter(Boolean));
+  return (registryExtractors || [])
+    .map((extractor) => {
+      const overlap = (extractor.distinguishes || []).filter(distinguishes => interpretationTerms.has(distinguishes));
+      if (overlap.length === 0) return null;
+      if (computedExtractorNames.has(extractor.name)) return null;
+      return {
+        extractor: extractor.name,
+        distinguishes: overlap,
+        reason: 'registered_but_not_computed_for_current_scope',
+      };
+    })
+    .filter(Boolean);
+}
+
+function loadInterventionOutcomes(cwd, interpretationId) {
+  if (!interpretationId) return [];
+  const dir = path.join(cwd, '.planning', 'measurement', 'interventions');
+  if (!fs.existsSync(dir)) return [];
+
+  let stat = null;
+  try {
+    stat = fs.statSync(dir);
+  } catch {
+    return [];
+  }
+  if (!stat.isDirectory()) return [];
+
+  const outcomes = [];
+  for (const file of fs.readdirSync(dir).filter(name => name.endsWith('.md') && name !== 'README.md').sort()) {
+    const fullPath = path.join(dir, file);
+    let content = '';
+    try {
+      content = fs.readFileSync(fullPath, 'utf8');
+    } catch {
+      continue;
+    }
+    const record = extractFrontmatter(content);
+    if (!record || typeof record !== 'object') continue;
+    if (record.interpretation_id !== interpretationId) continue;
+
+    outcomes.push({
+      intervention_id: record.intervention_id || null,
+      intervention_artifact: record.intervention_artifact || null,
+      predicted_outcome: record.predicted_outcome || null,
+      actual_outcome: record.actual_outcome || null,
+      outcome_status: record.outcome_status || 'pending',
+      evaluation_date: record.evaluation_date || null,
+      record_path: path.relative(cwd, fullPath),
+    });
+  }
+
+  return outcomes;
+}
+
+function aggregateRevisionHistory(cwd, interpretationId) {
+  if (!interpretationId) return { revisions: [], distribution: {} };
+  const dir = path.join(cwd, '.planning', 'measurement', 'diagnostics');
+  if (!fs.existsSync(dir)) return { revisions: [], distribution: {} };
+
+  let stat = null;
+  try {
+    stat = fs.statSync(dir);
+  } catch {
+    return { revisions: [], distribution: {} };
+  }
+  if (!stat.isDirectory()) return { revisions: [], distribution: {} };
+
+  const revisions = [];
+  const distribution = {};
+  for (const file of fs.readdirSync(dir).filter(name => name.endsWith('.md') && name !== 'README.md').sort()) {
+    const fullPath = path.join(dir, file);
+    let content = '';
+    try {
+      content = fs.readFileSync(fullPath, 'utf8');
+    } catch {
+      continue;
+    }
+    const record = extractFrontmatter(content);
+    if (!record || typeof record !== 'object') continue;
+
+    const revises = Array.isArray(record.revises) ? record.revises : [record.revises].filter(Boolean);
+    const matches = record.interpretation_id === interpretationId
+      || record.id === interpretationId
+      || record.diagnostic_id === interpretationId
+      || revises.includes(interpretationId);
+    if (!matches) continue;
+
+    const classification = record.revision_classification || 'unclassified';
+    revisions.push({
+      diagnostic_path: path.relative(cwd, fullPath),
+      timestamp: record.revised_at || record.created_at || null,
+      classification,
+      justification: record.revision_justification || null,
+    });
+    distribution[classification] = (distribution[classification] || 0) + 1;
+  }
+
+  return { revisions, distribution };
+}
+
+function composeProvenanceSummary(interpretation, interventionOutcomes, revisionDistribution, anomalyCount) {
+  const challengeCount = Array.isArray(interpretation && interpretation.competing_readings)
+    ? interpretation.competing_readings.length
+    : 0;
+  const outcomes = interventionOutcomes || [];
+  const grounded = outcomes.filter((outcome) => outcome.outcome_status === 'confirmed' || outcome.outcome_status === 'mixed').length;
+  const revisionKeys = Object.keys(revisionDistribution || {});
+  const orderedKeys = ['progressive', 'degenerating', 'unclassified'];
+  const revisionSummary = revisionKeys.length === 0
+    ? 'no_revisions'
+    : [
+        ...orderedKeys.filter((key) => revisionKeys.includes(key)),
+        ...revisionKeys.filter((key) => !orderedKeys.includes(key)).sort(),
+      ]
+        .map((key) => `${key}=${revisionDistribution[key]}`)
+        .join(', ');
+
+  const parts = [
+    `surviving_challenge_from_${challengeCount}_perspectives`,
+    `grounded_in_${grounded}_interventions`,
+  ];
+  parts.push(`carrying_${anomalyCount}_tracked_anomalies`);
+  parts.push(`revisions=[${revisionSummary}]`);
+  return parts.join(' | ');
+}
+
 function summarizeReliability(features) {
   const tiers = [...new Set(features.map(feature => feature.reliability_tier))];
   let overall = 'artifact_derived';
@@ -706,7 +884,7 @@ function queryMeasurement(cwd, options = {}) {
   const scope = options.scope || 'project';
   const runtimeFilter = options.runtime || null;
   const questionInfo = classifyQuestion(question);
-  const registry = options.registry || buildRegistry();
+  const registry = options.registry || getRegistryForInterpretations();
   const claude = loadClaude(cwd, {
     ...(options.claudeOptions || {}),
     ...(options.homeDir ? { homeDir: options.homeDir } : {}),
@@ -745,6 +923,19 @@ function queryMeasurement(cwd, options = {}) {
   const runtimeDimensionSummary = runtime_dimension(features, registry);
   const anomalyRegister = deriveAnomalyRegister(features, sourceSnapshots);
   const storeMetadata = loadStoreMetadata(cwd);
+  const baseInterpretations = buildInterpretations(features, anomalyRegister, questionInfo, runtimeDimensionSummary);
+  const augmentedInterpretations = baseInterpretations.map((interpretation) => {
+    const suggestions = suggestDistinguishingFeatures(interpretation, registry.extractors, features);
+    const outcomes = loadInterventionOutcomes(cwd, interpretation.id);
+    const history = aggregateRevisionHistory(cwd, interpretation.id);
+    return {
+      ...interpretation,
+      distinguishing_feature_suggestions: suggestions,
+      intervention_outcomes: outcomes,
+      revision_history: history.revisions,
+      provenance_summary: composeProvenanceSummary(interpretation, outcomes, history.distribution, anomalyRegister.length),
+    };
+  });
 
   return {
     question,
@@ -757,7 +948,7 @@ function queryMeasurement(cwd, options = {}) {
     contract: buildContract(),
     runtime_dimension: runtimeDimensionSummary,
     features,
-    interpretations: buildInterpretations(features, anomalyRegister, questionInfo, runtimeDimensionSummary),
+    interpretations: augmentedInterpretations,
     distinguishing_features: runtimeDimensionSummary.by_feature
       .filter(group => group.symmetry_markers.some(marker => marker !== 'symmetric_available'))
       .map(group => ({
@@ -804,6 +995,10 @@ function queryMeasurement(cwd, options = {}) {
 
 module.exports = {
   FRESHNESS_STATUSES,
+  aggregateRevisionHistory,
+  composeProvenanceSummary,
+  loadInterventionOutcomes,
   queryMeasurement,
   runtime_dimension,
+  suggestDistinguishingFeatures,
 };
