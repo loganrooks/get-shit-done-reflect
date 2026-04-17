@@ -130,10 +130,18 @@ function initSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_signals_status ON signals(status);
   `);
 
-  // FTS5 table reservation -- Phase 59 populates the body column
-  db.exec(`
-    CREATE VIRTUAL TABLE IF NOT EXISTS signal_fts USING fts5(id, title, body, content=signals, content_rowid=rowid);
-  `);
+  // 57.7 MEAS-GSDR-06: drop signal_fts virtual table. Previously reserved for
+  // Phase 59 full-text search, never populated, and external-content mode
+  // referenced nonexistent title/body columns on signals. Ripgrep remains the
+  // search fallback per option (b); any future FTS re-entry must be a
+  // contentless rewrite, not canonical-row expansion.
+  const ftsTriggers = db.prepare(
+    "SELECT name FROM sqlite_master WHERE type='trigger' AND sql LIKE '%signal_fts%'"
+  ).all();
+  for (const trigger of ftsTriggers) {
+    db.exec(`DROP TRIGGER IF EXISTS ${trigger.name};`);
+  }
+  db.exec('DROP TABLE IF EXISTS signal_fts;');
 }
 
 function openKbDb(dbPath) {
