@@ -1,6 +1,7 @@
 'use strict';
 
 const { asciiBar, headerBlock, mdTable } = require('../primitives.cjs');
+const { buildRegistry } = require('../../registry.cjs');
 
 const LOOP_LABEL = 'Agent Performance';
 const FEATURE_BASES = [
@@ -129,20 +130,37 @@ function renderG4Caveat(caveatKey) {
   ].join(' ');
 }
 
+function contentDerivedFeatures(loop, queryResult) {
+  const registryByName = new Map(buildRegistry().extractors.map((extractor) => [extractor.name, extractor]));
+  const observed = new Set();
+
+  for (const feature of queryResult.features || []) {
+    const extractor = registryByName.get(feature.extractor);
+    if (!extractor) continue;
+    if (extractor.content_contract !== 'derived_features_only') continue;
+    if (!Array.isArray(extractor.serves_loop) || !extractor.serves_loop.includes(loop)) continue;
+    observed.add(featureBaseName(feature.feature) || extractor.name);
+  }
+
+  return [...observed].sort();
+}
+
 function interpretationsTable(queryResult) {
   return mdTable(
-    ['ID', 'Summary', 'Reliability', 'Competing Readings'],
+    ['ID', 'Summary', 'Reliability', 'Competing Readings', 'Provenance'],
     (queryResult.interpretations || []).map((interpretation) => [
       interpretation.id || '-',
       interpretation.summary || '-',
       interpretation.reliability_tier || '-',
       Array.isArray(interpretation.competing_readings) ? interpretation.competing_readings.join(' / ') : '-',
+      interpretation.provenance_summary || '-',
     ])
   );
 }
 
 exports.render = function render(queryResult, opts = {}) {
   const features = selectFeatures(queryResult);
+  const derivedFeatures = contentDerivedFeatures('agent_performance', queryResult);
   const out = [];
   out.push(`# ${LOOP_LABEL} Report`);
   out.push('');
@@ -154,6 +172,8 @@ exports.render = function render(queryResult, opts = {}) {
     reliability: queryResult.reliability,
     anomaly_count: (queryResult.anomaly_register || []).length,
     caveats: [renderG4Caveat(G4_CAVEAT_KEY)],
+    contentExtractorCount: derivedFeatures.length,
+    contentDerivedFeatures: derivedFeatures,
   }));
   out.push('');
   out.push('## Feature Summary');
@@ -178,5 +198,11 @@ exports.render = function render(queryResult, opts = {}) {
   out.push('');
   out.push('## Interpretations');
   out.push(interpretationsTable(queryResult));
+  if ((queryResult.interpretations || []).length > 0) {
+    out.push('');
+    for (const interpretation of queryResult.interpretations || []) {
+      out.push(`provenance: ${(interpretation.id || '-')} -> ${(interpretation.provenance_summary || '-')}`);
+    }
+  }
   return out.join('\n');
 };

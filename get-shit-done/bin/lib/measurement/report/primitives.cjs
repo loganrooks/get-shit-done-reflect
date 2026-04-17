@@ -89,7 +89,17 @@ function resolveFeatureRowCount(provenance, coverage) {
   );
 }
 
-function headerBlock({ title, observed_at, provenance, coverage, reliability, anomaly_count, caveats }) {
+function headerBlock({
+  title,
+  observed_at,
+  provenance,
+  coverage,
+  reliability,
+  anomaly_count,
+  caveats,
+  contentExtractorCount,
+  contentDerivedFeatures,
+}) {
   const missing = summarizeCoverageFamilies(coverage, 'missing_sources');
   const stale = summarizeCoverageFamilies(coverage, 'stale_sources');
   const unknown = summarizeCoverageFamilies(coverage, 'unknown_sources');
@@ -110,6 +120,17 @@ function headerBlock({ title, observed_at, provenance, coverage, reliability, an
   out.push(`coverage.by_source_family.unknown_sources: ${unknown.summary}`);
   out.push(`reliability.overall_tier: ${tier}`);
   out.push(`anomaly_count: ${typeof anomaly_count === 'number' ? anomaly_count : 'unknown'}`);
+  const derivedFeatures = Array.isArray(contentDerivedFeatures)
+    ? [...new Set(contentDerivedFeatures.filter(Boolean).map(String))].sort()
+    : [];
+  if (derivedFeatures.length > 0) {
+    const count = typeof contentExtractorCount === 'number' && contentExtractorCount > 0
+      ? contentExtractorCount
+      : derivedFeatures.length;
+    out.push(`privacy: derived_features_only for ${count} content extractor(s) [${derivedFeatures.join(', ')}]; raw content discarded after extraction; see .planning/measurement/PRIVACY.md`);
+  } else if (typeof contentExtractorCount === 'number' && contentExtractorCount > 0) {
+    out.push(`privacy: derived_features_only for ${contentExtractorCount} content extractor(s); raw content discarded after extraction; see .planning/measurement/PRIVACY.md`);
+  }
 
   if (Array.isArray(caveats) && caveats.length > 0) {
     out.push('caveats:');
