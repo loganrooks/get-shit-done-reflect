@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: in_progress
-stopped_at: Completed Plan 05 of Phase 57.7
-last_updated: "2026-04-17T05:46:34Z"
-last_activity: 2026-04-17 -- Phase 57.7 Plan 05 complete (intervention heuristic calibrated live)
+stopped_at: Completed Wave 3 of Phase 57.7 (Plans 05-06)
+last_updated: "2026-04-17T05:51:14Z"
+last_activity: 2026-04-17 -- Phase 57.7 Wave 3 complete (intervention shipping + metadata/privacy groundwork)
 progress:
   total_phases: 20
   completed_phases: 11
   total_plans: 47
-  completed_plans: 42
+  completed_plans: 43
   percent: 55
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — `intervention_points` is now live after corpus calibration, and the remaining Wave 3 work is Plan 06's distinguishes/privacy/intervention-sidecar groundwork for Plan 07.
+**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — Wave 3 is complete: `intervention_points` is live, the registry vocabulary is backfilled for diagnostic traversal, and the privacy/intervention sidecar docs now exist. Next up: Wave 4 (`57.7-07` through `57.7-09`) for interpretation-layer deepening, reasoning-token reconciliation, and reasoning-quality proxy shipping.
 
 ## Current Position
 
 Phase: 57.7 of 64 (Content Analysis & Epistemic Deepening) — In Progress
-Plan: 5 of 10
-Status: Wave 3 in progress; Plan 05 landed and the next plan is 57.7-06.
-Last activity: 2026-04-17 -- Phase 57.7 Plan 05 complete (intervention heuristic calibrated live)
+Plan: 6 of 10
+Status: Wave 3 complete; Plans 05-06 landed and the next plans are 57.7-07, 57.7-08, and 57.7-09.
+Last activity: 2026-04-17 -- Phase 57.7 Wave 3 complete (intervention shipping + metadata/privacy groundwork)
 
 Progress: [██████░░░░] 55%
 
@@ -36,7 +36,7 @@ Progress: [██████░░░░] 55%
 
 **v1.20 Current:**
 
-- Plans completed: 33
+- Plans completed: 34
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -70,6 +70,7 @@ Progress: [██████░░░░] 55%
 - 57.7-03: 10min, 2 tasks, 3 files
 - 57.7-04: 10min, 2 tasks, 4 files
 - 57.7-05: 10min, 2 tasks, 4 files
+- 57.7-06: 5min, 2 tasks, 5 files
 
 **v1.18 Final:**
 
@@ -87,6 +88,8 @@ v1.13-v1.18 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
 
+- [Phase 57.7 Plan 06 2026-04-17]: Diagnostic distinguishing features live in prose, not YAML, so the audit transcribes them manually and backfills registry vocabulary additively rather than inventing a parser mid-phase
+- [Phase 57.7 Plan 06 2026-04-17]: `.planning/measurement/interventions/README.md` uses existing interpretation ids (`phase_57_5_live_registry_query`, `diag-*`) as exact-match keys; no new identifier layer was introduced
 - [Phase 57.7 Plan 05 2026-04-17]: `intervention_points` ships live with heuristic version `57.7-v1`; the calibrated structural marker set counts Claude's explicit `[Request interrupted by user]` placeholder as a valid interrupt signal
 - [Phase 57.7 Plan 05 2026-04-17]: Q3 calibration passed with long-session fire rate `19.23%` in the 50-session sample and reviewed false-positive rate `0/13`, so schema-only shipping was unnecessary
 - [Phase 57.7 Plan 04 2026-04-17]: `content_contract` is now preserved on frozen extractor entries, so downstream query/report logic can filter content-derived features directly from registry metadata
