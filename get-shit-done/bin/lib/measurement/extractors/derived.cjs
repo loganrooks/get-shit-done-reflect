@@ -328,7 +328,12 @@ const facetsSemanticSummaryExtractor = defineExtractor({
   reliability_tier: 'artifact_derived',
   features_produced: ['facets_semantic_summary'],
   serves_loop: ['signal_quality', 'agent_performance'],
-  distinguishes: ['semantic_goal_distribution', 'friction_surface_map'],
+  distinguishes: [
+    'semantic_goal_distribution',
+    'friction_surface_map',
+    // 57.7-06 backfill: aligns registry vocabulary with the facets-coverage asymmetry diagnostic.
+    'size_bucket_coverage_bias',
+  ],
   status_semantics: ['derived', 'not_available', 'not_emitted'],
   extract(extractor, context) {
     const claude = getClaudeDataset(context);

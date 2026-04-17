@@ -827,7 +827,12 @@ const toolInvocationSequenceExtractor = defineExtractor({
   reliability_tier: 'direct_observation',
   features_produced: ['tool_invocation_sequence'],
   serves_loop: ['pipeline_integrity', 'agent_performance'],
-  distinguishes: ['tool_use_pattern', 'agent_autonomy_vs_intervention_mix'],
+  distinguishes: [
+    'tool_use_pattern',
+    'agent_autonomy_vs_intervention_mix',
+    // 57.7-06 backfill: supports the vision-drop Reading A scope-narrowing traversal.
+    'scope_narrowing_cascade_candidate',
+  ],
   status_semantics: ['exposed', 'not_emitted', 'not_available'],
   content_contract: 'derived_features_only',
   extract(extractor, context) {
@@ -936,7 +941,12 @@ const interventionPointsExtractor = defineExtractor({
   reliability_tier: 'inferred',
   features_produced: ['intervention_points'],
   serves_loop: ['pipeline_integrity', 'agent_performance'],
-  distinguishes: ['mid_sequence_course_correction', 'scope_narrowing_intervention'],
+  distinguishes: [
+    'mid_sequence_course_correction',
+    'scope_narrowing_intervention',
+    // 57.7-06 backfill: intervention spikes in planning windows discriminate the vision-drop cascade reading.
+    'scope_narrowing_cascade_candidate',
+  ],
   status_semantics: ['exposed', 'not_emitted', 'not_available'],
   content_contract: 'derived_features_only',
   extract(extractor, context) {
