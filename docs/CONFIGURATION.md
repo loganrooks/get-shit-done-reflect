@@ -18,7 +18,8 @@ GSD stores project settings in `.planning/config.json`. Created during `/gsd-new
   "model_overrides": {},
   "planning": {
     "commit_docs": true,
-    "search_gitignored": false
+    "search_gitignored": false,
+    "sub_repos": []
   },
   "context_profile": null,
   "workflow": {
@@ -45,7 +46,10 @@ GSD stores project settings in `.planning/config.json`. Created during `/gsd-new
     "code_review_command": null,
     "cross_ai_execution": false,
     "cross_ai_command": null,
-    "cross_ai_timeout": 300
+    "cross_ai_timeout": 300,
+    "security_enforcement": true,
+    "security_asvs_level": 1,
+    "security_block_on": "high"
   },
   "hooks": {
     "context_warnings": true,
@@ -80,9 +84,6 @@ GSD stores project settings in `.planning/config.json`. Created during `/gsd-new
     "always_confirm_external_services": true
   },
   "project_code": null,
-  "security_enforcement": true,
-  "security_asvs_level": 1,
-  "security_block_on": "high",
   "agent_skills": {},
   "response_language": null,
   "features": {
@@ -164,6 +165,7 @@ All workflow toggles follow the **absent = enabled** pattern. If a key is missin
 |---------|------|---------|-------------|
 | `planning.commit_docs` | boolean | `true` | Whether `.planning/` files are committed to git |
 | `planning.search_gitignored` | boolean | `false` | Add `--no-ignore` to broad searches to include `.planning/` |
+| `planning.sub_repos` | array of strings | `[]` | Paths of nested sub-repos relative to the project root. When set, GSD-aware tooling scopes phase-lookup, path-resolution, and commit operations per sub-repo instead of treating the outer repo as a monorepo |
 
 ### Auto-Detection
 
@@ -265,6 +267,14 @@ Toggle optional capabilities via the `features.*` config namespace. Feature flag
 | `features.thinking_partner` | boolean | `false` | Enable thinking partner analysis at workflow decision points |
 | `features.global_learnings` | boolean | `false` | Enable cross-project learnings pipeline (auto-copy at phase completion, planner injection) |
 | `intel.enabled` | boolean | `false` | Enable queryable codebase intelligence system. When `true`, `/gsd-intel` commands build and query a JSON index in `.planning/intel/`. Added in v1.34 |
+
+<a id="graphify-settings"></a>
+### Graphify Settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `graphify.enabled` | boolean | `false` | Enable the project knowledge graph. When `true`, `/gsd-graphify` builds and queries a graph in `.planning/graphs/`. Added in v1.36 |
+| `graphify.build_timeout` | number (seconds) | `300` | Maximum seconds allowed for a `/gsd-graphify build` run before it aborts. Added in v1.36 |
 
 ### Usage
 
@@ -368,13 +378,13 @@ Control confirmation prompts during workflows.
 
 ## Security Settings
 
-Settings for the security enforcement feature (v1.31). All follow the **absent = enabled** pattern.
+Settings for the security enforcement feature (v1.31). All follow the **absent = enabled** pattern. These keys live under `workflow.*` in `.planning/config.json` — matching the shipped template and the runtime reads in `workflows/plan-phase.md`, `workflows/execute-phase.md`, `workflows/secure-phase.md`, and `workflows/verify-work.md`.
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `security_enforcement` | boolean | `true` | Enable threat-model-anchored security verification via `/gsd-secure-phase`. When `false`, security checks are skipped entirely |
-| `security_asvs_level` | number (1-3) | `1` | OWASP ASVS verification level. Level 1 = opportunistic, Level 2 = standard, Level 3 = comprehensive |
-| `security_block_on` | string | `"high"` | Minimum severity that blocks phase advancement. Options: `"high"`, `"medium"`, `"low"` |
+| `workflow.security_enforcement` | boolean | `true` | Enable threat-model-anchored security verification via `/gsd-secure-phase`. When `false`, security checks are skipped entirely |
+| `workflow.security_asvs_level` | number (1-3) | `1` | OWASP ASVS verification level. Level 1 = opportunistic, Level 2 = standard, Level 3 = comprehensive |
+| `workflow.security_block_on` | string | `"high"` | Minimum severity that blocks phase advancement. Options: `"high"`, `"medium"`, `"low"` |
 
 ---
 

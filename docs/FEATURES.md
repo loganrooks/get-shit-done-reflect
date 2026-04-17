@@ -116,6 +116,8 @@
   - [SDK Workstream Support](#113-sdk-workstream-support)
   - [Context-Window-Aware Prompt Thinning](#114-context-window-aware-prompt-thinning)
   - [Configurable CLAUDE.md Path](#115-configurable-claudemd-path)
+  - [TDD Pipeline Mode](#116-tdd-pipeline-mode)
+  - [Knowledge Graph Integration](#117-knowledge-graph-integration)
 - [v1.32 Features](#v132-features)
   - [STATE.md Consistency Gates](#69-statemd-consistency-gates)
   - [Autonomous `--to N` Flag](#70-autonomous---to-n-flag)
@@ -2423,3 +2425,19 @@ Test suite that scans all agent, workflow, and command files for embedded inject
 
 **Configuration:** `workflow.tdd_mode`
 **Reference files:** `tdd.md`, `checkpoints.md`
+
+---
+
+### 117. Knowledge Graph Integration
+
+**Purpose:** Build, query, and inspect a lightweight knowledge graph of the project in `.planning/graphs/`. Opt-in per project. Exposed as the `/gsd-graphify` user-facing command and the `gsd-tools.cjs graphify …` programmatic verb family. Complements `/gsd-intel` (snapshot-oriented) with a graph-oriented view of nodes and edges across commands, agents, workflows, and phases.
+
+**Requirements:**
+- REQ-GRAPH-01: Opt-in via `graphify.enabled: true` in `.planning/config.json`. When disabled, `/gsd-graphify` prints an activation hint and stops without writing.
+- REQ-GRAPH-02: Subcommand surface `build`, `query <term>`, `status`, `diff`, `snapshot` on both `/gsd-graphify` and `node gsd-tools.cjs graphify …`.
+- REQ-GRAPH-03: Build runs within the configurable `graphify.build_timeout` (seconds); exceeding the timeout aborts cleanly without leaving a partial graph.
+- REQ-GRAPH-04: `graphify.cjs` falls back to `graph.links` when `graph.edges` is absent so older graph artifacts keep rendering.
+- REQ-GRAPH-05: CJS-only surface; `gsd-sdk query` does not yet register graphify handlers.
+
+**Configuration:** `graphify.enabled`, `graphify.build_timeout`
+**Reference files:** `commands/gsd/graphify.md`, `bin/lib/graphify.cjs`

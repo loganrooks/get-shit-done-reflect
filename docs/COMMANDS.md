@@ -637,17 +637,27 @@ Execute ad-hoc task with GSD guarantees.
 
 | Flag | Description |
 |------|-------------|
-| `--full` | Enable plan checking (2 iterations) + post-execution verification |
+| `--full` | Enable the complete quality pipeline — discussion + research + plan-checking + verification |
+| `--validate` | Plan-checking (max 2 iterations) + post-execution verification only; no discussion or research |
 | `--discuss` | Lightweight pre-planning discussion |
 | `--research` | Spawn focused researcher before planning |
 
-Flags are composable.
+Granular flags are composable: `--discuss --research --validate` is equivalent to `--full`.
+
+| Subcommand | Description |
+|------------|-------------|
+| `list` | List all quick tasks with status |
+| `status <slug>` | Show status of a specific quick task |
+| `resume <slug>` | Resume a specific quick task by slug |
 
 ```bash
 /gsd-quick                          # Basic quick task
 /gsd-quick --discuss --research     # Discussion + research + planning
-/gsd-quick --full                   # With plan checking and verification
-/gsd-quick --discuss --research --full  # All optional stages
+/gsd-quick --validate               # Plan-checking + verification only
+/gsd-quick --full                   # Complete quality pipeline
+/gsd-quick list                     # List all quick tasks
+/gsd-quick status my-task-slug      # Show status of a quick task
+/gsd-quick resume my-task-slug      # Resume a quick task
 ```
 
 ### `/gsd-autonomous`
@@ -977,6 +987,28 @@ Query, inspect, or refresh queryable codebase intelligence files stored in `.pla
 /gsd-intel refresh                  # Rebuild intel index
 ```
 
+### `/gsd-graphify`
+
+Build, query, and inspect the project knowledge graph stored in `.planning/graphs/`. Opt-in via `graphify.enabled: true` in `config.json` (see [Configuration Reference](CONFIGURATION.md#graphify-settings)); when disabled, the command prints an activation hint and stops.
+
+| Subcommand | Description |
+|------------|-------------|
+| `build` | Build or rebuild the knowledge graph (spawns the graphify-builder agent) |
+| `query <term>` | Search the graph for a term |
+| `status` | Show graph freshness and statistics |
+| `diff` | Show changes since the last build |
+
+**Produces:** `.planning/graphs/` graph artifacts (nodes, edges, snapshots)
+
+```bash
+/gsd-graphify build                 # Build or rebuild the knowledge graph
+/gsd-graphify query authentication  # Search the graph for a term
+/gsd-graphify status                # Show freshness and statistics
+/gsd-graphify diff                  # Show changes since last build
+```
+
+**Programmatic access:** `node gsd-tools.cjs graphify <build|query|status|diff|snapshot>` — see [CLI Tools Reference](CLI-TOOLS.md).
+
 ---
 
 ## AI Integration Commands
@@ -1278,7 +1310,11 @@ Manage persistent context threads for cross-session work.
 
 | Argument | Required | Description |
 |----------|----------|-------------|
-| (none) | — | List all threads |
+| (none) / `list` | — | List all threads |
+| `list --open` | — | List threads with status `open` or `in_progress` only |
+| `list --resolved` | — | List threads with status `resolved` only |
+| `status <slug>` | — | Show status of a specific thread |
+| `close <slug>` | — | Mark a thread as resolved |
 | `name` | — | Resume existing thread by name |
 | `description` | — | Create new thread |
 
@@ -1286,6 +1322,10 @@ Threads are lightweight cross-session knowledge stores for work that spans multi
 
 ```bash
 /gsd-thread                         # List all threads
+/gsd-thread list --open             # List only open/in-progress threads
+/gsd-thread list --resolved         # List only resolved threads
+/gsd-thread status fix-deploy-key   # Show thread status
+/gsd-thread close fix-deploy-key    # Mark thread as resolved
 /gsd-thread fix-deploy-key-auth     # Resume thread
 /gsd-thread "Investigate TCP timeout in pasta service"  # Create new
 ```
