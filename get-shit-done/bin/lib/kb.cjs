@@ -18,6 +18,7 @@ const crypto = require('node:crypto');
 
 const { extractFrontmatter, reconstructFrontmatter, spliceFrontmatter } = require('./frontmatter.cjs');
 const { output, error } = require('./core.cjs');
+const { buildLegacyFlatEcho } = require('./provenance.cjs');
 
 // ─── Node version guard (lazy require) ───────────────────────────────────────
 
@@ -73,6 +74,11 @@ function initSchema(db) {
       updated TEXT DEFAULT '',
       phase TEXT DEFAULT '',
       plan TEXT DEFAULT '',
+      provenance_schema TEXT DEFAULT '',
+      provenance_status TEXT DEFAULT '',
+      about_work_json TEXT DEFAULT '',
+      detected_by_json TEXT DEFAULT '',
+      written_by_json TEXT DEFAULT '',
       runtime TEXT DEFAULT '',
       model TEXT DEFAULT '',
       gsd_version TEXT DEFAULT '',
@@ -128,7 +134,14 @@ function initSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_signals_created ON signals(created);
     CREATE INDEX IF NOT EXISTS idx_signals_polarity ON signals(polarity);
     CREATE INDEX IF NOT EXISTS idx_signals_status ON signals(status);
+    CREATE INDEX IF NOT EXISTS idx_signals_provenance_schema ON signals(provenance_schema);
   `);
+
+  ensureColumn(db, 'signals', 'provenance_schema', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signals', 'provenance_status', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signals', 'about_work_json', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signals', 'detected_by_json', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signals', 'written_by_json', "TEXT DEFAULT ''");
 
   // 57.7 MEAS-GSDR-06: drop signal_fts virtual table. Previously reserved for
   // Phase 59 full-text search, never populated, and external-content mode
@@ -142,6 +155,12 @@ function initSchema(db) {
     db.exec(`DROP TRIGGER IF EXISTS ${trigger.name};`);
   }
   db.exec('DROP TABLE IF EXISTS signal_fts;');
+}
+
+function ensureColumn(db, tableName, columnName, definition) {
+  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all();
+  if (columns.some(column => column.name === columnName)) return;
+  db.exec(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`);
 }
 
 function openKbDb(dbPath) {
@@ -272,9 +291,58 @@ function mapSourceToOrigin(source) {
   return 'unknown';
 }
 
+function isPlainObject(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function stringifyStructuredField(value) {
+  if (value === undefined || value === null) return '';
+  if (Array.isArray(value) && value.length === 0) return '';
+  if (isPlainObject(value) && Object.keys(value).length === 0) return '';
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '';
+  }
+}
+
+function normalizeStructuredProvenance(fm) {
+  return {
+    about_work: Array.isArray(fm.about_work) ? fm.about_work : [],
+    detected_by: isPlainObject(fm.detected_by) ? fm.detected_by : null,
+    written_by: isPlainObject(fm.written_by) ? fm.written_by : null,
+  };
+}
+
+function hasSplitProvenance(fm) {
+  return (
+    Array.isArray(fm.about_work) ||
+    isPlainObject(fm.detected_by) ||
+    isPlainObject(fm.written_by)
+  );
+}
+
+function deriveProvenanceSchema(fm) {
+  if (typeof fm.provenance_schema === 'string' && fm.provenance_schema.trim()) {
+    return fm.provenance_schema.trim();
+  }
+  if (hasSplitProvenance(fm)) return 'v2_split';
+  if (fm.runtime || fm.model || fm.gsd_version || fm.provenance_status === 'legacy_mixed') return 'v1_legacy';
+  return '';
+}
+
+function deriveTopLevelProvenanceStatus(fm) {
+  if (typeof fm.provenance_status === 'string') return fm.provenance_status.trim();
+  if (fm.provenance_status === undefined || fm.provenance_status === null) return '';
+  return stringifyStructuredField(fm.provenance_status);
+}
+
 // ─── Frontmatter-to-row mapping ───────────────────────────────────────────────
 
 function signalToRow(fm, filePath, hash) {
+  const structuredProvenance = normalizeStructuredProvenance(fm);
+  const legacyEcho = buildLegacyFlatEcho(structuredProvenance);
+
   return {
     id: fm.id || path.basename(filePath, '.md'),
     file_path: filePath,
@@ -291,9 +359,14 @@ function signalToRow(fm, filePath, hash) {
     updated: fm.updated || fm.created || fm.date || '',
     phase: String(fm.phase || ''),
     plan: String(fm.plan || ''),
-    runtime: fm.runtime || '',
-    model: fm.model || '',
-    gsd_version: fm.gsd_version || '',
+    provenance_schema: deriveProvenanceSchema(fm),
+    provenance_status: deriveTopLevelProvenanceStatus(fm),
+    about_work_json: stringifyStructuredField(structuredProvenance.about_work),
+    detected_by_json: stringifyStructuredField(structuredProvenance.detected_by),
+    written_by_json: stringifyStructuredField(structuredProvenance.written_by),
+    runtime: fm.runtime || legacyEcho.runtime || '',
+    model: fm.model || legacyEcho.model || '',
+    gsd_version: fm.gsd_version || legacyEcho.gsd_version || '',
     occurrence_count: parseInt(fm.occurrence_count, 10) || 1,
     durability: fm.durability || '',
     confidence: fm.confidence || 'medium',
@@ -383,10 +456,12 @@ function cmdKbRebuild(cwd, raw) {
     INSERT OR REPLACE INTO signals
       (id, file_path, project, severity, lifecycle_state, polarity, signal_category,
        disposition, signal_type, detection_method, origin, created, updated, phase, plan,
+       provenance_schema, provenance_status, about_work_json, detected_by_json, written_by_json,
        runtime, model, gsd_version, occurrence_count, durability, confidence, status, content_hash)
     VALUES
       (@id, @file_path, @project, @severity, @lifecycle_state, @polarity, @signal_category,
        @disposition, @signal_type, @detection_method, @origin, @created, @updated, @phase, @plan,
+       @provenance_schema, @provenance_status, @about_work_json, @detected_by_json, @written_by_json,
        @runtime, @model, @gsd_version, @occurrence_count, @durability, @confidence, @status, @content_hash)
   `);
   const deleteSignalTags = db.prepare('DELETE FROM signal_tags WHERE signal_id = ?');
@@ -514,7 +589,7 @@ function cmdKbRebuild(cwd, raw) {
     // Update meta table
     const now = new Date().toISOString();
     const upsertMeta = db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)');
-    upsertMeta.run('schema_version', '1');
+    upsertMeta.run('schema_version', '2');
     upsertMeta.run('last_rebuilt', now);
     upsertMeta.run('signal_count', String(signalsAdded + signalsUpdated + signalsSkipped));
     upsertMeta.run('spike_count', String(spikesAdded + spikesUpdated + spikesSkipped));
@@ -583,6 +658,8 @@ function cmdKbStats(cwd, raw) {
   const byProject = db.prepare('SELECT project, COUNT(*) as n FROM signals GROUP BY project ORDER BY n DESC').all();
   const byCategory = db.prepare('SELECT signal_category, COUNT(*) as n FROM signals GROUP BY signal_category ORDER BY n DESC').all();
   const byDetectionMethod = db.prepare('SELECT detection_method, COUNT(*) as n FROM signals GROUP BY detection_method ORDER BY n DESC').all();
+  const byProvenanceSchema = db.prepare("SELECT provenance_schema, COUNT(*) as n FROM signals GROUP BY provenance_schema ORDER BY n DESC").all();
+  const byProvenanceStatus = db.prepare("SELECT provenance_status, COUNT(*) as n FROM signals WHERE provenance_status != '' GROUP BY provenance_status ORDER BY n DESC").all();
 
   const lastRebuilt = db.prepare("SELECT value FROM meta WHERE key = 'last_rebuilt'").get();
   const schemaVersion = db.prepare("SELECT value FROM meta WHERE key = 'schema_version'").get();
@@ -597,6 +674,8 @@ function cmdKbStats(cwd, raw) {
       by_project: byProject,
       by_signal_category: byCategory,
       by_detection_method: byDetectionMethod,
+      by_provenance_schema: byProvenanceSchema,
+      by_provenance_status: byProvenanceStatus,
       last_rebuilt: lastRebuilt ? lastRebuilt.value : null,
       schema_version: schemaVersion ? schemaVersion.value : null,
     }, true);
@@ -634,6 +713,12 @@ function cmdKbStats(cwd, raw) {
     '',
     'By Detection Method:',
     fmtTable(byDetectionMethod, 'detection_method', 'n'),
+    '',
+    'By Provenance Schema:',
+    fmtTable(byProvenanceSchema, 'provenance_schema', 'n'),
+    '',
+    'By Provenance Status:',
+    fmtTable(byProvenanceStatus, 'provenance_status', 'n'),
     '',
     'By Project:',
     fmtTable(byProject, 'project', 'n'),
