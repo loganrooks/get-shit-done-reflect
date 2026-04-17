@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: in_progress
-stopped_at: Completed Plan 07 of Phase 57.7 (Wave 4 in progress)
-last_updated: "2026-04-17T06:02:10Z"
-last_activity: 2026-04-17 -- Phase 57.7 Plan 07 complete (interpretation-layer deepening + privacy/provenance rendering)
+stopped_at: Completed Plan 08 of Phase 57.7 (Wave 4 in progress)
+last_updated: "2026-04-17T06:10:03Z"
+last_activity: 2026-04-17 -- Phase 57.7 Plan 08 complete (reasoning-token reconciler schema + guards)
 progress:
   total_phases: 20
   completed_phases: 11
   total_plans: 47
-  completed_plans: 44
+  completed_plans: 45
   percent: 55
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — Plan 07 is complete: interpretation-layer joins are live, privacy lines now name computed content-derived features, and two loop reports emit explicit provenance lines. Next up: finish Wave 4 with Plans `57.7-08` and `57.7-09` for reasoning-token reconciliation and reasoning-quality proxy shipping.
+**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — Plan 08 is complete: the unified `reasoning_tokens` seam is live, Claude is honestly schema-only per Spike 011, and Codex now emits an explicit absent-field guard instead of invented counts. Next up: finish Wave 4 with Plan `57.7-09` for the reasoning-quality proxy, then move to the Plan 10 demo wave.
 
 ## Current Position
 
 Phase: 57.7 of 64 (Content Analysis & Epistemic Deepening) — In Progress
-Plan: 7 of 10
-Status: Wave 4 in progress; Plan 07 landed and the next plans are 57.7-08 and 57.7-09 before the Plan 10 demo wave.
-Last activity: 2026-04-17 -- Phase 57.7 Plan 07 complete (interpretation-layer deepening + privacy/provenance rendering)
+Plan: 8 of 10
+Status: Wave 4 in progress; Plans 07-08 landed and Plan 57.7-09 remains before the Plan 10 demo wave.
+Last activity: 2026-04-17 -- Phase 57.7 Plan 08 complete (reasoning-token reconciler schema + guards)
 
 Progress: [██████░░░░] 55%
 
@@ -36,7 +36,7 @@ Progress: [██████░░░░] 55%
 
 **v1.20 Current:**
 
-- Plans completed: 35
+- Plans completed: 36
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -72,6 +72,7 @@ Progress: [██████░░░░] 55%
 - 57.7-05: 10min, 2 tasks, 4 files
 - 57.7-06: 5min, 2 tasks, 5 files
 - 57.7-07: 11min, 3 tasks, 6 files
+- 57.7-08: 8min, 2 tasks, 4 files
 
 **v1.18 Final:**
 
@@ -89,6 +90,8 @@ v1.13-v1.18 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
 
+- [Phase 57.7 Plan 08 2026-04-17]: `reasoning_tokens_reconciler` ships as one unified cross-runtime axis even though the current corpus is entirely `not_available`; registering the seam and canonical skip reasons is the non-negotiable MEAS-RUNTIME-05 outcome.
+- [Phase 57.7 Plan 08 2026-04-17]: Claude remains schema-only with `tokenizer_unavailable` because Spike 011 ended `FAIL: schema-only` and `production_dependency_decision: reject_top_level_dependency_schema_only`; no `js-tiktoken` dependency was added in this plan.
 - [Phase 57.7 Plan 07 2026-04-17]: `queryMeasurement()` now deepens interpretations in a post-pass with a lazy registry singleton and canonical `extractFrontmatter()` joins, so the base interpretation builder stays stable while provenance remains resolution-on-demand.
 - [Phase 57.7 Plan 07 2026-04-17]: The governed provenance string is the conservative four-part form (`surviving_challenge_from_* | grounded_in_*_interventions | carrying_*_tracked_anomalies | revisions=[...]`), and the report privacy line names computed content-derived features instead of only reporting a count.
 - [Phase 57.7 Plan 06 2026-04-17]: Diagnostic distinguishing features live in prose, not YAML, so the audit transcribes them manually and backfills registry vocabulary additively rather than inventing a parser mid-phase
