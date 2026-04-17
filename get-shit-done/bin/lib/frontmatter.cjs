@@ -40,145 +40,264 @@ function splitInlineArray(body) {
   return items;
 }
 
+function parseInlineValue(rawValue) {
+  const value = String(rawValue).trim();
+  if (value === '') return '';
+  if (value === '[]') return [];
+  if (value === '{}') return {};
+  if (value.startsWith('[') && value.endsWith(']')) {
+    return splitInlineArray(value.slice(1, -1)).map(item => item.replace(/^["']|["']$/g, ''));
+  }
+  return value.replace(/^["']|["']$/g, '');
+}
+
+function lineIndent(line) {
+  const indentMatch = line.match(/^(\s*)/);
+  return indentMatch ? indentMatch[1].length : 0;
+}
+
+function nextMeaningfulLine(lines, startIndex) {
+  let index = startIndex;
+  while (index < lines.length) {
+    const trimmed = lines[index].trim();
+    if (trimmed !== '' && !trimmed.startsWith('#')) return index;
+    index++;
+  }
+  return index;
+}
+
+function parseObjectLines(lines, startIndex, baseIndent) {
+  const obj = {};
+  let index = startIndex;
+
+  while (index < lines.length) {
+    index = nextMeaningfulLine(lines, index);
+    if (index >= lines.length) break;
+
+    const line = lines[index];
+    const indent = lineIndent(line);
+    if (indent < baseIndent) break;
+    if (indent > baseIndent) break;
+
+    const trimmed = line.trim();
+    if (trimmed.startsWith('- ')) break;
+
+    const keyMatch = trimmed.match(/^([a-zA-Z0-9_-]+):\s*(.*)$/);
+    if (!keyMatch) {
+      index++;
+      continue;
+    }
+
+    const key = keyMatch[1];
+    const rawValue = keyMatch[2];
+    if (rawValue !== '') {
+      obj[key] = parseInlineValue(rawValue);
+      index++;
+      continue;
+    }
+
+    const childIndex = nextMeaningfulLine(lines, index + 1);
+    if (childIndex >= lines.length || lineIndent(lines[childIndex]) <= indent) {
+      obj[key] = {};
+      index = childIndex;
+      continue;
+    }
+
+    const childIndent = lineIndent(lines[childIndex]);
+    const childTrimmed = lines[childIndex].trim();
+    if (childTrimmed.startsWith('- ')) {
+      const [arr, nextIndex] = parseArrayLines(lines, childIndex, childIndent);
+      obj[key] = arr;
+      index = nextIndex;
+      continue;
+    }
+
+    const [nestedObj, nextIndex] = parseObjectLines(lines, childIndex, childIndent);
+    obj[key] = nestedObj;
+    index = nextIndex;
+  }
+
+  return [obj, index];
+}
+
+function parseArrayLines(lines, startIndex, baseIndent) {
+  const arr = [];
+  let index = startIndex;
+
+  while (index < lines.length) {
+    index = nextMeaningfulLine(lines, index);
+    if (index >= lines.length) break;
+
+    const line = lines[index];
+    const indent = lineIndent(line);
+    if (indent < baseIndent) break;
+    if (indent !== baseIndent || !line.trim().startsWith('- ')) break;
+
+    const content = line.trim().slice(2);
+
+    if (content === '') {
+      const childIndex = nextMeaningfulLine(lines, index + 1);
+      if (childIndex >= lines.length || lineIndent(lines[childIndex]) <= indent) {
+        arr.push('');
+        index = childIndex;
+        continue;
+      }
+
+      const childIndent = lineIndent(lines[childIndex]);
+      if (lines[childIndex].trim().startsWith('- ')) {
+        const [nestedArr, nextIndex] = parseArrayLines(lines, childIndex, childIndent);
+        arr.push(nestedArr);
+        index = nextIndex;
+        continue;
+      }
+
+      const [nestedObj, nextIndex] = parseObjectLines(lines, childIndex, childIndent);
+      arr.push(nestedObj);
+      index = nextIndex;
+      continue;
+    }
+
+    const inlineObjectMatch = content.match(/^([a-zA-Z0-9_-]+):\s*(.*)$/);
+    if (inlineObjectMatch) {
+      const item = {};
+      const key = inlineObjectMatch[1];
+      const rawValue = inlineObjectMatch[2];
+      item[key] = rawValue === '' ? {} : parseInlineValue(rawValue);
+
+      const childIndex = nextMeaningfulLine(lines, index + 1);
+      if (childIndex < lines.length && lineIndent(lines[childIndex]) > indent && !lines[childIndex].trim().startsWith('- ')) {
+        const [nestedObj, nextIndex] = parseObjectLines(lines, childIndex, lineIndent(lines[childIndex]));
+        Object.assign(item, nestedObj);
+        index = nextIndex;
+      } else {
+        index++;
+      }
+
+      arr.push(item);
+      continue;
+    }
+
+    arr.push(parseInlineValue(content));
+    index++;
+  }
+
+  return [arr, index];
+}
+
+function isScalarValue(value) {
+  return value === null || value === undefined || typeof value !== 'object';
+}
+
+function formatScalar(value) {
+  const stringValue = String(value);
+  if (
+    stringValue === '' ||
+    /\s#/.test(stringValue) ||
+    stringValue.includes(':') ||
+    stringValue.startsWith('[') ||
+    stringValue.startsWith('{') ||
+    stringValue.startsWith('-') ||
+    /^\s|\s$/.test(stringValue)
+  ) {
+    return JSON.stringify(stringValue);
+  }
+  return stringValue;
+}
+
+function serializeArrayItem(lines, item, indent) {
+  const space = ' '.repeat(indent);
+  if (Array.isArray(item)) {
+    if (item.length === 0) {
+      lines.push(`${space}- []`);
+      return;
+    }
+    lines.push(`${space}-`);
+    for (const nestedItem of item) {
+      serializeArrayItem(lines, nestedItem, indent + 2);
+    }
+    return;
+  }
+
+  if (item && typeof item === 'object') {
+    const entries = Object.entries(item).filter(([, value]) => value !== null && value !== undefined);
+    if (entries.length === 0) {
+      lines.push(`${space}- {}`);
+      return;
+    }
+
+    const [firstKey, firstValue] = entries[0];
+    if (isScalarValue(firstValue)) {
+      lines.push(`${space}- ${firstKey}: ${formatScalar(firstValue)}`);
+      for (const [key, value] of entries.slice(1)) {
+        serializeKeyValue(lines, key, value, indent + 2);
+      }
+      return;
+    }
+
+    lines.push(`${space}-`);
+    for (const [key, value] of entries) {
+      serializeKeyValue(lines, key, value, indent + 2);
+    }
+    return;
+  }
+
+  lines.push(`${space}- ${formatScalar(item)}`);
+}
+
+function serializeKeyValue(lines, key, value, indent) {
+  const space = ' '.repeat(indent);
+  if (value === null || value === undefined) return;
+
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      lines.push(`${space}${key}: []`);
+      return;
+    }
+    if (value.every(isScalarValue) && value.length <= 3 && value.join(', ').length < 60) {
+      lines.push(`${space}${key}: [${value.map(formatScalar).join(', ')}]`);
+      return;
+    }
+    lines.push(`${space}${key}:`);
+    for (const item of value) {
+      serializeArrayItem(lines, item, indent + 2);
+    }
+    return;
+  }
+
+  if (value && typeof value === 'object') {
+    const entries = Object.entries(value).filter(([, nestedValue]) => nestedValue !== null && nestedValue !== undefined);
+    if (entries.length === 0) {
+      lines.push(`${space}${key}: {}`);
+      return;
+    }
+    lines.push(`${space}${key}:`);
+    for (const [nestedKey, nestedValue] of entries) {
+      serializeKeyValue(lines, nestedKey, nestedValue, indent + 2);
+    }
+    return;
+  }
+
+  lines.push(`${space}${key}: ${formatScalar(value)}`);
+}
+
 function extractFrontmatter(content) {
-  const frontmatter = {};
   // Find ALL frontmatter blocks at the start of the file.
   // If multiple blocks exist (corruption from CRLF mismatch), use the LAST one
   // since it represents the most recent state sync.
   const allBlocks = [...content.matchAll(/(?:^|\n)\s*---\r?\n([\s\S]+?)\r?\n---/g)];
   const match = allBlocks.length > 0 ? allBlocks[allBlocks.length - 1] : null;
-  if (!match) return frontmatter;
+  if (!match) return {};
 
   const yaml = match[1];
   const lines = yaml.split(/\r?\n/);
-
-  // Stack to track nested objects: [{obj, key, indent}]
-  // obj = object to write to, key = current key collecting array items, indent = indentation level
-  let stack = [{ obj: frontmatter, key: null, indent: -1 }];
-
-  for (const line of lines) {
-    // Skip empty lines
-    if (line.trim() === '') continue;
-
-    // Calculate indentation (number of leading spaces)
-    const indentMatch = line.match(/^(\s*)/);
-    const indent = indentMatch ? indentMatch[1].length : 0;
-
-    // Pop stack back to appropriate level
-    while (stack.length > 1 && indent <= stack[stack.length - 1].indent) {
-      stack.pop();
-    }
-
-    const current = stack[stack.length - 1];
-
-    // Check for key: value pattern
-    const keyMatch = line.match(/^(\s*)([a-zA-Z0-9_-]+):\s*(.*)/);
-    if (keyMatch) {
-      const key = keyMatch[2];
-      const value = keyMatch[3].trim();
-
-      if (value === '' || value === '[') {
-        // Key with no value or opening bracket — could be nested object or array
-        // We'll determine based on next lines, for now create placeholder
-        current.obj[key] = value === '[' ? [] : {};
-        current.key = null;
-        // Push new context for potential nested content
-        stack.push({ obj: current.obj[key], key: null, indent });
-      } else if (value.startsWith('[') && value.endsWith(']')) {
-        // Inline array: key: [a, b, c] — quote-aware split (REG-04 fix)
-        current.obj[key] = splitInlineArray(value.slice(1, -1));
-        current.key = null;
-      } else {
-        // Simple key: value
-        current.obj[key] = value.replace(/^["']|["']$/g, '');
-        current.key = null;
-      }
-    } else if (line.trim().startsWith('- ')) {
-      // Array item
-      const itemValue = line.trim().slice(2).replace(/^["']|["']$/g, '');
-
-      // If current context is an empty object, convert to array
-      if (typeof current.obj === 'object' && !Array.isArray(current.obj) && Object.keys(current.obj).length === 0) {
-        // Find the key in parent that points to this object and convert it
-        const parent = stack.length > 1 ? stack[stack.length - 2] : null;
-        if (parent) {
-          for (const k of Object.keys(parent.obj)) {
-            if (parent.obj[k] === current.obj) {
-              parent.obj[k] = [itemValue];
-              current.obj = parent.obj[k];
-              break;
-            }
-          }
-        }
-      } else if (Array.isArray(current.obj)) {
-        current.obj.push(itemValue);
-      }
-    }
-  }
-
+  const [frontmatter] = parseObjectLines(lines, 0, 0);
   return frontmatter;
 }
 
 function reconstructFrontmatter(obj) {
   const lines = [];
-  for (const [key, value] of Object.entries(obj)) {
-    if (value === null || value === undefined) continue;
-    if (Array.isArray(value)) {
-      if (value.length === 0) {
-        lines.push(`${key}: []`);
-      } else if (value.every(v => typeof v === 'string') && value.length <= 3 && value.join(', ').length < 60) {
-        lines.push(`${key}: [${value.join(', ')}]`);
-      } else {
-        lines.push(`${key}:`);
-        for (const item of value) {
-          lines.push(`  - ${typeof item === 'string' && (item.includes(':') || item.includes('#')) ? `"${item}"` : item}`);
-        }
-      }
-    } else if (typeof value === 'object') {
-      lines.push(`${key}:`);
-      for (const [subkey, subval] of Object.entries(value)) {
-        if (subval === null || subval === undefined) continue;
-        if (Array.isArray(subval)) {
-          if (subval.length === 0) {
-            lines.push(`  ${subkey}: []`);
-          } else if (subval.every(v => typeof v === 'string') && subval.length <= 3 && subval.join(', ').length < 60) {
-            lines.push(`  ${subkey}: [${subval.join(', ')}]`);
-          } else {
-            lines.push(`  ${subkey}:`);
-            for (const item of subval) {
-              lines.push(`    - ${typeof item === 'string' && (item.includes(':') || item.includes('#')) ? `"${item}"` : item}`);
-            }
-          }
-        } else if (typeof subval === 'object') {
-          lines.push(`  ${subkey}:`);
-          for (const [subsubkey, subsubval] of Object.entries(subval)) {
-            if (subsubval === null || subsubval === undefined) continue;
-            if (Array.isArray(subsubval)) {
-              if (subsubval.length === 0) {
-                lines.push(`    ${subsubkey}: []`);
-              } else {
-                lines.push(`    ${subsubkey}:`);
-                for (const item of subsubval) {
-                  lines.push(`      - ${item}`);
-                }
-              }
-            } else {
-              lines.push(`    ${subsubkey}: ${subsubval}`);
-            }
-          }
-        } else {
-          const sv = String(subval);
-          lines.push(`  ${subkey}: ${sv.includes(':') || sv.includes('#') ? `"${sv}"` : sv}`);
-        }
-      }
-    } else {
-      const sv = String(value);
-      if (sv.includes(':') || sv.includes('#') || sv.startsWith('[') || sv.startsWith('{')) {
-        lines.push(`${key}: "${sv}"`);
-      } else {
-        lines.push(`${key}: ${sv}`);
-      }
-    }
+  for (const [key, value] of Object.entries(obj || {})) {
+    serializeKeyValue(lines, key, value, 0);
   }
   return lines.join('\n');
 }
@@ -322,15 +441,80 @@ const FORK_SIGNAL_SCHEMA = {
   optional: ['triage', 'remediation', 'verification', 'lifecycle_log',
              'recurrence_of', 'phase', 'plan', 'polarity', 'source',
              'occurrence_count', 'related_signals', 'runtime', 'model',
-             'gsd_version', 'durability', 'status'],
+             'gsd_version', 'durability', 'status', 'provenance_schema',
+             'provenance_status', 'about_work', 'detected_by', 'written_by'],
 };
 
+const SIGNATURE_REQUIRED_PATHS = [
+  'signature.role',
+  'signature.harness',
+  'signature.platform',
+  'signature.vendor',
+  'signature.model',
+  'signature.reasoning_effort',
+  'signature.profile',
+  'signature.gsd_version',
+  'signature.generated_at',
+  'signature.session_id',
+  'signature.provenance_status.role',
+  'signature.provenance_status.harness',
+  'signature.provenance_status.platform',
+  'signature.provenance_status.vendor',
+  'signature.provenance_status.model',
+  'signature.provenance_status.reasoning_effort',
+  'signature.provenance_status.profile',
+  'signature.provenance_status.gsd_version',
+  'signature.provenance_status.generated_at',
+  'signature.provenance_status.session_id',
+  'signature.provenance_source.role',
+  'signature.provenance_source.harness',
+  'signature.provenance_source.platform',
+  'signature.provenance_source.vendor',
+  'signature.provenance_source.model',
+  'signature.provenance_source.reasoning_effort',
+  'signature.provenance_source.profile',
+  'signature.provenance_source.gsd_version',
+  'signature.provenance_source.generated_at',
+  'signature.provenance_source.session_id',
+];
+
 const FRONTMATTER_SCHEMAS = {
-  plan: { required: ['phase', 'plan', 'type', 'wave', 'depends_on', 'files_modified', 'autonomous', 'must_haves'] },
-  summary: { required: ['phase', 'plan', 'subsystem', 'tags', 'duration', 'completed'] },
-  verification: { required: ['phase', 'verified', 'status', 'score'] },
+  plan: {
+    required: ['phase', 'plan', 'type', 'wave', 'depends_on', 'files_modified', 'autonomous', 'must_haves', 'signature'],
+    nested_required: SIGNATURE_REQUIRED_PATHS,
+  },
+  summary: {
+    required: ['phase', 'plan', 'subsystem', 'tags', 'duration', 'completed', 'signature'],
+    nested_required: SIGNATURE_REQUIRED_PATHS,
+  },
+  verification: {
+    required: ['phase', 'verified', 'status', 'score', 'signature'],
+    nested_required: SIGNATURE_REQUIRED_PATHS,
+  },
   signal: FORK_SIGNAL_SCHEMA,
 };
+
+function getNestedValue(obj, fieldPath) {
+  return String(fieldPath)
+    .split('.')
+    .reduce((current, segment) => {
+      if (current === null || current === undefined) return undefined;
+      if (typeof current !== 'object') return undefined;
+      return current[segment];
+    }, obj);
+}
+
+function hasStructuredValue(value) {
+  if (value === undefined || value === null) return false;
+  if (typeof value === 'string') return value.trim() !== '';
+  if (Array.isArray(value)) return true;
+  if (typeof value === 'object') return Object.keys(value).length > 0;
+  return true;
+}
+
+function validateNestedRequiredPaths(frontmatter, fieldPaths) {
+  return (fieldPaths || []).filter(fieldPath => !hasStructuredValue(getNestedValue(frontmatter, fieldPath)));
+}
 
 function cmdFrontmatterGet(cwd, filePath, field, raw) {
   if (!filePath) { error('file path required'); }
@@ -389,6 +573,7 @@ function cmdFrontmatterValidate(cwd, filePath, schemaName, raw) {
   const fm = extractFrontmatter(content);
   const missing = schema.required.filter(f => fm[f] === undefined);
   const present = schema.required.filter(f => fm[f] !== undefined);
+  const nestedMissing = validateNestedRequiredPaths(fm, schema.nested_required);
 
   // Tiered validation (signal schema and any future tiered schemas)
   if (schema.conditional || schema.recommended) {
@@ -443,7 +628,7 @@ function cmdFrontmatterValidate(cwd, filePath, schemaName, raw) {
       }
     }
 
-    const allMissing = [...missing, ...conditionalMissing];
+    const allMissing = [...missing, ...nestedMissing, ...conditionalMissing];
     output({
       valid: allMissing.length === 0,
       missing: allMissing,
@@ -455,7 +640,8 @@ function cmdFrontmatterValidate(cwd, filePath, schemaName, raw) {
   }
 
   // Simple validation (plan/summary/verification)
-  output({ valid: missing.length === 0, missing, present, schema: schemaName }, raw, missing.length === 0 ? 'valid' : 'invalid');
+  const allMissing = [...missing, ...nestedMissing];
+  output({ valid: allMissing.length === 0, missing: allMissing, present, schema: schemaName }, raw, allMissing.length === 0 ? 'valid' : 'invalid');
 }
 
 module.exports = {
