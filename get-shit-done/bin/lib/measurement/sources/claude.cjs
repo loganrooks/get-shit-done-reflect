@@ -26,6 +26,8 @@ const HUMAN_TURN_COMMAND_PREFIXES = Object.freeze([
   '<local-command-stdout>',
 ]);
 
+const INTERVENTION_MARKER_REGEX = /^(stop|no|actually|wait|let me|instead|don['']t|can you first|before that|hold on)\b/i;
+
 const SESSION_META_PROVENANCE = Object.freeze({
   scope: 'derived_from_jsonl_via_insights_command',
   lifecycle: 'frozen_at_last_insights_run_for_sessions_still_running',
@@ -540,6 +542,66 @@ function scanTopicShiftMarkers(records) {
       ? totalTurns / topicShiftCount
       : null,
     shift_positions: shiftPositions,
+  };
+}
+
+function scanInterventionPoints(records) {
+  const recs = records || [];
+  const totalTurns = recs.length;
+  let consecutiveAssistant = 0;
+  const interventionPositions = [];
+  const sampledMatches = [];
+
+  for (let index = 0; index < recs.length; index++) {
+    const record = recs[index];
+    if (!record) continue;
+
+    if (record.type === 'assistant') {
+      consecutiveAssistant++;
+      continue;
+    }
+
+    if (record.type !== 'user') {
+      consecutiveAssistant = 0;
+      continue;
+    }
+
+    if (!isHumanTurnRecord(record)) {
+      consecutiveAssistant = 0;
+      continue;
+    }
+
+    if (consecutiveAssistant >= 2) {
+      const normalized = normalizeUserContent(record.message ? record.message.content : null);
+      const text = (normalized && normalized.text ? normalized.text : '').trim();
+      const isInterruptedPlaceholder = text === '[Request interrupted by user]';
+      if (text && (isInterruptedPlaceholder || INTERVENTION_MARKER_REGEX.test(text))) {
+        const firstWordMatch = isInterruptedPlaceholder ? null : text.match(INTERVENTION_MARKER_REGEX);
+        interventionPositions.push(index);
+        sampledMatches.push({
+          position: index,
+          marker: isInterruptedPlaceholder
+            ? 'request_interrupted'
+            : (firstWordMatch ? firstWordMatch[0].slice(0, 15) : ''),
+        });
+      }
+    }
+
+    consecutiveAssistant = 0;
+  }
+
+  const interventionCount = interventionPositions.length;
+  const meanInterventionPosition = interventionCount > 0 && totalTurns > 0
+    ? interventionPositions.reduce((sum, position) => sum + (position / totalTurns), 0) / interventionCount
+    : null;
+
+  return {
+    intervention_count: interventionCount,
+    interventions_per_100_turns: totalTurns > 0 ? (interventionCount * 100) / totalTurns : 0,
+    mean_intervention_position: meanInterventionPosition,
+    intervention_positions: interventionPositions,
+    total_turns: totalTurns,
+    sampled_matches: sampledMatches,
   };
 }
 
@@ -1069,6 +1131,8 @@ module.exports = {
   loadGsdContext,
   normalizeProjectPath,
   normalizeUserContent,
+  INTERVENTION_MARKER_REGEX,
+  scanInterventionPoints,
   scanToolInvocationSequence,
   scanTopicShiftMarkers,
   toolCategoryFor,
