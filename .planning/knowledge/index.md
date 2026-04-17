@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-17T01:18:14Z
-**Total entries:** 271
+**Generated:** 2026-04-17T06:25:29Z
+**Total entries:** 272
 
-## Signals (263)
+## Signals (264)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -35,6 +35,7 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-17-codex-auto-compact-prompt-parity-gap | get-shit-done-reflect | notable | detected | codex,claude,platform-parity,auto-compact,compaction,delegation-policy,workflow-behavior | "2026-04-17 | active |
 | sig-2026-04-17-task-accounting-compressed-phase-summaries | get-shit-done-reflect | minor | detected | task-accounting,summary-granularity,execution-artifacts | "2026-04-17 | active |
 | sig-2026-04-17-plan-576-04-extra-non-planning-file-declared-scope | get-shit-done-reflect | minor | detected | scope-creep,plan-accuracy,measurement,tests | "2026-04-17 | active |
 | sig-2026-04-17-plan-07-rebuild-evidence-regenerated-later-run | get-shit-done-reflect | minor | detected | evidence-hygiene,rebuild-provenance,diagnostics | "2026-04-17 | active |
