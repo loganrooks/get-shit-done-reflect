@@ -7,6 +7,7 @@ const {
   countClearInvocations,
   extractCompactionEvents,
   loadClaude,
+  scanInterventionPoints,
   scanToolInvocationSequence,
   scanTopicShiftMarkers,
 } = require('../sources/claude.cjs');
@@ -927,6 +928,67 @@ const topicShiftMarkersExtractor = defineExtractor({
   },
 });
 
+const interventionPointsExtractor = defineExtractor({
+  name: 'intervention_points',
+  source_family: 'RUNTIME',
+  raw_sources: ['claude_jsonl_projects'],
+  runtimes: ['claude-code'],
+  reliability_tier: 'inferred',
+  features_produced: ['intervention_points'],
+  serves_loop: ['pipeline_integrity', 'agent_performance'],
+  distinguishes: ['mid_sequence_course_correction', 'scope_narrowing_intervention'],
+  status_semantics: ['exposed', 'not_emitted', 'not_available'],
+  content_contract: 'derived_features_only',
+  extract(extractor, context) {
+    const claude = getClaudeDataset(context);
+    return claude.sessions.map(session => {
+      const available = session.parent_jsonl && session.parent_jsonl.status === 'matched';
+      const scan = available
+        ? scanInterventionPoints(session.parent_jsonl.records)
+        : {
+            intervention_count: 0,
+            interventions_per_100_turns: 0,
+            mean_intervention_position: null,
+            intervention_positions: [],
+            total_turns: 0,
+            sampled_matches: [],
+          };
+      const hasData = scan.intervention_count > 0;
+
+      return buildFeatureRecord(extractor, {
+        feature_name: `intervention_points:${session.session_id}`,
+        runtime: 'claude-code',
+        availability_status: !available ? 'not_available' : (hasData ? 'exposed' : 'not_emitted'),
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'inferred',
+        value: {
+          session_id: session.session_id,
+          intervention_count: scan.intervention_count,
+          interventions_per_100_turns: scan.interventions_per_100_turns,
+          mean_intervention_position: scan.mean_intervention_position,
+          intervention_positions: scan.intervention_positions,
+          total_turns: scan.total_turns,
+        },
+        coverage: buildCoverage(session),
+        provenance: {
+          session_id: session.session_id,
+          parent_jsonl_path: session.parent_jsonl && session.parent_jsonl.path ? session.parent_jsonl.path : null,
+          scan_rule: 'user_after_2+_assistant AND (marker_regex OR request_interrupted_placeholder); isHumanTurnRecord-guarded',
+          heuristic_version: '57.7-v1',
+          calibration_report: '.planning/phases/57.7-content-analysis-epistemic-deepening-inserted/57.7-05-CALIBRATION.md',
+          content_contract: 'derived_features_only',
+        },
+        freshness: combineFreshness(context.observed_at, [session.parent_jsonl && session.parent_jsonl.path].filter(Boolean)),
+        notes: [
+          'Q3 calibration PASSED 2026-04-17: long-session fire rate 19.23% in sample, false-positive rate 0.00%.',
+          'Runtime placeholder `[Request interrupted by user]` counts as a structural stop-request signal in 57.7-v1.',
+          'sampled_matches remains calibration-only and is not persisted to measurement rows.',
+        ],
+      });
+    });
+  },
+});
+
 const RUNTIME_EXTRACTORS = Object.freeze([
   runtimeSessionIdentityExtractor,
   claudeSettingsAtStartExtractor,
@@ -940,6 +1002,7 @@ const RUNTIME_EXTRACTORS = Object.freeze([
   runtimeEraBoundaryRegistryExtractor,
   toolInvocationSequenceExtractor,
   topicShiftMarkersExtractor,
+  interventionPointsExtractor,
 ]);
 
 module.exports = {
@@ -966,4 +1029,6 @@ module.exports = {
   tool_invocation_sequence: toolInvocationSequenceExtractor,
   topicShiftMarkersExtractor,
   topic_shift_markers: topicShiftMarkersExtractor,
+  interventionPointsExtractor,
+  intervention_points: interventionPointsExtractor,
 };
