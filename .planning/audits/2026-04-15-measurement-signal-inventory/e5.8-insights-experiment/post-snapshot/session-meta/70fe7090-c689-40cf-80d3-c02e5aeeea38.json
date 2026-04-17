@@ -1,0 +1,78 @@
+{
+  "session_id": "70fe7090-c689-40cf-80d3-c02e5aeeea38",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-04-09T00:35:46.263Z",
+  "duration_minutes": 77,
+  "user_message_count": 13,
+  "assistant_message_count": 221,
+  "tool_counts": {
+    "Read": 32,
+    "Bash": 84,
+    "Agent": 8,
+    "Grep": 12,
+    "Edit": 5,
+    "Write": 2,
+    "Skill": 2
+  },
+  "languages": {
+    "Markdown": 37
+  },
+  "git_commits": 6,
+  "git_pushes": 2,
+  "input_tokens": 12301,
+  "output_tokens": 40908,
+  "first_prompt": "/gsdr:quick 1. but make sure you have the necessary background context so you can interpret the roadmap amendments appropriately, if there is any ambiguity please come to me",
+  "user_interruptions": 0,
+  "user_response_times": [
+    60.962,
+    60.962,
+    15.528,
+    23.066,
+    23.066,
+    1136.302,
+    35.548
+  ],
+  "tool_errors": 8,
+  "tool_error_categories": {
+    "File Too Large": 1,
+    "Command Failed": 4,
+    "Other": 3
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 233,
+  "lines_removed": 6,
+  "files_modified": 4,
+  "message_hours": [
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    20,
+    21,
+    21,
+    21
+  ],
+  "user_message_timestamps": [
+    "2026-04-09T00:35:46.263Z",
+    "2026-04-09T00:35:46.065Z",
+    "2026-04-09T00:35:50.705Z",
+    "2026-04-09T00:35:50.705Z",
+    "2026-04-09T00:37:33.383Z",
+    "2026-04-09T00:37:33.383Z",
+    "2026-04-09T00:46:18.694Z",
+    "2026-04-09T00:46:51.093Z",
+    "2026-04-09T00:46:51.093Z",
+    "2026-04-09T00:52:04.703Z",
+    "2026-04-09T01:10:03.109Z",
+    "2026-04-09T01:51:57.017Z",
+    "2026-04-09T01:52:43.067Z"
+  ]
+}

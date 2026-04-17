@@ -14,9 +14,9 @@
 
 **Milestone Goal:** Replace advisory quality controls with structural enforcement, mature the signal system from detection-only to full lifecycle management with a queryable knowledge base, overhaul spike methodology with epistemologically rigorous experimental design, and establish measurement infrastructure for evidence-based workflow improvement.
 
-**Phases:** 16 (Phases 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3, 57.4)
+**Phases:** 21 (Phases 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3, 57.4, 57.5, 57.6, 57.7, 57.8, 60.1)
 **Granularity:** Fine
-**Requirements:** 71 mapped
+**Requirements:** 120 mapped (PROV-01..14 + GOV-01 added 2026-04-17)
 
 ## Phases
 
@@ -27,9 +27,14 @@
 - [x] **Phase 57.2: Discuss-Phase Exploratory Mode Overhaul** - Typed claims (7 types + verification dimension), context-checker agent, DISCUSSION-LOG.md as justificatory sidecar, researcher update, claim dependency webs, template enrichment
 - [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents *(core design commitments — flat 8-type taxonomy, template-based body structure, type-family ground rules — partially superseded by Phase 57.4 after running real audits revealed the flat taxonomy did not express the complexities of the auditing situation; see Phase 57.4 for the 3-axis reconstruction)*
 - [x] **Phase 57.4: Audit Skill & Investigatory Type** - Radically rethink the formalization of the auditing workflow: the Phase 57.3 flat 8-type taxonomy + template paradigm + ground rules 1-4 do not express the complexities of the auditing situation. This phase supersedes Phase 57.3's core design commitments with a 3-axis taxonomy (subject × orientation × delegation), an obligations-based output paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations from retrospective analysis (chain integrity, dispatch hygiene, framework invisibility). Deliverables: /gsdr:audit command + gsdr-auditor agent, rewritten audit-conventions.md and audit-ground-rules.md, formalized cross-model delegation (WF-01 pulled forward from Phase 62)
-- [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns
+- [x] **Phase 57.5: Measurement Architecture & Retroactive Foundation** - Three-layer measurement architecture (raw → extractor registry → interpretation) that retroactively analyzes existing session and artifact corpora, with cross-platform schema from day one and minimum-viable post-Popperian epistemic machinery (competing interpretations, distinguishing features, anomaly register per interpretation). Covers intervention-lifecycle and pipeline-integrity loops; proves cross-platform with at least one Codex extractor (completed 2026-04-16)
+- [x] **Phase 57.6: Multi-Loop Coverage & Human Interface** - Extend extractor coverage to all remaining self-improvement loops (agent-performance, signal-quality, cross-session patterns, cross-runtime comparison), add human-readable text-first visualization, and demonstrate actual use of the system to diagnose an observed pattern end-to-end (completed 2026-04-17)
+- [ ] **Phase 57.7: Content Analysis & Epistemic Deepening** - Session-content extractors (structural patterns in transcripts with documented privacy model), automated distinguishing-feature suggestion, intervention-outcome tracking, interpretation revision classification (progressive vs degenerating per Lakatos), full epistemic provenance on all interpretations
+- [ ] **Phase 57.8: Signal Provenance Split & Artifact Signature Blocks** - Role-aware provenance (`about_work[]` / `detected_by` / `written_by`) replacing flat `runtime/model/gsd_version` payload; uniform signature block on PLAN/SUMMARY/VERIFICATION via `resolveModelInternal`; writer-side version precedence fix; retroactive annotation of Phase 57.6 signals. Epistemic prerequisite for GATE-09 (Phase 58). Narrow audit-bounded fix per `.planning/audits/2026-04-16-signal-provenance-audit/`
+- [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns, plus GATE-09 scope-translation ledger (meta-fix for Phase 57 scope-narrowing cascade)
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
 - [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
+- [ ] **Phase 60.1: Telemetry-Signal Integration & E2E Chain Tests** - Sensors consume `buildSessionIdentityValue` from measurement extractors, reflection stratifies by `model × profile × reasoning_effort`, intervention-outcome loop extended to signal lifecycle, E2E real-agent chain tests. Research-gated scope expansion via PROV-09 under GOV-01 extraction contract
 - [ ] **Phase 61: Spike Methodology Overhaul** - Three-level confidence, cross-model design reviewer, template revisions, and findings verification (can proceed in parallel with Phase 60)
 - [ ] **Phase 62: Workflow Commands** - Five commands closing workflow gaps identified by audit and deliberation
 - [ ] **Phase 63: Spike Programme Infrastructure** - Programme-level spike management with Lakatosian progressiveness assessment
@@ -114,6 +119,24 @@ Plans:
 Plans:
 - [x] 57-01-PLAN.md -- Implement telemetry.cjs module and wire gsd-tools.cjs router (TEL-01a, TEL-01b, TEL-04, TEL-05)
 - [x] 57-02-PLAN.md -- Tests for telemetry.cjs and capture .planning/baseline.json (TEL-02)
+
+### Phase 57.8: Signal Provenance Split & Artifact Signature Blocks (INSERTED)
+
+**Goal:** Signals and workflow artifacts (PLAN, SUMMARY, VERIFICATION) carry role-aware provenance that can attribute mistakes to planner, executor, verifier, or harness — not one flat `runtime/model/gsd_version` payload that mixes detector, writer, and work-artifact identity. This phase is the **narrow audit-bounded fix** for the `.planning/audits/2026-04-16-signal-provenance-audit/` findings; the wider telemetry-to-signal integration is deferred to Phase 60.1. Epistemic prerequisite for Phase 58 — GATE-09's scope-translation ledger requires role-aware artifact provenance to evaluate gate effectiveness (currently a signal about a Plan 06 mistake can implicate planner, executor, verifier, and harness simultaneously, and the flat schema cannot attribute which).
+**Depends on:** Phase 57.7 (measurement substrate — `buildSessionIdentityValue` and `resolveModelInternal` exist and are canonical sources for the role-split fields this phase persists)
+**Requirements:** PROV-01, PROV-02, PROV-03, PROV-04, PROV-05, PROV-06, PROV-07, PROV-08
+**Success Criteria** (what must be TRUE):
+  1. Signal schema supports role-split provenance (`about_work[]`, `detected_by`, `written_by`) as declarative fields, with array semantics for `about_work[]` and `provenance_status` markers on every field (PROV-01)
+  2. Every newly-created PLAN.md, SUMMARY.md, and VERIFICATION.md carries a uniform signature block (role, harness, platform, vendor, model, reasoning_effort, profile, gsd_version, generated_at, session_id, provenance_status-per-field) populated via `resolveModelInternal` at orchestration time; `frontmatter.cjs` validates the block as required (PROV-02)
+  3. `gsdr-signal-synthesizer` writer-side `gsd_version` precedence prefers installed harness + config over stale repo-local mirror; every persisted version field carries a provenance marker identifying source (PROV-03)
+  4. Sensor task specs and `collect-signals.md` workflow stamp role-split provenance fields (not flat payload); signal outputs from sensor runs conform to PROV-01 schema (PROV-04)
+  5. Signal schema migration is additive — pre-57.8 signals parse with `provenance_schema: v1_legacy`; `kb.db` columns extended; KB rebuild processes both schemas without error; dual-write invariant maintained per KB-05 (PROV-05)
+  6. The nine committed Phase 57.6 signals carry `provenance_status: legacy_mixed` annotation; substantive content preserved; audit Recommendation 4 closed (PROV-06)
+  7. `signal-detection.md` and `knowledge-store.md` reference docs document role-split semantics; current schema text ambiguity (audit cites `signal-detection.md:183-187`) resolved (PROV-07)
+  8. Legacy flat `runtime`/`model`/`gsd_version` fields readable and writable by legacy consumers; deprecation notice + v1.21 removal schedule recorded (PROV-08)
+Authority: `.planning/audits/2026-04-16-signal-provenance-audit/signal-provenance-audit-output.md` (audit is primary source; Findings 1, 2, 3 and Recommendations 1, 2, 4, 5)
+Derived from: audit Findings 1-3 + Recommendations 1, 2, 4, 5. Wider integration (Finding 4, Recommendation 3) split to Phase 60.1 because it depends on the sensor pipeline (Phase 60) existing first. Open design questions (array vs. graph, migration strategy, reflection-consumer coupling) carried into 57.8-CONTEXT.md as typed open claims per GOV-01 discipline.
+**Plans:** 0/TBD (run `/gsdr:discuss-phase 57.8` then `/gsdr:plan-phase 57.8`)
 
 ### Phase 57.4: Audit Skill & Investigatory Type (INSERTED)
 
@@ -204,16 +227,91 @@ Plans:
 Plans:
 - [x] 57.1-01-PLAN.md -- Adopt upstream explore skill files, create vitest test, verify installer
 
+### Phase 57.5: Measurement Architecture & Retroactive Foundation (INSERTED)
+
+**Goal:** A three-layer measurement architecture (raw → extractor registry → interpretation) that retroactively analyzes existing session and artifact corpora, with cross-platform schema from day one and minimum-viable post-Popperian epistemic machinery (competing interpretations, distinguishing features, anomaly register per interpretation). Covers the intervention-lifecycle and pipeline-integrity feedback loops. This phase is the **particular fix** for the Phase 57 vision-drop audit's Finding A (requirements-anchoring trap) and Finding B (research-phase summary reframing).
+**Depends on:** Phase 57 (baseline extraction tooling exists to build on), Phase 56 (SQLite foundation for indexed queries)
+**Requirements:** MEAS-ARCH-01 through MEAS-ARCH-07, MEAS-ARCH-10, MEAS-RUNTIME-02, MEAS-RUNTIME-03, MEAS-RUNTIME-04, MEAS-RUNTIME-09, MEAS-RUNTIME-10, MEAS-DERIVED-01, MEAS-DERIVED-05, MEAS-DERIVED-06, MEAS-GSDR-01, MEAS-GSDR-02, MEAS-GSDR-04, MEAS-GSDR-05
+**Success Criteria** (what must be TRUE):
+  1. Three-layer separation (raw / extractor / interpretation) is implemented in code with the extractor registry as the extensibility point — adding an extractor requires writing a pure function and registering it, no core code changes
+  2. Extractor registry contains ~10-12 extractors covering the intervention-lifecycle and pipeline-integrity loops across all three subfamilies (MEAS-RUNTIME + MEAS-DERIVED + MEAS-GSDR), with at least one Codex extractor proving the cross-platform architecture works
+  3. Retroactive demonstration: all extractors run over the existing session corpus and GSD artifacts (SUMMARY.md, VERIFICATION.md, signal files, git log) without re-collection
+  4. CLI query interface returns JSON (agent-consumable) with runtime dimension model and four-class symmetry markers (`exposed` / `derived` / `not_available` / `not_applicable`)
+  5. Post-Popperian epistemic machinery v1: interpretations carry competing alternatives, distinguishing features, and anomaly registers; the query layer warns when distinguishing features aren't computed and surfaces anomaly accumulation
+  6. Metadata richness: model ID, GSD version, profile (quality/balanced/budget), runtime identity captured per session
+  7. kb.db freshness automation fix lands (MEAS-GSDR-05) — workflow call sites either unified through `kb-rebuild-index.sh` or migrated to `gsd-tools.cjs kb rebuild`
+Authority: `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` §3-§5 (Design Principles, Architectural Commitments, Phase Breakdown)
+Derived from: `.planning/audits/2026-04-10-phase-57-vision-drop-investigation/` (dual-dispatch audit identifying scope-narrowing cascade), `.planning/audits/2026-04-15-measurement-signal-inventory/` (4-lane signal inventory + correction-and-extensions + anomaly-stress-tests E1-E6 + E5.8), `.planning/spikes/009-thinking-summary-as-reasoning-proxy/`, `.planning/spikes/010-parent-session-thinking-summary-proxy/`, signal `sig-2026-04-09-phase57-active-measurement-vision-dropped-at-planning`
+**Plans:** 57.5-01 through 57.5-04 completed and verified 2026-04-16 (`57.5-VERIFICATION.md`: passed 6/6 after one registry-parity gap closure)
+
+### Phase 57.6: Multi-Loop Coverage & Human Interface (INSERTED)
+
+**Goal:** Extend extractor coverage to all identified self-improvement loops (agent-performance, signal-quality, cross-session patterns, cross-runtime comparison), add human-readable text-first visualization, and demonstrate actual use of the system to diagnose at least one observed pattern end-to-end.
+**Depends on:** Phase 57.5
+**Requirements:** MEAS-ARCH-08, MEAS-RUNTIME-01, MEAS-RUNTIME-06, MEAS-RUNTIME-07, MEAS-RUNTIME-08, MEAS-DERIVED-02, MEAS-DERIVED-03, MEAS-DERIVED-04, MEAS-GSDR-03
+**Success Criteria** (what must be TRUE):
+  1. Extractors shipped for agent-performance, signal-quality, cross-session-patterns, and cross-runtime-comparison loops
+  2. Text-first human visualization: markdown tables, ASCII charts, terminal renderer, pre-built common reports per loop
+  3. Exploratory query interface (CLI, potentially REPL-style) for humans to investigate patterns interactively
+  4. Practical demonstration: the system is applied to diagnose at least one observed pattern, with the diagnosis documented as an interpretation object with competing readings, distinguishing features, and anomaly register
+  5. Expanded Codex coverage beyond the single proof-of-concept extractor from 57.5 (compaction extractor is a natural cross-runtime bridge)
+  6. Facets (MEAS-DERIVED-02) adopted with mandatory coverage-stratification clause on every aggregate analysis — stratify by session size
+Authority: `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` §5 Phase 57.6 scope
+**Plans:** 7/7 plans complete and verified 2026-04-17 (`57.6-VERIFICATION.md`: passed 6/6)
+
+Plans:
+- [x] 57.6-01-PLAN.md — Layered serves_loop tag edits on 9 existing extractors (close 57.5 residual tech debt)
+- [x] 57.6-02-PLAN.md — Stratification helper + canonical skip_reason enum in feature-manifest.json
+- [x] 57.6-03-PLAN.md — Source loader extensions (thinking/clear/compaction scans in claude.cjs + codex.cjs)
+- [x] 57.6-04-PLAN.md — Runtime + Codex extractors (thinking, marker density, clear invocation, compaction cross-runtime)
+- [x] 57.6-05-PLAN.md — Derived + GSDR extractors (facets semantic, write-path provenance, insights mass-rewrite, skip-reason canonical) + automation warn-validation
+- [x] 57.6-06-PLAN.md — Text-first report layer (primitives + dispatch + 6 per-loop templates + router)
+- [x] 57.6-07-PLAN.md — Two committed diagnostic artifacts (vision-drop + facets coverage asymmetry)
+
+### Phase 57.7: Content Analysis & Epistemic Deepening (INSERTED)
+
+**Goal:** Extend the measurement system to session-content features and deepen the post-Popperian epistemic machinery — automated distinguishing-feature suggestion, intervention-outcome tracking, interpretation revision classification (progressive vs degenerating per Lakatos).
+**Depends on:** Phase 57.6
+**Requirements:** MEAS-ARCH-09, MEAS-RUNTIME-05, MEAS-RUNTIME-11, MEAS-GSDR-06
+**Success Criteria** (what must be TRUE):
+  1. Session-content extractors (structural patterns in transcripts — tool invocation sequences, intervention points, topic shifts) with documented privacy/storage model; no raw content re-exposure
+  2. Automated distinguishing-feature suggestion: when competing interpretations are presented, the system proposes uncomputed features that would discriminate between them
+  3. Intervention-outcome tracking: when an interpretation is acted on (e.g., GATE shipped), record the intervention, predicted outcome, and actual outcome; surface this as the strongest epistemic status available
+  4. Interpretation revision classification: track whether revisions to interpretations are progressive (generate new predictions) or degenerating (ad hoc accommodation of anomalies)
+  5. Full epistemic provenance on all interpretations (challenge survival count, anomaly register, intervention history, revision classification)
+  6. Reasoning-quality measurement operational — candidate mechanism selected from spike C5 (reference-density, concept-diversity, LLM-as-judge, or facets-based) and shipped for the Agent Performance loop
+  7. Phantom-thinking-token reconciler operational after spike C3 confirms real tokenizer; FTS5 resolved per MEAS-GSDR-06
+Authority: `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` §5 Phase 57.7 scope
+**Plans:** 10 plans across 5 waves (serialized to avoid merge conflicts on shared mutable files runtime.cjs + registry.cjs + sources/claude.cjs)
+**Wave structure (revised per plan-checker iteration 1):**
+- Wave 1 (parallel): Plan 01 (C3 spike), Plan 02 (C5 spike), Plan 03 (FTS5 drop) — independent, no shared mutable files
+- Wave 2: Plan 04 — content extractors + defineExtractor content_contract preservation fix; owns runtime.cjs + registry.cjs + sources/claude.cjs edits
+- Wave 3 (parallel): Plan 05 (intervention_points depends_on ['04']), Plan 06 (distinguishes audit + PRIVACY.md + interventions/README.md depends_on ['04'])
+- Wave 4 (parallel): Plan 07 (interpretation-layer deepening depends_on ['04','05','06']), Plan 08 (reasoning-tokens reconciler depends_on ['01']), Plan 09 (reasoning-quality proxy depends_on ['02'])
+- Wave 5: Plan 10 (demonstration artifacts depends_on ['04','05','06','07','08','09'])
+Plans:
+- [ ] 57.7-01-PLAN.md -- [wave 1] Spike C3: tokenizer availability (Q1) — DESIGN, BUILD, RUN, DECISION incl. production_dependency_decision field
+- [ ] 57.7-02-PLAN.md -- [wave 1] Spike C5: reasoning-quality mechanism selection (Q2) — DESIGN, BUILD, RUN, DECISION incl. grader_independence field
+- [ ] 57.7-03-PLAN.md -- [wave 1] MEAS-GSDR-06 FTS5 drop (schema migration + regression test)
+- [ ] 57.7-04-PLAN.md -- [wave 2] Content extractors: tool_invocation_sequence + topic_shift_markers + defineExtractor content_contract fix
+- [ ] 57.7-05-PLAN.md -- [wave 3, depends_on 04] Content extractor: intervention_points with Q3 calibration (live or skip-gated)
+- [ ] 57.7-06-PLAN.md -- [wave 3, depends_on 04] Distinguishes-metadata audit + PRIVACY.md + interventions/README.md (preconditions for Plan 07)
+- [ ] 57.7-07-PLAN.md -- [wave 4, depends_on 04+05+06] Interpretation-layer deepening: suggester + intervention-outcome loader + revision history + provenance summary
+- [ ] 57.7-08-PLAN.md -- [wave 4, depends_on 01] MEAS-RUNTIME-05 phantom-thinking-token reconciler (ship mode per Plan 01 verdict + production_dependency_decision)
+- [ ] 57.7-09-PLAN.md -- [wave 4, depends_on 02] MEAS-RUNTIME-11 reasoning-quality proxy (mechanism per Plan 02 verdict; DC-4/G-5 labelling + grader_independence)
+- [ ] 57.7-10-PLAN.md -- [wave 5, depends_on 04+05+06+07+08+09] Demonstration artifacts: revised vision-drop diagnostic + GATE-09 pending intervention record + DEMO-REPORT.md
+
 ### Phase 58: Structural Enforcement Gates
-**Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion
-**Depends on**: Phase 57 (baseline must be captured first)
-**Requirements**: GATE-01, GATE-02, GATE-03, GATE-04, GATE-05, GATE-06, GATE-07, GATE-08, XRT-01
+**Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion, plus GATE-09 scope-translation ledger as the meta-fix for the Phase 57 scope-narrowing cascade
+**Depends on**: Phase 57.7 (measurement substrate needed for evaluating gate effectiveness; GATE-09 coordinates with measurement system to surface CONTEXT-claim deferrals)
+**Requirements**: GATE-01, GATE-02, GATE-03, GATE-04, GATE-05, GATE-06, GATE-07, GATE-08, GATE-09, XRT-01
 **Success Criteria** (what must be TRUE):
   1. Phase advancement via offer_next blocks until PR is created and CI passes -- user can override with documented justification logged to session
   2. `gh pr merge` invocations pass `--merge` explicitly as the structural default, and quick task detects runtime code changes requiring branch+PR flow
   3. `.continue-here` files are consumed on read and archived after session start, with staleness checks and upstream-adopted hard stop safety gates
   4. Automation postlude fires structurally (SessionStop hook on Claude Code, workflow-enforced step on Codex) rather than by agent discretion
   5. Every hook-dependent v1.20 feature specifies its Codex CLI degradation path in phase CONTEXT.md before implementation begins, and capability-matrix.md is updated
+  6. GATE-09 scope-translation ledger enforces that every load-bearing CONTEXT claim is mapped at phase close (implemented / explicitly deferred / rejected / left-open-blocking-planning); RESEARCH and PLAN scope narrowing relative to CONTEXT is cited with the originating claim and recorded as a decision; verification confirms CONTEXT commitments were explicitly deferred rather than silently disappearing
 **Plans**: TBD
 
 ### Phase 59: KB Query, Lifecycle Wiring & Surfacing
@@ -240,6 +338,23 @@ Plans:
   5. Patch compatibility checking validates patches against target runtime before cross-runtime application
 **Plans**: TBD
 **Note**: Can proceed in parallel with Phase 61 after Phase 58 completes -- independent workstreams with no shared dependencies
+
+### Phase 60.1: Telemetry-Signal Integration & E2E Chain Tests (INSERTED)
+
+**Goal:** The measurement telemetry substrate (Phases 57.5–57.7) becomes load-bearing for the signal system, reflection, and workflow attribution — not just a sidecar that exposes identity fields nobody consumes. This phase is the **wide companion** to Phase 57.8's narrow provenance fix: sensors stop self-stamping identity and read it from the canonical measurement extractors; reflection stratifies aggregates by `model × profile × reasoning_effort`; the intervention-outcome loop from Phase 57.7 Plan 07 extends to signal lifecycle transitions with predicted/actual outcomes; and the full discuss→plan→execute→verify→collect-signals chain gains automated E2E coverage with live agents. Where the integration surface exceeds what was explicit in the audit, PROV-09 investigates first and produces child requirements under the GOV-01 extraction contract.
+**Depends on:** Phase 60 (sensor pipeline must exist before sensors can be rewired; cross-runtime Codex adapter provides the substrate for PROV-14 parity). Phase 57.8 is a logical prerequisite for Stage-1 research (PROV-09 surveys integration around the role-split schema, not the legacy flat one)
+**Requirements:** GOV-01 (governance — extraction contract applies), PROV-09 (research-gated, requirement-producing), PROV-10, PROV-11, PROV-12, PROV-13, PROV-14, plus Stage-2 children produced by PROV-09
+**Success Criteria** (what must be TRUE):
+  1. PROV-09 closes under GOV-01 — `.planning/research/provenance-integration-surface.md` exists AND every viable integration point has become either a declarative child requirement (`PROV-09.1`, `PROV-09.2`, ...) or is explicitly deferred to v1.21 with a named reason. Document existence alone does not satisfy
+  2. Log sensor and artifact sensor consume `buildSessionIdentityValue()` and the Codex equivalent from `measurement/extractors/` rather than self-stamping; provenance derives from live telemetry where exposed, orchestration-time signing where logs are silent (PROV-10)
+  3. Reflection (`gsdr-reflector` + `reflect` workflow) stratifies signal aggregates by `model × profile × reasoning_effort` via `measurement/stratify.cjs`; agent-performance signal counts attribute by role × model × profile (PROV-11)
+  4. Intervention-outcome schema carries `predicted_outcome` alongside `outcome_status`; signal lifecycle transitions (`triaged → remediated → verified`) join as measured interventions; `phase_57_5_live_registry_query` report surface shows a non-zero `grounded_in_*_interventions` count when at least one signal-lifecycle intervention has a confirmed outcome (PROV-12)
+  5. `tests/e2e/real-agent.test.js` `it.todo()` stubs replaced with working chain tests; opt-in via `RUN_REAL_AGENT_TESTS=true`; CI runs on release tags; coverage asserts role-split provenance, signature-block persistence, and cross-runtime parity (PROV-13)
+  6. Cross-runtime provenance parity — `measurement report cross_runtime_comparison` surfaces role-split provenance from both Claude and Codex chains; asymmetries marked explicitly via MEAS-ARCH-04 four-class symmetry markers, not coincidentally-aligned values masquerading as parity (PROV-14)
+  7. Every Stage-2 child requirement produced by PROV-09 is either shipped or explicitly deferred; GOV-01 extraction contract closed
+Authority: `.planning/audits/2026-04-16-signal-provenance-audit/signal-provenance-audit-output.md` Finding 4 + Recommendation 3. Stage-1 research (PROV-09) authoritatively widens scope beyond the audit's explicit enumeration per GOV-01.
+Derived from: the signal-provenance audit surfaced telemetry-as-latent-source but did not enumerate the full integration surface; PROV-09 closes that gap before declarative commitments lock. Split from Phase 57.8 because the wider integration depends on the sensor pipeline existing (Phase 60).
+**Plans:** 0/TBD (run `/gsdr:discuss-phase 60.1` after Phase 60 ships)
 
 ### Phase 61: Spike Methodology Overhaul
 **Goal**: Spike experimental design is epistemologically rigorous -- designs are reviewed cross-model before execution, confidence is multi-dimensional, and findings are verified against evidence
@@ -289,7 +404,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.4 (patch releases), then 57 → 58-59, then 60 and 61 can proceed in parallel, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies). Phase 57.2 ships before Phase 57 as a patch (regression fix); effectiveness revisited post-telemetry. Phase 57.3 depends on Phase 57.2. Phase 57.4 depends on Phase 57.3.
+Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.4 (patch releases), then 57 → 57.5 → 57.6 → 57.7 → 57.8 → 58-59, then 60 and 61 can proceed in parallel, 60.1 after 60, then 62 through 64 sequentially. Phase 64 is separately gated. Phase 57.1 can proceed after any completed phase (no blocking dependencies). Phase 57.2 ships before Phase 57 as a patch (regression fix); effectiveness revisited post-telemetry. Phase 57.3 depends on Phase 57.2. Phase 57.4 depends on Phase 57.3. Phases 57.5/57.6/57.7 build the measurement infrastructure that Phase 58 (particularly GATE-09) depends on for evaluating gate effectiveness. Phase 57.8 narrows the signal provenance fix pre-58 so GATE-09 has role-aware attribution; Phase 60.1 widens telemetry→signal integration post-60 once the sensor pipeline exists as substrate.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -302,9 +417,14 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.
 | 57.2. Discuss-Phase Exploratory Mode Overhaul | 3/3 | Complete | 2026-04-09 |
 | 57.3. Audit Workflow Infrastructure | 2/2 | Complete | 2026-04-09 |
 | 57.4. Audit Skill & Investigatory Type | 6/6 | Complete | 2026-04-10 |
+| 57.5. Measurement Architecture & Retroactive Foundation | 0/TBD | Not started | - |
+| 57.6. Multi-Loop Coverage & Human Interface | 0/TBD | Not started | - |
+| 57.7. Content Analysis & Epistemic Deepening | 0/TBD | Not started | - |
+| 57.8. Signal Provenance Split & Artifact Signature Blocks | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
 | 60. Sensor Pipeline & Codex Parity | 0/TBD | Not started | - |
+| 60.1. Telemetry-Signal Integration & E2E Chain Tests | 0/TBD | Not started | - |
 | 61. Spike Methodology Overhaul | 0/TBD | Not started | - |
 | 62. Workflow Commands | 0/TBD | Not started | - |
 | 63. Spike Programme Infrastructure | 0/TBD | Not started | - |
@@ -321,9 +441,9 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.
 | v1.16 Signal Lifecycle | 31-35 | 20 | Complete | 2026-03-02 |
 | v1.17 Automation Loop | 36-44 | 24 | Complete | 2026-03-09 |
 | v1.18 Upstream Sync & Deep Integration | 45-54 + 48.1 | 37 | Complete | 2026-03-30 |
-| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1, 57.2, 57.3, 57.4 | TBD | In progress | - |
+| v1.20 Signal Infrastructure & Epistemic Rigor | 55-64 + 55.1, 55.2, 57.1-57.8, 60.1 | TBD | In progress | - |
 
-**Totals:** 8 milestones, 67 phases (58 complete, 9 in progress), 179 plans completed
+**Totals:** 8 milestones, 72 phases (58 complete, 14 in progress), 179 plans completed
 
 ## Backlog
 

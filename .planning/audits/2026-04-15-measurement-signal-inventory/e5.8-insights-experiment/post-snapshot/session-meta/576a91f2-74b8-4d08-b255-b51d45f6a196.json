@@ -1,0 +1,68 @@
+{
+  "session_id": "576a91f2-74b8-4d08-b255-b51d45f6a196",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-03-06T00:49:28.801Z",
+  "duration_minutes": 36,
+  "user_message_count": 9,
+  "assistant_message_count": 98,
+  "tool_counts": {
+    "ToolSearch": 5,
+    "Bash": 24,
+    "Read": 9,
+    "Glob": 1,
+    "Agent": 3,
+    "Grep": 11,
+    "Write": 2,
+    "Edit": 7
+  },
+  "languages": {
+    "Markdown": 15,
+    "JavaScript": 3
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 118,
+  "output_tokens": 24572,
+  "first_prompt": "are there any gaps in the plan? anything to be considered that hasn't? are all the proper guardrails in place? where are we lacking, have we fully justified and put to the test our design decisions? w…",
+  "user_interruptions": 1,
+  "user_response_times": [
+    604.376,
+    267.494,
+    267.494,
+    269.774,
+    272.131
+  ],
+  "tool_errors": 5,
+  "tool_error_categories": {
+    "Command Failed": 5
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 250,
+  "lines_removed": 11,
+  "files_modified": 4,
+  "message_hours": [
+    19,
+    19,
+    19,
+    19,
+    20,
+    20,
+    20,
+    20,
+    20
+  ],
+  "user_message_timestamps": [
+    "2026-03-06T00:49:29.421Z",
+    "2026-03-06T00:49:28.799Z",
+    "2026-03-06T00:49:53.912Z",
+    "2026-03-06T00:49:53.912Z",
+    "2026-03-06T01:14:22.996Z",
+    "2026-03-06T01:22:10.547Z",
+    "2026-03-06T01:22:10.547Z",
+    "2026-03-06T01:22:12.827Z",
+    "2026-03-06T01:22:15.184Z"
+  ]
+}

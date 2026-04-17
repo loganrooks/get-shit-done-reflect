@@ -1,0 +1,21 @@
+{
+  "name": "c3-tokenizer-eval",
+  "version": "1.0.0",
+  "description": "Spike-local tokenizer evaluation for Phase 57.7 Plan 01",
+  "private": true,
+  "type": "commonjs",
+  "main": "run-c3-eval.cjs",
+  "scripts": {
+    "c3:eval": "node run-c3-eval.cjs"
+  },
+  "keywords": [
+    "gsd-reflect",
+    "spike",
+    "tokenizer"
+  ],
+  "author": "GSD Reflect executor",
+  "license": "MIT",
+  "devDependencies": {
+    "js-tiktoken": "^1.0.21"
+  }
+}

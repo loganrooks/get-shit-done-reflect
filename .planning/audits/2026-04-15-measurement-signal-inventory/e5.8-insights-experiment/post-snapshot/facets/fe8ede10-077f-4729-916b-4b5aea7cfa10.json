@@ -1,0 +1,15 @@
+{
+  "underlying_goal": "Resume work on the robotic-psalms project by restoring context from previous session",
+  "goal_categories": {
+    "warmup_minimal": 1
+  },
+  "outcome": "unclear_from_transcript",
+  "user_satisfaction_counts": {},
+  "claude_helpfulness": "moderately_helpful",
+  "session_type": "single_task",
+  "friction_counts": {},
+  "friction_detail": "",
+  "primary_success": "none",
+  "brief_summary": "User triggered an automated resume-work command to restore project context; session was very short with truncated output.",
+  "session_id": "fe8ede10-077f-4729-916b-4b5aea7cfa10"
+}

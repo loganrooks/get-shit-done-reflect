@@ -1,0 +1,51 @@
+{
+  "session_id": "4aa24081-1c5d-46a3-b83e-73ba7369e3f2",
+  "project_path": "/home/rookslog/workspace/projects/robotic-psalms",
+  "start_time": "2026-03-09T21:42:52.273Z",
+  "duration_minutes": 24,
+  "user_message_count": 4,
+  "assistant_message_count": 47,
+  "tool_counts": {
+    "Read": 6,
+    "Bash": 12,
+    "Glob": 1,
+    "Agent": 5,
+    "Write": 1,
+    "Edit": 2
+  },
+  "languages": {
+    "Markdown": 9
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 55,
+  "output_tokens": 8436,
+  "first_prompt": "No prompt",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 3,
+  "tool_error_categories": {
+    "File Not Found": 1,
+    "Other": 1,
+    "Command Failed": 1
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 94,
+  "lines_removed": 13,
+  "files_modified": 1,
+  "message_hours": [
+    17,
+    17,
+    17,
+    17
+  ],
+  "user_message_timestamps": [
+    "2026-03-09T21:42:52.704Z",
+    "2026-03-09T21:42:52.269Z",
+    "2026-03-09T21:42:56.442Z",
+    "2026-03-09T21:42:56.442Z"
+  ]
+}

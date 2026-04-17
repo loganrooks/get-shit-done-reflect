@@ -1,0 +1,63 @@
+{
+  "session_id": "caeb0865-df40-417c-9dff-2b542fd38908",
+  "project_path": "/Users/rookslog/Development/get-shit-done-reflect",
+  "start_time": "2026-02-26T09:01:54.231Z",
+  "duration_minutes": 41,
+  "user_message_count": 9,
+  "assistant_message_count": 129,
+  "tool_counts": {
+    "Bash": 67,
+    "Read": 9,
+    "Task": 2,
+    "Edit": 2
+  },
+  "languages": {
+    "Markdown": 11
+  },
+  "git_commits": 1,
+  "git_pushes": 0,
+  "input_tokens": 157,
+  "output_tokens": 9395,
+  "first_prompt": "/gsd:quick recover the lost code from deleted local patches when installing i.e. we need to make sure Phase 22 is done rightly, we aren't just restoring we need to actually develop in the codebase (no…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    1001.576,
+    1001.576,
+    351.768,
+    353.866
+  ],
+  "tool_errors": 12,
+  "tool_error_categories": {
+    "Command Failed": 9,
+    "Other": 3
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 2,
+  "lines_removed": 3,
+  "files_modified": 1,
+  "message_hours": [
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4,
+    4
+  ],
+  "user_message_timestamps": [
+    "2026-02-26T09:01:54.581Z",
+    "2026-02-26T09:01:54.142Z",
+    "2026-02-26T09:01:54.581Z",
+    "2026-02-26T09:01:57.513Z",
+    "2026-02-26T09:01:57.513Z",
+    "2026-02-26T09:19:08.078Z",
+    "2026-02-26T09:19:08.078Z",
+    "2026-02-26T09:34:47.132Z",
+    "2026-02-26T09:40:55.713Z"
+  ]
+}

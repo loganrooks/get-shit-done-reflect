@@ -1,0 +1,83 @@
+{
+  "session_id": "a9aace0f-77d5-4cd4-b62d-f6656e1b8834",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-03-22T09:06:00.190Z",
+  "duration_minutes": 1273,
+  "user_message_count": 15,
+  "assistant_message_count": 45,
+  "tool_counts": {
+    "ToolSearch": 7,
+    "Read": 15,
+    "Bash": 6,
+    "Write": 2
+  },
+  "languages": {
+    "Markdown": 17
+  },
+  "git_commits": 1,
+  "git_pushes": 0,
+  "input_tokens": 103,
+  "output_tokens": 9040,
+  "first_prompt": "Please review the current deliberation-review set in this repo as an independent critical reader.…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    151.753,
+    181.12,
+    2365.945,
+    1144.749,
+    250.019,
+    58.55,
+    105.675,
+    45.551,
+    656.347,
+    37.368,
+    11.623,
+    137.81,
+    19.951
+  ],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "Command Failed": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 95,
+  "lines_removed": 0,
+  "files_modified": 2,
+  "message_hours": [
+    5,
+    23,
+    23,
+    23,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    1,
+    1,
+    2,
+    2,
+    2
+  ],
+  "user_message_timestamps": [
+    "2026-03-22T09:06:00.190Z",
+    "2026-03-23T03:47:48.349Z",
+    "2026-03-23T03:50:23.815Z",
+    "2026-03-23T03:53:28.223Z",
+    "2026-03-23T04:32:56.533Z",
+    "2026-03-23T04:52:06.493Z",
+    "2026-03-23T04:56:33.945Z",
+    "2026-03-23T04:57:36.845Z",
+    "2026-03-23T04:59:25.460Z",
+    "2026-03-23T05:00:18.295Z",
+    "2026-03-23T05:11:35.147Z",
+    "2026-03-23T05:12:23.827Z",
+    "2026-03-23T06:01:52.749Z",
+    "2026-03-23T06:04:18.079Z",
+    "2026-03-23T06:04:43.096Z"
+  ]
+}

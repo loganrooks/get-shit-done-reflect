@@ -25,6 +25,9 @@ tests/benchmarks/results.json
 .planning/knowledge/kb.db
 .planning/knowledge/kb.db-shm
 .planning/knowledge/kb.db-wal
+.planning/measurement/measurement.db
+.planning/measurement/measurement.db-shm
+.planning/measurement/measurement.db-wal
 
 # Internal planning documents
 reports/

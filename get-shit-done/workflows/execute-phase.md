@@ -476,7 +476,7 @@ This workflow handles:
 - Sensor discovery (auto-discovers gsd-*-sensor.md files including the CI sensor)
 - Parallel sensor spawning (SIG-02: CI sensor runs alongside artifact and git sensors)
 - Output collection and synthesis
-- KB persistence and index rebuild
+- KB persistence and unified `kb-rebuild-index.sh` freshness rebuild
 ```
 
 The CI sensor inclusion (SIG-02) is automatic -- the collect-signals workflow uses

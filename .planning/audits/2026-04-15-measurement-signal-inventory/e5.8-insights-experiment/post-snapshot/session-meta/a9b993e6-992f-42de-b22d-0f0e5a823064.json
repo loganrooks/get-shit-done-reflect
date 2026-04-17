@@ -1,0 +1,40 @@
+{
+  "session_id": "a9b993e6-992f-42de-b22d-0f0e5a823064",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-15T21:51:29.462Z",
+  "duration_minutes": 4,
+  "user_message_count": 1,
+  "assistant_message_count": 25,
+  "tool_counts": {
+    "Read": 12,
+    "Write": 2,
+    "Glob": 1
+  },
+  "languages": {
+    "Markdown": 14
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 39,
+  "output_tokens": 22672,
+  "first_prompt": "# Checkpoint 3 Scope Audit Cross-Vendor Review Prompt  Review the authored Checkpoint 3 workflow / harness scope audit before it is checkpointed or used to launch Checkpoint 4.  This is a cross-vendor…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "Other": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 168,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    17
+  ],
+  "user_message_timestamps": [
+    "2026-04-15T21:51:29.462Z"
+  ]
+}

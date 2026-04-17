@@ -1,0 +1,48 @@
+{
+  "session_id": "e980f337-c054-4304-a453-fca25d21a204",
+  "project_path": "/home/rookslog/workspace/projects/scholardoc",
+  "start_time": "2026-03-06T01:32:10.241Z",
+  "duration_minutes": 29,
+  "user_message_count": 6,
+  "assistant_message_count": 6,
+  "tool_counts": {
+    "ToolSearch": 1,
+    "Bash": 1
+  },
+  "languages": {},
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 15,
+  "output_tokens": 942,
+  "first_prompt": "oh crap did you install at the user level???",
+  "user_interruptions": 0,
+  "user_response_times": [
+    1444.436,
+    1444.436
+  ],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    20,
+    20,
+    20,
+    21,
+    21,
+    21
+  ],
+  "user_message_timestamps": [
+    "2026-03-06T01:32:11.097Z",
+    "2026-03-06T01:32:10.238Z",
+    "2026-03-06T01:36:19.563Z",
+    "2026-03-06T02:00:28.240Z",
+    "2026-03-06T02:00:28.240Z",
+    "2026-03-06T02:00:32.667Z"
+  ]
+}

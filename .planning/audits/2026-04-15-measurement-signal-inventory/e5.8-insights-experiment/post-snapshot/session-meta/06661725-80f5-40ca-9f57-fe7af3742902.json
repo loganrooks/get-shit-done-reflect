@@ -1,0 +1,60 @@
+{
+  "session_id": "06661725-80f5-40ca-9f57-fe7af3742902",
+  "project_path": "/scratch/arxiv-scan",
+  "start_time": "2026-03-13T19:14:40.265Z",
+  "duration_minutes": 2109,
+  "user_message_count": 6,
+  "assistant_message_count": 148,
+  "tool_counts": {
+    "Read": 27,
+    "Glob": 5,
+    "Edit": 22,
+    "Bash": 31,
+    "Write": 7,
+    "Grep": 5,
+    "Agent": 1
+  },
+  "languages": {
+    "Markdown": 35,
+    "Python": 11,
+    "JSON": 9
+  },
+  "git_commits": 3,
+  "git_pushes": 0,
+  "input_tokens": 186,
+  "output_tokens": 42339,
+  "first_prompt": "@epistemic-agency/traces/004-handoff.md",
+  "user_interruptions": 0,
+  "user_response_times": [
+    95.508
+  ],
+  "tool_errors": 4,
+  "tool_error_categories": {
+    "Other": 2,
+    "Command Failed": 1,
+    "Edit Failed": 1
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 875,
+  "lines_removed": 41,
+  "files_modified": 14,
+  "message_hours": [
+    15,
+    15,
+    15,
+    16,
+    2,
+    2
+  ],
+  "user_message_timestamps": [
+    "2026-03-13T19:14:41.010Z",
+    "2026-03-13T19:14:40.262Z",
+    "2026-03-13T19:19:28.216Z",
+    "2026-03-13T20:33:47.858Z",
+    "2026-03-15T06:14:50.187Z",
+    "2026-03-15T06:21:39.865Z"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "underlying_goal": "Build a 'patch sensor' to systematically audit recurring failure patterns across Claude Code/Codex sessions, then synthesize findings into actionable scope for milestone v1.20",
+  "goal_categories": {
+    "sensor_design_and_discovery": 1,
+    "multi_agent_audit_orchestration": 1,
+    "model_comparison_experiment": 1,
+    "milestone_scoping_and_handoff": 1
+  },
+  "outcome": "mostly_achieved",
+  "user_satisfaction_counts": {
+    "likely_satisfied": 4,
+    "dissatisfied": 2
+  },
+  "claude_helpfulness": "very_helpful",
+  "session_type": "exploration",
+  "friction_counts": {
+    "wrong_approach": 2,
+    "excessive_changes": 1,
+    "misunderstood_request": 1
+  },
+  "friction_detail": "User had to interrupt multiple times to redirect scope (narrow timeframe, question token estimates, push back on aggregate metrics as quality proxies, request task spec be written to markdown first and remove arbitrary top-10 limit)",
+  "primary_success": "multi_file_changes",
+  "brief_summary": "User wanted to design a patch sensor by auditing session logs across multiple models and synthesize findings for v1.20 scoping; Claude orchestrated a multi-stage audit pipeline (discovery, synthesis, verification, positive signals) producing 98+ findings and a handoff document, though required several user redirects on scope and methodology.",
+  "session_id": "9af8f0ae-f2cb-4fd7-9e69-47c58190b6d4"
+}

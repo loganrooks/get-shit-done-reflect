@@ -1,0 +1,79 @@
+{
+  "session_id": "44aad61e-1d1a-4230-9df4-02cecccedbac",
+  "project_path": "/home/rookslog/workspace/projects/f1-modeling",
+  "start_time": "2026-04-09T01:51:27.286Z",
+  "duration_minutes": 73,
+  "user_message_count": 13,
+  "assistant_message_count": 140,
+  "tool_counts": {
+    "Read": 10,
+    "Glob": 1,
+    "Bash": 48,
+    "Agent": 10,
+    "Edit": 6,
+    "ToolSearch": 1,
+    "Skill": 1,
+    "Write": 1
+  },
+  "languages": {
+    "Markdown": 15,
+    "JSON": 2
+  },
+  "git_commits": 5,
+  "git_pushes": 0,
+  "input_tokens": 234,
+  "output_tokens": 27159,
+  "first_prompt": "/gsdr:execute-phase 3.1",
+  "user_interruptions": 1,
+  "user_response_times": [
+    320.604,
+    320.604,
+    29.497,
+    8.449,
+    34.989,
+    95.07,
+    27.161,
+    322.915
+  ],
+  "tool_errors": 3,
+  "tool_error_categories": {
+    "Command Failed": 3
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 62,
+  "lines_removed": 27,
+  "files_modified": 4,
+  "message_hours": [
+    21,
+    21,
+    21,
+    21,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22
+  ],
+  "user_message_timestamps": [
+    "2026-04-09T01:51:27.286Z",
+    "2026-04-09T01:51:27.083Z",
+    "2026-04-09T01:51:33.628Z",
+    "2026-04-09T01:51:33.628Z",
+    "2026-04-09T02:41:45.893Z",
+    "2026-04-09T02:41:45.893Z",
+    "2026-04-09T02:42:44.877Z",
+    "2026-04-09T02:43:21.654Z",
+    "2026-04-09T02:44:00.275Z",
+    "2026-04-09T02:50:52.659Z",
+    "2026-04-09T02:51:03.850Z",
+    "2026-04-09T02:52:22.006Z",
+    "2026-04-09T02:58:10.243Z"
+  ]
+}

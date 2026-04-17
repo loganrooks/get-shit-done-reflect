@@ -1,0 +1,61 @@
+{
+  "session_id": "473146be-e53b-49aa-ba79-0662c23f0941",
+  "project_path": "/home/rookslog/workspace/projects/tain",
+  "start_time": "2026-03-27T20:27:11.736Z",
+  "duration_minutes": 1,
+  "user_message_count": 9,
+  "assistant_message_count": 2,
+  "tool_counts": {
+    "Read": 1
+  },
+  "languages": {
+    "Markdown": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 6,
+  "output_tokens": 149,
+  "first_prompt": "/gsd:new-project --auto @DATASET-DESIGN.md @PROBLEM.md @RESEARCH.md @PATTERN-ANALYSIS-DISTILLED.md",
+  "user_interruptions": 1,
+  "user_response_times": [
+    3.285,
+    3.281,
+    3.281,
+    6.254,
+    6.239,
+    6.239
+  ],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "File Too Large": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    16,
+    16,
+    16,
+    16,
+    16,
+    16,
+    16,
+    16,
+    16
+  ],
+  "user_message_timestamps": [
+    "2026-03-27T20:27:45.263Z",
+    "2026-03-27T20:27:45.263Z",
+    "2026-03-27T20:27:50.626Z",
+    "2026-03-27T20:27:52.286Z",
+    "2026-03-27T20:27:52.282Z",
+    "2026-03-27T20:27:52.282Z",
+    "2026-03-27T20:27:55.255Z",
+    "2026-03-27T20:27:55.240Z",
+    "2026-03-27T20:27:55.240Z"
+  ]
+}

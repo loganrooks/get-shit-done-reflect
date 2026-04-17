@@ -1,0 +1,49 @@
+{
+  "session_id": "e0f113a1-ad32-4517-9639-04e17feba880",
+  "project_path": "/home/rookslog/workspace/projects/scholardoc",
+  "start_time": "2026-02-20T04:09:12.519Z",
+  "duration_minutes": 19996,
+  "user_message_count": 6,
+  "assistant_message_count": 34,
+  "tool_counts": {
+    "Bash": 14,
+    "Task": 2,
+    "Read": 2,
+    "Edit": 1
+  },
+  "languages": {
+    "Markdown": 3
+  },
+  "git_commits": 1,
+  "git_pushes": 0,
+  "input_tokens": 48,
+  "output_tokens": 3033,
+  "first_prompt": "/gsd:quick can we address all the uncommited files? create a plan to organize them into commits or to .gitignore them",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 3,
+  "lines_removed": 2,
+  "files_modified": 1,
+  "message_hours": [
+    23,
+    23,
+    23,
+    23,
+    23,
+    20
+  ],
+  "user_message_timestamps": [
+    "2026-02-20T04:09:12.777Z",
+    "2026-02-20T04:09:12.510Z",
+    "2026-02-20T04:09:12.777Z",
+    "2026-02-20T04:09:56.598Z",
+    "2026-02-20T04:09:56.598Z",
+    "2026-03-06T01:25:21.818Z"
+  ]
+}

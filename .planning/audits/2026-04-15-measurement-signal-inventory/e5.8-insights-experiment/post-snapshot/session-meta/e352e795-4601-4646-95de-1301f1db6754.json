@@ -1,0 +1,55 @@
+{
+  "session_id": "e352e795-4601-4646-95de-1301f1db6754",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-04-10T23:29:14.565Z",
+  "duration_minutes": 53,
+  "user_message_count": 7,
+  "assistant_message_count": 29,
+  "tool_counts": {
+    "Read": 1,
+    "Bash": 11,
+    "ToolSearch": 1,
+    "AskUserQuestion": 1
+  },
+  "languages": {
+    "Markdown": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 48,
+  "output_tokens": 12496,
+  "first_prompt": "/gsdr:update global and local installations, but you can install it via the the project itself (dev version)",
+  "user_interruptions": 0,
+  "user_response_times": [
+    660.673,
+    660.673,
+    660.673
+  ],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    19,
+    19,
+    19,
+    19,
+    20,
+    20,
+    20
+  ],
+  "user_message_timestamps": [
+    "2026-04-10T23:29:14.565Z",
+    "2026-04-10T23:29:14.380Z",
+    "2026-04-10T23:30:42.022Z",
+    "2026-04-10T23:30:42.022Z",
+    "2026-04-11T00:21:42.982Z",
+    "2026-04-11T00:21:42.982Z",
+    "2026-04-11T00:21:42.982Z"
+  ]
+}

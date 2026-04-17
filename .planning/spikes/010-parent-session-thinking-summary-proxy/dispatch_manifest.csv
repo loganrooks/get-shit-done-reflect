@@ -1,0 +1,37 @@
+cell_id,model,prompt_cell,effort,replicate,tools_flag
+1,sonnet,A,low,1,"--tools """""
+2,sonnet,A,low,2,"--tools """""
+3,sonnet,A,low,3,"--tools """""
+4,sonnet,A,high,1,"--tools """""
+5,sonnet,A,high,2,"--tools """""
+6,sonnet,A,high,3,"--tools """""
+7,opus,A,low,1,"--tools """""
+8,opus,A,low,2,"--tools """""
+9,opus,A,low,3,"--tools """""
+10,opus,A,high,1,"--tools """""
+11,opus,A,high,2,"--tools """""
+12,opus,A,high,3,"--tools """""
+13,sonnet,B-notools,low,1,"--tools """""
+14,sonnet,B-notools,low,2,"--tools """""
+15,sonnet,B-notools,low,3,"--tools """""
+16,sonnet,B-notools,high,1,"--tools """""
+17,sonnet,B-notools,high,2,"--tools """""
+18,sonnet,B-notools,high,3,"--tools """""
+19,opus,B-notools,low,1,"--tools """""
+20,opus,B-notools,low,2,"--tools """""
+21,opus,B-notools,low,3,"--tools """""
+22,opus,B-notools,high,1,"--tools """""
+23,opus,B-notools,high,2,"--tools """""
+24,opus,B-notools,high,3,"--tools """""
+25,sonnet,B-tools,low,1,(default)
+26,sonnet,B-tools,low,2,(default)
+27,sonnet,B-tools,low,3,(default)
+28,sonnet,B-tools,high,1,(default)
+29,sonnet,B-tools,high,2,(default)
+30,sonnet,B-tools,high,3,(default)
+31,opus,B-tools,low,1,(default)
+32,opus,B-tools,low,2,(default)
+33,opus,B-tools,low,3,(default)
+34,opus,B-tools,high,1,(default)
+35,opus,B-tools,high,2,(default)
+36,opus,B-tools,high,3,(default)

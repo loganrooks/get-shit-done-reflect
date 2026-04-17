@@ -1,0 +1,50 @@
+{
+  "session_id": "8cf4c8f4-51e0-4d57-87c5-8e1590077b4f",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-04-03T03:30:18.235Z",
+  "duration_minutes": 17,
+  "user_message_count": 1,
+  "assistant_message_count": 218,
+  "tool_counts": {
+    "Skill": 2,
+    "Bash": 64,
+    "Read": 20,
+    "ToolSearch": 1,
+    "TodoWrite": 7,
+    "Agent": 1,
+    "Grep": 5,
+    "Glob": 4,
+    "Edit": 23,
+    "Write": 4
+  },
+  "languages": {
+    "Markdown": 39,
+    "JSON": 5
+  },
+  "git_commits": 6,
+  "git_pushes": 6,
+  "input_tokens": 226,
+  "output_tokens": 32666,
+  "first_prompt": "You are implementing a critical patch for GSD Reflect. This MUST go all the way to a released patch version on npm.  ## What You're Doing  Implementing a three-mode discuss system (exploratory/discuss…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 24,
+  "tool_error_categories": {
+    "Other": 19,
+    "File Too Large": 1,
+    "Command Failed": 4
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 480,
+  "lines_removed": 28,
+  "files_modified": 11,
+  "message_hours": [
+    23
+  ],
+  "user_message_timestamps": [
+    "2026-04-03T03:30:18.235Z"
+  ]
+}

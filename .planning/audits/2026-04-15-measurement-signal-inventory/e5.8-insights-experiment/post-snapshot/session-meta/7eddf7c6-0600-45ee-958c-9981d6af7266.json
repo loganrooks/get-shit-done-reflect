@@ -1,0 +1,45 @@
+{
+  "session_id": "7eddf7c6-0600-45ee-958c-9981d6af7266",
+  "project_path": "/home/rookslog/workspace/projects/PDFAgentialConversion",
+  "start_time": "2026-03-20T04:48:49.135Z",
+  "duration_minutes": 1,
+  "user_message_count": 4,
+  "assistant_message_count": 12,
+  "tool_counts": {
+    "ToolSearch": 1,
+    "Bash": 4,
+    "Glob": 1,
+    "Read": 1
+  },
+  "languages": {
+    "Markdown": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 18,
+  "output_tokens": 1453,
+  "first_prompt": "/gsdr:plan-phase 7",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    0,
+    0,
+    0,
+    0
+  ],
+  "user_message_timestamps": [
+    "2026-03-20T04:48:49.135Z",
+    "2026-03-20T04:48:48.960Z",
+    "2026-03-20T04:49:01.789Z",
+    "2026-03-20T04:49:01.789Z"
+  ]
+}

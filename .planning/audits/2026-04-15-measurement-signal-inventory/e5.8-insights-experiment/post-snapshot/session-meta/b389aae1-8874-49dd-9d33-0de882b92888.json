@@ -1,0 +1,35 @@
+{
+  "session_id": "b389aae1-8874-49dd-9d33-0de882b92888",
+  "project_path": "/home/rookslog",
+  "start_time": "2026-02-27T19:16:16.996Z",
+  "duration_minutes": 1,
+  "user_message_count": 1,
+  "assistant_message_count": 16,
+  "tool_counts": {
+    "TaskCreate": 5,
+    "Bash": 7
+  },
+  "languages": {},
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 22,
+  "output_tokens": 1675,
+  "first_prompt": "Implement the following plan:  # Comprehensive Organization Plan — Dionysus Workstation  ## Context  The home directory has accumulated significant organizational debt since the machine was set up (Se…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    14
+  ],
+  "user_message_timestamps": [
+    "2026-02-27T19:16:16.829Z"
+  ]
+}

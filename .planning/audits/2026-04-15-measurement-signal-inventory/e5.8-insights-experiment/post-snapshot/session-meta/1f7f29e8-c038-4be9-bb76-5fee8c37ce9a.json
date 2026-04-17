@@ -1,0 +1,37 @@
+{
+  "session_id": "1f7f29e8-c038-4be9-bb76-5fee8c37ce9a",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-15T21:18:01.015Z",
+  "duration_minutes": 4,
+  "user_message_count": 1,
+  "assistant_message_count": 25,
+  "tool_counts": {
+    "Read": 15,
+    "Write": 1
+  },
+  "languages": {
+    "Markdown": 16
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 41,
+  "output_tokens": 29283,
+  "first_prompt": "# Checkpoint 3 GSD Split Spec Cross-Vendor Review Prompt  Review the Checkpoint 3 GSD split-spec bundle for adequacy before any deeper GSD mapping lanes are launched.  This is a review of spec quality…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 102,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    17
+  ],
+  "user_message_timestamps": [
+    "2026-04-15T21:18:01.015Z"
+  ]
+}

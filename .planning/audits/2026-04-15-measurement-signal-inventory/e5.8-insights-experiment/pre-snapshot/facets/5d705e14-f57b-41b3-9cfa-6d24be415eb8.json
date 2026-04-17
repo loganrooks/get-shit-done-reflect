@@ -1,0 +1,19 @@
+{
+  "underlying_goal": "Execute phase 5 (MCP Validation & Iteration) of a project roadmap - plan it, execute all plans in waves, verify completion, and run a health check",
+  "goal_categories": {
+    "plan_generation": 1,
+    "code_execution": 1,
+    "health_check": 1
+  },
+  "outcome": "fully_achieved",
+  "user_satisfaction_counts": {
+    "likely_satisfied": 3
+  },
+  "claude_helpfulness": "essential",
+  "session_type": "multi_task",
+  "friction_counts": {},
+  "friction_detail": "",
+  "primary_success": "multi_file_changes",
+  "brief_summary": "User ran a structured workflow to plan, execute, and verify phase 5 of their project roadmap, and all 3 plans across 2 waves completed successfully with verification passing 10/10.",
+  "session_id": "5d705e14-f57b-41b3-9cfa-6d24be415eb8"
+}

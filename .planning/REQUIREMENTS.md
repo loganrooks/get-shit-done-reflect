@@ -13,6 +13,11 @@
 
 ## v1.20 Requirements
 
+### Governance
+
+- [ ] **GOV-01**: Investigation requirements (research-gated, spike-gated, or otherwise scoped as exploratory) carry an **extraction contract** — findings must be converted into declarative child requirements before the parent requirement is marked satisfied. A produced artifact alone (research document, spike DECISION.md) does not close an investigation requirement. Parent requirement text names the extraction deliverable explicitly: "produces artifact X AND child requirements Y.1, Y.2, ... added to REQUIREMENTS.md before planning proceeds." Planning of downstream work that depends on investigation findings blocks until child requirements exist or the parent is explicitly deferred with a named follow-up phase
+  - *Motivation:* `pattern: investigation-without-closure -- research/spike requirements produce artifacts that get cited but do not reliably update REQUIREMENTS.md; scope-narrowing cascades discovered by Phase 57 vision-drop audit are one manifestation` | `precedent: GATE-09 scope-translation ledger catches the same failure mode for CONTEXT claims; GOV-01 extends the principle to investigation outputs` | `deliberation-worthy` -- first codification of investigation-to-requirement closure as a framework constraint
+
 ### Upstream Mini-Sync
 
 - [x] **SYNC-01**: Upstream correctness fixes integrated -- state locking (TOCTOU races, atomicWriteFileSync), milestone safety (999.x backlog preservation, data loss prevention), frontmatter quoted-comma fix, critical installer reliability fixes -- adopted from upstream v1.34.2 with thoughtful integration into fork extensions, not naive wholesale replace
@@ -92,6 +97,93 @@ Dependencies: TEL-01a -> TEL-01b -> TEL-02
 - [ ] **TEL-05**: All telemetry outputs that include facets-derived data annotate those fields as AI-generated estimates with unknown accuracy. Facets data is hypothesis-generating, not hypothesis-confirming
   - *Motivation:* `review: R6 -- PITFALL M3 warns facets accuracy is unknown; metric reification risk`
 
+### Measurement Infrastructure
+
+**Authority:** `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` §3 (Design Principles) and §4 (Architectural Commitments) are the primary authority for MEAS- requirements. Extractor-specific requirements are grounded in audit artifacts: `.planning/audits/2026-04-15-measurement-signal-inventory/` (4-lane signal inventory + correction-and-extensions-2026-04-16.md + anomaly-stress-tests.md E1–E6 + E5.8), `.planning/spikes/009-thinking-summary-as-reasoning-proxy/`, and `.planning/spikes/010-parent-session-thinking-summary-proxy/`.
+
+**Three-subfamily source split** (established by anomaly stress-tests E2/E5):
+- **MEAS-RUNTIME-*** — extractors against Claude/Codex JSONL transcripts (canonical source of truth; subject to era boundaries v2.1.69 redaction + v2.1.78 meta cutoff)
+- **MEAS-DERIVED-*** — extractors against `/insights`-produced artifacts (`session-meta/*.json`, `facets/*.json`, `report.html`); on-demand refresh, NOT continuous telemetry
+- **MEAS-GSDR-*** — extractors against our own artifacts (`.planning/config.json.automation`, `.planning/knowledge/kb.db`, signal files); versioned via `manifest_version`
+
+#### Architectural Commitments (MEAS-ARCH-*)
+
+- [ ] **MEAS-ARCH-01**: Three-layer separation — raw layer (durable append-only capture per runtime's native format, no premature unification); extractor layer (pure functions registered in a catalog, runtime-scoped, reliability-tiered); interpretation/query layer (structured objects carrying competing interpretations, distinguishing features, anomaly registers)
+  - *Motivation:* `deliberation: measurement-infrastructure-epistemic-foundations.md §4.1`
+- [ ] **MEAS-ARCH-02**: Extractor registry as extensibility point — each entry declares `name`, `raw_sources`, `runtimes`, `reliability_tier`, `features_produced`, `serves_loop`, `distinguishes` (pairs of interpretations this extractor's output discriminates between). Adding an extractor = writing a pure function and registering it; no core code changes
+  - *Motivation:* `deliberation §4.2, P3 (adaptability = extractor-as-unit-of-extension)`
+- [ ] **MEAS-ARCH-03**: Retroactive applicability — collection decoupled from extraction; raw data preserved; new extractors run over historical corpus without re-collection
+  - *Motivation:* `deliberation P5`
+- [ ] **MEAS-ARCH-04**: Runtime dimension model — runtime identity (Claude Code, Codex CLI) and per-runtime capability asymmetry are data, not noise. Four-class symmetry markers: `symmetric_available`, `symmetric_unavailable`, `asymmetric_derived`, `asymmetric_only`. Plus per-feature status: `exposed` / `derived` / `not_available` / `not_applicable`
+  - *Motivation:* `deliberation §4.3, P4 (cross-platform as first-class); correction-and-extensions-2026-04-16.md §5.1 (four-class refinement)`
+- [ ] **MEAS-ARCH-05**: Resolution-on-demand — capture fine-grained raw data; aggregate on query. Never pre-aggregate the canonical store. Coarse metrics are derivable from fine; the reverse is not true
+  - *Motivation:* `deliberation §2.4, P2`
+- [ ] **MEAS-ARCH-06**: Epistemic reliability tiers — every feature carries a tier: `direct_observation` / `artifact_derived` / `inferred` / `cross_runtime`. The query layer refuses high-confidence claims from low-reliability data
+  - *Motivation:* `deliberation P8`
+- [ ] **MEAS-ARCH-07**: Named feedback loops — six loops (intervention-lifecycle, pipeline-integrity, agent-performance, signal-quality, cross-session patterns, cross-runtime comparison) each declare named metrics, a theory of change, and distinguishing features. Orphaned metrics are technical debt
+  - *Motivation:* `deliberation §4.4, P9`
+- [ ] **MEAS-ARCH-08**: Dual interface — agents consume structured queries (JSON); humans consume text-first visualization (markdown tables, ASCII charts, terminal rendering) as v1. Richer visualization follows when humans articulate what they want
+  - *Motivation:* `deliberation P6`
+- [ ] **MEAS-ARCH-09**: Post-Popperian epistemic machinery — interpretations carry: competing interpretations (multi-framing by default); distinguishing features (extractors whose output discriminates between competing readings; surface gap when uncomputed); anomaly register (rate-tracked); revision classification (progressive vs degenerating per Lakatos); intervention-outcome pairs (strongest epistemic status). An interpretation is never "verified" — it carries its full epistemic provenance summary
+  - *Motivation:* `deliberation §2.3, §4.1, P1`
+- [ ] **MEAS-ARCH-10**: Metadata richness for causal attribution — every session record includes model ID, reasoning level, GSD version, profile (quality/balanced/budget), runtime identity, timestamps. Without these, patterns are detectable but not diagnosable
+  - *Motivation:* `deliberation P7`
+
+#### MEAS-RUNTIME-* (Claude/Codex JSONL transcript extractors)
+
+- [ ] **MEAS-RUNTIME-01**: Thinking-summary composite extractor — produces `thinking_emitted` (bool primary feature), `thinking_total_chars` (model-stratified), `thinking_over_visible_ratio`. Four-status return: `exposed` / `not_emitted` / `not_applicable` (Haiku) / `not_available` (dispatch-gated). Preconditions stacked as three-level gate: model-family → dispatch-context (subagent=`not_available`, headless/interactive proceed) → emission-threshold
+  - *Motivation:* `correction-and-extensions-2026-04-16.md §6.1, §5.2; spike 010 DECISION §5–6; spike 009 dispatch-context gate`
+- [ ] **MEAS-RUNTIME-02**: Settings-state + dispatch-args snapshot at session start — capture `showThinkingSummaries`, `effortLevel` from settings.json; capture `--effort` flag value from dispatch metadata (overrides settings for that session); attach as `settings_at_start`. `effort_level` is a required stratification variable for all reasoning metrics
+  - *Motivation:* `correction-and-extensions-2026-04-16.md §6.3; spike 010 DESIGN (--effort autonomous toggle)`
+- [ ] **MEAS-RUNTIME-03**: JSONL-based token extractor (`session_tokens_jsonl`) — produces `input_tokens_total`, `output_tokens_total`, `cache_creation_tokens_total`, `cache_read_tokens_total`, `total_context_tokens` via `max(usage.*)` per unique `msg_id` for streaming dedup. Canonical token source. Returns `not_available` when parent JSONL is missing (257/268 sessions per E3 coverage)
+  - *Motivation:* `anomaly-stress-tests.md §6.17; E4 falsification pass (4/7 meta tokens have no JSONL-derivable formula)`
+- [ ] **MEAS-RUNTIME-04**: Reject session-meta tokens as first-class MEAS- source — `meta.input_tokens` / `meta.output_tokens` SHALL NOT appear as MEAS- metric fields nor as normalizers. E4 empirically showed 4/7 sessions match a "contiguous slice of length amc" formula; 3/7 have no derivable formula (including one clean pre-cutoff session). Insufficient reliability for cross-session aggregation
+  - *Motivation:* `anomaly-stress-tests.md §6.16; E4 evidence chain`
+- [ ] **MEAS-RUNTIME-05**: Phantom-thinking-token reconciler — compute `raw_thinking_tokens = output_tokens − tokens(visible_output) − tokens(thinking_summary)` for Claude; use direct `token_count.reasoning_output_tokens` for Codex; report on common `reasoning_tokens` axis. Flag sessions with negative delta. Blocked on real tokenizer (spike C3); schema is specifiable now
+  - *Motivation:* `correction-and-extensions-2026-04-16.md §4, §6.2, §6.5 (billing asymmetry A9 promotion)`
+- [ ] **MEAS-RUNTIME-06**: Marker-density features (REVISED) — KEEP `marker_self_correction_density` + `marker_uncertainty_density` (both track effort per spike 010 finding #5). DROP `marker_branching_density` + `marker_dead_end_density` (regex matched zero cells across 21 non-empty-thinking samples; unfit for Claude's summary vocabulary; redesign requires empirical calibration per spike C4)
+  - *Motivation:* `correction-and-extensions-2026-04-16.md §6.1 revised; spike 010 findings #4–#5`
+- [ ] **MEAS-RUNTIME-07**: Compaction-event extractor (`MEAS-RUNTIME-COMPACT`) — cross-runtime. Claude: scan JSONL for `type:system + subtype:compact_boundary`, extract `compact_metadata.{trigger, pre_tokens}`; also scan `isCompactSummary:true` flag on assistant messages (locates the summary text itself). Codex: scan for `compacted` + `event_msg/context_compacted`, extract `replacement_history`. Features: `compaction_count`, `compaction_trigger_mix`, `pre_compact_token_count`, `has_compaction`. Restores cross-runtime symmetry falsely denied by synthesis §4.3 "ABSENT"
+  - *Motivation:* `anomaly-stress-tests.md §6.22; E6 evidence chain (binary introspection + authoritative docs)`
+- [ ] **MEAS-RUNTIME-08**: Clear-invocation feature — `clear_invocation_count` per session (scan user-message content for `<command-name>/clear`). Operator-habit signal that substitutes pre-emptively for compaction (this project: 49 `/clear` vs 0 `/compact` in 211 sessions). Measurable regardless of whether compaction fires
+  - *Motivation:* `anomaly-stress-tests.md §E6.4 (side-signal)`
+- [ ] **MEAS-RUNTIME-09**: Human-turn-count extractor — operates on JSONL with 4-filter rule: `user` role AND NOT `isMeta` AND NOT `isSidechain` AND content not tool_result list AND content not prefixed with `<command-name>` / `<command-message>` / `<local-command-caveat>` / `<local-command-stdout>`. Complements (does NOT replace) MEAS-DERIVED-05's `user_message_count`; orthogonal semantics. Returns `not_available` when parent JSONL absent — MUST NOT fall back to meta_umc
+  - *Motivation:* `anomaly-stress-tests.md §6.13; E3 evidence chain + Test 3 formula identification`
+- [ ] **MEAS-RUNTIME-10**: Era-boundary registry — `user.version` partitions the corpus into epistemically non-comparable eras: `v<2.1.69` (thinking unconditional); `v≥2.1.69` (thinking gated by `showThinkingSummaries`, `tengu_quiet_hollow` rollout ~2026-03-12); session-meta `/insights` lifecycle (generation is manual-invocation, not architectural per E5 reframe). Queries spanning boundaries warn the user
+  - *Motivation:* `correction-and-extensions-2026-04-16.md §6.6; anomaly-stress-tests.md E5 reframe (subsystem-shutdown → /insights-invocation)`
+- [ ] **MEAS-RUNTIME-11**: Reasoning-quality measurement — PLACEHOLDER requirement signalling a gap in the Agent Performance loop. Summary length is NOT a quality proxy even when model-stratified (spike 010 qualitative finding #6). Candidate mechanisms: reference-density, concept-diversity, LLM-as-judge against rubric. Implementation deferred to Phase 57.7 pending spike C5; facets (MEAS-DERIVED-02) is a candidate substitute
+  - *Motivation:* `spike 010 qualitative_comparison.md; correction doc candidate #7`
+
+#### MEAS-DERIVED-* (/insights-product extractors)
+
+- [ ] **MEAS-DERIVED-01**: Reclassify session-meta as `DERIVED` (not `RUNTIME`) — annotate with `scope: derived_from_jsonl_via_insights_command`, `lifecycle: last_insights_run_at_{mtime}`, `refresh_policy: on_manual_invocation_of_/insights`, `dependency: /insights subsystem (active in v2.1.110, bug-fixed at v2.1.101)`. Original Lane-1 classification as runtime telemetry was wrong per E5
+  - *Motivation:* `anomaly-stress-tests.md §6.18; E5 /insights reframe`
+- [ ] **MEAS-DERIVED-02**: `facets/*.json` as first-class MEAS- source — LLM-extracted per-session semantic summaries: `underlying_goal`, `goal_categories`, `outcome`, `user_satisfaction_counts`, `claude_helpfulness`, `session_type`, `friction_counts`, `friction_detail`, `primary_success`, `brief_summary`. Candidate substrate for Agent Performance loop's reasoning-quality measure. Mandatory coverage-stratification clause: aggregate analysis MUST stratify by session size (E5.8: 25.6% new vs 40.7% historical coverage; mean `user_msg` 20.1 with facets vs 5.4 without — non-uniform size-correlated budget filter)
+  - *Motivation:* `anomaly-stress-tests.md §6.19 + E5.8 Finding C`
+- [ ] **MEAS-DERIVED-03**: Write-path provenance metadata (`MEAS-DERIVED-WRITE-PATH`) — record whether a file's mtime came from a bulk cluster (≥5 files within 2s — `/insights` mass-rewrite) or a single write (separate per-session-end trigger, discovered E5.8). Annotate every DERIVED extraction with `provenance.write_path ∈ {bulk, single}`
+  - *Motivation:* `anomaly-stress-tests.md §6.21; E5.8 Finding A (two-path write model)`
+- [ ] **MEAS-DERIVED-04**: `/insights` mass-rewrite as sampling-boundary artifact — every `/insights` invocation stamps a new mtime-cluster across ~100-150 files. Expose as observable provenance: detect stale analysis (mtime old, content changed), group sessions by /insights-generation batch (shared mtime ±1s), audit coverage drift
+  - *Motivation:* `anomaly-stress-tests.md §6.20`
+- [ ] **MEAS-DERIVED-05**: session-meta field annotations — `user_message_count` tagged `scope = non_tool_result_user_records` AND `lifecycle = frozen_at_last_insights_run_for_sessions_still_running` (E3 Test 3 identified the formula: count of user records where content is a string). `input_tokens` / `output_tokens` tagged `uncorrelated_with_jsonl_for_42_percent_of_sample` + same lifecycle tag. Downstream guidance: do not consume for quantitative measurement; use MEAS-RUNTIME-03 / MEAS-RUNTIME-09 instead
+  - *Motivation:* `anomaly-stress-tests.md §6.14 refinement + §6.16 corollary; E3/E4 evidence chains`
+- [ ] **MEAS-DERIVED-06**: Session-meta ↔ JSONL coverage audit — one-time investigation producing a coverage matrix (matched / session-dir-only / truly-orphaned) by machine, era, session-length, subagent-dispatch-host. E3 baseline: 11 matched, 175 dir-only, 82 truly orphaned of 268. Shapes extractor-priority decisions downstream
+  - *Motivation:* `anomaly-stress-tests.md §6.15; E3 Test 2 three-state distribution`
+
+#### MEAS-GSDR-* (our-own-artifact extractors)
+
+- [ ] **MEAS-GSDR-01**: Automation-health extractor — reads `.planning/config.json.automation.stats` and produces per feature_key: `fires`, `skips`, `skip_rate`, `last_triggered`, `last_skip_reason`, `call_path` (postlude vs user-invoked), `configured_level` (resolved from `automation.level` + `overrides[feature]`). Serves Pipeline Integrity loop primarily. MUST NOT assume parity across feature keys when computing aggregate health (sensor_log was introduced later than sensor_artifact/git/ci per E1 Test 2)
+  - *Motivation:* `anomaly-stress-tests.md §6.7; E1 evidence chain`
+- [ ] **MEAS-GSDR-02**: Implement `last_signal_count` write path — Phase 38 specified this but never shipped the write. Two options: (a) extend `automation track-event` to accept `--metadata signal_count=N` and merge into stats; (b) have `collect-signals.md` workflow run `config-set automation.stats.sensor_<name>.last_signal_count <N>` after counting sensor output. Closes the per-sensor signal-yield gap
+  - *Motivation:* `anomaly-stress-tests.md §6.8; Phase 38 plan reference`
+- [ ] **MEAS-GSDR-03**: Canonicalize `skip_reason` vocabulary — define enum in `feature-manifest.json` or `automation-schema.json`; validate at `track-event` write time (warn, not fail — backward-compatible). Downstream MEAS-GSDR-01 groups by canonical reason
+  - *Motivation:* `anomaly-stress-tests.md §6.9`
+- [ ] **MEAS-GSDR-04**: kb.db as first-class MEAS- extractor source — `kb_signal_stats` wraps `gsd-tools.cjs kb stats` or issues SQL directly. Surfaces counts by severity, polarity, runtime, project, status, lifecycle_state; computes temporal features (signals-per-week, age-of-oldest-active-signal). Replaces grep-over-frontmatter for signal-quality loop. Preconditions: kb.db exists + fresh (see MEAS-GSDR-05)
+  - *Motivation:* `anomaly-stress-tests.md §6.10; E2 schema + aggregation verification`
+- [ ] **MEAS-GSDR-05**: Fix kb.db freshness automation — BLOCKS MEAS-GSDR-04. No workflow call site invokes `gsd-tools.cjs kb rebuild`; all invoke `kb-rebuild-index.sh` which only updates the markdown index (naming-collision bug). Recommended fix: have `kb-rebuild-index.sh` also invoke `node gsd-tools.cjs kb rebuild` internally — one call site, two artifacts updated, no agent/workflow edits. Alternative: replace all call sites explicitly
+  - *Motivation:* `anomaly-stress-tests.md §6.11; E2 Layer 4 root-cause; signal sig-2026-04-16-kb-db-freshness-automation-missing`
+- [x] **MEAS-GSDR-06**: Fix or remove FTS5 — `signal_fts` virtual table declared but never populated; external-content mode references nonexistent `title`/`body` columns on `signals`. Three options: (a) add title/body + INSERT path; (b) drop FTS5 entirely and use ripgrep (smallest change, recommended for now); (c) rewrite as contentless FTS5. Revisit when a concrete MEAS- feature needs full-text search (resolved in Phase 57.7 Plan 03 — option (b) drop signal_fts)
+  - *Motivation:* `anomaly-stress-tests.md §6.12; E2 Layer 5; signal sig-2026-04-16-fts5-declared-but-unused`
+
 ### Structural Enforcement
 
 - [ ] **GATE-01**: offer_next blocks phase advancement until PR is created and CI passes. User can provide explicit override with documented justification logged to session. On Codex (no hooks), offer_next requires manual confirmation of PR/CI status before proceeding
@@ -110,6 +202,8 @@ Dependencies: TEL-01a -> TEL-01b -> TEL-02
   - *Motivation:* `pattern: R04 -- agent failed to self-signal after 91-file cascade, headless version burn, CI bypass`
 - [ ] **GATE-08**: Discuss-phase three-mode adoption completed -- verify current state against upstream's 671-line discuss-phase-assumptions.md, create missing `gsd-assumptions-analyzer` agent, add `docs/workflow-discuss-mode.md`, wire mode-aware gates in plan-phase.md and progress.md where absent. Adopt upstream's richer version with methodology loading
   - *Motivation:* `signal: sig-2026-04-03-discuss-mode-adoption-gap-silent-feature-drop -- Issues #26, #32, #33 closed prematurely` | `research: upstream 671 lines vs fork 279 lines`
+- [ ] **GATE-09**: Scope-translation ledger — (1) every load-bearing CONTEXT claim mapped at phase close to `implemented_this_phase` / `explicitly_deferred` / `rejected_with_reason` / `left_open_blocking_planning`; (2) any `[open]` scope-boundary question in CONTEXT affecting what the phase is supposed to build must be resolved or deferred with a named downstream phase before planning proceeds; (3) if RESEARCH or PLAN narrows scope relative to CONTEXT, it must cite the originating CONTEXT claim and record the narrowing as a decision; (4) verification checks the ledger — a phase can pass its executable truths but the verifier also confirms whether CONTEXT commitments were explicitly deferred rather than silently disappearing
+  - *Motivation:* `deliberation: measurement-infrastructure-epistemic-foundations.md §7.4 -- meta-fix for the Phase 57 scope-narrowing cascade documented by .planning/audits/2026-04-10-phase-57-vision-drop-investigation/`
 
 ### Sensor Pipeline
 
@@ -222,6 +316,45 @@ Dependencies: SPIKE-02 -> SPIKE-01 -> SPIKE-09. SPIKE-08 gated on SPIKE-01 compl
 - [x] **AUDIT-09**: An invocable audit skill exists as `/gsdr:audit` (orchestrator command at `commands/gsd/audit.md`) + `gsdr-auditor` executor agent (at `agents/gsdr-auditor.md`) + `gsd-auditor` model profile entry. The command reads conversation context, infers a 3-axis classification, composes obligations, creates a session directory at `.planning/audits/YYYY-MM-DD-{slug}/`, writes a fully-formed task spec with all ground rules and obligations copied inline per DC-2, and dispatches the agent (self) or `codex exec` (cross_model, experimental). The agent spec embodies the hermeneutic epistemic stance from the deliberations, grounds Rule 5 and framework invisibility in specific questions, and writes audit output to disk per the task spec. Closes the Phase 57.3 deferred audit skill gap.
   - *Motivation:* `signal: sig-2026-04-09-phase-573-deferred-audit-skill-no-command -- capability gap from Phase 57.3` | `signal: sig-2026-04-09-agent-audit-outputs-ephemeral-no-artifact -- session directory convention addresses traceability` | `deliberation: phase-scope-translation-loss-audit-capability-gap.md`
 
+### Signal Provenance
+
+**Authority:** `.planning/audits/2026-04-16-signal-provenance-audit/signal-provenance-audit-output.md` — investigatory process_review audit identifying four findings (hybrid provenance payload, stale version precedence, asymmetric artifact signatures, telemetry-as-latent-source) and five recommendations.
+
+**Phase 57.8 (declarative, narrow audit fix — Findings 1, 2, 3; Recommendations 1, 2, 5):**
+
+- [ ] **PROV-01**: Signal schema supports role-split provenance — `about_work[]` (array of artifact signatures implicated in the signal; length-1 when single role implicated), `detected_by` (sensor identity), `written_by` (synthesizer identity). Array semantics decided by fiat in 57.8 CONTEXT.md per audit §"What the Obligations Didn't Capture"; single-artifact vs. graph representation deferred to v1.21 if the array shape proves insufficient. Legacy flat `runtime/model/gsd_version` retained as deprecated for one milestone cycle per PROV-08
+  - *Motivation:* `audit: signal-provenance-audit Finding 1 (hybrid payload) + Recommendation 1 (role-split)` | `deliberation-worthy`: array vs. graph for complex signals is an open design question carried into CONTEXT.md
+- [ ] **PROV-02**: PLAN.md, SUMMARY.md, VERIFICATION.md frontmatter carries a uniform `signature` block — role, harness, platform, vendor, model, reasoning_effort, profile, gsd_version, generated_at, session_id (when available), provenance_status marker per field (`exposed` / `derived` / `not_available`). Populated via `resolveModelInternal` at orchestration time (see `get-shit-done/bin/lib/init.cjs:333-336` which already resolves planner_model / executor_model / verifier_model but does not persist). Artifact schemas in `frontmatter.cjs` extended to declare signature block as required
+  - *Motivation:* `audit: signal-provenance-audit Finding 3 (partial/asymmetric artifact signatures) + Recommendation 2 (first-class signature blocks)`
+- [ ] **PROV-03**: Writer-side `gsd_version` precedence fixed — prefer active installed harness VERSION and `.planning/config.json` `gsd_reflect_version` over stale repo-local mirror (`.codex/get-shit-done-reflect/VERSION` is no longer authoritative). `gsdr-signal-synthesizer` task spec updated; every signature-block and signal `gsd_version` field carries a provenance marker indicating source
+  - *Motivation:* `audit: signal-provenance-audit Finding 2 (stale 1.18.2+dev recorded for 1.19.4+dev workspace) + Recommendation 5`
+- [ ] **PROV-04**: Sensor task specs (`agents/gsdr-artifact-sensor.toml`, `agents/gsdr-signal-synthesizer.toml`) and the `collect-signals.md` workflow updated to stamp role-split fields. Current specs (audit §1 citations) explicitly instruct sensors to stamp flat `runtime/model` — signal outputs will not conform to PROV-01 until prompts change
+  - *Motivation:* `audit: signal-provenance-audit Finding 1 (mixed payload comes from sensor prompt + synthesizer prompt disagreement)`
+- [ ] **PROV-05**: Signal schema migration is additive with `provenance_schema: v1_legacy` marker on pre-57.8 signals. KB rebuild handles both schemas without errors; `kb.db` columns extended for role-split fields (parallels KB-09 `source` field migration from Phase 56); dual-write invariant maintained per KB-05
+  - *Motivation:* `audit: signal-provenance-audit §"What Remains Unknown" (migration strategy open)` | `precedent: Phase 56 KB-09 source→detection_method+origin migration`
+- [ ] **PROV-06**: The nine committed Phase 57.6 signals annotated with `provenance_status: legacy_mixed` — substantive content preserved, flat provenance fields flagged as non-authoritative for role attribution. Audit explicitly recommends this and says "the nine committed signals may still contain useful substantive observations, but their `runtime/model/gsd_version` fields are not reliable for attributing planner/executor/verifier responsibility"
+  - *Motivation:* `audit: signal-provenance-audit Recommendation 4`
+- [ ] **PROV-07**: Reference documentation (`get-shit-done/references/signal-detection.md`, `knowledge-store.md`) updated to document role-split provenance semantics. Current schema text (audit cites `signal-detection.md:183-187`) will contradict the implemented code without this update
+  - *Motivation:* `audit: signal-provenance-audit Finding 1 (spec text defines runtime/model as signal-generation provenance, not artifact-under-judgment provenance — ambiguity is in the spec itself)`
+- [ ] **PROV-08**: Legacy flat `runtime` / `model` / `gsd_version` fields remain readable and writable by legacy consumers for one milestone cycle; deprecation notice added in 57.8; removal scheduled for v1.21. KB queries surface both legacy and role-split fields transparently
+  - *Motivation:* `audit: signal-provenance-audit §"What Remains Unknown" (existing reflection/dedup consumer coupling)` | `principle: conservative migration per KB-05 dual-write discipline`
+
+**Phase 60.1 (research-gated + declarative, wider integration — Finding 4; Recommendation 3):**
+
+- [ ] **PROV-09**: Integration surface survey — produces `.planning/research/provenance-integration-surface.md` enumerating every workflow/command/sensor/agent/reflection consumer that could integrate measurement telemetry identity beyond the sensor pipeline (current audit cited only sensors + reflection). **Extraction contract per GOV-01**: each viable integration point becomes a child requirement `PROV-09.1`, `PROV-09.2`, ... (or is explicitly deferred to v1.21 with a named reason); survey is not satisfied by document existence alone. Planning of 60.1 blocks until child requirements exist or are deferred
+  - *Motivation:* `audit: signal-provenance-audit Finding 4 ("telemetry probably can expose a large fraction of the signature the user wants. The gap is that the workflow does not yet normalize that telemetry into artifact signatures") — audit named the gap but did not enumerate the full surface` | `governance: GOV-01 extraction contract`
+- [ ] **PROV-10**: Log sensor and artifact sensor consume `buildSessionIdentityValue()` from `get-shit-done/bin/lib/measurement/extractors/runtime.cjs:208` and the Codex equivalent from `extractors/codex.cjs:202` instead of self-stamping. Provenance derives from live telemetry where exposed; falls back to orchestration-time signing where logs are silent (per audit Recommendation 3)
+  - *Motivation:* `audit: signal-provenance-audit Finding 4 + Recommendation 3 ("treat telemetry as a source, not the whole answer")`
+- [ ] **PROV-11**: Reflection (`gsdr-reflector` agent + `reflect` workflow) stratifies signal aggregates by `model × profile × reasoning_effort` via `measurement/stratify.cjs`. Agent-performance attribution (signal count by role / model / profile) ships operational — currently impossible because signals carry only detector identity
+  - *Motivation:* `audit: signal-provenance-audit Finding 3 (asymmetric signatures prevent role attribution)` | `enables: MEAS-ARCH-08 agent-consumable queries for agent-performance loop`
+- [ ] **PROV-12**: Intervention-outcome schema extended with `predicted_outcome` field (Plan 07 shipped `outcome_status` only because it had no grounded interventions to test against). Signal lifecycle transitions (`triaged → remediated → verified`) join as measured interventions carrying predicted and actual outcomes. Closes the loop between "signal detected" and "intervention-measured-effective"
+  - *Motivation:* `audit: signal-provenance-audit Recommendation 3` | `phase-57.7-10-DEMO-REPORT.md §4 (grounded_in_0_interventions gap — no confirmed interventions exist to ground the metric)` | `audit-ref: post-popperian-machinery-audit recommends intervention-outcome pairs as strongest epistemic status`
+- [ ] **PROV-13**: `tests/e2e/real-agent.test.js` `it.todo()` stubs replaced with working end-to-end chain tests (discuss → plan → execute → verify → collect-signals) against live agents. Opt-in via `RUN_REAL_AGENT_TESTS=true`; skipped in default `npm test`; runs on release tags in CI. Coverage includes: (1) signal collection chain produces role-split provenance; (2) signature blocks persist across all artifact stages; (3) cross-runtime parity holds when Claude and Codex both run the chain
+  - *Motivation:* `gap: the measurement substrate shipped through Phase 57.7 without automated E2E of the full workflow chain; tests/e2e/real-agent.test.js exists but is all it.todo()` | `enables: regression coverage for PROV-01..12 + future signal-system changes`
+- [ ] **PROV-14**: Cross-runtime provenance parity — Claude and Codex both produce equivalent role-split provenance for the same phase executed on each runtime. Asymmetries surface explicitly in `measurement report cross_runtime_comparison` rather than failing silently or appearing as coincidental alignment
+  - *Motivation:* `audit: signal-provenance-audit Finding 4 ("telemetry coverage is runtime-specific and asymmetric")` | `continuity: MEAS-ARCH-04 four-class symmetry markers apply to provenance fields too`
+- [ ] **PROV-09.x**: *(placeholders — Stage-2 child requirements produced by PROV-09 per GOV-01 extraction contract; count and content TBD until Stage 1 research closes)*
+
 ### Cross-Runtime Parity
 
 - [ ] **XRT-01**: Every hook-dependent v1.20 feature specifies its Codex CLI degradation path in phase CONTEXT.md before implementation begins. Cross-runtime capability matrix (`capability-matrix.md`) updated when v1.20 features ship
@@ -305,7 +438,41 @@ Updated during roadmap creation.
 | GATE-06 | Phase 58 | Pending |
 | GATE-07 | Phase 58 | Pending |
 | GATE-08 | Phase 58 | Pending |
+| GATE-09 | Phase 58 | Pending |
 | XRT-01 | Phase 58 | Pending |
+| MEAS-ARCH-01 | Phase 57.5 | Complete |
+| MEAS-ARCH-02 | Phase 57.5 | Complete |
+| MEAS-ARCH-03 | Phase 57.5 | Complete |
+| MEAS-ARCH-04 | Phase 57.5 | Complete |
+| MEAS-ARCH-05 | Phase 57.5 | Complete |
+| MEAS-ARCH-06 | Phase 57.5 | Complete |
+| MEAS-ARCH-07 | Phase 57.5 | Complete |
+| MEAS-ARCH-08 | Phase 57.6 | Pending |
+| MEAS-ARCH-09 | Phase 57.7 | Pending |
+| MEAS-ARCH-10 | Phase 57.5 | Complete |
+| MEAS-RUNTIME-01 | Phase 57.6 | Pending |
+| MEAS-RUNTIME-02 | Phase 57.5 | Complete |
+| MEAS-RUNTIME-03 | Phase 57.5 | Complete |
+| MEAS-RUNTIME-04 | Phase 57.5 | Complete |
+| MEAS-RUNTIME-05 | Phase 57.7 | Pending |
+| MEAS-RUNTIME-06 | Phase 57.6 | Pending |
+| MEAS-RUNTIME-07 | Phase 57.6 | Pending |
+| MEAS-RUNTIME-08 | Phase 57.6 | Pending |
+| MEAS-RUNTIME-09 | Phase 57.5 | Complete |
+| MEAS-RUNTIME-10 | Phase 57.5 | Complete |
+| MEAS-RUNTIME-11 | Phase 57.7 | Pending |
+| MEAS-DERIVED-01 | Phase 57.5 | Complete |
+| MEAS-DERIVED-02 | Phase 57.6 | Pending |
+| MEAS-DERIVED-03 | Phase 57.6 | Pending |
+| MEAS-DERIVED-04 | Phase 57.6 | Pending |
+| MEAS-DERIVED-05 | Phase 57.5 | Complete |
+| MEAS-DERIVED-06 | Phase 57.5 | Complete |
+| MEAS-GSDR-01 | Phase 57.5 | Complete |
+| MEAS-GSDR-02 | Phase 57.5 | Complete |
+| MEAS-GSDR-03 | Phase 57.6 | Pending |
+| MEAS-GSDR-04 | Phase 57.5 | Complete |
+| MEAS-GSDR-05 | Phase 57.5 | Complete |
+| MEAS-GSDR-06 | Phase 57.7 | Complete |
 | KB-04b | Phase 59 | Pending |
 | KB-04c | Phase 59 | Pending |
 | KB-06a | Phase 59 | Pending |
@@ -359,10 +526,10 @@ Updated during roadmap creation.
 | PAR-03 | Phase 64 | Pending |
 
 **Coverage:**
-- v1.20 requirements: 60 total
-- Mapped to phases: 60
+- v1.20 requirements: 94 total
+- Mapped to phases: 94
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-08*
-*Last updated: 2026-04-08 -- roadmap created, traceability populated*
+*Last updated: 2026-04-16 -- added MEAS- family (34 requirements) + GATE-09 from measurement-infrastructure-epistemic-foundations deliberation and anomaly-stress-tests E1-E6 + E5.8*

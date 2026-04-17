@@ -1,0 +1,56 @@
+{
+  "session_id": "37c03451-7989-4653-80ba-8a9fbf21b749",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect/.claude/worktrees/gsd-upstream",
+  "start_time": "2026-03-06T02:40:22.243Z",
+  "duration_minutes": 289,
+  "user_message_count": 9,
+  "assistant_message_count": 92,
+  "tool_counts": {
+    "ToolSearch": 2,
+    "Bash": 65,
+    "Agent": 5
+  },
+  "languages": {},
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 2102,
+  "output_tokens": 14638,
+  "first_prompt": "I need us to compare our repo to what has been happening upstream, there seems to be interesting features, greater capacity for parallelization and a weird insight feature among probably other things",
+  "user_interruptions": 0,
+  "user_response_times": [
+    255.073,
+    30.588,
+    37.768
+  ],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    21,
+    21,
+    21,
+    21,
+    21,
+    23,
+    2,
+    2,
+    2
+  ],
+  "user_message_timestamps": [
+    "2026-03-06T02:41:07.407Z",
+    "2026-03-06T02:41:12.606Z",
+    "2026-03-06T02:47:19.878Z",
+    "2026-03-06T02:48:03.648Z",
+    "2026-03-06T02:49:04.132Z",
+    "2026-03-06T04:11:00.776Z",
+    "2026-03-06T07:25:40.182Z",
+    "2026-03-06T07:25:46.356Z",
+    "2026-03-06T07:26:57.676Z"
+  ]
+}

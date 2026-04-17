@@ -1,0 +1,38 @@
+{
+  "session_id": "ede9bed6-2f82-4e81-a66b-984bc2288238",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-16T06:17:30.288Z",
+  "duration_minutes": 7,
+  "user_message_count": 1,
+  "assistant_message_count": 43,
+  "tool_counts": {
+    "Read": 27,
+    "Bash": 1,
+    "Write": 1
+  },
+  "languages": {
+    "Markdown": 28
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 63,
+  "output_tokens": 112766,
+  "first_prompt": "# Checkpoint 5 R5.17a Wrapper-Exclusion Audit Cross-Vendor Compact Prompt  Run an independent cross-vendor audit for `R5.17a`.  Use this as a compact launch prompt only. The governing audit doctrine a…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 161,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    2
+  ],
+  "user_message_timestamps": [
+    "2026-04-16T06:17:30.288Z"
+  ]
+}

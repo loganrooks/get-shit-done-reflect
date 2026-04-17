@@ -1,0 +1,17 @@
+{
+  "underlying_goal": "Run a spike test script to launch Claude Code with OTel instrumentation",
+  "goal_categories": {
+    "warmup_minimal": 1
+  },
+  "outcome": "unclear_from_transcript",
+  "user_satisfaction_counts": {
+    "likely_satisfied": 1
+  },
+  "claude_helpfulness": "unhelpful",
+  "session_type": "quick_question",
+  "friction_counts": {},
+  "friction_detail": "",
+  "primary_success": "none",
+  "brief_summary": "User launched a spike test script and immediately exited; no interaction with Claude occurred.",
+  "session_id": "e569eee8-d54a-4cb5-90ad-07aa6450d400"
+}

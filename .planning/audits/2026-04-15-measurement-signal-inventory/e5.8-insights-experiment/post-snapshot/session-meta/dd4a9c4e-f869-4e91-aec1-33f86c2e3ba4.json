@@ -1,0 +1,58 @@
+{
+  "session_id": "dd4a9c4e-f869-4e91-aec1-33f86c2e3ba4",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect/.claude/worktrees/npm-fix",
+  "start_time": "2026-03-06T01:33:44.703Z",
+  "duration_minutes": 26,
+  "user_message_count": 6,
+  "assistant_message_count": 66,
+  "tool_counts": {
+    "ToolSearch": 3,
+    "Read": 12,
+    "Bash": 9,
+    "Grep": 12,
+    "Glob": 1,
+    "Agent": 2
+  },
+  "languages": {
+    "JSON": 2,
+    "JavaScript": 7,
+    "Markdown": 3
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 90,
+  "output_tokens": 10322,
+  "first_prompt": "we have an issue where it seems like the npm package that is being installed elsewhere is only v.1.13 and not v.1.16 which it should be, why is that ultrathink",
+  "user_interruptions": 0,
+  "user_response_times": [
+    197.721,
+    197.721
+  ],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "File Too Large": 1
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    20,
+    20,
+    20,
+    20,
+    20,
+    20
+  ],
+  "user_message_timestamps": [
+    "2026-03-06T01:34:24.804Z",
+    "2026-03-06T01:34:29.660Z",
+    "2026-03-06T01:34:49.242Z",
+    "2026-03-06T01:40:51.270Z",
+    "2026-03-06T01:40:51.270Z",
+    "2026-03-06T01:41:08.570Z"
+  ]
+}

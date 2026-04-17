@@ -1,0 +1,56 @@
+{
+  "session_id": "18395f50-52cb-499d-880e-0e02411d12d6",
+  "project_path": "/Users/rookslog/Development/get-shit-done-reflect",
+  "start_time": "2026-02-27T18:48:42.785Z",
+  "duration_minutes": 6,
+  "user_message_count": 5,
+  "assistant_message_count": 41,
+  "tool_counts": {
+    "Read": 10,
+    "Glob": 3,
+    "Bash": 11,
+    "Grep": 3,
+    "mcp__sequential-thinking__sequentialthinking": 1,
+    "TaskCreate": 2,
+    "TaskUpdate": 1
+  },
+  "languages": {
+    "Markdown": 10
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 59,
+  "output_tokens": 4510,
+  "first_prompt": "can we continue from where we left off? i.e. can we re-discuss the deliberations for v1.16? is there anything remaining on the TODOs? can we evaluate their status? We are inbetween milestones and thus…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    167.059
+  ],
+  "tool_errors": 5,
+  "tool_error_categories": {
+    "File Not Found": 1,
+    "Command Failed": 1,
+    "Other": 3
+  },
+  "uses_task_agent": false,
+  "uses_mcp": true,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    13,
+    13,
+    13,
+    13,
+    13
+  ],
+  "user_message_timestamps": [
+    "2026-02-27T18:48:43.453Z",
+    "2026-02-27T18:48:42.694Z",
+    "2026-02-27T18:48:43.453Z",
+    "2026-02-27T18:50:21.132Z",
+    "2026-02-27T18:54:19.621Z"
+  ]
+}

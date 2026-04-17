@@ -1,0 +1,39 @@
+{
+  "session_id": "4178d861-597c-437d-9c76-5cc7bf7abe68",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect/.claude/worktrees/gsd-upstream",
+  "start_time": "2026-03-08T20:20:19.924Z",
+  "duration_minutes": 1,
+  "user_message_count": 1,
+  "assistant_message_count": 19,
+  "tool_counts": {
+    "Bash": 10,
+    "Glob": 1,
+    "Read": 1,
+    "Grep": 2
+  },
+  "languages": {
+    "JavaScript": 1
+  },
+  "git_commits": 1,
+  "git_pushes": 0,
+  "input_tokens": 29,
+  "output_tokens": 2616,
+  "first_prompt": "I am on a worktree right now, why do we have hook errors? and how can we design hooks such that they still work on worktrees?",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    16
+  ],
+  "user_message_timestamps": [
+    "2026-03-08T20:20:50.825Z"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "session_id": "3de8caf1-9f82-42fa-b9d6-55eb09cc9a32",
+  "project_path": "/home/rookslog",
+  "start_time": "2026-03-27T03:56:57.282Z",
+  "duration_minutes": 1324,
+  "user_message_count": 9,
+  "assistant_message_count": 81,
+  "tool_counts": {
+    "Bash": 20,
+    "Read": 8,
+    "Agent": 13,
+    "Grep": 2
+  },
+  "languages": {
+    "Markdown": 5
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 122,
+  "output_tokens": 25412,
+  "first_prompt": "/gsdr:plan-phase 7.1 --research --auto",
+  "user_interruptions": 0,
+  "user_response_times": [
+    70.154,
+    1608.264
+  ],
+  "tool_errors": 3,
+  "tool_error_categories": {
+    "Command Failed": 3
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    23,
+    23,
+    23,
+    23,
+    23,
+    0,
+    3,
+    21,
+    21
+  ],
+  "user_message_timestamps": [
+    "2026-03-27T03:56:57.282Z",
+    "2026-03-27T03:56:56.993Z",
+    "2026-03-27T03:57:06.839Z",
+    "2026-03-27T03:57:06.839Z",
+    "2026-03-27T03:59:30.151Z",
+    "2026-03-27T04:49:48.600Z",
+    "2026-03-27T07:12:36.016Z",
+    "2026-03-28T01:41:42.174Z",
+    "2026-03-28T01:41:42.174Z"
+  ]
+}

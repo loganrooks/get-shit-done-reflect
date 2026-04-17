@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: ready_to_plan
-stopped_at: Phase 57.4 complete — verifier passed 9/9 must-haves; /gsdr:audit skill shipped end-to-end; ready for next phase (58)
-last_updated: "2026-04-10T20:10:00.000Z"
-last_activity: 2026-04-10
+status: in_progress
+stopped_at: Completed 57.7-10-PLAN.md
+last_updated: "2026-04-17T06:47:29Z"
+last_activity: 2026-04-17 -- Phase 57.7 Plan 10 complete (honest demo wave: unclassified revision + GATE-09 pending)
 progress:
-  total_phases: 17
-  completed_phases: 9
-  total_plans: 26
-  completed_plans: 26
-  percent: 100
+  total_phases: 22
+  completed_phases: 12
+  total_plans: 47
+  completed_plans: 47
+  percent: 55
 ---
 
 # Project State
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.4 (Audit Skill & Investigatory Type) — discuss-phase v2 complete + framing-corrected; ready for plan-phase. Phase 57.4 **radically rethinks the formalization of the auditing workflow** (3-axis taxonomy, obligations paradigm, Rule 5, I1-I4, three new obligations) and supersedes core design commitments of Phase 57.3.
+**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) is complete. The phase now closes with an honest demo/regression wave: the vision-drop diagnostic revision is explicitly `unclassified`, GATE-09 is surfaced as a pending intervention, and the live measurement query/report surface shows those joins without success theater. Next up: Phase 58 (Structural Enforcement Gates).
 
 ## Current Position
 
-Phase: 57.4 of 64 (Audit Skill & Investigatory Type) — Complete
-Plan: 6 of 6
-Status: Phase complete; verifier passed 9/9 must-haves; /gsdr:audit skill shipped end-to-end (command + agent + profile entry + v2 reference files + REQUIREMENTS.md updates + runtime install). Next: Phase 58 (Structural Enforcement Gates).
-Last activity: 2026-04-10
+Phase: 57.7 of 64 (Content Analysis & Epistemic Deepening) — Complete
+Plan: 10 of 10
+Status: Wave 5 closed the phase; the demo/regression plan landed with a real revision record, a pending GATE-09 intervention sidecar, and a DEMO-REPORT that records both the live joins and the residual gaps.
+Last activity: 2026-04-17 -- Phase 57.7 Plan 10 complete (honest demo wave: unclassified revision + GATE-09 pending)
 
-Progress: [██████████] 100%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 17
+- Plans completed: 38
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -54,6 +54,27 @@ Progress: [██████████] 100%
 - 57.2-03: 4min, 3 tasks, 3 files
 - 57-01: 5min, 2 tasks, 2 files
 - 57-02: 5min, 2 tasks, 3 files
+- 57.5-01: 12min, 3 tasks, 7 files
+- 57.5-02: 6min, 3 tasks, 4 files
+- 57.5-03: 12min, 3 tasks, 8 files
+- 57.5-04: 16min, 3 tasks, 7 files
+- 57.6-01: 15min, 3 tasks, 7 files
+- 57.6-02: 8min, 2 tasks, 4 files
+- 57.6-03: 10min, 2 tasks, 3 files
+- 57.6-04: 24min, 2 tasks, 8 files
+- 57.6-05: 22min, 2 tasks, 9 files
+- 57.6-06: 25min, 2 tasks, 12 files
+- 57.6-07: 24min, 2 tasks, 4 files
+- 57.7-01: 20min, 3 tasks, 6 files
+- 57.7-02: 24min, 3 tasks, 6 files
+- 57.7-03: 10min, 2 tasks, 3 files
+- 57.7-04: 10min, 2 tasks, 4 files
+- 57.7-05: 10min, 2 tasks, 4 files
+- 57.7-06: 5min, 2 tasks, 5 files
+- 57.7-07: 11min, 3 tasks, 6 files
+- 57.7-08: 8min, 2 tasks, 4 files
+- 57.7-09: 7min, 2 tasks, 2 files
+- 57.7-10: 10min, 3 tasks, 3 files
 
 **v1.18 Final:**
 
@@ -71,6 +92,27 @@ v1.13-v1.18 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
 
+- [Phase 57.7 Plan 10 2026-04-17]: The vision-drop diagnostic revision ships as `unclassified`; 57.7 added real scope-narrowing evidence, but it did not clear the anomaly-resolution bar for a progressive revision.
+- [Phase 57.7 Plan 10 2026-04-17]: The live interpretation surface still joins by `phase_57_5_live_registry_query`, so the GATE-09 pending record is keyed there rather than to the diagnostic id in order to exercise the shipped query/report path honestly.
+- [Phase 57.7 Plan 10 2026-04-17]: No retrospective 57.5 `confirmed` intervention record was shipped; the closeout wave stayed with the required GATE-09 pending record under G-7's anti-success-theater rule.
+- [Phase 57.7 Plan 09 2026-04-17]: `reasoning_quality_proxy` ships in `derived.cjs` as a `facets-substitute` proxy with `reliability_tier: inferred`, `proxy_label: reasoning_quality_proxy_only`, and `grader_independence: self_graded`; it reads `session.facets.record` directly rather than chaining through computed features.
+- [Phase 57.7 Plan 09 2026-04-17]: Missing facet coverage remains visible in the live feature surface as `not_available` with `skip_reason: facets_unavailable`; coverage gaps are evidence, not silent row drops.
+- [Phase 57.7 Plan 08 2026-04-17]: `reasoning_tokens_reconciler` ships as one unified cross-runtime axis even though the current corpus is entirely `not_available`; registering the seam and canonical skip reasons is the non-negotiable MEAS-RUNTIME-05 outcome.
+- [Phase 57.7 Plan 08 2026-04-17]: Claude remains schema-only with `tokenizer_unavailable` because Spike 011 ended `FAIL: schema-only` and `production_dependency_decision: reject_top_level_dependency_schema_only`; no `js-tiktoken` dependency was added in this plan.
+- [Phase 57.7 Plan 07 2026-04-17]: `queryMeasurement()` now deepens interpretations in a post-pass with a lazy registry singleton and canonical `extractFrontmatter()` joins, so the base interpretation builder stays stable while provenance remains resolution-on-demand.
+- [Phase 57.7 Plan 07 2026-04-17]: The governed provenance string is the conservative four-part form (`surviving_challenge_from_* | grounded_in_*_interventions | carrying_*_tracked_anomalies | revisions=[...]`), and the report privacy line names computed content-derived features instead of only reporting a count.
+- [Phase 57.7 Plan 06 2026-04-17]: Diagnostic distinguishing features live in prose, not YAML, so the audit transcribes them manually and backfills registry vocabulary additively rather than inventing a parser mid-phase
+- [Phase 57.7 Plan 06 2026-04-17]: `.planning/measurement/interventions/README.md` uses existing interpretation ids (`phase_57_5_live_registry_query`, `diag-*`) as exact-match keys; no new identifier layer was introduced
+- [Phase 57.7 Plan 05 2026-04-17]: `intervention_points` ships live with heuristic version `57.7-v1`; the calibrated structural marker set counts Claude's explicit `[Request interrupted by user]` placeholder as a valid interrupt signal
+- [Phase 57.7 Plan 05 2026-04-17]: Q3 calibration passed with long-session fire rate `19.23%` in the 50-session sample and reviewed false-positive rate `0/13`, so schema-only shipping was unnecessary
+- [Phase 57.7 Plan 04 2026-04-17]: `content_contract` is now preserved on frozen extractor entries, so downstream query/report logic can filter content-derived features directly from registry metadata
+- [Phase 57.7 Plan 04 2026-04-17]: `tool_invocation_sequence` and `topic_shift_markers` ship as `derived_features_only` extractors; both are tagged for `pipeline_integrity`, with broader loop reach to `agent_performance` and `cross_session_patterns` respectively
+- [Phase 57.7 Wave 1 2026-04-17]: Spike C3 failed its tokenizer thresholds (`js-tiktoken` median relative error 60.93%, `charDiv4` 51.78%), so Plan 08's Claude branch is locked to schema-only shipping with `skip_reason: tokenizer_unavailable` and `production_dependency_decision: reject_top_level_dependency_schema_only`
+- [Phase 57.7 Wave 1 2026-04-17]: Spike C5 chose `facets-substitute` as the `reasoning_quality_proxy` winner (`rho=0.9484` vs `reference-density` `rho=0.4564`), but the result is explicitly qualified as `grader_independence: self_graded` and Plan 09 must preserve that provenance note
+- [Phase 57.6 completion 2026-04-17]: measurement loop coverage now extends across agent_performance, signal_quality, cross_session_patterns, and cross_runtime_comparison; `measurement report <loop>` ships as the human-readable text-first interface; and two committed diagnostic artifacts demonstrate end-to-end diagnosis with explicit computed vs UNCOMPUTED distinctions
+- [Roadmap/Requirements 2026-04-16]: MEAS family added (34 requirements across ARCH/RUNTIME/DERIVED/GSDR), Phases 57.5/57.6/57.7 inserted, and Phase 58 now depends on 57.7
+- [Pre-57.5 governance 2026-04-16]: source families are now explicit -- `RUNTIME` (transcripts), `DERIVED` (`/insights` products), and `GSDR` (our own artifacts/config/state); session-meta is no longer treated as live runtime telemetry
+- [Pre-57.5 evidence 2026-04-16]: thinking-summary length is usable for reasoning-load/emission questions only with strong gating/stratification; it is NOT a reasoning-quality proxy, so quality evaluation remains out of 57.5 scope
 - [55-01]: Adopted model-profiles.cjs as-is from upstream f7549d43; plan mentioned resolveModel but upstream exports getAgentToModelMapForProfile -- file correct as upstream version
 - [55-01]: Single commit for all 5 pure upstream modules per commit-per-merge-category strategy
 - [Roadmap]: 10 phases (55-64) derived from 53 requirements across 9 categories
@@ -154,6 +196,8 @@ Recent decisions affecting current work:
 - [Phase 57.4-06]: Task 1 as verification-only gate (no commit): pre-removal checks confirm Plans 01-05 landed before banners are removed; failure aborts Task 2 rather than proceeding with a half-rewritten file
 - [Phase 57.4-06]: 9-subject cross-plan consistency check closes: all 9 subjects (phase_verification, milestone, codebase_forensics, requirements_review, comparative_quality, claim_integrity, adoption_compliance, process_review, artifact_analysis) present in both audit-conventions.md and audit-ground-rules.md — count distribution differs (conventions uses subjects in schema examples + taxonomy, ground-rules uses them in subject-obligations table) but all 9 names match
 - [Phase 57.4-06]: Full npm test returned 502 passed / 0 failed / 4 todo; RESEARCH.md Open Question about count-based assertions breaking from new file count is resolved negatively — tests did not contain file-count assertions sensitive to adding audit.md command or gsdr-auditor agent
+- [Phase 57.7]: MEAS-GSDR-06 resolved via option (b): drop signal_fts and keep ripgrep as the KB search fallback.
+- [Phase 57.7]: KB schema regression tests should verify migrations through the production kb rebuild path rather than exporting kb internals.
 
 ### Roadmap Evolution
 
@@ -166,10 +210,13 @@ Recent decisions affecting current work:
 - Phase 57.4 inserted after Phase 57: Audit Skill & Investigatory Type — build /gsdr:audit command + gsdr-auditor agent, add investigatory audit type with frame-reflexive ground rules. Two concerns: (1) operational — invocable audit skill that 57.3 deferred, (2) epistemic — investigatory type and frame-reflexivity practice revealed as missing by Phase 57 investigation. Derived from: `sig-2026-04-09-phase-573-deferred-audit-skill-no-command`, `deliberation: phase-scope-translation-loss-audit-capability-gap.md`, quick task 260409-pz6 REVIEW.md
 - Phase 57.4 scope reframed (2026-04-10) from "extension of Phase 57.3 audit infrastructure" to "**radical rethinking of the formalization of the auditing workflow**". The flat 8-type taxonomy, template-based output paradigm, and type-family ground rules from Phase 57.3 do not express the complexities of the auditing situation; Phase 57.4 supersedes these core design commitments with a 3-axis taxonomy (subject × orientation × delegation), obligations paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations (chain integrity, dispatch hygiene, framework invisibility). The operational skill (command + agent) is the vehicle for the reconstruction; the rewrite of `audit-conventions.md` and `audit-ground-rules.md` is the primary deliverable, not a side effect. Derived from: `.planning/deliberations/audit-taxonomy-three-axis-obligations.md` (open — fed forward), `audit-taxonomy-retrospective-analysis.md` (validates 3-axis model against 13 audit sessions), `forms-excess-and-framework-becoming.md`, `sig-2026-04-10-discuss-phase-authority-weighting-gap` (triggered the framing correction after context-checker ran)
 - Phase 62 WF-01 pulled forward into Phase 57.4 (2026-04-10): cross-model delegation becomes an `audit_delegation` mode on `/gsdr:audit` rather than a standalone `/gsdr:cross-model-review` command. Phase 62 goal: "Five workflow gaps" → "Four workflow gaps". REQUIREMENTS.md WF-01 phase column updated. WF-01 requirement text (still names standalone command) flagged for potential revision in ROADMAP.md Phase 62 note; not yet rewritten pending 57.4 implementation settlement. Derived from: `audit-taxonomy-three-axis-obligations.md` (audits are primary cross-model use case)
+- Phases 57.5/57.6/57.7 inserted after Phase 57.4 (2026-04-16): Measurement Architecture & Retroactive Foundation, Multi-Loop Coverage & Human Interface, and Content Analysis & Epistemic Deepening. Derived from `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` and the 2026-04-15 measurement signal inventory correction chain.
+- Phase 57.8 inserted after Phase 57 (2026-04-17): Signal Provenance Split & Artifact Signature Blocks (URGENT). Narrow-slice telemetry→signal integration addressing audit `.planning/audits/2026-04-16-signal-provenance-audit/` Findings 1, 2, 4 & Recommendations 1-2 & 5: role-split signal provenance (about_work/detected_by/written_by), first-class signature blocks on PLAN/SUMMARY/VERIFICATION via `resolveModelInternal`, and version precedence fix. Epistemic prerequisite for Phase 58 — GATE-09's scope-translation ledger cannot attribute gate effectiveness without role-aware artifact provenance. Wider sensor-pipeline integration (reflection stratification, intervention-outcome loop extension, E2E real-agent tests) parked for later insertion after Phase 60.
+- Phase 60.1 inserted after Phase 60 (2026-04-17): Telemetry-Signal Integration & E2E Chain Tests (URGENT). Wider companion to 57.8's narrow provenance fix — sensors consume `buildSessionIdentityValue` from measurement/extractors/runtime.cjs, reflection stratifies by model/profile/reasoning_effort via `measurement/stratify.cjs`, intervention-outcome loop extended to signal lifecycle transitions, and the `tests/e2e/real-agent.test.js` todos are replaced with working discuss→plan→execute→verify→collect-signals chain tests. Depends on Phase 60 (sensor pipeline must exist before sensors can be rewired). Addresses audit `.planning/audits/2026-04-16-signal-provenance-audit/` Finding 3 (partial/asymmetric work-artifact signatures) and Recommendation 3 (treat telemetry as source).
 
 ### Pending Todos
 
-6 pending (3 carried from v1.18, 3 remaining):
+8 pending (3 carried from v1.18, 5 remaining):
 
 - [HIGH] Dual-install Phase 2: update flow, hook awareness, and version-pinned suppression (tooling)
 - [HIGH] Local patch archive: versioned history instead of single-snapshot overwrite (installer)
@@ -177,6 +224,8 @@ Recent decisions affecting current work:
 - [MEDIUM] gsd-tools audit subcommand: encode audit type taxonomy + ground rule sets as structured data in lib/audit.cjs so the /gsdr:audit command can call `gsd-tools init audit` instead of parsing reference docs directly. Deferred per trial-before-formalize — ship command+agent first, formalize tooling once usage patterns emerge. (tooling, audit)
 - [MEDIUM] Ghost agent integration: gsd-ui-auditor and gsd-doc-verifier entries in model-profiles.cjs have no agent specs — caused by upstream sync pulling profiles without corresponding specs. Needs deliberation on whether to build these agents, stub them, or remove the profiles. (upstream-sync, deliberation)
 - [MEDIUM] Revisit provisional corpus grounding set (planning)
+- [MEDIUM] Add `max` model profile above `quality` so Codex can persist top-end `xhigh` reasoning for executors/verifiers instead of relying on manual spawn overrides. Keep `quality` backward-compatible; update model profile mapping, Codex resolution, and profile-selection/help surfaces. (tooling)
+- [MEDIUM] Track Codex auto-compact prompt handling in Phase 60 parity work so Codex/Claude comparison covers runtime continuity behavior, not just visible tool/capability parity. Decide whether compaction should explicitly restate workflow-critical norms for delegated flows. (planning)
 
 ### Blockers/Concerns
 
@@ -201,6 +250,7 @@ Recent decisions affecting current work:
 | Phase 57.4 P04 | 6min | 3 tasks | 2 files |
 | Phase 57.4 P05 | 3min | 2 tasks | 1 files |
 | Phase 57.4 P06 | 3min | 3 tasks | 2 files |
+| Phase 57.7 P03 | 10min | 2 tasks | 3 files |
 
 ### Key Artifacts
 
@@ -213,16 +263,25 @@ Recent decisions affecting current work:
 - Phase 57.4 working artifacts: `57.4-CONTEXT.md` (v2, framing-corrected 2026-04-10), `57.4-DISCUSSION-LOG.md` (includes context-checker verification log + Framing Correction appendix), `pre-phase-archive/REVIEW.md` (Rule 5 + I1-I4 source, still load-bearing), `pre-phase-archive/57.4-DISCUSSION-LOG-v1.md` (v1 verification work)
 - Reference files carrying 57.4 supersession banners (to be rewritten by this phase): `get-shit-done/references/audit-conventions.md`, `get-shit-done/references/audit-ground-rules.md`
 - New signals this session: `sig-2026-04-10-discuss-phase-authority-weighting-gap.md` (capability-gap, severity high; one observation, needs corroboration)
+- Deliberation for 57.5 (primary authority): `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` (open — phase split and design authority)
+- Phase 57.5 evidence chain: `.planning/audits/2026-04-15-measurement-signal-inventory/` (handoff, correction-and-extensions, anomaly-stress-tests, E5.8 experiment) plus spikes 009 and 010
+- Phase 57.5 working artifacts: `57.5-CONTEXT.md` and `57.5-DISCUSSION-LOG.md` (captured 2026-04-16, context-checker pending)
 
 ## Session Continuity
 
-Last session: 2026-04-10T21:15:49.764Z
-Stopped at: Session resumed — Phase 57.4 execution complete + PR #45 open; post-phase followthrough chain pending (collect-signals → push → CI → review/merge → release → audit Phase 57)
-Resume file: Consumed `.planning/phases/57.4-audit-skill-investigatory-type/.continue-here.md`
+Last session: 2026-04-17T05:27:34Z
+Stopped at: Completed Wave 1 of Phase 57.7 (Plans 01-03)
+Resume artifact: `.planning/audits/2026-04-15-measurement-signal-inventory/pre-57.5-handoff.md`
 
-This session (2026-04-10):
+This session (2026-04-16):
 
-- Context-checker ran on v2 CONTEXT.md: 53/55 PASS, 1 WARN (DC-4 type), 0 FAIL; verification log in DISCUSSION-LOG.md
-- User identified framing failure the checker was not positioned to catch: CONTEXT.md and first-pass ROADMAP edits were treating superseded reference docs as authoritative base
-- Signal logged, banners applied, CONTEXT.md + ROADMAP.md + REQUIREMENTS.md + STATE.md all rewritten to flow authority from deliberations
-- 7 commits on branch: c7c3a78e (signal), 3f6b405a (banners), 5eb336b1 (CONTEXT+DISCUSSION-LOG framing correction), 2d293a73 (ROADMAP+REQUIREMENTS reframe), f0948ca5 (CONTEXT polish + files_affected manifest), + 2 more for STATE and ROADMAP followup (this commit onwards)
+- Resumed from the pre-57.5 handoff rather than a `.continue-here` checkpoint because governance (A1-A5) had already shipped and the next critical-path step was explicitly `/gsdr:discuss-phase 57.5`
+- Read the authority chain named in the handoff: the measurement deliberation, correction-and-extensions, anomaly stress tests, E5.8 results, spike 009 DECISION, spike 010 DECISION, and spike 010 qualitative comparison
+- Created `.planning/phases/57.5-measurement-architecture-retroactive-foundation/57.5-CONTEXT.md` and `57.5-DISCUSSION-LOG.md` in exploratory/auto mode
+- Updated STATE.md so resume/status no longer points at Phase 58 while the roadmap and handoff require 57.5 planning first
+- Planned Phase 57.5 into four execution plans, tightened them against checker findings, and set the phase to `ready_to_execute`
+- Executed 57.5-01 on branch `gsd/phase-57.5-measurement-architecture-retroactive-foundation`, landing the measurement CLI/store/query substrate, test lock, and cache-artifact ignore rules
+- Executed 57.5-02 and 57.5-03 in parallel, landing the Claude runtime/derived extractor families plus the GSDR freshness/signal-yield path
+- Verified Wave 2 with targeted unit/integration runs and reconstructed the missing 57.5-02 summary after its executor stalled post-commit
+- Executed 57.5-04, adding the Codex metadata proof, shared mixed-runtime query semantics, telemetry compatibility, and retroactive corpus validation
+- Closed an initial verification gap by unifying rebuild/query/store on one 17-extractor registry path, declaring the six-loop catalog in code, and passing re-verification at 6/6 must-haves

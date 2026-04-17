@@ -1,0 +1,51 @@
+{
+  "session_id": "23d193ae-9cfa-4c8f-a2ee-65397eb4e324",
+  "project_path": "/home/rookslog/workspace/projects/arxiv-sanity-mcp",
+  "start_time": "2026-03-10T02:18:32.512Z",
+  "duration_minutes": 57,
+  "user_message_count": 5,
+  "assistant_message_count": 86,
+  "tool_counts": {
+    "Bash": 29,
+    "Read": 13,
+    "Glob": 4,
+    "Agent": 7,
+    "Write": 2,
+    "Skill": 1
+  },
+  "languages": {
+    "Markdown": 15
+  },
+  "git_commits": 2,
+  "git_pushes": 0,
+  "input_tokens": 19752,
+  "output_tokens": 25767,
+  "first_prompt": "/gsd:plan-phase 4 (auto-create context file, infering my answers from previous responses and deliberations, iterative inquiry into all grey areas, where as we ask more questions and think about them,…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "Command Failed": 2
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 415,
+  "lines_removed": 0,
+  "files_modified": 2,
+  "message_hours": [
+    22,
+    22,
+    22,
+    22,
+    22
+  ],
+  "user_message_timestamps": [
+    "2026-03-10T02:18:32.921Z",
+    "2026-03-10T02:18:32.508Z",
+    "2026-03-10T02:20:51.281Z",
+    "2026-03-10T02:20:51.281Z",
+    "2026-03-10T02:46:31.511Z"
+  ]
+}

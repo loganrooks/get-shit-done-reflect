@@ -1,0 +1,46 @@
+{
+  "session_id": "887a0892-d44b-40eb-8cdb-84451c0bbc52",
+  "project_path": "/Users/rookslog/Development/get-shit-done-reflect",
+  "start_time": "2026-02-27T19:59:10.051Z",
+  "duration_minutes": 1,
+  "user_message_count": 5,
+  "assistant_message_count": 12,
+  "tool_counts": {
+    "Glob": 2,
+    "Read": 2,
+    "Bash": 3
+  },
+  "languages": {
+    "Markdown": 2
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 16,
+  "output_tokens": 1042,
+  "first_prompt": "/gsd:new-milestone make sure to read the deliberation documents for v1.16 and the development-workflow-gaps",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    14,
+    14,
+    14,
+    15,
+    15
+  ],
+  "user_message_timestamps": [
+    "2026-02-27T19:59:10.801Z",
+    "2026-02-27T19:59:09.885Z",
+    "2026-02-27T19:59:10.801Z",
+    "2026-02-27T20:00:04.039Z",
+    "2026-02-27T20:00:04.039Z"
+  ]
+}

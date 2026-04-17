@@ -1,0 +1,18 @@
+{
+  "underlying_goal": "Execute phase 42 of a custom project management workflow (plan execution, signal collection, and provide contextual feedback on a detected signal)",
+  "goal_categories": {
+    "automated_workflow_execution": 2,
+    "contextual_clarification": 1
+  },
+  "outcome": "fully_achieved",
+  "user_satisfaction_counts": {
+    "likely_satisfied": 2
+  },
+  "claude_helpfulness": "essential",
+  "session_type": "multi_task",
+  "friction_counts": {},
+  "friction_detail": "",
+  "primary_success": "multi_file_changes",
+  "brief_summary": "User triggered phase 42 execution and signal collection via custom GSDR commands; both completed successfully with verification passing and 8 signals persisted.",
+  "session_id": "b89daadc-46cb-4e22-b3a1-11eaa7381102"
+}

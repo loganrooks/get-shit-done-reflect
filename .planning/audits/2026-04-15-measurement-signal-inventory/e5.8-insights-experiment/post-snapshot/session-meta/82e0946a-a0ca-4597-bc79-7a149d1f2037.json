@@ -1,0 +1,57 @@
+{
+  "session_id": "82e0946a-a0ca-4597-bc79-7a149d1f2037",
+  "project_path": "/Users/rookslog/Development/get-shit-done-reflect",
+  "start_time": "2026-02-23T08:49:00.471Z",
+  "duration_minutes": 27,
+  "user_message_count": 6,
+  "assistant_message_count": 25,
+  "tool_counts": {
+    "Read": 7,
+    "Glob": 1,
+    "Grep": 3,
+    "Write": 1,
+    "Bash": 4
+  },
+  "languages": {
+    "Markdown": 4,
+    "JavaScript": 4
+  },
+  "git_commits": 1,
+  "git_pushes": 0,
+  "input_tokens": 41,
+  "output_tokens": 437,
+  "first_prompt": "does our plan consider all the possible pitfalls and remedies against them? does it implement TDD for its execution where it makes sense to use TDD and where it would adhere to best AI agential practi…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    332.7,
+    1078.985
+  ],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "File Too Large": 1,
+    "Other": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 292,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    3,
+    3,
+    3,
+    3,
+    3,
+    4
+  ],
+  "user_message_timestamps": [
+    "2026-02-23T08:49:00.622Z",
+    "2026-02-23T08:49:00.366Z",
+    "2026-02-23T08:49:00.622Z",
+    "2026-02-23T08:49:04.639Z",
+    "2026-02-23T08:56:20.092Z",
+    "2026-02-23T09:15:42.350Z"
+  ]
+}

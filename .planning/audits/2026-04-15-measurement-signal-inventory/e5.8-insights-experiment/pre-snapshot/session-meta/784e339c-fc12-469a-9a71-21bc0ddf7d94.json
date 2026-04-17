@@ -1,0 +1,43 @@
+{
+  "session_id": "784e339c-fc12-469a-9a71-21bc0ddf7d94",
+  "project_path": "/home/rookslog",
+  "start_time": "2026-03-06T01:38:36.197Z",
+  "duration_minutes": 1,
+  "user_message_count": 5,
+  "assistant_message_count": 4,
+  "tool_counts": {
+    "ToolSearch": 1,
+    "Bash": 1
+  },
+  "languages": {},
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 10,
+  "output_tokens": 131,
+  "first_prompt": "Tool loaded.",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    20,
+    20,
+    20,
+    20,
+    20
+  ],
+  "user_message_timestamps": [
+    "2026-03-06T01:38:36.810Z",
+    "2026-03-06T01:38:36.195Z",
+    "2026-03-06T01:39:01.823Z",
+    "2026-03-06T01:39:01.823Z",
+    "2026-03-06T01:39:05.068Z"
+  ]
+}

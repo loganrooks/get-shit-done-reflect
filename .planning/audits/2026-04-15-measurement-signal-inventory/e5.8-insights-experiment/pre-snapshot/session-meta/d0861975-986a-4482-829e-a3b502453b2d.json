@@ -1,0 +1,49 @@
+{
+  "session_id": "d0861975-986a-4482-829e-a3b502453b2d",
+  "project_path": "/home/rookslog/workspace/projects/zlibrary-mcp",
+  "start_time": "2026-03-10T00:40:18.314Z",
+  "duration_minutes": 7,
+  "user_message_count": 5,
+  "assistant_message_count": 14,
+  "tool_counts": {
+    "Bash": 7,
+    "Skill": 1,
+    "Read": 1
+  },
+  "languages": {
+    "Markdown": 1
+  },
+  "git_commits": 1,
+  "git_pushes": 0,
+  "input_tokens": 28,
+  "output_tokens": 2160,
+  "first_prompt": "/gsd:health --repair",
+  "user_interruptions": 0,
+  "user_response_times": [
+    47.132,
+    302.117
+  ],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    20,
+    20,
+    20,
+    20,
+    20
+  ],
+  "user_message_timestamps": [
+    "2026-03-10T00:40:29.461Z",
+    "2026-03-10T00:40:29.461Z",
+    "2026-03-10T00:41:34.442Z",
+    "2026-03-10T00:41:36.227Z",
+    "2026-03-10T00:46:53.351Z"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "underlying_goal": "Resume project context and create planning phases to close gaps identified in a milestone audit",
+  "goal_categories": {
+    "project_planning": 2
+  },
+  "outcome": "mostly_achieved",
+  "user_satisfaction_counts": {
+    "likely_satisfied": 1,
+    "dissatisfied": 1
+  },
+  "claude_helpfulness": "very_helpful",
+  "session_type": "multi_task",
+  "friction_counts": {
+    "misunderstood_request": 1
+  },
+  "friction_detail": "Claude created gap closure as a new v1.15 milestone when user considered v1.14 still incomplete; user had to correct this.",
+  "primary_success": "multi_file_changes",
+  "brief_summary": "User wanted to plan gap closure phases for their v1.14 milestone audit; after a minor correction about milestone numbering, Claude created 4 phases with directories and roadmap updates.",
+  "session_id": "ce91d4c1-7d5e-4e01-8174-532bf1229158"
+}

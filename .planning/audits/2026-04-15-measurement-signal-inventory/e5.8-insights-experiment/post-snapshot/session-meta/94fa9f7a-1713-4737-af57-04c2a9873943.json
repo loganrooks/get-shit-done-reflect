@@ -1,0 +1,69 @@
+{
+  "session_id": "94fa9f7a-1713-4737-af57-04c2a9873943",
+  "project_path": "/Users/rookslog/Development/get-shit-done-reflect",
+  "start_time": "2026-03-02T15:53:19.555Z",
+  "duration_minutes": 127,
+  "user_message_count": 11,
+  "assistant_message_count": 65,
+  "tool_counts": {
+    "Bash": 13,
+    "Glob": 2,
+    "Read": 6,
+    "Grep": 4,
+    "Agent": 8,
+    "Write": 1,
+    "mcp__sequential-thinking__sequentialthinking": 1
+  },
+  "languages": {
+    "Markdown": 7
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 90,
+  "output_tokens": 18972,
+  "first_prompt": "you were interrupted because of disconnection can you continue where you left off",
+  "user_interruptions": 0,
+  "user_response_times": [
+    2891.765,
+    1830.873,
+    1830.873,
+    79.938,
+    17.21,
+    5.42
+  ],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": true,
+  "uses_mcp": true,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 223,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    10,
+    10,
+    10,
+    10,
+    12,
+    12,
+    12,
+    12,
+    12,
+    12,
+    12
+  ],
+  "user_message_timestamps": [
+    "2026-03-02T15:53:19.725Z",
+    "2026-03-02T15:53:19.475Z",
+    "2026-03-02T15:53:23.016Z",
+    "2026-03-02T15:53:23.016Z",
+    "2026-03-02T17:05:47.084Z",
+    "2026-03-02T17:44:11.165Z",
+    "2026-03-02T17:44:11.165Z",
+    "2026-03-02T17:46:48.275Z",
+    "2026-03-02T17:47:10.017Z",
+    "2026-03-02T17:47:13.662Z",
+    "2026-03-02T17:47:22.260Z"
+  ]
+}

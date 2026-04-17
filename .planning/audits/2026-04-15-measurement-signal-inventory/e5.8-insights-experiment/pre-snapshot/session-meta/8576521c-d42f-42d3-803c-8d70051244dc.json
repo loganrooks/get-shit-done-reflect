@@ -1,0 +1,56 @@
+{
+  "session_id": "8576521c-d42f-42d3-803c-8d70051244dc",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-03-10T06:05:08.976Z",
+  "duration_minutes": 46,
+  "user_message_count": 6,
+  "assistant_message_count": 80,
+  "tool_counts": {
+    "Read": 21,
+    "Glob": 2,
+    "Bash": 9,
+    "Grep": 3,
+    "Edit": 4,
+    "ToolSearch": 1,
+    "AskUserQuestion": 3,
+    "Agent": 6,
+    "Write": 1
+  },
+  "languages": {
+    "Markdown": 25,
+    "JavaScript": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 101,
+  "output_tokens": 17071,
+  "first_prompt": "/gsd:new-milestone v1.18 figure out a plan on how to properly adopt / merge upstream changes (what is worth keeping, what is our policy) @.planning/fork-audit/ one thing also i think we are missing is…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    128.993,
+    60.335
+  ],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "File Not Found": 1
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 156,
+  "lines_removed": 22,
+  "files_modified": 3,
+  "message_hours": [
+    2,
+    2,
+    2,
+    2,
+    2,
+    2
+  ],
+  "user_message_timestamps": [
+    "2026-03-10T06:05:09.879Z",
+    "2026-03-10T06:05:08.971Z",
+    "2026-03-10T06:26:24.466Z",
+    "2026-03-10T06:26:24.466Z",

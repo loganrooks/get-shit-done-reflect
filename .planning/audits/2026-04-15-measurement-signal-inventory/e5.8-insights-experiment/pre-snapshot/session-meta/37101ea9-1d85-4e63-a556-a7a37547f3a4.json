@@ -1,0 +1,52 @@
+{
+  "session_id": "37101ea9-1d85-4e63-a556-a7a37547f3a4",
+  "project_path": "/Users/rookslog/Development/get-shit-done-reflect",
+  "start_time": "2026-03-04T03:47:44.367Z",
+  "duration_minutes": 12,
+  "user_message_count": 5,
+  "assistant_message_count": 73,
+  "tool_counts": {
+    "Bash": 29,
+    "Read": 12,
+    "Grep": 12
+  },
+  "languages": {
+    "Markdown": 12
+  },
+  "git_commits": 0,
+  "git_pushes": 2,
+  "input_tokens": 80,
+  "output_tokens": 8287,
+  "first_prompt": "1. merge PR #6 (if it passes) to main, and then proceed to Phase 38, capture deliberation system as preliminary deliberation file for Phase 38+ consumption (though unsure how we would ensure the futur…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    522.836
+  ],
+  "tool_errors": 10,
+  "tool_error_categories": {
+    "Command Failed": 4,
+    "Other": 5,
+    "File Not Found": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    22,
+    22,
+    22,
+    22,
+    22
+  ],
+  "user_message_timestamps": [
+    "2026-03-04T03:47:45.177Z",
+    "2026-03-04T03:47:44.263Z",
+    "2026-03-04T03:47:52.022Z",
+    "2026-03-04T03:47:52.022Z",
+    "2026-03-04T03:57:13.688Z"
+  ]
+}

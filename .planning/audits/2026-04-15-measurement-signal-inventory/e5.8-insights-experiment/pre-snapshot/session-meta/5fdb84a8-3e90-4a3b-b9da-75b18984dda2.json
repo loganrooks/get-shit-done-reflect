@@ -1,0 +1,51 @@
+{
+  "session_id": "5fdb84a8-3e90-4a3b-b9da-75b18984dda2",
+  "project_path": "/home/rookslog/workspace/projects/arxiv-sanity-mcp",
+  "start_time": "2026-03-11T07:53:57.212Z",
+  "duration_minutes": 1022,
+  "user_message_count": 6,
+  "assistant_message_count": 32,
+  "tool_counts": {
+    "Bash": 10,
+    "Read": 2,
+    "ToolSearch": 1,
+    "AskUserQuestion": 1,
+    "Agent": 2,
+    "Write": 1
+  },
+  "languages": {
+    "Markdown": 3
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 41,
+  "output_tokens": 6277,
+  "first_prompt": "/gsd:plan-phase 04.1",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 86,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    3,
+    3,
+    3,
+    3,
+    20,
+    20
+  ],
+  "user_message_timestamps": [
+    "2026-03-11T07:53:58.237Z",
+    "2026-03-11T07:53:57.208Z",
+    "2026-03-11T07:54:12.371Z",
+    "2026-03-11T07:54:12.371Z",
+    "2026-03-12T00:48:16.271Z",
+    "2026-03-12T00:48:16.271Z"
+  ]
+}

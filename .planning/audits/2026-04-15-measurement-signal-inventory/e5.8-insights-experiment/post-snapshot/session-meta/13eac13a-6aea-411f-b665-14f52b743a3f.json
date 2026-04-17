@@ -1,0 +1,41 @@
+{
+  "session_id": "13eac13a-6aea-411f-b665-14f52b743a3f",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-15T23:00:00.513Z",
+  "duration_minutes": 3,
+  "user_message_count": 1,
+  "assistant_message_count": 40,
+  "tool_counts": {
+    "Read": 17,
+    "Bash": 5,
+    "Grep": 2
+  },
+  "languages": {
+    "Markdown": 16,
+    "YAML": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 50,
+  "output_tokens": 21187,
+  "first_prompt": "Review the current Checkpoint 4 readiness bundle for `/home/rookslog/workspace/projects/prix-guesser`.  This is a high-stakes cross-vendor reread of a harness/workflow excellence audit, not a style pa…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 4,
+  "tool_error_categories": {
+    "Other": 4
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    19
+  ],
+  "user_message_timestamps": [
+    "2026-04-15T23:00:00.513Z"
+  ]
+}

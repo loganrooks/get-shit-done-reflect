@@ -1,0 +1,53 @@
+{
+  "session_id": "fbd705d8-4f45-4cd0-a92d-6bbd8ae895c6",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-03-06T18:16:04.643Z",
+  "duration_minutes": 2,
+  "user_message_count": 7,
+  "assistant_message_count": 34,
+  "tool_counts": {
+    "ToolSearch": 3,
+    "Read": 6,
+    "Glob": 3,
+    "Grep": 6,
+    "Bash": 1,
+    "AskUserQuestion": 1
+  },
+  "languages": {
+    "Markdown": 6
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 55,
+  "output_tokens": 3910,
+  "first_prompt": "/gsdr:deliberate how do we design the health check such that it is easily maintable and future proof as we add complexity to the system and the workflows",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    13,
+    13,
+    13,
+    13,
+    13,
+    13,
+    13
+  ],
+  "user_message_timestamps": [
+    "2026-03-06T18:16:06.865Z",
+    "2026-03-06T18:16:04.638Z",
+    "2026-03-06T18:16:37.928Z",
+    "2026-03-06T18:16:37.928Z",
+    "2026-03-06T18:16:46.925Z",
+    "2026-03-06T18:17:05.380Z",
+    "2026-03-06T18:18:33.786Z"
+  ]
+}

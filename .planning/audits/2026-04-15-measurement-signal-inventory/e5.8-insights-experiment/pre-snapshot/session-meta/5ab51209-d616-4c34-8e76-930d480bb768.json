@@ -1,0 +1,60 @@
+{
+  "session_id": "5ab51209-d616-4c34-8e76-930d480bb768",
+  "project_path": "/home/rookslog/workspace/projects/claude-notify",
+  "start_time": "2026-03-11T00:07:33.504Z",
+  "duration_minutes": 1185,
+  "user_message_count": 6,
+  "assistant_message_count": 90,
+  "tool_counts": {
+    "Edit": 15,
+    "Bash": 20,
+    "Read": 11,
+    "Write": 3,
+    "Glob": 1,
+    "Grep": 1
+  },
+  "languages": {
+    "Markdown": 22,
+    "JSON": 2,
+    "JavaScript": 2
+  },
+  "git_commits": 1,
+  "git_pushes": 0,
+  "input_tokens": 118,
+  "output_tokens": 29754,
+  "first_prompt": "/gsdr:deliberate hm but should we deliberate a bit further about these architectural decisions?",
+  "user_interruptions": 0,
+  "user_response_times": [
+    765.042,
+    124.902,
+    2712.971
+  ],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "Command Failed": 1,
+    "Other": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 438,
+  "lines_removed": 47,
+  "files_modified": 7,
+  "message_hours": [
+    23,
+    23,
+    0,
+    0,
+    1,
+    15
+  ],
+  "user_message_timestamps": [
+    "2026-03-11T03:58:49.004Z",
+    "2026-03-11T03:58:49.004Z",
+    "2026-03-11T04:12:03.639Z",
+    "2026-03-11T04:16:56.437Z",
+    "2026-03-11T05:05:33.929Z",
+    "2026-03-11T19:48:55.615Z"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "session_id": "9004c40b-575e-4db9-b4c9-7a578329e06b",
+  "project_path": "/home/rookslog/workspace/projects/scholardoc",
+  "start_time": "2026-02-18T21:04:25.060Z",
+  "duration_minutes": 5,
+  "user_message_count": 5,
+  "assistant_message_count": 10,
+  "tool_counts": {
+    "Bash": 2,
+    "AskUserQuestion": 1
+  },
+  "languages": {},
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 14,
+  "output_tokens": 482,
+  "first_prompt": "/gsd:plan-phase 1.1",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    16,
+    16,
+    16,
+    16,
+    16
+  ],
+  "user_message_timestamps": [
+    "2026-02-18T21:04:25.516Z",
+    "2026-02-18T21:04:25.051Z",
+    "2026-02-18T21:04:25.516Z",
+    "2026-02-18T21:04:29.914Z",
+    "2026-02-18T21:04:29.914Z"
+  ]
+}

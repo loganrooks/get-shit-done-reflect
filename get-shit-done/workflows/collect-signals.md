@@ -318,7 +318,8 @@ After each sensor output is collected (success or failure), track stats:
 
 ```bash
 # On successful sensor output collection:
-node ~/.claude/get-shit-done-reflect/bin/gsd-tools.cjs automation track-event "sensor_{NAME}" fire
+# Persist the observed yield through the supported track-event write path.
+node ~/.claude/get-shit-done-reflect/bin/gsd-tools.cjs automation track-event "sensor_{NAME}" fire "signal-count={SIGNAL_COUNT}"
 
 # On sensor failure (parse error, agent error):
 node ~/.claude/get-shit-done-reflect/bin/gsd-tools.cjs automation track-event "sensor_{NAME}" skip "parse-error"
@@ -385,7 +386,7 @@ Task(
     Read the KB index (at .planning/knowledge/index.md or ~/.gsd/knowledge/index.md fallback) for dedup checking.
     Apply all quality gates: trace filter, cross-sensor dedup, KB dedup, rigor enforcement, per-phase cap.
     Write qualifying signals to the KB signals directory (.planning/knowledge/signals/{PROJECT_NAME}/ or ~/.gsd/knowledge/signals/{PROJECT_NAME}/ fallback).
-    Rebuild index with: bash get-shit-done-reflect/bin/kb-rebuild-index.sh (or ~/.gsd/bin/kb-rebuild-index.sh fallback)
+    Rebuild the KB freshness path with: bash get-shit-done/bin/kb-rebuild-index.sh (or ~/.gsd/bin/kb-rebuild-index.sh fallback)
     Return your Synthesizer Report when complete."
 )
 ```
@@ -451,7 +452,7 @@ If signals were written, ensure the KB index is up to date (in case the synthesi
 if [ "$SIGNALS_WRITTEN" -gt 0 ]; then
   # KB path resolution -- project-local primary, user-global fallback
   if [ -d ".planning/knowledge" ]; then
-    bash get-shit-done-reflect/bin/kb-rebuild-index.sh
+    bash get-shit-done/bin/kb-rebuild-index.sh
   else
     bash ~/.gsd/bin/kb-rebuild-index.sh
   fi

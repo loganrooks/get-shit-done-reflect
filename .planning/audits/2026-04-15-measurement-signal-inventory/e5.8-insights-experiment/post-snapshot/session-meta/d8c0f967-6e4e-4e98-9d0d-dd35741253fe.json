@@ -1,0 +1,61 @@
+{
+  "session_id": "d8c0f967-6e4e-4e98-9d0d-dd35741253fe",
+  "project_path": "/home/rookslog/workspace/projects/robotic-psalms",
+  "start_time": "2026-03-10T06:39:22.071Z",
+  "duration_minutes": 899,
+  "user_message_count": 7,
+  "assistant_message_count": 137,
+  "tool_counts": {
+    "Bash": 8,
+    "Read": 11,
+    "ToolSearch": 3,
+    "mcp__serena__get_symbols_overview": 2,
+    "mcp__serena__activate_project": 1,
+    "AskUserQuestion": 76,
+    "Write": 1
+  },
+  "languages": {
+    "Markdown": 12
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 153,
+  "output_tokens": 26177,
+  "first_prompt": "/gsd:discuss-phase 6 @.planning/phases/06-ai-composition-skills/06-RESEARCH.md",
+  "user_interruptions": 1,
+  "user_response_times": [
+    178.701,
+    187.981,
+    8.486
+  ],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "Command Failed": 1,
+    "User Rejected": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": true,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 177,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    2,
+    2,
+    2,
+    2,
+    16,
+    16,
+    17
+  ],
+  "user_message_timestamps": [
+    "2026-03-10T06:39:22.719Z",
+    "2026-03-10T06:39:22.067Z",
+    "2026-03-10T06:39:38.468Z",
+    "2026-03-10T06:39:38.468Z",
+    "2026-03-10T20:09:21.055Z",
+    "2026-03-10T20:09:30.335Z",
+    "2026-03-10T21:06:48.168Z"
+  ]
+}

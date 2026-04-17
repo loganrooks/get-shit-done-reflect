@@ -1,0 +1,402 @@
+[
+  {
+    "session_id": "1288fda7-64c3-471a-b6e4-23e0f2dd987d",
+    "record_index": 3,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 2280,
+    "visible_text_chars": 10821,
+    "thinking_summary_chars": 228
+  },
+  {
+    "session_id": "2e7c0ed9-67ba-4232-89f2-601401292cae",
+    "record_index": 4,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 5657,
+    "visible_text_chars": 10383,
+    "thinking_summary_chars": 9597
+  },
+  {
+    "session_id": "2e914a70-e9a5-4496-a8b9-dd6b876c9bd8",
+    "record_index": 5,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 3669,
+    "visible_text_chars": 12309,
+    "thinking_summary_chars": 4304
+  },
+  {
+    "session_id": "476825ea-02f0-4314-bf06-7a6aabc1a597",
+    "record_index": 5,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 3505,
+    "visible_text_chars": 12103,
+    "thinking_summary_chars": 2915
+  },
+  {
+    "session_id": "76c3ed82-291a-495a-abcd-209a62a8a230",
+    "record_index": 3,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 4868,
+    "visible_text_chars": 9343,
+    "thinking_summary_chars": 7848
+  },
+  {
+    "session_id": "8366460a-6814-4a24-b467-32cc9d384b42",
+    "record_index": 3,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 3816,
+    "visible_text_chars": 10280,
+    "thinking_summary_chars": 5123
+  },
+  {
+    "session_id": "88ae1496-eb9a-42cd-8840-ed8011622cbb",
+    "record_index": 5,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 4842,
+    "visible_text_chars": 9470,
+    "thinking_summary_chars": 7077
+  },
+  {
+    "session_id": "8a448392-7bf0-45f1-83b2-d1d92d8a81d9",
+    "record_index": 5,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 6969,
+    "visible_text_chars": 11259,
+    "thinking_summary_chars": 13141
+  },
+  {
+    "session_id": "b6e1f432-43f7-4bae-b82d-be9aa0960012",
+    "record_index": 3,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 2963,
+    "visible_text_chars": 6690,
+    "thinking_summary_chars": 4662
+  },
+  {
+    "session_id": "cde236dd-a148-4fee-b2ef-a85c1be572df",
+    "record_index": 5,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 3787,
+    "visible_text_chars": 11267,
+    "thinking_summary_chars": 4052
+  },
+  {
+    "session_id": "cf0cdcc8-0d79-40df-bc41-05282f605078",
+    "record_index": 5,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 5992,
+    "visible_text_chars": 12200,
+    "thinking_summary_chars": 8178
+  },
+  {
+    "session_id": "e50122a4-63ee-4fd2-859c-adebb49d5888",
+    "record_index": 3,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 2044,
+    "visible_text_chars": 9573,
+    "thinking_summary_chars": 260
+  },
+  {
+    "session_id": "f2c3878a-ab11-4b44-a3f0-d781d8111bff",
+    "record_index": 3,
+    "model": "claude-sonnet-4-6",
+    "output_tokens": 5515,
+    "visible_text_chars": 9936,
+    "thinking_summary_chars": 10976
+  },
+  {
+    "session_id": "01db5837-235c-4ab1-8b7d-a7960fe0f9f0",
+    "record_index": 5,
+    "model": "claude-opus-4-6",
+    "output_tokens": 25,
+    "visible_text_chars": 30,
+    "thinking_summary_chars": 556
+  },
+  {
+    "session_id": "0b797f82-88bf-4058-b1d3-33214b805efb",
+    "record_index": 17,
+    "model": "claude-opus-4-6",
+    "output_tokens": 97,
+    "visible_text_chars": 97,
+    "thinking_summary_chars": 124
+  },
+  {
+    "session_id": "0b797f82-88bf-4058-b1d3-33214b805efb",
+    "record_index": 35,
+    "model": "claude-opus-4-6",
+    "output_tokens": 710,
+    "visible_text_chars": 889,
+    "thinking_summary_chars": 939
+  },
+  {
+    "session_id": "0b797f82-88bf-4058-b1d3-33214b805efb",
+    "record_index": 41,
+    "model": "claude-opus-4-6",
+    "output_tokens": 1258,
+    "visible_text_chars": 172,
+    "thinking_summary_chars": 878
+  },
+  {
+    "session_id": "0b797f82-88bf-4058-b1d3-33214b805efb",
+    "record_index": 158,
+    "model": "claude-opus-4-6",
+    "output_tokens": 2059,
+    "visible_text_chars": 139,
+    "thinking_summary_chars": 2376
+  },
+  {
+    "session_id": "0b797f82-88bf-4058-b1d3-33214b805efb",
+    "record_index": 172,
+    "model": "claude-opus-4-6",
+    "output_tokens": 341,
+    "visible_text_chars": 113,
+    "thinking_summary_chars": 275
+  },
+  {
+    "session_id": "0b797f82-88bf-4058-b1d3-33214b805efb",
+    "record_index": 215,
+    "model": "claude-opus-4-6",
+    "output_tokens": 354,
+    "visible_text_chars": 647,
+    "thinking_summary_chars": 109
+  },
+  {
+    "session_id": "0faab2d4-4fe1-4bf9-b7dc-45f8e1c1c28f",
+    "record_index": 5,
+    "model": "claude-opus-4-6",
+    "output_tokens": 2698,
+    "visible_text_chars": 4716,
+    "thinking_summary_chars": 2690
+  },
+  {
+    "session_id": "12591a6e-97c9-4493-be66-f9d4e5028697",
+    "record_index": 3,
+    "model": "claude-opus-4-6",
+    "output_tokens": 2724,
+    "visible_text_chars": 4166,
+    "thinking_summary_chars": 1087
+  },
+  {
+    "session_id": "1981645c-de8d-40bc-8337-014ddfc82c04",
+    "record_index": 5,
+    "model": "claude-opus-4-6",
+    "output_tokens": 4759,
+    "visible_text_chars": 5752,
+    "thinking_summary_chars": 5440
+  },
+  {
+    "session_id": "304b5650-ac1a-4b51-83c2-4862a8b6f555",
+    "record_index": 5,
+    "model": "claude-opus-4-6",
+    "output_tokens": 3940,
+    "visible_text_chars": 6301,
+    "thinking_summary_chars": 3086
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 26,
+    "model": "claude-opus-4-6",
+    "output_tokens": 1761,
+    "visible_text_chars": 1217,
+    "thinking_summary_chars": 2176
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 58,
+    "model": "claude-opus-4-6",
+    "output_tokens": 3325,
+    "visible_text_chars": 295,
+    "thinking_summary_chars": 3614
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 66,
+    "model": "claude-opus-4-6",
+    "output_tokens": 938,
+    "visible_text_chars": 1462,
+    "thinking_summary_chars": 353
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 77,
+    "model": "claude-opus-4-6",
+    "output_tokens": 2608,
+    "visible_text_chars": 132,
+    "thinking_summary_chars": 593
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 92,
+    "model": "claude-opus-4-6",
+    "output_tokens": 517,
+    "visible_text_chars": 157,
+    "thinking_summary_chars": 382
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 114,
+    "model": "claude-opus-4-6",
+    "output_tokens": 911,
+    "visible_text_chars": 52,
+    "thinking_summary_chars": 975
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 151,
+    "model": "claude-opus-4-6",
+    "output_tokens": 873,
+    "visible_text_chars": 1010,
+    "thinking_summary_chars": 682
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 210,
+    "model": "claude-opus-4-6",
+    "output_tokens": 1055,
+    "visible_text_chars": 79,
+    "thinking_summary_chars": 265
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 228,
+    "model": "claude-opus-4-6",
+    "output_tokens": 1823,
+    "visible_text_chars": 56,
+    "thinking_summary_chars": 279
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 253,
+    "model": "claude-opus-4-6",
+    "output_tokens": 1310,
+    "visible_text_chars": 1142,
+    "thinking_summary_chars": 700
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 264,
+    "model": "claude-opus-4-6",
+    "output_tokens": 3460,
+    "visible_text_chars": 129,
+    "thinking_summary_chars": 181
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 282,
+    "model": "claude-opus-4-6",
+    "output_tokens": 533,
+    "visible_text_chars": 90,
+    "thinking_summary_chars": 742
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 295,
+    "model": "claude-opus-4-6",
+    "output_tokens": 4354,
+    "visible_text_chars": 1127,
+    "thinking_summary_chars": 3048
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 301,
+    "model": "claude-opus-4-6",
+    "output_tokens": 6094,
+    "visible_text_chars": 40,
+    "thinking_summary_chars": 1313
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 339,
+    "model": "claude-opus-4-6",
+    "output_tokens": 1128,
+    "visible_text_chars": 1673,
+    "thinking_summary_chars": 687
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 346,
+    "model": "claude-opus-4-6",
+    "output_tokens": 1737,
+    "visible_text_chars": 173,
+    "thinking_summary_chars": 1305
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 354,
+    "model": "claude-opus-4-6",
+    "output_tokens": 2476,
+    "visible_text_chars": 2501,
+    "thinking_summary_chars": 2293
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 363,
+    "model": "claude-opus-4-6",
+    "output_tokens": 5265,
+    "visible_text_chars": 92,
+    "thinking_summary_chars": 1216
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 372,
+    "model": "claude-opus-4-6",
+    "output_tokens": 1384,
+    "visible_text_chars": 170,
+    "thinking_summary_chars": 868
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 378,
+    "model": "claude-opus-4-6",
+    "output_tokens": 5742,
+    "visible_text_chars": 95,
+    "thinking_summary_chars": 1320
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 385,
+    "model": "claude-opus-4-6",
+    "output_tokens": 259,
+    "visible_text_chars": 68,
+    "thinking_summary_chars": 168
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 395,
+    "model": "claude-opus-4-6",
+    "output_tokens": 858,
+    "visible_text_chars": 2072,
+    "thinking_summary_chars": 133
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 464,
+    "model": "claude-opus-4-6",
+    "output_tokens": 582,
+    "visible_text_chars": 55,
+    "thinking_summary_chars": 180
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 484,
+    "model": "claude-opus-4-6",
+    "output_tokens": 983,
+    "visible_text_chars": 135,
+    "thinking_summary_chars": 1070
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 501,
+    "model": "claude-opus-4-6",
+    "output_tokens": 2696,
+    "visible_text_chars": 1011,
+    "thinking_summary_chars": 1073
+  },
+  {
+    "session_id": "30f746db-d6c3-4814-8202-06f6a6ee5202",
+    "record_index": 519,
+    "model": "claude-opus-4-6",
+    "output_tokens": 2969,
+    "visible_text_chars": 2421,
+    "thinking_summary_chars": 2617
+  }
+]

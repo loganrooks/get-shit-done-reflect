@@ -1,0 +1,23 @@
+{
+  "underlying_goal": "Identify and fix the source of recurring write hook / pretool use errors in Claude Code",
+  "goal_categories": {
+    "debugging": 1,
+    "recommendation_request": 1,
+    "fix_implementation": 1
+  },
+  "outcome": "mostly_achieved",
+  "user_satisfaction_counts": {
+    "likely_satisfied": 2,
+    "dissatisfied": 1
+  },
+  "claude_helpfulness": "very_helpful",
+  "session_type": "iterative_refinement",
+  "friction_counts": {
+    "wrong_approach": 1,
+    "misunderstood_request": 1
+  },
+  "friction_detail": "Claude initially assumed the project-level hooks were outdated duplicates of the global ones and recommended treating it as an upstream bug, which the user rejected before requesting a workaround.",
+  "primary_success": "good_debugging",
+  "brief_summary": "User wanted to track down hook errors; Claude correctly traced them to project-level relative-path hooks and implemented a workaround after some incorrect assumptions and a rejected recommendation.",
+  "session_id": "53c0c15a-ec27-474b-84c8-1cd420dfe243"
+}

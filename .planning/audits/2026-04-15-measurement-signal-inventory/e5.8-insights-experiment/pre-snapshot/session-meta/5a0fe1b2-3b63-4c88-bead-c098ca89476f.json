@@ -1,0 +1,44 @@
+{
+  "session_id": "5a0fe1b2-3b63-4c88-bead-c098ca89476f",
+  "project_path": "/home/rookslog/workspace/projects/claude-notify",
+  "start_time": "2026-03-12T05:59:42.095Z",
+  "duration_minutes": 4,
+  "user_message_count": 4,
+  "assistant_message_count": 28,
+  "tool_counts": {
+    "Bash": 8,
+    "Read": 13
+  },
+  "languages": {
+    "Markdown": 7,
+    "JavaScript": 6
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 30,
+  "output_tokens": 10063,
+  "first_prompt": "/gsd:discuss-phase 4 --auto  LAYER 1 — ASSUMPTIONS: Before identifying grey areas, state your working model of how this phase will be implemented. What are you assuming about architecture, dependencie…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    1,
+    1,
+    1,
+    1
+  ],
+  "user_message_timestamps": [
+    "2026-03-12T05:59:43.242Z",
+    "2026-03-12T05:59:42.092Z",
+    "2026-03-12T05:59:50.890Z",
+    "2026-03-12T05:59:50.890Z"
+  ]
+}

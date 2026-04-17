@@ -1,0 +1,51 @@
+{
+  "session_id": "b19f2192-0aa4-4c73-95c3-48ce084f1093",
+  "project_path": "/home/rookslog/workspace/projects/claude-notify",
+  "start_time": "2026-03-12T01:53:32.644Z",
+  "duration_minutes": 13,
+  "user_message_count": 7,
+  "assistant_message_count": 26,
+  "tool_counts": {
+    "Bash": 10,
+    "Agent": 3
+  },
+  "languages": {},
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 54,
+  "output_tokens": 3722,
+  "first_prompt": "/gsd:execute-phase 2",
+  "user_interruptions": 0,
+  "user_response_times": [
+    313.231,
+    40.194,
+    335.312
+  ],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    21,
+    21,
+    21,
+    21,
+    21,
+    22,
+    22
+  ],
+  "user_message_timestamps": [
+    "2026-03-12T01:53:33.068Z",
+    "2026-03-12T01:53:32.639Z",
+    "2026-03-12T01:53:39.023Z",
+    "2026-03-12T01:53:39.023Z",
+    "2026-03-12T01:59:31.583Z",
+    "2026-03-12T02:00:21.112Z",
+    "2026-03-12T02:06:24.437Z"
+  ]
+}

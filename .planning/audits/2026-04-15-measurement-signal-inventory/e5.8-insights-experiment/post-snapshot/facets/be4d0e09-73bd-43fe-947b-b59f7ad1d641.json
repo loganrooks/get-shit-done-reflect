@@ -1,0 +1,19 @@
+{
+  "underlying_goal": "Run reflection on accumulated signals to detect patterns, then deliberate on whether reflection's output ontology (lessons vs workflow-tied artifacts) is the right design",
+  "goal_categories": {
+    "run_automated_workflow": 1,
+    "architectural_deliberation": 1,
+    "pause_and_handoff": 1
+  },
+  "outcome": "partially_achieved",
+  "user_satisfaction_counts": {
+    "likely_satisfied": 2
+  },
+  "claude_helpfulness": "very_helpful",
+  "session_type": "exploration",
+  "friction_counts": {},
+  "friction_detail": "",
+  "primary_success": "good_explanations",
+  "brief_summary": "User ran a reflection workflow, then pivoted to deliberating on whether reflection outputs should be lessons or workflow-tied artifacts; deliberation was paused mid-way with a proper handoff file.",
+  "session_id": "be4d0e09-73bd-43fe-947b-b59f7ad1d641"
+}

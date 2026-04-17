@@ -1,0 +1,41 @@
+{
+  "session_id": "e047a155-33b5-4606-a6d4-621b8589ad41",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-15T20:30:35.672Z",
+  "duration_minutes": 4,
+  "user_message_count": 1,
+  "assistant_message_count": 28,
+  "tool_counts": {
+    "Read": 12,
+    "Bash": 2,
+    "Write": 2
+  },
+  "languages": {
+    "Markdown": 13,
+    "YAML": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 42,
+  "output_tokens": 38018,
+  "first_prompt": "# Checkpoint 2 Cross-Vendor Review Prompt  You are performing the Checkpoint 2 cross-vendor reread for the Phase 01 rerun readiness package in this repo.  ## Review Mode  - Vendor: Anthropic Claude -…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "Other": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 222,
+  "lines_removed": 0,
+  "files_modified": 1,
+  "message_hours": [
+    16
+  ],
+  "user_message_timestamps": [
+    "2026-04-15T20:30:35.672Z"
+  ]
+}

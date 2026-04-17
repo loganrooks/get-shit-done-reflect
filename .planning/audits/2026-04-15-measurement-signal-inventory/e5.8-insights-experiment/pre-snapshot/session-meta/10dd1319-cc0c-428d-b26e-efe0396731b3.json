@@ -1,0 +1,46 @@
+{
+  "session_id": "10dd1319-cc0c-428d-b26e-efe0396731b3",
+  "project_path": "/Users/rookslog/Development/get-shit-done-reflect",
+  "start_time": "2026-02-23T23:04:50.762Z",
+  "duration_minutes": 2,
+  "user_message_count": 5,
+  "assistant_message_count": 27,
+  "tool_counts": {
+    "Bash": 3,
+    "Glob": 6,
+    "Read": 10
+  },
+  "languages": {
+    "Markdown": 10
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 34,
+  "output_tokens": 237,
+  "first_prompt": "No prompt",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    18,
+    18,
+    18,
+    18,
+    18
+  ],
+  "user_message_timestamps": [
+    "2026-02-23T23:04:50.948Z",
+    "2026-02-23T23:04:50.665Z",
+    "2026-02-23T23:04:50.948Z",
+    "2026-02-23T23:06:33.834Z",
+    "2026-02-23T23:06:33.834Z"
+  ]
+}

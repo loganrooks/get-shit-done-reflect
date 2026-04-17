@@ -1,0 +1,62 @@
+{
+  "session_id": "17c113e9-c6ed-4f83-9d3f-1eb028b30641",
+  "project_path": "/home/rookslog/workspace/projects/robotic-psalms",
+  "start_time": "2026-03-08T22:45:07.673Z",
+  "duration_minutes": 36,
+  "user_message_count": 9,
+  "assistant_message_count": 28,
+  "tool_counts": {
+    "Bash": 6,
+    "ToolSearch": 1,
+    "AskUserQuestion": 1,
+    "Skill": 1,
+    "Agent": 4
+  },
+  "languages": {},
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 49,
+  "output_tokens": 2928,
+  "first_prompt": "<task-notification> <task-id>ac71e782a2cb266f7</task-id> <tool-use-id>toolu_0187PDve9EQzFBQ1AjMC6tpD</tool-use-id> <output-file>/tmp/claude-1000/-home-rookslog-workspace-projects-robotic-psalms/tasks/…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    13.637,
+    13.637,
+    523.967,
+    149.373,
+    47.031,
+    10.3,
+    25.491
+  ],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    18,
+    18,
+    18,
+    18,
+    19,
+    19,
+    19,
+    19,
+    19
+  ],
+  "user_message_timestamps": [
+    "2026-03-08T22:45:26.168Z",
+    "2026-03-08T22:45:26.168Z",
+    "2026-03-08T22:45:56.695Z",
+    "2026-03-08T22:45:56.695Z",
+    "2026-03-08T23:05:23.648Z",
+    "2026-03-08T23:08:15.214Z",
+    "2026-03-08T23:09:06.976Z",
+    "2026-03-08T23:09:18.912Z",
+    "2026-03-08T23:09:46.674Z"
+  ]
+}

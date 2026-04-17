@@ -2271,6 +2271,7 @@ Also use the Read tool to read files and Bash to run commands.`
       expect(exists).toBe(true)
 
       const content = fsSync.readFileSync(configPath, 'utf8')
+      expect(content).toContain(`experimental_compact_prompt_file = "${tmpdir}/get-shit-done-reflect/templates/codex-compact-prompt.md"`)
       expect(content).toContain('[mcp_servers.context7]')
       expect(content).toContain('command = "npx"')
       expect(content).toContain('args = ["-y", "@upstash/context7-mcp"]')
@@ -2288,6 +2289,7 @@ Also use the Read tool to read files and Bash to run commands.`
       const content = fsSync.readFileSync(configPath, 'utf8')
       // User content preserved
       expect(content).toContain('model = "o3-mini"')
+      expect(content).toContain(`experimental_compact_prompt_file = "${tmpdir}/get-shit-done-reflect/templates/codex-compact-prompt.md"`)
       expect(content).toContain('[mcp_servers.my-server]')
       expect(content).toContain('command = "my-server"')
       // GSD MCP section appended
@@ -2300,6 +2302,8 @@ Also use the Read tool to read files and Bash to run commands.`
       generateCodexMcpConfig(tmpdir)
 
       const content = fsSync.readFileSync(path.join(tmpdir, 'config.toml'), 'utf8')
+      const compactPromptCount = (content.match(/experimental_compact_prompt_file/g) || []).length
+      expect(compactPromptCount).toBe(1)
       // Exactly ONE [mcp_servers.context7] entry (not duplicated)
       const context7Count = (content.match(/\[mcp_servers\.context7\]/g) || []).length
       expect(context7Count).toBe(1)

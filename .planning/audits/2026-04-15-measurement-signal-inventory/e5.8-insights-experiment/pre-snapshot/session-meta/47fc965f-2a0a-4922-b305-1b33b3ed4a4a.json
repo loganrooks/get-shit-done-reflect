@@ -1,0 +1,61 @@
+{
+  "session_id": "47fc965f-2a0a-4922-b305-1b33b3ed4a4a",
+  "project_path": "/home/rookslog/workspace/projects/zlibrary-mcp",
+  "start_time": "2026-03-10T23:51:23.671Z",
+  "duration_minutes": 313,
+  "user_message_count": 7,
+  "assistant_message_count": 61,
+  "tool_counts": {
+    "Glob": 6,
+    "Read": 9,
+    "Bash": 22,
+    "Write": 3,
+    "Skill": 1
+  },
+  "languages": {
+    "JSON": 6,
+    "Markdown": 6
+  },
+  "git_commits": 2,
+  "git_pushes": 0,
+  "input_tokens": 207,
+  "output_tokens": 6903,
+  "first_prompt": "why did the startup hook fail",
+  "user_interruptions": 1,
+  "user_response_times": [
+    2696.911,
+    1016.634,
+    1016.634,
+    1025.163
+  ],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "Other": 1,
+    "File Not Found": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 84,
+  "lines_removed": 0,
+  "files_modified": 3,
+  "message_hours": [
+    19,
+    21,
+    21,
+    0,
+    1,
+    1,
+    1
+  ],
+  "user_message_timestamps": [
+    "2026-03-10T23:51:33.729Z",
+    "2026-03-11T01:08:19.208Z",
+    "2026-03-11T01:09:00.011Z",
+    "2026-03-11T04:46:32.634Z",
+    "2026-03-11T05:04:32.727Z",
+    "2026-03-11T05:04:32.727Z",
+    "2026-03-11T05:04:41.256Z"
+  ]
+}

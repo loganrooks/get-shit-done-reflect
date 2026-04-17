@@ -411,11 +411,16 @@ describe('multi-runtime validation', () => {
       expect(exists, 'config.toml should exist after Codex install').toBe(true)
 
       const content = await fs.readFile(configTomlPath, 'utf8')
+      const compactPromptPath = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'templates', 'codex-compact-prompt.md').replace(/\\/g, '/')
+      expect(content).toContain(`experimental_compact_prompt_file = "${compactPromptPath}"`)
       expect(content).toContain('[mcp_servers.context7]')
       expect(content).toContain('command = "npx"')
       expect(content).toContain('args = ["-y", "@upstash/context7-mcp"]')
       expect(content).toContain('# GSD:BEGIN (get-shit-done-reflect-cc)')
       expect(content).toContain('# GSD:END (get-shit-done-reflect-cc)')
+
+      const promptExists = await fs.access(compactPromptPath).then(() => true).catch(() => false)
+      expect(promptExists, 'codex compact prompt file should exist after Codex install').toBe(true)
     })
   })
 

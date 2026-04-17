@@ -1,0 +1,72 @@
+{
+  "session_id": "12641e04-c5f9-4d90-8782-d61b8f569474",
+  "project_path": "/home/rookslog/workspace/projects/get-shit-done-reflect",
+  "start_time": "2026-03-08T23:33:15.404Z",
+  "duration_minutes": 920,
+  "user_message_count": 11,
+  "assistant_message_count": 108,
+  "tool_counts": {
+    "Bash": 30,
+    "Agent": 4,
+    "Read": 11,
+    "Grep": 8,
+    "Edit": 5,
+    "Glob": 1,
+    "ToolSearch": 1,
+    "AskUserQuestion": 1
+  },
+  "languages": {
+    "JavaScript": 14,
+    "Markdown": 2
+  },
+  "git_commits": 1,
+  "git_pushes": 1,
+  "input_tokens": 154,
+  "output_tokens": 14040,
+  "first_prompt": "since they fail in work trees",
+  "user_interruptions": 0,
+  "user_response_times": [
+    10.226,
+    10.227,
+    523.881,
+    523.881,
+    465.544
+  ],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "File Too Large": 1
+  },
+  "uses_task_agent": true,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 7,
+  "lines_removed": 5,
+  "files_modified": 2,
+  "message_hours": [
+    19,
+    19,
+    19,
+    19,
+    19,
+    19,
+    19,
+    19,
+    10,
+    10,
+    10
+  ],
+  "user_message_timestamps": [
+    "2026-03-08T23:33:16.111Z",
+    "2026-03-08T23:33:15.402Z",
+    "2026-03-08T23:33:21.272Z",
+    "2026-03-08T23:33:21.272Z",
+    "2026-03-08T23:37:51.486Z",
+    "2026-03-08T23:37:51.487Z",
+    "2026-03-08T23:47:11.216Z",
+    "2026-03-08T23:47:11.216Z",
+    "2026-03-09T14:21:37.309Z",
+    "2026-03-09T14:21:37.309Z",
+    "2026-03-09T14:30:29.176Z"
+  ]
+}

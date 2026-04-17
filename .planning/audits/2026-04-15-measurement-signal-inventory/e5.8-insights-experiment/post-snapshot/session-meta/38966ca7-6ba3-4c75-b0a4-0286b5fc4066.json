@@ -1,0 +1,60 @@
+{
+  "session_id": "38966ca7-6ba3-4c75-b0a4-0286b5fc4066",
+  "project_path": "/home/rookslog/workspace/projects/scholardoc",
+  "start_time": "2026-02-19T00:21:53.494Z",
+  "duration_minutes": 7,
+  "user_message_count": 7,
+  "assistant_message_count": 48,
+  "tool_counts": {
+    "Bash": 6,
+    "Read": 8,
+    "mcp__serena__get_symbols_overview": 1,
+    "mcp__serena__activate_project": 1,
+    "mcp__serena__check_onboarding_performed": 1,
+    "mcp__sequential-thinking__sequentialthinking": 4,
+    "AskUserQuestion": 2,
+    "Edit": 5
+  },
+  "languages": {
+    "Markdown": 13
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 63,
+  "output_tokens": 6916,
+  "first_prompt": "/gsd:plan-phase 1.1 continue where we left off but first, don't just \"verify\" the plans, but use it also as an opportunity to review and critique them as well, read the research report (is anything mi…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    104.145,
+    104.145
+  ],
+  "tool_errors": 1,
+  "tool_error_categories": {
+    "Command Failed": 1
+  },
+  "uses_task_agent": false,
+  "uses_mcp": true,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 19,
+  "lines_removed": 2,
+  "files_modified": 1,
+  "message_hours": [
+    19,
+    19,
+    19,
+    19,
+    19,
+    19,
+    19
+  ],
+  "user_message_timestamps": [
+    "2026-02-19T00:21:53.755Z",
+    "2026-02-19T00:21:53.487Z",
+    "2026-02-19T00:21:53.754Z",
+    "2026-02-19T00:22:25.007Z",
+    "2026-02-19T00:22:25.007Z",
+    "2026-02-19T00:24:38.436Z",
+    "2026-02-19T00:24:38.436Z"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "session_id": "3aa27582-30f2-4944-8d2b-1b1f5695d45d",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-16T08:08:24.997Z",
+  "duration_minutes": 0,
+  "user_message_count": 1,
+  "assistant_message_count": 7,
+  "tool_counts": {
+    "Read": 5
+  },
+  "languages": {
+    "Markdown": 5
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 35,
+  "output_tokens": 4935,
+  "first_prompt": "# Checkpoint 5 R5.17d Exclusion-Adjudication Cross-Vendor Prompt  Run an independent cross-vendor adjudication of the `R5.17a` / `R5.17b` / `R5.17c` exclusion-audit lanes.  This is not a sovereign syn…",
+  "user_interruptions": 0,
+  "user_response_times": [],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    4
+  ],
+  "user_message_timestamps": [
+    "2026-04-16T08:08:24.997Z"
+  ]
+}

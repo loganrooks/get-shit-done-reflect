@@ -1,0 +1,49 @@
+{
+  "session_id": "53c0c15a-ec27-474b-84c8-1cd420dfe243",
+  "project_path": "/home/rookslog/workspace/projects/prix-guesser",
+  "start_time": "2026-04-12T22:48:07.472Z",
+  "duration_minutes": 3,
+  "user_message_count": 4,
+  "assistant_message_count": 36,
+  "tool_counts": {
+    "Bash": 14,
+    "Read": 7
+  },
+  "languages": {
+    "JavaScript": 4,
+    "Shell": 2,
+    "JSON": 1
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 54,
+  "output_tokens": 25848,
+  "first_prompt": "where are all these write hook errors / pretool use errors coming from?",
+  "user_interruptions": 0,
+  "user_response_times": [
+    21.077
+  ],
+  "tool_errors": 2,
+  "tool_error_categories": {
+    "Command Failed": 2
+  },
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    18,
+    18,
+    18,
+    18
+  ],
+  "user_message_timestamps": [
+    "2026-04-12T22:48:20.954Z",
+    "2026-04-12T22:50:02.646Z",
+    "2026-04-12T22:51:27.338Z",
+    "2026-04-12T22:51:27.340Z"
+  ]
+}

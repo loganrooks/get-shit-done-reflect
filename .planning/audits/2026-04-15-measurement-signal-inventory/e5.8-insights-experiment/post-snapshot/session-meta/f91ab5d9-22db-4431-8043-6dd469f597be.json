@@ -1,0 +1,55 @@
+{
+  "session_id": "f91ab5d9-22db-4431-8043-6dd469f597be",
+  "project_path": "/home/rookslog/workspace/projects/f1-modeling",
+  "start_time": "2026-03-27T02:15:32.284Z",
+  "duration_minutes": 6,
+  "user_message_count": 9,
+  "assistant_message_count": 22,
+  "tool_counts": {
+    "Bash": 11,
+    "Read": 4
+  },
+  "languages": {
+    "Markdown": 2
+  },
+  "git_commits": 0,
+  "git_pushes": 0,
+  "input_tokens": 35,
+  "output_tokens": 4105,
+  "first_prompt": "can we review our roadmap and gsdr project context files and requirements for any gaps and how we might address them, and where they might be addressed (if there are any deliberations that address the…",
+  "user_interruptions": 0,
+  "user_response_times": [
+    255.944
+  ],
+  "tool_errors": 0,
+  "tool_error_categories": {},
+  "uses_task_agent": false,
+  "uses_mcp": false,
+  "uses_web_search": false,
+  "uses_web_fetch": false,
+  "lines_added": 0,
+  "lines_removed": 0,
+  "files_modified": 0,
+  "message_hours": [
+    22,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22,
+    22
+  ],
+  "user_message_timestamps": [
+    "2026-03-27T02:15:36.667Z",
+    "2026-03-27T02:15:36.661Z",
+    "2026-03-27T02:15:36.661Z",
+    "2026-03-27T02:15:41.970Z",
+    "2026-03-27T02:15:41.962Z",
+    "2026-03-27T02:15:41.962Z",
+    "2026-03-27T02:15:47.809Z",
+    "2026-03-27T02:15:47.809Z",
+    "2026-03-27T02:21:12.743Z"
+  ]
+}
