@@ -31,6 +31,11 @@
     "context_deferred"
   ],
   "automation_skip_reasons_doc": "Canonical skip_reason vocabulary for automation track-event writes. Per MEAS-GSDR-03, writes via automation.cjs cmdAutomationTrackEvent that use reasons outside this enum emit a warning (warn-not-fail) but still land. The extractor extractors/gsdr.cjs skip_reason_canonical (Wave 2 Plan 05) validates historical .planning/config.json automation.stats[feature].last_skip_reason values against this list. Source: anomaly-stress-tests.md E1.3 corrected claim, 2026-04-15.",
+  "measurement_skip_reasons": [
+    "tokenizer_unavailable",
+    "codex_reasoning_tokens_field_absent"
+  ],
+  "measurement_skip_reasons_doc": "Canonical skip_reason vocabulary for measurement extractors that ship schema-first or guard absent runtime fields. Phase 57.7 Plan 08 introduces tokenizer_unavailable for the Claude reasoning-token reconciler schema-only path and codex_reasoning_tokens_field_absent for the Codex direct-count absent-field guard.",
   "features": {
     "health_check": {
       "scope": "project",

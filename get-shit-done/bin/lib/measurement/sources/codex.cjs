@@ -50,6 +50,56 @@ function safeStat(filePath) {
   }
 }
 
+function readReasoningOutputTokens(record) {
+  if (!record || typeof record !== 'object') return null;
+  const tokenCount = record.token_count;
+  if (!tokenCount || typeof tokenCount !== 'object') return null;
+  const value = tokenCount.reasoning_output_tokens;
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return null;
+  return value;
+}
+
+function summarizeCodexReasoningTokens(thread) {
+  const rolloutPath = thread && typeof thread === 'object' ? thread.rollout_path : null;
+  if (!rolloutPath || typeof rolloutPath !== 'string' || !fs.existsSync(rolloutPath)) {
+    return { reasoning_tokens: null, field_present: false, records_scanned: 0 };
+  }
+
+  let raw;
+  try {
+    raw = fs.readFileSync(rolloutPath, 'utf8');
+  } catch {
+    return { reasoning_tokens: null, field_present: false, records_scanned: 0 };
+  }
+
+  let recordsScanned = 0;
+  let total = 0;
+  let fieldPresent = false;
+
+  for (const line of raw.split(/\r?\n/)) {
+    if (!line.trim()) continue;
+    recordsScanned++;
+
+    let parsed;
+    try {
+      parsed = JSON.parse(line);
+    } catch {
+      continue;
+    }
+
+    const value = readReasoningOutputTokens(parsed);
+    if (value === null) continue;
+    fieldPresent = true;
+    total += value;
+  }
+
+  return {
+    reasoning_tokens: fieldPresent ? total : null,
+    field_present: fieldPresent,
+    records_scanned: recordsScanned,
+  };
+}
+
 function scanRolloutEvents(rolloutPath) {
   const result = {
     count: 0,
@@ -527,6 +577,8 @@ module.exports = {
   inspectThreadSchema,
   loadCodex,
   parseSandboxPolicy,
+  readReasoningOutputTokens,
   readSessionMetaHeader,
   scanRolloutEvents,
+  summarizeCodexReasoningTokens,
 };
