@@ -464,6 +464,14 @@ Invalid flag tokens are sanitized and logged as warnings. Only recognized GSD fl
 | gsd-plan-checker | Sonnet | Sonnet | Haiku | Inherit |
 | gsd-integration-checker | Sonnet | Sonnet | Haiku | Inherit |
 | gsd-nyquist-auditor | Sonnet | Sonnet | Haiku | Inherit |
+| gsd-pattern-mapper | Sonnet | Sonnet | Haiku | Inherit |
+| gsd-ui-researcher | Opus | Sonnet | Haiku | Inherit |
+| gsd-ui-checker | Sonnet | Sonnet | Haiku | Inherit |
+| gsd-ui-auditor | Sonnet | Sonnet | Haiku | Inherit |
+| gsd-doc-writer | Opus | Sonnet | Haiku | Inherit |
+| gsd-doc-verifier | Sonnet | Sonnet | Haiku | Inherit |
+
+> **Fallback semantics for unlisted agents.** The profiles table above covers 18 of 31 shipped agents. Agents without an explicit profile row (`gsd-advisor-researcher`, `gsd-assumptions-analyzer`, `gsd-security-auditor`, `gsd-user-profiler`, and the nine advanced agents — `gsd-ai-researcher`, `gsd-domain-researcher`, `gsd-eval-planner`, `gsd-eval-auditor`, `gsd-framework-selector`, `gsd-code-reviewer`, `gsd-code-fixer`, `gsd-debug-session-manager`, `gsd-intel-updater`) inherit the runtime default model for the selected profile. To pin a specific model for any of these agents, use `model_overrides` (next section) — `model_overrides` accepts any shipped agent name regardless of whether it has a profile row here. The authoritative profile table lives in `get-shit-done/bin/lib/model-profiles.cjs`; the authoritative 31-agent roster lives in [`docs/INVENTORY.md`](INVENTORY.md).
 
 ### Per-Agent Overrides
 
