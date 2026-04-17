@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: in_progress
-stopped_at: Completed Wave 3 of Phase 57.7 (Plans 05-06)
-last_updated: "2026-04-17T05:51:14Z"
-last_activity: 2026-04-17 -- Phase 57.7 Wave 3 complete (intervention shipping + metadata/privacy groundwork)
+stopped_at: Completed Plan 07 of Phase 57.7 (Wave 4 in progress)
+last_updated: "2026-04-17T06:02:10Z"
+last_activity: 2026-04-17 -- Phase 57.7 Plan 07 complete (interpretation-layer deepening + privacy/provenance rendering)
 progress:
   total_phases: 20
   completed_phases: 11
   total_plans: 47
-  completed_plans: 43
+  completed_plans: 44
   percent: 55
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — Wave 3 is complete: `intervention_points` is live, the registry vocabulary is backfilled for diagnostic traversal, and the privacy/intervention sidecar docs now exist. Next up: Wave 4 (`57.7-07` through `57.7-09`) for interpretation-layer deepening, reasoning-token reconciliation, and reasoning-quality proxy shipping.
+**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — Plan 07 is complete: interpretation-layer joins are live, privacy lines now name computed content-derived features, and two loop reports emit explicit provenance lines. Next up: finish Wave 4 with Plans `57.7-08` and `57.7-09` for reasoning-token reconciliation and reasoning-quality proxy shipping.
 
 ## Current Position
 
 Phase: 57.7 of 64 (Content Analysis & Epistemic Deepening) — In Progress
-Plan: 6 of 10
-Status: Wave 3 complete; Plans 05-06 landed and the next plans are 57.7-07, 57.7-08, and 57.7-09.
-Last activity: 2026-04-17 -- Phase 57.7 Wave 3 complete (intervention shipping + metadata/privacy groundwork)
+Plan: 7 of 10
+Status: Wave 4 in progress; Plan 07 landed and the next plans are 57.7-08 and 57.7-09 before the Plan 10 demo wave.
+Last activity: 2026-04-17 -- Phase 57.7 Plan 07 complete (interpretation-layer deepening + privacy/provenance rendering)
 
 Progress: [██████░░░░] 55%
 
@@ -36,7 +36,7 @@ Progress: [██████░░░░] 55%
 
 **v1.20 Current:**
 
-- Plans completed: 34
+- Plans completed: 35
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -71,6 +71,7 @@ Progress: [██████░░░░] 55%
 - 57.7-04: 10min, 2 tasks, 4 files
 - 57.7-05: 10min, 2 tasks, 4 files
 - 57.7-06: 5min, 2 tasks, 5 files
+- 57.7-07: 11min, 3 tasks, 6 files
 
 **v1.18 Final:**
 
@@ -88,6 +89,8 @@ v1.13-v1.18 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
 
+- [Phase 57.7 Plan 07 2026-04-17]: `queryMeasurement()` now deepens interpretations in a post-pass with a lazy registry singleton and canonical `extractFrontmatter()` joins, so the base interpretation builder stays stable while provenance remains resolution-on-demand.
+- [Phase 57.7 Plan 07 2026-04-17]: The governed provenance string is the conservative four-part form (`surviving_challenge_from_* | grounded_in_*_interventions | carrying_*_tracked_anomalies | revisions=[...]`), and the report privacy line names computed content-derived features instead of only reporting a count.
 - [Phase 57.7 Plan 06 2026-04-17]: Diagnostic distinguishing features live in prose, not YAML, so the audit transcribes them manually and backfills registry vocabulary additively rather than inventing a parser mid-phase
 - [Phase 57.7 Plan 06 2026-04-17]: `.planning/measurement/interventions/README.md` uses existing interpretation ids (`phase_57_5_live_registry_query`, `diag-*`) as exact-match keys; no new identifier layer was introduced
 - [Phase 57.7 Plan 05 2026-04-17]: `intervention_points` ships live with heuristic version `57.7-v1`; the calibrated structural marker set counts Claude's explicit `[Request interrupted by user]` placeholder as a valid interrupt signal
