@@ -1,7 +1,9 @@
 'use strict';
 
 const fs = require('node:fs');
+const path = require('node:path');
 
+const { extractFrontmatter } = require('../../frontmatter.cjs');
 const { buildFeatureRecord, defineExtractor } = require('../registry.cjs');
 const {
   countClearInvocations,
@@ -11,12 +13,219 @@ const {
   scanToolInvocationSequence,
   scanTopicShiftMarkers,
 } = require('../sources/claude.cjs');
+const { loadCodex, summarizeCodexReasoningTokens } = require('../sources/codex.cjs');
 
 const MARKER_REGEX_SELF_CORRECTION = /\b(actually|wait|reconsider|correction|let me reconsider|on (second )?thought|I was wrong|revise)\b/gi;
 const MARKER_REGEX_UNCERTAINTY = /\b(not sure|uncertain|might(?: not)?|unclear|perhaps|possibly|I think|may(?: not)?)\b/gi;
 
 function getClaudeDataset(context) {
   return context && context.claude ? context.claude : loadClaude(context.cwd, context && context.claudeOptions ? context.claudeOptions : {});
+}
+
+function getCodexDataset(context) {
+  return context && context.codex ? context.codex : loadCodex(context.cwd, context && context.codexOptions ? context.codexOptions : {});
+}
+
+let _jsTiktoken = undefined;
+
+function getJsTiktokenModule() {
+  if (_jsTiktoken !== undefined) return _jsTiktoken;
+  try {
+    _jsTiktoken = require('js-tiktoken');
+  } catch {
+    _jsTiktoken = null;
+  }
+  return _jsTiktoken;
+}
+
+function normalizeReasoningTokenizerVerdict(verdict) {
+  const normalized = String(verdict || '')
+    .split(':')[0]
+    .trim()
+    .toUpperCase();
+  return normalized || 'UNKNOWN';
+}
+
+function loadReasoningTokenizerDecision(cwd) {
+  const decisionPath = path.join(
+    cwd || process.cwd(),
+    '.planning',
+    'spikes',
+    '011-C3-tokenizer-availability',
+    'DECISION.md'
+  );
+  if (!fs.existsSync(decisionPath)) {
+    return {
+      decision_path: decisionPath,
+      verdict: null,
+      verdict_key: 'UNKNOWN',
+      production_dependency_decision: null,
+      tokenizer_id: null,
+    };
+  }
+
+  const frontmatter = extractFrontmatter(fs.readFileSync(decisionPath, 'utf8'));
+  const verdict = frontmatter.verdict || null;
+  return {
+    decision_path: decisionPath,
+    verdict,
+    verdict_key: normalizeReasoningTokenizerVerdict(verdict),
+    production_dependency_decision: frontmatter.production_dependency_decision || null,
+    tokenizer_id: frontmatter.tokenizer_id || null,
+  };
+}
+
+function getReasoningTokenizerDecision(context) {
+  if (context && context.reasoningTokenizerDecision && typeof context.reasoningTokenizerDecision === 'object') {
+    const override = context.reasoningTokenizerDecision;
+    return {
+      decision_path: override.decision_path || null,
+      verdict: override.verdict || null,
+      verdict_key: normalizeReasoningTokenizerVerdict(override.verdict),
+      production_dependency_decision: override.production_dependency_decision || null,
+      tokenizer_id: override.tokenizer_id || null,
+    };
+  }
+  return loadReasoningTokenizerDecision(context && context.cwd ? context.cwd : process.cwd());
+}
+
+function reasoningTokenizerLiveAllowed(decision) {
+  return normalizeReasoningTokenizerVerdict(decision && decision.verdict) === 'PASS'
+    && decision
+    && decision.production_dependency_decision === 'approve_top_level_dependency';
+}
+
+function getReasoningTokenCounter(context, decision) {
+  if (context && typeof context.reasoningTokenCounter === 'function') {
+    return context.reasoningTokenCounter;
+  }
+  if (!reasoningTokenizerLiveAllowed(decision)) {
+    return null;
+  }
+
+  const jsTiktoken = getJsTiktokenModule();
+  if (!jsTiktoken || typeof jsTiktoken.getEncoding !== 'function') {
+    return null;
+  }
+
+  try {
+    const encoding = jsTiktoken.getEncoding(decision.tokenizer_id || 'cl100k_base');
+    return (text) => {
+      if (typeof text !== 'string' || text.length === 0) return 0;
+      return encoding.encode(text).length;
+    };
+  } catch {
+    return null;
+  }
+}
+
+function tokenizerSchemaOnlyReason(decision, tokenCounter) {
+  const reasons = [];
+  const verdict = normalizeReasoningTokenizerVerdict(decision && decision.verdict);
+  if (verdict !== 'PASS') reasons.push(`verdict=${decision && decision.verdict ? decision.verdict : 'unknown'}`);
+  if (!decision || decision.production_dependency_decision !== 'approve_top_level_dependency') {
+    reasons.push(`production_dependency_decision=${decision && decision.production_dependency_decision ? decision.production_dependency_decision : 'unknown'}`);
+  }
+  if (reasoningTokenizerLiveAllowed(decision) && typeof tokenCounter !== 'function') {
+    reasons.push('tokenizer_dependency_missing');
+  }
+  return reasons.length > 0 ? reasons.join(', ') : 'schema_only_guard';
+}
+
+function buildCodexCoverage(raw, thread) {
+  const observedSources = [];
+  const missingSources = [];
+
+  if (raw && raw.state_store && raw.state_store.exists) observedSources.push('codex_state_store');
+  else missingSources.push('codex_state_store');
+
+  if (thread && thread.session_meta && thread.session_meta.status === 'matched') observedSources.push('codex_sessions');
+  else missingSources.push('codex_sessions');
+
+  return {
+    raw_sources: ['codex_state_store', 'codex_sessions'],
+    observed_sources: observedSources,
+    missing_sources: missingSources,
+    session_meta_status: thread && thread.session_meta ? thread.session_meta.status : 'missing',
+    complete: missingSources.length === 0,
+  };
+}
+
+function collectVisibleOutputText(records) {
+  let text = '';
+
+  for (const record of records || []) {
+    if (!record || record.type !== 'assistant') continue;
+    const content = record.message && Array.isArray(record.message.content) ? record.message.content : [];
+
+    for (const block of content) {
+      if (!block) continue;
+      if (block.type === 'text' && typeof block.text === 'string') {
+        text += block.text;
+        continue;
+      }
+      if (block.type === 'tool_use' && typeof block.name === 'string') {
+        text += block.name;
+      }
+    }
+  }
+
+  return text;
+}
+
+function collectThinkingOutputText(records) {
+  let text = '';
+
+  for (const record of records || []) {
+    if (!record || record.type !== 'assistant') continue;
+    const content = record.message && Array.isArray(record.message.content) ? record.message.content : [];
+
+    for (const block of content) {
+      if (!block || block.type !== 'thinking') continue;
+      if (typeof block.thinking === 'string') {
+        text += block.thinking;
+        continue;
+      }
+      if (typeof block.text === 'string') {
+        text += block.text;
+      }
+    }
+  }
+
+  return text;
+}
+
+function computeSessionReasoningDelta(records, countTokens) {
+  if (typeof countTokens !== 'function') {
+    return {
+      reasoning_tokens: null,
+      negative_delta_flag: null,
+      output_tokens_total: 0,
+      visible_output_tokens: 0,
+      thinking_summary_tokens: 0,
+    };
+  }
+
+  let totalOutput = 0;
+  for (const record of records || []) {
+    if (!record || record.type !== 'assistant') continue;
+    const usage = record.message && record.message.usage;
+    totalOutput += typeof usage && usage && typeof usage.output_tokens === 'number'
+      ? usage.output_tokens
+      : 0;
+  }
+
+  const visibleOutputTokens = countTokens(collectVisibleOutputText(records));
+  const thinkingSummaryTokens = countTokens(collectThinkingOutputText(records));
+  const reasoningTokens = totalOutput - visibleOutputTokens - thinkingSummaryTokens;
+
+  return {
+    reasoning_tokens: reasoningTokens,
+    negative_delta_flag: reasoningTokens < 0,
+    output_tokens_total: totalOutput,
+    visible_output_tokens: visibleOutputTokens,
+    thinking_summary_tokens: thinkingSummaryTokens,
+  };
 }
 
 function getThinkingSnapshot(session) {
@@ -999,6 +1208,178 @@ const interventionPointsExtractor = defineExtractor({
   },
 });
 
+const reasoningTokensReconcilerExtractor = defineExtractor({
+  name: 'reasoning_tokens_reconciler',
+  source_family: 'RUNTIME',
+  raw_sources: ['claude_session_meta', 'claude_jsonl_projects', 'codex_state_store', 'codex_sessions'],
+  runtimes: ['claude-code', 'codex-cli'],
+  reliability_tier: 'inferred',
+  features_produced: ['reasoning_tokens'],
+  serves_loop: ['agent_performance', 'cross_runtime_comparison'],
+  distinguishes: ['reasoning_load', 'thinking_token_budget', 'runtime_tokenization_asymmetry'],
+  status_semantics: ['exposed', 'not_available'],
+  extract(extractor, context) {
+    const results = [];
+    const claude = getClaudeDataset(context);
+    const codex = getCodexDataset(context);
+    const decision = getReasoningTokenizerDecision(context);
+    const tokenCounter = getReasoningTokenCounter(context, decision);
+    const liveClaudeMode = reasoningTokenizerLiveAllowed(decision) && typeof tokenCounter === 'function';
+
+    for (const session of claude.sessions || []) {
+      const matched = session.parent_jsonl && session.parent_jsonl.status === 'matched';
+      if (!matched) {
+        results.push(buildFeatureRecord(extractor, {
+          feature_name: `reasoning_tokens:${session.session_id}`,
+          runtime: 'claude-code',
+          availability_status: 'not_available',
+          symmetry_marker: 'asymmetric_only',
+          reliability_tier: 'artifact_derived',
+          value: {
+            session_id: session.session_id,
+            reasoning_tokens: null,
+            reasoning_tokens_source: null,
+            negative_delta_flag: null,
+            tokenizer_id: decision.tokenizer_id || null,
+            skip_reason: 'parent_jsonl_not_matched',
+          },
+          coverage: buildCoverage(session),
+          provenance: {
+            session_id: session.session_id,
+            parent_jsonl_status: session.parent_jsonl.status,
+            decision_path: decision.decision_path,
+            verdict: decision.verdict,
+            production_dependency_decision: decision.production_dependency_decision,
+          },
+          freshness: combineFreshness(context.observed_at, [session.session_meta.path, session.parent_jsonl.path].filter(Boolean)),
+          notes: ['Parent JSONL was not matched, so the Claude reasoning-token delta could not be computed.'],
+        }));
+        continue;
+      }
+
+      if (liveClaudeMode) {
+        const delta = computeSessionReasoningDelta(session.parent_jsonl.records, tokenCounter);
+        results.push(buildFeatureRecord(extractor, {
+          feature_name: `reasoning_tokens:${session.session_id}`,
+          runtime: 'claude-code',
+          availability_status: 'exposed',
+          symmetry_marker: 'asymmetric_only',
+          reliability_tier: 'inferred',
+          value: {
+            session_id: session.session_id,
+            reasoning_tokens: delta.reasoning_tokens,
+            reasoning_tokens_source: 'derived_delta',
+            negative_delta_flag: delta.negative_delta_flag,
+            tokenizer_id: decision.tokenizer_id || 'cl100k_base',
+            skip_reason: null,
+          },
+          coverage: buildCoverage(session),
+          provenance: {
+            session_id: session.session_id,
+            decision_path: decision.decision_path,
+            verdict: decision.verdict,
+            production_dependency_decision: decision.production_dependency_decision,
+            formula: 'raw_thinking_tokens = output_tokens - tokens(visible_output) - tokens(thinking_summary)',
+            output_tokens_total: delta.output_tokens_total,
+            visible_output_tokens: delta.visible_output_tokens,
+            thinking_summary_tokens: delta.thinking_summary_tokens,
+          },
+          freshness: combineFreshness(context.observed_at, [session.parent_jsonl.path].filter(Boolean)),
+          notes: delta.negative_delta_flag
+            ? ['Negative delta detected on the Claude derived branch; downstream diagnostics should treat it as a flagged anomaly, not a hard failure.']
+            : [],
+        }));
+        continue;
+      }
+
+      const schemaOnlyReason = tokenizerSchemaOnlyReason(decision, tokenCounter);
+      results.push(buildFeatureRecord(extractor, {
+        feature_name: `reasoning_tokens:${session.session_id}`,
+        runtime: 'claude-code',
+        availability_status: 'not_available',
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'inferred',
+        value: {
+          session_id: session.session_id,
+          reasoning_tokens: null,
+          reasoning_tokens_source: null,
+          negative_delta_flag: null,
+          tokenizer_id: decision.tokenizer_id || null,
+          skip_reason: 'tokenizer_unavailable',
+        },
+        coverage: buildCoverage(session),
+        provenance: {
+          session_id: session.session_id,
+          decision_path: decision.decision_path,
+          verdict: decision.verdict,
+          production_dependency_decision: decision.production_dependency_decision,
+          schema_only_reason: schemaOnlyReason,
+        },
+        freshness: combineFreshness(context.observed_at, [session.parent_jsonl.path].filter(Boolean)),
+        notes: [`Schema-only ship mode for Claude reasoning tokens: ${schemaOnlyReason}.`],
+      }));
+    }
+
+    for (const thread of codex.threads || []) {
+      const summary = summarizeCodexReasoningTokens(thread);
+      if (summary.field_present) {
+        results.push(buildFeatureRecord(extractor, {
+          feature_name: `reasoning_tokens:${thread.thread_id}`,
+          runtime: 'codex-cli',
+          availability_status: 'exposed',
+          symmetry_marker: 'asymmetric_only',
+          reliability_tier: 'direct_observation',
+          value: {
+            thread_id: thread.thread_id,
+            reasoning_tokens: summary.reasoning_tokens,
+            reasoning_tokens_source: 'direct_count',
+            negative_delta_flag: false,
+            tokenizer_id: null,
+            skip_reason: null,
+          },
+          coverage: buildCodexCoverage(codex, thread),
+          provenance: {
+            thread_id: thread.thread_id,
+            rollout_path: thread.rollout_path,
+            source_field: 'token_count.reasoning_output_tokens',
+            records_scanned: summary.records_scanned,
+          },
+          freshness: thread.freshness,
+          notes: ['Codex reasoning tokens come directly from rollout metadata rather than a derived tokenization formula.'],
+        }));
+        continue;
+      }
+
+      results.push(buildFeatureRecord(extractor, {
+        feature_name: `reasoning_tokens:${thread.thread_id}`,
+        runtime: 'codex-cli',
+        availability_status: 'not_available',
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'direct_observation',
+        value: {
+          thread_id: thread.thread_id,
+          reasoning_tokens: null,
+          reasoning_tokens_source: null,
+          negative_delta_flag: null,
+          tokenizer_id: null,
+          skip_reason: 'codex_reasoning_tokens_field_absent',
+        },
+        coverage: buildCodexCoverage(codex, thread),
+        provenance: {
+          thread_id: thread.thread_id,
+          rollout_path: thread.rollout_path,
+          source_field: 'token_count.reasoning_output_tokens',
+          records_scanned: summary.records_scanned,
+        },
+        freshness: thread.freshness,
+        notes: ['Pitfall 4 guard: no Codex reasoning-token field was present in the rollout, so the extractor ships schema-only for this thread.'],
+      }));
+    }
+
+    return results;
+  },
+});
+
 const RUNTIME_EXTRACTORS = Object.freeze([
   runtimeSessionIdentityExtractor,
   claudeSettingsAtStartExtractor,
@@ -1013,9 +1394,15 @@ const RUNTIME_EXTRACTORS = Object.freeze([
   toolInvocationSequenceExtractor,
   topicShiftMarkersExtractor,
   interventionPointsExtractor,
+  reasoningTokensReconcilerExtractor,
 ]);
 
 module.exports = {
+  computeSessionReasoningDelta,
+  getReasoningTokenizerDecision,
+  loadReasoningTokenizerDecision,
+  normalizeReasoningTokenizerVerdict,
+  reasoningTokenizerLiveAllowed,
   RUNTIME_EXTRACTORS,
   claudeCompactionEventsExtractor,
   claude_compaction_events: claudeCompactionEventsExtractor,
@@ -1041,4 +1428,6 @@ module.exports = {
   topic_shift_markers: topicShiftMarkersExtractor,
   interventionPointsExtractor,
   intervention_points: interventionPointsExtractor,
+  reasoningTokensReconcilerExtractor,
+  reasoning_tokens_reconciler: reasoningTokensReconcilerExtractor,
 };
