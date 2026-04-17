@@ -578,7 +578,7 @@ GSD stores project settings in `.planning/config.json`. Configure during `/gsd-n
     "ui_phase": true,
     "ui_safety_gate": true,
     "research_before_questions": false,
-    "discuss_mode": "standard",
+    "discuss_mode": "discuss",
     "skip_discuss": false
   },
   "resolve_model_ids": "anthropic",
@@ -623,7 +623,7 @@ GSD stores project settings in `.planning/config.json`. Configure during `/gsd-n
 | `workflow.ui_phase` | `true`, `false` | `true` | Generate UI design contracts for frontend phases |
 | `workflow.ui_safety_gate` | `true`, `false` | `true` | plan-phase prompts to run /gsd-ui-phase for frontend phases |
 | `workflow.research_before_questions` | `true`, `false` | `false` | Run research before discussion questions instead of after |
-| `workflow.discuss_mode` | `standard`, `assumptions` | `standard` | Discussion style: open-ended questions vs. codebase-driven assumptions |
+| `workflow.discuss_mode` | `discuss`, `assumptions` | `discuss` | Discussion style: open-ended questions vs. codebase-driven assumptions |
 | `workflow.skip_discuss` | `true`, `false` | `false` | Skip discuss-phase entirely in autonomous mode; writes minimal CONTEXT.md from ROADMAP phase goal |
 | `response_language` | language code | (none) | Agent response language for cross-phase consistency (e.g., `"pt"`, `"ko"`, `"ja"`) |
 
