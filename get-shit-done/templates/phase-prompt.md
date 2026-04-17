@@ -15,6 +15,39 @@ Template for `.planning/phases/XX-name/{phase}-{plan}-PLAN.md` - executable phas
 ---
 phase: XX-name
 plan: NN
+signature:
+  role: planner
+  harness: "[codex-cli|claude-code|not_available]"
+  platform: "[codex|claude|not_available]"
+  vendor: "[openai|anthropic|not_available]"
+  model: "[model-identifier|not_available]"
+  reasoning_effort: "[xhigh|high|medium|not_available]"
+  profile: "[quality|balanced|budget|not_available]"
+  gsd_version: "[version|not_available]"
+  generated_at: "YYYY-MM-DDTHH:MM:SSZ"
+  session_id: "[runtime-session-id|not_available]"
+  provenance_status:
+    role: derived
+    harness: "[exposed|derived|not_available]"
+    platform: "[exposed|derived|not_available]"
+    vendor: "[exposed|derived|not_available]"
+    model: "[exposed|derived|not_available]"
+    reasoning_effort: "[exposed|derived|not_available]"
+    profile: "[exposed|derived|not_available]"
+    gsd_version: "[exposed|derived|not_available]"
+    generated_at: exposed
+    session_id: "[exposed|derived|not_available]"
+  provenance_source:
+    role: artifact_role
+    harness: "[runtime_context|derived_from_harness|not_available]"
+    platform: "[runtime_context|derived_from_harness|not_available]"
+    vendor: "[runtime_context|derived_from_harness|not_available]"
+    model: "[codex_state_store|resolveModelInternal|not_available]"
+    reasoning_effort: "[codex_state_store|codex_profile_resolution|not_available]"
+    profile: "[config|not_available]"
+    gsd_version: "[installed_harness|config|repo_mirror|not_available]"
+    generated_at: writer_clock
+    session_id: "[env:CODEX_THREAD_ID|env:CLAUDE_SESSION_ID|not_available]"
 type: execute
 wave: N                     # Execution wave (1, 2, 3...). Pre-computed at plan time.
 depends_on: []              # Plan IDs this plan requires (e.g., ["01-01"]).
@@ -124,6 +157,7 @@ After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 |-------|----------|---------|
 | `phase` | Yes | Phase identifier (e.g., `01-foundation`) |
 | `plan` | Yes | Plan number within phase (e.g., `01`, `02`) |
+| `signature` | Yes | Required nested writer provenance for the planner artifact. Missing runtime facts stay `not_available` and must still have matching `provenance_status` / `provenance_source` entries. |
 | `type` | Yes | Always `execute` for standard plans, `tdd` for TDD plans |
 | `wave` | Yes | Execution wave number (1, 2, 3...). Pre-computed at plan time. |
 | `depends_on` | Yes | Array of plan IDs this plan requires. |
@@ -135,6 +169,8 @@ After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 **Wave is pre-computed:** Wave numbers are assigned during `/gsd:plan-phase`. Execute-phase reads `wave` directly from frontmatter and groups plans by wave number. No runtime dependency analysis needed.
 
 **Must-haves enable verification:** The `must_haves` field carries goal-backward requirements from planning to execution. After all plans complete, execute-phase spawns a verification subagent that checks these criteria against the actual codebase.
+
+**Signature is required:** PLAN writers must emit the full nested `signature` block. If the runtime does not expose a fact such as `session_id` or `reasoning_effort`, write `not_available` and mark the corresponding `provenance_status` / `provenance_source` entries instead of guessing.
 
 ---
 

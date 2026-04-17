@@ -351,6 +351,8 @@ Create `{phase}-{plan}-SUMMARY.md` at `.planning/phases/XX-name/`. Use `~/.claud
 
 **Frontmatter:** phase, plan, subsystem, tags | requires/provides/affects | tech-stack.added/patterns | key-files.created/modified | key-decisions | duration ($DURATION), completed ($PLAN_END_TIME date).
 
+`signature` is required on every SUMMARY and VERIFICATION artifact. Populate it at write time from the shared provenance helper (`buildArtifactSignature`) or the equivalent `gsd-tools` path. When the runtime does not expose a value such as `session_id` or `reasoning_effort`, write `not_available` and preserve the matching `provenance_status` / `provenance_source` entries instead of guessing.
+
 Title: `# Phase [X] Plan [Y]: [Name] Summary`
 
 One-liner SUBSTANTIVE: "JWT auth with refresh rotation using jose library" not "Authentication implemented"

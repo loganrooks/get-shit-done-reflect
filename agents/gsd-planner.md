@@ -335,6 +335,7 @@ Derive plans from actual work. Depth determines compression tolerance, not a tar
 ---
 phase: XX-name
 plan: NN
+signature: [required nested planner signature block; see get-shit-done/templates/phase-prompt.md]
 type: execute
 wave: N                     # Execution wave (1, 2, 3...)
 depends_on: []              # Plan IDs this plan requires
@@ -394,6 +395,8 @@ Output: [Artifacts created]
 After completion, create `.planning/phases/XX-name/{phase}-{plan}-SUMMARY.md`
 </output>
 ```
+
+Every PLAN frontmatter must include the required nested `signature` block. Set `signature.role` to `planner`, populate any exposed or derived runtime facts you can justify, and write `not_available` for missing facts with matching `provenance_status` / `provenance_source` entries. Do not leave placeholder provenance for executors to guess later.
 
 ## Frontmatter Fields
 
@@ -636,6 +639,7 @@ TDD candidates identified in task_breakdown get dedicated plans (type: tdd). One
 ---
 phase: XX-name
 plan: NN
+signature: [required nested planner signature block]
 type: tdd
 ---
 
@@ -721,6 +725,7 @@ grep -l "status: diagnosed" "$phase_dir"/*-UAT.md 2>/dev/null
 ---
 phase: XX-name
 plan: NN              # Sequential after existing
+signature: [required nested planner signature block]
 type: execute
 wave: 1               # Gap closures typically single wave
 depends_on: []
