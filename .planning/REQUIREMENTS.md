@@ -176,7 +176,7 @@ Dependencies: TEL-01a -> TEL-01b -> TEL-02
   - *Motivation:* `anomaly-stress-tests.md §6.10; E2 schema + aggregation verification`
 - [ ] **MEAS-GSDR-05**: Fix kb.db freshness automation — BLOCKS MEAS-GSDR-04. No workflow call site invokes `gsd-tools.cjs kb rebuild`; all invoke `kb-rebuild-index.sh` which only updates the markdown index (naming-collision bug). Recommended fix: have `kb-rebuild-index.sh` also invoke `node gsd-tools.cjs kb rebuild` internally — one call site, two artifacts updated, no agent/workflow edits. Alternative: replace all call sites explicitly
   - *Motivation:* `anomaly-stress-tests.md §6.11; E2 Layer 4 root-cause; signal sig-2026-04-16-kb-db-freshness-automation-missing`
-- [ ] **MEAS-GSDR-06**: Fix or remove FTS5 — `signal_fts` virtual table declared but never populated; external-content mode references nonexistent `title`/`body` columns on `signals`. Three options: (a) add title/body + INSERT path; (b) drop FTS5 entirely and use ripgrep (smallest change, recommended for now); (c) rewrite as contentless FTS5. Revisit when a concrete MEAS- feature needs full-text search
+- [x] **MEAS-GSDR-06**: Fix or remove FTS5 — `signal_fts` virtual table declared but never populated; external-content mode references nonexistent `title`/`body` columns on `signals`. Three options: (a) add title/body + INSERT path; (b) drop FTS5 entirely and use ripgrep (smallest change, recommended for now); (c) rewrite as contentless FTS5. Revisit when a concrete MEAS- feature needs full-text search (resolved in Phase 57.7 Plan 03 — option (b) drop signal_fts)
   - *Motivation:* `anomaly-stress-tests.md §6.12; E2 Layer 5; signal sig-2026-04-16-fts5-declared-but-unused`
 
 ### Structural Enforcement
@@ -428,7 +428,7 @@ Updated during roadmap creation.
 | MEAS-GSDR-03 | Phase 57.6 | Pending |
 | MEAS-GSDR-04 | Phase 57.5 | Complete |
 | MEAS-GSDR-05 | Phase 57.5 | Complete |
-| MEAS-GSDR-06 | Phase 57.7 | Pending |
+| MEAS-GSDR-06 | Phase 57.7 | Complete |
 | KB-04b | Phase 59 | Pending |
 | KB-04c | Phase 59 | Pending |
 | KB-06a | Phase 59 | Pending |
