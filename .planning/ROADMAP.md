@@ -28,7 +28,7 @@
 - [x] **Phase 57.3: Audit Workflow Infrastructure** - Formalize audit conventions: date-first directories, task spec preservation, epistemic ground rules for audit agents *(core design commitments — flat 8-type taxonomy, template-based body structure, type-family ground rules — partially superseded by Phase 57.4 after running real audits revealed the flat taxonomy did not express the complexities of the auditing situation; see Phase 57.4 for the 3-axis reconstruction)*
 - [x] **Phase 57.4: Audit Skill & Investigatory Type** - Radically rethink the formalization of the auditing workflow: the Phase 57.3 flat 8-type taxonomy + template paradigm + ground rules 1-4 do not express the complexities of the auditing situation. This phase supersedes Phase 57.3's core design commitments with a 3-axis taxonomy (subject × orientation × delegation), an obligations-based output paradigm governed by a hermeneutic composition principle, frame-reflexivity Rule 5, I1-I4 investigatory ground rules, and three new obligations from retrospective analysis (chain integrity, dispatch hygiene, framework invisibility). Deliverables: /gsdr:audit command + gsdr-auditor agent, rewritten audit-conventions.md and audit-ground-rules.md, formalized cross-model delegation (WF-01 pulled forward from Phase 62)
 - [x] **Phase 57.5: Measurement Architecture & Retroactive Foundation** - Three-layer measurement architecture (raw → extractor registry → interpretation) that retroactively analyzes existing session and artifact corpora, with cross-platform schema from day one and minimum-viable post-Popperian epistemic machinery (competing interpretations, distinguishing features, anomaly register per interpretation). Covers intervention-lifecycle and pipeline-integrity loops; proves cross-platform with at least one Codex extractor (completed 2026-04-16)
-- [ ] **Phase 57.6: Multi-Loop Coverage & Human Interface** - Extend extractor coverage to all remaining self-improvement loops (agent-performance, signal-quality, cross-session patterns, cross-runtime comparison), add human-readable text-first visualization, and demonstrate actual use of the system to diagnose an observed pattern end-to-end
+- [x] **Phase 57.6: Multi-Loop Coverage & Human Interface** - Extend extractor coverage to all remaining self-improvement loops (agent-performance, signal-quality, cross-session patterns, cross-runtime comparison), add human-readable text-first visualization, and demonstrate actual use of the system to diagnose an observed pattern end-to-end (completed 2026-04-17)
 - [ ] **Phase 57.7: Content Analysis & Epistemic Deepening** - Session-content extractors (structural patterns in transcripts with documented privacy model), automated distinguishing-feature suggestion, intervention-outcome tracking, interpretation revision classification (progressive vs degenerating per Lakatos), full epistemic provenance on all interpretations
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns, plus GATE-09 scope-translation ledger (meta-fix for Phase 57 scope-narrowing cascade)
 - [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
@@ -237,16 +237,16 @@ Derived from: `.planning/audits/2026-04-10-phase-57-vision-drop-investigation/` 
   5. Expanded Codex coverage beyond the single proof-of-concept extractor from 57.5 (compaction extractor is a natural cross-runtime bridge)
   6. Facets (MEAS-DERIVED-02) adopted with mandatory coverage-stratification clause on every aggregate analysis — stratify by session size
 Authority: `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` §5 Phase 57.6 scope
-**Plans:** 7 plans
+**Plans:** 7/7 plans complete and verified 2026-04-17 (`57.6-VERIFICATION.md`: passed 6/6)
 
 Plans:
-- [ ] 57.6-01-PLAN.md — Layered serves_loop tag edits on 9 existing extractors (close 57.5 residual tech debt)
-- [ ] 57.6-02-PLAN.md — Stratification helper + canonical skip_reason enum in feature-manifest.json
-- [ ] 57.6-03-PLAN.md — Source loader extensions (thinking/clear/compaction scans in claude.cjs + codex.cjs)
-- [ ] 57.6-04-PLAN.md — Runtime + Codex extractors (thinking, marker density, clear invocation, compaction cross-runtime)
-- [ ] 57.6-05-PLAN.md — Derived + GSDR extractors (facets semantic, write-path provenance, insights mass-rewrite, skip-reason canonical) + automation warn-validation
-- [ ] 57.6-06-PLAN.md — Text-first report layer (primitives + dispatch + 6 per-loop templates + router)
-- [ ] 57.6-07-PLAN.md — Two committed diagnostic artifacts (vision-drop + facets coverage asymmetry)
+- [x] 57.6-01-PLAN.md — Layered serves_loop tag edits on 9 existing extractors (close 57.5 residual tech debt)
+- [x] 57.6-02-PLAN.md — Stratification helper + canonical skip_reason enum in feature-manifest.json
+- [x] 57.6-03-PLAN.md — Source loader extensions (thinking/clear/compaction scans in claude.cjs + codex.cjs)
+- [x] 57.6-04-PLAN.md — Runtime + Codex extractors (thinking, marker density, clear invocation, compaction cross-runtime)
+- [x] 57.6-05-PLAN.md — Derived + GSDR extractors (facets semantic, write-path provenance, insights mass-rewrite, skip-reason canonical) + automation warn-validation
+- [x] 57.6-06-PLAN.md — Text-first report layer (primitives + dispatch + 6 per-loop templates + router)
+- [x] 57.6-07-PLAN.md — Two committed diagnostic artifacts (vision-drop + facets coverage asymmetry)
 
 ### Phase 57.7: Content Analysis & Epistemic Deepening (INSERTED)
 
