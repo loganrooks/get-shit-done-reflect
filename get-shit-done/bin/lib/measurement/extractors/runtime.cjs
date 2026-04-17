@@ -7,6 +7,8 @@ const {
   countClearInvocations,
   extractCompactionEvents,
   loadClaude,
+  scanToolInvocationSequence,
+  scanTopicShiftMarkers,
 } = require('../sources/claude.cjs');
 
 const MARKER_REGEX_SELF_CORRECTION = /\b(actually|wait|reconsider|correction|let me reconsider|on (second )?thought|I was wrong|revise)\b/gi;
@@ -687,7 +689,7 @@ const runtimeJsonlCoverageExtractor = defineExtractor({
   runtimes: ['claude-code'],
   reliability_tier: 'artifact_derived',
   features_produced: ['runtime_jsonl_coverage'],
-  serves_loop: ['pipeline_integrity'],
+  serves_loop: ['pipeline_integrity', 'agent_performance'],
   distinguishes: ['jsonl_match_state', 'coverage_gap_state'],
   status_semantics: ['exposed', 'not_available'],
   extract(extractor, context) {
@@ -731,7 +733,7 @@ const runtimeEraBoundaryRegistryExtractor = defineExtractor({
   reliability_tier: 'direct_observation',
   features_produced: ['runtime_era_boundary_registry'],
   // cross_session_patterns: era_boundary IS the era-boundary-comparability distinguishing feature of this loop (registry.cjs:84).
-  serves_loop: ['pipeline_integrity', 'cross_session_patterns'],
+  serves_loop: ['pipeline_integrity', 'agent_performance'],
   distinguishes: ['era_partition', 'non_comparable_query_warning'],
   status_semantics: ['exposed', 'not_available'],
   extract(extractor, context) {
@@ -816,6 +818,115 @@ const runtimeEraBoundaryRegistryExtractor = defineExtractor({
   },
 });
 
+const toolInvocationSequenceExtractor = defineExtractor({
+  name: 'tool_invocation_sequence',
+  source_family: 'RUNTIME',
+  raw_sources: ['claude_jsonl_projects'],
+  runtimes: ['claude-code'],
+  reliability_tier: 'direct_observation',
+  features_produced: ['tool_invocation_sequence'],
+  serves_loop: ['pipeline_integrity', 'agent_performance'],
+  distinguishes: ['tool_use_pattern', 'agent_autonomy_vs_intervention_mix'],
+  status_semantics: ['exposed', 'not_emitted', 'not_available'],
+  content_contract: 'derived_features_only',
+  extract(extractor, context) {
+    const claude = getClaudeDataset(context);
+    return claude.sessions.map(session => {
+      const available = session.parent_jsonl && session.parent_jsonl.status === 'matched';
+      const scan = available
+        ? scanToolInvocationSequence(session.parent_jsonl.records)
+        : { sequence: [], tool_count_per_tool: {}, distinct_tool_count: 0, tool_sequence_entropy: 0 };
+      const hasData = scan.sequence.length > 0;
+
+      return buildFeatureRecord(extractor, {
+        feature_name: `tool_invocation_sequence:${session.session_id}`,
+        runtime: 'claude-code',
+        availability_status: !available ? 'not_available' : (hasData ? 'exposed' : 'not_emitted'),
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: available ? 'direct_observation' : 'artifact_derived',
+        value: {
+          session_id: session.session_id,
+          tool_sequence: scan.sequence,
+          tool_count_per_tool: scan.tool_count_per_tool,
+          distinct_tool_count: scan.distinct_tool_count,
+          tool_sequence_entropy: scan.tool_sequence_entropy,
+        },
+        coverage: buildCoverage(session),
+        provenance: {
+          session_id: session.session_id,
+          parent_jsonl_path: session.parent_jsonl && session.parent_jsonl.path ? session.parent_jsonl.path : null,
+          scan_rule: 'assistant.message.content[*].type==="tool_use" -> block.name only',
+          content_contract: 'derived_features_only',
+        },
+        freshness: combineFreshness(context.observed_at, [session.parent_jsonl && session.parent_jsonl.path].filter(Boolean)),
+        notes: [
+          'Tool names only. Tool arguments and tool_result content are never extracted.',
+          'MEAS-ARCH-09 / DC-3: no raw content re-exposure.',
+        ],
+      });
+    });
+  },
+});
+
+const topicShiftMarkersExtractor = defineExtractor({
+  name: 'topic_shift_markers',
+  source_family: 'RUNTIME',
+  raw_sources: ['claude_jsonl_projects'],
+  runtimes: ['claude-code'],
+  reliability_tier: 'direct_observation',
+  features_produced: ['topic_shift_markers'],
+  serves_loop: ['pipeline_integrity', 'cross_session_patterns'],
+  distinguishes: ['topic_boundary_density', 'session_focus_cohesion'],
+  status_semantics: ['exposed', 'not_emitted', 'not_available'],
+  content_contract: 'derived_features_only',
+  extract(extractor, context) {
+    const claude = getClaudeDataset(context);
+    return claude.sessions.map(session => {
+      const available = session.parent_jsonl && session.parent_jsonl.status === 'matched';
+      const scan = available
+        ? scanTopicShiftMarkers(session.parent_jsonl.records)
+        : {
+            topic_shift_count: 0,
+            clear_shifts: 0,
+            compaction_shifts: 0,
+            tool_category_shifts: 0,
+            mean_shift_interval_turns: null,
+            shift_positions: [],
+          };
+      const hasData = scan.topic_shift_count > 0;
+
+      return buildFeatureRecord(extractor, {
+        feature_name: `topic_shift_markers:${session.session_id}`,
+        runtime: 'claude-code',
+        availability_status: !available ? 'not_available' : (hasData ? 'exposed' : 'not_emitted'),
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: available ? 'direct_observation' : 'artifact_derived',
+        value: {
+          session_id: session.session_id,
+          topic_shift_count: scan.topic_shift_count,
+          clear_shifts: scan.clear_shifts,
+          compaction_shifts: scan.compaction_shifts,
+          tool_category_shifts: scan.tool_category_shifts,
+          mean_shift_interval_turns: scan.mean_shift_interval_turns,
+          shift_positions: scan.shift_positions,
+        },
+        coverage: buildCoverage(session),
+        provenance: {
+          session_id: session.session_id,
+          parent_jsonl_path: session.parent_jsonl && session.parent_jsonl.path ? session.parent_jsonl.path : null,
+          scan_rule: 'structural: /clear + compact_boundary + tool_category_change; no semantic analysis',
+          content_contract: 'derived_features_only',
+        },
+        freshness: combineFreshness(context.observed_at, [session.parent_jsonl && session.parent_jsonl.path].filter(Boolean)),
+        notes: [
+          'G-1: structural-only topic-shift indicators. Semantic topic-modeling is out of scope.',
+          'Tool-category taxonomy is minimal (investigation/mutation/execution/other).',
+        ],
+      });
+    });
+  },
+});
+
 const RUNTIME_EXTRACTORS = Object.freeze([
   runtimeSessionIdentityExtractor,
   claudeSettingsAtStartExtractor,
@@ -827,6 +938,8 @@ const RUNTIME_EXTRACTORS = Object.freeze([
   humanTurnCountJsonlExtractor,
   runtimeJsonlCoverageExtractor,
   runtimeEraBoundaryRegistryExtractor,
+  toolInvocationSequenceExtractor,
+  topicShiftMarkersExtractor,
 ]);
 
 module.exports = {
@@ -849,4 +962,8 @@ module.exports = {
   session_tokens_jsonl: sessionTokensJsonlExtractor,
   thinkingCompositeExtractor,
   thinking_composite: thinkingCompositeExtractor,
+  toolInvocationSequenceExtractor,
+  tool_invocation_sequence: toolInvocationSequenceExtractor,
+  topicShiftMarkersExtractor,
+  topic_shift_markers: topicShiftMarkersExtractor,
 };
