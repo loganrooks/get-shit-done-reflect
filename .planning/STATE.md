@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: in_progress
-stopped_at: Completed Wave 1 of Phase 57.7 (Plans 01-03)
-last_updated: "2026-04-17T05:27:34Z"
-last_activity: 2026-04-17 -- Phase 57.7 Wave 1 complete (tokenizer/schema-only + proxy winner + FTS5 drop)
+stopped_at: Completed Wave 2 of Phase 57.7 (Plan 04)
+last_updated: "2026-04-17T05:36:11Z"
+last_activity: 2026-04-17 -- Phase 57.7 Plan 04 complete (content_contract preservation + structural content extractors)
 progress:
   total_phases: 20
   completed_phases: 11
   total_plans: 47
-  completed_plans: 40
+  completed_plans: 41
   percent: 55
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — Wave 1 is complete: the Claude tokenizer gate failed and locked schema-only shipping, the reasoning-quality spike chose facets-substitute with a self-graded qualifier, and MEAS-GSDR-06 is closed. Next up: 57.7-04 content extractors and the `content_contract` fix.
+**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) — Wave 2 is complete: `content_contract` now survives on frozen registry entries, and `tool_invocation_sequence` plus `topic_shift_markers` are live in measurement rebuilds. Next up: Wave 3 (`57.7-05` intervention-point calibration and `57.7-06` privacy/distinguishes preconditions).
 
 ## Current Position
 
 Phase: 57.7 of 64 (Content Analysis & Epistemic Deepening) — In Progress
-Plan: 3 of 10
-Status: Wave 1 complete; Plans 01-03 landed and the next plan is 57.7-04.
-Last activity: 2026-04-17 -- Phase 57.7 Wave 1 complete (tokenizer/schema-only + proxy winner + FTS5 drop)
+Plan: 4 of 10
+Status: Wave 2 complete; Plan 04 landed and the next plans are 57.7-05 and 57.7-06.
+Last activity: 2026-04-17 -- Phase 57.7 Plan 04 complete (content_contract preservation + structural content extractors)
 
 Progress: [██████░░░░] 55%
 
@@ -36,7 +36,7 @@ Progress: [██████░░░░] 55%
 
 **v1.20 Current:**
 
-- Plans completed: 31
+- Plans completed: 32
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -68,6 +68,7 @@ Progress: [██████░░░░] 55%
 - 57.7-01: 20min, 3 tasks, 6 files
 - 57.7-02: 24min, 3 tasks, 6 files
 - 57.7-03: 10min, 2 tasks, 3 files
+- 57.7-04: 10min, 2 tasks, 4 files
 
 **v1.18 Final:**
 
@@ -85,6 +86,8 @@ v1.13-v1.18 decisions archived in milestones/ directories.
 
 Recent decisions affecting current work:
 
+- [Phase 57.7 Plan 04 2026-04-17]: `content_contract` is now preserved on frozen extractor entries, so downstream query/report logic can filter content-derived features directly from registry metadata
+- [Phase 57.7 Plan 04 2026-04-17]: `tool_invocation_sequence` and `topic_shift_markers` ship as `derived_features_only` extractors; both are tagged for `pipeline_integrity`, with broader loop reach to `agent_performance` and `cross_session_patterns` respectively
 - [Phase 57.7 Wave 1 2026-04-17]: Spike C3 failed its tokenizer thresholds (`js-tiktoken` median relative error 60.93%, `charDiv4` 51.78%), so Plan 08's Claude branch is locked to schema-only shipping with `skip_reason: tokenizer_unavailable` and `production_dependency_decision: reject_top_level_dependency_schema_only`
 - [Phase 57.7 Wave 1 2026-04-17]: Spike C5 chose `facets-substitute` as the `reasoning_quality_proxy` winner (`rho=0.9484` vs `reference-density` `rho=0.4564`), but the result is explicitly qualified as `grader_independence: self_graded` and Plan 09 must preserve that provenance note
 - [Phase 57.6 completion 2026-04-17]: measurement loop coverage now extends across agent_performance, signal_quality, cross_session_patterns, and cross_runtime_comparison; `measurement report <loop>` ships as the human-readable text-first interface; and two committed diagnostic artifacts demonstrate end-to-end diagnosis with explicit computed vs UNCOMPUTED distinctions
