@@ -3,10 +3,97 @@
 const fs = require('node:fs');
 
 const { buildFeatureRecord, defineExtractor } = require('../registry.cjs');
-const { loadClaude } = require('../sources/claude.cjs');
+const {
+  countClearInvocations,
+  extractCompactionEvents,
+  loadClaude,
+} = require('../sources/claude.cjs');
+
+const MARKER_REGEX_SELF_CORRECTION = /\b(actually|wait|reconsider|correction|let me reconsider|on (second )?thought|I was wrong|revise)\b/gi;
+const MARKER_REGEX_UNCERTAINTY = /\b(not sure|uncertain|might(?: not)?|unclear|perhaps|possibly|I think|may(?: not)?)\b/gi;
 
 function getClaudeDataset(context) {
   return context && context.claude ? context.claude : loadClaude(context.cwd, context && context.claudeOptions ? context.claudeOptions : {});
+}
+
+function getThinkingSnapshot(session) {
+  return session.thinking || {
+    emitted: false,
+    block_count: 0,
+    total_chars: 0,
+    visible_chars: 0,
+    over_visible_ratio: null,
+    dispatch_context: 'unavailable',
+  };
+}
+
+function classifyThinkingAvailability(session) {
+  const thinking = getThinkingSnapshot(session);
+  const model = session.runtime_identity && session.runtime_identity.model ? session.runtime_identity.model : '';
+  if (thinking.dispatch_context === 'unavailable' || session.parent_jsonl.status !== 'matched') {
+    return {
+      availability_status: 'not_available',
+      gate_applied: null,
+      model,
+      thinking,
+    };
+  }
+
+  if (/^claude-haiku/i.test(model)) {
+    return {
+      availability_status: 'not_applicable',
+      gate_applied: 'model_family',
+      model,
+      thinking,
+    };
+  }
+
+  if (thinking.dispatch_context === 'subagent') {
+    return {
+      availability_status: 'not_available',
+      gate_applied: 'dispatch_context',
+      model,
+      thinking,
+    };
+  }
+
+  if (thinking.block_count === 0) {
+    return {
+      availability_status: 'not_emitted',
+      gate_applied: 'emission_threshold',
+      model,
+      thinking,
+    };
+  }
+
+  return {
+    availability_status: 'exposed',
+    gate_applied: null,
+    model,
+    thinking,
+  };
+}
+
+function collectThinkingText(records) {
+  let text = '';
+
+  for (const record of records || []) {
+    if (!record || record.type !== 'assistant') continue;
+    const content = record.message && record.message.content;
+    if (!Array.isArray(content)) continue;
+
+    for (const block of content) {
+      if (!block || block.type !== 'thinking') continue;
+      const thinkingText = typeof block.thinking === 'string'
+        ? block.thinking
+        : (typeof block.text === 'string' ? block.text : '');
+      if (thinkingText) {
+        text += `${thinkingText}\n`;
+      }
+    }
+  }
+
+  return text;
 }
 
 function fileFreshness(filePath, observedAt, staleAfterHours = 24) {
@@ -285,6 +372,201 @@ const claudeSettingsAtStartExtractor = defineExtractor({
   },
 });
 
+const thinkingCompositeExtractor = defineExtractor({
+  name: 'thinking_composite',
+  source_family: 'RUNTIME',
+  raw_sources: ['claude_jsonl_projects'],
+  runtimes: ['claude-code'],
+  reliability_tier: 'direct_observation',
+  features_produced: ['thinking_composite'],
+  serves_loop: ['agent_performance'],
+  distinguishes: ['thinking_emission_gate', 'model_stratified_reasoning_effort'],
+  status_semantics: ['exposed', 'not_emitted', 'not_applicable', 'not_available'],
+  extract(extractor, context) {
+    const claude = getClaudeDataset(context);
+    return claude.sessions.map(session => {
+      const thinkingGate = classifyThinkingAvailability(session);
+      return buildFeatureRecord(extractor, {
+        feature_name: `thinking_composite:${session.session_id}`,
+        runtime: 'claude-code',
+        availability_status: thinkingGate.availability_status,
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'direct_observation',
+        value: {
+          session_id: session.session_id,
+          thinking_emitted: thinkingGate.thinking.emitted,
+          thinking_block_count: thinkingGate.thinking.block_count,
+          thinking_total_chars: thinkingGate.thinking.total_chars,
+          thinking_over_visible_ratio: thinkingGate.thinking.over_visible_ratio,
+          model: thinkingGate.model,
+          effective_effort_level: session.effort_override && session.effort_override.value ? session.effort_override.value : null,
+          gate_applied: thinkingGate.gate_applied,
+          dispatch_context: thinkingGate.thinking.dispatch_context,
+        },
+        coverage: buildCoverage(session),
+        provenance: {
+          session_id: session.session_id,
+          parent_jsonl_path: session.parent_jsonl.path || null,
+          gate_spec: 'spike-010-DECISION.md §5',
+        },
+        freshness: combineFreshness(context.observed_at, [session.parent_jsonl.path]),
+        notes: [
+          'Three-level gate: model_family (Haiku -> not_applicable), dispatch_context (subagent -> not_available), emission_threshold (0 blocks -> not_emitted).',
+        ],
+      });
+    });
+  },
+});
+
+const markerDensityExtractor = defineExtractor({
+  name: 'marker_density',
+  source_family: 'RUNTIME',
+  raw_sources: ['claude_jsonl_projects'],
+  runtimes: ['claude-code'],
+  reliability_tier: 'direct_observation',
+  features_produced: ['marker_density'],
+  serves_loop: ['agent_performance'],
+  distinguishes: ['effort_marker_presence', 'model_effort_stratification'],
+  status_semantics: ['exposed', 'not_emitted', 'not_applicable', 'not_available'],
+  extract(extractor, context) {
+    const claude = getClaudeDataset(context);
+    return claude.sessions.map(session => {
+      const thinkingGate = classifyThinkingAvailability(session);
+      const thinkingText = thinkingGate.availability_status === 'exposed'
+        ? collectThinkingText(session.parent_jsonl.records)
+        : '';
+      const selfCorrections = (thinkingText.match(MARKER_REGEX_SELF_CORRECTION) || []).length;
+      const uncertainties = (thinkingText.match(MARKER_REGEX_UNCERTAINTY) || []).length;
+      const per1k = count => (thinkingGate.thinking.total_chars > 0 ? (count * 1000) / thinkingGate.thinking.total_chars : 0);
+
+      return buildFeatureRecord(extractor, {
+        feature_name: `marker_density:${session.session_id}`,
+        runtime: 'claude-code',
+        availability_status: thinkingGate.availability_status,
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'direct_observation',
+        value: {
+          session_id: session.session_id,
+          marker_self_correction_density: per1k(selfCorrections),
+          marker_uncertainty_density: per1k(uncertainties),
+          marker_self_correction_count: selfCorrections,
+          marker_uncertainty_count: uncertainties,
+          thinking_total_chars: thinkingGate.thinking.total_chars,
+          model: thinkingGate.model,
+          effort_level: session.effort_override && session.effort_override.value ? session.effort_override.value : null,
+          caveat: 'effort_tracking_not_quality_proxy',
+          dropped_markers: ['branching', 'dead_end'],
+        },
+        coverage: buildCoverage(session),
+        provenance: {
+          session_id: session.session_id,
+          regex_spec: 'spike-010-DECISION.md summary complexity extractor updated shape',
+        },
+        freshness: combineFreshness(context.observed_at, [session.parent_jsonl.path]),
+        notes: [
+          'G-4: Marker density is effort-tracking only.',
+          'Branching and dead_end markers were dropped after spike-010 found zero useful matches.',
+        ],
+      });
+    });
+  },
+});
+
+const clearInvocationExtractor = defineExtractor({
+  name: 'clear_invocation',
+  source_family: 'RUNTIME',
+  raw_sources: ['claude_jsonl_projects'],
+  runtimes: ['claude-code'],
+  reliability_tier: 'direct_observation',
+  features_produced: ['clear_invocation'],
+  serves_loop: ['cross_session_patterns'],
+  distinguishes: ['operator_reset_habit', 'compaction_substitute_signal'],
+  status_semantics: ['exposed', 'not_emitted', 'not_available'],
+  extract(extractor, context) {
+    const claude = getClaudeDataset(context);
+    return claude.sessions.map(session => {
+      const available = session.parent_jsonl.status === 'matched';
+      const count = available ? countClearInvocations(session.parent_jsonl.records) : 0;
+      return buildFeatureRecord(extractor, {
+        feature_name: `clear_invocation:${session.session_id}`,
+        runtime: 'claude-code',
+        availability_status: !available ? 'not_available' : (count > 0 ? 'exposed' : 'not_emitted'),
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'direct_observation',
+        value: {
+          session_id: session.session_id,
+          clear_invocation_count: count,
+          operator_habit: count > 0 ? 'preemptive_reset' : 'no_reset_observed',
+          caveat: 'operator_habit_not_reasoning_quality',
+        },
+        coverage: buildCoverage(session),
+        provenance: {
+          session_id: session.session_id,
+          parent_jsonl_path: session.parent_jsonl.path || null,
+          scan_rule: '<command-name>/clear user-record match',
+        },
+        freshness: combineFreshness(context.observed_at, [session.parent_jsonl.path]),
+        notes: [
+          'G-4: clear-invocation is an operator-habit signal.',
+          'In this project, /clear is the reset surrogate to compare against compaction behavior.',
+        ],
+      });
+    });
+  },
+});
+
+const claudeCompactionEventsExtractor = defineExtractor({
+  name: 'claude_compaction_events',
+  source_family: 'RUNTIME',
+  raw_sources: ['claude_jsonl_projects'],
+  runtimes: ['claude-code'],
+  reliability_tier: 'direct_observation',
+  features_produced: ['claude_compaction_events'],
+  serves_loop: ['cross_runtime_comparison', 'agent_performance'],
+  distinguishes: ['compaction_trigger_mix', 'pre_compact_token_pressure'],
+  status_semantics: ['exposed', 'not_emitted', 'not_available'],
+  extract(extractor, context) {
+    const claude = getClaudeDataset(context);
+    return claude.sessions.map(session => {
+      const available = session.parent_jsonl.status === 'matched';
+      const events = available
+        ? extractCompactionEvents(session.parent_jsonl.records)
+        : {
+            count: 0,
+            triggers: { manual: 0, auto: 0 },
+            pre_tokens: [],
+            summary_messages: 0,
+          };
+
+      return buildFeatureRecord(extractor, {
+        feature_name: `claude_compaction_events:${session.session_id}`,
+        runtime: 'claude-code',
+        availability_status: !available ? 'not_available' : (events.count > 0 ? 'exposed' : 'not_emitted'),
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'direct_observation',
+        value: {
+          session_id: session.session_id,
+          compaction_count: events.count,
+          has_compaction: events.count > 0,
+          compaction_trigger_mix: events.triggers,
+          pre_compact_token_counts: events.pre_tokens,
+          summary_messages_found: events.summary_messages,
+        },
+        coverage: buildCoverage(session),
+        provenance: {
+          session_id: session.session_id,
+          parent_jsonl_path: session.parent_jsonl.path || null,
+          scan_rule: 'system.compact_boundary + assistant.isCompactSummary per E6.2 Layer 3',
+        },
+        freshness: combineFreshness(context.observed_at, [session.parent_jsonl.path]),
+        notes: [
+          'Compaction is verified as a real Claude mechanism; zero firings in the local corpus remain valid not_emitted data.',
+        ],
+      });
+    });
+  },
+});
+
 const sessionTokensJsonlExtractor = defineExtractor({
   name: 'session_tokens_jsonl',
   source_family: 'RUNTIME',
@@ -537,6 +819,10 @@ const runtimeEraBoundaryRegistryExtractor = defineExtractor({
 const RUNTIME_EXTRACTORS = Object.freeze([
   runtimeSessionIdentityExtractor,
   claudeSettingsAtStartExtractor,
+  thinkingCompositeExtractor,
+  markerDensityExtractor,
+  clearInvocationExtractor,
+  claudeCompactionEventsExtractor,
   sessionTokensJsonlExtractor,
   humanTurnCountJsonlExtractor,
   runtimeJsonlCoverageExtractor,
@@ -545,8 +831,14 @@ const RUNTIME_EXTRACTORS = Object.freeze([
 
 module.exports = {
   RUNTIME_EXTRACTORS,
+  claudeCompactionEventsExtractor,
+  claude_compaction_events: claudeCompactionEventsExtractor,
   claude_settings_at_start: claudeSettingsAtStartExtractor,
+  clearInvocationExtractor,
+  clear_invocation: clearInvocationExtractor,
   human_turn_count_jsonl: humanTurnCountJsonlExtractor,
+  markerDensityExtractor,
+  marker_density: markerDensityExtractor,
   runtimeJsonlCoverageExtractor,
   runtimeEraBoundaryRegistryExtractor,
   runtimeSessionIdentityExtractor,
@@ -555,4 +847,6 @@ module.exports = {
   runtime_session_identity: runtimeSessionIdentityExtractor,
   sessionTokensJsonlExtractor,
   session_tokens_jsonl: sessionTokensJsonlExtractor,
+  thinkingCompositeExtractor,
+  thinking_composite: thinkingCompositeExtractor,
 };

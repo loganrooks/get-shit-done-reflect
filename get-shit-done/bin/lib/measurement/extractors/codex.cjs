@@ -1,6 +1,6 @@
 'use strict';
 
-const { loadCodex } = require('../sources/codex.cjs');
+const { loadCodex, scanRolloutEvents } = require('../sources/codex.cjs');
 const { buildFeatureRecord, defineExtractor } = require('../registry.cjs');
 
 function getCodexDataset(context) {
@@ -64,6 +64,22 @@ function buildProvenanceNotes(raw, thread) {
   return notes;
 }
 
+function getSandboxMode(thread) {
+  if (!thread || !thread.sandbox_policy || typeof thread.sandbox_policy !== 'object') {
+    return null;
+  }
+
+  if (typeof thread.sandbox_policy.mode === 'string') {
+    return thread.sandbox_policy.mode;
+  }
+
+  if (typeof thread.sandbox_policy.type === 'string') {
+    return thread.sandbox_policy.type;
+  }
+
+  return null;
+}
+
 function buildRuntimeMetadataValue(raw, thread) {
   const sessionMetaSource = thread.runtime_identity.source || null;
   const sessionMetaGit = thread.runtime_identity.git || null;
@@ -83,12 +99,20 @@ function buildRuntimeMetadataValue(raw, thread) {
         ? 'Read from `threads.reasoning_effort` in `~/.codex/state_5.sqlite`.'
         : 'Codex thread row did not expose `reasoning_effort`.'
     ),
+    effort_level_breakdown: {
+      reasoning_effort: thread.reasoning_effort || null,
+      effort_count_this_thread: 1,
+    },
     sandbox_policy: exposedField(
       thread.sandbox_policy,
       thread.sandbox_policy
         ? 'Parsed from the JSON text stored in `threads.sandbox_policy`.'
         : 'Codex thread row did not expose `sandbox_policy`.'
     ),
+    sandbox_mode_distribution: {
+      mode: getSandboxMode(thread),
+      raw: thread.sandbox_policy_text || null,
+    },
     approval_mode: exposedField(
       thread.approval_mode,
       thread.approval_mode
@@ -204,7 +228,7 @@ const codexRuntimeMetadataExtractor = defineExtractor({
   features_produced: ['codex_runtime_metadata'],
   // agent_performance: reasoning_effort + sandbox_policy ARE reasoning-effort stratification (registry.cjs:56). cross_runtime_comparison: this extractor IS named in LOOP_DEFINITIONS.cross_runtime_comparison.named_metrics (registry.cjs:94).
   serves_loop: ['pipeline_integrity', 'intervention_lifecycle', 'agent_performance', 'cross_runtime_comparison'],
-  distinguishes: ['codex_runtime_identity', 'codex_reasoning_and_sandbox_provenance'],
+  distinguishes: ['codex_runtime_identity', 'codex_reasoning_and_sandbox_provenance', 'codex_effort_stratification'],
   status_semantics: ['exposed', 'derived', 'not_available'],
   extract(extractor, context) {
     const raw = getCodexDataset(context);
@@ -230,12 +254,68 @@ const codexRuntimeMetadataExtractor = defineExtractor({
   },
 });
 
+const codexCompactionEventsExtractor = defineExtractor({
+  name: 'codex_compaction_events',
+  source_family: 'RUNTIME',
+  raw_sources: ['codex_sessions'],
+  runtimes: ['codex-cli'],
+  reliability_tier: 'direct_observation',
+  features_produced: ['codex_compaction_events'],
+  serves_loop: ['cross_runtime_comparison', 'agent_performance'],
+  distinguishes: ['compaction_trigger_mix', 'pre_compact_token_pressure'],
+  status_semantics: ['exposed', 'not_emitted', 'not_available'],
+  extract(extractor, context) {
+    const codex = getCodexDataset(context);
+    if (!codex || !Array.isArray(codex.threads)) return [];
+
+    return codex.threads.map(thread => {
+      const scan = scanRolloutEvents(thread.rollout_path);
+      let availabilityStatus;
+      if (scan.error === 'no_path' || scan.error === 'file_missing') availabilityStatus = 'not_available';
+      else if (scan.count > 0) availabilityStatus = 'exposed';
+      else availabilityStatus = 'not_emitted';
+
+      return buildFeatureRecord(extractor, {
+        feature_name: `codex_compaction_events:${thread.thread_id}`,
+        runtime: 'codex-cli',
+        availability_status: availabilityStatus,
+        symmetry_marker: 'asymmetric_only',
+        reliability_tier: 'direct_observation',
+        value: {
+          thread_id: thread.thread_id,
+          compaction_count: scan.count,
+          has_compaction: scan.count > 0,
+          replacement_history_lengths: scan.replacement_history_lengths,
+          context_compacted_events: scan.context_compacted_events,
+        },
+        coverage: {
+          thread_id: thread.thread_id,
+          rollout_scanned: scan.scanned,
+        },
+        provenance: {
+          thread_id: thread.thread_id,
+          rollout_path: thread.rollout_path || null,
+          scan_error: scan.error,
+        },
+        freshness: thread.freshness,
+        notes: [
+          'Codex compaction is observed through rollout context_compacted events.',
+          scan.error === 'partial_parse' ? 'Partial parse: some rollout lines were malformed and skipped.' : null,
+        ].filter(Boolean),
+      });
+    });
+  },
+});
+
 const CODEX_EXTRACTORS = Object.freeze([
   codexRuntimeMetadataExtractor,
+  codexCompactionEventsExtractor,
 ]);
 
 module.exports = {
   CODEX_EXTRACTORS,
+  codexCompactionEventsExtractor,
+  codex_compaction_events: codexCompactionEventsExtractor,
   codexRuntimeMetadataExtractor,
   codex_runtime_metadata: codexRuntimeMetadataExtractor,
 };

@@ -196,8 +196,9 @@ describeIf('measurement codex source and extractor', () => {
       codex: raw,
     }))
 
-    expect(rows).toHaveLength(1)
-    const row = rows[0]
+    expect(rows).toHaveLength(2)
+    const row = rows.find(candidate => candidate.feature_name === 'codex_runtime_metadata:thread-001')
+    expect(row).toBeDefined()
     expect(row.feature_name).toBe('codex_runtime_metadata:thread-001')
     expect(row.availability_status).toBe('exposed')
     expect(row.symmetry_marker).toBe('asymmetric_only')
