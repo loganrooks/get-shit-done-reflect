@@ -1223,9 +1223,14 @@ const gsdMcpServers = {
   }
 };
 
+function getCodexCompactPromptPath(targetDir) {
+  return path.join(targetDir, 'get-shit-done-reflect', 'templates', 'codex-compact-prompt.md').replace(/\\/g, '/');
+}
+
 /**
- * Generate MCP server configuration for Codex CLI config.toml.
+ * Generate the GSD-managed Codex CLI config.toml block.
  * Uses marker-based section management (# GSD:BEGIN / # GSD:END) for idempotent updates.
+ * Includes MCP servers plus the documented experimental_compact_prompt_file override.
  * Creates config.toml if it doesn't exist, merges with existing if it does.
  * @param {string} targetDir - Codex config directory (e.g., ~/.codex)
  */
@@ -1233,6 +1238,7 @@ function generateCodexMcpConfig(targetDir) {
   const configPath = path.join(targetDir, 'config.toml');
   const GSD_BEGIN = '# GSD:BEGIN (get-shit-done-reflect-cc)';
   const GSD_END = '# GSD:END (get-shit-done-reflect-cc)';
+  const compactPromptPath = getCodexCompactPromptPath(targetDir);
 
   // Build TOML section for all known MCP servers
   const serverEntries = Object.entries(gsdMcpServers).map(([name, server]) => {
@@ -1240,7 +1246,7 @@ function generateCodexMcpConfig(targetDir) {
     return `[mcp_servers.${name}]\ncommand = ${JSON.stringify(server.command)}\nargs = [${argsStr}]`;
   }).join('\n\n');
 
-  const tomlSection = `${GSD_BEGIN}\n${serverEntries}\n${GSD_END}`;
+  const tomlSection = `${GSD_BEGIN}\nexperimental_compact_prompt_file = ${JSON.stringify(compactPromptPath)}\n\n${serverEntries}\n${GSD_END}`;
 
   if (fs.existsSync(configPath)) {
     let existing = fs.readFileSync(configPath, 'utf8');
@@ -3345,4 +3351,4 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields };
+module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields, getCodexCompactPromptPath };
