@@ -37,7 +37,23 @@ Frontmatter fields:
   signal_type: {deviation|struggle|config-mismatch|capability-gap|custom},
   phase, plan, polarity: {positive|negative|neutral}, source: manual,
   occurrence_count: {N}, related_signals: [],
-  runtime: {detected}, model: {detected}, gsd_version: {detected}
+  provenance_schema: v2_split, provenance_status: "",
+  about_work: [],
+  detected_by: {shared signature object for the manual observation role},
+  written_by: {shared signature object for the manual write role},
+  runtime: {deprecated compatibility echo}, model: {deprecated compatibility echo},
+  gsd_version: {deprecated compatibility echo}
+
+Shared signature object fields:
+  role, harness, platform, vendor, model, reasoning_effort, profile,
+  gsd_version, generated_at, session_id, provenance_status, provenance_source
+
+Manual provenance rules:
+- `about_work: []` is the default. Only populate it when the conversation identifies the artifact or work under judgment.
+- Fill `detected_by` and `written_by` as separate objects even when they resolve to the same runtime facts.
+- Use `not_available` for missing runtime, model, session, or version facts. Do not invent them.
+- Treat flat `runtime` / `model` / `gsd_version` only as deprecated compatibility echoes derived from split provenance, not as the canonical storage contract.
+- When you need flat echoes, derive them from `written_by` first and fall back to `detected_by` only if the writer-side fact is missing.
 
 Body sections: ## What Happened / ## Context / ## Potential Cause
 
@@ -110,11 +126,22 @@ Extract from inline arguments if provided:
 2. **Project name**: Derive from working directory basename, kebab-case.
 3. **Frustration detection**: Scan recent messages using inlined patterns above (SGNL-06). If 2+ patterns found, mention to user and offer to include frustration context.
 4. **Runtime detection**: Examine path prefix of this command file.
-   - ~/.claude/ -> runtime: claude-code
-   - ~/.config/opencode/ -> runtime: opencode
-   - ~/.gemini/ -> runtime: gemini-cli
-   - ~/.codex/ -> runtime: codex-cli
-5. **Model detection**: Use self-knowledge of current model name. If uncertain, omit.
+   - ~/.claude/ -> harness: claude-code
+   - ~/.config/opencode/ -> harness: opencode
+   - ~/.gemini/ -> harness: gemini-cli
+   - ~/.codex/ -> harness: codex-cli
+   - If no path prefix matches, set harness/platform/vendor to `not_available`.
+5. **Model/session detection**: Use self-knowledge of the current model name and any exposed session/thread facts. If a fact is not exposed, write `not_available`.
+6. **Version detection**: Use the same writer-side precedence as the shared provenance helper:
+   - installed harness `VERSION`
+   - `.planning/config.json` `gsd_reflect_version`
+   - repo-local runtime mirror `VERSION`
+   - `not_available`
+7. **Build split provenance explicitly**:
+   - `detected_by` records the manual observation role using the shared signature vocabulary.
+   - `written_by` records the command/runtime that persists the file using the same vocabulary.
+   - `about_work` stays `[]` unless the conversation identifies the artifact under judgment.
+   - `runtime`, `model`, and `gsd_version` are compatibility echoes only, derived from the split provenance after the canonical fields are set.
 
 ## Step 3: Fill Missing Information (Max 1 Follow-up)
 
@@ -142,7 +169,11 @@ Display signal preview for confirmation:
 **Type:** {type}
 **Polarity:** {polarity}
 **Phase:** {phase} | **Plan:** {plan}
-**Runtime:** {runtime} | **Model:** {model}
+**Provenance Schema:** v2_split
+**About Work Entries:** {N}
+**Detected By:** {detected_harness} | {detected_model}
+**Written By:** {written_harness} | {written_model}
+**Legacy Echoes:** runtime={runtime} | model={model} | gsd_version={gsd_version}
 **Source:** manual
 Save this signal? (y/n)
 ```
@@ -158,6 +189,13 @@ Note current signal count for this phase. If above soft target (~10), include co
 ## Step 7: Write Signal File
 
 Write to `{KB_DIR}/signals/{project}/{YYYY-MM-DD}-{slug}.md` using schema above. Create parent directories with `mkdir -p`. Include all frontmatter fields and body sections (What Happened, Context, Potential Cause).
+
+Required write discipline:
+- Persist `provenance_schema: v2_split`.
+- Keep `about_work: []` unless the artifact/work under judgment is explicit in the conversation.
+- Write `detected_by` and `written_by` as separate signature objects even when the values overlap.
+- If runtime, model, session, or version facts are unavailable, write `not_available`.
+- Add flat `runtime`, `model`, and `gsd_version` only as deprecated compatibility echoes derived from the split provenance.
 
 ## Step 8: Rebuild Index
 
@@ -190,5 +228,7 @@ Index rebuilt.
 - Git follows commit_docs setting from .planning/config.json
 - All manual signals persisted regardless of severity
 - Source always "manual" (vs "auto" from gsd-signal-collector)
-- Runtime/model fields are best-effort; omit if uncertain
+- `detected_by` and `written_by` are separate provenance roles even for manual signals
+- Runtime/model/version facts that are missing become `not_available`
+- Flat `runtime` / `model` / `gsd_version` fields are compatibility echoes only
 </design_notes>
