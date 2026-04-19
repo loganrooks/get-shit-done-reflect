@@ -1430,6 +1430,18 @@ Read @~/.codex/get-shit-done-reflect/workflows/signal.md for workflow details.`
         expect(result).not.toContain('@~/.codex/')
       })
 
+      it('preserves gsdr-signal split provenance instructions', () => {
+        const input = fsSync.readFileSync(path.resolve(process.cwd(), 'commands', 'gsd', 'signal.md'), 'utf8')
+
+        const result = convertClaudeToCodexSkill(input, 'gsdr-signal', '~/.codex/')
+
+        expect(result).toContain('provenance_schema: v2_split')
+        expect(result).toContain('about_work')
+        expect(result).toContain('detected_by')
+        expect(result).toContain('written_by')
+        expect(result).not.toContain('runtime: {detected}, model: {detected}, gsd_version: {detected}')
+      })
+
       it('handles null tool mappings (WebFetch, Task, SlashCommand) by leaving them', () => {
         const input = `---
 name: test
