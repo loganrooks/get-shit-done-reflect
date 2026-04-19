@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: in_progress
-stopped_at: Completed 57.7-10-PLAN.md
-last_updated: "2026-04-17T06:47:29Z"
-last_activity: 2026-04-17 -- Phase 57.7 Plan 10 complete (honest demo wave: unclassified revision + GATE-09 pending)
+status: Wave 5 closed the phase; the demo/regression plan landed with a real revision record, a pending GATE-09 intervention sidecar, and a DEMO-REPORT that records both the live joins and the residual gaps.
+stopped_at: Phase 57.8 context gathered
+last_updated: "2026-04-19T09:13:00.000Z"
+last_activity: "2026-04-19 - Completed quick task 260419-6uf: Fix manual gsdr-signal split provenance gap left out of 57.8"
 progress:
   total_phases: 22
   completed_phases: 12
   total_plans: 47
   completed_plans: 47
-  percent: 55
+  percent: 100
 ---
 
 # Project State
@@ -251,6 +251,7 @@ Recent decisions affecting current work:
 | Phase 57.4 P05 | 3min | 2 tasks | 1 files |
 | Phase 57.4 P06 | 3min | 3 tasks | 2 files |
 | Phase 57.7 P03 | 10min | 2 tasks | 3 files |
+| 260419-6uf | Fix manual gsdr-signal split provenance gap left out of 57.8 | 2026-04-19 | ddcf1232 | [260419-6uf](./quick/260419-6uf-fix-manual-gsdr-signal-split-provenance-/) |
 
 ### Key Artifacts
 
@@ -269,8 +270,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-17T05:27:34Z
-Stopped at: Completed Wave 1 of Phase 57.7 (Plans 01-03)
+Last session: 2026-04-17T09:03:42.799Z
+Stopped at: Phase 57.8 context gathered
 Resume artifact: `.planning/audits/2026-04-15-measurement-signal-inventory/pre-57.5-handoff.md`
 
 This session (2026-04-16):
