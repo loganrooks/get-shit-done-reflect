@@ -79,6 +79,47 @@ jobs:
           rm -rf "$INSTALL_DIR"
           echo "Install verification: COMPLETE"
 
+      - name: GATE-15 source/install parity
+        run: |
+          set -e
+
+          # Phase 58 Plan 09 — GATE-15 source↔installed mirror parity.
+          # CLAUDE.md:15-27 documents the dual-directory hazard (edits to
+          # `.claude/` that never propagate back to source produced the Phase 22
+          # Agent Protocol drift, 23 days undetected). This step runs the
+          # installer into a throwaway tempdir (cwd-based so --local resolves
+          # there) and then calls `scripts/verify-install-parity.js` to diff
+          # source vs expected-installed content using the installer's own
+          # `replacePathsInContent` transformation. Divergence = FAIL.
+          #
+          # Per `58-05-codex-behavior-matrix.md` GATE-15 `applies` on both
+          # runtimes — this check is runtime-neutral.
+
+          REPO_ROOT=$(pwd)
+          INSTALL_DIR=$(mktemp -d)
+
+          # --local writes to cwd/.claude/, so we cd into the tempdir. The
+          # installer resolves sources via __dirname (repo bin/) so repo lookup
+          # still works regardless of cwd.
+          (cd "$INSTALL_DIR" && node "$REPO_ROOT/bin/install.js" --claude --local) 2>&1 | tail -20
+
+          # The parity script already emits a structured `::notice::` fire-event
+          # on stdout with result=pass|block and path=<first-diverging-file>;
+          # the workflow-level echoes below are the redundant coarse markers
+          # Plan 19's `gate_fire_events` extractor greps for. Keeping both is
+          # intentional — script output is the detail, workflow output is the
+          # contract.
+          if node "$REPO_ROOT/scripts/verify-install-parity.js" "$INSTALL_DIR"; then
+            echo "::notice title=GATE-15::gate_fired=GATE-15 result=pass"
+          else
+            echo "::notice title=GATE-15::gate_fired=GATE-15 result=block"
+            echo "::error::GATE-15: source/install parity violation (see script notice above)"
+            rm -rf "$INSTALL_DIR"
+            exit 1
+          fi
+
+          rm -rf "$INSTALL_DIR"
+
       - name: Run tests with coverage
         if: github.event_name == 'pull_request'
         run: npm run test:coverage
