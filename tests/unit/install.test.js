@@ -11,6 +11,18 @@ import os from 'node:os'
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
 const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields } = require('../../bin/install.js')
+const { resolveCodexUpdateTarget, CODEX_CACHE_DOES_NOT_APPLY_REASON } = require('../../get-shit-done/bin/lib/update-target.cjs')
+
+function buildReadFileSync(fileMap) {
+  return vi.fn((filePath) => {
+    if (!Object.prototype.hasOwnProperty.call(fileMap, filePath)) {
+      const error = new Error(`ENOENT: no such file or directory, open '${filePath}'`)
+      error.code = 'ENOENT'
+      throw error
+    }
+    return fileMap[filePath]
+  })
+}
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
@@ -107,6 +119,106 @@ describe('install script', () => {
       const claudeDir = path.join(tmpdir, '.claude', 'commands', 'gsdr')
       const exists = await fs.access(claudeDir).then(() => true).catch(() => false)
       expect(exists).toBe(true)
+    })
+  })
+
+  describe('Phase 58.1: Codex update target resolver', () => {
+    const homeDir = path.join(path.sep, 'tmp', 'codex-home')
+    const cwd = path.join(path.sep, 'tmp', 'codex-project')
+    const localDir = path.join(cwd, '.codex')
+    const defaultGlobalDir = path.join(homeDir, '.codex')
+
+    function versionPath(dir) {
+      return path.join(dir, 'get-shit-done-reflect', 'VERSION')
+    }
+
+    function resolveFixture({
+      localVersion = null,
+      globalVersion = null,
+      explicitConfigDir = null,
+      env = {},
+    } = {}) {
+      const globalDir = explicitConfigDir || defaultGlobalDir
+      const fileMap = {}
+
+      if (localVersion) {
+        fileMap[versionPath(localDir)] = localVersion
+      }
+
+      if (globalVersion) {
+        fileMap[versionPath(globalDir)] = globalVersion
+      }
+
+      return resolveCodexUpdateTarget({
+        cwd,
+        explicitConfigDir,
+        env,
+        homeDir,
+        latestVersion: '1.19.6',
+        readFileSync: buildReadFileSync(fileMap),
+      })
+    }
+
+    it('selects the global Codex target when the installed harness is stale and the repo mirror is newer', () => {
+      const result = resolveFixture({
+        localVersion: '1.19.6',
+        globalVersion: '1.19.4',
+      })
+
+      expect(result.selected_target.scope).toBe('global')
+      expect(result.install_args).toEqual(['--codex', '--global'])
+      expect(result.reason_code).toBe('global_stale_local_newer')
+      expect(result.remaining_divergent_scope?.scope).toBe('local')
+      expect(result.remaining_divergent_scope?.version).toBe('1.19.6')
+    })
+
+    it('selects the local Codex target when the repo mirror is stale and the installed harness is newer', () => {
+      const result = resolveFixture({
+        localVersion: '1.19.4',
+        globalVersion: '1.19.6',
+      })
+
+      expect(result.selected_target.scope).toBe('local')
+      expect(result.install_args).toEqual(['--codex', '--local'])
+      expect(result.reason_code).toBe('local_stale_global_newer')
+      expect(result.remaining_divergent_scope?.scope).toBe('global')
+      expect(result.remaining_divergent_scope?.version).toBe('1.19.6')
+    })
+
+    it('selects exactly one stale target and surfaces the other stale scope when both Codex scopes are behind', () => {
+      const result = resolveFixture({
+        localVersion: '1.19.3',
+        globalVersion: '1.19.1',
+      })
+
+      expect(result.selected_target.scope).toBe('global')
+      expect(result.selected_target.is_stale).toBe(true)
+      expect(result.remaining_divergent_scope).toBeTruthy()
+      expect(result.remaining_divergent_scope?.scope).toBe('local')
+      expect(result.remaining_divergent_scope?.is_stale).toBe(true)
+      expect(result.selected_target.scope).not.toBe(result.remaining_divergent_scope?.scope)
+      expect(result.reason_code).toBe('both_scopes_stale_select_global')
+    })
+
+    it('propagates a non-default Codex config dir into install args exactly once', () => {
+      const explicitConfigDir = path.join(homeDir, 'custom-codex')
+      const result = resolveFixture({
+        globalVersion: '1.19.5',
+        explicitConfigDir,
+      })
+
+      expect(result.config_dir).toBe(explicitConfigDir)
+      expect(result.install_args).toEqual(['--codex', '--global', '--config-dir', explicitConfigDir])
+      expect(result.selected_target.dir).toBe(explicitConfigDir)
+    })
+
+    it('reports Codex update cache handling as an explicit no-op', () => {
+      const result = resolveFixture({
+        globalVersion: '1.19.5',
+      })
+
+      expect(result.cache_to_clear).toBeNull()
+      expect(result.does_not_apply_reason).toBe(CODEX_CACHE_DOES_NOT_APPLY_REASON)
     })
   })
 
@@ -421,6 +533,18 @@ describe('install script', () => {
           const input = '~/.claude/get-shit-done/bin/gsd-tools.cjs'
           const result = replacePathsInContent(input, './.claude/')
           expect(result).toBe('./.claude/get-shit-done-reflect/bin/gsd-tools.cjs')
+        })
+
+        it('codex local installs rewrite relative ./.claude references to ./.codex', () => {
+          const input = [
+            '@./.claude/get-shit-done/workflows/update.md',
+            'node ./.claude/get-shit-done/bin/gsd-tools.cjs'
+          ].join('\n')
+          const result = replacePathsInContent(input, '~/.codex/', './.codex/')
+
+          expect(result).toContain('@./.codex/get-shit-done-reflect/workflows/update.md')
+          expect(result).toContain('node ./.codex/get-shit-done-reflect/bin/gsd-tools.cjs')
+          expect(result).not.toContain('./.claude/')
         })
 
         it('combined realistic agent file content: all rules compose without interference', () => {
