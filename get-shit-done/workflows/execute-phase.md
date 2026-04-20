@@ -933,6 +933,51 @@ If on a non-main branch:
    git push origin --delete $CURRENT_BRANCH  # if not auto-deleted by merge
    ```
 
+6. **GATE-11 (structural): release-boundary assertion.**
+
+   After the phase branch is merged to main, assert the release boundary is
+   current — either the most recent `reflect-v*` tag is fresher than the phase
+   merge (release already shipped) OR an explicit `.planning/release-lag.md`
+   deferral is present with a future `deferred_to`. Signals
+   `sig-2026-03-30-release-workflow-forgotten-in-milestone-completion` and
+   `sig-2026-04-17-phase-closeout-left-state-pr-release-pending` (5
+   occurrences) document the recurring gap this gate closes: phase branches
+   merge, release workflow never fires, no one notices.
+
+   ```bash
+   # Phase 58 Plan 15: structural GATE-11 enforcement
+   # Emits `::notice::gate_fired=GATE-11 result=<release_current|release_lag|explicit_defer>` per invocation.
+   # Exit codes: 0 = current, 1 = lag, 2 = explicitly deferred.
+   RELEASE_OUT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs release check --auto 2>&1)
+   RELEASE_EXIT=$?
+
+   case $RELEASE_EXIT in
+     0)
+       echo "GATE-11: release current"
+       echo "$RELEASE_OUT"
+       ;;
+     1)
+       echo "GATE-11 BLOCK: release lag detected"
+       echo "$RELEASE_OUT"
+       echo ""
+       echo "Options:"
+       echo "  A) Fire release: gh workflow run publish.yml"
+       echo "  B) Defer explicitly: cp .planning/handoff/release-lag-template.md .planning/release-lag.md && \$EDITOR .planning/release-lag.md"
+       echo "  C) Both: defer now, schedule the release"
+       echo "After choosing, re-run this step."
+       exit 1
+       ;;
+     2)
+       echo "GATE-11: release explicitly deferred"
+       echo "$RELEASE_OUT"
+       ;;
+     *)
+       echo "GATE-11 error (exit $RELEASE_EXIT): $RELEASE_OUT"
+       exit 1
+       ;;
+   esac
+   ```
+
 ---
 
 **If more phases:**
