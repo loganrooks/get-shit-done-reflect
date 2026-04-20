@@ -169,6 +169,43 @@ Research, plan, and verify a phase.
 
 ---
 
+### `/gsd-plan-review-convergence`
+
+Cross-AI plan convergence loop. Runs `plan-phase → review → replan → re-review` cycles until no HIGH concerns remain (max 3 cycles by default). Spawns isolated agents for planning and review; orchestrator handles loop control, HIGH-concern counting, stall detection, and escalation.
+
+| Argument / Flag | Required | Description |
+|-----------------|----------|-------------|
+| `N` | **Yes** | Phase number to plan and review |
+| `--codex` / `--gemini` / `--claude` / `--opencode` | No | Single-reviewer selection |
+| `--all` | No | Run every configured reviewer in parallel |
+| `--max-cycles N` | No | Override cycle cap (default 3) |
+
+**Exit behavior:** Loop exits when HIGH count hits zero. Stall detection warns when HIGH count is not decreasing across cycles. Escalation gate asks the user to proceed or review manually when `--max-cycles` is hit with HIGH concerns still open.
+
+```bash
+/gsd-plan-review-convergence 3                    # Default reviewers, 3 cycles
+/gsd-plan-review-convergence 3 --codex            # Codex-only review
+/gsd-plan-review-convergence 3 --all --max-cycles 5
+```
+
+---
+
+### `/gsd-ultraplan-phase`
+
+**[BETA — Claude Code only.]** Offload plan-phase work to Claude Code's ultraplan cloud. The plan drafts remotely so the terminal stays free; review inline comments in a browser, then import the finalized plan back into `.planning/` via `/gsd-import`.
+
+| Flag | Required | Description |
+|------|----------|-------------|
+| `N` | **Yes** | Phase number to plan remotely |
+
+**Isolation:** Intentionally separate from `/gsd-plan-phase` so upstream ultraplan changes cannot affect the core planning pipeline.
+
+```bash
+/gsd-ultraplan-phase 4                  # Offload planning for phase 4
+```
+
+---
+
 ### `/gsd-execute-phase`
 
 Execute all plans in a phase with wave-based parallelization, or run a specific wave.
@@ -602,6 +639,27 @@ Ingest an external plan file into the GSD planning system with conflict detectio
 
 ```bash
 /gsd-import --from /tmp/team-plan.md  # Import and validate an external plan
+```
+
+---
+
+### `/gsd-ingest-docs`
+
+Scan a repo containing mixed ADRs, PRDs, SPECs, and DOCs and bootstrap or merge the full `.planning/` setup from them in a single pass. Parallel classification (`gsd-doc-classifier`) plus synthesis with precedence rules and cycle detection (`gsd-doc-synthesizer`). Produces a three-bucket conflicts report (`INGEST-CONFLICTS.md`: auto-resolved, competing-variants, unresolved-blockers) and hard-blocks on LOCKED-vs-LOCKED ADR contradictions.
+
+| Argument / Flag | Required | Description |
+|-----------------|----------|-------------|
+| `path` | No | Target directory to scan (defaults to repo root) |
+| `--mode new\|merge` | No | Override auto-detect (defaults: `new` if `.planning/` absent, `merge` if present) |
+| `--manifest <file>` | No | YAML file listing `{path, type, precedence?}` per doc; overrides heuristic classification |
+| `--resolve auto` | No | Conflict resolution mode (v1: only `auto`; `interactive` is reserved) |
+
+**Limits:** v1 caps at 50 docs per invocation. Extracts the shared conflict-detection contract into `references/doc-conflict-engine.md`, which `/gsd-import` also consumes.
+
+```bash
+/gsd-ingest-docs                            # Scan repo root, auto-detect mode
+/gsd-ingest-docs docs/                      # Only ingest under docs/
+/gsd-ingest-docs --manifest ingest.yaml     # Explicit precedence manifest
 ```
 
 ---
