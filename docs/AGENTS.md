@@ -674,9 +674,47 @@ Ten additional agents ship under `agents/gsd-*.md` and are used by specialty wor
 
 ---
 
+### gsd-doc-classifier
+
+**Role:** Classifies a single planning document as ADR, PRD, SPEC, DOC, or UNKNOWN. Extracts title, scope summary, and cross-references. Writes a JSON classification file used by `gsd-doc-synthesizer` to build a consolidated context.
+
+| Property | Value |
+|----------|-------|
+| **Spawned by** | `/gsd-ingest-docs` (parallel fan-out over the doc corpus) |
+| **Parallelism** | One instance per input document |
+| **Tools** | Read, Write, Grep, Glob |
+| **Model (balanced)** | Haiku |
+| **Color** | Yellow |
+| **Produces** | One JSON classification file per input doc (type, title, scope, refs) |
+
+**Key behaviors:**
+- Single-doc scope — never synthesizes or resolves conflicts (that is the synthesizer's job)
+- Heuristic-first classification; returns UNKNOWN when the doc lacks type signals rather than guessing
+
+---
+
+### gsd-doc-synthesizer
+
+**Role:** Synthesizes classified planning docs into a single consolidated context. Applies precedence rules, detects cross-reference cycles, enforces LOCKED-vs-LOCKED hard-blocks, and writes `INGEST-CONFLICTS.md` with three buckets (auto-resolved, competing-variants, unresolved-blockers).
+
+| Property | Value |
+|----------|-------|
+| **Spawned by** | `/gsd-ingest-docs` (after classifier fan-in) |
+| **Parallelism** | Single instance |
+| **Tools** | Read, Write, Grep, Glob, Bash |
+| **Model (balanced)** | Sonnet |
+| **Color** | Orange |
+| **Produces** | Consolidated context for `.planning/` plus `INGEST-CONFLICTS.md` report |
+
+**Key behaviors:**
+- Hard-blocks on LOCKED-vs-LOCKED ADR contradictions instead of silently picking a winner
+- Follows the `references/doc-conflict-engine.md` contract so `/gsd-import` and `/gsd-ingest-docs` produce consistent conflict reports
+
+---
+
 ## Agent Tool Permissions Summary
 
-> **Scope:** this table covers the 21 primary agents only. The 10 advanced/specialized agents listed above carry their own tool surfaces in their `agents/gsd-*.md` frontmatter (summarized in the per-agent stubs above and in [`docs/INVENTORY.md`](INVENTORY.md)).
+> **Scope:** this table covers the 21 primary agents only. The 12 advanced/specialized agents listed above carry their own tool surfaces in their `agents/gsd-*.md` frontmatter (summarized in the per-agent stubs above and in [`docs/INVENTORY.md`](INVENTORY.md)).
 
 | Agent | Read | Write | Edit | Bash | Grep | Glob | WebSearch | WebFetch | MCP |
 |-------|------|-------|------|------|------|------|-----------|----------|-----|
