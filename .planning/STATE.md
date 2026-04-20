@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-09-PLAN.md (GATE-15 source/install parity CI gate + parity script; 16 unit tests pass; prior GATE-01/02/03/13 preserved)
-last_updated: "2026-04-20T17:34:58.002Z"
+stopped_at: Completed 58-12-PLAN.md (GATE-05 echo macro + GATE-13 dispatch contract at 22 named spawn sites in 10 core workflow files; 8 Plan 12 scope allowlist entries retired; Plan 12a follow-on documented)
+last_updated: "2026-04-20T17:38:42.206Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 61
-  percent: 86
+  completed_plans: 62
+  percent: 87
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 8 of 21 (58-01 in progress)
+Plan: 9 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -241,6 +241,10 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-09] Plan's CI invocation 'HOME=$INSTALL_DIR node bin/install.js --claude --local' was semantically incorrect — --local is cwd-based per install.js:2578-2580, not HOME-based; replaced with '(cd $INSTALL_DIR && node $REPO_ROOT/bin/install.js --claude --local)' so --local resolves to tempdir
 - [Phase 58-structural-enforcement-gates]: [58-09] agents/ SOURCE_ROOT walked non-recursively (recursive: false) because install.js:2733-2751 iterates entry.isFile() top-level-only and skips sub-directories like agents/kb-templates/; recursive walk would false-positive with installed_file_missing
 - [Phase 58-structural-enforcement-gates]: [58-09] Dual fire-event emission (script emits result=block path=<first-diverging-file> reason=<why>; workflow emits coarse result=pass|block) is intentional — script output is detail for debuggability, workflow output is Plan 19 gate_fire_events extractor contract
+- [Phase 58-structural-enforcement-gates]: [58-12] GATE-05 echo_delegation macro + GATE-13 inline DISPATCH CONTRACT applied at 22 named spawn sites across 10 core workflow files; literal model baked via resolveModelInternal under quality profile (opus→inherit for Claude Code, sonnet literal for non-opus agents); runtime Task() body retains template binding per design §2.3
+- [Phase 58-structural-enforcement-gates]: [58-12] verify-work.md triple-quoted Task() placement: macro + dispatch contract placed as adjacent fenced blocks immediately above the Task() fence (design §2.4 proximity rules satisfied)
+- [Phase 58-structural-enforcement-gates]: [58-12] Allowlist format defect surfaced during Task 2 verification (bare # lines match everything via grep -F -f, silently disabling check); pre-existing from Plan 07 — deferred to Plan 12a full-sweep CI grep for surfacing; not fixed this plan
+- [Phase 58-structural-enforcement-gates]: [58-12] quick.md researcher spawn known discrepancy (Plan 02 §5.4): template binds {planner_model} instead of {researcher_model}; both resolve to inherit under quality so runtime-identical today; flagged inline in dispatch contract comment for future review rather than fixed under mechanical-edit discipline
 
 ### Roadmap Evolution
 
@@ -307,6 +311,7 @@ Recent decisions affecting current work:
 | Phase 58 P07 | 3min | 2 tasks | 3 files |
 | Phase 58-structural-enforcement-gates P08 | 5min | 2 tasks | 4 files |
 | Phase 58-structural-enforcement-gates P09 | 7min | 2 tasks | 3 files |
+| Phase 58-structural-enforcement-gates P12 | 10 | 2 tasks | 11 files |
 
 ### Key Artifacts
 
@@ -325,8 +330,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T17:34:57.993Z
-Stopped at: Completed 58-09-PLAN.md (GATE-15 source/install parity CI gate + parity script; 16 unit tests pass; prior GATE-01/02/03/13 preserved)
+Last session: 2026-04-20T17:38:42.198Z
+Stopped at: Completed 58-12-PLAN.md (GATE-05 echo macro + GATE-13 dispatch contract at 22 named spawn sites in 10 core workflow files; 8 Plan 12 scope allowlist entries retired; Plan 12a follow-on documented)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
