@@ -478,6 +478,45 @@ const SIGNATURE_REQUIRED_PATHS = [
   'signature.provenance_source.session_id',
 ];
 
+// ─── Ledger Schema (GATE-09a) ─────────────────────────────────────────────────
+//
+// The ledger schema validates `NN-LEDGER.md` frontmatter per Phase 58 Research R6
+// (Layout 1: standalone NN-LEDGER.md). It carries top-level required fields plus
+// per-entry validation with disposition-conditional required fields. The
+// validation plumbing is specialized because each entry is an array item with
+// its own required fields + conditionals on `disposition`; the signal schema's
+// top-level `conditional` hook does not express per-array-item logic.
+//
+// Consumed by Phase 58 Plan 17 (GATE-09d verifier).
+// Authoritative spec: .planning/phases/58-structural-enforcement-gates/58-04-ledger-schema.md
+
+const LEDGER_DISPOSITION_ENUM = [
+  'implemented_this_phase',
+  'explicitly_deferred',
+  'rejected_with_reason',
+  'left_open_blocking_planning',
+];
+
+const LEDGER_GENERATOR_ROLE_ENUM = ['planner', 'executor', 'verifier'];
+
+const LEDGER_TARGET_PHASE_PATTERN = /^Phase \d+(\.\d+)?$/;
+
+const LEDGER_SCHEMA = {
+  required: ['phase', 'ledger_schema', 'generated_at', 'generator_role', 'entries'],
+  ledger: true, // marker -- activates ledger-specific validation branch in cmdFrontmatterValidate
+  schema_version_field: 'ledger_schema',
+  schema_version_value: 'v1',
+  entry_required: ['context_claim', 'disposition', 'load_bearing', 'role_split_provenance'],
+  entry_nested_required: [
+    'role_split_provenance.written_by',
+    'role_split_provenance.written_at',
+    'role_split_provenance.session_id',
+  ],
+  disposition_enum: LEDGER_DISPOSITION_ENUM,
+  generator_role_enum: LEDGER_GENERATOR_ROLE_ENUM,
+  target_phase_pattern: LEDGER_TARGET_PHASE_PATTERN,
+};
+
 const FRONTMATTER_SCHEMAS = {
   plan: {
     required: ['phase', 'plan', 'type', 'wave', 'depends_on', 'files_modified', 'autonomous', 'must_haves', 'signature'],
@@ -492,6 +531,7 @@ const FRONTMATTER_SCHEMAS = {
     nested_required: SIGNATURE_REQUIRED_PATHS,
   },
   signal: FORK_SIGNAL_SCHEMA,
+  ledger: LEDGER_SCHEMA,
 };
 
 function getNestedValue(obj, fieldPath) {
@@ -514,6 +554,134 @@ function hasStructuredValue(value) {
 
 function validateNestedRequiredPaths(frontmatter, fieldPaths) {
   return (fieldPaths || []).filter(fieldPath => !hasStructuredValue(getNestedValue(frontmatter, fieldPath)));
+}
+
+// ─── Ledger validation (GATE-09a) ────────────────────────────────────────────
+
+function validateLedgerEntry(entry, index, schema) {
+  const prefix = `entries[${index}]`;
+  const missing = [];
+  const invalid = [];
+  const warnings = [];
+
+  if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+    invalid.push(`${prefix}: not an object`);
+    return { missing, invalid, warnings };
+  }
+
+  // Entry-level required fields
+  for (const field of schema.entry_required) {
+    if (entry[field] === undefined || entry[field] === null) {
+      missing.push(`${prefix}.${field}`);
+    }
+  }
+
+  // load_bearing must be boolean (YAML parser returns strings; accept "true"/"false" or true/false)
+  if (entry.load_bearing !== undefined && entry.load_bearing !== null) {
+    const lb = entry.load_bearing;
+    if (typeof lb !== 'boolean' && lb !== 'true' && lb !== 'false') {
+      invalid.push(`${prefix}.load_bearing: must be boolean (got ${JSON.stringify(lb)})`);
+    }
+  }
+
+  // Entry-level nested required (role_split_provenance.*)
+  for (const fieldPath of schema.entry_nested_required) {
+    if (!hasStructuredValue(getNestedValue(entry, fieldPath))) {
+      missing.push(`${prefix}.${fieldPath}`);
+    }
+  }
+
+  // role_split_provenance.written_by must be in the generator_role enum
+  const writtenBy = getNestedValue(entry, 'role_split_provenance.written_by');
+  if (writtenBy !== undefined && writtenBy !== null && !schema.generator_role_enum.includes(String(writtenBy))) {
+    invalid.push(`${prefix}.role_split_provenance.written_by: must be one of ${schema.generator_role_enum.join('|')} (got ${JSON.stringify(writtenBy)})`);
+  }
+
+  // disposition enum check
+  if (entry.disposition !== undefined && entry.disposition !== null) {
+    if (!schema.disposition_enum.includes(String(entry.disposition))) {
+      invalid.push(`${prefix}.disposition: must be one of ${schema.disposition_enum.join('|')} (got ${JSON.stringify(entry.disposition)})`);
+    }
+  }
+
+  // Conditional required fields keyed on disposition
+  const disposition = entry.disposition;
+  if (disposition === 'implemented_this_phase') {
+    const ev = entry.evidence_paths;
+    if (!Array.isArray(ev) || ev.length < 1) {
+      missing.push(`${prefix}.evidence_paths (required when disposition=implemented_this_phase; must be array with >= 1 entry)`);
+    }
+  } else if (disposition === 'explicitly_deferred') {
+    const target = entry.target_phase_if_deferred;
+    if (target === undefined || target === null || String(target).trim() === '') {
+      missing.push(`${prefix}.target_phase_if_deferred (required when disposition=explicitly_deferred)`);
+    } else if (!schema.target_phase_pattern.test(String(target))) {
+      invalid.push(`${prefix}.target_phase_if_deferred: must match pattern ${schema.target_phase_pattern.source} (got ${JSON.stringify(target)})`);
+    }
+  } else if (disposition === 'rejected_with_reason') {
+    const origin = getNestedValue(entry, 'narrowing_provenance.originating_claim');
+    const rationale = getNestedValue(entry, 'narrowing_provenance.rationale');
+    if (!hasStructuredValue(origin)) {
+      missing.push(`${prefix}.narrowing_provenance.originating_claim (required when disposition=rejected_with_reason)`);
+    }
+    if (!hasStructuredValue(rationale)) {
+      missing.push(`${prefix}.narrowing_provenance.rationale (required when disposition=rejected_with_reason)`);
+    }
+    const decision = getNestedValue(entry, 'narrowing_provenance.narrowing_decision');
+    if (!hasStructuredValue(decision)) {
+      warnings.push(`${prefix}.narrowing_provenance.narrowing_decision (strongly recommended when disposition=rejected_with_reason)`);
+    }
+  }
+
+  return { missing, invalid, warnings };
+}
+
+function validateLedgerFrontmatter(fm, schema) {
+  const missing = schema.required.filter(f => fm[f] === undefined || fm[f] === null);
+  const present = schema.required.filter(f => fm[f] !== undefined && fm[f] !== null);
+  const invalid = [];
+  const warnings = [];
+
+  // ledger_schema must equal v1
+  if (fm[schema.schema_version_field] !== undefined && fm[schema.schema_version_field] !== null) {
+    if (String(fm[schema.schema_version_field]) !== schema.schema_version_value) {
+      invalid.push(`${schema.schema_version_field}: must equal ${schema.schema_version_value} (got ${JSON.stringify(fm[schema.schema_version_field])})`);
+    }
+  }
+
+  // generator_role enum
+  if (fm.generator_role !== undefined && fm.generator_role !== null) {
+    if (!schema.generator_role_enum.includes(String(fm.generator_role))) {
+      invalid.push(`generator_role: must be one of ${schema.generator_role_enum.join('|')} (got ${JSON.stringify(fm.generator_role)})`);
+    }
+  }
+
+  // entries must be an array (may be empty; empty is a warning, not fail)
+  if (fm.entries !== undefined && fm.entries !== null) {
+    if (!Array.isArray(fm.entries)) {
+      invalid.push(`entries: must be an array (got ${typeof fm.entries})`);
+    } else {
+      if (fm.entries.length === 0) {
+        warnings.push('entries: empty array (rare; phases with zero ledger-able claims)');
+      }
+      for (let i = 0; i < fm.entries.length; i++) {
+        const result = validateLedgerEntry(fm.entries[i], i, schema);
+        missing.push(...result.missing);
+        invalid.push(...result.invalid);
+        warnings.push(...result.warnings);
+      }
+    }
+  }
+
+  const allMissing = [...missing, ...invalid];
+  return {
+    valid: allMissing.length === 0,
+    missing,
+    invalid,
+    present,
+    warnings,
+    entry_count: Array.isArray(fm.entries) ? fm.entries.length : 0,
+  };
 }
 
 function cmdFrontmatterGet(cwd, filePath, field, raw) {
@@ -571,6 +739,22 @@ function cmdFrontmatterValidate(cwd, filePath, schemaName, raw) {
   const content = safeReadFile(fullPath);
   if (!content) { output({ error: 'File not found', path: filePath }, raw); return; }
   const fm = extractFrontmatter(content);
+
+  // Ledger validation (GATE-09a) — per-entry array validation + disposition-conditional required fields
+  if (schema.ledger) {
+    const result = validateLedgerFrontmatter(fm, schema);
+    output({
+      valid: result.valid,
+      missing: result.missing,
+      invalid: result.invalid,
+      present: result.present,
+      warnings: result.warnings,
+      entry_count: result.entry_count,
+      schema: schemaName,
+    }, raw, result.valid ? 'valid' : 'invalid');
+    return;
+  }
+
   const missing = schema.required.filter(f => fm[f] === undefined);
   const present = schema.required.filter(f => fm[f] !== undefined);
   const nestedMissing = validateNestedRequiredPaths(fm, schema.nested_required);
