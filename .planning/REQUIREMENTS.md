@@ -7,7 +7,7 @@
 
 **Milestone thesis:** v1.20 is a major infrastructure and methodology milestone -- replacing advisory quality controls with structural enforcement, building a queryable knowledge base, overhauling spike methodology with epistemological rigor, and establishing measurement infrastructure for evidence-based workflow improvement.
 
-**Cross-runtime note:** Structural enforcement requirements (GATE-*) achieve full enforcement on Claude Code via hooks. On Codex CLI (no hook mechanism as of v0.118.0), enforcement degrades to workflow-level checks that depend on agent compliance -- the same advisory pattern the audit found unreliable. This is an accepted limitation for v1.20; Codex hook support is tracked as a dependency for full cross-runtime enforcement parity.
+**Cross-runtime note:** Structural enforcement requirements must declare per-gate substrate and per-gate Codex behavior. The old blanket assumption that "Codex has no hook mechanism" is stale; Claude Code hook surfaces are mature, and Codex hook support exists behind evolving `codex_hooks` surfaces. Hook-dependent requirements therefore must either (a) ship installer-wired Codex hook support, (b) degrade to a named workflow/CI gate, or (c) be explicitly waived with reason in phase CONTEXT and verification artifacts. Phase 57.9 and XRT-01 close this substrate gap.
 
 **Design constraint (SPIKE-11, moved from requirements):** Spike methodology must engage with Lakatos (progressive vs degenerating research programmes), Duhem-Quine (auxiliary hypotheses, holism of testing), Mayo (severity of testing), and institutional critique (three-tier enforce/encourage/warn -- Feyerabend/Longino). This is a governing design principle for SPIKE-01 through SPIKE-10, not a separate deliverable. See `.planning/research/spike-epistemology-research.md` and MILESTONE-CONTEXT.md for the full framework.
 
@@ -186,24 +186,65 @@ Dependencies: TEL-01a -> TEL-01b -> TEL-02
 
 ### Structural Enforcement
 
-- [ ] **GATE-01**: offer_next blocks phase advancement until PR is created and CI passes. User can provide explicit override with documented justification logged to session. On Codex (no hooks), offer_next requires manual confirmation of PR/CI status before proceeding
+#### Structural Enforcement Substrate
+
+Dependencies: HOOK-01 -> HOOK-02/HOOK-03
+
+- [ ] **HOOK-01**: Installer wires SessionStop / closeout hook substrate for Claude Code from source, not by manual runtime patching. The installed hook path is treated as authoritative for GATE-06 and any future postlude gates
+  - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 2.6 + Recommendation 9.1 -- GATE-06 depends on SessionStop substrate the installer does not currently write`
+- [ ] **HOOK-02**: Installer detects Codex hook availability and, when the runtime supports it, writes the Codex hook surface needed for structural closeout gates. When unavailable, the installer records an explicit degradation / waiver marker rather than silently pretending parity
+  - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit §5 -- blanket "Codex has no hooks" framing is stale; per-gate Codex behavior must be explicit`
+- [ ] **HOOK-03**: Closeout / incident hook substrate exposes canonical session-level counters or markers needed by GATE-06 and GATE-07 (postlude fired, error-rate / direction-change / destructive-event indicators, or an explicit "not available" marker)
+  - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 2.7 + §4.2 -- incident self-signal and structural postlude both require substrate that does not yet exist`
+
+- [ ] **GATE-01**: offer_next blocks phase advancement until a PR exists, required CI checks pass, and any override is logged with explicit justification. The requirement must name the blocking substrate (hook, CI rule, or workflow gate) and the Codex behavior; manual confirmation alone does not satisfy structural enforcement
   - *Motivation:* `pattern: R01 -- 6+ occurrences of advisory fix failing, signal f5e6b2b6 still active`
-- [ ] **GATE-02**: `--merge` is the structural default for PR merges -- passed explicitly in `gh pr merge` invocation, not documented as preference
+- [ ] **GATE-02**: `--merge` is the structural default for PR merges in every workflow / command surface that invokes `gh pr merge`, and CI verifies that `--squash` is absent and `--merge` is explicit
   - *Motivation:* `pattern: R02 -- squash merge destroyed commit history, required force-push recovery`
-- [ ] **GATE-03**: Quick task detects runtime code changes and requires branch+PR flow -- docs-only changes allowed direct to main
+- [ ] **GATE-03**: Quick task uses an explicit detection rule for runtime-facing changes (source code, installer/runtime mirrors, workflow control surfaces, planning-authority files) and requires branch+PR flow for those changes. Pure prose docs may still go direct to main
   - *Motivation:* `pattern: R08 -- quick task committed runtime code to main without CI gate`
-- [ ] **GATE-04**: `.continue-here` files marked consumed on read and deleted/archived after session start. Staleness check if file predates last session. Adopt upstream's hard stop safety gates and anti-pattern severity levels (blocking/advisory with mandatory understanding checks for blocking items)
+- [ ] **GATE-04a**: `.continue-here` files are consumed on read and archived or deleted after session start; the workflow leaves a durable trace rather than silently reusing stale handoff files
+  - *Motivation:* `pattern: R09 -- recurrence driven by stale handoff state surviving across sessions`
+- [ ] **GATE-04b**: `.continue-here` staleness is a structural hard stop when the file predates the last session or conflicts with newer project state
+  - *Motivation:* `pattern: R09 -- stale handoff files repeatedly re-open the wrong working set`
+- [ ] **GATE-04c**: Upstream anti-pattern severity levels (blocking / advisory) ship with mandatory understanding checks for blocking items, so hard-stop safety gates are not advisory prose
   - *Motivation:* `pattern: R09 -- 3 months of recurrence, 3+ signals, no fix` | `research: upstream-drift-survey -- upstream convergent with hard stops + severity`
-- [ ] **GATE-05**: Sensor model selection echoed and logged before dispatch in all delegation workflows
+- [ ] **GATE-05**: Model selection is echoed and logged before dispatch in every named delegation surface that can materially affect output (`collect-signals`, research / planning delegation, discuss-phase delegation, audit delegation, and other spawned batch workflows). The requirement enumerates the sites rather than relying on "all delegation workflows" as prose
   - *Motivation:* `pattern: R10 -- entire sensor batch stopped and relaunched because model selection was wrong and unverifiable`
-- [ ] **GATE-06**: Automation postlude fires structurally -- SessionStop hook on Claude Code, workflow-enforced step on Codex -- rather than by agent discretion
+- [ ] **GATE-06**: Automation postlude fires structurally via installed hook / closeout substrate rather than by agent discretion. The phase must specify the Claude substrate, the Codex substrate or waiver path, and a measurable fire-event for verification
   - *Motivation:* `pattern: R12 -- 0% fire rate across all sessions, 6/6 signal_collection skipped`
-- [ ] **GATE-07**: Incident self-signal hook prompts signal creation when session metadata indicates high error rate, direction changes, or destructive events during execution
+- [ ] **GATE-07**: Incident self-signal hook prompts signal creation when session metadata or hook trace indicates high error rate, major direction changes, or destructive events during execution. The trigger source must be named, not assumed
   - *Motivation:* `pattern: R04 -- agent failed to self-signal after 91-file cascade, headless version burn, CI bypass`
-- [ ] **GATE-08**: Discuss-phase three-mode adoption completed -- verify current state against upstream's 671-line discuss-phase-assumptions.md, create missing `gsd-assumptions-analyzer` agent, add `docs/workflow-discuss-mode.md`, wire mode-aware gates in plan-phase.md and progress.md where absent. Adopt upstream's richer version with methodology loading
+- [ ] **GATE-08a**: Discuss-phase current state is verified against upstream's richer discuss-phase-assumptions surface before adoption work is declared complete
+  - *Motivation:* `signal: sig-2026-04-03-discuss-mode-adoption-gap-silent-feature-drop -- closed issues masked missing work`
+- [ ] **GATE-08b**: Missing `gsd-assumptions-analyzer` / equivalent assumptions-analyzer agent is created and wired into the discuss-phase contract
+  - *Motivation:* `research: upstream richer discuss assumptions flow includes analyzer surface missing in fork`
+- [ ] **GATE-08c**: `docs/workflow-discuss-mode.md` (or equivalent canonical discuss-mode documentation) exists and matches the shipped workflow
+  - *Motivation:* `research: upstream 671 lines vs fork 279 lines -- mode semantics are currently under-documented`
+- [ ] **GATE-08d**: `plan-phase` and `progress` ship mode-aware discuss gates where the richer discuss-phase contract requires them
+  - *Motivation:* `signal: sig-2026-04-03-discuss-mode-adoption-gap-silent-feature-drop -- mode adoption failed partly because downstream gates were absent`
+- [ ] **GATE-08e**: The upstream richer discuss-phase-assumptions surface, including methodology loading where relevant, is adopted or explicitly narrowed with a named rationale
   - *Motivation:* `signal: sig-2026-04-03-discuss-mode-adoption-gap-silent-feature-drop -- Issues #26, #32, #33 closed prematurely` | `research: upstream 671 lines vs fork 279 lines`
-- [ ] **GATE-09**: Scope-translation ledger — (1) every load-bearing CONTEXT claim mapped at phase close to `implemented_this_phase` / `explicitly_deferred` / `rejected_with_reason` / `left_open_blocking_planning`; (2) any `[open]` scope-boundary question in CONTEXT affecting what the phase is supposed to build must be resolved or deferred with a named downstream phase before planning proceeds; (3) if RESEARCH or PLAN narrows scope relative to CONTEXT, it must cite the originating CONTEXT claim and record the narrowing as a decision; (4) verification checks the ledger — a phase can pass its executable truths but the verifier also confirms whether CONTEXT commitments were explicitly deferred rather than silently disappearing
+- [ ] **GATE-09a**: Scope-translation ledger exists as a named artifact / schema, not a prose convention. Every load-bearing CONTEXT claim maps at phase close to `implemented_this_phase` / `explicitly_deferred` / `rejected_with_reason` / `left_open_blocking_planning`
   - *Motivation:* `deliberation: measurement-infrastructure-epistemic-foundations.md §7.4 -- meta-fix for the Phase 57 scope-narrowing cascade documented by .planning/audits/2026-04-10-phase-57-vision-drop-investigation/`
+- [ ] **GATE-09b**: Any `[open]` scope-boundary question in CONTEXT that affects what the phase is supposed to build is resolved or deferred with a named downstream phase before planning proceeds
+  - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 2.9 -- planning gate was bundled into ledger prose and would otherwise disappear`
+- [ ] **GATE-09c**: If RESEARCH or PLAN narrows scope relative to CONTEXT, it cites the originating CONTEXT claim and records the narrowing as a decision with provenance
+  - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit §7.3 -- the ledger itself can be silently narrowed unless narrowing decisions are first-class`
+- [ ] **GATE-09d**: Verification checks the ledger and fails silent disappearance of load-bearing CONTEXT claims even when executable work passes
+  - *Motivation:* `deliberation: measurement-infrastructure-epistemic-foundations.md §7.4 -- executable truth is not sufficient when scope commitments vanish silently`
+- [ ] **GATE-10**: Phase-closeout reconciliation is structural — `STATE.md`, the active ROADMAP phase row, phase plan checkboxes, and any touched planning-authority sidecars are reconciled before the phase is treated as complete
+  - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 3.1 -- closeout reconciliation gap recurred immediately after 57.8`
+- [ ] **GATE-11**: Release-boundary assertion is structural — when a phase branch merges, the PR/CI/merge/tag/release boundary is either advanced or explicitly deferred with reason; stale release lag is surfaced rather than silently tolerated
+  - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 3.1 + 3.6 -- release follow-through is part of the same seam, not a separate optional chore`
+- [ ] **GATE-12**: Failed or interrupted agent output is archived rather than deleted before redispatch, so partial evidence survives audit / recovery
+  - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 3.2 -- in-flight evidence preservation has no owning gate`
+- [ ] **GATE-13**: Delegation contracts are restated at spawn sites (agent type, model, reasoning effort, required inputs, output path) so auto-compact / context compression cannot silently change the dispatch semantics
+  - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 3.3 -- delegation drift under compaction remains unowned`
+- [ ] **GATE-14**: Direct pushes to `main` are structurally blocked for gated work, and CI status is enforced beyond PR creation
+  - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 3.5 -- PR creation alone does not close CI bypass / direct-push recurrence`
+- [ ] **GATE-15**: Source-vs-installed mirror parity is verified after runtime-facing changes so a workflow cannot pass with drift between source and installed surfaces
+  - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 3.7 -- source/install drift is still a bypass surface`
 
 ### Sensor Pipeline
 
@@ -357,8 +398,8 @@ Dependencies: SPIKE-02 -> SPIKE-01 -> SPIKE-09. SPIKE-08 gated on SPIKE-01 compl
 
 ### Cross-Runtime Parity
 
-- [ ] **XRT-01**: Every hook-dependent v1.20 feature specifies its Codex CLI degradation path in phase CONTEXT.md before implementation begins. Cross-runtime capability matrix (`capability-matrix.md`) updated when v1.20 features ship
-  - *Motivation:* `research: cross-runtime-parity-research.md -- Codex CLI v0.118.0 has zero hook mechanism`
+- [ ] **XRT-01**: Every hook-dependent v1.20 feature specifies its per-runtime substrate and Codex degradation / waiver path in phase CONTEXT.md before implementation begins. `capability-matrix.md` is updated when the feature ships, and stale blanket assumptions about hook absence are not acceptable evidence
+  - *Motivation:* `research: cross-runtime-parity-research.md -- Codex hook availability is conditional / evolving, not flatly absent` | `audit: 2026-04-20-phase-58-structural-gates-gap-audit §5 -- per-gate Codex behavior must be explicit`
 - [ ] **XRT-02**: Patch compatibility checking validates patches against Codex CLI target runtime before cross-runtime application
   - *Motivation:* `pattern: patches applied to Claude without checking Codex compatibility`
 

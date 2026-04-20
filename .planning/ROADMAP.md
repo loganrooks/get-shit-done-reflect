@@ -138,6 +138,17 @@ Authority: `.planning/audits/2026-04-16-signal-provenance-audit/signal-provenanc
 Derived from: audit Findings 1-3 + Recommendations 1, 2, 4, 5. Wider integration (Finding 4, Recommendation 3) split to Phase 60.1 because it depends on the sensor pipeline (Phase 60) existing first. Open design questions (array vs. graph, migration strategy, reflection-consumer coupling) carried into 57.8-CONTEXT.md as typed open claims per GOV-01 discipline.
 **Plans:** 0/TBD (run `/gsdr:discuss-phase 57.8` then `/gsdr:plan-phase 57.8`)
 
+### Phase 57.9: Hook & Closeout Substrate (INSERTED)
+
+**Goal:** The installer and runtime substrate provide the closeout / incident hook surfaces that Phase 58 depends on, instead of letting structural gates stand on missing infrastructure. This narrow prerequisite wires SessionStop / closeout hooks for Claude Code, integrates the available Codex hook surface when supported, and exposes the session-level closeout / incident markers needed by GATE-06 and GATE-07.
+**Depends on:** Phase 57.8 (role-aware provenance is already the epistemic prerequisite for Phase 58; this phase closes the operational prerequisite)
+**Requirements:** HOOK-01, HOOK-02, HOOK-03
+**Success Criteria** (what must be TRUE):
+  1. Installer writes the Claude Code SessionStop / closeout hook surface from source, with tests proving the hook lands in the installed runtime
+  2. Installer detects Codex hook support and either writes the required Codex hook surface or records an explicit degradation / waiver path rather than silently assuming parity
+  3. Closeout / incident hook substrate exposes canonical markers or counters for "postlude fired" and the incident conditions Phase 58 needs (error-rate / direction-change / destructive-event, or explicit `not_available`)
+**Plans**: TBD
+
 ### Phase 57.4: Audit Skill & Investigatory Type (INSERTED)
 
 **Goal:** This phase **radically rethinks the formalization of the auditing workflow**. Phase 57.3 produced the first formal audit infrastructure: a flat 8-type taxonomy, body templates per type, ground rules 1-4, type-family rule extensions, and the supporting reference files. After 57.3 shipped, the work of actually running audits (13 sessions plus 6 exploratory audits of audit quality) revealed that this formalization **does not express the complexities of the auditing situation**. What looked like "types" conflated three orthogonal concerns under one enum. Templates could not compose obligations across axes. Frame-reflexivity was absent. Chain integrity, dispatch hygiene, and framework invisibility were not enforced by any rule.
@@ -302,16 +313,18 @@ Plans:
 - [ ] 57.7-10-PLAN.md -- [wave 5, depends_on 04+05+06+07+08+09] Demonstration artifacts: revised vision-drop diagnostic + GATE-09 pending intervention record + DEMO-REPORT.md
 
 ### Phase 58: Structural Enforcement Gates
-**Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion, plus GATE-09 scope-translation ledger as the meta-fix for the Phase 57 scope-narrowing cascade
-**Depends on**: Phase 57.7 (measurement substrate needed for evaluating gate effectiveness; GATE-09 coordinates with measurement system to surface CONTEXT-claim deferrals)
-**Requirements**: GATE-01, GATE-02, GATE-03, GATE-04, GATE-05, GATE-06, GATE-07, GATE-08, GATE-09, XRT-01
+**Goal**: High-recurrence advisory, closeout, and dispatch-drift failure patterns are replaced with structural enforcement that emits measurable fire-events, applies across the workflows that could bypass it, and declares per-gate Codex behavior instead of assuming blanket degradation. GATE-09 remains the meta-fix for scope-translation loss, but the phase also owns the newly-evidenced closeout seam (state / PR / release / archive drift) surfaced by the 2026-04-20 audits.
+**Depends on**: Phase 57.7 (measurement substrate for gate fire-events), Phase 57.8 (role-aware provenance for GATE-09 attribution), Phase 57.9 (hook / closeout substrate for GATE-06 and GATE-07)
+**Requirements**: GATE-01, GATE-02, GATE-03, GATE-04a, GATE-04b, GATE-04c, GATE-05, GATE-06, GATE-07, GATE-08a, GATE-08b, GATE-08c, GATE-08d, GATE-08e, GATE-09a, GATE-09b, GATE-09c, GATE-09d, GATE-10, GATE-11, GATE-12, GATE-13, GATE-14, GATE-15, XRT-01
 **Success Criteria** (what must be TRUE):
-  1. Phase advancement via offer_next blocks until PR is created and CI passes -- user can override with documented justification logged to session
-  2. `gh pr merge` invocations pass `--merge` explicitly as the structural default, and quick task detects runtime code changes requiring branch+PR flow
-  3. `.continue-here` files are consumed on read and archived after session start, with staleness checks and upstream-adopted hard stop safety gates
-  4. Automation postlude fires structurally (SessionStop hook on Claude Code, workflow-enforced step on Codex) rather than by agent discretion
-  5. Every hook-dependent v1.20 feature specifies its Codex CLI degradation path in phase CONTEXT.md before implementation begins, and capability-matrix.md is updated
-  6. GATE-09 scope-translation ledger enforces that every load-bearing CONTEXT claim is mapped at phase close (implemented / explicitly deferred / rejected / left-open-blocking-planning); RESEARCH and PLAN scope narrowing relative to CONTEXT is cited with the originating claim and recorded as a decision; verification confirms CONTEXT commitments were explicitly deferred rather than silently disappearing
+  1. Every GATE declares its substrate and per-gate Codex behavior, and every shipped gate emits a measurable fire-event or explicit waiver marker that downstream measurement can count
+  2. Phase advancement blocks until PR / CI gates pass, `gh pr merge` surfaces use `--merge` structurally, quick tasks detect runtime-facing changes with an explicit rule, and direct pushes / CI bypass paths are structurally blocked
+  3. `.continue-here` lifecycle and hard-stop severity gates ship as separate structural behaviors: consumed-on-read archival, stale-file hard stop, and blocking/advisory anti-pattern checks with mandatory understanding for blocking items
+  4. Automation postlude and incident self-signal prompts fire structurally from installed hook / closeout substrate rather than agent discretion
+  5. Discuss-phase richer mode adoption lands as a multi-surface closeout: current-state verification, assumptions-analyzer agent, discuss-mode docs, downstream mode-aware gates, and explicit upstream-narrowing rationale where applicable
+  6. GATE-09 ships as a real ledger contract: named artifact/schema, planning gate for unresolved scope-boundary questions, narrowing-decision provenance, and verifier enforcement against silent disappearance
+  7. Phase closeout is structural: planning-authority files reconcile, failed/interrupted agent output is archived, release-boundary lag is surfaced, and source-vs-installed mirrors are checked after runtime-facing changes
+  8. Every hook-dependent v1.20 feature specifies its per-runtime substrate and Codex degradation / waiver path in phase CONTEXT.md before implementation begins, and capability-matrix.md is updated when the feature ships
 **Plans**: TBD
 
 ### Phase 59: KB Query, Lifecycle Wiring & Surfacing
