@@ -113,7 +113,7 @@ User-facing entry points. Each file contains YAML frontmatter (name, description
 - **Copilot:** Slash commands (`/gsd-command-name`)
 - **Antigravity:** Skills
 
-**Total commands:** 81
+**Total commands:** see [`docs/INVENTORY.md`](INVENTORY.md#commands) for the authoritative count and full roster.
 
 ### Workflows (`get-shit-done/workflows/*.md`)
 
@@ -124,7 +124,7 @@ Orchestration logic that commands reference. Contains the step-by-step process i
 - State update patterns
 - Error handling and recovery
 
-**Total workflows:** 78
+**Total workflows:** see [`docs/INVENTORY.md`](INVENTORY.md#workflows) for the authoritative count and full roster.
 
 ### Agents (`agents/*.md`)
 
