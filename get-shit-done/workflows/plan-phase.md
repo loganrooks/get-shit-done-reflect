@@ -1,3 +1,11 @@
+<!-- text_mode: this workflow is primarily agent-driven (Task() dispatch to
+     gsd-phase-researcher / gsd-planner / gsd-plan-checker). No user-facing
+     AskUserQuestion or readline prompts exist at this time, so the
+     workflow.text_mode config flag is a documented no-op here.
+     GATE-08d contract: future user-prompt additions MUST honor the
+     WORKFLOW_TEXT_MODE branching pattern defined in
+     docs/workflow-discuss-mode.md §3. Plan 17 verifier greps this comment. -->
+
 <purpose>
 Create executable phase prompts (PLAN.md files) for a roadmap phase with integrated research and verification. Default flow: Research (if needed) -> Plan -> Verify -> Done. Orchestrates gsd-phase-researcher, gsd-planner, and gsd-plan-checker agents with a revision loop (max 3 iterations).
 </purpose>

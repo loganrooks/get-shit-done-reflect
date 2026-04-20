@@ -1,3 +1,11 @@
+<!-- text_mode: this workflow is primarily agent-driven (routing + summary-extract
+     + roadmap analyze calls). No user-facing AskUserQuestion or readline
+     prompts exist at this time, so the workflow.text_mode config flag is a
+     documented no-op here.
+     GATE-08d contract: future user-prompt additions MUST honor the
+     WORKFLOW_TEXT_MODE branching pattern defined in
+     docs/workflow-discuss-mode.md §3. Plan 17 verifier greps this comment. -->
+
 <purpose>
 Check project progress, summarize recent work and what's ahead, then intelligently route to the next action — either executing an existing plan or creating the next one. Provides situational awareness before continuing work.
 </purpose>
