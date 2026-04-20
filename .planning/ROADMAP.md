@@ -328,16 +328,19 @@ Plans:
 **Plans**: TBD
 
 ### Phase 59: KB Query, Lifecycle Wiring & Surfacing
-**Goal**: The knowledge base is fully queryable, signal lifecycle transitions are automated, and research/planning agents use structured queries instead of grep
+**Goal**: The knowledge base is fully queryable on the current file+SQLite architecture, lifecycle transitions are automated with an explicit path relative to the existing bash fallback, and agent surfacing stops being one-way by exposing inbound edge context. The phase stays focused on query/lifecycle/surfacing on the current schema, while explicitly naming the deeper edge-as-entity and retrieval-feedback architecture as downstream work instead of silently omitting it.
 **Depends on**: Phase 56 (SQLite index must exist)
-**Requirements**: KB-04b, KB-04c, KB-06a, KB-06b, KB-07, KB-08
+**Requirements**: KB-04b, KB-04c, KB-04d, KB-06a, KB-06b, KB-07, KB-08
 **Success Criteria** (what must be TRUE):
-  1. `gsd-tools kb search` performs FTS5 full-text search across signal content, and `gsd-tools kb query` filters by lifecycle state and other structured fields
-  2. `gsd-tools kb link` traverses qualified_by/superseded_by relationships between signals and spikes
-  3. `gsd-tools kb transition` updates both the .md frontmatter AND the SQLite row atomically (dual-write invariant per KB-05)
-  4. When a plan with `resolves_signals` completes, collect-signals auto-transitions matching signals to remediated state
-  5. Research and planning agents use SQLite queries for KB retrieval, with graceful fallback to grep when kb.db does not exist
+  1. `gsd-tools kb search` and `gsd-tools kb query` operate on the current live corpus (267 signals as of 2026-04-20, re-verified against the live count at implementation time), and `kb rebuild` reports edge-integrity counts by link type plus malformed/orphaned targets
+  2. KB link verbs are disambiguated into read vs write surfaces, and read surfaces expose both inbound and outbound traversal so newer related signals can be seen from older immutable entries
+  3. `gsd-tools kb transition` updates both the .md frontmatter AND the SQLite row atomically (dual-write invariant per KB-05), and mutating edge operations do not hide behind a read-only verb
+  4. When a plan with `resolves_signals` completes, collect-signals auto-transitions matching signals to remediated state, and the phase explicitly states whether this replaces, complements, or deprecates `reconcile-signal-lifecycle.sh`
+  5. `kb health` has a concrete contract: edge integrity, lifecycle-vs-plan consistency, dual-write verification, and `depends_on` freshness summary
+  6. Research and planning agents use SQLite queries for relevant signal/spike/reflection retrieval, with graceful fallback to grep when `kb.db` does not exist, and the surfacing protocol no longer depends on the deprecated lesson-only path
+  7. Phase 59 records explicit downstream deferrals for the deeper KB architecture (`KB-12` through `KB-17`) so edge-as-entity, retrieval attribution, artifact indexing, federation, vocabulary extension, and contested-state support do not disappear by omission
 **Plans**: TBD
+**Deferred Children To Name In Phase 59 CONTEXT/PLAN**: KB-12, KB-13, KB-14, KB-15, KB-16, KB-17
 
 ### Phase 60: Sensor Pipeline & Codex Parity
 **Goal**: Log sensor and patch sensor are operational across Claude Code and Codex CLI, with automated parity verification after installation
