@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-13-PLAN.md (GATE-10 phase reconcile subcommand + workflow wiring; composition-over-replacement orchestrator + execute-phase offer_next + complete-milestone per-phase loop; fire-event emits on every invocation)
-last_updated: "2026-04-20T18:08:45.239Z"
+stopped_at: Completed 58-14-PLAN.md (GATE-12 agent archive primitive + CLI + HEADNOTE envelopes in execute-plan/research-phase/plan-phase; fire-event emits per invocation; no existing rm sites to wrap)
+last_updated: "2026-04-20T18:16:57.204Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 65
-  percent: 92
+  completed_plans: 66
+  percent: 93
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 12 of 21 (58-01 in progress)
+Plan: 13 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -258,6 +258,10 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-13]: GATE-10 uses distinct exit code 5 (unreconciled blocking) so wrapper workflows branch on GATE-10 semantics without parsing JSON; stays disjoint from GATE-01 codes (1/2/3/4) and GATE-04c code 4
 - [Phase 58-structural-enforcement-gates]: [58-13]: execute-phase.md GATE-10 step placed at TOP of offer_next (before push/PR creation) so STATE/ROADMAP drift is caught at earliest structural boundary; runs after the preceding update_roadmap verification step
 - [Phase 58-structural-enforcement-gates]: [58-13]: complete-milestone.md per-phase reconcile loop extracts phase-id via regex on branch name (phase_branch_template convention) rather than config round-trip; stays aligned with existing PHASE_BRANCHES enumeration pattern
+- [Phase 58-structural-enforcement-gates]: [58-14] GATE-12 archive root resolution: phase-scoped (.planning/phases/<N>-*/.archive/) when --phase supplied; .planning/archive/ root fallback otherwise — evidence clusters next to producing phase when possible
+- [Phase 58-structural-enforcement-gates]: [58-14] GATE-12 cross-filesystem-safe move via fs.renameSync + EXDEV fallback to cpSync+rmSync (dirs) or copyFileSync+unlinkSync (files); avoids data loss when .planning/ and source path live on different mounts
+- [Phase 58-structural-enforcement-gates]: [58-14] GATE-12 missing paths recorded in missing[], not errored (exit 0); errors (exit 2) reserved for actual move failures — disjoint from GATE-01 (1-4), GATE-04c (4), GATE-10 (5)
+- [Phase 58-structural-enforcement-gates]: [58-14] GATE-12 no current rm/overwrite sites exist in execute-plan/research-phase/plan-phase.md; plan anticipated this — ships primitive + CLI + HEADNOTE envelopes so future dispatch edits have a fill-in-the-blank wrapper; Plan 17 checks HEADNOTE presence not wrapper count
 
 ### Roadmap Evolution
 
@@ -328,6 +332,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P10 | 5min | 2 tasks | 4 files |
 | Phase 58 P12a | 12 | 2 tasks | 8 files |
 | Phase 58-structural-enforcement-gates P13 | 8min | 2 tasks | 6 files |
+| Phase 58-structural-enforcement-gates P14 | 4min | 2 tasks | 5 files |
 
 ### Key Artifacts
 
@@ -346,8 +351,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T18:08:28.690Z
-Stopped at: Completed 58-13-PLAN.md (GATE-10 phase reconcile subcommand + workflow wiring; composition-over-replacement orchestrator + execute-phase offer_next + complete-milestone per-phase loop; fire-event emits on every invocation)
+Last session: 2026-04-20T18:16:27.284Z
+Stopped at: Completed 58-14-PLAN.md (GATE-12 agent archive primitive + CLI + HEADNOTE envelopes in execute-plan/research-phase/plan-phase; fire-event emits per invocation; no existing rm sites to wrap)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
