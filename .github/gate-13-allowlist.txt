@@ -55,22 +55,19 @@
 # transitively by adjacent matches).
 #
 # --- Plan 02 §4.2 rows visible to the CI grep at Plan 07 authoring time ---
-# row 2  — collect-signals.md synthesizer_model
-get-shit-done/workflows/collect-signals.md-378-
-# row 15 — execute-phase.md executor_model
-get-shit-done/workflows/execute-phase.md-191-
-# row 7  — quick.md checker_model (plan-checker spawn)
-get-shit-done/workflows/quick.md-503-
-# row 8  — quick.md planner_model (second planner spawn)
-get-shit-done/workflows/quick.md-548-
-# row 11 — plan-phase.md researcher_model (general-purpose proxy)
-get-shit-done/workflows/plan-phase.md-137-
-# row 12 — plan-phase.md planner_model (general-purpose proxy)
-get-shit-done/workflows/plan-phase.md-356-
-# row 13 — plan-phase.md checker_model
-get-shit-done/workflows/plan-phase.md-411-
-# row 14 — plan-phase.md planner_model (revision loop, general-purpose proxy)
-get-shit-done/workflows/plan-phase.md-459-
+#
+# Phase 58 Plan 12 scope: 10 core workflow files retired 2026-04-20 (collect-signals,
+# research-phase, plan-phase, execute-phase, verify-work, audit-milestone, discuss-phase,
+# quick, reflect, explore). GATE-05 echo_delegation macro + GATE-13 inline dispatch
+# contract comment block applied to each site; runtime Task() body retains template
+# binding per design §2.3 (resilience lives in the comment). Allowlist entries for
+# rows 2, 7, 8, 11, 12, 13, 14, 15 removed in the same commit that landed the edits.
+#
+# Remaining entries below are Plan 12a's scope (commands/gsd/audit.md, commands/gsd/debug.md,
+# commands/gsd/research-phase.md, map-codebase.md, new-project.md, new-milestone.md,
+# validate-phase.md + the Codex skill mirrors) — Plan 12a empties this file or
+# replaces with a retirement comment after its landing.
+#
 # row 23 — commands/gsd/debug.md debugger_model
 commands/gsd/debug.md-96-
 # row 24 — commands/gsd/debug.md debugger_model (continuation)
