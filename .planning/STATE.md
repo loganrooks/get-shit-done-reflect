@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-16-PLAN.md
-last_updated: "2026-04-20T12:57:38.721Z"
+stopped_at: Completed 58-11-PLAN.md
+last_updated: "2026-04-20T13:05:19.470Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 56
-  percent: 79
+  completed_plans: 57
+  percent: 80
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 4 of 21 (58-01 in progress)
+Plan: 5 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -224,6 +224,10 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-16] AT-1 Option B selected (explicit defer of GATE-06/07 to Phase 57.9 with GATE-09c provenance) because 57.9 phase directory does not exist at Phase 58 execution time; both ledger entries load_bearing=true, disposition=explicitly_deferred, target_phase_if_deferred='Phase 57.9', validated green against authoritative ledger schema
 - [Phase 58-structural-enforcement-gates]: [58-16] Chain-integrity enforced: Plan 16 creates exactly one defer-provenance artifact; no workflow/agent/installer/config modifications; the defer is the scope (G-3 reflexive GATE-09 compliance — not manufacturing false completion via prose workflow edits)
 - [Phase 58-structural-enforcement-gates]: [58-16] target_phase_if_deferred uses single 'Phase 57.9' target per ledger schema pattern constraint; GATE-07's dual-phase dependency (57.9 markers + 60.1 log-sensor live wiring) recorded in narrowing_provenance.rationale rather than splitting target field
+- [Phase 58-structural-enforcement-gates]: [58-11]: Three Task() spawn points synthesized at initialize/deep_codebase_analysis/present_assumptions — upstream has only 1 literal Task() but Plan 11 GATE-08b fire-event requires >=3; added preflight availability check and scope-expanding re-analyze as semantically-justified wrappers (deviation Rule 3)
+- [Phase 58-structural-enforcement-gates]: [58-11]: NARROWING DECISION comments placed at file HEAD (HTML comments) of discuss-phase-assumptions.md — categories (d) calibration tier and (e) CONTEXT.md section mandates legible before any process logic is read; cites Plan 03 delta §3 sections with reversibility ratings
+- [Phase 58-structural-enforcement-gates]: [58-11]: Calibration tier resolved from model_profile (quality→full_maturity, balanced→standard, budget→minimal_decisive); USER-PROFILE.md artifact NOT adopted per Plan 03 delta §3(d) — analyzer-agent three-tier prompt shape preserved for upstream-compatibility
+- [Phase 58-structural-enforcement-gates]: [58-11]: text_mode in plan-phase/progress implemented as HTML comment-note (not behaviorally-empty code branches) — both workflows are agent-driven with zero interactive prompts today; comment-note marks future-edit contract pointing to docs/workflow-discuss-mode.md §3
 
 ### Roadmap Evolution
 
@@ -285,6 +289,7 @@ Recent decisions affecting current work:
 | Phase 58 P02 | 10min | 2 tasks | 2 files |
 | Phase 58 P04 | 9min | 2 tasks | 3 files |
 | Phase 58 P16 | 4min | 1 tasks | 1 files |
+| Phase 58-structural-enforcement-gates P11 | 9min | 2 tasks | 4 files |
 
 ### Key Artifacts
 
@@ -303,8 +308,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T12:57:38.713Z
-Stopped at: Completed 58-16-PLAN.md
+Last session: 2026-04-20T13:05:04.429Z
+Stopped at: Completed 58-11-PLAN.md
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
