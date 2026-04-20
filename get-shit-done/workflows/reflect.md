@@ -263,9 +263,52 @@ fi
 
 <step name="spawn_reflector">
 
-Delegate to the `gsd-reflector` agent with prepared context:
+Delegate to the `gsd-reflector` agent with prepared context.
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-reflector"
+MODEL="sonnet"   # No model= attribute on Task() — relies on agent-profile default; baked for GATE-13 compaction-resilience.
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/reflect.md"
+WORKFLOW_STEP="spawn_reflector"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-reflector
+# Model: sonnet  (no model= attribute on Task() — relies on agent-profile default; resolveModelInternal(cwd, "gsd-reflector") = sonnet under model_profile=quality; alias mode)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - {INDEX_CONTENT} (KB index)
+#   - {PLAN_CONTENT}, {SUMMARY_CONTENT}, {VERIFICATION_CONTENT} (when $PHASE specified)
+#   - {SIGNAL_FILES_CONTENT} (when $SCOPE=all)
+#   - {CONFIG_CONTENT}, {REQUIREMENTS_CONTENT}
+# Output path: .planning/knowledge/reflections/{project}/reflect-YYYY-MM-DDTHHMMSS.md (persisted by later step)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="Run reflection analysis.
 
@@ -367,6 +410,7 @@ Task(
 
   Return the structured Reflection Report when complete.",
   subagent_type="gsd-reflector"
+  # BAKED IN comment: model=sonnet (was absent at authorship; relies on agent-profile default via resolveModelInternal(cwd, "gsd-reflector") under model_profile=quality — 2026-04-20)
 )
 ```
 

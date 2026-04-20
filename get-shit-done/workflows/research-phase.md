@@ -44,7 +44,49 @@ node ~/.claude/get-shit-done/bin/gsd-tools.cjs state-snapshot | jq '.decisions'
 
 ## Step 4: Spawn Researcher
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-phase-researcher"
+MODEL="{researcher_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/research-phase.md"
+WORKFLOW_STEP="spawn_researcher"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-phase-researcher
+# Model: inherit          (resolved from {researcher_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit for Claude Code compatibility)
+# Reasoning effort: default (agent-profile default; may be set via template override)
+# Isolation: none
+# Required inputs:
+#   - Phase description, requirements, prior decisions, phase context (passed inline)
+#   - .planning/phases/${PHASE}-{slug}/${PHASE}-CONTEXT.md (if exists)
+# Output path: .planning/phases/${PHASE}-{slug}/${PHASE}-RESEARCH.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# Originating signal: sig-2026-04-10-researcher-model-override-leak-third-occurrence
 Task(
   prompt="<objective>
 Research implementation approach for Phase {phase}: {name}
@@ -61,7 +103,7 @@ Phase context: {context_md}
 Write to: .planning/phases/${PHASE}-{slug}/${PHASE}-RESEARCH.md
 </output>",
   subagent_type="gsd-phase-researcher",
-  model="{researcher_model}"
+  model="{researcher_model}"   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
 )
 ```
 

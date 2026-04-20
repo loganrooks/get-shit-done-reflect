@@ -54,9 +54,51 @@ If a phase is missing VERIFICATION.md, flag it as "unverified phase" — this is
 
 ## 3. Spawn Integration Checker
 
-With phase context collected:
+With phase context collected.
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-integration-checker"
+MODEL="{integration_checker_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/audit-milestone.md"
+WORKFLOW_STEP="spawn_integration_checker"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-integration-checker
+# Model: sonnet  (resolved from {integration_checker_model} via resolveModelInternal under model_profile=quality; alias mode)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - {phase_dirs} (phases under audit)
+#   - Phase SUMMARY.md exports
+#   - API routes created
+# Output path: N/A (feeds cross-phase report aggregated at step 6)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="Check cross-phase integration and E2E flows.
 
@@ -66,7 +108,7 @@ API routes: {routes created}
 
 Verify cross-phase wiring and E2E user flows.",
   subagent_type="gsd-integration-checker",
-  model="{integration_checker_model}"
+  model="{integration_checker_model}"   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20)
 )
 ```
 

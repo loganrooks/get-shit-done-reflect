@@ -185,10 +185,52 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    Pass paths only — executors read files themselves with their fresh 200k context.
    This keeps orchestrator context lean (~10-15%).
 
+   Before each spawn, run the GATE-05 echo_delegation macro:
+
+   ```bash
+   # GATE-05: echo delegation before spawn
+   # Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+   SUBAGENT_TYPE="gsd-executor"
+   MODEL="{executor_model}"
+   REASONING_EFFORT="default"
+   ISOLATION="worktree"
+   SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+   WORKFLOW_FILE="get-shit-done/workflows/execute-phase.md"
+   WORKFLOW_STEP="spawn_executor"
+   RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+   echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+   mkdir -p .planning 2>/dev/null || true
+   printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+     "${SUBAGENT_TYPE}" \
+     "${MODEL}" \
+     "${REASONING_EFFORT}" \
+     "${ISOLATION:-none}" \
+     "${SESSION_ID}" \
+     "${WORKFLOW_FILE}" \
+     "${WORKFLOW_STEP}" \
+     "${RUNTIME}" \
+     >> .planning/delegation-log.jsonl || true
    ```
+
+   ```
+   # DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+   # Agent: gsd-executor
+   # Model: inherit          (resolved from {executor_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit)
+   # Reasoning effort: default
+   # Isolation: worktree
+   # Required inputs:
+   #   - {phase_dir}/{plan_file} (plan)
+   #   - .planning/STATE.md
+   #   - .planning/config.json (if exists)
+   # Output path: {phase_dir}/{phase}-{plan}-SUMMARY.md; STATE.md updated
+   # Codex behavior: applies-via-workflow-step
+   # Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
    Task(
      subagent_type="gsd-executor",
-     model="{executor_model}",
+     model="{executor_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
      isolation="worktree",
      prompt="
        <objective>
@@ -326,14 +368,56 @@ Phase execution is complete -- any handoff files are now stale.
 <step name="verify_phase_goal">
 Verify phase achieved its GOAL, not just completed tasks.
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-verifier"
+MODEL="{verifier_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/execute-phase.md"
+WORKFLOW_STEP="verify_phase_goal"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-verifier
+# Model: sonnet          (resolved from {verifier_model} via resolveModelInternal under model_profile=quality; alias mode)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - {phase_dir} (phase artifacts)
+#   - Phase goal from ROADMAP.md
+#   - Plan must_haves
+# Output path: {phase_dir}/*-VERIFICATION.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="Verify phase {phase_number} goal achievement.
 Phase directory: {phase_dir}
 Phase goal: {goal from ROADMAP.md}
 Check must_haves against actual codebase. Create VERIFICATION.md.",
   subagent_type="gsd-verifier",
-  model="{verifier_model}"
+  model="{verifier_model}"   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20)
 )
 ```
 

@@ -130,11 +130,53 @@ Write to: {phase_dir}/{phase}-RESEARCH.md
 </output>
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="general-purpose"   # Proxy for gsd-phase-researcher via inline-prompt pattern
+MODEL="{researcher_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/plan-phase.md"
+WORKFLOW_STEP="spawn_researcher"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE}(proxy:gsd-phase-researcher) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}(proxy:gsd-phase-researcher)" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: general-purpose (proxy for gsd-phase-researcher via inline-prompt pattern)
+# Model: inherit          (resolved from {researcher_model} via resolveModelInternal(cwd, "gsd-phase-researcher") under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - research_prompt (built in prior step from phase description/requirements/decisions/context)
+#   - ~/.claude/agents/gsd-phase-researcher.md (role-and-instructions file read by proxy)
+# Output path: {phase_dir}/{phase}-RESEARCH.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# Originating signal: sig-2026-04-10-researcher-model-override-leak-third-occurrence
 Task(
   prompt="First, read ~/.claude/agents/gsd-phase-researcher.md for your role and instructions.\n\n" + research_prompt,
   subagent_type="general-purpose",
-  model="{researcher_model}",
+  model="{researcher_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20; resolved against canonical gsd-phase-researcher)
   description="Research Phase {phase}"
 )
 ```
@@ -349,11 +391,52 @@ Output consumed by /gsd:execute-phase. Plans need:
 </quality_gate>
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="general-purpose"   # Proxy for gsd-planner via inline-prompt pattern
+MODEL="{planner_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/plan-phase.md"
+WORKFLOW_STEP="spawn_planner"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE}(proxy:gsd-planner) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}(proxy:gsd-planner)" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: general-purpose (proxy for gsd-planner via inline-prompt pattern)
+# Model: inherit          (resolved from {planner_model} via resolveModelInternal(cwd, "gsd-planner") under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - filled_prompt (built in prior step from planning_context/downstream_consumer/quality_gate)
+#   - ~/.claude/agents/gsd-planner.md (role-and-instructions file read by proxy)
+# Output path: {phase_dir}/*-PLAN.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="First, read ~/.claude/agents/gsd-planner.md for your role and instructions.\n\n" + filled_prompt,
   subagent_type="general-purpose",
-  model="{planner_model}",
+  model="{planner_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20; resolved against canonical gsd-planner)
   description="Plan Phase {phase}"
 )
 ```
@@ -404,11 +487,52 @@ IMPORTANT: Plans MUST honor user decisions. Flag as issue if plans contradict.
 </expected_output>
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-plan-checker"
+MODEL="{checker_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/plan-phase.md"
+WORKFLOW_STEP="spawn_plan_checker"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-plan-checker
+# Model: sonnet          (resolved from {checker_model} via resolveModelInternal under model_profile=quality; alias mode)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - checker_prompt (built with verification_context + plans_content + requirements_content + phase context)
+#   - {phase_dir}/*-PLAN.md (plans to verify)
+# Output path: N/A (inline verification verdict)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt=checker_prompt,
   subagent_type="gsd-plan-checker",
-  model="{checker_model}",
+  model="{checker_model}",   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20)
   description="Verify Phase {phase} plans"
 )
 ```
@@ -452,11 +576,52 @@ Return what changed.
 </instructions>
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="general-purpose"   # Proxy for gsd-planner (revision loop) via inline-prompt pattern
+MODEL="{planner_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/plan-phase.md"
+WORKFLOW_STEP="spawn_planner_revise"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE}(proxy:gsd-planner;revision) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}(proxy:gsd-planner;revision)" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: general-purpose (proxy for gsd-planner — revision loop — via inline-prompt pattern)
+# Model: inherit          (resolved from {planner_model} via resolveModelInternal(cwd, "gsd-planner") under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - revision_prompt (built with revision_context + existing plans + checker issues + phase context)
+#   - ~/.claude/agents/gsd-planner.md
+# Output path: {phase_dir}/*-PLAN.md (revised in place)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="First, read ~/.claude/agents/gsd-planner.md for your role and instructions.\n\n" + revision_prompt,
   subagent_type="general-purpose",
-  model="{planner_model}",
+  model="{planner_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20; resolved against canonical gsd-planner)
   description="Revise Phase {phase} plans"
 )
 ```

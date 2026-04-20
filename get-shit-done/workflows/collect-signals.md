@@ -257,6 +257,35 @@ echo "Enabled: ${ENABLED_NAMES:-none}. Disabled: ${DISABLED_NAMES:-none}."
 <step name="spawn_sensors">
 For each `ENABLED_SENSOR_RUN`, spawn a Task() with `run_in_background=true`. This is a dynamic loop -- no sensor names are hardcoded in the spawning logic.
 
+Before spawning each sensor, run the GATE-05 echo_delegation macro (prints to user + appends one line to `.planning/delegation-log.jsonl`):
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="${SENSOR_AGENT_TYPE}"
+# MODEL / REASONING_EFFORT sourced from the ENABLED_SENSOR_RUNS loop entry above.
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/collect-signals.md"
+WORKFLOW_STEP="spawn_sensors"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
+
 ```
 # Record spawn timestamps for timeout tracking
 SPAWN_TIME=$(date +%s)
@@ -272,6 +301,18 @@ for ENTRY in ENABLED_SENSOR_RUNS:
     ? ENTRY.spec_path without "builtin:"
     : "gsd-" + NAME + "-sensor"
 
+  # DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+  # Agent: SENSOR_AGENT_TYPE (dynamic; one of gsd-<name>-sensor or builtin)
+  # Model: MODEL (loop var; resolved per-sensor from sensor-spec / MODEL_PROFILES at loop iteration)
+  # Reasoning effort: REASONING_EFFORT (loop var; resolved per-sensor)
+  # Isolation: none
+  # Required inputs:
+  #   - {PHASE_DIR} (phase execution artifacts)
+  #   - signal-detection.md rules
+  # Output path: Returned inline to orchestrator as JSON; later persisted by gsd-signal-synthesizer
+  # Codex behavior: applies-via-workflow-step
+  # Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+  # Originating signal: sig-2026-04-10-researcher-model-override-leak-third-occurrence
   Task(
     subagent_type=SENSOR_AGENT_TYPE,
     model=MODEL,
@@ -370,12 +411,54 @@ Note: The `source` enrichment field (`local`/`external`) is distinct from the ex
 </step>
 
 <step name="spawn_synthesizer">
-Spawn the synthesizer as a foreground Task() (NOT background -- we need its report):
+Spawn the synthesizer as a foreground Task() (NOT background -- we need its report).
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-signal-synthesizer"
+MODEL="{synthesizer_model}"
+REASONING_EFFORT="{synthesizer_reasoning_effort}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/collect-signals.md"
+WORKFLOW_STEP="spawn_synthesizer"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-signal-synthesizer
+# Model: sonnet          (resolved from {synthesizer_model} at workflow expansion via resolveModelInternal under model_profile=quality; alias mode)
+# Reasoning effort: {synthesizer_reasoning_effort} (caller-selected; defaults to medium, may escalate to high per workflow logic)
+# Isolation: none
+# Required inputs:
+#   - KB index at .planning/knowledge/index.md (or ~/.gsd/knowledge/index.md fallback)
+#   - MERGED_SENSOR_JSON (raw candidates from spawn_sensors)
+# Output path: .planning/knowledge/signals/{PROJECT_NAME}/ (or ~/.gsd/knowledge/signals/{PROJECT_NAME}/ fallback)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# Originating signal: sig-2026-04-10-researcher-model-override-leak-third-occurrence
 Task(
   subagent_type="gsd-signal-synthesizer",
-  model="{synthesizer_model}",
+  model="{synthesizer_model}",   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20)
   reasoning_effort="{synthesizer_reasoning_effort}",
   description="Synthesize signals for phase {PADDED_PHASE}",
   prompt="Synthesize and persist signals for phase {PADDED_PHASE}.
