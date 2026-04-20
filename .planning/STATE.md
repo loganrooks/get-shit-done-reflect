@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-15-PLAN.md (GATE-11 release-boundary CLI + release-lag-template + wiring in execute-phase.md + complete-milestone.md; fire-event emits per invocation; verified current/lag/deferred paths)
-last_updated: "2026-04-20T18:28:50.494Z"
+stopped_at: Completed 58-19-PLAN.md (gate_fire_events extractor + delegation-log + ci-notices raw-source loaders + gate-events/.gitkeep; 650 tests pass no regressions)
+last_updated: "2026-04-20T18:38:02.668Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 67
-  percent: 94
+  completed_plans: 68
+  percent: 96
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 14 of 21 (58-01 in progress)
+Plan: 15 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -265,6 +265,10 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-15] GATE-11 ships as gsd-tools release check CLI (get-shit-done/bin/lib/release.cjs) comparing latest reflect-v* tag to most recent phase-merge commit on main; exit 0 current / 1 lag / 2 explicit_defer; fire-event emits on every invocation
 - [Phase 58-structural-enforcement-gates]: [58-15] Phase-merge detection uses git log --first-parent main --all-match --grep='Merge pull request' --grep='gsd/phase' (BRE-safe) rather than plan-specified single-pattern 'Merge pull request.*from gsd/phase-' which returned empty despite matching commits (git BRE quirk on trailing hyphen); both patterns produce identical semantic coverage
 - [Phase 58-structural-enforcement-gates]: [58-15] Release-lag template located at .planning/handoff/release-lag-template.md (Plan 10 handoff-dir precedent); CLI surfaces copy-to-use command but never writes .planning/release-lag.md itself — named rationale must come from user; stale deferrals (past deferred_to) collapse to lag not continue-defer
+- [Phase 58-structural-enforcement-gates]: [58-19] gate_fire_events extractor declares raw_sources as virtual keys without buildGsdrSourceSnapshots entries — registry schema is non-enforcing on source-key registration; loaders read files directly, keeping the gate-events substrate self-contained
+- [Phase 58-structural-enforcement-gates]: [58-19] session-meta-postlude source wired as optional require inside try/catch suppressing MODULE_NOT_FOUND; Phase 57.9 can ship the module drop-in without extractor changes — status flips from not_available to exposed/not_emitted automatically
+- [Phase 58-structural-enforcement-gates]: [58-19] every delegation-log row surfaces as implicit GATE-05 echo_delegation fire — delegation IS the fire-event record by construction; extractor normalizes to {gate: 'GATE-05', result: 'pass'} keeping count==delegation-count invariant
+- [Phase 58-structural-enforcement-gates]: [58-19] extractor emits two rows per runtime (claude-code, codex-cli) with identical aggregate values to satisfy runtime_dimension symmetry-marker computation; single cross-runtime row would mark asymmetric_only
 
 ### Roadmap Evolution
 
@@ -337,6 +341,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P13 | 8min | 2 tasks | 6 files |
 | Phase 58-structural-enforcement-gates P14 | 4min | 2 tasks | 5 files |
 | Phase 58-structural-enforcement-gates P15 | 5min | 2 tasks | 6 files |
+| Phase 58-structural-enforcement-gates P19 | 4min | 1 tasks | 5 files |
 
 ### Key Artifacts
 
@@ -355,8 +360,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T18:28:50.485Z
-Stopped at: Completed 58-15-PLAN.md (GATE-11 release-boundary CLI + release-lag-template + wiring in execute-phase.md + complete-milestone.md; fire-event emits per invocation; verified current/lag/deferred paths)
+Last session: 2026-04-20T18:38:02.659Z
+Stopped at: Completed 58-19-PLAN.md (gate_fire_events extractor + delegation-log + ci-notices raw-source loaders + gate-events/.gitkeep; 650 tests pass no regressions)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
