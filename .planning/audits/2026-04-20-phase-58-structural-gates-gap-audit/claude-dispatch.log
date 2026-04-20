@@ -1,0 +1,13 @@
+Audit complete. Output written to:
+
+`.planning/audits/2026-04-20-phase-58-structural-gates-gap-audit/phase-58-structural-gates-gap-audit-output.md`
+
+**Headline verdict:** Expand Phase 58 materially AND split out one prerequisite phase (57.9 — installer hook surface). Key findings:
+
+- **5 missing GATEs** for actively-recurring failure patterns (closeout reconciliation, release-boundary, evidence preservation, compaction drift, no-direct-push).
+- **GATE-06/07 stand on substrate that does not exist** — `.claude/settings.json` has no `SessionStop` entry and `bin/install.js` never writes one.
+- **Codex cross-runtime note at `REQUIREMENTS.md:10` is factually stale** post-Phase-55.2 (hooks now exist under feature flag; `automation.cjs` already uses them).
+- **GATE-04, GATE-08, GATE-09 each collapse multiple mechanisms into one requirement** — scope-narrowing surface.
+- **GATE-03's motivating pattern recurred on 2026-04-19** (quick `260419-6uf` committed runtime skill to main), 24 hours before this audit.
+- **STATE.md is stale right now** — `stopped_at: Phase 57.8 context gathered` while Phase 57.8 has shipped — exemplifying the closeout seam no GATE covers.
+- Chain integrity: predecessor audit findings 1 (runtime cap) and 5 (signal heuristics) re-verified; only finding 1 is remediated.
