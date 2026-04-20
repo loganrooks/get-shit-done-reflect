@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: "Phase 57.8 (Signal Provenance Role-Aware Backfill) merged 2026-04-20 via c8a15d95; Phase 58 plan-phase entered under AT-6 reconciliation. 21 plans across 12 waves, plan-checker PASSED after iter 2."
-stopped_at: "Phase 57.8 merged (commit c8a15d95, 2026-04-20); Phase 58 plan-phase in progress"
-last_updated: "2026-04-20T12:36:22.000Z"
-last_activity: "2026-04-20 - Phase 58 Plan 01 Task 0: reconciled STATE.md with Phase 57.8 merge (AT-6 entry condition); Phase 58 plan-phase in progress"
+status: executing
+stopped_at: Completed 58-05-PLAN.md (per-gate Codex behavior matrix / AT-3)
+last_updated: "2026-04-20T12:43:19.837Z"
+last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
-  total_plans: 50
-  completed_plans: 50
-  percent: 100
+  total_plans: 71
+  completed_plans: 52
+  percent: 73
 ---
 
 # Project State
@@ -26,15 +26,15 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 1 of 21 (58-01 in progress)
-Status: 21 plans across 12 waves, plan-checker PASSED after iter 2 (shared-file contention serialized on gsd-tools.cjs + quick.md, wave graph integrity validated, all 25 requirements covered, all LOCKED CONTEXT decisions honored).
+Plan: 2 of 21 (58-01 in progress)
+Status: Ready to execute
 
 ### Recent Phases
 
 - Phase 57.8 (Signal Provenance Role-Aware Backfill) — merged 2026-04-20 via commit c8a15d95, 3 plans completed
 - Phase 57.7 (Content Analysis & Epistemic Deepening) — Complete; closed with honest demo/regression wave (vision-drop diagnostic shipped as `unclassified`, GATE-09 surfaced as pending intervention)
 
-Last activity: 2026-04-20 - Phase 58 Plan 01 Task 0: reconciled STATE.md with Phase 57.8 merge (AT-6 entry condition); Phase 58 plan-phase in progress
+Last activity: 2026-04-20
 
 Progress: [██████░░░░] 60%
 
@@ -204,6 +204,13 @@ Recent decisions affecting current work:
 - [Phase 57.4-06]: Full npm test returned 502 passed / 0 failed / 4 todo; RESEARCH.md Open Question about count-based assertions breaking from new file count is resolved negatively — tests did not contain file-count assertions sensitive to adding audit.md command or gsdr-auditor agent
 - [Phase 57.7]: MEAS-GSDR-06 resolved via option (b): drop signal_fts and keep ripgrep as the KB search fallback.
 - [Phase 57.7]: KB schema regression tests should verify migrations through the production kb rebuild path rather than exporting kb internals.
+- [Phase 58]: Phase 58-03: Upstream re-fetched via direct curl (not WebFetch per Research R5 Verified-Ground-Truth) — HEAD SHA ebbe74de72, 671/105/279 line counts confirmed, 0% drift from research baseline
+- [Phase 58]: Phase 58-03: 4 of 6 GATE-08 categories adopt as-is (methodology loading, analyzer agent, text_mode, confidence badges as mapped); 2 of 6 adopt narrowed with GATE-09c rationale (calibration tier redundant with model_profile; CONTEXT.md section mandates preserved as fork superset)
+- [Phase 58]: Phase 58-03: Analyzer agent ported with zero non-branding divergence (single-line diff on name: field); source-dir only per CLAUDE.md:15-27 dual-directory rule; installer + GATE-15 Plan 10 enforce byte-identical-after-transform parity
+- [Phase 58-05]: Adopted 58-RESEARCH.md skeleton values for all 25 rows verbatim; plan work was finalizing rationale, substrate citations, and degradation-path encoding — not re-evaluating which gates apply where.
+- [Phase 58-05]: GATE-06/07 Codex behavior encoded as conditional-degradation ('applies-via-workflow-step if codex_hooks=true else does-not-apply-with-reason') preserving both 57.9-shipped and 57.9-not-shipped execution paths; avoids matrix rewrite if 57.9 lands mid-phase.
+- [Phase 58-05]: Codex-specific open risks (stale signal-detection heuristic; codex_hooks flag stability; auto-compact) surfaced as Section 5 NOT row-degrading — they affect measurement interpretation not gate firing.
+- [Phase 58-05]: Ledger entry format for Codex waivers restricted to disposition: explicitly_deferred (never rejected_with_reason) — every Phase 58 Codex gap has a named downstream resolution phase.
 
 ### Roadmap Evolution
 
@@ -259,6 +266,8 @@ Recent decisions affecting current work:
 | Phase 57.7 P03 | 10min | 2 tasks | 3 files |
 | 260419-6uf | Fix manual gsdr-signal split provenance gap left out of 57.8 | 2026-04-19 | ddcf1232 | [260419-6uf](./quick/260419-6uf-fix-manual-gsdr-signal-split-provenance-/) |
 | 260419-wjj | Patch roadmap and requirements so downstream provenance phases explicitly cover manual gsdr-signal parity | 2026-04-20 | 2a14f8df | [260419-wjj](./quick/260419-wjj-patch-roadmap-and-requirements-so-downst/) |
+| Phase 58 P03 | 5min | 2 tasks | 2 files |
+| Phase 58 P05 | 5min | 1 tasks | 1 files |
 
 ### Key Artifacts
 
@@ -277,8 +286,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T12:36:22.000Z
-Stopped at: Phase 58 Plan 01 in progress (Task 0 reconciled STATE.md with Phase 57.8 merge c8a15d95 per AT-6)
+Last session: 2026-04-20T12:43:19.830Z
+Stopped at: Completed 58-05-PLAN.md (per-gate Codex behavior matrix / AT-3)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
