@@ -58,6 +58,7 @@ const quick = require('./lib/quick.cjs');
 const handoff = require('./lib/handoff.cjs');
 const reconcile = require('./lib/reconcile.cjs');
 const archive = require('./lib/archive.cjs');
+const release = require('./lib/release.cjs');
 
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -92,7 +93,7 @@ async function main() {
   const command = args[0];
 
   if (!command) {
-    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement, quick, handoff, antipatterns, agent');
+    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement, quick, handoff, antipatterns, agent, release');
   }
 
   switch (command) {
@@ -793,6 +794,20 @@ async function main() {
         archive.cmdAgentArchive(cwd, args.slice(2), raw);
       } else {
         error('Unknown agent subcommand. Available: archive');
+      }
+      break;
+    }
+
+    case 'release': {
+      // Phase 58 Plan 15 (GATE-11): release-boundary assertion.
+      // `release check [--since <commit>] [--lag-threshold-days N] [--auto]`
+      // Exit codes: 0 = current, 1 = lag, 2 = explicitly deferred.
+      // Emits `::notice::gate_fired=GATE-11 result=<release_current|release_lag|explicit_defer>` per invocation.
+      const subcommand = args[1];
+      if (subcommand === 'check') {
+        release.cmdReleaseCheck(cwd, args.slice(2), raw);
+      } else {
+        error('Unknown release subcommand. Available: check');
       }
       break;
     }
