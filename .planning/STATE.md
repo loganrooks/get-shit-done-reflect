@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-12a-PLAN.md (GATE-05 + GATE-13 rollout across 6 remaining files, 18 spawn sites; allowlist bare-# defect fixed + 2 Plan 12a scope entries retired + 6 out-of-scope entries preserved with narrowing HEADNOTE; CI grep aligned with design §2.3 via BAKED IN filter)
-last_updated: "2026-04-20T17:57:05.250Z"
+stopped_at: Completed 58-13-PLAN.md (GATE-10 phase reconcile subcommand + workflow wiring; composition-over-replacement orchestrator + execute-phase offer_next + complete-milestone per-phase loop; fire-event emits on every invocation)
+last_updated: "2026-04-20T18:08:45.239Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 64
-  percent: 90
+  completed_plans: 65
+  percent: 92
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 11 of 21 (58-01 in progress)
+Plan: 12 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -253,6 +253,11 @@ Recent decisions affecting current work:
 - [Phase 58]: [58-12a] CI GATE-13 grep aligned with design §2.3 via grep -v '# BAKED IN comment:' filter — recognizes compaction-survival annotation as compliance signal; Plan 12 + 12a retained-template sites pass without allowlist reliance
 - [Phase 58]: [58-12a] Allowlist bare-# format defect fixed (Plan 12 pre-existing-defect retirement): 9 bare # comment lines eliminated — HEADNOTE uses # --- separators; bare # in grep -F -f was silently excluding every BAKED-IN-annotated hit
 - [Phase 58]: [58-12a] Scope narrowing vs pre-existing allowlist HEADNOTE: PLAN.md files_modified manifest is authoritative (6 files); commands/gsd/research-phase.md + .codex/skills/gsdr-research-phase|gsdr-debug SKILL.md (3 files, 6 sites) deferred to follow-up plan despite being listed as Plan 12a scope in the pre-Plan-12a allowlist HEADNOTE
+- [Phase 58-structural-enforcement-gates]: [58-13]: GATE-10 reconcile orchestrator invokes existing primitives via subprocess (not require-level composition) — preserves primitive lock/output contracts and stays below blast radius if signatures change; accepts ~50ms-per-primitive Node startup cost because reconcile runs at phase-close only
+- [Phase 58-structural-enforcement-gates]: [58-13]: GATE-10 fire-event emits on every invocation including dry-run and block paths — alternative (emit only on reconciled) would silently undercount gate invocations in Plan 19 extractor; CONTEXT DC-1 requires measurable fire-event regardless of outcome
+- [Phase 58-structural-enforcement-gates]: [58-13]: GATE-10 uses distinct exit code 5 (unreconciled blocking) so wrapper workflows branch on GATE-10 semantics without parsing JSON; stays disjoint from GATE-01 codes (1/2/3/4) and GATE-04c code 4
+- [Phase 58-structural-enforcement-gates]: [58-13]: execute-phase.md GATE-10 step placed at TOP of offer_next (before push/PR creation) so STATE/ROADMAP drift is caught at earliest structural boundary; runs after the preceding update_roadmap verification step
+- [Phase 58-structural-enforcement-gates]: [58-13]: complete-milestone.md per-phase reconcile loop extracts phase-id via regex on branch name (phase_branch_template convention) rather than config round-trip; stays aligned with existing PHASE_BRANCHES enumeration pattern
 
 ### Roadmap Evolution
 
@@ -322,6 +327,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P12 | 10 | 2 tasks | 11 files |
 | Phase 58-structural-enforcement-gates P10 | 5min | 2 tasks | 4 files |
 | Phase 58 P12a | 12 | 2 tasks | 8 files |
+| Phase 58-structural-enforcement-gates P13 | 8min | 2 tasks | 6 files |
 
 ### Key Artifacts
 
@@ -340,8 +346,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T17:57:05.243Z
-Stopped at: Completed 58-12a-PLAN.md (GATE-05 + GATE-13 rollout across 6 remaining files, 18 spawn sites; allowlist bare-# defect fixed + 2 Plan 12a scope entries retired + 6 out-of-scope entries preserved with narrowing HEADNOTE; CI grep aligned with design §2.3 via BAKED IN filter)
+Last session: 2026-04-20T18:08:28.690Z
+Stopped at: Completed 58-13-PLAN.md (GATE-10 phase reconcile subcommand + workflow wiring; composition-over-replacement orchestrator + execute-phase offer_next + complete-milestone per-phase loop; fire-event emits on every invocation)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
