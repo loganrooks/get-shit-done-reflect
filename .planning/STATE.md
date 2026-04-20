@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-11-PLAN.md
-last_updated: "2026-04-20T13:05:19.470Z"
+stopped_at: Completed 58-06-PLAN.md (GATE-01 + GATE-14 shipped; branch protection enforce_admins=true, strict=true)
+last_updated: "2026-04-20T17:07:16.092Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 57
-  percent: 80
+  completed_plans: 58
+  percent: 82
 ---
 
 # Project State
@@ -228,6 +228,9 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-11]: NARROWING DECISION comments placed at file HEAD (HTML comments) of discuss-phase-assumptions.md — categories (d) calibration tier and (e) CONTEXT.md section mandates legible before any process logic is read; cites Plan 03 delta §3 sections with reversibility ratings
 - [Phase 58-structural-enforcement-gates]: [58-11]: Calibration tier resolved from model_profile (quality→full_maturity, balanced→standard, budget→minimal_decisive); USER-PROFILE.md artifact NOT adopted per Plan 03 delta §3(d) — analyzer-agent three-tier prompt shape preserved for upstream-compatibility
 - [Phase 58-structural-enforcement-gates]: [58-11]: text_mode in plan-phase/progress implemented as HTML comment-note (not behaviorally-empty code branches) — both workflows are agent-driven with zero interactive prompts today; comment-note marks future-edit contract pointing to docs/workflow-discuss-mode.md §3
+- [Phase 58-structural-enforcement-gates]: [58-06] Branch protection flipped 2026-04-20 via gh api PUT by orchestrator; post-flip state verified {enforce_admins: true, strict: true, contexts: ["Test"]}
+- [Phase 58-structural-enforcement-gates]: [58-06] GATE-14 live-fire verified blocking: direct admin push rejected with GH006 'Protected branch update failed for refs/heads/main. Required status check Test is expected.'; re-run forbidden under one-fire-sufficient discipline
+- [Phase 58-structural-enforcement-gates]: [58-06] Plan's admin:repo scope guidance was wrong — standard repo scope (default gh auth login) is sufficient to PATCH branch protection for repo owners; no gh auth refresh needed. Correction logged against 58-06-PLAN.md:229
 
 ### Roadmap Evolution
 
@@ -290,6 +293,7 @@ Recent decisions affecting current work:
 | Phase 58 P04 | 9min | 2 tasks | 3 files |
 | Phase 58 P16 | 4min | 1 tasks | 1 files |
 | Phase 58-structural-enforcement-gates P11 | 9min | 2 tasks | 4 files |
+| Phase 58-structural-enforcement-gates P06 | 248min | 2 tasks | 4 files |
 
 ### Key Artifacts
 
@@ -308,8 +312,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T13:05:04.429Z
-Stopped at: Completed 58-11-PLAN.md
+Last session: 2026-04-20T17:07:16.074Z
+Stopped at: Completed 58-06-PLAN.md (GATE-01 + GATE-14 shipped; branch protection enforce_admins=true, strict=true)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
