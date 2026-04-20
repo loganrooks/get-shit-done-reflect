@@ -4,8 +4,8 @@ milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: Wave 5 closed the phase; the demo/regression plan landed with a real revision record, a pending GATE-09 intervention sidecar, and a DEMO-REPORT that records both the live joins and the residual gaps.
 stopped_at: Phase 57.8 context gathered
-last_updated: "2026-04-19T09:13:00.000Z"
-last_activity: "2026-04-19 - Completed quick task 260419-6uf: Fix manual gsdr-signal split provenance gap left out of 57.8"
+last_updated: "2026-04-20T03:59:44Z"
+last_activity: "2026-04-20 - Completed quick task 260419-wjj: Patch roadmap and requirements so downstream provenance phases explicitly cover manual gsdr-signal parity"
 progress:
   total_phases: 22
   completed_phases: 12
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 Phase: 57.7 of 64 (Content Analysis & Epistemic Deepening) — Complete
 Plan: 10 of 10
 Status: Wave 5 closed the phase; the demo/regression plan landed with a real revision record, a pending GATE-09 intervention sidecar, and a DEMO-REPORT that records both the live joins and the residual gaps.
-Last activity: 2026-04-17 -- Phase 57.7 Plan 10 complete (honest demo wave: unclassified revision + GATE-09 pending)
+Last activity: 2026-04-20 - Completed quick task 260419-wjj: Patch roadmap and requirements so downstream provenance phases explicitly cover manual gsdr-signal parity
 
 Progress: [██████░░░░] 60%
 
@@ -252,6 +252,7 @@ Recent decisions affecting current work:
 | Phase 57.4 P06 | 3min | 3 tasks | 2 files |
 | Phase 57.7 P03 | 10min | 2 tasks | 3 files |
 | 260419-6uf | Fix manual gsdr-signal split provenance gap left out of 57.8 | 2026-04-19 | ddcf1232 | [260419-6uf](./quick/260419-6uf-fix-manual-gsdr-signal-split-provenance-/) |
+| 260419-wjj | Patch roadmap and requirements so downstream provenance phases explicitly cover manual gsdr-signal parity | 2026-04-20 | 2a14f8df | [260419-wjj](./quick/260419-wjj-patch-roadmap-and-requirements-so-downst/) |
 
 ### Key Artifacts
 
