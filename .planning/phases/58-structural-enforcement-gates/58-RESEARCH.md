@@ -81,7 +81,7 @@ Per CONTEXT.md `<deferred>`:
 
 ## Summary
 
-Phase 58 has one core design question the planner must nail: **every gate's named-substrate choice**. The research confirms that (a) the CI surface already exists and has ~70% of the hooks needed (`.github/workflows/ci.yml` runs `npm test` + installer verify; branch protection requires `Test` status check) but is missing the grep-level conformance checks for GATE-02 / GATE-03 / GATE-15 and does not enforce admins (`enforce_admins: false`, verified via `gh api` 2026-04-20); (b) the `gh pr merge` surface is **partially conforming** — `execute-phase.md:793` is correct but `complete-milestone.md:613, 623` **contain `git merge --squash`** (CONTEXT.md and the audit claimed "No --squash anywhere"; this is false for the `git merge` flavour — `gh pr merge --squash` is absent but the underlying `git merge --squash` survives in the milestone merge path, plus the UI lists "Squash merge (Recommended)" as the default AskUserQuestion choice); (c) the `[open]` questions Q1 / Q3 / Q5 / Q6 all have tractable answers from code inspection; (d) the existing measurement-extractor registry (`get-shit-done/bin/lib/measurement/registry.cjs`) is schema-validated and already supports gate-family features through `status_semantics` + `content_contract` — one `gate_fire_events` extractor can serve all 25 gates without new architecture (CONTEXT §6 `[assumed:reasoned]` confirmed); (e) the upstream richer `discuss-phase-assumptions.md` is ~750 lines (not the 671 the stale REQUIREMENTS.md line claims), includes a real `gsd-assumptions-analyzer` agent in the upstream agents/ directory, and has methodology loading, mode-aware gating (`text_mode`, `--auto`), and calibration-tier-aware assumption depth that the fork currently omits entirely.
+Phase 58 has one core design question the planner must nail: **every gate's named-substrate choice**. The research confirms that (a) the CI surface already exists and has ~70% of the hooks needed (`.github/workflows/ci.yml` runs `npm test` + installer verify; branch protection requires `Test` status check) but is missing the grep-level conformance checks for GATE-02 / GATE-03 / GATE-15 and does not enforce admins (`enforce_admins: false`, verified via `gh api` 2026-04-20); (b) the `gh pr merge` surface is **partially conforming** — `execute-phase.md:793` is correct but `complete-milestone.md:613, 623` **contain `git merge --squash`** (CONTEXT.md and the audit claimed "No --squash anywhere"; this is false for the `git merge` flavour — `gh pr merge --squash` is absent but the underlying `git merge --squash` survives in the milestone merge path, plus the UI lists "Squash merge (Recommended)" as the default AskUserQuestion choice); (c) the `[open]` questions Q1 / Q3 / Q5 / Q6 all have tractable answers from code inspection; (d) the existing measurement-extractor registry (`get-shit-done/bin/lib/measurement/registry.cjs`) is schema-validated and already supports gate-family features through `status_semantics` + `content_contract` — one `gate_fire_events` extractor can serve all 25 gates without new architecture (CONTEXT §6 `[assumed:reasoned]` confirmed); (e) the upstream richer `discuss-phase-assumptions.md` is 671 lines (verified post-hoc via direct `curl` 2026-04-20 — REQUIREMENTS.md:236 is accurate, not stale; the WebFetch-derived ~750-line estimate earlier in this research was wrong), includes a real `gsd-assumptions-analyzer` agent in the upstream agents/ directory (105 lines, HTTP 200 verified), and has methodology loading, mode-aware gating (`text_mode`, `--auto`), and calibration-tier-aware assumption depth that the fork currently omits entirely.
 
 **Primary recommendation:** Plan four waves — Wave 1 substrate-discovery / non-blocking (GATE-02 enum, GATE-05 enum, GATE-09a ledger schema, GATE-08a upstream fetch artifact, per-gate Codex table), Wave 2 CI-hosted gates (GATE-01 / 02 / 03 / 14 / 15 — all share `.github/workflows/ci.yml` edits, must serialize), Wave 3 workflow-level gates (GATE-04a/b/c, GATE-05 echoes, GATE-10 reconcile, GATE-12 archive; each touches distinct workflow files so parallelizable), Wave 4 consumer gates (GATE-06 / 07 / 11 / 13, GATE-09b/c/d verifier, XRT-01 plan assertion). Plan-phase entry requires AT-1 (57.9 status), AT-6 (STATE.md reconciled) — verify before waves start.
 
@@ -352,8 +352,9 @@ For Phase 58 GATE-06 and GATE-07 to land honestly, Phase 57.9 must deliver:
 
 [evidenced:cited] Via WebFetch of `https://raw.githubusercontent.com/gsd-build/get-shit-done/main/get-shit-done/workflows/discuss-phase-assumptions.md`:
 
-- **Upstream line count: ~750 lines** (the 671 in REQUIREMENTS.md:236 is stale and was never re-verified in the audit, per audit §15 explicit unknown).
-- Upstream filename may actually be `gsd-assume-phase.md` (WebFetch response referenced this); the fork keeps it as `discuss-phase-assumptions.md`. This is a naming delta to document.
+- **Upstream line count: 671 lines** (verified post-hoc via direct `curl https://raw.githubusercontent.com/gsd-build/get-shit-done/main/get-shit-done/workflows/discuss-phase-assumptions.md | wc -l` on 2026-04-20). REQUIREMENTS.md:236's figure of 671 is **accurate and current**, not stale. The audit §15 "medium confidence" qualifier is obsoleted by this direct verification.
+- WebFetch earlier in this research returned a ~750-line estimate — this was WebFetch output-trimming behavior, not a real line count. Planners should use direct `curl` / `gh api` for byte-level verification of upstream artifacts; WebFetch is unreliable for line counts.
+- Upstream filename is `discuss-phase-assumptions.md` — identical to the fork. An earlier speculation in this research about a `gsd-assume-phase.md` name was incorrect (404 on direct fetch); the fork and upstream use the same filename.
 
 [evidenced:cited] **Fork line count: 279 lines** on both source (`get-shit-done/workflows/discuss-phase-assumptions.md`) and installed mirror (`.claude/get-shit-done-reflect/workflows/discuss-phase-assumptions.md`).
 
@@ -376,7 +377,7 @@ Per the upstream fetch analysis:
 
 | Sub-req | Deliverable |
 |---------|-------------|
-| GATE-08a | Current-state verification artifact — diff of fork (279 lines) vs upstream (~750 lines) + per-category adoption decision. This RESEARCH.md section is the start. |
+| GATE-08a | Current-state verification artifact — diff of fork (279 lines) vs upstream (671 lines, verified 2026-04-20) + per-category adoption decision. This RESEARCH.md section is the start. |
 | GATE-08b | `agents/gsdr-assumptions-analyzer.md` + `.claude/agents/gsdr-assumptions-analyzer.md` (via installer). Port from upstream with path transformation. |
 | GATE-08c | `docs/workflow-discuss-mode.md` — document the three discuss modes (standard interactive / `--auto` exploratory / richer-adoption) + typed-claim vocabulary + confidence-badge mapping. |
 | GATE-08d | `plan-phase.md` and `progress.md` gain `text_mode` branches (fork has `--auto` but not plain-text rendering paths). |
@@ -723,12 +724,171 @@ Invoked from `execute-phase.md` offer_next after merge, and from `complete-miles
 
 ---
 
+## Architecture Patterns
+
+*Adapted from the comparative sonnet research run (see `.sonnet-run-archive/COMPARISON.md` §5.1). Reusable implementation frames that unify the per-GATE recommendations above.*
+
+### Pattern 1: CI-as-Structural-Gate
+
+For GATE-01, 02, 14, 15: enforcement in GitHub Actions workflow, not in agent workflow text.
+
+```yaml
+# .github/workflows/ci.yml — add these jobs:
+
+- name: GATE-02 merge-strategy conformance
+  run: |
+    # Fail if --squash found, or if gh pr merge without --merge
+    if grep -rn "gh pr merge" agents/ get-shit-done/ commands/ --include="*.md" | grep -v "\-\-merge"; then
+      echo "GATE-02 FAIL: gh pr merge without --merge found"
+      exit 1
+    fi
+    # Opus addendum (not in sonnet): also grep for raw `git merge --squash` per Critical Finding in R1
+    if grep -rn "git merge --squash" get-shit-done/ | grep -v "# historical"; then
+      echo "GATE-02 FAIL: git merge --squash invocation found"
+      exit 1
+    fi
+    echo "GATE-02 PASS: all merge invocations conforming"
+
+- name: GATE-15 source/install parity
+  run: |
+    INSTALL_DIR=$(mktemp -d)
+    HOME="$INSTALL_DIR" node bin/install.js --claude 2>&1
+    # Compare using installer's own replacePathsInContent transformation (opus R1 / R11)
+    node scripts/verify-install-parity.js "$INSTALL_DIR" || exit 1
+```
+
+### Pattern 2: Workflow-Level Exit-Coded Gate
+
+For GATE-04, GATE-10, GATE-11, GATE-12: workflow step with exit code enforced.
+
+```markdown
+<step name="resume_check">
+```bash
+CONTINUE_HERE_PATH=".continue-here"
+if [ -f "$CONTINUE_HERE_PATH" ]; then
+  CONTINUE_AGE=$(stat -c %Y "$CONTINUE_HERE_PATH")
+  STATE_AGE=$(git log -1 --format="%ct" -- .planning/STATE.md)
+  if [ "$CONTINUE_AGE" -lt "$STATE_AGE" ]; then
+    echo "GATE-04b HARD STOP: .continue-here is stale (predates STATE.md)"
+    echo "gate_id=GATE-04b fired_at=$(date -u +%Y-%m-%dT%H:%M:%SZ) result=hard_stop" \
+      >> .planning/measurement/gate-events/GATE-04b-$(date +%Y-%m-%d).jsonl
+    exit 1
+  fi
+  # Archive before consume
+  ARCHIVE_PATH=".planning/handoff/archive/$(date +%Y%m%d-%H%M%S).continue-here"
+  mkdir -p .planning/handoff/archive/
+  mv "$CONTINUE_HERE_PATH" "$ARCHIVE_PATH"
+  echo "GATE-04a: Archived to $ARCHIVE_PATH"
+fi
+```
+</step>
+```
+
+### Pattern 3: Dispatch Contract Restatement (GATE-13)
+
+For every named delegation spawn site:
+
+```markdown
+# DISPATCH CONTRACT (restated inline — compaction-resilient per GATE-13)
+# Agent: gsdr-phase-researcher
+# Model: {researcher_model} (resolved from model-profiles.cjs profile={model_profile})
+# Reasoning effort: default (researcher profile)
+# Required inputs: phase number, CONTEXT.md path, RESEARCH.md output path
+# Output: RESEARCH.md at {phase_dir}/{padded_phase}-RESEARCH.md
+# Codex behavior: applies-via-workflow-step
+Task(
+  prompt="First, read ...",
+  subagent_type="general-purpose",
+  model="{researcher_model}",
+  ...
+)
+```
+
+### Pattern 4: Gate Fire-Event Drop-File
+
+For all gates that need measurable fire-events (consumed by the Phase 57.5 extractor registry per G-6):
+
+```bash
+# Standard gate fire-event emit pattern
+emit_gate_event() {
+  local gate=$1 result=$2 phase=$3
+  local dir=".planning/measurement/gate-events"
+  mkdir -p "$dir"
+  echo "{\"gate\":\"$gate\",\"fired_at\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\",\"result\":\"$result\",\"phase\":\"$phase\",\"runtime\":\"claude-code\"}" \
+    >> "$dir/$gate-$(date +%Y-%m-%d).jsonl"
+}
+```
+
+### Don't Hand-Roll
+
+| Problem | Don't Build | Use Instead | Why |
+|---------|-------------|-------------|-----|
+| Ledger schema validation | Custom JSON parser | `frontmatter.cjs` (existing in gsd-tools) | Already handles YAML frontmatter across all KB entry types |
+| Branch protection enforcement | Pre-push hook cascade | `gh api repos/.../protection` + `enforce_admins: true` | Server-side enforcement cannot be bypassed by local config changes |
+| Source/install parity | Custom diff logic | `bin/install.js` path-transformation applied to source tree (opus R1 refinement) | The installer's `replacePathsInContent` already encodes the exact transformation; reuse it rather than building a parallel SHA manifest |
+| Multi-file phase reconciliation | String concatenation of state subcommands | New `gsd-tools phase reconcile` | Atomic validation + file staging is not composable from primitives without data loss risk |
+
+---
+
+## Common Pitfalls
+
+*Adapted from the comparative sonnet research run. Named pitfalls the plan-checker can match against directly.*
+
+### Pitfall 1: Structural Gate That Is Still Advisory
+**What goes wrong:** A gate requirement is satisfied by adding a workflow step that asks the agent something. The agent reads it and complies — until it doesn't.
+**Why it happens:** The requirement says "blocks" but the implementation is markdown prose with no exit code and no hook.
+**How to avoid:** Every GATE must have either (a) an exit-coded bash step in a workflow, (b) a CI rule that blocks PR merge, or (c) an installed hook that fires automatically. Test by checking: can the agent skip this step without the system detecting it?
+**Warning signs:** A GATE verification that passes by grep-for-text rather than by running a command.
+
+### Pitfall 2: Advisory-by-Composition
+**What goes wrong:** GATE-02 is implemented in `execute-phase.md` but not in `complete-milestone.md`. A milestone-boundary merge bypasses the gate.
+**Why it happens:** Implementation follows the motivation example (execute-phase) not the requirement scope ("every surface").
+**How to avoid:** For each gate, enumerate ALL workflow files that own the lifecycle event the gate covers. DC-3 (no advisory by composition) is the check.
+**Warning signs:** Requirement text says "all workflows" but plan only names one file.
+**Canonical live instance:** `complete-milestone.md:603,613,623` `git merge --squash` default — neither the audit nor the sonnet research run caught this; opus R1 did. Canonical example of the pattern this phase addresses.
+
+### Pitfall 3: GATE-09 Collapses to Prose
+**What goes wrong:** The GATE-09 ledger is delivered as a section in PHASE-SUMMARY.md with narrative text, not YAML. The verifier cannot parse it.
+**Why it happens:** SUMMARY.md is the natural phase artifact; adding to it feels like doing the work.
+**How to avoid:** GATE-09a requires a standalone `NN-LEDGER.md` with a machine-readable YAML block. The SUMMARY may reference it but the ledger is NOT the SUMMARY prose.
+**Warning signs:** "Ledger" delivered as bullet points in prose. `frontmatter.cjs` validation cannot be applied.
+
+### Pitfall 4: Phase 57.9 Completion Incorrectly Assumed
+**What goes wrong:** GATE-06 and GATE-07 are planned as if Phase 57.9 has shipped, but 57.9 has no phase directory and no plans (AT-1 check).
+**Why it happens:** ROADMAP.md lists 57.9 as a dependency; planner assumes it will be done.
+**How to avoid:** AT-1 in CONTEXT.md is explicit — Phase 58 plan must either (a) confirm 57.9 is complete at plan-phase entry, or (b) explicitly defer GATE-06/07 with GATE-09c provenance. Option (b) is the expected path given 57.9 has no plans yet.
+**Warning signs:** GATE-06/07 in Phase 58 PLAN.md without a 57.9 prerequisite check step.
+
+### Pitfall 5: `enforce_admins: false` Left Unclosed
+**What goes wrong:** GATE-14 is declared complete via a pre-push hook, but admin direct-pushes bypass the hook and the branch protection is not strict.
+**Why it happens:** Pre-push hooks are under Claude's Discretion per CONTEXT.md; easy to ship the hook without the server-side protection.
+**How to avoid:** GATE-14 plan must include enabling `enforce_admins: true` on branch protection, not only a pre-push hook.
+**Warning signs:** GATE-14 verified via "hook added" without branch protection audit.
+
+---
+
+## Verified Ground Truth (post-hoc)
+
+*Direct-fetch verifications performed by the orchestrator after both research runs completed, surfacing in this RESEARCH.md so the planner does not re-spend quota on them.*
+
+| Fact | Value | Verification command | Date |
+|------|-------|---------------------|------|
+| Upstream `discuss-phase-assumptions.md` line count | **671 lines** | `curl -s https://raw.githubusercontent.com/gsd-build/get-shit-done/main/get-shit-done/workflows/discuss-phase-assumptions.md \| wc -l` → `671` | 2026-04-20 |
+| REQUIREMENTS.md:236 line-count claim is current? | **Yes — not stale** | Compare REQUIREMENTS.md:236 value (`671`) with direct fetch | 2026-04-20 |
+| Upstream `gsd-assumptions-analyzer.md` agent exists? | **Yes (105 lines)** | `curl -sI https://raw.githubusercontent.com/gsd-build/get-shit-done/main/agents/gsd-assumptions-analyzer.md` → `HTTP/2 200`; body line count `105` | 2026-04-20 |
+| Spurious upstream filename `gsd-assume-phase.md`? | **Does not exist** | `curl -s …/gsd-assume-phase.md \| wc -l` → `0` (404) | 2026-04-20 |
+| WebFetch reliable for upstream line counts? | **No — content-trimming introduces variance** | Sonnet saw 536; Opus saw ~750; ground truth is 671. Use direct `curl` or `gh api` when byte counts are load-bearing. | 2026-04-20 |
+
+**Planner note:** Direct `curl` is authoritative for upstream text artifacts. Treat WebFetch output sizes as indicative, not exact — cross-verify when a count is load-bearing for a GATE-08 adoption decision.
+
+---
+
 ## R12 — Genuine Gaps
 
 | Question | Criticality | Recommendation | Rationale |
 |---|---|---|---|
 | **Q1 (GATE-03 detection rule)** | Medium | **Ship composition: manifest-primary + diff-fallback + glob-edge-case.** See full evaluation below. | Manifest doesn't exist; need install-time mapping. Glob has false positives on `.md`-only runtime docs. Diff has false positives on legitimate docs touches to `get-shit-done/` tree. |
-| **Q2 (upstream discuss-phase shape)** | Low | **Resolved in R5 via WebFetch.** 750-line estimate (not 671). Adoption plan documented per category. | Live fetch performed; uncertainties are MEDIUM (exact structural diff not reconstructed line-by-line). |
+| **Q2 (upstream discuss-phase shape)** | Low | **Resolved in R5 — upstream is 671 lines** (direct `curl` verified 2026-04-20; the REQUIREMENTS.md:236 figure is accurate, not stale). Adoption plan documented per category. | Live fetch performed via direct `curl`; categorical adoption decisions confirmed. Earlier WebFetch ~750 estimate was content-trimming, not a real count. |
 | **Q3 (ledger location)** | Medium | **Resolved in R6 — Layout 1 (standalone `NN-LEDGER.md`).** | Role-separation + verifier simplicity outweigh new-artifact cost. |
 | **Q4 (framework-invisibility)** | Low (for Phase 58) | **Accept-risk — deferred to Phase 60.1 intervention-outcome loop per CONTEXT.md guidance.** | Answerable only by post-Phase-58 behavioral trial; Phase 58 establishes measurement substrate so 60.1 can answer. |
 | **Q5 (meta-gate)** | Medium | **Adopt — fold into GATE-09d as GATE-09e.** See R8. | Cheap (single query); catches the precise failure mode motivating the phase. |
@@ -886,8 +1046,8 @@ The table should be finalized in a Wave 1 plan (P5) as part of AT-3 compliance.
 
 ### Secondary (MEDIUM confidence)
 
-- **WebFetch `https://raw.githubusercontent.com/gsd-build/get-shit-done/main/get-shit-done/workflows/discuss-phase-assumptions.md`** — upstream line count estimate (~750), structural summary
-- **WebFetch `https://api.github.com/repos/gsd-build/get-shit-done/contents/agents`** — confirms `gsd-assumptions-analyzer.md` exists upstream (4.5 KB, SHA `5531fc4a973ef723201c53042a9afcb33989c144`)
+- **`curl https://raw.githubusercontent.com/gsd-build/get-shit-done/main/get-shit-done/workflows/discuss-phase-assumptions.md`** — upstream line count **671** (direct-fetched 2026-04-20; WebFetch earlier estimate of ~750 was wrong due to content-trimming).
+- **`curl -I https://raw.githubusercontent.com/gsd-build/get-shit-done/main/agents/gsd-assumptions-analyzer.md`** — confirms `gsd-assumptions-analyzer.md` exists upstream (HTTP 200, 105 lines; also independently verified via earlier WebFetch against `api.github.com/contents/agents`: file size 4.5 KB, SHA `5531fc4a973ef723201c53042a9afcb33989c144`).
 - Upstream anti-pattern severity framework — cited via audit Finding 2.4 + upstream-drift-survey; not re-fetched in this research
 
 ### Tertiary (LOW confidence)
