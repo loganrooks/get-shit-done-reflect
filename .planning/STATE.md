@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-17-PLAN.md (GATE-09b planning-gate + GATE-09c Narrowing Decisions templates + GATE-09d verifier CLI + GATE-09e embedded meta-gate; 7 unit tests pass; fire-event markers emitting)
-last_updated: "2026-04-20T18:43:52.918Z"
+stopped_at: Completed 58-18-PLAN.md (XRT-01 planning assertion + closeout capability-matrix diff verifier; 5 unit tests pass; fire-event markers emitting on both runtimes)
+last_updated: "2026-04-20T18:53:49.859Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 69
-  percent: 97
+  completed_plans: 70
+  percent: 99
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 16 of 21 (58-01 in progress)
+Plan: 17 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -276,6 +276,9 @@ Recent decisions affecting current work:
 - [Phase 58-17]: queryGateFireEvents returns null (not empty object) when Plan 19 extractor absent; disambiguates extractor-missing from extractor-present-no-events and prevents false-block during Plan 17/19 execution overlap
 - [Phase 58-17]: Phase-introduced gates enumerated from both CONTEXT.md Requirements-in-scope line (richer; sub-letter gates) and REQUIREMENTS.md traceability table (rolled-up fallback); matches ledger-schema authority pattern
 - [Phase 58-17]: Verifier exit behavior: --raw always exits 0 (inspect JSON.status); non-raw + strict + block exits 1; matches existing gsd-tools frontmatter validate contract from Plan 04
+- [Phase 58]: XRT-01 planning-phase assertion uses grep heuristic on CONTEXT.md alone (not CONTEXT+RESEARCH); satisfaction vocabulary is permissive-OR of 58-05 Codex-behavior values + narrative forms
+- [Phase 58]: XRT-01 closeout capability-matrix diff resolves phase-start SHA via 'git log --first-parent --reverse -- <phaseDir>'; trimEnd() normalization handles execGit stdout trimming vs fs.readFileSync newline preservation asymmetry
+- [Phase 58]: XRT-01 closeout runs independently of --no-meta-gate flag (which targets GATE-09e); deadlock guards (missing matrix / no git history) return pass-with-reason to avoid false-blocking on operator-side infrastructure gaps
 
 ### Roadmap Evolution
 
@@ -350,6 +353,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P15 | 5min | 2 tasks | 6 files |
 | Phase 58-structural-enforcement-gates P19 | 4min | 1 tasks | 5 files |
 | Phase 58-structural-enforcement-gates P17 | 10min | 2 tasks | 6 files |
+| Phase 58 P18 | 5min | 1 tasks | 4 files |
 
 ### Key Artifacts
 
@@ -368,8 +372,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T18:43:25.801Z
-Stopped at: Completed 58-17-PLAN.md (GATE-09b planning-gate + GATE-09c Narrowing Decisions templates + GATE-09d verifier CLI + GATE-09e embedded meta-gate; 7 unit tests pass; fire-event markers emitting)
+Last session: 2026-04-20T18:53:37.035Z
+Stopped at: Completed 58-18-PLAN.md (XRT-01 planning assertion + closeout capability-matrix diff verifier; 5 unit tests pass; fire-event markers emitting on both runtimes)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
