@@ -1207,6 +1207,164 @@ function findPhaseLedger(cwd, phase) {
   };
 }
 
+// XRT-01 closeout check (Phase 58 Plan 18):
+//   On phase close, diff `get-shit-done/references/capability-matrix.md`
+//   against its state at phase start. If any phase-introduced feature touches
+//   capability-matrix surface (detected by scanning phase SUMMARY.md files
+//   for capability-keywords), the matrix row MUST have been updated to reflect
+//   the new state. Missing diff => block with reason
+//   `capability_matrix_unreviewed`.
+//
+//   Rationale (audit Finding 2.10 + REQUIREMENTS.md:419):
+//     Phase 57.7 / 57.8 shipped hook-dependent substrate without refreshing
+//     capability-matrix.md. XRT-01 formalizes: hook-dependent or
+//     cross-runtime features must update the runtime capability surface at
+//     closeout. Planning-phase companion lives at
+//     `get-shit-done/workflows/plan-phase.md` Step 4.6.
+//
+//   Phase-start commit resolution:
+//     Walk `git log --first-parent` on the phase directory path and take the
+//     earliest commit that created any file under `.planning/phases/NN-.../`
+//     (phase scaffolding, CONTEXT.md, RESEARCH.md). The commit immediately
+//     preceding is the pre-phase state for diff purposes. Fallbacks:
+//       1. If phase directory has no git history, skip with warning
+//          (matrix_start_not_resolvable) -- verifier returns pass.
+//       2. If matrix file has no history at phase-start SHA, treat
+//          content-at-start as empty string (any current content counts as
+//          modification).
+//
+//   Capability-touching heuristic (keywords scanned over phase SUMMARY.md
+//   files + CONTEXT.md):
+//     hook / SessionStop / SessionStart / PreToolUse / PostToolUse / postlude
+//     / codex_hooks / capability-matrix / has_capability / task_tool /
+//     tool_permissions / mcp_servers
+//
+//   Fire-event: `::notice title=XRT-01::gate_fired=XRT-01 result=<pass|block>
+//                reason=<capability_matrix_unreviewed|matrix_updated|
+//                        no_capability_touch|matrix_start_not_resolvable>`
+//   Codex behavior: applies (filesystem + git operations runtime-neutral).
+function verifyCapabilityMatrix(cwd, phase, info) {
+  const matrixRelPath = 'get-shit-done/references/capability-matrix.md';
+  const matrixAbsPath = path.join(cwd, matrixRelPath);
+
+  // Guard 1: matrix file missing from tree
+  if (!fs.existsSync(matrixAbsPath)) {
+    return {
+      status: 'pass',
+      reason: 'capability_matrix_file_missing',
+      note: 'matrix file absent from working tree; skip diff',
+    };
+  }
+
+  // Resolve phase directory
+  const phaseInfo = findPhaseInternal(cwd, phase);
+  if (!phaseInfo || !phaseInfo.found) {
+    return { status: 'pass', reason: 'phase_directory_not_found' };
+  }
+  const phaseDirRel = phaseInfo.directory;
+  const phaseDirAbs = path.join(cwd, phaseDirRel);
+
+  // Collect capability-touch signal from SUMMARY.md files + CONTEXT.md.
+  // Keywords taken from capability-matrix.md row titles + hook events surfaced
+  // in plan-phase XRT-01 heuristic (intentional near-superset to avoid
+  // false-negatives where a phase touches capability via keyword not in the
+  // planning-gate heuristic).
+  const CAPABILITY_KEYWORDS = [
+    'hook', 'SessionStop', 'SessionStart', 'PreToolUse', 'PostToolUse',
+    'postlude', 'codex_hooks', 'capability-matrix', 'has_capability',
+    'task_tool', 'tool_permissions', 'mcp_servers',
+  ];
+  const kwRegex = new RegExp(CAPABILITY_KEYWORDS.map(escapeRegex).join('|'), 'i');
+
+  let capabilityTouched = false;
+  let capabilitySource = null;
+  try {
+    const files = fs.readdirSync(phaseDirAbs);
+    const scanTargets = files.filter(f =>
+      /-SUMMARY\.md$/.test(f) || /-CONTEXT\.md$/.test(f)
+    );
+    for (const f of scanTargets) {
+      const content = safeReadFile(path.join(phaseDirAbs, f)) || '';
+      if (kwRegex.test(content)) {
+        capabilityTouched = true;
+        capabilitySource = f;
+        break;
+      }
+    }
+  } catch { /* directory unreadable -- fall through with capabilityTouched=false */ }
+
+  if (info) {
+    info.capability_touched = capabilityTouched;
+    info.capability_source = capabilitySource;
+  }
+
+  if (!capabilityTouched) {
+    return {
+      status: 'pass',
+      reason: 'no_capability_touch',
+      note: 'phase SUMMARY / CONTEXT did not reference capability-matrix surface',
+    };
+  }
+
+  // Resolve phase-start SHA: earliest commit touching the phase directory on
+  // the current branch's first-parent chain. This is approximate but robust
+  // across the fork's branching strategy (per-phase branches named
+  // gsd/phase-NN-*).
+  const logResult = execGit(cwd, [
+    'log', '--first-parent', '--format=%H', '--reverse', '--', phaseDirRel,
+  ]);
+  if (logResult.exitCode !== 0 || !logResult.stdout.trim()) {
+    // No history for the phase directory yet (pre-initial-commit run, or
+    // weird worktree state). Skip with warning.
+    return {
+      status: 'pass',
+      reason: 'matrix_start_not_resolvable',
+      note: 'no git history for phase directory; cannot diff matrix',
+    };
+  }
+  const phaseStartSha = logResult.stdout.trim().split('\n')[0];
+
+  // Matrix content AT phase-start SHA. If the file didn't exist at that
+  // point, treat start-content as empty (any current content = modification).
+  //
+  // NB: core.cjs's `execGit` .trim()s stdout, stripping trailing newlines.
+  // fs.readFileSync preserves them. We `trimEnd()` both sides before compare
+  // so a pure newline-preservation difference does not masquerade as a real
+  // content change (that would false-block every phase the matrix wasn't
+  // edited in).
+  let matrixAtStart = '';
+  const showResult = execGit(cwd, [
+    'show', `${phaseStartSha}:${matrixRelPath}`,
+  ]);
+  if (showResult.exitCode === 0) {
+    matrixAtStart = showResult.stdout;
+  }
+  // Current (working-tree) matrix content.
+  const matrixCurrent = fs.readFileSync(matrixAbsPath, 'utf-8');
+
+  const modified = matrixCurrent.trimEnd() !== matrixAtStart.trimEnd();
+  if (info) {
+    info.capability_matrix_phase_start_sha = phaseStartSha;
+    info.capability_matrix_modified = modified;
+  }
+
+  if (modified) {
+    return {
+      status: 'pass',
+      reason: 'matrix_updated',
+      note: 'capability-matrix.md diff observed since phase start',
+    };
+  }
+
+  return {
+    status: 'block',
+    reason: 'capability_matrix_unreviewed',
+    note: 'phase touched capability surface but capability-matrix.md unchanged since phase start',
+    capability_source: capabilitySource,
+    phase_start_sha: phaseStartSha,
+  };
+}
+
 // Query the gate_fire_events extractor for per-gate emission counts.
 // Returns null if the extractor is not yet registered (Plan 19 not run).
 function queryGateFireEvents(cwd, phase) {
@@ -1395,6 +1553,24 @@ function cmdVerifyLedger(cwd, phase, options, raw) {
     info.meta_gate_reason = 'disabled_via_flag';
   }
 
+  // XRT-01 closeout check (Phase 58 Plan 18): capability-matrix diff.
+  // Runs on every `verify ledger` invocation; independent of --no-meta-gate
+  // because XRT-01 enforces cross-runtime substrate discipline, not gate
+  // emission. Result rolled into the ledger verifier's block reasons so a
+  // single `verify ledger <N>` call surfaces both GATE-09d and XRT-01 status.
+  const xrtResult = verifyCapabilityMatrix(cwd, phase, info);
+  info.xrt_01 = {
+    status: xrtResult.status,
+    reason: xrtResult.reason,
+    note: xrtResult.note || null,
+  };
+  // Dedicated fire-event for XRT-01 closeout (Plan 19 extractor reads this).
+  console.log(`::notice title=XRT-01::gate_fired=XRT-01 result=${xrtResult.status} reason=${xrtResult.reason}`);
+  const xrtBlocked = xrtResult.status === 'block';
+  if (xrtBlocked) {
+    missing_claims.push(`xrt_01_capability_matrix_unreviewed:${xrtResult.reason}`);
+  }
+
   // Emission
   const blockReasons = missing_claims.length + unwired_gates.length;
   const status = blockReasons === 0 ? 'pass' : 'block';
@@ -1441,4 +1617,5 @@ module.exports = {
   parseContextClaims,
   extractPhaseGates,
   findPhaseLedger,
+  verifyCapabilityMatrix,
 };

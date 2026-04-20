@@ -144,6 +144,66 @@ else
 fi
 ```
 
+## 4.6. XRT-01: planning-phase assertion — hook-dependent commitments require Codex path
+
+<!-- XRT-01 (Phase 58 Plan 18): any hook-dependent commitment authored in
+     <phase>-CONTEXT.md MUST be accompanied by an explicit per-runtime
+     substrate declaration (Codex behavior / degradation / waiver path) before
+     plan-phase proceeds. REQUIREMENTS.md:419 formalizes this; Audit Finding
+     2.10 motivates it (Phases 57.7 / 57.8 CONTEXT.md files lacked Codex
+     degradation sections for hook-dependent features).
+
+     This step is a coarse grep heuristic -- it counts hook-keyword mentions
+     and Codex-path mentions. A false positive is possible (CONTEXT mentions
+     "hook" casually without the feature being hook-dependent); the
+     HAS_CODEX_PATH OR-condition is permissive so any phase authoring CONTEXT
+     in a hook-dependent domain can satisfy the check by adding a small
+     Codex-behavior block. Authors can defuse a false positive the same way --
+     by adding a per-gate Codex behavior declaration per
+     58-05-codex-behavior-matrix.md vocabulary.
+
+     Fire-event: `::notice::gate_fired=XRT-01 result=<pass|block> reason=<str>`
+     on every invocation (Plan 19 extractor contract).
+     Codex behavior: applies on both runtimes (see
+     58-05-codex-behavior-matrix.md §XRT-01).
+     Companion: `gsd-tools verify ledger <phase>` runs the closeout-time
+     capability-matrix diff check (see verify.cjs `verifyCapabilityMatrix`).
+-->
+
+```bash
+# XRT-01: planning-phase assertion -- hook-dependent commitments require Codex path
+padded_phase="${padded_phase:-$(printf '%02d' "${PHASE%%.*}")}"
+CONTEXT_FILE=$(ls "${phase_dir}"/*-CONTEXT.md 2>/dev/null | head -1)
+
+if [ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ]; then
+  # Heuristic: does CONTEXT mention hook-dependent keywords?
+  HAS_HOOK_COMMITMENT=$(grep -ciE 'hook|SessionStop|postlude|codex_hooks|session-meta' "$CONTEXT_FILE" || true)
+
+  if [ "$HAS_HOOK_COMMITMENT" -gt 0 ]; then
+    # Does CONTEXT contain an explicit Codex degradation / waiver path?
+    # Accept any of the Section-2 vocabulary plus narrative forms. Permissive by
+    # design -- authors satisfy it by declaring a per-gate Codex behavior block
+    # per 58-05-codex-behavior-matrix.md.
+    HAS_CODEX_PATH=$(grep -ciE 'Codex behavior|does-not-apply-with-reason|applies-via-workflow-step|applies-via-installer|Codex degradation|waiver path|XRT-01' "$CONTEXT_FILE" || true)
+
+    if [ "$HAS_CODEX_PATH" -eq 0 ]; then
+      echo "::notice title=XRT-01::gate_fired=XRT-01 result=block reason=hook_commitment_no_codex_path"
+      echo "XRT-01 blocks planning: CONTEXT.md mentions hook-dependent features but lacks explicit Codex degradation / waiver path."
+      echo "Required: add a Codex behavior section declaring applies / applies-via-workflow-step / applies-via-installer / does-not-apply-with-reason for each hook-dependent commitment."
+      echo "See .planning/phases/58-structural-enforcement-gates/58-05-codex-behavior-matrix.md for the standard vocabulary."
+      exit 1
+    fi
+    echo "::notice title=XRT-01::gate_fired=XRT-01 result=pass reason=codex_path_declared"
+  else
+    echo "::notice title=XRT-01::gate_fired=XRT-01 result=pass reason=no_hook_commitments"
+  fi
+else
+  # No CONTEXT.md -- emit skip-shaped fire-event for Plan 19 extractor parity
+  # with GATE-09b's no_context_md branch.
+  echo "::notice title=XRT-01::gate_fired=XRT-01 result=pass reason=no_context_md"
+fi
+```
+
 <capability_check name="agent_spawning">
 Check the runtime capability matrix (get-shit-done/references/capability-matrix.md):
 
