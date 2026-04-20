@@ -132,6 +132,31 @@ function initSchema(db) {
   ensureColumn(db, 'signals', 'detected_by_json', "TEXT DEFAULT ''");
   ensureColumn(db, 'signals', 'written_by_json', "TEXT DEFAULT ''");
 
+  // Phase 58 Plan 04 (GATE-09a): additive `ledger_entries` table. Files under
+  // .planning/phases/*/NN-LEDGER.md are the source of truth; this table is a
+  // derived cache per PROV-05 / KB-05 dual-write invariant. Additive only --
+  // existing tables are not modified.
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS ledger_entries (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      phase TEXT NOT NULL,
+      context_claim TEXT NOT NULL,
+      disposition TEXT NOT NULL CHECK(disposition IN ('implemented_this_phase','explicitly_deferred','rejected_with_reason','left_open_blocking_planning')),
+      load_bearing INTEGER NOT NULL,
+      target_phase_if_deferred TEXT,
+      narrowing_originating_claim TEXT,
+      narrowing_rationale TEXT,
+      narrowing_decision TEXT,
+      evidence_paths_json TEXT,
+      written_by TEXT,
+      written_at TEXT,
+      session_id TEXT,
+      source_file TEXT NOT NULL,
+      indexed_at TEXT NOT NULL,
+      UNIQUE(phase, context_claim)
+    );
+  `);
+
   // Indexes for common query patterns
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_signals_severity ON signals(severity);
@@ -141,6 +166,8 @@ function initSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_signals_polarity ON signals(polarity);
     CREATE INDEX IF NOT EXISTS idx_signals_status ON signals(status);
     CREATE INDEX IF NOT EXISTS idx_signals_provenance_schema ON signals(provenance_schema);
+    CREATE INDEX IF NOT EXISTS idx_ledger_phase ON ledger_entries(phase);
+    CREATE INDEX IF NOT EXISTS idx_ledger_disposition ON ledger_entries(disposition);
   `);
 
   // 57.7 MEAS-GSDR-06: drop signal_fts virtual table. Previously reserved for
@@ -224,6 +251,46 @@ function discoverSpikeFiles(kbDir) {
     }
   }
   walk(spikesDir);
+  return files;
+}
+
+// Phase 58 Plan 04 (GATE-09a): discover NN-LEDGER.md files under .planning/phases/*/.
+// Matches the standalone-ledger layout decided in 58-RESEARCH.md R6 (Layout 1).
+// Files are the source of truth; this function supplies the `kb rebuild` feeder.
+function discoverLedgerFiles(cwd) {
+  const phasesDir = path.join(cwd, '.planning', 'phases');
+  const files = [];
+  if (!fs.existsSync(phasesDir)) return files;
+
+  let entries;
+  try {
+    entries = fs.readdirSync(phasesDir, { withFileTypes: true });
+  } catch {
+    return files;
+  }
+
+  // Pattern: Phase-scoped `NN-LEDGER.md` directly inside a phase dir.
+  // Matches: 58-LEDGER.md, 57.7-LEDGER.md, 58.12a-LEDGER.md.
+  // Does NOT match: UPSTREAM-DRIFT-LEDGER.md (pre-GATE-09a artifact),
+  // 58-04-ledger-schema.md (schema spec), arbitrary notes containing "ledger".
+  // Do NOT recurse into subdirectories.
+  const ledgerNamePattern = /^\d+(\.\d+[a-z]?)?-LEDGER\.md$/;
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const phaseDir = path.join(phasesDir, entry.name);
+    let phaseEntries;
+    try {
+      phaseEntries = fs.readdirSync(phaseDir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const child of phaseEntries) {
+      if (!child.isFile()) continue;
+      if (ledgerNamePattern.test(child.name)) {
+        files.push(path.join(phaseDir, child.name));
+      }
+    }
+  }
   return files;
 }
 
@@ -389,6 +456,45 @@ function spikeToRow(fm, filePath, hash) {
   };
 }
 
+// Phase 58 Plan 04 (GATE-09a): map a single ledger entry from parsed frontmatter
+// into a row for the `ledger_entries` table. Tolerant of partial entries: bad
+// or missing fields surface as empty strings or nulls rather than throwing, so
+// one malformed entry does not abort the whole rebuild. Validation is a
+// separate concern (frontmatter.cjs --schema ledger); this is pure projection.
+function normalizeLoadBearing(value) {
+  if (value === true || value === 'true' || value === 1 || value === '1') return 1;
+  return 0;
+}
+
+function ledgerEntryToRow(entry, phase, relPath, indexedAt) {
+  const rsp = (entry && typeof entry === 'object' && entry.role_split_provenance) || {};
+  const np = (entry && typeof entry === 'object' && entry.narrowing_provenance) || {};
+  let evidencePathsJson = null;
+  if (Array.isArray(entry.evidence_paths)) {
+    try {
+      evidencePathsJson = JSON.stringify(entry.evidence_paths);
+    } catch {
+      evidencePathsJson = null;
+    }
+  }
+  return {
+    phase: String(phase || ''),
+    context_claim: String(entry.context_claim || ''),
+    disposition: String(entry.disposition || ''),
+    load_bearing: normalizeLoadBearing(entry.load_bearing),
+    target_phase_if_deferred: entry.target_phase_if_deferred ? String(entry.target_phase_if_deferred) : null,
+    narrowing_originating_claim: np.originating_claim ? String(np.originating_claim) : null,
+    narrowing_rationale: np.rationale ? String(np.rationale) : null,
+    narrowing_decision: np.narrowing_decision ? String(np.narrowing_decision) : null,
+    evidence_paths_json: evidencePathsJson,
+    written_by: rsp.written_by ? String(rsp.written_by) : null,
+    written_at: rsp.written_at ? String(rsp.written_at) : null,
+    session_id: rsp.session_id ? String(rsp.session_id) : null,
+    source_file: relPath,
+    indexed_at: indexedAt,
+  };
+}
+
 // ─── Tags extraction ──────────────────────────────────────────────────────────
 
 function extractTags(fm) {
@@ -440,6 +546,7 @@ function cmdKbRebuild(cwd, raw) {
 
   const signalFiles = discoverSignalFiles(kbDir);
   const spikeFiles = discoverSpikeFiles(kbDir);
+  const ledgerFiles = discoverLedgerFiles(cwd);
 
   let signalsAdded = 0;
   let signalsUpdated = 0;
@@ -447,6 +554,8 @@ function cmdKbRebuild(cwd, raw) {
   let spikesAdded = 0;
   let spikesUpdated = 0;
   let spikesSkipped = 0;
+  let ledgerEntriesIndexed = 0;
+  let ledgerFilesProcessed = 0;
   let errors = 0;
   const errorDetails = [];
 
@@ -478,6 +587,21 @@ function cmdKbRebuild(cwd, raw) {
   `);
   const deleteSpikeTags = db.prepare('DELETE FROM spike_tags WHERE spike_id = ?');
   const insertSpikeTag = db.prepare('INSERT OR IGNORE INTO spike_tags (spike_id, tag) VALUES (?, ?)');
+
+  // Phase 58 Plan 04 (GATE-09a): ledger_entries prepared statements. Per-ledger-file
+  // strategy is "delete existing rows for (source_file) then insert all entries" --
+  // simpler than per-entry hash tracking, and the file is the unit of truth anyway.
+  const deleteLedgerEntriesForFile = db.prepare('DELETE FROM ledger_entries WHERE source_file = ?');
+  const insertLedgerEntry = db.prepare(`
+    INSERT OR REPLACE INTO ledger_entries
+      (phase, context_claim, disposition, load_bearing, target_phase_if_deferred,
+       narrowing_originating_claim, narrowing_rationale, narrowing_decision,
+       evidence_paths_json, written_by, written_at, session_id, source_file, indexed_at)
+    VALUES
+      (@phase, @context_claim, @disposition, @load_bearing, @target_phase_if_deferred,
+       @narrowing_originating_claim, @narrowing_rationale, @narrowing_decision,
+       @evidence_paths_json, @written_by, @written_at, @session_id, @source_file, @indexed_at)
+  `);
 
   db.exec('BEGIN TRANSACTION');
   try {
@@ -586,13 +710,75 @@ function cmdKbRebuild(cwd, raw) {
       }
     }
 
-    // Update meta table
+    // Phase 58 Plan 04 (GATE-09a): process ledger files. NN-LEDGER.md files live
+    // under .planning/phases/*/ (not under the KB dir); paths are made relative
+    // to cwd for portability. Per-file strategy: delete any prior rows for this
+    // source_file, then insert each entry. A malformed entry increments errors
+    // but does not abort the file -- individual bad entries are tolerated so one
+    // mistake does not drop the whole ledger from the index.
     const now = new Date().toISOString();
+    for (const filePath of ledgerFiles) {
+      const relPath = path.relative(cwd, filePath);
+      let content;
+      try {
+        content = fs.readFileSync(filePath, 'utf-8');
+      } catch (e) {
+        errors++;
+        errorDetails.push({ file: relPath, error: `Read error: ${e.message}` });
+        continue;
+      }
+
+      let fm;
+      try {
+        fm = extractFrontmatter(content);
+      } catch (e) {
+        errors++;
+        errorDetails.push({ file: relPath, error: `Parse error: ${e.message}` });
+        continue;
+      }
+
+      // Clear existing rows for this file so updates stay idempotent.
+      try {
+        deleteLedgerEntriesForFile.run(relPath);
+      } catch (e) {
+        errors++;
+        errorDetails.push({ file: relPath, error: `Delete error: ${e.message}` });
+        continue;
+      }
+
+      const phase = String(fm.phase || '');
+      const entries = Array.isArray(fm.entries) ? fm.entries : [];
+      let entryIndex = 0;
+      for (const entry of entries) {
+        if (!entry || typeof entry !== 'object') { entryIndex++; continue; }
+        try {
+          const row = ledgerEntryToRow(entry, phase, relPath, now);
+          // Only index rows that have the minimal identity + disposition -- otherwise
+          // the NOT NULL / CHECK constraints will reject them. The validator
+          // (frontmatter validate --schema ledger) is the proper quality gate.
+          if (!row.context_claim || !row.disposition) {
+            entryIndex++;
+            continue;
+          }
+          insertLedgerEntry.run(row);
+          ledgerEntriesIndexed++;
+        } catch (e) {
+          errors++;
+          errorDetails.push({ file: `${relPath}[entry ${entryIndex}]`, error: `Index error: ${e.message}` });
+        }
+        entryIndex++;
+      }
+      ledgerFilesProcessed++;
+    }
+
+    // Update meta table
     const upsertMeta = db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)');
     upsertMeta.run('schema_version', '2');
     upsertMeta.run('last_rebuilt', now);
     upsertMeta.run('signal_count', String(signalsAdded + signalsUpdated + signalsSkipped));
     upsertMeta.run('spike_count', String(spikesAdded + spikesUpdated + spikesSkipped));
+    upsertMeta.run('ledger_entry_count', String(ledgerEntriesIndexed));
+    upsertMeta.run('ledger_file_count', String(ledgerFilesProcessed));
 
     db.exec('COMMIT');
   } catch (e) {
@@ -600,7 +786,7 @@ function cmdKbRebuild(cwd, raw) {
     throw e;
   }
 
-  const total = signalFiles.length + spikeFiles.length;
+  const total = signalFiles.length + spikeFiles.length + ledgerFiles.length;
   const added = signalsAdded + spikesAdded;
   const updated = signalsUpdated + spikesUpdated;
   const skipped = signalsSkipped + spikesSkipped;
@@ -609,6 +795,8 @@ function cmdKbRebuild(cwd, raw) {
     output({
       signals: signalsAdded + signalsUpdated + signalsSkipped,
       spikes: spikesAdded + spikesUpdated + spikesSkipped,
+      ledger_files: ledgerFilesProcessed,
+      ledger_entries: ledgerEntriesIndexed,
       added,
       updated,
       skipped,
@@ -617,11 +805,12 @@ function cmdKbRebuild(cwd, raw) {
     }, true);
   } else {
     const lines = [
-      `KB rebuild complete: ${total} files processed (${signalFiles.length} signals, ${spikeFiles.length} spikes)`,
-      `  Added:     ${added}`,
-      `  Updated:   ${updated}`,
-      `  Unchanged: ${skipped}`,
-      `  Errors:    ${errors}`,
+      `KB rebuild complete: ${total} files processed (${signalFiles.length} signals, ${spikeFiles.length} spikes, ${ledgerFiles.length} ledgers)`,
+      `  Added:            ${added}`,
+      `  Updated:          ${updated}`,
+      `  Unchanged:        ${skipped}`,
+      `  Ledger entries:   ${ledgerEntriesIndexed} (across ${ledgerFilesProcessed} files)`,
+      `  Errors:           ${errors}`,
     ];
     if (errors > 0) {
       lines.push('\nErrors:');
