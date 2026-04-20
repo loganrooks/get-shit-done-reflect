@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-12-PLAN.md (GATE-05 echo macro + GATE-13 dispatch contract at 22 named spawn sites in 10 core workflow files; 8 Plan 12 scope allowlist entries retired; Plan 12a follow-on documented)
-last_updated: "2026-04-20T17:38:42.206Z"
+stopped_at: "Completed 58-10-PLAN.md (GATE-04a/04b/04c: handoff archive + staleness hard-stop + antipattern severity registry shipped; fire-events emitted at 3 gate points; resume-project.md rm -f replaced with exit-coded gate)"
+last_updated: "2026-04-20T17:47:41.741Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 62
-  percent: 87
+  completed_plans: 63
+  percent: 89
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 9 of 21 (58-01 in progress)
+Plan: 10 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -245,6 +245,10 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-12] verify-work.md triple-quoted Task() placement: macro + dispatch contract placed as adjacent fenced blocks immediately above the Task() fence (design §2.4 proximity rules satisfied)
 - [Phase 58-structural-enforcement-gates]: [58-12] Allowlist format defect surfaced during Task 2 verification (bare # lines match everything via grep -F -f, silently disabling check); pre-existing from Plan 07 — deferred to Plan 12a full-sweep CI grep for surfacing; not fixed this plan
 - [Phase 58-structural-enforcement-gates]: [58-12] quick.md researcher spawn known discrepancy (Plan 02 §5.4): template binds {planner_model} instead of {researcher_model}; both resolve to inherit under quality so runtime-identical today; flagged inline in dispatch contract comment for future review rather than fixed under mechanical-edit discipline
+- [Phase 58-structural-enforcement-gates]: [58-10] Local flat-YAML extractor used in handoff.cjs instead of frontmatter.cjs -- gate self-containment for emergency invocation; top-level scalars (session_id, last_updated) are sufficient
+- [Phase 58-structural-enforcement-gates]: [58-10] Staleness predicate is OR of three sources (mtime vs STATE.last_updated, mtime vs last mainline commit, duplicate session_id in STATE.md) -- any single source is sufficient to prove obsolescence
+- [Phase 58-structural-enforcement-gates]: [58-10] Exit code 4 reserved for GATE-04c ack_required / typed-token mismatch; kept distinct from GATE-04b exit 3 so callers can branch on which gate fired
+- [Phase 58-structural-enforcement-gates]: [58-10] Registry parser is a line-oriented state machine (no YAML library dep); entries discovered by '- id:' lead lines; trade-off: flat-scalar values only, matches documented schema
 
 ### Roadmap Evolution
 
@@ -312,6 +316,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P08 | 5min | 2 tasks | 4 files |
 | Phase 58-structural-enforcement-gates P09 | 7min | 2 tasks | 3 files |
 | Phase 58-structural-enforcement-gates P12 | 10 | 2 tasks | 11 files |
+| Phase 58-structural-enforcement-gates P10 | 5min | 2 tasks | 4 files |
 
 ### Key Artifacts
 
@@ -330,8 +335,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T17:38:42.198Z
-Stopped at: Completed 58-12-PLAN.md (GATE-05 echo macro + GATE-13 dispatch contract at 22 named spawn sites in 10 core workflow files; 8 Plan 12 scope allowlist entries retired; Plan 12a follow-on documented)
+Last session: 2026-04-20T17:47:41.734Z
+Stopped at: Completed 58-10-PLAN.md (GATE-04a/04b/04c: handoff archive + staleness hard-stop + antipattern severity registry shipped; fire-events emitted at 3 gate points; resume-project.md rm -f replaced with exit-coded gate)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
