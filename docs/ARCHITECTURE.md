@@ -113,7 +113,7 @@ User-facing entry points. Each file contains YAML frontmatter (name, description
 - **Copilot:** Slash commands (`/gsd-command-name`)
 - **Antigravity:** Skills
 
-**Total commands:** 75
+**Total commands:** 76
 
 ### Workflows (`get-shit-done/workflows/*.md`)
 
@@ -124,7 +124,7 @@ Orchestration logic that commands reference. Contains the step-by-step process i
 - State update patterns
 - Error handling and recovery
 
-**Total workflows:** 72
+**Total workflows:** 73
 
 ### Agents (`agents/*.md`)
 
@@ -415,11 +415,11 @@ UI-SPEC.md (per phase) ───────────────────
 
 ```
 ~/.claude/                          # Claude Code (global install)
-├── commands/gsd/*.md               # 75 slash commands
+├── commands/gsd/*.md               # 76 slash commands
 ├── get-shit-done/
 │   ├── bin/gsd-tools.cjs           # CLI utility
 │   ├── bin/lib/*.cjs               # 24 domain modules
-│   ├── workflows/*.md              # 72 workflow definitions
+│   ├── workflows/*.md              # 73 workflow definitions
 │   ├── references/*.md             # 41 shared reference docs
 │   └── templates/                  # Planning artifact templates
 ├── agents/*.md                     # 31 agent definitions
