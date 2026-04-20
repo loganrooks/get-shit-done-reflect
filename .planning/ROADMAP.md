@@ -350,6 +350,22 @@ Plans:
 - [x] 58-19-PLAN.md — `gate_fire_events` extractor registration
 - [x] 58-20-PLAN.md — Phase 58 `58-LEDGER.md` (reflexive GATE-09) + ROADMAP update
 
+### Phase 58.1: Codex Update Distribution Parity (INSERTED)
+
+**Goal:** Codex update surfaces stop hiding stale installs: installed-version detection enumerates project-local and active global Codex scopes correctly, update execution targets the intended runtime/config-dir/scope, and shared update indicators no longer assume Claude-only layout.
+**Requirements**: Runtime-parity narrow fix derived from the v1.20 cross-runtime distribution gap target in PROJECT.md (no separate REQUIREMENTS row; phase governed by the inserted ROADMAP goal and its approved PLAN artifacts)
+**Depends on:** Phase 58
+**Success Criteria** (what must be TRUE):
+  1. `gsdr-update` on Codex can distinguish project-local and active global Codex installs, and a repo-local `.codex` mirror in the source repo cannot mask a stale global install
+  2. The selected update command includes runtime-correct targeting (`--codex` plus correct local/global/config-dir scope) instead of reusing Claude-oriented defaults
+  3. Any update-indicator cache or command surface touched by the phase is aligned with Codex/runtime-aware semantics rather than a hard-coded `.claude` path
+  4. Targeted regression tests cover divergent local/global Codex versions and runtime-correct update routing
+**Plans:** 2 plans
+
+Plans:
+- [x] 58.1-01-PLAN.md — Shared Codex update-target resolver seam, installer helper reuse, and unit regressions
+- [x] 58.1-02-PLAN.md — Runtime-aware update workflow wiring, published-package execution, and Codex integration regressions
+
 ### Phase 59: KB Query, Lifecycle Wiring & Surfacing
 **Goal**: The knowledge base is fully queryable on the current file+SQLite architecture, lifecycle transitions are automated with an explicit path relative to the existing bash fallback, and agent surfacing stops being one-way by exposing inbound edge context. The phase stays focused on query/lifecycle/surfacing on the current schema, while explicitly naming the deeper edge-as-entity and retrieval-feedback architecture as downstream work instead of silently omitting it.
 **Depends on**: Phase 56 (SQLite index must exist)

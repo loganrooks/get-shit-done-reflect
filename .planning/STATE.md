@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: verifying
-stopped_at: Completed 58-20-PLAN.md (Phase 58 LEDGER.md + ROADMAP update; 70 ledger entries; GATE-09d verifier passes; AT-5 closed; Phase 58 complete)
-last_updated: "2026-04-20T19:10:32.578Z"
+status: human_verification
+stopped_at: Verified 58.1 (live Codex checks pending)
+last_updated: "2026-04-20T22:24:18Z"
 last_activity: 2026-04-20
 progress:
-  total_phases: 23
+  total_phases: 24
   completed_phases: 14
-  total_plans: 71
-  completed_plans: 71
+  total_plans: 73
+  completed_plans: 73
   percent: 100
 ---
 
@@ -21,22 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 58 (Structural Enforcement Gates) plan-phase in progress; Phase 57.8 closed. Phase 57.8 (Signal Provenance Role-Aware Backfill) merged 2026-04-20 via commit c8a15d95. Plan-checker PASSED after iter 2: 21 plans across 12 waves, shared-file contention fully serialized, all 25 requirements covered (GATE-01..15 + XRT-01), GATE-06/07 intentionally deferred via Plan 16 (AT-1 Option B). Prior phase 57.7 closed with an honest demo/regression wave (vision-drop diagnostic shipped as `unclassified`, GATE-09 surfaced as pending intervention).
+**Current focus:** v1.20 Phase 58.1 (Codex Update Distribution Parity) has finished execution on branch `gsd/phase-58.1-codex-update-distribution-parity` and passed automated verification. The only remaining work is two live human Codex checks: a real source-repo update preview/execution and a real non-default `CODEX_CONFIG_DIR` update run.
 
 ## Current Position
 
-Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 21 of 21 (58-01 in progress)
-Status: Phase complete — ready for verification
+Phase: 58.1 of 64 — Execution complete on `gsd/phase-58.1-codex-update-distribution-parity`
+Plan: 2 of 2 complete
+Status: Automated verification passed; 2 live human Codex checks pending
 
 ### Recent Phases
 
-- Phase 57.8 (Signal Provenance Role-Aware Backfill) — merged 2026-04-20 via commit c8a15d95, 3 plans completed
-- Phase 57.7 (Content Analysis & Epistemic Deepening) — Complete; closed with honest demo/regression wave (vision-drop diagnostic shipped as `unclassified`, GATE-09 surfaced as pending intervention)
+- Phase 58 (Structural Enforcement Gates) — complete on the baseline branch via commit `41673dc8`; verifier passed and phase closeout artifacts were tracked before the 58.1 insertion
+- Phase 57.8 (Signal Provenance Role-Aware Backfill) — merged 2026-04-20 via commit `c8a15d95`, 3 plans completed
 
 Last activity: 2026-04-20
 
-Progress: [██████░░░░] 60%
+Progress: [██████████] 99%
 
 ## Performance Metrics
 
@@ -283,6 +283,11 @@ Recent decisions affecting current work:
 - [Phase 58]: Phase 58-20: Q4 (framework-invisibility) deferred to Phase 60.1 rather than collapsed; answerable only empirically from intervention-outcome measurement
 - [Phase 58]: Phase 58-20: GATE-06 and GATE-07 deferred to Phase 57.9 with narrowing_provenance per 58-16 defer-provenance artifact (AT-1 Option B branch)
 - [Phase 58]: Phase 58-20: AT-5 reflexive GATE-09 closed — Phase 58 runs under its own shipped discipline
+- [Phase 58.1]: Accepted the existing Task 1 resolver commit after verifying its JSON contract, keeping Task 2 scoped to installer reuse plus regressions. — The resolver and CLI bridge already satisfied the plan contract, so reworking them would have broken atomic task history without improving the update seam.
+- [Phase 58.1]: Codex update cache handling remains an explicit does-not-apply no-op, and the installer now shares Codex config-dir precedence with the resolver. — This keeps Phase 58.1 narrowly focused on update-routing correctness instead of inventing unsupported hook or statusline parity behavior.
+- [Phase 58.1]: The user-facing update flow now always installs from `get-shit-done-reflect-cc@latest` and names the active runtime correctly on completion. — This closes the source-repo dogfooding leak and removes the stale "Restart Claude Code" wording from Codex updates.
+- [Phase 58.1]: A tiny `--latest-version` bridge extension to `get-shit-done/bin/update-target.cjs` was accepted as a blocking fix so the installed workflow could remain on the shared resolver instead of duplicating target-selection policy. — The deviation stayed narrow and was covered by the new integration fixtures.
+- [Phase 58.1]: Verifier status is `human_needed`, not blocked. — Automated evidence passed 5/5 truths; the remaining surface is live interactive Codex behavior against real npm/package resolution and a non-default `CODEX_CONFIG_DIR`, captured in `58.1-VERIFICATION.md`.
 
 ### Roadmap Evolution
 
@@ -298,6 +303,7 @@ Recent decisions affecting current work:
 - Phases 57.5/57.6/57.7 inserted after Phase 57.4 (2026-04-16): Measurement Architecture & Retroactive Foundation, Multi-Loop Coverage & Human Interface, and Content Analysis & Epistemic Deepening. Derived from `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` and the 2026-04-15 measurement signal inventory correction chain.
 - Phase 57.8 inserted after Phase 57 (2026-04-17): Signal Provenance Split & Artifact Signature Blocks (URGENT). Narrow-slice telemetry→signal integration addressing audit `.planning/audits/2026-04-16-signal-provenance-audit/` Findings 1, 2, 4 & Recommendations 1-2 & 5: role-split signal provenance (about_work/detected_by/written_by), first-class signature blocks on PLAN/SUMMARY/VERIFICATION via `resolveModelInternal`, and version precedence fix. Epistemic prerequisite for Phase 58 — GATE-09's scope-translation ledger cannot attribute gate effectiveness without role-aware artifact provenance. Wider sensor-pipeline integration (reflection stratification, intervention-outcome loop extension, E2E real-agent tests) parked for later insertion after Phase 60.
 - Phase 60.1 inserted after Phase 60 (2026-04-17): Telemetry-Signal Integration & E2E Chain Tests (URGENT). Wider companion to 57.8's narrow provenance fix — sensors consume `buildSessionIdentityValue` from measurement/extractors/runtime.cjs, reflection stratifies by model/profile/reasoning_effort via `measurement/stratify.cjs`, intervention-outcome loop extended to signal lifecycle transitions, and the `tests/e2e/real-agent.test.js` todos are replaced with working discuss→plan→execute→verify→collect-signals chain tests. Depends on Phase 60 (sensor pipeline must exist before sensors can be rewired). Addresses audit `.planning/audits/2026-04-16-signal-provenance-audit/` Finding 3 (partial/asymmetric work-artifact signatures) and Recommendation 3 (treat telemetry as source).
+- Phase 58.1 inserted after Phase 58 (2026-04-20): Codex Update Distribution Parity (URGENT). Narrow runtime-parity fix for Codex update behavior: repo-local `.codex` mirrors must not mask stale `~/.codex` installs; scope includes installed-vs-mirror detection, runtime/scope targeting, update/cache parity, and regression coverage.
 
 ### Pending Todos
 
@@ -359,6 +365,8 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P17 | 10min | 2 tasks | 6 files |
 | Phase 58 P18 | 5min | 1 tasks | 4 files |
 | Phase 58-structural-enforcement-gates P20 | 10min | 2 tasks | 3 files |
+| Phase 58.1 P01 | 8min | 2 tasks | 4 files |
+| Phase 58.1 P02 | 15min | 2 tasks | 5 files |
 
 ### Key Artifacts
 
@@ -377,19 +385,17 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T19:10:19.079Z
-Stopped at: Completed 58-20-PLAN.md (Phase 58 LEDGER.md + ROADMAP update; 70 ledger entries; GATE-09d verifier passes; AT-5 closed; Phase 58 complete)
-Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
+Last session: 2026-04-20T22:24:18Z
+Stopped at: Verified 58.1 (live Codex checks pending)
+Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
-This session (2026-04-16):
+This session (2026-04-20):
 
-- Resumed from the pre-57.5 handoff rather than a `.continue-here` checkpoint because governance (A1-A5) had already shipped and the next critical-path step was explicitly `/gsdr:discuss-phase 57.5`
-- Read the authority chain named in the handoff: the measurement deliberation, correction-and-extensions, anomaly stress tests, E5.8 results, spike 009 DECISION, spike 010 DECISION, and spike 010 qualitative comparison
-- Created `.planning/phases/57.5-measurement-architecture-retroactive-foundation/57.5-CONTEXT.md` and `57.5-DISCUSSION-LOG.md` in exploratory/auto mode
-- Updated STATE.md so resume/status no longer points at Phase 58 while the roadmap and handoff require 57.5 planning first
-- Planned Phase 57.5 into four execution plans, tightened them against checker findings, and set the phase to `ready_to_execute`
-- Executed 57.5-01 on branch `gsd/phase-57.5-measurement-architecture-retroactive-foundation`, landing the measurement CLI/store/query substrate, test lock, and cache-artifact ignore rules
-- Executed 57.5-02 and 57.5-03 in parallel, landing the Claude runtime/derived extractor families plus the GSDR freshness/signal-yield path
-- Verified Wave 2 with targeted unit/integration runs and reconstructed the missing 57.5-02 summary after its executor stalled post-commit
-- Executed 57.5-04, adding the Codex metadata proof, shared mixed-runtime query semantics, telemetry compatibility, and retroactive corpus validation
-- Closed an initial verification gap by unifying rebuild/query/store on one 17-extractor registry path, declaring the six-loop catalog in code, and passing re-verification at 6/6 must-haves
+- Reverted the earlier ad hoc Codex update edits so the work could be rerun through the repo's actual GSD workflow.
+- Inserted decimal Phase `58.1` after Phase 58, wrote discuss artifacts, passed context-checker, ran research, and planned two execution waves with planner/checker validation.
+- Executed `58.1-01` on branch `gsd/phase-58.1-codex-update-distribution-parity`, landing the shared Codex update-target resolver (`b70e66a5`) and the installer/test follow-up (`e38a67e0`).
+- Verified `58.1-01` locally with `npx vitest run tests/unit/install.test.js`, live resolver JSON from the repo root, and a custom both-scopes-stale fixture.
+- Created `58.1-01-SUMMARY.md` manually after the executor hung post-commit, keeping the landed code intact and setting the next resume point to `58.1-02-PLAN.md`.
+- Closed the non-responsive wave-2 executor, rewired the update command/workflow locally, and committed the runtime-aware/published-package flow in `38fa33ac` plus the Codex parity integration regressions in `a7904470`.
+- Verified `58.1-02` locally with `npx vitest run tests/integration/multi-runtime.test.js` and a fresh `npx vitest run tests/unit/install.test.js` regression pass.
+- Ran the phase verifier and produced `58.1-VERIFICATION.md`; automated verification passed, and the only remaining checks are two live Codex update runs (default and non-default `CODEX_CONFIG_DIR`).
