@@ -4,6 +4,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { spawnSync } = require('child_process');
 const { escapeRegex, loadConfig, normalizePhaseName, comparePhaseNum, findPhaseInternal, getArchivedPhaseDirs, generateSlugInternal, getMilestonePhaseFilter, stripShippedMilestones, extractCurrentMilestone, replaceInCurrentMilestone, toPosixPath, planningDir, withPlanningLock, output, error, readSubdirectories, phaseTokenMatches, atomicWriteFileSync } = require('./core.cjs');
 const { extractFrontmatter } = require('./frontmatter.cjs');
 const { writeStateMd, readModifyWriteStateMd, stateExtractField, stateReplaceField, stateReplaceFieldWithFallback, updatePerformanceMetricsSection } = require('./state.cjs');
@@ -931,6 +932,182 @@ function cmdPhaseComplete(cwd, phaseNum, raw) {
   output(result, raw);
 }
 
+// ─── GATE-01: require-ci-green ────────────────────────────────────────────────
+//
+// `gsd-tools phase advance --require-ci-green` polls `gh pr checks --required`
+// on the current branch's PR and exit-codes based on CI status. This is the
+// structural enforcement point that the execute-phase.md `offer_next` step
+// invokes instead of an advisory `[y/n]`.
+//
+// Exit codes:
+//   0  — all required checks passed; emit fire-event marker on stdout
+//   1  — one or more required checks failed
+//   2  — no PR exists for current branch (cannot evaluate gate)
+//   3  — `--auto` single-poll found checks still pending (caller retries)
+//   4  — gh CLI missing or unauthenticated (environmental pre-req unmet)
+
+function shellOut(cmd, args, options = {}) {
+  const result = spawnSync(cmd, args, {
+    stdio: 'pipe',
+    encoding: 'utf-8',
+    ...options,
+  });
+  return {
+    stdout: (result.stdout || '').trim(),
+    stderr: (result.stderr || '').trim(),
+    exitCode: result.status == null ? -1 : result.status,
+    signal: result.signal || null,
+    spawnError: result.error || null,
+  };
+}
+
+function currentBranchName(cwd) {
+  const r = shellOut('git', ['rev-parse', '--abbrev-ref', 'HEAD'], { cwd });
+  if (r.exitCode !== 0) return null;
+  return r.stdout || null;
+}
+
+function requireCiGreen(cwd, options = {}, raw = false) {
+  const {
+    dryRun = false,
+    auto = false,
+    timeoutSeconds = 1800,
+  } = options;
+
+  // Short-circuit: dry-run exits 0 with a stable message so the flag can be
+  // wired into workflow docs and CI smoke tests without needing a live PR.
+  if (dryRun) {
+    output(
+      { gate: 'GATE-01', result: 'dry-run', message: 'requireCiGreen invoked in --dry-run mode; no checks polled.' },
+      raw,
+      'GATE-01 dry-run: requireCiGreen wired; exit=0'
+    );
+    return;
+  }
+
+  // Environmental pre-req: gh CLI must be present and authenticated.
+  const ghVersion = shellOut('gh', ['--version']);
+  if (ghVersion.spawnError || ghVersion.exitCode !== 0) {
+    const msg = 'GATE-01: gh CLI not found or not authenticated. Install gh and run `gh auth login`.';
+    output(
+      { gate: 'GATE-01', result: 'error', reason: 'gh_cli_unavailable', message: msg },
+      raw,
+      msg
+    );
+    process.exit(4);
+  }
+
+  // Resolve current branch
+  const branch = currentBranchName(cwd);
+  if (!branch || branch === 'HEAD') {
+    const msg = 'GATE-01: Could not resolve current branch (detached HEAD or not a git repo).';
+    output(
+      { gate: 'GATE-01', result: 'error', reason: 'no_branch', message: msg },
+      raw,
+      msg
+    );
+    process.exit(2);
+  }
+
+  // Find open PR for branch via `gh pr view`
+  const prView = shellOut('gh', ['pr', 'view', '--json', 'number,state,statusCheckRollup,headRefName'], { cwd });
+  if (prView.exitCode !== 0) {
+    const msg = `GATE-01: No PR exists for current branch '${branch}'; create one via \`gh pr create\` before advancing.`;
+    output(
+      { gate: 'GATE-01', result: 'error', reason: 'no_pr', branch, message: msg },
+      raw,
+      msg
+    );
+    process.exit(2);
+  }
+
+  let prInfo;
+  try {
+    prInfo = JSON.parse(prView.stdout);
+  } catch {
+    const msg = 'GATE-01: Failed to parse `gh pr view` output as JSON.';
+    output(
+      { gate: 'GATE-01', result: 'error', reason: 'gh_output_parse_error', branch, message: msg },
+      raw,
+      msg
+    );
+    process.exit(4);
+  }
+
+  const prNumber = prInfo.number;
+
+  // Poll `gh pr checks --required`. In --auto mode: single poll.
+  // Default: `--watch` with a timeout guard.
+  const checksArgs = ['pr', 'checks', String(prNumber), '--required'];
+  if (!auto) {
+    checksArgs.push('--watch');
+  }
+
+  const checks = shellOut('gh', checksArgs, {
+    cwd,
+    timeout: timeoutSeconds * 1000,
+  });
+
+  if (checks.signal === 'SIGTERM' || checks.stderr.includes('timed out')) {
+    const msg = `GATE-01: \`gh pr checks --watch\` timed out after ${timeoutSeconds}s.`;
+    output(
+      { gate: 'GATE-01', result: 'error', reason: 'timeout', pr: prNumber, branch, message: msg },
+      raw,
+      msg
+    );
+    process.exit(1);
+  }
+
+  // `gh pr checks` exit-codes: 0 = all required pass; 8 = pending; non-zero = failed.
+  // In auto mode, pending (exit 8) means "retry later" per plan spec → exit 3.
+  if (auto && checks.exitCode === 8) {
+    const msg = `GATE-01: Required checks still pending for PR #${prNumber}; re-run after checks complete.`;
+    output(
+      { gate: 'GATE-01', result: 'pending', pr: prNumber, branch, message: msg },
+      raw,
+      msg
+    );
+    process.exit(3);
+  }
+
+  if (checks.exitCode !== 0) {
+    const msg = `GATE-01: Required checks failed for PR #${prNumber} on branch '${branch}'.`;
+    output(
+      {
+        gate: 'GATE-01',
+        result: 'block',
+        pr: prNumber,
+        branch,
+        exit_code: checks.exitCode,
+        checks_output: checks.stdout,
+        message: msg,
+      },
+      raw,
+      `${msg}\n${checks.stdout}`
+    );
+    process.exit(1);
+  }
+
+  // Pass path
+  output(
+    { gate: 'GATE-01', result: 'pass', pr: prNumber, branch },
+    raw,
+    `GATE-01 pass: PR #${prNumber} on branch '${branch}' — required checks green.`
+  );
+}
+
+function cmdPhaseAdvance(cwd, args, raw) {
+  const requireCi = args.includes('--require-ci-green');
+  const dryRun = args.includes('--dry-run');
+  const auto = args.includes('--auto');
+
+  if (!requireCi) {
+    error('Usage: gsd-tools phase advance --require-ci-green [--dry-run] [--auto]');
+  }
+
+  requireCiGreen(cwd, { dryRun, auto }, raw);
+}
+
 module.exports = {
   cmdPhasesList,
   cmdPhaseNextDecimal,
@@ -940,4 +1117,6 @@ module.exports = {
   cmdPhaseInsert,
   cmdPhaseRemove,
   cmdPhaseComplete,
+  cmdPhaseAdvance,
+  requireCiGreen,
 };

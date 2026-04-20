@@ -784,16 +784,30 @@ If on a non-main branch:
    gh pr create --base main --head $CURRENT_BRANCH --title "Phase ${PHASE_NUMBER}: ${PHASE_NAME}" --fill
    ```
 
-3. **If PR created, offer to merge:**
+3. **GATE-01 (structural): Block advancement until required CI checks are green.**
+
+   After the PR exists, invoke the exit-coded CI-gate subcommand. This is the
+   structural enforcement point for GATE-01 — the advisory `[y/n]` below is the
+   human-interaction layer that runs only AFTER this exit-coded check passes.
+
+   ```bash
+   # Phase 58 Plan 06: structural GATE-01 enforcement
+   if ! node ~/.claude/get-shit-done/bin/gsd-tools.cjs phase advance --require-ci-green; then
+     echo "GATE-01 blocks advancement. Fix CI, then re-run this step."
+     exit 1
+   fi
    ```
-   PR created. Merge now? [y/n]
+
+4. **If CI green, offer to merge:**
+   ```
+   PR created and CI green. Merge now? [y/n]
    ```
    If yes, merge with `--merge` (preserves individual commit history, never `--squash`):
    ```bash
    gh pr merge $CURRENT_BRANCH --merge
    ```
 
-4. **If PR merged, run post-merge cleanup:**
+5. **If PR merged, run post-merge cleanup:**
    ```bash
    git checkout main && git pull origin main
    git branch -d $CURRENT_BRANCH

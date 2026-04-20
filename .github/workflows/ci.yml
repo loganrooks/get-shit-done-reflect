@@ -82,3 +82,19 @@ jobs:
       - name: Run tests with coverage
         if: github.event_name == 'pull_request'
         run: npm run test:coverage
+
+      - name: GATE-01 emission marker
+        if: always()
+        run: |
+          # GATE-01: CI status gate for phase advancement.
+          # This step is the workflow-level fire-event emitter for Phase 58 Plan 19's
+          # `gate_fire_events` extractor. It must run last so `job.status` reflects the
+          # outcome of all preceding test + install-verify steps.
+          PHASE_REF="${{ github.base_ref || github.ref_name }}"
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "::notice title=GATE-01::gate_fired=GATE-01 result=pass phase=${PHASE_REF}"
+          else
+            echo "::notice title=GATE-01::gate_fired=GATE-01 result=block phase=${PHASE_REF}"
+            echo "::error::GATE-01 blocks phase advancement — one or more required checks failed"
+            exit 1
+          fi

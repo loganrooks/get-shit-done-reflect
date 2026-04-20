@@ -369,8 +369,11 @@ async function main() {
         phase.cmdPhaseRemove(cwd, args[2], { force: forceFlag }, raw);
       } else if (subcommand === 'complete') {
         phase.cmdPhaseComplete(cwd, args[2], raw);
+      } else if (subcommand === 'advance') {
+        // Phase 58 Plan 06 (GATE-01): structural CI-green gate for phase advancement.
+        phase.cmdPhaseAdvance(cwd, args.slice(2), raw);
       } else {
-        error('Unknown phase subcommand. Available: next-decimal, add, insert, remove, complete');
+        error('Unknown phase subcommand. Available: next-decimal, add, insert, remove, complete, advance');
       }
       break;
     }
