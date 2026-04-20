@@ -2,7 +2,7 @@
 phase: 58-structural-enforcement-gates
 plan: 12a
 type: execute
-wave: 5
+wave: 6
 depends_on: ['02', '05', '07', '11', '12']
 files_modified:
   - get-shit-done/workflows/map-codebase.md
