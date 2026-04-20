@@ -1017,6 +1017,413 @@ function cmdVerifySchemaDrift(cwd, phaseArg, skipFlag, raw) {
   }, raw);
 }
 
+// ─── GATE-09d verifier (Phase 58 Plan 17) ────────────────────────────────────
+//
+// `verifyLedger({ phase, strict, includeMetaGate })` performs three structural
+// checks over a phase's NN-LEDGER.md and the phase CONTEXT.md:
+//
+//   1. Claim-coverage (GATE-09d core): every load-bearing CONTEXT claim has
+//      at least one matching ledger entry (fuzzy substring match on
+//      entry.context_claim). Missing coverage → block.
+//
+//   2. Evidence-paths (GATE-09d core): every ledger entry with
+//      disposition=implemented_this_phase has a non-empty evidence_paths[]
+//      array AND every listed path exists on disk. Missing paths → block.
+//
+//   3. Meta-gate emission (GATE-09e embedded): every GATE introduced in the
+//      phase (read from CONTEXT.md `<domain>` Requirements-in-scope line and
+//      REQUIREMENTS.md traceability table) has at least one fire-event
+//      observed by the `gate_fire_events` extractor (registered in Plan 19).
+//      Unwired gates → block. If the extractor is not yet registered
+//      (Plan 19 has not landed), emit a warning and skip this check to
+//      avoid deadlock between Plan 17 and Plan 19 execution.
+//
+// Authoritative sources of truth:
+//   - Ledger schema: .planning/phases/58-structural-enforcement-gates/58-04-ledger-schema.md
+//   - Load-bearing classification: §4 of the above spec (disjunctive rule).
+//   - Phase-introduced gates: REQUIREMENTS.md traceability table rows with
+//     "Phase NN" AND CONTEXT.md <domain> "Requirements in scope" enumeration.
+//
+// Fire-event contract:
+//   - Pass: `::notice title=GATE-09d::gate_fired=GATE-09d result=pass missing_claims=0 unwired_gates=0`
+//   - Block: `::notice title=GATE-09d::gate_fired=GATE-09d result=block missing_claims=N unwired_gates=M`
+//   - Plan 19 `gate_fire_events` extractor parses these markers from the
+//     measurement trace.
+
+// Parse load-bearing claims from a phase CONTEXT.md per ledger-schema §4.
+// Returns { all: [...], loadBearing: [...] } where each item is
+// { text, type, verification, line }. Classification is disjunctive:
+//   (1) type is decided / stipulated / governing
+//   (2) type is evidenced AND appears in <constraints> block
+//   (3) tag "load-bearing" present on line (author opt-in)
+//   (4) type is assumed AND cited as "Depends On" in dependency table
+//   (5) type is projected AND cross-references another phase
+function parseContextClaims(contextContent) {
+  const all = [];
+  if (!contextContent) return { all, loadBearing: [] };
+
+  // Regex mirrors references/claim-types.md §3:
+  //   \[(type)(/type)?(:verification)?\]
+  const CLAIM_RE = /\[(evidenced|decided|assumed|open|projected|stipulated|governing)(?:\/(evidenced|decided|assumed|open|projected|stipulated|governing))?(?::(cited|reasoned|bare))?\]/g;
+
+  // Sectionize by top-level XML-ish tags (<domain>, <working_model>, <constraints>, etc.).
+  // We identify "in constraints" by finding the line-range of the <constraints>...</constraints> block.
+  const lines = contextContent.split('\n');
+  const sectionRanges = {}; // name → { start, end }
+  let currentSection = null;
+  for (let i = 0; i < lines.length; i++) {
+    const openMatch = lines[i].match(/^<([a-z_]+)>\s*$/);
+    const closeMatch = lines[i].match(/^<\/([a-z_]+)>\s*$/);
+    if (openMatch) {
+      currentSection = openMatch[1];
+      sectionRanges[currentSection] = { start: i, end: lines.length - 1 };
+    } else if (closeMatch && sectionRanges[closeMatch[1]]) {
+      sectionRanges[closeMatch[1]].end = i;
+      currentSection = null;
+    }
+  }
+  const inSection = (lineNum, sectionName) => {
+    const r = sectionRanges[sectionName];
+    return r && lineNum >= r.start && lineNum <= r.end;
+  };
+
+  // Build dependency-table "Depends On" set (clause 4). The table lives under
+  // <dependencies> and has markdown rows `| Claim | Depends On | Vulnerability |`.
+  // We collect the middle column text so assumed-claim bodies referenced there
+  // can be promoted to load-bearing.
+  const dependsOnTexts = [];
+  if (sectionRanges.dependencies) {
+    const r = sectionRanges.dependencies;
+    for (let i = r.start; i <= r.end; i++) {
+      const row = lines[i].match(/^\|\s*[^|]+\s*\|\s*([^|]+)\s*\|[^|]*\|\s*$/);
+      if (row && !/^[-: ]+$/.test(row[1])) {
+        dependsOnTexts.push(row[1].trim());
+      }
+    }
+  }
+
+  // Walk lines, extract claims, classify.
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    let m;
+    CLAIM_RE.lastIndex = 0;
+    while ((m = CLAIM_RE.exec(line)) !== null) {
+      const [, primary, secondary, verification] = m;
+      const types = secondary ? [primary, secondary] : [primary];
+      const hasLoadBearingTag = /\bload-bearing\b/.test(line);
+      const referencesPhase = /Phase\s+\d+(\.\d+)?/i.test(line);
+      const isInConstraints = inSection(i, 'constraints');
+      const isInDependenciesDependsOnCell = dependsOnTexts.some(txt => {
+        // Very rough: if dependency "Depends On" text appears in or near this claim line
+        return txt.length > 8 && line.includes(txt.slice(0, Math.min(40, txt.length)));
+      });
+
+      let loadBearing = false;
+      if (types.some(t => t === 'decided' || t === 'stipulated' || t === 'governing')) {
+        loadBearing = true; // clause 1
+      }
+      if (types.includes('evidenced') && isInConstraints) {
+        loadBearing = true; // clause 2
+      }
+      if (hasLoadBearingTag) {
+        loadBearing = true; // clause 3
+      }
+      if (types.includes('assumed') && isInDependenciesDependsOnCell) {
+        loadBearing = true; // clause 4
+      }
+      if (types.includes('projected') && referencesPhase) {
+        loadBearing = true; // clause 5
+      }
+
+      all.push({
+        text: line.trim(),
+        type: primary,
+        secondary_type: secondary || null,
+        verification: verification || 'bare',
+        line: i + 1,
+        load_bearing: loadBearing,
+      });
+    }
+  }
+
+  const loadBearing = all.filter(c => c.load_bearing);
+  return { all, loadBearing };
+}
+
+// Extract phase-introduced GATE identifiers from REQUIREMENTS.md traceability
+// table + CONTEXT.md <domain> "Requirements in scope" enumeration (richer —
+// includes sub-letter gates like GATE-04a/b/c).
+function extractPhaseGates(cwd, phase, contextContent) {
+  const gates = new Set();
+
+  // Source 1: CONTEXT.md <domain> "Requirements in scope" line (authoritative
+  // for sub-letter gates).
+  if (contextContent) {
+    const scopeMatch = contextContent.match(/\*\*Requirements in scope:\*\*\s*([^\n]+)/);
+    if (scopeMatch) {
+      const reqs = scopeMatch[1].split(/[,\s]+/);
+      for (const r of reqs) {
+        const g = r.trim().replace(/[.,;]$/, '');
+        if (/^GATE-\d+[a-z]?$/.test(g)) gates.add(g);
+      }
+    }
+  }
+
+  // Source 2: REQUIREMENTS.md traceability table (fallback / additional rows).
+  // Matches `| GATE-NN | Phase NN[.N] | Status |` or `| GATE-NNa | ... |`.
+  const reqPath = path.join(planningDir(cwd), 'REQUIREMENTS.md');
+  if (fs.existsSync(reqPath)) {
+    const reqContent = fs.readFileSync(reqPath, 'utf-8');
+    const phaseNormalized = String(phase).replace(/^0+/, '');
+    const rowRe = new RegExp(
+      '^\\|\\s*(GATE-\\d+[a-z]?)\\s*\\|\\s*Phase\\s+0*' + escapeRegex(phaseNormalized) + '(?:\\s|\\|)',
+      'm'
+    );
+    const reqLines = reqContent.split('\n');
+    for (const line of reqLines) {
+      const m = line.match(rowRe);
+      if (m) gates.add(m[1]);
+    }
+  }
+
+  return [...gates].sort();
+}
+
+// Discover the phase's NN-LEDGER.md file (if any) and the phase directory.
+function findPhaseLedger(cwd, phase) {
+  const info = findPhaseInternal(cwd, phase);
+  if (!info || !info.found) return { phaseDir: null, ledgerPath: null, contextPath: null };
+  const phaseDir = path.join(cwd, info.directory);
+  let files;
+  try { files = fs.readdirSync(phaseDir); }
+  catch { return { phaseDir, ledgerPath: null, contextPath: null }; }
+  // Ledger discovery regex narrowed per Plan 04 SUMMARY: NN-LEDGER.md or NN.N[a]-LEDGER.md.
+  const ledgerFile = files.find(f => /^\d+(\.\d+[a-z]?)?-LEDGER\.md$/.test(f));
+  const contextFile = files.find(f => /-CONTEXT\.md$/.test(f));
+  return {
+    phaseDir,
+    ledgerPath: ledgerFile ? path.join(phaseDir, ledgerFile) : null,
+    contextPath: contextFile ? path.join(phaseDir, contextFile) : null,
+  };
+}
+
+// Query the gate_fire_events extractor for per-gate emission counts.
+// Returns null if the extractor is not yet registered (Plan 19 not run).
+function queryGateFireEvents(cwd, phase) {
+  try {
+    const { buildRegistry } = require('./measurement/registry.cjs');
+    const registry = buildRegistry();
+    // The extractor is registered by Plan 19 under one of the SOURCE_FAMILIES
+    // with name 'gate_fire_events'. Check all families.
+    const extractor = registry.byName.get('gate_fire_events');
+    if (!extractor) return null;
+    // Build a minimal context for extraction. The extractor reads from the
+    // delegation-log.jsonl and/or .github/workflows/*.yml CI notice markers
+    // (per Plan 19 design); it should accept {cwd, phase} and return rows.
+    const context = { cwd, phase };
+    const rows = extractor.extract(context) || [];
+    // Group by gate_id: { "GATE-09b": count, ... }. Plan 19 emits per-row value
+    // as { gate_fire_count, gate_fire_by_gate_id: [{gate_id, count}, ...], ... }
+    // with one row per runtime — sum across runtimes so downstream callers see
+    // phase-aggregate counts regardless of runtime split.
+    const counts = {};
+    for (const row of rows) {
+      if (!row || !row.value) continue;
+      const byGate = row.value.gate_fire_by_gate_id;
+      if (Array.isArray(byGate)) {
+        for (const entry of byGate) {
+          if (entry && entry.gate_id && typeof entry.count === 'number') {
+            counts[entry.gate_id] = (counts[entry.gate_id] || 0) + entry.count;
+          }
+        }
+      } else if (byGate && typeof byGate === 'object') {
+        // Alternative shape: { GATE-01: 3, GATE-05: 12, ... } — support for
+        // future simplifications of the extractor without breaking the verifier.
+        for (const [gid, n] of Object.entries(byGate)) {
+          counts[gid] = (counts[gid] || 0) + (Number(n) || 0);
+        }
+      }
+    }
+    return counts;
+  } catch {
+    return null; // treat any registry-load error as "extractor not registered"
+  }
+}
+
+function cmdVerifyLedger(cwd, phase, options, raw) {
+  if (!phase) { error('phase required. Usage: gsd-tools verify ledger <phase_number> [--strict] [--no-meta-gate]'); }
+  const strict = options && options.strict !== false; // default true
+  const includeMetaGate = !(options && options.noMetaGate);
+
+  const missing_claims = [];
+  const unwired_gates = [];
+  const warnings = [];
+  const info = {};
+
+  // Locate phase artifacts
+  const { phaseDir, ledgerPath, contextPath } = findPhaseLedger(cwd, phase);
+  if (!phaseDir) {
+    const result = {
+      status: 'block',
+      phase,
+      missing_claims: ['phase_directory_not_found'],
+      unwired_gates: [],
+      warnings: [],
+    };
+    console.log(`::notice title=GATE-09d::gate_fired=GATE-09d result=block missing_claims=1 unwired_gates=0`);
+    output(result, raw, 'block');
+    return;
+  }
+  info.phase_dir = path.relative(cwd, phaseDir);
+
+  // Check 1: Ledger file present
+  if (!ledgerPath || !fs.existsSync(ledgerPath)) {
+    missing_claims.push('ledger_not_present');
+  }
+  info.ledger_path = ledgerPath ? path.relative(cwd, ledgerPath) : null;
+
+  // Load CONTEXT and parse load-bearing claims
+  let contextContent = null;
+  if (contextPath && fs.existsSync(contextPath)) {
+    contextContent = fs.readFileSync(contextPath, 'utf-8');
+  } else {
+    warnings.push('context_md_not_present');
+  }
+  info.context_path = contextPath ? path.relative(cwd, contextPath) : null;
+  const { all: allClaims, loadBearing } = parseContextClaims(contextContent);
+  info.context_claim_count = allClaims.length;
+  info.load_bearing_claim_count = loadBearing.length;
+
+  // Parse ledger entries (if ledger present)
+  let ledgerEntries = [];
+  if (ledgerPath && fs.existsSync(ledgerPath)) {
+    const ledgerContent = fs.readFileSync(ledgerPath, 'utf-8');
+
+    // Structural frontmatter validation via frontmatter.cjs (delegated to the
+    // existing --schema ledger surface from Plan 04).
+    try {
+      const fm = extractFrontmatter(ledgerContent);
+      ledgerEntries = Array.isArray(fm.entries) ? fm.entries : [];
+      // Quick sanity: ledger_schema must be v1
+      if (fm.ledger_schema && String(fm.ledger_schema) !== 'v1') {
+        warnings.push(`ledger_schema_version_unexpected: got ${fm.ledger_schema}`);
+      }
+    } catch (err) {
+      warnings.push(`ledger_parse_error: ${err.message}`);
+    }
+  }
+  info.ledger_entry_count = ledgerEntries.length;
+
+  // Check 2 (claim-coverage): every load-bearing CONTEXT claim has at least
+  // one matching ledger entry (fuzzy substring or claim-ID match).
+  const coveredClaims = new Set();
+  const uncoveredClaims = [];
+  for (const claim of loadBearing) {
+    // Extract a search key: first 80 chars of the claim text minus type markers.
+    const key = claim.text
+      .replace(/\[[a-z/:]+\]/gi, '')
+      .replace(/^[-*]\s*/, '')
+      .replace(/\*\*[^*]+\*\*:?\s*/, '')
+      .trim()
+      .slice(0, 80);
+    if (!key) continue;
+    const keyLower = key.toLowerCase();
+    const matched = ledgerEntries.some(e => {
+      const cc = String(e.context_claim || '').toLowerCase();
+      // Substring match either direction (allows claim-ID-style abbreviations)
+      return cc.length > 0 && (cc.includes(keyLower.slice(0, 30)) || keyLower.includes(cc.slice(0, 30)));
+    });
+    if (matched) {
+      coveredClaims.add(key);
+    } else {
+      uncoveredClaims.push({ line: claim.line, type: claim.type, excerpt: key });
+    }
+  }
+  if (uncoveredClaims.length > 0) {
+    for (const u of uncoveredClaims) {
+      missing_claims.push(`uncovered_claim:L${u.line}:${u.type}:${u.excerpt.slice(0, 50)}`);
+    }
+  }
+  info.load_bearing_claim_covered = coveredClaims.size;
+
+  // Check 3 (evidence-paths): every ledger entry with
+  // disposition=implemented_this_phase has non-empty evidence_paths and
+  // every listed path exists on disk.
+  const brokenEvidence = [];
+  for (let i = 0; i < ledgerEntries.length; i++) {
+    const e = ledgerEntries[i];
+    if (!e || e.disposition !== 'implemented_this_phase') continue;
+    const ev = Array.isArray(e.evidence_paths) ? e.evidence_paths : [];
+    if (ev.length === 0) {
+      brokenEvidence.push({ entry: i, issue: 'evidence_paths_empty' });
+      continue;
+    }
+    for (const p of ev) {
+      const resolved = path.isAbsolute(p) ? p : path.join(cwd, p);
+      if (!fs.existsSync(resolved)) {
+        brokenEvidence.push({ entry: i, issue: 'evidence_path_missing', path: p });
+      }
+    }
+  }
+  if (brokenEvidence.length > 0) {
+    for (const b of brokenEvidence) {
+      missing_claims.push(`broken_evidence:entry${b.entry}:${b.issue}${b.path ? ':' + b.path : ''}`);
+    }
+  }
+  info.broken_evidence_count = brokenEvidence.length;
+
+  // Check 4 (meta-gate, GATE-09e embedded): every phase-introduced gate has
+  // at least one fire-event on the trace.
+  if (includeMetaGate) {
+    const gatesIntroduced = extractPhaseGates(cwd, phase, contextContent);
+    info.gates_introduced_by_phase = gatesIntroduced;
+    const fireCounts = queryGateFireEvents(cwd, phase);
+    if (fireCounts === null) {
+      warnings.push('meta_gate_extractor_missing: gate_fire_events extractor not yet registered (Plan 19 may not have landed); skipping meta-gate check');
+      info.meta_gate_skipped = true;
+    } else {
+      info.meta_gate_skipped = false;
+      info.gate_fire_counts = fireCounts;
+      for (const g of gatesIntroduced) {
+        if (!fireCounts[g] || fireCounts[g] === 0) {
+          unwired_gates.push(g);
+        }
+      }
+    }
+  } else {
+    info.meta_gate_skipped = true;
+    info.meta_gate_reason = 'disabled_via_flag';
+  }
+
+  // Emission
+  const blockReasons = missing_claims.length + unwired_gates.length;
+  const status = blockReasons === 0 ? 'pass' : 'block';
+  const notice = `::notice title=GATE-09d::gate_fired=GATE-09d result=${status} missing_claims=${missing_claims.length} unwired_gates=${unwired_gates.length}`;
+  console.log(notice);
+
+  const result = {
+    status,
+    phase,
+    missing_claims,
+    unwired_gates,
+    warnings,
+    info,
+  };
+
+  // Exit behavior:
+  //   - `raw` (script) callers get JSON + exit 0 and branch on status.
+  //   - Non-raw callers get the human banner; in strict mode we exit 1 on
+  //     block for shell-check usability.
+  if (raw) {
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
+  output(result, raw, status);
+  if (status === 'block' && strict) {
+    process.exit(1);
+  }
+}
+
 module.exports = {
   cmdVerifySummary,
   cmdVerifyPlanStructure,
@@ -1029,4 +1436,9 @@ module.exports = {
   cmdValidateHealth,
   cmdValidateAgents,
   cmdVerifySchemaDrift,
+  cmdVerifyLedger,
+  // Internals exported for unit tests:
+  parseContextClaims,
+  extractPhaseGates,
+  findPhaseLedger,
 };

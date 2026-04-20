@@ -262,8 +262,34 @@ async function main() {
         verify.cmdVerifyArtifacts(cwd, args[2], raw);
       } else if (subcommand === 'key-links') {
         verify.cmdVerifyKeyLinks(cwd, args[2], raw);
+      } else if (subcommand === 'ledger') {
+        // GATE-09d verifier (Phase 58 Plan 17):
+        //   gsd-tools verify ledger <phase> [--strict] [--no-meta-gate]
+        //
+        // Three structural checks:
+        //   1. Claim-coverage: every load-bearing CONTEXT.md claim has a
+        //      matching NN-LEDGER.md entry (fuzzy substring match on
+        //      entry.context_claim). Authoritative classification rule:
+        //      58-04-ledger-schema.md §4 (disjunctive 5-clause).
+        //   2. Evidence-paths: every ledger entry with
+        //      disposition=implemented_this_phase has non-empty
+        //      evidence_paths[] AND every listed path exists on disk.
+        //   3. Meta-gate (GATE-09e embedded): every GATE introduced in
+        //      the phase (read from CONTEXT.md Requirements-in-scope +
+        //      REQUIREMENTS.md traceability table) has >=1 fire-event on
+        //      the gate_fire_events extractor (registered by Plan 19).
+        //      Warns + skips if extractor not yet registered (deadlock
+        //      guard between Plan 17 and Plan 19 execution).
+        //
+        // Fire-event: ::notice title=GATE-09d::gate_fired=GATE-09d
+        //             result=<pass|block> missing_claims=N unwired_gates=M
+        // Exit: 0 (raw mode or pass); 1 (block + strict + non-raw).
+        const phaseArg = args[2];
+        const strict = !args.includes('--no-strict');
+        const noMetaGate = args.includes('--no-meta-gate');
+        verify.cmdVerifyLedger(cwd, phaseArg, { strict, noMetaGate }, raw);
       } else {
-        error('Unknown verify subcommand. Available: plan-structure, phase-completeness, references, commits, artifacts, key-links');
+        error('Unknown verify subcommand. Available: plan-structure, phase-completeness, references, commits, artifacts, key-links, ledger');
       }
       break;
     }
