@@ -6,6 +6,21 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.19.6] - 2026-04-20
+
+### Added
+- Phase 57.8 signal provenance split across artifact signatures, KB storage, legacy-signal annotation, and regression coverage.
+- Cross-vendor audit artifacts for Phase 58 structural enforcement gaps and Phase 59 KB architecture gaps.
+
+### Changed
+- Manual `gsdr-signal` now writes split provenance fields and the repo-local Codex signal skill is regenerated from that source contract.
+- Roadmap and requirements now reflect the 2026-04-20 audit follow-ups: Phase 57.9 hook/closeout substrate inserted, Phase 58 structural gates expanded, and Phase 59 KB query/lifecycle surfacing tightened with explicit deferred KB-12..17 children.
+- `publish.yml` now supports manual release-tag recovery and uses a pinned npm 11 client for trusted publishing instead of self-upgrading the runner-global npm installation.
+
+### Fixed
+- Restored the missed `1.19.5` npm publish path by repairing the release workflow and recovering the published tag from `main`.
+- Manual signal logging no longer regresses new signals to the legacy flat provenance shape.
+
 ## [1.19.5] - 2026-04-17
 
 ### Added
