@@ -7,6 +7,7 @@ function parseArgs(argv) {
   const parsed = {
     cwd: process.cwd(),
     explicitConfigDir: null,
+    latestVersion: null,
     runtime: 'codex',
   };
 
@@ -55,6 +56,21 @@ function parseArgs(argv) {
 
     if (arg.startsWith('--runtime=')) {
       parsed.runtime = arg.slice('--runtime='.length);
+      continue;
+    }
+
+    if (arg === '--latest-version') {
+      const value = argv[index + 1];
+      if (!value || value.startsWith('--')) {
+        throw new Error('--latest-version requires a value');
+      }
+      parsed.latestVersion = value;
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith('--latest-version=')) {
+      parsed.latestVersion = arg.slice('--latest-version='.length);
     }
   }
 
@@ -71,6 +87,7 @@ function main() {
     const result = resolveCodexUpdateTarget({
       cwd: options.cwd,
       explicitConfigDir: options.explicitConfigDir,
+      latestVersion: options.latestVersion || undefined,
     });
 
     process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);

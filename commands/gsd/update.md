@@ -7,15 +7,15 @@ allowed-tools:
 ---
 
 <objective>
-Check for GSD updates, install if available, and display what changed.
+Check for GSD updates, install the latest published package if needed, and display what changed.
 
 Routes to the update workflow which handles:
-- Version detection (local vs global installation)
+- Runtime-aware version detection (Claude local/global or Codex resolver inventory)
 - npm version checking
 - Changelog fetching and display
 - User confirmation with clean install warning
-- Update execution and cache clearing
-- Restart reminder
+- Published-package update execution
+- Runtime-correct cache handling and restart reminder
 </objective>
 
 <execution_context>
@@ -26,12 +26,12 @@ Routes to the update workflow which handles:
 **Follow the update workflow** from `@~/.claude/get-shit-done/workflows/update.md`.
 
 The workflow handles all logic including:
-1. Installed version detection (local/global)
+1. Runtime-aware installed version detection
 2. Latest version checking via npm
 3. Version comparison
 4. Changelog fetching and extraction
-5. Clean install warning display
+5. Target selection and clean install warning display
 6. User confirmation
-7. Update execution
-8. Cache clearing
+7. Published-package update execution
+8. Runtime-specific cache and post-install handling
 </process>
