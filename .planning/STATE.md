@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: Phase 58 plans verified — 21 plans across 12 waves, plan-checker PASSED after iter 2. Ready to execute.
-stopped_at: Phase 58 plans ready
-last_updated: "2026-04-20T11:58:00.000Z"
-last_activity: "2026-04-20 - Phase 58 plan-checker passed on current iter-2 plans (21 plans / 12 waves); preflight cleaned (migration record + AGENTS.md spawn_agent rule + .claude/ knowledge-store sync committed)"
+status: "Phase 57.8 (Signal Provenance Role-Aware Backfill) merged 2026-04-20 via c8a15d95; Phase 58 plan-phase entered under AT-6 reconciliation. 21 plans across 12 waves, plan-checker PASSED after iter 2."
+stopped_at: "Phase 57.8 merged (commit c8a15d95, 2026-04-20); Phase 58 plan-phase in progress"
+last_updated: "2026-04-20T12:36:22.000Z"
+last_activity: "2026-04-20 - Phase 58 Plan 01 Task 0: reconciled STATE.md with Phase 57.8 merge (AT-6 entry condition); Phase 58 plan-phase in progress"
 progress:
   total_phases: 23
   completed_phases: 13
@@ -21,14 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 58 (Structural Enforcement Gates) is planned and ready to execute. Plan-checker PASSED after iter 2: 21 plans across 12 waves, shared-file contention fully serialized, all 25 requirements covered (GATE-01..15 + XRT-01), GATE-06/07 intentionally deferred via Plan 16 (AT-1 Option B). Prior phase 57.7 closed with an honest demo/regression wave (vision-drop diagnostic shipped as `unclassified`, GATE-09 surfaced as pending intervention).
+**Current focus:** v1.20 Phase 58 (Structural Enforcement Gates) plan-phase in progress; Phase 57.8 closed. Phase 57.8 (Signal Provenance Role-Aware Backfill) merged 2026-04-20 via commit c8a15d95. Plan-checker PASSED after iter 2: 21 plans across 12 waves, shared-file contention fully serialized, all 25 requirements covered (GATE-01..15 + XRT-01), GATE-06/07 intentionally deferred via Plan 16 (AT-1 Option B). Prior phase 57.7 closed with an honest demo/regression wave (vision-drop diagnostic shipped as `unclassified`, GATE-09 surfaced as pending intervention).
 
 ## Current Position
 
-Phase: 58 of 64 (Structural Enforcement Gates) — Ready to execute
-Plan: 0 of 21
+Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
+Plan: 1 of 21 (58-01 in progress)
 Status: 21 plans across 12 waves, plan-checker PASSED after iter 2 (shared-file contention serialized on gsd-tools.cjs + quick.md, wave graph integrity validated, all 25 requirements covered, all LOCKED CONTEXT decisions honored).
-Last activity: 2026-04-20 - Phase 58 plan-checker passed on current iter-2 plans; preflight cleaned (migration record + AGENTS.md spawn_agent rule + .claude/ knowledge-store sync committed); STATE.md advanced to "plans ready"
+
+### Recent Phases
+
+- Phase 57.8 (Signal Provenance Role-Aware Backfill) — merged 2026-04-20 via commit c8a15d95, 3 plans completed
+- Phase 57.7 (Content Analysis & Epistemic Deepening) — Complete; closed with honest demo/regression wave (vision-drop diagnostic shipped as `unclassified`, GATE-09 surfaced as pending intervention)
+
+Last activity: 2026-04-20 - Phase 58 Plan 01 Task 0: reconciled STATE.md with Phase 57.8 merge (AT-6 entry condition); Phase 58 plan-phase in progress
 
 Progress: [██████░░░░] 60%
 
@@ -271,9 +277,9 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T09:08:09.921Z
-Stopped at: Phase 58 context gathered
-Resume artifact: `.planning/audits/2026-04-15-measurement-signal-inventory/pre-57.5-handoff.md`
+Last session: 2026-04-20T12:36:22.000Z
+Stopped at: Phase 58 Plan 01 in progress (Task 0 reconciled STATE.md with Phase 57.8 merge c8a15d95 per AT-6)
+Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
 
