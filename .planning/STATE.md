@@ -4,7 +4,7 @@ milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
 stopped_at: Completed 58-05-PLAN.md (per-gate Codex behavior matrix / AT-3)
-last_updated: "2026-04-20T12:43:19.837Z"
+last_updated: "2026-04-20T12:43:30.039Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
