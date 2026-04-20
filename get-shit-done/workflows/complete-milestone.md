@@ -600,38 +600,21 @@ Options:
 3. **Keep branches** — Leave for manual handling
 ```
 
-AskUserQuestion with options: Squash merge (Recommended), Merge with history, Delete without merging, Keep branches.
+AskUserQuestion with options: Merge with history (Recommended), Delete without merging, Keep branches.
 
-**Squash merge:**
+> **Why merge-with-history is the default (Phase 58 Plan 01, 2026-04-20):**
+> Squash merges destroy individual commit history. Signal
+> `sig-2026-03-28-squash-merge-destroys-commit-history` (severity critical,
+> PR #24 regression) documents the concrete damage: 13 atomic commits collapsed
+> into one squash commit, requiring protected-branch force-push recovery. User
+> preference `feedback_no_squash_merge` reinforces this as a standing
+> methodological commitment. GATE-02 enforces this structurally — CI greps for
+> squash invocations and for `gh pr merge` without `--merge` and blocks
+> non-conforming invocations. See
+> `.planning/phases/58-structural-enforcement-gates/58-01-gate02-enumeration.md`
+> for the full merge-surface enumeration.
 
-```bash
-CURRENT_BRANCH=$(git branch --show-current)
-git checkout ${BASE_BRANCH}
-
-if [ "$BRANCHING_STRATEGY" = "phase" ]; then
-  for branch in $PHASE_BRANCHES; do
-    git merge --squash "$branch"
-    # Strip .planning/ from staging if commit_docs is false
-    if [ "$COMMIT_DOCS" = "false" ]; then
-      git reset HEAD .planning/ 2>/dev/null || true
-    fi
-    git commit -m "feat: $branch for v[X.Y]"
-  done
-fi
-
-if [ "$BRANCHING_STRATEGY" = "milestone" ]; then
-  git merge --squash "$MILESTONE_BRANCH"
-  # Strip .planning/ from staging if commit_docs is false
-  if [ "$COMMIT_DOCS" = "false" ]; then
-    git reset HEAD .planning/ 2>/dev/null || true
-  fi
-  git commit -m "feat: $MILESTONE_BRANCH for v[X.Y]"
-fi
-
-git checkout "$CURRENT_BRANCH"
-```
-
-**Merge with history:**
+**Merge with history (default and recommended):**
 
 ```bash
 CURRENT_BRANCH=$(git branch --show-current)
