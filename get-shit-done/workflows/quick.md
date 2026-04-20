@@ -160,7 +160,48 @@ Quick tasks can run mid-phase - validation only checks ROADMAP.md exists, not ph
 
 ---
 
-**Step 2.5: Handle quick-task branching**
+**Step 2.5: Handle quick-task branching (GATE-03 enforced)**
+
+**GATE-03 structural check — direct-to-main eligibility**
+
+Before any branching decision, classify already-staged files (if any) against
+the runtime-facing / planning-authority ruleset. This is the workflow-step
+fire-event for GATE-03 per Phase 58 Plan 08. Any runtime-facing or
+planning-authority classification blocks direct-to-main and forces branch+PR.
+
+```bash
+# GATE-03: classify staged files (no-op if nothing is staged yet)
+if git diff --cached --name-only > /tmp/gate03-files.txt && [ -s /tmp/gate03-files.txt ]; then
+  CLASSIFICATION_JSON=$(node "$HOME/.claude/get-shit-done-reflect/bin/gsd-tools.cjs" quick classify --files $(cat /tmp/gate03-files.txt) 2>&1)
+  CLASSIFICATION_EXIT=$?
+
+  if [ $CLASSIFICATION_EXIT -ne 0 ]; then
+    CLASS=$(echo "$CLASSIFICATION_JSON" | jq -r .classification 2>/dev/null || echo unknown)
+    echo "::notice title=GATE-03::gate_fired=GATE-03 result=block classification=$CLASS"
+    echo "GATE-03 blocks direct-to-main: staged files include runtime-facing or planning-authority paths."
+    echo "$CLASSIFICATION_JSON" | jq . 2>/dev/null || echo "$CLASSIFICATION_JSON"
+    echo ""
+    echo "Required: create a branch and PR for these changes. Run:"
+    echo "  git checkout -b gsd/quick-$(date +%y%m%d-%N | tail -c 6)"
+    echo "  git add <files>"
+    echo "  git commit"
+    echo "  gh pr create --repo loganrooks/get-shit-done-reflect"
+    exit 1
+  fi
+
+  echo "::notice title=GATE-03::gate_fired=GATE-03 result=pass classification=pure-docs"
+fi
+```
+
+The gate MUST be exit-coded (not an advisory prompt). Per-gate Codex
+behavior for GATE-03 is `applies-via-workflow-step` on both runtimes per
+`58-05-codex-behavior-matrix.md`.
+
+Signal resolution: `sig-2026-04-17-gsdr-quick-bypassed-then-backfilled`
+is addressed because bypassing this block (e.g. manually editing main)
+is still caught by the post-commit CI backstop on `push` to main.
+
+---
 
 **If `branch_name` is empty/null:** Skip and continue on the current branch.
 

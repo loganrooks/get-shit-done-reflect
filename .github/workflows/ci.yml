@@ -160,3 +160,61 @@ jobs:
             echo "::error::GATE-01 blocks phase advancement — one or more required checks failed"
             exit 1
           fi
+
+  post_commit_gate_03:
+    # Phase 58 Plan 08 — GATE-03 post-commit backstop.
+    # Catches admin-bypass case: if `quick.md`'s workflow-step gate was skipped
+    # and a runtime-facing / planning-authority commit landed directly on main,
+    # this job classifies the commit's diff via `gsd-tools quick classify` and
+    # fails CI. Merge commits (two parents = came through a PR) are exempt —
+    # GATE-01 + branch protection already gated those.
+    name: GATE-03 post-commit backstop
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (fetch-depth 2 for HEAD^)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --omit=dev
+
+      - name: Classify last commit's files
+        run: |
+          set -e
+
+          # Merge-commit exemption: a commit with >=2 parents came through a PR,
+          # which GATE-01 already gated. Skip classification in that case.
+          PARENT_COUNT=$(git log -1 --format=%P HEAD | wc -w)
+          if [ "$PARENT_COUNT" -ge 2 ]; then
+            echo "::notice title=GATE-03::gate_fired=GATE-03 result=pass reason=merge_commit_from_pr"
+            exit 0
+          fi
+
+          FILES=$(git diff --name-only HEAD^ HEAD)
+          if [ -z "$FILES" ]; then
+            echo "::notice title=GATE-03::gate_fired=GATE-03 result=pass reason=no_files_changed"
+            exit 0
+          fi
+
+          # Temporarily disable set -e so we can capture both stdout and exit code.
+          set +e
+          CLASS=$(node get-shit-done/bin/gsd-tools.cjs quick classify --files $FILES 2>&1)
+          EXIT=$?
+          set -e
+
+          if [ $EXIT -ne 0 ]; then
+            echo "::notice title=GATE-03::gate_fired=GATE-03 result=post_commit_block"
+            echo "::error::GATE-03 post-commit backstop: direct-to-main commit contains runtime-facing or planning-authority files"
+            echo "$CLASS" | jq . 2>/dev/null || echo "$CLASS"
+            exit 1
+          fi
+
+          echo "::notice title=GATE-03::gate_fired=GATE-03 result=pass"
