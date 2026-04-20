@@ -59,6 +59,8 @@ Do not treat older installed runtime copies as authority when they diverge from 
 
 - For this repo, when spawning agents, use `xhigh` reasoning unless the user explicitly says otherwise.
 - Prefer delegation for bounded GSD work where the workflow expects planner/executor separation.
+- For this repo, when the user invokes or explicitly asks me to follow any repo-defined command, skill, workflow, agent contract, reference procedure, or other instruction surface whose contract requires launching an agent (`spawn_agent`), that counts as the user explicitly asking for sub-agents, delegation, or parallel agent work and explicitly authorizes that required `spawn_agent` call.
+- If the user explicitly requests delegation to avoid parent-thread context growth, do not duplicate the delegated investigation in the parent thread unless the user explicitly asked for parallel verification.
 - Before spawning, identify:
   - agent type
   - ownership boundary
