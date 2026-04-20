@@ -253,9 +253,49 @@ Two paths based on `audit_delegation`:
 
 ### Path A: Self delegation (default, recommended)
 
-Dispatch the `gsdr-auditor` agent via the Task tool. The prompt is the full task spec contents — read the file with the Read tool, then pass its contents as the prompt:
+Dispatch the `gsdr-auditor` agent via the Task tool. The prompt is the full task spec contents — read the file with the Read tool, then pass its contents as the prompt.
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsdr-auditor"
+MODEL="inherit"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="commands/gsd/audit.md"
+WORKFLOW_STEP="dispatch_self"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsdr-auditor
+# Model: inherit          (resolved via resolveModelInternal under model_profile=quality; no explicit model= attribute in Task() — runtime relies on agent-profile default, which is inherit)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - ${SESSION_DIR}/${SLUG}-task-spec.md (full contents inlined as prompt)
+# Output path: ${SESSION_DIR}/${SLUG}-output.md
+# Codex behavior: applies-via-workflow-step (Codex mirror: .codex/skills/gsdr-audit/SKILL.md — out of Plan 12a scope)
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   subagent_type="gsdr-auditor",
   prompt="<full contents of ${SESSION_DIR}/${SLUG}-task-spec.md>",

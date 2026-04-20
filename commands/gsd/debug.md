@@ -89,11 +89,52 @@ Create: .planning/debug/{slug}.md
 </debug_file>
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-debugger"
+MODEL="{debugger_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="commands/gsd/debug.md"
+WORKFLOW_STEP="spawn_debugger"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-debugger
+# Model: inherit          (resolved from {debugger_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit for Claude Code compatibility)
+# Reasoning effort: default (agent-profile default; may be set via template override)
+# Isolation: none
+# Required inputs:
+#   - Symptoms (expected/actual/errors/reproduction/timeline) passed inline in prompt
+#   - .planning/debug/{slug}.md (debug file created by agent during investigation)
+# Output path: .planning/debug/{slug}.md
+# Codex behavior: applies-via-workflow-step (Codex mirror: .codex/skills/gsdr-debug/SKILL.md:89 — out of Plan 12a scope)
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt=filled_prompt,
   subagent_type="gsd-debugger",
-  model="{debugger_model}",
+  model="{debugger_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
   description="Debug {slug}"
 )
 ```
@@ -142,11 +183,52 @@ goal: find_and_fix
 </mode>
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-debugger"
+MODEL="{debugger_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="commands/gsd/debug.md"
+WORKFLOW_STEP="spawn_debugger_continuation"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-debugger (continuation after checkpoint)
+# Model: inherit          (resolved from {debugger_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit for Claude Code compatibility)
+# Reasoning effort: default (agent-profile default; may be set via template override)
+# Isolation: none
+# Required inputs:
+#   - @.planning/debug/{slug}.md (debug file from prior investigation)
+#   - Checkpoint type + user response passed inline in continuation_prompt
+# Output path: .planning/debug/{slug}.md (updated)
+# Codex behavior: applies-via-workflow-step (Codex mirror: .codex/skills/gsdr-debug/SKILL.md:142 — out of Plan 12a scope)
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt=continuation_prompt,
   subagent_type="gsd-debugger",
-  model="{debugger_model}",
+  model="{debugger_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
   description="Continue debug {slug}"
 )
 ```

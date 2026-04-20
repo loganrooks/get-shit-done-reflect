@@ -90,6 +90,51 @@ Use Task tool with `subagent_type="gsd-codebase-mapper"`, `model="{mapper_model}
 
 **Agent 1: Tech Focus**
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-codebase-mapper"
+MODEL="{mapper_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/map-codebase.md"
+WORKFLOW_STEP="spawn_mapper_tech"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-codebase-mapper (focus: tech)
+# Model: sonnet           (resolved from {mapper_model} via resolveModelInternal under model_profile=quality; non-opus agent literal)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - Focus directive (tech) passed inline in prompt
+#   - Codebase at $(pwd) (read-only analysis)
+# Output path: .planning/codebase/STACK.md + .planning/codebase/INTEGRATIONS.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# model= attribute in Task tool parameters below is BAKED IN comment: sonnet (was template {mapper_model} at authorship — 2026-04-20)
+```
+
 Task tool parameters:
 ```
 subagent_type: "gsd-codebase-mapper"
@@ -112,6 +157,51 @@ Explore thoroughly. Write documents directly using templates. Return confirmatio
 ```
 
 **Agent 2: Architecture Focus**
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-codebase-mapper"
+MODEL="{mapper_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/map-codebase.md"
+WORKFLOW_STEP="spawn_mapper_arch"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-codebase-mapper (focus: arch)
+# Model: sonnet           (resolved from {mapper_model} via resolveModelInternal under model_profile=quality; non-opus agent literal)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - Focus directive (arch) passed inline in prompt
+#   - Codebase at $(pwd) (read-only analysis)
+# Output path: .planning/codebase/ARCHITECTURE.md + .planning/codebase/STRUCTURE.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# model= attribute in Task tool parameters below is BAKED IN comment: sonnet (was template {mapper_model} at authorship — 2026-04-20)
+```
 
 Task tool parameters:
 ```
@@ -136,6 +226,51 @@ Explore thoroughly. Write documents directly using templates. Return confirmatio
 
 **Agent 3: Quality Focus**
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-codebase-mapper"
+MODEL="{mapper_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/map-codebase.md"
+WORKFLOW_STEP="spawn_mapper_quality"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-codebase-mapper (focus: quality)
+# Model: sonnet           (resolved from {mapper_model} via resolveModelInternal under model_profile=quality; non-opus agent literal)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - Focus directive (quality) passed inline in prompt
+#   - Codebase at $(pwd) (read-only analysis)
+# Output path: .planning/codebase/CONVENTIONS.md + .planning/codebase/TESTING.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# model= attribute in Task tool parameters below is BAKED IN comment: sonnet (was template {mapper_model} at authorship — 2026-04-20)
+```
+
 Task tool parameters:
 ```
 subagent_type: "gsd-codebase-mapper"
@@ -158,6 +293,51 @@ Explore thoroughly. Write documents directly using templates. Return confirmatio
 ```
 
 **Agent 4: Concerns Focus**
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-codebase-mapper"
+MODEL="{mapper_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/map-codebase.md"
+WORKFLOW_STEP="spawn_mapper_concerns"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-codebase-mapper (focus: concerns)
+# Model: sonnet           (resolved from {mapper_model} via resolveModelInternal under model_profile=quality; non-opus agent literal)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - Focus directive (concerns) passed inline in prompt
+#   - Codebase at $(pwd) (read-only analysis)
+# Output path: .planning/codebase/CONCERNS.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# model= attribute in Task tool parameters below is BAKED IN comment: sonnet (was template {mapper_model} at authorship — 2026-04-20)
+```
 
 Task tool parameters:
 ```

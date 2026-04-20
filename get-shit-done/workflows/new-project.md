@@ -429,9 +429,52 @@ Display spawning indicator:
   → Pitfalls research
 ```
 
-Spawn 4 parallel gsd-project-researcher agents with rich context:
+Spawn 4 parallel gsd-project-researcher agents with rich context.
+
+Before spawning each researcher, run the GATE-05 echo_delegation macro (per-spawn — run 4 times, once per dimension with updated SUBAGENT_TYPE proxy metadata and WORKFLOW_STEP):
+
+```bash
+# GATE-05: echo delegation before spawn (stack dimension)
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="general-purpose"   # proxy for gsd-project-researcher via inline-prompt pattern
+MODEL="{researcher_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/new-project.md"
+WORKFLOW_STEP="spawn_project_researcher_stack"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} (proxy=gsd-project-researcher) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+# (Re-run this macro with WORKFLOW_STEP updated to spawn_project_researcher_features / _architecture / _pitfalls before Task(...) calls 2/3/4 below.)
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: general-purpose (proxy for gsd-project-researcher via inline-prompt pattern — reads ~/.claude/agents/gsd-project-researcher.md first)
+# Model: inherit          (resolved from {researcher_model} via resolveModelInternal(gsd-project-researcher) under model_profile=quality; fork maps opus alias → inherit for Claude Code compatibility)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - PROJECT.md summary, research_type, milestone_context, question, downstream_consumer, quality_gate passed inline in prompt
+#   - ~/.claude/agents/gsd-project-researcher.md (agent self-read at prompt head)
+# Output path: .planning/research/STACK.md   (dimension 1 of 4 — dimensions 2-4 below: FEATURES.md, ARCHITECTURE.md, PITFALLS.md)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# Originating signal: sig-2026-04-10-researcher-model-override-leak-third-occurrence
 Task(prompt="First, read ~/.claude/agents/gsd-project-researcher.md for your role and instructions.
 
 <research_type>
@@ -470,8 +513,34 @@ Your STACK.md feeds into roadmap creation. Be prescriptive:
 Write to: .planning/research/STACK.md
 Use template: ~/.claude/get-shit-done/templates/research-project/STACK.md
 </output>
-", subagent_type="general-purpose", model="{researcher_model}", description="Stack research")
+", subagent_type="general-purpose", model="{researcher_model}", description="Stack research")   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
 
+# GATE-05: echo delegation before spawn (features dimension)
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="general-purpose"   # proxy for gsd-project-researcher via inline-prompt pattern
+MODEL="{researcher_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/new-project.md"
+WORKFLOW_STEP="spawn_project_researcher_features"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} (proxy=gsd-project-researcher) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${SUBAGENT_TYPE}" "${MODEL}" "${REASONING_EFFORT}" "${ISOLATION:-none}" "${SESSION_ID}" "${WORKFLOW_FILE}" "${WORKFLOW_STEP}" "${RUNTIME}" >> .planning/delegation-log.jsonl || true
+
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: general-purpose (proxy for gsd-project-researcher via inline-prompt pattern)
+# Model: inherit          (resolved from {researcher_model} via resolveModelInternal(gsd-project-researcher) under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - PROJECT.md summary, research_type, milestone_context, question, downstream_consumer, quality_gate passed inline
+#   - ~/.claude/agents/gsd-project-researcher.md (agent self-read at prompt head)
+# Output path: .planning/research/FEATURES.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by the GATE-05 macro above
+# Originating signal: sig-2026-04-10-researcher-model-override-leak-third-occurrence
 Task(prompt="First, read ~/.claude/agents/gsd-project-researcher.md for your role and instructions.
 
 <research_type>
@@ -510,8 +579,34 @@ Your FEATURES.md feeds into requirements definition. Categorize clearly:
 Write to: .planning/research/FEATURES.md
 Use template: ~/.claude/get-shit-done/templates/research-project/FEATURES.md
 </output>
-", subagent_type="general-purpose", model="{researcher_model}", description="Features research")
+", subagent_type="general-purpose", model="{researcher_model}", description="Features research")   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
 
+# GATE-05: echo delegation before spawn (architecture dimension)
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="general-purpose"   # proxy for gsd-project-researcher via inline-prompt pattern
+MODEL="{researcher_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/new-project.md"
+WORKFLOW_STEP="spawn_project_researcher_architecture"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} (proxy=gsd-project-researcher) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${SUBAGENT_TYPE}" "${MODEL}" "${REASONING_EFFORT}" "${ISOLATION:-none}" "${SESSION_ID}" "${WORKFLOW_FILE}" "${WORKFLOW_STEP}" "${RUNTIME}" >> .planning/delegation-log.jsonl || true
+
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: general-purpose (proxy for gsd-project-researcher via inline-prompt pattern)
+# Model: inherit          (resolved from {researcher_model} via resolveModelInternal(gsd-project-researcher) under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - PROJECT.md summary, research_type, milestone_context, question, downstream_consumer, quality_gate passed inline
+#   - ~/.claude/agents/gsd-project-researcher.md (agent self-read at prompt head)
+# Output path: .planning/research/ARCHITECTURE.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by the GATE-05 macro above
+# Originating signal: sig-2026-04-10-researcher-model-override-leak-third-occurrence
 Task(prompt="First, read ~/.claude/agents/gsd-project-researcher.md for your role and instructions.
 
 <research_type>
@@ -550,8 +645,34 @@ Your ARCHITECTURE.md informs phase structure in roadmap. Include:
 Write to: .planning/research/ARCHITECTURE.md
 Use template: ~/.claude/get-shit-done/templates/research-project/ARCHITECTURE.md
 </output>
-", subagent_type="general-purpose", model="{researcher_model}", description="Architecture research")
+", subagent_type="general-purpose", model="{researcher_model}", description="Architecture research")   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
 
+# GATE-05: echo delegation before spawn (pitfalls dimension)
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="general-purpose"   # proxy for gsd-project-researcher via inline-prompt pattern
+MODEL="{researcher_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/new-project.md"
+WORKFLOW_STEP="spawn_project_researcher_pitfalls"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} (proxy=gsd-project-researcher) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${SUBAGENT_TYPE}" "${MODEL}" "${REASONING_EFFORT}" "${ISOLATION:-none}" "${SESSION_ID}" "${WORKFLOW_FILE}" "${WORKFLOW_STEP}" "${RUNTIME}" >> .planning/delegation-log.jsonl || true
+
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: general-purpose (proxy for gsd-project-researcher via inline-prompt pattern)
+# Model: inherit          (resolved from {researcher_model} via resolveModelInternal(gsd-project-researcher) under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - PROJECT.md summary, research_type, milestone_context, question, downstream_consumer, quality_gate passed inline
+#   - ~/.claude/agents/gsd-project-researcher.md (agent self-read at prompt head)
+# Output path: .planning/research/PITFALLS.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by the GATE-05 macro above
+# Originating signal: sig-2026-04-10-researcher-model-override-leak-third-occurrence
 Task(prompt="First, read ~/.claude/agents/gsd-project-researcher.md for your role and instructions.
 
 <research_type>
@@ -590,12 +711,55 @@ Your PITFALLS.md prevents mistakes in roadmap/planning. For each pitfall:
 Write to: .planning/research/PITFALLS.md
 Use template: ~/.claude/get-shit-done/templates/research-project/PITFALLS.md
 </output>
-", subagent_type="general-purpose", model="{researcher_model}", description="Pitfalls research")
+", subagent_type="general-purpose", model="{researcher_model}", description="Pitfalls research")   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
 ```
 
-After all 4 agents complete, spawn synthesizer to create SUMMARY.md:
+After all 4 agents complete, spawn synthesizer to create SUMMARY.md.
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-research-synthesizer"
+MODEL="{synthesizer_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/new-project.md"
+WORKFLOW_STEP="spawn_research_synthesizer"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-research-synthesizer
+# Model: sonnet           (resolved from {synthesizer_model} via resolveModelInternal under model_profile=quality; non-opus agent literal)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - .planning/research/STACK.md
+#   - .planning/research/FEATURES.md
+#   - .planning/research/ARCHITECTURE.md
+#   - .planning/research/PITFALLS.md
+# Output path: .planning/research/SUMMARY.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(prompt="
 <task>
 Synthesize research outputs into SUMMARY.md.
@@ -614,7 +778,7 @@ Write to: .planning/research/SUMMARY.md
 Use template: ~/.claude/get-shit-done/templates/research-project/SUMMARY.md
 Commit after writing.
 </output>
-", subagent_type="gsd-research-synthesizer", model="{synthesizer_model}", description="Synthesize research")
+", subagent_type="gsd-research-synthesizer", model="{synthesizer_model}", description="Synthesize research")   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20)
 ```
 
 Display research complete banner and key findings:
@@ -790,9 +954,52 @@ Display stage banner:
 ◆ Spawning roadmapper...
 ```
 
-Spawn gsd-roadmapper agent with context:
+Spawn gsd-roadmapper agent with context.
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-roadmapper"
+MODEL="{roadmapper_model}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/new-project.md"
+WORKFLOW_STEP="spawn_roadmapper"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-roadmapper
+# Model: inherit          (resolved from {roadmapper_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit for Claude Code compatibility)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - @.planning/PROJECT.md
+#   - @.planning/REQUIREMENTS.md
+#   - @.planning/research/SUMMARY.md (if exists)
+#   - @.planning/config.json
+# Output path: .planning/ROADMAP.md + .planning/STATE.md + updates to REQUIREMENTS.md (traceability)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(prompt="
 <planning_context>
 
@@ -821,7 +1028,7 @@ Create roadmap:
 
 Write files first, then return. This ensures artifacts persist even if context is lost.
 </instructions>
-", subagent_type="gsd-roadmapper", model="{roadmapper_model}", description="Create roadmap")
+", subagent_type="gsd-roadmapper", model="{roadmapper_model}", description="Create roadmap")   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
 ```
 
 **Handle roadmapper return:**
@@ -887,8 +1094,47 @@ Use AskUserQuestion:
 
 **If "Adjust phases":**
 - Get user's adjustment notes
+- Before re-spawning, run the GATE-05 echo_delegation macro:
+  ```bash
+  # GATE-05: echo delegation before spawn (roadmapper revision)
+  # Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+  SUBAGENT_TYPE="gsd-roadmapper"
+  MODEL="{roadmapper_model}"
+  REASONING_EFFORT="${REASONING_EFFORT:-default}"
+  ISOLATION="none"
+  SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+  WORKFLOW_FILE="get-shit-done/workflows/new-project.md"
+  WORKFLOW_STEP="spawn_roadmapper_revise"
+  RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+  echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+  mkdir -p .planning 2>/dev/null || true
+  printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+    "${SUBAGENT_TYPE}" \
+    "${MODEL}" \
+    "${REASONING_EFFORT}" \
+    "${ISOLATION:-none}" \
+    "${SESSION_ID}" \
+    "${WORKFLOW_FILE}" \
+    "${WORKFLOW_STEP}" \
+    "${RUNTIME}" \
+    >> .planning/delegation-log.jsonl || true
+  ```
 - Re-spawn roadmapper with revision context:
   ```
+  # DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+  # Agent: gsd-roadmapper (revision)
+  # Model: inherit          (resolved from {roadmapper_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit for Claude Code compatibility)
+  # Reasoning effort: default (agent-profile default)
+  # Isolation: none
+  # Required inputs:
+  #   - User feedback on roadmap (inline)
+  #   - @.planning/ROADMAP.md (current)
+  # Output path: .planning/ROADMAP.md (edited in place)
+  # Codex behavior: applies-via-workflow-step
+  # Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
   Task(prompt="
   <revision>
   User feedback on roadmap:
@@ -899,7 +1145,7 @@ Use AskUserQuestion:
   Update the roadmap based on feedback. Edit files in place.
   Return ROADMAP REVISED with changes made.
   </revision>
-  ", subagent_type="gsd-roadmapper", model="{roadmapper_model}", description="Revise roadmap")
+  ", subagent_type="gsd-roadmapper", model="{roadmapper_model}", description="Revise roadmap")   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
   ```
 - Present revised roadmap
 - Loop until user approves
