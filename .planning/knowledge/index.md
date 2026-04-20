@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-20T05:26:10Z
-**Total entries:** 276
+**Generated:** 2026-04-20T05:44:50Z
+**Total entries:** 277
 
-## Signals (268)
+## Signals (269)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -35,6 +35,7 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-20-publish-workflow-node20-blocked-v1195-npm | get-shit-done-reflect | critical | detected | tags: | "2026-04-20 | active |
 | sig-2026-04-20-audit-session-left-uncommitted-until-reminder | get-shit-done-reflect | notable | detected | tags: | "2026-04-20 | active |
 | sig-2026-04-20-phase-closeout-planning-state-release-lag | get-shit-done-reflect | notable | detected | tags: | "2026-04-20 | active |
 | sig-2026-04-17-phase-closeout-left-state-pr-release-pending | get-shit-done-reflect | notable | detected | tags: | "2026-04-18 | active |
