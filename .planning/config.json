@@ -55,10 +55,12 @@
         "last_skip_reason": "level-1"
       },
       "sensor_artifact": {
-        "fires": 6,
+        "fires": 7,
         "skips": 0,
-        "last_triggered": "2026-04-17T01:10:19.943Z",
-        "last_skip_reason": null
+        "last_triggered": "2026-04-20T09:03:24.390Z",
+        "last_skip_reason": null,
+        "last_run_status": "success",
+        "last_signal_count": 5
       },
       "sensor_ci": {
         "fires": 5,
@@ -67,10 +69,12 @@
         "last_skip_reason": null
       },
       "sensor_git": {
-        "fires": 6,
+        "fires": 7,
         "skips": 0,
-        "last_triggered": "2026-04-17T01:10:20.008Z",
-        "last_skip_reason": null
+        "last_triggered": "2026-04-20T09:03:24.455Z",
+        "last_skip_reason": null,
+        "last_run_status": "success",
+        "last_signal_count": 2
       },
       "reflection": {
         "fires": 0,
@@ -79,10 +83,12 @@
         "last_skip_reason": "disabled"
       },
       "sensor_log": {
-        "fires": 2,
+        "fires": 3,
         "skips": 0,
-        "last_triggered": "2026-04-10T21:47:23.289Z",
-        "last_skip_reason": null
+        "last_triggered": "2026-04-20T09:03:24.482Z",
+        "last_skip_reason": null,
+        "last_run_status": "success",
+        "last_signal_count": 2
       }
     },
     "reflection": {

@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-20T05:44:50Z
-**Total entries:** 277
+**Generated:** 2026-04-20T09:18:19Z
+**Total entries:** 286
 
-## Signals (269)
+## Signals (278)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -35,6 +35,15 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-20-plan-578-03-undeclared-kb-lib-file | get-shit-done-reflect | minor | detected | scope-creep,plan-accuracy,kb | "2026-04-20 | active |
+| sig-2026-04-20-plan-578-02-undeclared-signal-template-file | get-shit-done-reflect | minor | detected | scope-creep,plan-accuracy,signal-contract | "2026-04-20 | active |
+| sig-2026-04-20-plan-03-live-kb-migration-failure | get-shit-done-reflect | notable | detected | kb-upgrade,migration-bug,verification | "2026-04-20 | active |
+| sig-2026-04-20-plan-02-task-accounting-compressed | get-shit-done-reflect | minor | detected | task-accounting,summary-integrity,planning-artifacts | "2026-04-20 | active |
+| sig-2026-04-20-plan-02-missed-live-signal-template | get-shit-done-reflect | minor | detected | template-coverage,contract-drift,split-provenance | "2026-04-20 | active |
+| sig-2026-04-20-plan-01-temp-validation-proof-artifacts | get-shit-done-reflect | minor | detected | validation,workspace-hygiene,artifact-cleanup | "2026-04-20 | active |
+| sig-2026-04-20-live-kb-upgrade-verification-pattern | get-shit-done-reflect | notable | detected | migration-testing,kb-upgrade,verification-strategy | "2026-04-20 | active |
+| sig-2026-04-20-discuss-mode-drifted-audit-bounded-578-scope | get-shit-done-reflect | notable | detected | tags: | "2026-04-20 | active |
+| sig-2026-04-20-decimal-phase-insertion-guidance-backtrack | get-shit-done-reflect | minor | detected | tags: | "2026-04-20 | active |
 | sig-2026-04-20-publish-workflow-node20-blocked-v1195-npm | get-shit-done-reflect | critical | detected | tags: | "2026-04-20 | active |
 | sig-2026-04-20-audit-session-left-uncommitted-until-reminder | get-shit-done-reflect | notable | detected | tags: | "2026-04-20 | active |
 | sig-2026-04-20-phase-closeout-planning-state-release-lag | get-shit-done-reflect | notable | detected | tags: | "2026-04-20 | active |
