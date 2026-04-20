@@ -263,4 +263,103 @@ See CONTEXT.md `<dependencies>` table. Key vulnerabilities:
 
 ## Context-Checker Verification Log
 
-*Awaiting context-checker run.*
+**Checked:** 2026-04-20
+**Agent:** gsdr-context-checker
+
+### Typed Claim Verification
+
+| Claim | Type | Verification | Status | Issue |
+|-------|------|-------------|--------|-------|
+| Structural enforcement = fires without agent needing to remember (§1) | governing | reasoned | PASS | Source: audit §1 + ROADMAP.md:305; governance scope named |
+| Every GATE must satisfy four-property contract (§1) | decided | cited | PASS | audit §9.3 exists; ROADMAP.md:316-328 verified lines 319-328 |
+| Fire-event surface: hook log / stdout marker / session-meta (§1) | decided | cited | PASS | audit §6.1 section verified at line 280 in audit output |
+| GATE-01 blocking substrate best as CI rule (§2) | assumed | reasoned | PASS | Challenge protocol present; CI precedent signal verified |
+| GATE-02 must enumerate every gh pr merge surface (§2) | decided | cited | PASS | audit Finding 2.2 verified; execute-phase.md:793 confirmed single conforming site |
+| GATE-03 ships with explicit detection rule (§2) | decided | cited | PASS | audit Finding 2.3 verified; ddcf1232 commit confirmed in git log |
+| Which GATE-03 rule to ship (§2) | open | — | PASS | Research program named; downstream decisions named |
+| GATE-03 classifies ROADMAP.md/REQUIREMENTS.md as runtime-adjacent (§2) | decided | reasoned | PASS | Alternatives considered; pattern motivation cited |
+| GATE-14 folds into GATE-01 CI enforcement (§2) | decided | cited | PASS | audit Finding 3.5 + §9.2 verified at line 192, 392 |
+| GATE-04a ships consumed-on-read archival (§3) | decided | cited | PASS | audit Finding 2.4 verified; signal file confirmed at correct path |
+| GATE-04b hard-stop staleness (§3) | decided | cited | PASS | REQUIREMENTS.md:226 verified (line 226 = GATE-04b text) |
+| GATE-04c mandatory understanding checks (§3) | decided | cited | PASS | REQUIREMENTS.md:228 verified |
+| GATE-05 enumerates named delegation sites (§4) | decided | cited | PASS | REQUIREMENTS.md:230 verified; signal confirmed |
+| GATE-13 owns compaction resilience (§4) | decided | cited | PASS | audit Finding 3.3 verified; REQUIREMENTS.md:260 verified |
+| GATE-05 and GATE-13 are related but distinct (§4) | assumed | reasoned | PASS | Challenge protocol present |
+| Phase 57.9 is prerequisite for GATE-06/07 (§5) | projected | reasoned | PASS | ROADMAP.md:141-150 confirmed; basis chain present |
+| Phase 58 does not duplicate 57.9 work (§5) | decided | cited | PASS | ROADMAP.md:317 verified; audit §9.1 at line 365 |
+| If 57.9 not complete, Phase 58 cannot honestly claim GATE-06/07 (§5) | assumed | reasoned | PASS | Challenge protocol = AT-1; formalized |
+| GATE-08 splits into 08a-08e (§6) | decided | cited | PASS | REQUIREMENTS.md:236-244 verified; audit Finding 2.8 at line 120 |
+| Upstream richer version will be re-fetched during Phase 58 (§6) | assumed | reasoned | PASS | Challenge protocol: 671-line staleness acknowledged; Q2 defines program |
+| Narrowing requires named rationale under GATE-09c (§6) | governing | reasoned | PASS | Source: REQUIREMENTS.md:244 + GATE-09c; scope of governance named |
+| GATE-09a ships as named artifact with schema (§7) | decided | cited | PASS | audit §6.2 at line 286 verified |
+| Where ledger lives (§7) | open | — | PASS | Research program named; three candidates listed |
+| GATE-09b is a planning gate (§7) | decided | cited | PASS | REQUIREMENTS.md:248 verified |
+| GATE-09c narrowing-decision provenance (§7) | decided | cited | PASS | REQUIREMENTS.md:250 verified |
+| GATE-09d verifier contract uses 57.8 role-split provenance (§7) | decided | cited | PASS | REQUIREMENTS.md:252; ROADMAP.md:123-124 verified |
+| "Load-bearing" operational definition for GATE-09 (§7) | assumed | reasoned | PASS | Challenge protocol present; edge cases deferred to research |
+| GATE-10 ships as structural step with gsd-tools substrate (§8) | decided | cited | PASS | REQUIREMENTS.md:254 verified; signals confirmed at correct path |
+| GATE-11 release-boundary assertion (§8) | decided | cited | PASS | REQUIREMENTS.md:256 verified; signal confirmed |
+| GATE-12 mv-to-archive replaces rm (§8) | decided | cited | PASS | REQUIREMENTS.md:258 verified; signal confirmed |
+| GATE-15 source↔installed CI check (§8) | decided | cited | PASS | REQUIREMENTS.md:264 verified; CLAUDE.md:15-27 confirmed (lines 15-33) |
+| GATE-10 and GATE-11 resolve closeout seam (§8) | projected | reasoned | PASS | Future phase (Phase 60.1) named; basis in audit §7.1 |
+| XRT-01 plan-phase assertion (§9) | decided | cited | PASS | audit Finding 2.10 at line 140; REQUIREMENTS.md:419 verified |
+| Rewrite stale cross-runtime note in REQUIREMENTS.md:10 (§9) | decided | cited | WARN | audit §5.1 verified — but REQUIREMENTS.md:10 has ALREADY been updated to the correct post-55.2 text; the claim that it "is rewritten during Phase 58" is now partially pre-empted by the current file state. Downstream agents should verify before re-writing. Not a citation failure — the citation is accurate; the claim's current-state premise is stale. |
+| Per-gate Codex behavior table authored as part of plan (§9) | decided | cited | PASS | audit §5.3 at line 256; §9.3 Acceptance Test #4 at line 394 |
+| Meta-gate proposal (§10) | open | — | PASS | Research program named; two branches (cheap vs new sensor work) |
+| DC-1: Every GATE must carry named substrate (constraints) | governing | reasoned | PASS | Source: audit §9.3 AT-1 + ROADMAP.md:316-328 |
+| DC-2: Every GATE must emit measurable fire-event (constraints) | governing | reasoned | PASS | Source: audit §6.1 + ROADMAP.md SC-1 |
+| DC-3: No advisory-by-composition (constraints) | governing | reasoned | PASS | Source: audit §7.2 |
+| DC-4: Per-gate Codex behavior required (constraints) | governing | reasoned | PASS | Source: audit §5 + §9.3 |
+| DC-5: Phase 57.8 merged, STATE.md:6 lags (constraints) | evidenced | cited | PASS | git log confirmed c8a15d95; STATE.md line 6 reads "Phase 57.8 context gathered" — confirmed |
+| DC-6: Phase 58 does not duplicate 57.9 work (constraints) | decided | cited | PASS | ROADMAP.md:317 + audit §9.1 verified |
+| DC-7: [open] scope-boundary claims must resolve before plan-phase (constraints) | governing | reasoned | PASS | Source: GATE-09b reflexive application named |
+| DC-8: GATE-03 motivation recurred at quick task 260419-6uf (constraints) | evidenced | cited | PASS | commit ddcf1232 confirmed in git log; audit Finding 2.3 line 80 confirmed |
+| DC-9: ROADMAP.md/REQUIREMENTS.md classified runtime-adjacent (constraints) | decided | reasoned | PASS | Alternatives considered; motivation cited |
+| G-1 through G-7 guardrails | governing | reasoned | PASS | Sources named (audit sections, REQUIREMENTS.md); scope named for each |
+
+### Typed Claim Verification — Citation Path Failures
+
+| Claim | Type | Status | Issue |
+|-------|------|--------|-------|
+| Signal citations in `<canonical_refs>` (lines 243-250) | evidenced | WARN | All signal file paths in CONTEXT.md use `.planning/signals/sig-*.md` prefix. Actual location is `.planning/knowledge/signals/get-shit-done-reflect/sig-*.md`. Every signal listed in `<canonical_refs>` has a wrong path prefix. The files exist at the correct path; citations are navigable with knowledge of the repo, but downstream agents following the paths literally will hit 404s. |
+| `get-shit-done/references/cross-runtime-parity-research.md` (line 237, canonical_refs) | evidenced | WARN | File does not exist at `get-shit-done/references/cross-runtime-parity-research.md`. Actual location: `.planning/research/cross-runtime-parity-research.md`. The content is accurate (lines 70-80 verified at that path); path in CONTEXT.md is wrong. Same file is also cited inline in §9 working model text. |
+| `dist/MANIFEST` (lines 154, 268) | assumed | INFO | File does not exist (`dist/MANIFEST` is MISSING). The claim uses "if present" hedging ("candidate ground truth", "`dist/MANIFEST` or equivalent"), which appropriately flags uncertainty. Not a phantom citation — the conditionality is stated. |
+
+### Untyped Claims Surfaced
+
+| Claim Text | Proposed Type | Location | Severity | Rationale |
+|-----------|---------------|----------|----------|-----------|
+| "Measurement extractor registry (Phase 57.5/57.6/57.7, 17+ extractors): fire-events from gates register as content-derived features without new measurement architecture" (line 263) | assumed:reasoned | `<code_context>` Reusable Assets | WARN | This is a load-bearing assumption: that the existing extractor registry can consume Phase 58 gate fire-events without new measurement architecture. It underpins DC-2 and G-6 directly. If the registry cannot consume gate events natively, a new layer is required. Should be `[assumed:reasoned]` with a challenge protocol naming what would falsify it (e.g., extractor API incompatibility). |
+| "gsd-tools CLI surface: `state record-session`, `kb rebuild`, existing `commit`, `init phase-op` primitives compose into reconciliation (GATE-10) and ledger verification (GATE-09d) without new top-level commands — subject to Q6." (line 264) | assumed:reasoned | `<code_context>` Reusable Assets | WARN | Load-bearing for GATE-10 and GATE-09d implementation scope. The claim asserts composability from existing primitives, but this has not been verified (Q6 explicitly defers verification). Should be `[assumed:reasoned]` — reasonable pending Q6 research, but shapes planning scope. |
+| "KB schema v2 (Phase 56 + 57.8 role-split extension): ledger entries and gate fire-events inherit the dual-write invariant (files + SQLite index) for free." (line 265) | assumed:reasoned | `<code_context>` Reusable Assets | WARN | "for free" is an untested claim about schema compatibility. GATE-09a ledger schema is not yet designed (Q3 open); asserting it inherits dual-write for free is premature. If the ledger schema adds fields not in the KB schema, a migration is required. Should be `[assumed:reasoned]`. |
+| "`resolveModelInternal` (Phase 57.8): model echo for GATE-05 and dispatch contract restatement for GATE-13 both consume this canonical resolver rather than re-deriving." (line 266) | decided:reasoned | `<code_context>` Reusable Assets | INFO | This is a design decision (GATE-05 and GATE-13 will reuse `resolveModelInternal`), not a verified fact about current code. Typing as `[decided:reasoned]` would make the decision visible. Minor — it appears in a "Reusable Assets" section that implies availability, so the misframe is modest. |
+| "Audit §6.4's CI-as-structural-gate pattern is preferred for GATE-01, GATE-02, GATE-03, GATE-14, GATE-15 where CI can host the check. Workflow-level mechanics remain for gates tied to per-session state (GATE-04, GATE-12)." (line 288) | decided:reasoned | `<specifics>` | WARN | This is a significant architectural partitioning decision (CI-hosted vs workflow-hosted) that constrains implementation shape for 7 of 25 requirements. It does not carry a type marker. Should be `[decided:reasoned]` — alternatives considered in audit (workflow-file mechanics, pre-push hooks), CI preferred for non-bypassability. |
+| "ROADMAP.md:316-328 already uses this frame — Phase 58 plan must not re-collapse it." (line 289) | governing:reasoned | `<specifics>` | INFO | This is a normative constraint on the plan-phase agent, but it's buried in the specifics section without a type marker. The governing constraint it names (plan must not re-collapse the success criterion frame) is materially equivalent to G-2. Could be typed `[governing:reasoned]` or noted as duplicate of G-2. Low priority — G-2 covers the same ground. |
+
+### Dependency Chain Audit
+
+| Chain | Verdict |
+|-------|---------|
+| [projected] GATE-06/07 via 57.9 substrate -> [evidenced] 57.9 in ROADMAP.md:141-150 | PASS — ROADMAP.md:141-150 confirmed. Vulnerability correctly stated as MEDIUM: 57.9 has no phase directory (confirmed by directory listing). AT-1 formalizes the check. |
+| [decided] GATE-09d uses 57.8 role-split provenance -> [evidenced] 57.8 merged c8a15d95 | PASS — commit confirmed in git log. Vulnerability correctly LOW. |
+| [decided] GATE-03 runtime-adjacent classification -> [decided] planning-authority files are structural | PASS — dependency is decided-on-decided (LOW), classified as MEDIUM, which is slightly conservative. Not a problem. |
+| [decided] GATE-01 CI-based -> [assumed] CI rule stronger than workflow mechanic | WARN — Vulnerability listed as LOW; claim-types.md §5 states decided-on-assumed = HIGH. The audit source (§6.4) provides reasoned justification, but the chain vulnerability should be MEDIUM at minimum per the claim-types ontology. The chain is not circular; marking LOW may understate risk to downstream agents. |
+| [decided] GATE-08a re-fetch -> [open] Q2 upstream shape | PASS — MEDIUM vulnerability correctly stated; GATE-09b reflexive application acknowledged. |
+| [decided] GATE-09a named artifact -> [open] Q3 file location | PASS — MEDIUM correctly stated; not blocking for schema design as noted. |
+| [decided] GATE-15 CI parity -> [evidenced] CLAUDE.md:15-27 dual-directory | PASS — LOW correctly stated; CLAUDE.md:15-27 verified (dual-directory hazard at lines 5-33). |
+| [decided] fire-event consumable by 57.5 extractors -> [evidenced] extractor registry shipped | PASS — verified via ROADMAP.md:241-256; Phase 57.5 verification noted. |
+| [governing] structural enforcement (G-1) -> [governing] audit §1 headline | PASS — LOW correctly stated; self-grounding governance claim. |
+| [assumed] load-bearing operational definition -> [decided] claim-types vocabulary | PASS — MEDIUM correctly stated; edge cases deferred to research. |
+| Unrecorded: [assumed] "17+ extractors can consume gate fire-events without new architecture" (line 263) -> [decided] DC-2/G-6 | WARN — This dependency is not in the dependency table. DC-2 and G-6 implicitly depend on the assumption that existing extractors can observe gate events natively. If false, Phase 57.5 measurement architecture must be extended. Should be recorded. |
+| Unrecorded: [assumed] "gsd-tools primitives compose into GATE-10/GATE-09d without new top-level commands" (line 264) -> [decided] GATE-10 implementation | WARN — Q6 defers verification but the assumption is load-bearing for GATE-10 plan scope. Not in dependency table. |
+
+### Summary
+
+- **Typed claims checked:** 44
+- **Pass:** 40 | **Warn:** 2 | **Fail:** 0
+- **Untyped load-bearing claims surfaced:** 6 (3 WARN, 2 INFO, 1 borderline)
+- **Citation path failures:** 2 WARN (signals path prefix wrong; cross-runtime-parity-research.md wrong path), 1 INFO (dist/MANIFEST conditional and hedged)
+- **Dependency vulnerabilities:** 2 unrecorded WARN chains; 1 vulnerability level understated (GATE-01 chain listed LOW, should be MEDIUM per claim-types.md §5)
+- **Overall severity:** WARN
+
+**Rationale for WARN (not FAIL):** No phantom citations — all cited files exist at verifiable paths; path errors in `<canonical_refs>` are navigational friction, not broken evidence. The two largest issues are (a) systematic signal path prefix errors (`<canonical_refs>` lists `.planning/signals/` but files live at `.planning/knowledge/signals/get-shit-done-reflect/`), (b) cross-runtime-parity-research.md cited at wrong source path (`get-shit-done/references/` vs `.planning/research/`), and (c) three load-bearing assumptions in `<code_context>` doing significant epistemic work without type markers. None of these block progression but all should be corrected before the research agent treats the `<canonical_refs>` paths as navigable. The REQUIREMENTS.md:10 stale-note claim additionally has a partially pre-empted premise (the note has already been updated in the current file).

@@ -98,10 +98,10 @@ Every shipped gate must satisfy four cross-cutting properties (audit §9.3):
 
 ### 9. Cross-runtime substrate declaration (XRT-01, Codex per-gate behavior)
 
-**Current state:** REQUIREMENTS.md:10 cross-runtime note is factually stale post-55.2 — it claims "no hook mechanism as of v0.118.0" but `cross-runtime-parity-research.md:70-80` documents `codex_hooks` flag availability (audit §5.1). Phase 57.7 and 57.8 CONTEXT.md files do not contain explicit Codex degradation sections for hook-dependent features (audit Finding 2.10). No structural gate enforces "before implementation begins."
+**Current state:** REQUIREMENTS.md:10 cross-runtime note has been updated post-55.2 to mandate per-gate substrate + per-gate Codex behavior declarations and to drop the blanket "Codex has no hook mechanism" framing (verified by reading the current file). Phase 57.7 and 57.8 CONTEXT.md files still do not contain explicit Codex degradation sections for hook-dependent features (audit Finding 2.10). No structural gate enforces "before implementation begins."
 
 - [decided:cited] XRT-01 ships with a **plan-phase assertion**: any hook-dependent commitment in CONTEXT.md has an accompanying Codex degradation claim before plan-phase begins; verifier checks `capability-matrix.md` diff in closeout. (Source: audit Finding 2.10 + REQUIREMENTS.md:419.)
-- [decided:cited] The cross-runtime stale-note in REQUIREMENTS.md:10 is rewritten during Phase 58 to reflect the post-55.2 reality — Codex hooks exist under `codex_hooks` flag at v0.118.0; degradation is per-gate, not blanket. (Source: audit §5.1, §5.3.)
+- [evidenced:cited] The REQUIREMENTS.md:10 cross-runtime note has already been updated to post-55.2 reality (per-gate substrate + Codex behavior, `codex_hooks` flag evolving) — verified by reading the current file. Phase 58 maintains this currency when `codex_hooks` stabilizes or further substrate ships. (Source: `.planning/research/cross-runtime-parity-research.md:70-80`; audit Finding §5.1 — originally asserted the note was stale, and the rewrite has since landed.)
 - [decided:cited] Per-gate Codex behavior table (audit §5.3) is authored as part of the plan: every GATE-01..15 carries an explicit `applies` / `does-not-apply-with-reason` / `applies-via-workflow-step` marker for Codex; blanket "Codex has no hooks" is rejected. (Source: audit §5.3, §9.3.)
 
 ### 10. Meta-gate (proposed; not yet a requirement)
@@ -190,7 +190,10 @@ Every shipped gate must satisfy four cross-cutting properties (audit §9.3):
 | [projected] GATE-06/07 via 57.9 substrate (§5) | [evidenced] 57.9 inserted in ROADMAP.md:141-150 | MEDIUM — 57.9 has no phase directory yet and no plans; if 57.9 slips, Phase 58 cannot honestly ship GATE-06/07 under DC-1. Acceptance Test AT-1 below checks this. |
 | [decided] GATE-09d uses 57.8 role-split provenance | [evidenced] 57.8 merged commit `c8a15d95` | LOW — 57.8 has merged; STATE.md:6 lag is cosmetic and is itself GATE-10 evidence, not a blocker. |
 | [decided] GATE-03 runtime-adjacent classification of ROADMAP/REQUIREMENTS | [decided] planning-authority files are structural | MEDIUM — if the classification is wrong, quick-task workflow friction increases; but the 2026-04-20 REQUIREMENTS.md patch is direct motivation. |
-| [decided] GATE-01 CI-based enforcement | [assumed] CI rule is stronger than workflow-file mechanic | LOW — audit §6.4 is reasoned; alternative (pre-push hook) is parallel, not exclusive. |
+| [decided] GATE-01 CI-based enforcement | [assumed] CI rule is stronger than workflow-file mechanic | MEDIUM — per claim-types.md §5, a `[decided]` resting on an `[assumed]` is a structural vulnerability even when the assumption is reasoned; if research shows a pre-push hook is equivalent or better, GATE-01 substrate choice is reversible but affects plan shape. |
+| [decided] DC-2 / G-6 fire-events consumable by 57.5 extractors | [assumed] extractor registry accepts gate fire-event format without new measurement architecture | MEDIUM — the extractor registry API has not been tested against gate-emission payloads; if the registry requires format migration or schema extension, new measurement work is implied, not free. |
+| [decided] GATE-10 implementation via gsd-tools primitives | [assumed] existing `state record-session` / `commit` / `init phase-op` compose into reconciliation (Q6) | MEDIUM — composition assumption is plausible but unverified; Q6 defers check to research. If new top-level command is required, GATE-10 plan expands. |
+| [decided] KB schema v2 hosts ledger entries under dual-write invariant | [assumed] current schema absorbs ledger fields "for free" | MEDIUM — additive migrations are the Phase 56/57.8 pattern, but the ledger's disposition enum + provenance field may exceed existing column set; schema extension is likely. Linked to Q3 ledger location. |
 | [decided] GATE-08a re-fetch of upstream | [open] Q2 (what upstream looks like now) | MEDIUM — until Q2 resolves, GATE-08a–08e scope cannot be planned; this is GATE-09b territory for Phase 58 itself. |
 | [decided] GATE-09a ledger as named artifact | [open] Q3 (where it lives) | MEDIUM — file location affects verifier implementation complexity; not a blocking unknown for schema design. |
 | [decided] GATE-15 CI parity check | [evidenced] dual-directory hazard in CLAUDE.md:15-27 | LOW — the evidence is load-bearing and the hazard is well-known; implementation risk is in false-positive rate on legitimate divergences. |
@@ -234,20 +237,20 @@ Every shipped gate must satisfy four cross-cutting properties (audit §9.3):
 - `get-shit-done/workflows/resume-project.md` (lines 127-135) — `.continue-here` `rm -f` consume; GATE-04a/04b substrate.
 - `get-shit-done/workflows/collect-signals.md` (lines 249-251) — sensor dispatch; GATE-05 substrate.
 - `get-shit-done/workflows/discuss-phase-assumptions.md` (279 lines) — GATE-08 scope delta input.
-- `get-shit-done/references/cross-runtime-parity-research.md` (lines 70-80) — Codex `codex_hooks` flag at v0.118.0; falsifies REQUIREMENTS.md:10.
+- `.planning/research/cross-runtime-parity-research.md` (lines 70-80) — Codex `codex_hooks` flag at v0.118.0; source for post-55.2 REQUIREMENTS.md:10 rewrite already applied 2026-04-17.
 - `get-shit-done/references/signal-detection.md` (lines 67-76) — Codex model-class heuristics; unremediated; XRT-01 + GATE-05 measurement-effectiveness concern.
 - `get-shit-done/references/capability-matrix.md` — XRT-01 target; audit §4.1 re-verified as accurate post-55.2.
 - `.planning/measurement/extractors/` (Phase 57.5 registry) — fire-event consumer surface for DC-2.
 
 ### Live evidence signals (motivating failure patterns)
-- `.planning/signals/sig-2026-04-17-phase-closeout-left-state-pr-release-pending.md` (occurrences=5) — GATE-10 motivation.
-- `.planning/signals/sig-2026-04-20-phase-closeout-planning-state-release-lag.md` (occurrences=6) — GATE-10 + GATE-11 motivation; live in-repo during this CONTEXT.
-- `.planning/signals/sig-2026-04-10-orchestrator-deletes-partial-output-instead-of-archiving.md` — GATE-12 motivation.
-- `.planning/signals/sig-2026-04-10-researcher-model-override-leak-third-occurrence.md` (3 occurrences) — GATE-05 + GATE-13 motivation.
-- `.planning/signals/sig-2026-04-17-codex-auto-compact-prompt-parity-gap.md` (3 occurrences) — GATE-13 motivation.
-- `.planning/signals/sig-2026-04-10-ci-branch-protection-bypass-recurrence.md` (3 occurrences, severity critical) — GATE-14 motivation.
-- `.planning/signals/sig-2026-03-30-release-workflow-forgotten-in-milestone-completion.md` — GATE-11 motivation.
-- `.planning/signals/sig-2026-04-10-phase-574-pr45-ci-clean-mergeable-baseline.md` — GATE-01 CI enforcement precedent.
+- `.planning/knowledge/signals/get-shit-done-reflect/sig-2026-04-17-phase-closeout-left-state-pr-release-pending.md` (occurrences=5) — GATE-10 motivation.
+- `.planning/knowledge/signals/get-shit-done-reflect/sig-2026-04-20-phase-closeout-planning-state-release-lag.md` (occurrences=6) — GATE-10 + GATE-11 motivation; live in-repo during this CONTEXT.
+- `.planning/knowledge/signals/get-shit-done-reflect/sig-2026-04-10-orchestrator-deletes-partial-output-instead-of-archiving.md` — GATE-12 motivation.
+- `.planning/knowledge/signals/get-shit-done-reflect/sig-2026-04-10-researcher-model-override-leak-third-occurrence.md` (3 occurrences) — GATE-05 + GATE-13 motivation.
+- `.planning/knowledge/signals/get-shit-done-reflect/sig-2026-04-17-codex-auto-compact-prompt-parity-gap.md` (3 occurrences) — GATE-13 motivation.
+- `.planning/knowledge/signals/get-shit-done-reflect/sig-2026-04-10-ci-branch-protection-bypass-recurrence.md` (3 occurrences, severity critical) — GATE-14 motivation.
+- `.planning/knowledge/signals/get-shit-done-reflect/sig-2026-03-30-release-workflow-forgotten-in-milestone-completion.md` — GATE-11 motivation.
+- `.planning/knowledge/signals/get-shit-done-reflect/sig-2026-04-10-phase-574-pr45-ci-clean-mergeable-baseline.md` — GATE-01 CI enforcement precedent.
 
 ### Project conventions and memory
 - `CLAUDE.md` (lines 15-27) — dual-directory hazard; GATE-15 motivation.
@@ -260,9 +263,9 @@ Every shipped gate must satisfy four cross-cutting properties (audit §9.3):
 ## Existing Code Insights
 
 ### Reusable Assets
-- **Measurement extractor registry** (Phase 57.5/57.6/57.7, 17+ extractors): fire-events from gates register as content-derived features without new measurement architecture (DC-2 / G-6).
-- **`gsd-tools` CLI surface**: `state record-session`, `kb rebuild`, existing `commit`, `init phase-op` primitives compose into reconciliation (GATE-10) and ledger verification (GATE-09d) without new top-level commands — subject to Q6.
-- **KB schema v2** (Phase 56 + 57.8 role-split extension): ledger entries and gate fire-events inherit the dual-write invariant (files + SQLite index) for free.
+- [assumed:reasoned] **Measurement extractor registry** (Phase 57.5/57.6/57.7, 17+ extractors): fire-events from gates register as content-derived features without new measurement architecture (DC-2 / G-6). <!-- typed by context-checker: load-bearing for DC-2/G-6; untested whether registry API accepts gate fire-event format -->
+- [assumed:reasoned] **`gsd-tools` CLI surface**: `state record-session`, `kb rebuild`, existing `commit`, `init phase-op` primitives compose into reconciliation (GATE-10) and ledger verification (GATE-09d) without new top-level commands — subject to Q6. <!-- typed by context-checker: load-bearing for GATE-10 implementation scope; Q6 defers verification -->
+- [assumed:reasoned] **KB schema v2** (Phase 56 + 57.8 role-split extension): ledger entries and gate fire-events inherit the dual-write invariant (files + SQLite index) for free. <!-- typed by context-checker: "for free" is untested; Q3 open on ledger schema; migration may be required if schema extends beyond current KB fields -->
 - **`resolveModelInternal`** (Phase 57.8): model echo for GATE-05 and dispatch contract restatement for GATE-13 both consume this canonical resolver rather than re-deriving.
 - **`frontmatter.cjs`**: candidate validator for GATE-09a ledger schema if YAML-block layout wins Q3.
 - **Installer manifest** (`dist/MANIFEST` or equivalent): candidate ground truth for GATE-15 parity and GATE-03 detection (Q1 option c).
@@ -285,7 +288,7 @@ Every shipped gate must satisfy four cross-cutting properties (audit §9.3):
 <specifics>
 ## Specific Ideas
 
-- Audit §6.4's "CI-as-structural-gate" pattern is preferred for GATE-01, GATE-02, GATE-03, GATE-14, GATE-15 where CI can host the check. Workflow-level mechanics remain for gates tied to per-session state (GATE-04, GATE-12).
+- [decided:reasoned] Audit §6.4's "CI-as-structural-gate" pattern is preferred for GATE-01, GATE-02, GATE-03, GATE-14, GATE-15 where CI can host the check. Workflow-level mechanics remain for gates tied to per-session state (GATE-04, GATE-12). <!-- typed by context-checker: architectural partition constraining implementation shape for 7 of 25 requirements; no type marker present -->
 - Audit §9.3's goal rewrite (K ≥ 12 gates, enumerated; four cross-cutting properties) is adopted as the Phase 58 success-criterion frame. ROADMAP.md:316-328 already uses this frame — Phase 58 plan must not re-collapse it.
 - The live-evidence dimension matters: every GATE cites a current-in-repo signal or substrate gap, not a hypothetical failure. This is what audit §7.5 calls "silent-recurrence pattern" — GATE-03's motivation recurring 24h before the audit is the canonical example.
 - Audit §11 competing interpretations are **not collapsed** into the CONTEXT — they are carried forward to research as live options:
