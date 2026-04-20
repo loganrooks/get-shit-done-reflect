@@ -127,6 +127,16 @@ Write to: .planning/phases/${PHASE}-{slug}/${PHASE}-RESEARCH.md
 )
 ```
 
+### Narrowing Decisions (GATE-09c)
+
+If during research you narrow scope relative to CONTEXT.md (e.g., reject a decided-claim, defer an assumed claim, split a requirement without complete coverage, resolve an `[open]` claim in favor of one option while deferring another, or recommend declining to implement a load-bearing CONTEXT obligation), record the narrowing in the Narrowing Decisions section of the RESEARCH.md with:
+- Originating CONTEXT claim (quoted or claim-ID)
+- What was narrowed
+- Rationale
+- Target phase if deferred
+
+The phase verifier (Plan 17 GATE-09d) reads both RESEARCH.md and PLAN.md for these narrowings and rolls them into the NN-LEDGER.md at phase close. Silent narrowing fails verification.
+
 ## Step 5: Handle Return
 
 - `## RESEARCH COMPLETE` — Display summary, offer: Plan/Dig deeper/Review/Done

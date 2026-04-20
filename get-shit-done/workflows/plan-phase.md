@@ -83,6 +83,67 @@ Use `context_content` from init JSON (already loaded via `--include context`).
 
 If `context_content` is not null, display: `Using phase context from: ${PHASE_DIR}/*-CONTEXT.md`
 
+## 4.5. GATE-09b: Planning-gate check for unresolved `[open]` scope-boundary claims
+
+<!-- GATE-09b (Phase 58 Plan 17): any `[open]` scope-boundary claim in
+     <phase>-CONTEXT.md that affects what the phase builds must resolve or
+     defer to a named downstream phase before plan-phase proceeds. This step
+     is a coarse grep heuristic -- exact claim-type parsing would require a
+     YAML/markdown claim parser (references/claim-types.md §3 regex). The
+     heuristic counts `[open]` markers in BOTH CONTEXT.md and RESEARCH.md
+     (research-time resolutions live in RESEARCH.md for this fork, per
+     research-phase.md contract) and subtracts markers paired with the
+     words "resolved" or "deferred to Phase". Net positive = block.
+
+     Fire-event: `::notice::gate_fired=GATE-09b result=<pass|block>
+     unresolved_claims=<N>` on every invocation (Plan 19 extractor contract).
+     Codex behavior: applies-via-workflow-step (see 58-05-codex-behavior-matrix.md).
+-->
+
+```bash
+# GATE-09b: planning-gate check for unresolved [open] scope-boundary claims
+# Scans both CONTEXT.md and RESEARCH.md because resolutions/defers live in
+# RESEARCH.md after research-phase completes (fork convention).
+padded_phase="${padded_phase:-$(printf '%02d' "${PHASE%%.*}")}"
+CONTEXT_FILE=$(ls "${phase_dir}"/*-CONTEXT.md 2>/dev/null | head -1)
+RESEARCH_FILE=$(ls "${phase_dir}"/*-RESEARCH.md 2>/dev/null | head -1)
+
+if [ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ]; then
+  # Count [open] markers across both files (RESEARCH.md may be absent).
+  # Pattern `\[open(\]|:)` matches both short-form `[open]` and typed
+  # `[open:...]` per references/claim-types.md §3 notation syntax.
+  FILES_TO_SCAN="$CONTEXT_FILE"
+  [ -n "$RESEARCH_FILE" ] && [ -f "$RESEARCH_FILE" ] && FILES_TO_SCAN="$FILES_TO_SCAN $RESEARCH_FILE"
+
+  # shellcheck disable=SC2086
+  OPEN_TOTAL=$(grep -hcE '\[open(\]|:)' $FILES_TO_SCAN 2>/dev/null | awk '{s+=$1} END {print s+0}')
+  # shellcheck disable=SC2086
+  OPEN_RESOLVED=$(grep -hcE '\[open(\]|:).*(resolved|deferred to Phase)' $FILES_TO_SCAN 2>/dev/null | awk '{s+=$1} END {print s+0}')
+  UNRESOLVED=$((OPEN_TOTAL - OPEN_RESOLVED))
+
+  if [ "$UNRESOLVED" -gt 0 ]; then
+    echo "::notice title=GATE-09b::gate_fired=GATE-09b result=block unresolved_claims=$UNRESOLVED"
+    echo "GATE-09b: $UNRESOLVED [open] scope-boundary claim(s) remain unresolved in CONTEXT.md / RESEARCH.md."
+    echo ""
+    echo "Unresolved markers (first 20):"
+    # shellcheck disable=SC2086
+    grep -nE '\[open(\]|:)' $FILES_TO_SCAN 2>/dev/null | head -20
+    echo ""
+    echo "Each [open] claim must either:"
+    echo "  (a) Resolve -- e.g., append 'resolved: <answer>' on the same line, OR"
+    echo "  (b) Defer  -- e.g., append 'deferred to Phase <NN or NN.N>: <reason>'"
+    echo ""
+    echo "Re-run /gsd:plan-phase after resolving or deferring the claims above."
+    exit 1
+  fi
+  echo "::notice title=GATE-09b::gate_fired=GATE-09b result=pass unresolved_claims=0"
+else
+  # No CONTEXT.md -- emit skip-shaped fire-event so Plan 19 extractor can count
+  # "phases entering plan-phase without CONTEXT.md" as a distinct bucket.
+  echo "::notice title=GATE-09b::gate_fired=GATE-09b result=pass unresolved_claims=0 note=no_context_md"
+fi
+```
+
 <capability_check name="agent_spawning">
 Check the runtime capability matrix (get-shit-done/references/capability-matrix.md):
 
@@ -411,6 +472,16 @@ Output consumed by /gsd:execute-phase. Plans need:
 - [ ] Waves assigned for parallel execution
 - [ ] must_haves derived from phase goal
 </quality_gate>
+
+### Narrowing Decisions (GATE-09c)
+
+If during planning you narrow scope relative to CONTEXT.md (e.g., reject a decided-claim, defer an assumed claim, split a requirement without complete coverage, or decline to implement a load-bearing CONTEXT obligation), record the narrowing in the Narrowing Decisions section of the PLAN.md with:
+- Originating CONTEXT claim (quoted or claim-ID)
+- What was narrowed
+- Rationale
+- Target phase if deferred
+
+The phase verifier (Plan 17 GATE-09d) reads both RESEARCH.md and PLAN.md for these narrowings and rolls them into the NN-LEDGER.md at phase close. Silent narrowing fails verification.
 ```
 
 Before spawning, run the GATE-05 echo_delegation macro:
