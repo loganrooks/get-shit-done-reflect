@@ -62,8 +62,8 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "update_release_notes=$UPDATE_RELEASE_NOTES" >> "$GITHUB_OUTPUT"
 
-      - name: Update npm for Trusted Publishing (requires >= 11.5.1)
-        run: npm install -g npm@latest
+      - name: Verify pinned npm 11 publish client
+        run: npx npm@11.12.1 --version
 
       - name: Install dependencies
         run: npm ci
@@ -133,4 +133,4 @@ jobs:
 
       - name: Publish to npm
         if: ${{ steps.npm_version.outputs.already_published != 'true' }}
-        run: npm publish --provenance --access public
+        run: npx npm@11.12.1 publish --provenance --access public
