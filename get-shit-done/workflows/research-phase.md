@@ -1,3 +1,23 @@
+<!-- GATE-12 (Phase 58 Plan 14): Failed / interrupted researcher output MUST be
+     archived via `gsd-tools agent archive` before any rm or overwrite of a
+     redispatch target. No current sites in this workflow delete a prior
+     RESEARCH.md — this HEADNOTE enforces the convention for future edits. See
+     `.planning/phases/58-structural-enforcement-gates/58-14-SUMMARY.md` for the
+     envelope pattern; resolves
+     `sig-2026-04-10-orchestrator-deletes-partial-output-instead-of-archiving`.
+
+     Envelope template for future redispatch / retry logic:
+
+         if [ -f "$RESEARCH_PATH" ]; then
+           node ~/.claude/get-shit-done/bin/gsd-tools.cjs agent archive \
+             --session-id "${SESSION_ID:-${AGENT_SESSION_ID:-unknown}}" \
+             --reason "failed_redispatch_researcher" \
+             --phase "$PHASE_NUMBER" \
+             --paths "$RESEARCH_PATH" \
+             || echo "[warn] GATE-12: archive failed — proceeding with rm as fallback (evidence loss risk)"
+         fi
+-->
+
 <purpose>
 Research how to implement a phase. Spawns gsd-phase-researcher with phase context.
 

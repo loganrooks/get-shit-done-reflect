@@ -1,3 +1,23 @@
+<!-- GATE-12 (Phase 58 Plan 14): Failed / interrupted agent output MUST be archived
+     via `gsd-tools agent archive` before any rm or overwrite of a redispatch
+     target. No current sites in this workflow delete agent output — this
+     HEADNOTE enforces the convention for future edits. See
+     `.planning/phases/58-structural-enforcement-gates/58-14-SUMMARY.md` for the
+     envelope pattern; resolves
+     `sig-2026-04-10-orchestrator-deletes-partial-output-instead-of-archiving`.
+
+     Envelope template for future redispatch / retry logic:
+
+         if [ -f "$OUTPUT_PATH" ]; then
+           node ~/.claude/get-shit-done/bin/gsd-tools.cjs agent archive \
+             --session-id "${SESSION_ID:-${AGENT_SESSION_ID:-unknown}}" \
+             --reason "failed_redispatch_${AGENT_TYPE:-agent}" \
+             --phase "$PHASE_NUMBER" \
+             --paths "$OUTPUT_PATH" \
+             || echo "[warn] GATE-12: archive failed — proceeding with rm as fallback (evidence loss risk)"
+         fi
+-->
+
 <purpose>
 Execute a phase prompt (PLAN.md) and create the outcome summary (SUMMARY.md).
 </purpose>

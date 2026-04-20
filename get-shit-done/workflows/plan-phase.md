@@ -6,6 +6,28 @@
      WORKFLOW_TEXT_MODE branching pattern defined in
      docs/workflow-discuss-mode.md §3. Plan 17 verifier greps this comment. -->
 
+<!-- GATE-12 (Phase 58 Plan 14): Failed / interrupted planner or plan-checker
+     output MUST be archived via `gsd-tools agent archive` before any rm or
+     overwrite of a redispatch target. The revision loop in Step 12 updates
+     PLAN.md files in place (see research R3 notation for plan-phase.md:450-451
+     "Planner (iterate)"); if future edits add explicit delete-then-rewrite
+     logic, wrap with the envelope below first. See
+     `.planning/phases/58-structural-enforcement-gates/58-14-SUMMARY.md` for the
+     envelope pattern; resolves
+     `sig-2026-04-10-orchestrator-deletes-partial-output-instead-of-archiving`.
+
+     Envelope template for future redispatch / retry logic:
+
+         if [ -f "$PLAN_PATH" ]; then
+           node ~/.claude/get-shit-done/bin/gsd-tools.cjs agent archive \
+             --session-id "${SESSION_ID:-${AGENT_SESSION_ID:-unknown}}" \
+             --reason "failed_redispatch_planner" \
+             --phase "$PHASE_NUMBER" \
+             --paths "$PLAN_PATH" \
+             || echo "[warn] GATE-12: archive failed — proceeding with rm as fallback (evidence loss risk)"
+         fi
+-->
+
 <purpose>
 Create executable phase prompts (PLAN.md files) for a roadmap phase with integrated research and verification. Default flow: Research (if needed) -> Plan -> Verify -> Done. Orchestrates gsd-phase-researcher, gsd-planner, and gsd-plan-checker agents with a revision loop (max 3 iterations).
 </purpose>
