@@ -55,6 +55,7 @@ const kb = require('./lib/kb.cjs');
 const telemetry = require('./lib/telemetry.cjs');
 const measurement = require('./lib/measurement.cjs');
 const quick = require('./lib/quick.cjs');
+const handoff = require('./lib/handoff.cjs');
 
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -89,7 +90,7 @@ async function main() {
   const command = args[0];
 
   if (!command) {
-    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement, quick');
+    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement, quick, handoff, antipatterns');
   }
 
   switch (command) {
@@ -744,6 +745,34 @@ async function main() {
         quick.cmdQuickClassify(cwd, args.slice(2), raw);
       } else {
         error('Unknown quick subcommand. Available: classify');
+      }
+      break;
+    }
+
+    case 'handoff': {
+      // Phase 58 Plan 10 (GATE-04a/04b): resume handoff archive + staleness hard-stop.
+      // `handoff resolve [--continue-path PATH] [--state-path PATH] [--auto]`
+      // Exit codes: 0 = loaded/archived, 3 = GATE-04b hard-stop (caller aborts),
+      //             1 = unexpected error.
+      const subcommand = args[1];
+      if (subcommand === 'resolve') {
+        handoff.cmdHandoffResolve(cwd, args.slice(2), raw);
+      } else {
+        error('Unknown handoff subcommand. Available: resolve');
+      }
+      break;
+    }
+
+    case 'antipatterns': {
+      // Phase 58 Plan 10 (GATE-04c): severity-tagged anti-pattern registry check.
+      // `antipatterns check [--pattern-id ID ...] [--auto [--acknowledge-blocking ID ...]]`
+      // Exit codes: 0 = pass, 4 = blocking entry needs ack / typed token,
+      //             1 = unexpected error.
+      const subcommand = args[1];
+      if (subcommand === 'check') {
+        await handoff.cmdAntipatternsCheck(cwd, args.slice(2), raw);
+      } else {
+        error('Unknown antipatterns subcommand. Available: check');
       }
       break;
     }
