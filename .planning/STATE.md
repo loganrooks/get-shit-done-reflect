@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-06-PLAN.md (GATE-01 + GATE-14 shipped; branch protection enforce_admins=true, strict=true)
-last_updated: "2026-04-20T17:07:16.092Z"
+stopped_at: Completed 58-07-PLAN.md (GATE-02 + GATE-13 CI enforcement + bootstrap allowlist; Plan 06 GATE-01 preserved)
+last_updated: "2026-04-20T17:14:29.573Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 58
-  percent: 82
+  completed_plans: 59
+  percent: 83
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 5 of 21 (58-01 in progress)
+Plan: 6 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -231,6 +231,9 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-06] Branch protection flipped 2026-04-20 via gh api PUT by orchestrator; post-flip state verified {enforce_admins: true, strict: true, contexts: ["Test"]}
 - [Phase 58-structural-enforcement-gates]: [58-06] GATE-14 live-fire verified blocking: direct admin push rejected with GH006 'Protected branch update failed for refs/heads/main. Required status check Test is expected.'; re-run forbidden under one-fire-sufficient discipline
 - [Phase 58-structural-enforcement-gates]: [58-06] Plan's admin:repo scope guidance was wrong — standard repo scope (default gh auth login) is sufficient to PATCH branch protection for repo owners; no gh auth refresh needed. Correction logged against 58-06-PLAN.md:229
+- [Phase 58]: [58-07] CI grep patterns copy-identical to Plan 01 §1 and Plan 02 §4.1 — zero drift discipline: any CI-to-artifact divergence is a Plan 17 verifier finding, not a silent CI change
+- [Phase 58]: [58-07] GATE-13 allowlist contains 16 entries (not 36 from Plan 02 §4.2) — consecutive Task() blocks share grep -A 5 context windows so only a subset of template bindings are grep-visible; Plan 12 still owes full source rewrite for all 38 bindings
+- [Phase 58]: [58-07] Blank-line hazard in grep -F -f pattern files caught by synthetic-violation test: blank lines match every input line and silently disable the check; allowlist uses #-comments only, no blank separators
 
 ### Roadmap Evolution
 
@@ -294,6 +297,7 @@ Recent decisions affecting current work:
 | Phase 58 P16 | 4min | 1 tasks | 1 files |
 | Phase 58-structural-enforcement-gates P11 | 9min | 2 tasks | 4 files |
 | Phase 58-structural-enforcement-gates P06 | 248min | 2 tasks | 4 files |
+| Phase 58 P07 | 3min | 2 tasks | 3 files |
 
 ### Key Artifacts
 
@@ -312,8 +316,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T17:07:16.074Z
-Stopped at: Completed 58-06-PLAN.md (GATE-01 + GATE-14 shipped; branch protection enforce_admins=true, strict=true)
+Last session: 2026-04-20T17:14:20.119Z
+Stopped at: Completed 58-07-PLAN.md (GATE-02 + GATE-13 CI enforcement + bootstrap allowlist; Plan 06 GATE-01 preserved)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
