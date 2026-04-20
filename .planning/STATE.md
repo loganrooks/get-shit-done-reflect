@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-07-PLAN.md (GATE-02 + GATE-13 CI enforcement + bootstrap allowlist; Plan 06 GATE-01 preserved)
-last_updated: "2026-04-20T17:14:29.573Z"
+stopped_at: Completed 58-08-PLAN.md (GATE-03 quick classify library + CLI + workflow-step + CI post-commit backstop; GATE-01/02/13 preserved, phase advance preserved)
+last_updated: "2026-04-20T17:23:04.181Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 59
-  percent: 83
+  completed_plans: 60
+  percent: 85
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 6 of 21 (58-01 in progress)
+Plan: 7 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -234,6 +234,9 @@ Recent decisions affecting current work:
 - [Phase 58]: [58-07] CI grep patterns copy-identical to Plan 01 §1 and Plan 02 §4.1 — zero drift discipline: any CI-to-artifact divergence is a Plan 17 verifier finding, not a silent CI change
 - [Phase 58]: [58-07] GATE-13 allowlist contains 16 entries (not 36 from Plan 02 §4.2) — consecutive Task() blocks share grep -A 5 context windows so only a subset of template bindings are grep-visible; Plan 12 still owes full source rewrite for all 38 bindings
 - [Phase 58]: [58-07] Blank-line hazard in grep -F -f pattern files caught by synthetic-violation test: blank lines match every input line and silently disable the check; allowlist uses #-comments only, no blank separators
+- [Phase 58-structural-enforcement-gates]: [58-08] Classifier library uses static MANIFEST_SOURCE_ROOTS list (5 roots: agents, commands, get-shit-done, .codex/skills, skills) mirrored from bin/install.js install() source-tree walk rather than importing install.js at runtime — CLAUDE.md dual-directory rule already enforces parity, and adding a 3354-line code-path per classification would be load-bearing
+- [Phase 58-structural-enforcement-gates]: [58-08] Mixed exit code (3) triggers only when runtime-facing AND planning-authority both present in staged set; runtime-facing + pure-docs-only set exits 1 (runtime-facing) — pure-docs does not escalate severity
+- [Phase 58-structural-enforcement-gates]: [58-08] GATE-03 workflow-step placed at quick.md Step 2.5 (branching decision) not Step 8 (final commit); CI post_commit_gate_03 job is the structural enforcer for bypass cases — merge-commit exemption (parents>=2) preserves branch+PR path since GATE-01 already gated it
 
 ### Roadmap Evolution
 
@@ -298,6 +301,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P11 | 9min | 2 tasks | 4 files |
 | Phase 58-structural-enforcement-gates P06 | 248min | 2 tasks | 4 files |
 | Phase 58 P07 | 3min | 2 tasks | 3 files |
+| Phase 58-structural-enforcement-gates P08 | 5min | 2 tasks | 4 files |
 
 ### Key Artifacts
 
@@ -316,8 +320,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T17:14:20.119Z
-Stopped at: Completed 58-07-PLAN.md (GATE-02 + GATE-13 CI enforcement + bootstrap allowlist; Plan 06 GATE-01 preserved)
+Last session: 2026-04-20T17:23:04.172Z
+Stopped at: Completed 58-08-PLAN.md (GATE-03 quick classify library + CLI + workflow-step + CI post-commit backstop; GATE-01/02/13 preserved, phase advance preserved)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
