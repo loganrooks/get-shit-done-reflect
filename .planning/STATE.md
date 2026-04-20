@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-14-PLAN.md (GATE-12 agent archive primitive + CLI + HEADNOTE envelopes in execute-plan/research-phase/plan-phase; fire-event emits per invocation; no existing rm sites to wrap)
-last_updated: "2026-04-20T18:16:57.204Z"
+stopped_at: Completed 58-15-PLAN.md (GATE-11 release-boundary CLI + release-lag-template + wiring in execute-phase.md + complete-milestone.md; fire-event emits per invocation; verified current/lag/deferred paths)
+last_updated: "2026-04-20T18:28:50.494Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 66
-  percent: 93
+  completed_plans: 67
+  percent: 94
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 13 of 21 (58-01 in progress)
+Plan: 14 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -262,6 +262,9 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-14] GATE-12 cross-filesystem-safe move via fs.renameSync + EXDEV fallback to cpSync+rmSync (dirs) or copyFileSync+unlinkSync (files); avoids data loss when .planning/ and source path live on different mounts
 - [Phase 58-structural-enforcement-gates]: [58-14] GATE-12 missing paths recorded in missing[], not errored (exit 0); errors (exit 2) reserved for actual move failures — disjoint from GATE-01 (1-4), GATE-04c (4), GATE-10 (5)
 - [Phase 58-structural-enforcement-gates]: [58-14] GATE-12 no current rm/overwrite sites exist in execute-plan/research-phase/plan-phase.md; plan anticipated this — ships primitive + CLI + HEADNOTE envelopes so future dispatch edits have a fill-in-the-blank wrapper; Plan 17 checks HEADNOTE presence not wrapper count
+- [Phase 58-structural-enforcement-gates]: [58-15] GATE-11 ships as gsd-tools release check CLI (get-shit-done/bin/lib/release.cjs) comparing latest reflect-v* tag to most recent phase-merge commit on main; exit 0 current / 1 lag / 2 explicit_defer; fire-event emits on every invocation
+- [Phase 58-structural-enforcement-gates]: [58-15] Phase-merge detection uses git log --first-parent main --all-match --grep='Merge pull request' --grep='gsd/phase' (BRE-safe) rather than plan-specified single-pattern 'Merge pull request.*from gsd/phase-' which returned empty despite matching commits (git BRE quirk on trailing hyphen); both patterns produce identical semantic coverage
+- [Phase 58-structural-enforcement-gates]: [58-15] Release-lag template located at .planning/handoff/release-lag-template.md (Plan 10 handoff-dir precedent); CLI surfaces copy-to-use command but never writes .planning/release-lag.md itself — named rationale must come from user; stale deferrals (past deferred_to) collapse to lag not continue-defer
 
 ### Roadmap Evolution
 
@@ -333,6 +336,7 @@ Recent decisions affecting current work:
 | Phase 58 P12a | 12 | 2 tasks | 8 files |
 | Phase 58-structural-enforcement-gates P13 | 8min | 2 tasks | 6 files |
 | Phase 58-structural-enforcement-gates P14 | 4min | 2 tasks | 5 files |
+| Phase 58-structural-enforcement-gates P15 | 5min | 2 tasks | 6 files |
 
 ### Key Artifacts
 
@@ -351,8 +355,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T18:16:27.284Z
-Stopped at: Completed 58-14-PLAN.md (GATE-12 agent archive primitive + CLI + HEADNOTE envelopes in execute-plan/research-phase/plan-phase; fire-event emits per invocation; no existing rm sites to wrap)
+Last session: 2026-04-20T18:28:50.485Z
+Stopped at: Completed 58-15-PLAN.md (GATE-11 release-boundary CLI + release-lag-template + wiring in execute-phase.md + complete-milestone.md; fire-event emits per invocation; verified current/lag/deferred paths)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
