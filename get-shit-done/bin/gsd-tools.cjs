@@ -54,6 +54,7 @@ const automation = require('./lib/automation.cjs');
 const kb = require('./lib/kb.cjs');
 const telemetry = require('./lib/telemetry.cjs');
 const measurement = require('./lib/measurement.cjs');
+const quick = require('./lib/quick.cjs');
 
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -88,7 +89,7 @@ async function main() {
   const command = args[0];
 
   if (!command) {
-    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement');
+    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement, quick');
   }
 
   switch (command) {
@@ -730,6 +731,20 @@ async function main() {
 
     case 'measurement': {
       measurement.cmdMeasurement(cwd, args.slice(1), raw);
+      break;
+    }
+
+    case 'quick': {
+      // Phase 58 Plan 08 (GATE-03): direct-to-main eligibility classifier.
+      // `quick classify [--files <path...>]` returns JSON on stdout and an
+      // exit code: 0=pure-docs, 1=runtime-facing, 2=planning-authority, 3=mixed.
+      // Omitting --files falls back to `git diff --name-only --cached`.
+      const subcommand = args[1];
+      if (subcommand === 'classify') {
+        quick.cmdQuickClassify(cwd, args.slice(2), raw);
+      } else {
+        error('Unknown quick subcommand. Available: classify');
+      }
       break;
     }
 
