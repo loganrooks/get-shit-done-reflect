@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-19-PLAN.md (gate_fire_events extractor + delegation-log + ci-notices raw-source loaders + gate-events/.gitkeep; 650 tests pass no regressions)
-last_updated: "2026-04-20T18:38:02.668Z"
+stopped_at: Completed 58-17-PLAN.md (GATE-09b planning-gate + GATE-09c Narrowing Decisions templates + GATE-09d verifier CLI + GATE-09e embedded meta-gate; 7 unit tests pass; fire-event markers emitting)
+last_updated: "2026-04-20T18:43:52.918Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 68
-  percent: 96
+  completed_plans: 69
+  percent: 97
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 15 of 21 (58-01 in progress)
+Plan: 16 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -269,6 +269,13 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-19] session-meta-postlude source wired as optional require inside try/catch suppressing MODULE_NOT_FOUND; Phase 57.9 can ship the module drop-in without extractor changes — status flips from not_available to exposed/not_emitted automatically
 - [Phase 58-structural-enforcement-gates]: [58-19] every delegation-log row surfaces as implicit GATE-05 echo_delegation fire — delegation IS the fire-event record by construction; extractor normalizes to {gate: 'GATE-05', result: 'pass'} keeping count==delegation-count invariant
 - [Phase 58-structural-enforcement-gates]: [58-19] extractor emits two rows per runtime (claude-code, codex-cli) with identical aggregate values to satisfy runtime_dimension symmetry-marker computation; single cross-runtime row would mark asymmetric_only
+- [Phase 58-17]: GATE-09b heuristic scans BOTH CONTEXT.md and RESEARCH.md because resolutions conventionally land in RESEARCH.md for this fork
+- [Phase 58-17]: GATE-09b regex uses \[open(\]|:) grouping-alternation to match both short-form [open] and typed [open:verification] per references/claim-types.md §3; initial \[open[:\]] pattern missed short-form claims (Rule 3 auto-fix)
+- [Phase 58-17]: Narrowing Decisions section uses a None sentinel — absence of the section itself fails GATE-09d, so researchers/planners must explicitly populate 'None — no narrowings' when no narrowings occurred
+- [Phase 58-17]: Meta-gate GATE-09e embeds inside GATE-09d's unwired_gates field rather than shipping as a standalone gate; matches CONTEXT §10 framing
+- [Phase 58-17]: queryGateFireEvents returns null (not empty object) when Plan 19 extractor absent; disambiguates extractor-missing from extractor-present-no-events and prevents false-block during Plan 17/19 execution overlap
+- [Phase 58-17]: Phase-introduced gates enumerated from both CONTEXT.md Requirements-in-scope line (richer; sub-letter gates) and REQUIREMENTS.md traceability table (rolled-up fallback); matches ledger-schema authority pattern
+- [Phase 58-17]: Verifier exit behavior: --raw always exits 0 (inspect JSON.status); non-raw + strict + block exits 1; matches existing gsd-tools frontmatter validate contract from Plan 04
 
 ### Roadmap Evolution
 
@@ -342,6 +349,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P14 | 4min | 2 tasks | 5 files |
 | Phase 58-structural-enforcement-gates P15 | 5min | 2 tasks | 6 files |
 | Phase 58-structural-enforcement-gates P19 | 4min | 1 tasks | 5 files |
+| Phase 58-structural-enforcement-gates P17 | 10min | 2 tasks | 6 files |
 
 ### Key Artifacts
 
@@ -360,8 +368,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T18:38:02.659Z
-Stopped at: Completed 58-19-PLAN.md (gate_fire_events extractor + delegation-log + ci-notices raw-source loaders + gate-events/.gitkeep; 650 tests pass no regressions)
+Last session: 2026-04-20T18:43:25.801Z
+Stopped at: Completed 58-17-PLAN.md (GATE-09b planning-gate + GATE-09c Narrowing Decisions templates + GATE-09d verifier CLI + GATE-09e embedded meta-gate; 7 unit tests pass; fire-event markers emitting)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
