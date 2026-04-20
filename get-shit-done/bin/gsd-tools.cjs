@@ -56,6 +56,7 @@ const telemetry = require('./lib/telemetry.cjs');
 const measurement = require('./lib/measurement.cjs');
 const quick = require('./lib/quick.cjs');
 const handoff = require('./lib/handoff.cjs');
+const reconcile = require('./lib/reconcile.cjs');
 
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -374,8 +375,11 @@ async function main() {
       } else if (subcommand === 'advance') {
         // Phase 58 Plan 06 (GATE-01): structural CI-green gate for phase advancement.
         phase.cmdPhaseAdvance(cwd, args.slice(2), raw);
+      } else if (subcommand === 'reconcile') {
+        // Phase 58 Plan 13 (GATE-10): structural phase-closeout reconciliation.
+        reconcile.cmdPhaseReconcile(cwd, args.slice(1), raw);
       } else {
-        error('Unknown phase subcommand. Available: next-decimal, add, insert, remove, complete, advance');
+        error('Unknown phase subcommand. Available: next-decimal, add, insert, remove, complete, advance, reconcile');
       }
       break;
     }
