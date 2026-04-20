@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-04-PLAN.md
-last_updated: "2026-04-20T12:50:01.103Z"
+stopped_at: Completed 58-16-PLAN.md
+last_updated: "2026-04-20T12:57:38.721Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 55
-  percent: 77
+  completed_plans: 56
+  percent: 79
 ---
 
 # Project State
@@ -221,6 +221,9 @@ Recent decisions affecting current work:
 - [Phase 58]: [58-04]: ledger_entries uses UNIQUE(phase, context_claim) + per-file delete-then-insert idempotency; cross-file orphan sweep deferred to Plan 17+
 - [Phase 58]: [58-04]: ledger discovery regex narrowed to ^\\d+(\\.\\d+[a-z]?)?-LEDGER\\.md$ so legacy UPSTREAM-DRIFT-LEDGER.md and the schema spec itself are excluded from the kb rebuild ledger pass
 - [Phase 58]: [58-04]: validator exit status always 0; callers inspect JSON.valid — matches existing frontmatter validate contract for plan/summary/verification/signal schemas
+- [Phase 58-structural-enforcement-gates]: [58-16] AT-1 Option B selected (explicit defer of GATE-06/07 to Phase 57.9 with GATE-09c provenance) because 57.9 phase directory does not exist at Phase 58 execution time; both ledger entries load_bearing=true, disposition=explicitly_deferred, target_phase_if_deferred='Phase 57.9', validated green against authoritative ledger schema
+- [Phase 58-structural-enforcement-gates]: [58-16] Chain-integrity enforced: Plan 16 creates exactly one defer-provenance artifact; no workflow/agent/installer/config modifications; the defer is the scope (G-3 reflexive GATE-09 compliance — not manufacturing false completion via prose workflow edits)
+- [Phase 58-structural-enforcement-gates]: [58-16] target_phase_if_deferred uses single 'Phase 57.9' target per ledger schema pattern constraint; GATE-07's dual-phase dependency (57.9 markers + 60.1 log-sensor live wiring) recorded in narrowing_provenance.rationale rather than splitting target field
 
 ### Roadmap Evolution
 
@@ -281,6 +284,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P01 | 6 | 3 tasks | 5 files |
 | Phase 58 P02 | 10min | 2 tasks | 2 files |
 | Phase 58 P04 | 9min | 2 tasks | 3 files |
+| Phase 58 P16 | 4min | 1 tasks | 1 files |
 
 ### Key Artifacts
 
@@ -299,8 +303,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T12:50:01.095Z
-Stopped at: Completed 58-04-PLAN.md
+Last session: 2026-04-20T12:57:38.713Z
+Stopped at: Completed 58-16-PLAN.md
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
