@@ -57,6 +57,7 @@ const measurement = require('./lib/measurement.cjs');
 const quick = require('./lib/quick.cjs');
 const handoff = require('./lib/handoff.cjs');
 const reconcile = require('./lib/reconcile.cjs');
+const archive = require('./lib/archive.cjs');
 
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -91,7 +92,7 @@ async function main() {
   const command = args[0];
 
   if (!command) {
-    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement, quick, handoff, antipatterns');
+    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement, quick, handoff, antipatterns, agent');
   }
 
   switch (command) {
@@ -777,6 +778,21 @@ async function main() {
         await handoff.cmdAntipatternsCheck(cwd, args.slice(2), raw);
       } else {
         error('Unknown antipatterns subcommand. Available: check');
+      }
+      break;
+    }
+
+    case 'agent': {
+      // Phase 58 Plan 14 (GATE-12): evidence-preserving archive for failed /
+      // interrupted agent output. `agent archive --session-id <id> --reason <r>
+      // [--phase <N>] [--dry-run] [--metadata <json>] --paths <p> [<p>...]`.
+      // Exit codes: 0 = success (all paths archived or missing), 2 = partial
+      // failure (one or more moves errored), 1 = usage error.
+      const subcommand = args[1];
+      if (subcommand === 'archive') {
+        archive.cmdAgentArchive(cwd, args.slice(2), raw);
+      } else {
+        error('Unknown agent subcommand. Available: archive');
       }
       break;
     }
