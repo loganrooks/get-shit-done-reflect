@@ -1,0 +1,89 @@
+# GATE-13 bootstrap allowlist — template-variable model= bindings that Wave 3 Plan 12
+# will retire.
+#
+# Purpose
+# -------
+# This file enumerates the currently-known `Task(...)` spawn sites whose runtime
+# model= attribute still binds a `{xxx_model}` template variable. These bindings
+# are the compaction-unsafe pattern that GATE-13 eventually blocks
+# (see .planning/phases/58-structural-enforcement-gates/58-02-gate13-dispatch-contract-design.md §4.2).
+#
+# Until Wave 3 Plan 12 inserts the inline dispatch-contract comment block above
+# every spawn site (which bakes in the literal model name as a compaction-survival
+# record), the naked grep would fail CI on every PR. Each non-comment line below
+# is a `path-lineno-` substring that `grep -v -F -f .github/gate-13-allowlist.txt`
+# excludes from the CI check in `.github/workflows/ci.yml`.
+#
+# Lifecycle
+# ---------
+# Plan 12 (Wave 3) retires entries as it edits each site:
+#   1. Resolve literal model via `resolveModelInternal(cwd, agent_type)`.
+#   2. Insert the GATE-05 echo macro + GATE-13 dispatch-contract comment block.
+#   3. Leave the runtime Task()'s model= attribute unchanged (still template).
+#   4. Delete the corresponding line from this file in the same commit.
+#
+# When the file has no non-comment entries, Plan 12a deletes the file entirely
+# and the naked CI grep from §4.1 of the design artifact becomes authoritative.
+#
+# Exit criterion
+# --------------
+# File removed + GATE-13 CI step emits `gate_fired=GATE-13 result=pass` with zero
+# hits against the agents/ get-shit-done/workflows/ commands/ .codex/skills/
+# surface. Ledger entry recorded by Plan 12a.
+#
+# Format
+# ------
+# Each entry is a substring (including trailing dash) matching the `grep -A 5`
+# context-line prefix. `grep` in context mode uses `-` (not `:`) between the
+# filename and line number, so allowlist entries use that same format.
+#
+# IMPORTANT: `grep -F -f` treats a blank line in the pattern file as a pattern
+# that matches EVERY line. Do NOT leave blank lines between entries — comment
+# lines (starting with `#`) are safe because grep output never starts with `#`,
+# but blank lines would disable the check. Regenerate with:
+#
+#   grep -rn --include='*.md' -A 5 'Task(' agents/ get-shit-done/workflows/ commands/ .codex/skills/ 2>/dev/null \
+#     | grep -E 'model\s*=\s*"\{[^}]+\}"' \
+#     | perl -pe 's/^(.+?\.md-\d+-).*/$1/'
+#
+# Enumeration provenance
+# ----------------------
+# Sites enumerated from:
+#   .planning/phases/58-structural-enforcement-gates/58-02-gate05-enumeration.md §4.2
+# Subset actually matched by the `-A 5` CI grep is recorded below (consecutive
+# Task() blocks share context windows; some enumerated sites are covered
+# transitively by adjacent matches).
+#
+# --- Plan 02 §4.2 rows visible to the CI grep at Plan 07 authoring time ---
+# row 2  — collect-signals.md synthesizer_model
+get-shit-done/workflows/collect-signals.md-378-
+# row 15 — execute-phase.md executor_model
+get-shit-done/workflows/execute-phase.md-191-
+# row 7  — quick.md checker_model (plan-checker spawn)
+get-shit-done/workflows/quick.md-503-
+# row 8  — quick.md planner_model (second planner spawn)
+get-shit-done/workflows/quick.md-548-
+# row 11 — plan-phase.md researcher_model (general-purpose proxy)
+get-shit-done/workflows/plan-phase.md-137-
+# row 12 — plan-phase.md planner_model (general-purpose proxy)
+get-shit-done/workflows/plan-phase.md-356-
+# row 13 — plan-phase.md checker_model
+get-shit-done/workflows/plan-phase.md-411-
+# row 14 — plan-phase.md planner_model (revision loop, general-purpose proxy)
+get-shit-done/workflows/plan-phase.md-459-
+# row 23 — commands/gsd/debug.md debugger_model
+commands/gsd/debug.md-96-
+# row 24 — commands/gsd/debug.md debugger_model (continuation)
+commands/gsd/debug.md-149-
+# row 39 — commands/gsd/research-phase.md researcher_model
+commands/gsd/research-phase.md-140-
+# row 40 — commands/gsd/research-phase.md researcher_model (iteration)
+commands/gsd/research-phase.md-174-
+# row 41 — .codex/skills/gsdr-research-phase/SKILL.md researcher_model
+.codex/skills/gsdr-research-phase/SKILL.md-135-
+# row 42 — .codex/skills/gsdr-research-phase/SKILL.md researcher_model (continuation)
+.codex/skills/gsdr-research-phase/SKILL.md-169-
+# row 44 — .codex/skills/gsdr-debug/SKILL.md debugger_model
+.codex/skills/gsdr-debug/SKILL.md-90-
+# row 45 — .codex/skills/gsdr-debug/SKILL.md debugger_model (continuation)
+.codex/skills/gsdr-debug/SKILL.md-143-
