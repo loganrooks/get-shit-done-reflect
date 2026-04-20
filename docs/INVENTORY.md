@@ -10,7 +10,7 @@
 
 ---
 
-## Agents (31 shipped)
+## Agents (33 shipped)
 
 Full roster at `agents/gsd-*.md`. The "Primary doc" column flags whether [`docs/AGENTS.md`](AGENTS.md) carries a full role card (*primary*), a short stub in the "Advanced and Specialized Agents" section (*advanced stub*), or no coverage (*inventory only*).
 
@@ -47,12 +47,14 @@ Full roster at `agents/gsd-*.md`. The "Primary doc" column flags whether [`docs/
 | gsd-eval-auditor | Retroactive audit of an AI phase's evaluation coverage; produces EVAL-REVIEW.md (COVERED/PARTIAL/MISSING). | `/gsd-eval-review` | advanced stub |
 | gsd-framework-selector | ≤6-question interactive decision matrix that scores and recommends an AI/LLM framework. | `/gsd-ai-integration-phase`, `/gsd-select-framework` | advanced stub |
 | gsd-intel-updater | Writes structured intel files (`.planning/intel/*.json`) used as a queryable codebase knowledge base. | `/gsd-intel` | advanced stub |
+| gsd-doc-classifier | Classifies a single planning document as ADR, PRD, SPEC, DOC, or UNKNOWN; spawned in parallel to process the doc corpus. | `/gsd-ingest-docs` | advanced stub |
+| gsd-doc-synthesizer | Synthesizes classified planning docs into a single consolidated context with precedence rules, cycle detection, and three-bucket conflicts report. | `/gsd-ingest-docs` | advanced stub |
 
-**Coverage note.** `docs/AGENTS.md` gives full role cards for 21 primary agents plus concise stubs for the 10 advanced agents. The Agent Tool Permissions Summary in that file covers only the primary 21 agents; the advanced agents' tool lists are captured in their per-agent frontmatter in `agents/gsd-*.md`.
+**Coverage note.** `docs/AGENTS.md` gives full role cards for 21 primary agents plus concise stubs for the 12 advanced agents. The Agent Tool Permissions Summary in that file covers only the primary 21 agents; the advanced agents' tool lists are captured in their per-agent frontmatter in `agents/gsd-*.md`.
 
 ---
 
-## Commands (76 shipped)
+## Commands (82 shipped)
 
 Full roster at `commands/gsd/*.md`. The groupings below mirror `docs/COMMANDS.md` section order; each row carries the command name, a one-line role derived from the command's frontmatter `description:`, and a link to the source file. `tests/command-count-sync.test.cjs` locks the count against the filesystem.
 
@@ -70,6 +72,9 @@ Full roster at `commands/gsd/*.md`. The groupings below mirror `docs/COMMANDS.md
 | `/gsd-ai-integration-phase` | Generate AI design contract (AI-SPEC.md) via framework selection, research, and eval planning. | [commands/gsd/ai-integration-phase.md](../commands/gsd/ai-integration-phase.md) |
 | `/gsd-plan-phase` | Create detailed phase plan (PLAN.md) with verification loop. | [commands/gsd/plan-phase.md](../commands/gsd/plan-phase.md) |
 | `/gsd-plan-review-convergence` | Cross-AI plan convergence loop — replan with review feedback until no HIGH concerns remain (max 3 cycles). | [commands/gsd/plan-review-convergence.md](../commands/gsd/plan-review-convergence.md) |
+| `/gsd-ultraplan-phase` | [BETA] Offload plan phase to Claude Code's ultraplan cloud — drafts remotely, review in browser, import back via `/gsd-import`. Claude Code only. | [commands/gsd/ultraplan-phase.md](../commands/gsd/ultraplan-phase.md) |
+| `/gsd-spike` | Rapidly spike an idea with throwaway experiments to validate feasibility before planning. | [commands/gsd/spike.md](../commands/gsd/spike.md) |
+| `/gsd-sketch` | Rapidly sketch UI/design ideas using throwaway HTML mockups with multi-variant exploration. | [commands/gsd/sketch.md](../commands/gsd/sketch.md) |
 | `/gsd-research-phase` | Research how to implement a phase (standalone). | [commands/gsd/research-phase.md](../commands/gsd/research-phase.md) |
 | `/gsd-execute-phase` | Execute all plans in a phase with wave-based parallelization. | [commands/gsd/execute-phase.md](../commands/gsd/execute-phase.md) |
 | `/gsd-verify-work` | Validate built features through conversational UAT with auto-diagnosis. | [commands/gsd/verify-work.md](../commands/gsd/verify-work.md) |
@@ -153,6 +158,9 @@ Full roster at `commands/gsd/*.md`. The groupings below mirror `docs/COMMANDS.md
 | Command | Role | Source |
 |---------|------|--------|
 | `/gsd-docs-update` | Generate or update project documentation verified against the codebase. | [commands/gsd/docs-update.md](../commands/gsd/docs-update.md) |
+| `/gsd-ingest-docs` | Scan a repo for mixed ADRs/PRDs/SPECs/DOCs and bootstrap or merge the full `.planning/` setup with classification, synthesis, and conflicts report. | [commands/gsd/ingest-docs.md](../commands/gsd/ingest-docs.md) |
+| `/gsd-spike-wrap-up` | Package spike findings into a persistent project skill for future build conversations. | [commands/gsd/spike-wrap-up.md](../commands/gsd/spike-wrap-up.md) |
+| `/gsd-sketch-wrap-up` | Package sketch design findings into a persistent project skill for future build conversations. | [commands/gsd/sketch-wrap-up.md](../commands/gsd/sketch-wrap-up.md) |
 | `/gsd-profile-user` | Generate developer behavioral profile and Claude-discoverable artifacts. | [commands/gsd/profile-user.md](../commands/gsd/profile-user.md) |
 | `/gsd-settings` | Configure GSD workflow toggles and model profile. | [commands/gsd/settings.md](../commands/gsd/settings.md) |
 | `/gsd-set-profile` | Switch model profile for GSD agents (quality/balanced/budget/inherit). | [commands/gsd/set-profile.md](../commands/gsd/set-profile.md) |
@@ -164,7 +172,7 @@ Full roster at `commands/gsd/*.md`. The groupings below mirror `docs/COMMANDS.md
 
 ---
 
-## Workflows (73 shipped)
+## Workflows (79 shipped)
 
 Full roster at `get-shit-done/workflows/*.md`. Workflows are thin orchestrators that commands reference internally; most are not read directly by end users. Rows below map each workflow file to its role (derived from the `<purpose>` block) and, where applicable, to the command that invokes it.
 
@@ -202,6 +210,7 @@ Full roster at `get-shit-done/workflows/*.md`. Workflows are thin orchestrators 
 | `help.md` | Display the complete GSD command reference. | `/gsd-help` |
 | `import.md` | Ingest external plans with conflict detection against existing project decisions. | `/gsd-import` |
 | `inbox.md` | Triage open GitHub issues and PRs against project contribution templates. | `/gsd-inbox` |
+| `ingest-docs.md` | Scan a repo for mixed planning docs; classify, synthesize, and bootstrap or merge into `.planning/` with a conflicts report. | `/gsd-ingest-docs` |
 | `insert-phase.md` | Insert a decimal phase for urgent work discovered mid-milestone. | `/gsd-insert-phase` |
 | `list-phase-assumptions.md` | Surface Claude's assumptions about a phase before planning. | `/gsd-list-phase-assumptions` |
 | `list-workspaces.md` | List all GSD workspaces found in `~/gsd-workspaces/` with their status. | `/gsd-list-workspaces` |
@@ -233,11 +242,16 @@ Full roster at `get-shit-done/workflows/*.md`. Workflows are thin orchestrators 
 | `session-report.md` | Session report — token usage, work summary, outcomes. | `/gsd-session-report` |
 | `settings.md` | Configure GSD workflow toggles and model profile. | `/gsd-settings`, `/gsd-set-profile` |
 | `ship.md` | Create PR, run review, and prepare for merge after verification. | `/gsd-ship` |
+| `sketch.md` | Explore design directions through throwaway HTML mockups with 2-3 variants per sketch. | `/gsd-sketch` |
+| `sketch-wrap-up.md` | Curate sketch findings and package them as a persistent `sketch-findings-[project]` skill. | `/gsd-sketch-wrap-up` |
 | `spec-phase.md` | Socratic spec refinement with ambiguity scoring; produces SPEC.md. | `/gsd-spec-phase` |
+| `spike.md` | Rapid feasibility validation through focused, throwaway experiments. | `/gsd-spike` |
+| `spike-wrap-up.md` | Curate spike findings and package them as a persistent `spike-findings-[project]` skill. | `/gsd-spike-wrap-up` |
 | `stats.md` | Project statistics rendering — phases, plans, requirements, git metrics. | `/gsd-stats` |
 | `transition.md` | Phase-boundary transition workflow — workstream checks, state advancement. | `execute-phase.md`, `/gsd-next` |
 | `ui-phase.md` | Generate UI-SPEC.md design contract via gsd-ui-researcher. | `/gsd-ui-phase` |
 | `ui-review.md` | Retroactive 6-pillar visual audit via gsd-ui-auditor. | `/gsd-ui-review` |
+| `ultraplan-phase.md` | [BETA] Offload planning to Claude Code's ultraplan cloud; drafts remotely and imports back via `/gsd-import`. | `/gsd-ultraplan-phase` |
 | `undo.md` | Safe git revert — phase or plan commits using the phase manifest. | `/gsd-undo` |
 | `update.md` | Update GSD to latest version with changelog display. | `/gsd-update` |
 | `validate-phase.md` | Retroactively audit and fill Nyquist validation gaps for a completed phase. | `/gsd-validate-phase` |
@@ -248,7 +262,7 @@ Full roster at `get-shit-done/workflows/*.md`. Workflows are thin orchestrators 
 
 ---
 
-## References (41 shipped)
+## References (49 shipped)
 
 Full roster at `get-shit-done/references/*.md`. References are shared knowledge documents that workflows and agents `@-reference`. The groupings below match [`docs/ARCHITECTURE.md`](ARCHITECTURE.md#references-get-shit-donereferencesmd) — core, workflow, thinking-model clusters, and the modular planner decomposition.
 
@@ -269,6 +283,9 @@ Full roster at `get-shit-done/references/*.md`. References are shared knowledge 
 | `tdd.md` | Test-driven development integration patterns. |
 | `ui-brand.md` | Visual output formatting patterns. |
 | `common-bug-patterns.md` | Common bug patterns for code review and verification. |
+| `debugger-philosophy.md` | Evergreen debugging disciplines loaded by `gsd-debugger`. |
+| `mandatory-initial-read.md` | Shared required-reading boilerplate injected into agent prompts. |
+| `project-skills-discovery.md` | Shared project-skills-discovery boilerplate injected into agent prompts. |
 
 ### Workflow References
 
@@ -292,6 +309,18 @@ Full roster at `get-shit-done/references/*.md`. References are shared knowledge 
 | `ai-evals.md` | AI evaluation design reference for `/gsd-ai-integration-phase`. |
 | `ai-frameworks.md` | AI framework decision-matrix reference for `gsd-framework-selector`. |
 | `executor-examples.md` | Worked examples for the gsd-executor agent. |
+| `doc-conflict-engine.md` | Shared conflict-detection contract for ingest/import workflows. |
+
+### Sketch References
+
+References consumed by the `/gsd-sketch` workflow and its wrap-up companion.
+
+| Reference | Role |
+|-----------|------|
+| `sketch-interactivity.md` | Rules for making HTML sketches feel interactive and alive. |
+| `sketch-theme-system.md` | Shared CSS theme variable system for cross-sketch consistency. |
+| `sketch-tooling.md` | Floating toolbar utilities included in every sketch. |
+| `sketch-variant-patterns.md` | Multi-variant HTML patterns (tabs, side-by-side, overlays). |
 
 ### Thinking-Model References
 
@@ -317,7 +346,7 @@ The `gsd-planner` agent is decomposed into a core agent plus reference modules t
 | `planner-revision.md` | Plan revision patterns for iterative refinement. |
 | `planner-source-audit.md` | Planner source-audit and authority-limit rules. |
 
-> **Subdirectory:** `get-shit-done/references/few-shot-examples/` contains additional few-shot examples (`plan-checker.md`, `verifier.md`) that are referenced from specific agents. These are not counted in the 41 top-level references.
+> **Subdirectory:** `get-shit-done/references/few-shot-examples/` contains additional few-shot examples (`plan-checker.md`, `verifier.md`) that are referenced from specific agents. These are not counted in the 49 top-level references.
 
 ---
 
