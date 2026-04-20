@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: executing
-stopped_at: Completed 58-18-PLAN.md (XRT-01 planning assertion + closeout capability-matrix diff verifier; 5 unit tests pass; fire-event markers emitting on both runtimes)
-last_updated: "2026-04-20T18:53:49.859Z"
+status: verifying
+stopped_at: Completed 58-20-PLAN.md (Phase 58 LEDGER.md + ROADMAP update; 70 ledger entries; GATE-09d verifier passes; AT-5 closed; Phase 58 complete)
+last_updated: "2026-04-20T19:10:32.578Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
-  completed_phases: 13
+  completed_phases: 14
   total_plans: 71
-  completed_plans: 70
-  percent: 99
+  completed_plans: 71
+  percent: 100
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 17 of 21 (58-01 in progress)
-Status: Ready to execute
+Plan: 21 of 21 (58-01 in progress)
+Status: Phase complete — ready for verification
 
 ### Recent Phases
 
@@ -279,6 +279,10 @@ Recent decisions affecting current work:
 - [Phase 58]: XRT-01 planning-phase assertion uses grep heuristic on CONTEXT.md alone (not CONTEXT+RESEARCH); satisfaction vocabulary is permissive-OR of 58-05 Codex-behavior values + narrative forms
 - [Phase 58]: XRT-01 closeout capability-matrix diff resolves phase-start SHA via 'git log --first-parent --reverse -- <phaseDir>'; trimEnd() normalization handles execGit stdout trimming vs fs.readFileSync newline preservation asymmetry
 - [Phase 58]: XRT-01 closeout runs independently of --no-meta-gate flag (which targets GATE-09e); deadlock guards (missing matrix / no git history) return pass-with-reason to avoid false-blocking on operator-side infrastructure gaps
+- [Phase 58]: Phase 58-20: Ledger entries are one-per-claim-prefix (60 unique 30-char prefixes) + 6 Q-resolutions + 2 narrowing entries + 2 pre-authored defer entries = 70 total
+- [Phase 58]: Phase 58-20: Q4 (framework-invisibility) deferred to Phase 60.1 rather than collapsed; answerable only empirically from intervention-outcome measurement
+- [Phase 58]: Phase 58-20: GATE-06 and GATE-07 deferred to Phase 57.9 with narrowing_provenance per 58-16 defer-provenance artifact (AT-1 Option B branch)
+- [Phase 58]: Phase 58-20: AT-5 reflexive GATE-09 closed — Phase 58 runs under its own shipped discipline
 
 ### Roadmap Evolution
 
@@ -354,6 +358,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P19 | 4min | 1 tasks | 5 files |
 | Phase 58-structural-enforcement-gates P17 | 10min | 2 tasks | 6 files |
 | Phase 58 P18 | 5min | 1 tasks | 4 files |
+| Phase 58-structural-enforcement-gates P20 | 10min | 2 tasks | 3 files |
 
 ### Key Artifacts
 
@@ -372,8 +377,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T18:53:37.035Z
-Stopped at: Completed 58-18-PLAN.md (XRT-01 planning assertion + closeout capability-matrix diff verifier; 5 unit tests pass; fire-event markers emitting on both runtimes)
+Last session: 2026-04-20T19:10:19.079Z
+Stopped at: Completed 58-20-PLAN.md (Phase 58 LEDGER.md + ROADMAP update; 70 ledger entries; GATE-09d verifier passes; AT-5 closed; Phase 58 complete)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
