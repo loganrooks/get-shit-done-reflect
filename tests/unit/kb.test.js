@@ -21,6 +21,7 @@ import { createRequire } from 'node:module'
 
 const require = createRequire(import.meta.url)
 const GSD_TOOLS = path.resolve(process.cwd(), 'get-shit-done/bin/gsd-tools.cjs')
+const { reconstructFrontmatter } = require('../../get-shit-done/bin/lib/frontmatter.cjs')
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -95,6 +96,54 @@ function writeSpikeFixture(kbDir, project, filename, frontmatterFields) {
   const dir = path.join(kbDir, 'spikes', project)
   fs.mkdirSync(dir, { recursive: true })
   const content = `---\n${lines.join('\n')}\n---\n\n## Hypothesis\n\nTest spike.\n`
+  const filePath = path.join(dir, filename)
+  fs.writeFileSync(filePath, content, 'utf-8')
+  return filePath
+}
+
+function makeSignature(role) {
+  return {
+    role,
+    harness: 'codex-cli',
+    platform: 'codex',
+    vendor: 'openai',
+    model: 'gpt-5.4',
+    reasoning_effort: 'xhigh',
+    profile: 'quality',
+    gsd_version: '1.19.4+dev',
+    generated_at: '2026-04-17T00:00:00Z',
+    session_id: 'thread-123',
+    provenance_status: {
+      role: 'derived',
+      harness: 'exposed',
+      platform: 'derived',
+      vendor: 'derived',
+      model: 'exposed',
+      reasoning_effort: 'exposed',
+      profile: 'derived',
+      gsd_version: 'derived',
+      generated_at: 'exposed',
+      session_id: 'exposed',
+    },
+    provenance_source: {
+      role: 'artifact_role',
+      harness: 'runtime_context',
+      platform: 'derived_from_harness',
+      vendor: 'derived_from_harness',
+      model: 'codex_state_store',
+      reasoning_effort: 'codex_state_store',
+      profile: 'config',
+      gsd_version: 'installed_harness',
+      generated_at: 'writer_clock',
+      session_id: 'env:CODEX_THREAD_ID',
+    },
+  }
+}
+
+function writeStructuredSignalFixture(kbDir, project, filename, frontmatterFields) {
+  const dir = path.join(kbDir, 'signals', project)
+  fs.mkdirSync(dir, { recursive: true })
+  const content = `---\n${reconstructFrontmatter(frontmatterFields)}\n---\n\n## What Happened\n\nStructured fixture ${filename}\n`
   const filePath = path.join(dir, filename)
   fs.writeFileSync(filePath, content, 'utf-8')
   return filePath
@@ -836,6 +885,151 @@ describeIf('status normalization (Pitfall 4)', () => {
       expect(row.status).toBe('active')
       // lifecycle_state: remediated (derived from status)
       expect(row.lifecycle_state).toBe('remediated')
+    },
+    10000
+  )
+})
+
+// ─── 9. Split provenance bridge (Phase 57.8) ────────────────────────────────
+
+describeIf('split provenance KB bridge (Phase 57.8)', () => {
+  tmpdirTest(
+    'split-provenance signals populate structured JSON columns and derive legacy flat echoes',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      writeStructuredSignalFixture(kbDir, 'test-project', 'sig-split.md', {
+        id: 'sig-split-provenance',
+        type: 'signal',
+        project: 'test-project',
+        tags: ['split', 'provenance'],
+        created: '2026-04-17T00:00:00Z',
+        updated: '2026-04-17T00:00:00Z',
+        durability: 'convention',
+        status: 'active',
+        severity: 'notable',
+        signal_type: 'deviation',
+        provenance_schema: 'v2_split',
+        about_work: [makeSignature('planner')],
+        detected_by: makeSignature('sensor'),
+        written_by: makeSignature('synthesizer'),
+      })
+
+      const result = runKb(tmpdir, 'rebuild')
+      expect(result.errors).toBe(0)
+
+      const db = openDb(tmpdir)
+      const row = db.prepare(`
+        SELECT provenance_schema, provenance_status, about_work_json, detected_by_json, written_by_json,
+               runtime, model, gsd_version
+        FROM signals
+        WHERE id = ?
+      `).get('sig-split-provenance')
+
+      expect(row.provenance_schema).toBe('v2_split')
+      expect(row.provenance_status).toBe('')
+      expect(JSON.parse(row.about_work_json)[0].role).toBe('planner')
+      expect(JSON.parse(row.detected_by_json).role).toBe('sensor')
+      expect(JSON.parse(row.written_by_json).role).toBe('synthesizer')
+      expect(row.runtime).toBe('codex-cli')
+      expect(row.model).toBe('gpt-5.4')
+      expect(row.gsd_version).toBe('1.19.4+dev')
+    },
+    10000
+  )
+
+  tmpdirTest(
+    'legacy provenance annotations persist alongside flat echo fields',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      writeSignalFixture(kbDir, 'test-project', 'sig-legacy.md', {
+        id: 'sig-legacy-provenance',
+        type: 'signal',
+        project: 'test-project',
+        tags: [],
+        created: '2026-04-17T00:00:00Z',
+        severity: 'minor',
+        signal_type: 'deviation',
+        runtime: 'claude-code',
+        model: 'claude-opus-4-6',
+        gsd_version: '1.18.2+dev',
+        provenance_schema: 'v1_legacy',
+        provenance_status: 'legacy_mixed',
+      })
+
+      const result = runKb(tmpdir, 'rebuild')
+      expect(result.errors).toBe(0)
+
+      const db = openDb(tmpdir)
+      const row = db.prepare(`
+        SELECT provenance_schema, provenance_status, runtime, model, gsd_version
+        FROM signals
+        WHERE id = ?
+      `).get('sig-legacy-provenance')
+
+      expect(row.provenance_schema).toBe('v1_legacy')
+      expect(row.provenance_status).toBe('legacy_mixed')
+      expect(row.runtime).toBe('claude-code')
+      expect(row.model).toBe('claude-opus-4-6')
+      expect(row.gsd_version).toBe('1.18.2+dev')
+    },
+    10000
+  )
+
+  tmpdirTest(
+    'rebuild upgrades an existing pre-57.8 kb.db before creating provenance indexes',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      writeSignalFixture(kbDir, 'test-project', 'sig-legacy-pre57-8.md', {
+        id: 'sig-legacy-pre57-8',
+        type: 'signal',
+        project: 'test-project',
+        tags: [],
+        created: '2026-04-17T00:00:00Z',
+        severity: 'minor',
+        signal_type: 'deviation',
+        runtime: 'claude-code',
+      })
+
+      const { DatabaseSync } = require('node:sqlite')
+      const dbPath = path.join(tmpdir, '.planning', 'knowledge', 'kb.db')
+      const db = new DatabaseSync(dbPath)
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS signals (
+          id TEXT PRIMARY KEY,
+          file_path TEXT NOT NULL,
+          project TEXT NOT NULL DEFAULT '',
+          severity TEXT NOT NULL DEFAULT 'minor',
+          lifecycle_state TEXT DEFAULT 'detected',
+          polarity TEXT DEFAULT 'negative',
+          signal_category TEXT DEFAULT 'negative',
+          disposition TEXT DEFAULT '',
+          signal_type TEXT DEFAULT '',
+          detection_method TEXT DEFAULT '',
+          origin TEXT DEFAULT '',
+          created TEXT NOT NULL DEFAULT '',
+          updated TEXT DEFAULT '',
+          phase TEXT DEFAULT '',
+          plan TEXT DEFAULT '',
+          runtime TEXT DEFAULT '',
+          model TEXT DEFAULT '',
+          gsd_version TEXT DEFAULT '',
+          occurrence_count INTEGER DEFAULT 1,
+          durability TEXT DEFAULT '',
+          confidence TEXT DEFAULT 'medium',
+          status TEXT DEFAULT 'active',
+          content_hash TEXT NOT NULL
+        );
+      `)
+      db.close()
+
+      const result = runKb(tmpdir, 'rebuild')
+      expect(result.errors).toBe(0)
+
+      const upgraded = openDb(tmpdir)
+      const columns = upgraded.prepare("PRAGMA table_info(signals)").all().map(c => c.name)
+      expect(columns).toContain('provenance_schema')
+      expect(columns).toContain('about_work_json')
+      expect(columns).toContain('written_by_json')
     },
     10000
   )

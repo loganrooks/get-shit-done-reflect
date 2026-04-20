@@ -323,6 +323,12 @@ fi
 5. **Existence check on output file.** The only reliable signal that dispatch succeeded; `codex exec` exit code alone is not trustworthy.
 6. **Exit with diagnostic on failure.** Surfaces the failure mode to the user with a pointer to RESEARCH.md §Q2, not a silent success.
 
+**Claude CLI note (when the user explicitly wants Opus / Claude cross-vendor dispatch):**
+
+7. **Prefer `--model 'opus[1m]'` by default for audit/spec-heavy Claude jobs.** If the assembled prompt is plausibly above ~80k input tokens, the 1M-context selector is required. If cost is equal in your environment, use `opus[1m]` as the safer default rather than trying to guess the cutoff from memory.
+8. **Pass long Claude prompts over stdin, not as one shell argument.** Use `cat "$PROMPT_FILE" | claude -p --model 'opus[1m]' ...` so the full task spec stays intact while avoiding CLI-side `"Prompt is too long"` failures that can happen before the model's actual context window is the bottleneck.
+9. **Record a rough prompt-size estimate when dispatching long Claude jobs.** At minimum, capture character count and a rough token estimate (for example `chars / 4`) in the log or dispatch note so model-selection decisions are auditable later.
+
 ```
 # TODO (Q2 spike candidate): cross-model dispatch reliability is unmeasured.
 # Post-implementation, design a spike that dispatches 5-10 audit task specs
@@ -376,4 +382,3 @@ The `commit_docs` flag in `.planning/config.json` gates whether the commit actua
 - Do NOT collapse the composition principle into a precedence rule. If obligations tension, the task spec surfaces the tension to the auditor rather than resolving it.
 
 </process>
-

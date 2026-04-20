@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const { normalizePhaseName, findPhaseInternal, generateSlugInternal, normalizeMd, toPosixPath, output, error } = require('./core.cjs');
 const { reconstructFrontmatter } = require('./frontmatter.cjs');
+const { buildArtifactSignature } = require('./provenance.cjs');
 
 function cmdTemplateSelect(cwd, planPath, raw) {
   if (!planPath) {
@@ -75,6 +76,7 @@ function cmdTemplateFill(cwd, templateType, options, raw) {
       frontmatter = {
         phase: phaseId,
         plan: planNum,
+        signature: buildArtifactSignature({ cwd, role: 'executor' }),
         subsystem: '[primary category]',
         tags: [],
         provides: [],
@@ -122,6 +124,7 @@ function cmdTemplateFill(cwd, templateType, options, raw) {
       frontmatter = {
         phase: phaseId,
         plan: planNum,
+        signature: buildArtifactSignature({ cwd, role: 'planner' }),
         type: planType,
         wave,
         depends_on: [],
@@ -167,6 +170,7 @@ function cmdTemplateFill(cwd, templateType, options, raw) {
     case 'verification': {
       frontmatter = {
         phase: phaseId,
+        signature: buildArtifactSignature({ cwd, role: 'verifier' }),
         verified: new Date().toISOString(),
         status: 'pending',
         score: '0/0 must-haves verified',

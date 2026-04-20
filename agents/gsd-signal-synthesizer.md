@@ -253,10 +253,15 @@ For each signal that passed all gates (trace filter, dedup, rigor, cap):
    - `confidence` -- from sensor candidate (default: medium)
    - `confidence_basis` -- from sensor candidate (default: "")
 
-   **Provenance fields:**
-   - `runtime` -- from sensor output if available (default: omit)
-   - `model` -- from sensor output if available (default: omit)
-   - `gsd_version` -- read from `~/.claude/get-shit-done/VERSION` file; if not found, read from `.planning/config.json` `gsd_reflect_version` field; fallback `"unknown"`
+   **Split provenance fields (57.8):**
+   - `provenance_schema: v2_split` for new signals
+   - `about_work[]` -- one or more work-provenance entries describing the artifact/work under judgment; derive from signal context and the execution artifacts, not from the sensor runtime
+   - `detected_by` -- preserve the detector provenance supplied by the sensor and normalize it into the shared signature vocabulary
+   - `written_by` -- build from the shared writer-side provenance helper so version precedence and missing-fact handling stay honest
+   - `provenance_status` -- only set a top-level annotation when needed (for example legacy corpus markers such as `legacy_mixed`)
+
+   **Legacy compatibility echoes (one-milestone bridge):**
+   - `runtime`, `model`, `gsd_version` -- derive from `written_by` using the compatibility bridge helper rather than inventing them separately
 
    **Remaining lifecycle stubs:**
    - `triage: {}`
@@ -355,7 +360,9 @@ Return a structured report to the orchestrator:
 
 9. **All paths use `~/` prefix in npm source.** The installer converts `~/` to `./` during installation. When referencing paths in this spec, use `~/` consistently.
 
-10. **gsd_version provenance.** Read GSD version from `~/.claude/get-shit-done/VERSION` file first. If not found, fall back to `.planning/config.json` `gsd_reflect_version` field. If neither available, use `"unknown"`. This field supports cross-version signal analytics.
+10. **Split provenance ownership.** Sensors only provide detector provenance. The synthesizer owns `written_by`, `about_work[]`, `provenance_schema`, and the legacy flat compatibility echoes.
+
+11. **Writer-side provenance helper.** Use the shared writer-side provenance helper in `get-shit-done/bin/lib/provenance.cjs` to assemble `written_by` and the legacy flat echo bridge. This preserves the installed-harness > config > repo-mirror `gsd_version` precedence and ensures missing facts become `not_available` rather than guessed values.
 
 <required_reading>
 @~/.claude/get-shit-done/references/agent-protocol.md

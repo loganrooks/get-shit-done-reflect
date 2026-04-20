@@ -3,6 +3,17 @@ name: Publish to npm
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      release_ref:
+        description: "Release tag to publish (for example: reflect-v1.19.5)"
+        required: true
+        type: string
+      update_release_notes:
+        description: "Update the matching GitHub Release notes from CHANGELOG before publish"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   publish:
@@ -14,11 +25,42 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_ref || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: "22.x"
+          cache: "npm"
+
+      - name: Resolve publish target
+        id: target
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "release" ]; then
+            TARGET_REF="$GITHUB_REF"
+            UPDATE_RELEASE_NOTES=true
+          else
+            TARGET_REF="${{ inputs.release_ref }}"
+            UPDATE_RELEASE_NOTES="${{ inputs.update_release_notes }}"
+          fi
+
+          case "$TARGET_REF" in
+            refs/tags/reflect-v*|reflect-v*)
+              ;;
+            *)
+              echo "::error::release_ref must be a release tag like reflect-v1.19.5"
+              exit 1
+              ;;
+          esac
+
+          TAG_NAME="${TARGET_REF#refs/tags/}"
+          VERSION="${TAG_NAME#reflect-v}"
+
+          echo "target_ref=$TARGET_REF" >> "$GITHUB_OUTPUT"
+          echo "tag_name=$TAG_NAME" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "update_release_notes=$UPDATE_RELEASE_NOTES" >> "$GITHUB_OUTPUT"
 
       - name: Update npm for Trusted Publishing (requires >= 11.5.1)
         run: npm install -g npm@latest
@@ -32,7 +74,7 @@ jobs:
       - name: Verify version matches release tag
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
-          TAG_VERSION=${GITHUB_REF#refs/tags/reflect-v}
+          TAG_VERSION="${{ steps.target.outputs.version }}"
           if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
             echo "::error::Version mismatch: package.json has $PKG_VERSION but tag is v$TAG_VERSION"
             exit 1
@@ -41,8 +83,9 @@ jobs:
 
       - name: Extract release notes from CHANGELOG
         id: release_notes
+        if: ${{ steps.target.outputs.update_release_notes == 'true' }}
         run: |
-          VERSION=${GITHUB_REF#refs/tags/reflect-v}
+          VERSION="${{ steps.target.outputs.version }}"
           echo "Extracting release notes for version $VERSION"
 
           # Extract content between this version header and the next version header
@@ -59,10 +102,11 @@ jobs:
           echo "notes_file=/tmp/release-notes.md" >> "$GITHUB_OUTPUT"
 
       - name: Update release with changelog notes
+        if: ${{ steps.target.outputs.update_release_notes == 'true' }}
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          VERSION=${GITHUB_REF#refs/tags/reflect-v}
+          VERSION="${{ steps.target.outputs.version }}"
           # Append changelog notes to existing release body
           gh release edit "reflect-v$VERSION" --notes-file /tmp/release-notes.md 2>/dev/null || \
             echo "Warning: Could not update release notes (release may not exist yet)"
@@ -76,5 +120,17 @@ jobs:
       - name: Run fork tests before publish
         run: npm run test:upstream:fork
 
+      - name: Check whether npm already has this version
+        id: npm_version
+        run: |
+          VERSION="${{ steps.target.outputs.version }}"
+          if npm view "get-shit-done-reflect-cc@$VERSION" version >/dev/null 2>&1; then
+            echo "Version $VERSION is already published to npm; skipping publish."
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to npm
+        if: ${{ steps.npm_version.outputs.already_published != 'true' }}
         run: npm publish --provenance --access public

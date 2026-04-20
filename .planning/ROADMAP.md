@@ -122,21 +122,32 @@ Plans:
 
 ### Phase 57.8: Signal Provenance Split & Artifact Signature Blocks (INSERTED)
 
-**Goal:** Signals and workflow artifacts (PLAN, SUMMARY, VERIFICATION) carry role-aware provenance that can attribute mistakes to planner, executor, verifier, or harness — not one flat `runtime/model/gsd_version` payload that mixes detector, writer, and work-artifact identity. This phase is the **narrow audit-bounded fix** for the `.planning/audits/2026-04-16-signal-provenance-audit/` findings; the wider telemetry-to-signal integration is deferred to Phase 60.1. Epistemic prerequisite for Phase 58 — GATE-09's scope-translation ledger requires role-aware artifact provenance to evaluate gate effectiveness (currently a signal about a Plan 06 mistake can implicate planner, executor, verifier, and harness simultaneously, and the flat schema cannot attribute which).
+**Goal:** Signals and workflow artifacts (PLAN, SUMMARY, VERIFICATION) carry role-aware provenance that can attribute mistakes to planner, executor, verifier, or harness — not one flat `runtime/model/gsd_version` payload that mixes detector, writer, and work-artifact identity. This includes both auto-collected signal surfaces and the manual `/gsdr:signal` command / installed-skill path. This phase is the **narrow audit-bounded fix** for the `.planning/audits/2026-04-16-signal-provenance-audit/` findings; the wider telemetry-to-signal integration is deferred to Phase 60.1. Epistemic prerequisite for Phase 58 — GATE-09's scope-translation ledger requires role-aware artifact provenance to evaluate gate effectiveness (currently a signal about a Plan 06 mistake can implicate planner, executor, verifier, and harness simultaneously, and the flat schema cannot attribute which).
 **Depends on:** Phase 57.7 (measurement substrate — `buildSessionIdentityValue` and `resolveModelInternal` exist and are canonical sources for the role-split fields this phase persists)
 **Requirements:** PROV-01, PROV-02, PROV-03, PROV-04, PROV-05, PROV-06, PROV-07, PROV-08
 **Success Criteria** (what must be TRUE):
-  1. Signal schema supports role-split provenance (`about_work[]`, `detected_by`, `written_by`) as declarative fields, with array semantics for `about_work[]` and `provenance_status` markers on every field (PROV-01)
+  1. Signal schema supports role-split provenance (`about_work[]`, `detected_by`, `written_by`) as declarative fields for both auto-collected and manual signals, with array semantics for `about_work[]` and `provenance_status` markers on every field (PROV-01)
   2. Every newly-created PLAN.md, SUMMARY.md, and VERIFICATION.md carries a uniform signature block (role, harness, platform, vendor, model, reasoning_effort, profile, gsd_version, generated_at, session_id, provenance_status-per-field) populated via `resolveModelInternal` at orchestration time; `frontmatter.cjs` validates the block as required (PROV-02)
-  3. `gsdr-signal-synthesizer` writer-side `gsd_version` precedence prefers installed harness + config over stale repo-local mirror; every persisted version field carries a provenance marker identifying source (PROV-03)
-  4. Sensor task specs and `collect-signals.md` workflow stamp role-split provenance fields (not flat payload); signal outputs from sensor runs conform to PROV-01 schema (PROV-04)
+  3. `gsdr-signal-synthesizer` writer-side `gsd_version` precedence, and the matching manual `/gsdr:signal` write guidance, prefer installed harness + config over stale repo-local mirror; every persisted version field carries a provenance marker identifying source (PROV-03)
+  4. Sensor task specs and `collect-signals.md` workflow stamp role-split provenance fields (not flat payload), and the manual `/gsdr:signal` command / installed skill surfaces teach the same split-provenance contract; auto-collected and manual signal outputs conform to PROV-01 schema (PROV-04)
   5. Signal schema migration is additive — pre-57.8 signals parse with `provenance_schema: v1_legacy`; `kb.db` columns extended; KB rebuild processes both schemas without error; dual-write invariant maintained per KB-05 (PROV-05)
   6. The nine committed Phase 57.6 signals carry `provenance_status: legacy_mixed` annotation; substantive content preserved; audit Recommendation 4 closed (PROV-06)
-  7. `signal-detection.md` and `knowledge-store.md` reference docs document role-split semantics; current schema text ambiguity (audit cites `signal-detection.md:183-187`) resolved (PROV-07)
+  7. `signal-detection.md`, `knowledge-store.md`, and the manual signal command / skill docs document role-split semantics; current schema text ambiguity (audit cites `signal-detection.md:183-187`) and manual-surface drift are resolved together (PROV-07)
   8. Legacy flat `runtime`/`model`/`gsd_version` fields readable and writable by legacy consumers; deprecation notice + v1.21 removal schedule recorded (PROV-08)
 Authority: `.planning/audits/2026-04-16-signal-provenance-audit/signal-provenance-audit-output.md` (audit is primary source; Findings 1, 2, 3 and Recommendations 1, 2, 4, 5)
 Derived from: audit Findings 1-3 + Recommendations 1, 2, 4, 5. Wider integration (Finding 4, Recommendation 3) split to Phase 60.1 because it depends on the sensor pipeline (Phase 60) existing first. Open design questions (array vs. graph, migration strategy, reflection-consumer coupling) carried into 57.8-CONTEXT.md as typed open claims per GOV-01 discipline.
 **Plans:** 0/TBD (run `/gsdr:discuss-phase 57.8` then `/gsdr:plan-phase 57.8`)
+
+### Phase 57.9: Hook & Closeout Substrate (INSERTED)
+
+**Goal:** The installer and runtime substrate provide the closeout / incident hook surfaces that Phase 58 depends on, instead of letting structural gates stand on missing infrastructure. This narrow prerequisite wires SessionStop / closeout hooks for Claude Code, integrates the available Codex hook surface when supported, and exposes the session-level closeout / incident markers needed by GATE-06 and GATE-07.
+**Depends on:** Phase 57.8 (role-aware provenance is already the epistemic prerequisite for Phase 58; this phase closes the operational prerequisite)
+**Requirements:** HOOK-01, HOOK-02, HOOK-03
+**Success Criteria** (what must be TRUE):
+  1. Installer writes the Claude Code SessionStop / closeout hook surface from source, with tests proving the hook lands in the installed runtime
+  2. Installer detects Codex hook support and either writes the required Codex hook surface or records an explicit degradation / waiver path rather than silently assuming parity
+  3. Closeout / incident hook substrate exposes canonical markers or counters for "postlude fired" and the incident conditions Phase 58 needs (error-rate / direction-change / destructive-event, or explicit `not_available`)
+**Plans**: TBD
 
 ### Phase 57.4: Audit Skill & Investigatory Type (INSERTED)
 
@@ -302,29 +313,34 @@ Plans:
 - [ ] 57.7-10-PLAN.md -- [wave 5, depends_on 04+05+06+07+08+09] Demonstration artifacts: revised vision-drop diagnostic + GATE-09 pending intervention record + DEMO-REPORT.md
 
 ### Phase 58: Structural Enforcement Gates
-**Goal**: The 8 most-recurred advisory failure patterns are replaced with structural enforcement that cannot be circumvented by agent discretion, plus GATE-09 scope-translation ledger as the meta-fix for the Phase 57 scope-narrowing cascade
-**Depends on**: Phase 57.7 (measurement substrate needed for evaluating gate effectiveness; GATE-09 coordinates with measurement system to surface CONTEXT-claim deferrals)
-**Requirements**: GATE-01, GATE-02, GATE-03, GATE-04, GATE-05, GATE-06, GATE-07, GATE-08, GATE-09, XRT-01
+**Goal**: High-recurrence advisory, closeout, and dispatch-drift failure patterns are replaced with structural enforcement that emits measurable fire-events, applies across the workflows that could bypass it, and declares per-gate Codex behavior instead of assuming blanket degradation. GATE-09 remains the meta-fix for scope-translation loss, but the phase also owns the newly-evidenced closeout seam (state / PR / release / archive drift) surfaced by the 2026-04-20 audits.
+**Depends on**: Phase 57.7 (measurement substrate for gate fire-events), Phase 57.8 (role-aware provenance for GATE-09 attribution), Phase 57.9 (hook / closeout substrate for GATE-06 and GATE-07)
+**Requirements**: GATE-01, GATE-02, GATE-03, GATE-04a, GATE-04b, GATE-04c, GATE-05, GATE-06, GATE-07, GATE-08a, GATE-08b, GATE-08c, GATE-08d, GATE-08e, GATE-09a, GATE-09b, GATE-09c, GATE-09d, GATE-10, GATE-11, GATE-12, GATE-13, GATE-14, GATE-15, XRT-01
 **Success Criteria** (what must be TRUE):
-  1. Phase advancement via offer_next blocks until PR is created and CI passes -- user can override with documented justification logged to session
-  2. `gh pr merge` invocations pass `--merge` explicitly as the structural default, and quick task detects runtime code changes requiring branch+PR flow
-  3. `.continue-here` files are consumed on read and archived after session start, with staleness checks and upstream-adopted hard stop safety gates
-  4. Automation postlude fires structurally (SessionStop hook on Claude Code, workflow-enforced step on Codex) rather than by agent discretion
-  5. Every hook-dependent v1.20 feature specifies its Codex CLI degradation path in phase CONTEXT.md before implementation begins, and capability-matrix.md is updated
-  6. GATE-09 scope-translation ledger enforces that every load-bearing CONTEXT claim is mapped at phase close (implemented / explicitly deferred / rejected / left-open-blocking-planning); RESEARCH and PLAN scope narrowing relative to CONTEXT is cited with the originating claim and recorded as a decision; verification confirms CONTEXT commitments were explicitly deferred rather than silently disappearing
+  1. Every GATE declares its substrate and per-gate Codex behavior, and every shipped gate emits a measurable fire-event or explicit waiver marker that downstream measurement can count
+  2. Phase advancement blocks until PR / CI gates pass, `gh pr merge` surfaces use `--merge` structurally, quick tasks detect runtime-facing changes with an explicit rule, and direct pushes / CI bypass paths are structurally blocked
+  3. `.continue-here` lifecycle and hard-stop severity gates ship as separate structural behaviors: consumed-on-read archival, stale-file hard stop, and blocking/advisory anti-pattern checks with mandatory understanding for blocking items
+  4. Automation postlude and incident self-signal prompts fire structurally from installed hook / closeout substrate rather than agent discretion
+  5. Discuss-phase richer mode adoption lands as a multi-surface closeout: current-state verification, assumptions-analyzer agent, discuss-mode docs, downstream mode-aware gates, and explicit upstream-narrowing rationale where applicable
+  6. GATE-09 ships as a real ledger contract: named artifact/schema, planning gate for unresolved scope-boundary questions, narrowing-decision provenance, and verifier enforcement against silent disappearance
+  7. Phase closeout is structural: planning-authority files reconcile, failed/interrupted agent output is archived, release-boundary lag is surfaced, and source-vs-installed mirrors are checked after runtime-facing changes
+  8. Every hook-dependent v1.20 feature specifies its per-runtime substrate and Codex degradation / waiver path in phase CONTEXT.md before implementation begins, and capability-matrix.md is updated when the feature ships
 **Plans**: TBD
 
 ### Phase 59: KB Query, Lifecycle Wiring & Surfacing
-**Goal**: The knowledge base is fully queryable, signal lifecycle transitions are automated, and research/planning agents use structured queries instead of grep
+**Goal**: The knowledge base is fully queryable on the current file+SQLite architecture, lifecycle transitions are automated with an explicit path relative to the existing bash fallback, and agent surfacing stops being one-way by exposing inbound edge context. The phase stays focused on query/lifecycle/surfacing on the current schema, while explicitly naming the deeper edge-as-entity and retrieval-feedback architecture as downstream work instead of silently omitting it.
 **Depends on**: Phase 56 (SQLite index must exist)
-**Requirements**: KB-04b, KB-04c, KB-06a, KB-06b, KB-07, KB-08
+**Requirements**: KB-04b, KB-04c, KB-04d, KB-06a, KB-06b, KB-07, KB-08
 **Success Criteria** (what must be TRUE):
-  1. `gsd-tools kb search` performs FTS5 full-text search across signal content, and `gsd-tools kb query` filters by lifecycle state and other structured fields
-  2. `gsd-tools kb link` traverses qualified_by/superseded_by relationships between signals and spikes
-  3. `gsd-tools kb transition` updates both the .md frontmatter AND the SQLite row atomically (dual-write invariant per KB-05)
-  4. When a plan with `resolves_signals` completes, collect-signals auto-transitions matching signals to remediated state
-  5. Research and planning agents use SQLite queries for KB retrieval, with graceful fallback to grep when kb.db does not exist
+  1. `gsd-tools kb search` and `gsd-tools kb query` operate on the current live corpus (267 signals as of 2026-04-20, re-verified against the live count at implementation time), and `kb rebuild` reports edge-integrity counts by link type plus malformed/orphaned targets
+  2. KB link verbs are disambiguated into read vs write surfaces, and read surfaces expose both inbound and outbound traversal so newer related signals can be seen from older immutable entries
+  3. `gsd-tools kb transition` updates both the .md frontmatter AND the SQLite row atomically (dual-write invariant per KB-05), and mutating edge operations do not hide behind a read-only verb
+  4. When a plan with `resolves_signals` completes, collect-signals auto-transitions matching signals to remediated state, and the phase explicitly states whether this replaces, complements, or deprecates `reconcile-signal-lifecycle.sh`
+  5. `kb health` has a concrete contract: edge integrity, lifecycle-vs-plan consistency, dual-write verification, and `depends_on` freshness summary
+  6. Research and planning agents use SQLite queries for relevant signal/spike/reflection retrieval, with graceful fallback to grep when `kb.db` does not exist, and the surfacing protocol no longer depends on the deprecated lesson-only path
+  7. Phase 59 records explicit downstream deferrals for the deeper KB architecture (`KB-12` through `KB-17`) so edge-as-entity, retrieval attribution, artifact indexing, federation, vocabulary extension, and contested-state support do not disappear by omission
 **Plans**: TBD
+**Deferred Children To Name In Phase 59 CONTEXT/PLAN**: KB-12, KB-13, KB-14, KB-15, KB-16, KB-17
 
 ### Phase 60: Sensor Pipeline & Codex Parity
 **Goal**: Log sensor and patch sensor are operational across Claude Code and Codex CLI, with automated parity verification after installation
@@ -341,15 +357,15 @@ Plans:
 
 ### Phase 60.1: Telemetry-Signal Integration & E2E Chain Tests (INSERTED)
 
-**Goal:** The measurement telemetry substrate (Phases 57.5–57.7) becomes load-bearing for the signal system, reflection, and workflow attribution — not just a sidecar that exposes identity fields nobody consumes. This phase is the **wide companion** to Phase 57.8's narrow provenance fix: sensors stop self-stamping identity and read it from the canonical measurement extractors; reflection stratifies aggregates by `model × profile × reasoning_effort`; the intervention-outcome loop from Phase 57.7 Plan 07 extends to signal lifecycle transitions with predicted/actual outcomes; and the full discuss→plan→execute→verify→collect-signals chain gains automated E2E coverage with live agents. Where the integration surface exceeds what was explicit in the audit, PROV-09 investigates first and produces child requirements under the GOV-01 extraction contract.
+**Goal:** The measurement telemetry substrate (Phases 57.5–57.7) becomes load-bearing for the signal system, reflection, and workflow attribution — not just a sidecar that exposes identity fields nobody consumes. This phase is the **wide companion** to Phase 57.8's narrow provenance fix: sensors stop self-stamping identity and read it from the canonical measurement extractors; reflection stratifies aggregates by `model × profile × reasoning_effort`; the intervention-outcome loop from Phase 57.7 Plan 07 extends to signal lifecycle transitions with predicted/actual outcomes; the full discuss→plan→execute→verify→collect-signals chain gains automated E2E coverage with live agents; and manual `/gsdr:signal` parity is treated as an explicit downstream provenance surface rather than assumed collateral. Where the integration surface exceeds what was explicit in the audit, PROV-09 investigates first and produces child requirements under the GOV-01 extraction contract.
 **Depends on:** Phase 60 (sensor pipeline must exist before sensors can be rewired; cross-runtime Codex adapter provides the substrate for PROV-14 parity). Phase 57.8 is a logical prerequisite for Stage-1 research (PROV-09 surveys integration around the role-split schema, not the legacy flat one)
 **Requirements:** GOV-01 (governance — extraction contract applies), PROV-09 (research-gated, requirement-producing), PROV-10, PROV-11, PROV-12, PROV-13, PROV-14, plus Stage-2 children produced by PROV-09
 **Success Criteria** (what must be TRUE):
-  1. PROV-09 closes under GOV-01 — `.planning/research/provenance-integration-surface.md` exists AND every viable integration point has become either a declarative child requirement (`PROV-09.1`, `PROV-09.2`, ...) or is explicitly deferred to v1.21 with a named reason. Document existence alone does not satisfy
+  1. PROV-09 closes under GOV-01 — `.planning/research/provenance-integration-surface.md` exists AND every viable integration point, including manual `/gsdr:signal` and install-generated command / skill surfaces when they materially transform provenance behavior, has become either a declarative child requirement (`PROV-09.1`, `PROV-09.2`, ...) or is explicitly deferred to v1.21 with a named reason. Document existence alone does not satisfy
   2. Log sensor and artifact sensor consume `buildSessionIdentityValue()` and the Codex equivalent from `measurement/extractors/` rather than self-stamping; provenance derives from live telemetry where exposed, orchestration-time signing where logs are silent (PROV-10)
   3. Reflection (`gsdr-reflector` + `reflect` workflow) stratifies signal aggregates by `model × profile × reasoning_effort` via `measurement/stratify.cjs`; agent-performance signal counts attribute by role × model × profile (PROV-11)
   4. Intervention-outcome schema carries `predicted_outcome` alongside `outcome_status`; signal lifecycle transitions (`triaged → remediated → verified`) join as measured interventions; `phase_57_5_live_registry_query` report surface shows a non-zero `grounded_in_*_interventions` count when at least one signal-lifecycle intervention has a confirmed outcome (PROV-12)
-  5. `tests/e2e/real-agent.test.js` `it.todo()` stubs replaced with working chain tests; opt-in via `RUN_REAL_AGENT_TESTS=true`; CI runs on release tags; coverage asserts role-split provenance, signature-block persistence, and cross-runtime parity (PROV-13)
+  5. `tests/e2e/real-agent.test.js` `it.todo()` stubs replaced with working chain tests; opt-in via `RUN_REAL_AGENT_TESTS=true`; CI runs on release tags; coverage asserts role-split provenance, signature-block persistence, cross-runtime parity, and explicit downstream regression coverage for manual `/gsdr:signal` parity so the manual path cannot drift while `collect-signals` stays green (PROV-13)
   6. Cross-runtime provenance parity — `measurement report cross_runtime_comparison` surfaces role-split provenance from both Claude and Codex chains; asymmetries marked explicitly via MEAS-ARCH-04 four-class symmetry markers, not coincidentally-aligned values masquerading as parity (PROV-14)
   7. Every Stage-2 child requirement produced by PROV-09 is either shipped or explicitly deferred; GOV-01 extraction contract closed
 Authority: `.planning/audits/2026-04-16-signal-provenance-audit/signal-provenance-audit-output.md` Finding 4 + Recommendation 3. Stage-1 research (PROV-09) authoritatively widens scope beyond the audit's explicit enumeration per GOV-01.

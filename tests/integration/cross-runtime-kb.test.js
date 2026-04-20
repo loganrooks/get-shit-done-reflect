@@ -4,9 +4,14 @@ import path from 'node:path'
 import fs from 'node:fs/promises'
 import fsSync from 'node:fs'
 import { execSync } from 'node:child_process'
+import { createRequire } from 'node:module'
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '../..')
 const installScript = path.resolve(REPO_ROOT, 'bin/install.js')
+const GSD_TOOLS = path.resolve(REPO_ROOT, 'get-shit-done/bin/gsd-tools.cjs')
+const require = createRequire(import.meta.url)
+const { DatabaseSync } = require('node:sqlite')
+const { reconstructFrontmatter } = require('../../get-shit-done/bin/lib/frontmatter.cjs')
 
 /** Write a signal fixture file to the shared KB */
 async function writeSignal(kbDir, project, filename, fields = {}) {
@@ -35,6 +40,52 @@ async function writeSignal(kbDir, project, filename, fields = {}) {
   const filepath = path.join(dir, filename)
   await fs.writeFile(filepath, content)
   return { filepath, content }
+}
+
+function makeSignature(role) {
+  return {
+    role,
+    harness: 'codex-cli',
+    platform: 'codex',
+    vendor: 'openai',
+    model: 'gpt-5.4',
+    reasoning_effort: 'xhigh',
+    profile: 'quality',
+    gsd_version: '1.19.4+dev',
+    generated_at: '2026-04-17T00:00:00Z',
+    session_id: 'thread-123',
+    provenance_status: {
+      role: 'derived',
+      harness: 'exposed',
+      platform: 'derived',
+      vendor: 'derived',
+      model: 'exposed',
+      reasoning_effort: 'exposed',
+      profile: 'derived',
+      gsd_version: 'derived',
+      generated_at: 'exposed',
+      session_id: 'exposed',
+    },
+    provenance_source: {
+      role: 'artifact_role',
+      harness: 'runtime_context',
+      platform: 'derived_from_harness',
+      vendor: 'derived_from_harness',
+      model: 'codex_state_store',
+      reasoning_effort: 'codex_state_store',
+      profile: 'config',
+      gsd_version: 'installed_harness',
+      generated_at: 'writer_clock',
+      session_id: 'env:CODEX_THREAD_ID',
+    },
+  }
+}
+
+async function writeStructuredSignal(kbDir, project, filename, frontmatter) {
+  const dir = path.join(kbDir, 'signals', project)
+  await fs.mkdir(dir, { recursive: true })
+  const content = `---\n${reconstructFrontmatter(frontmatter)}\n---\n\n## What Happened\n\nStructured signal fixture.\n`
+  await fs.writeFile(path.join(dir, filename), content)
 }
 
 describe('VALID-04: Cross-runtime KB accessibility', () => {
@@ -242,6 +293,72 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
 
       const codex = await fs.readFile(path.join(signalDir, 'sig-from-codex.md'), 'utf8')
       expect(codex).toContain('runtime: codex-cli')
+    })
+
+    tmpdirTest('legacy and split-provenance signals rebuild together in shared KB', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --all --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
+
+      await writeSignal(kbDir, 'test-project', 'sig-legacy-format.md', {
+        id: 'sig-legacy-format',
+        runtime: 'claude-code',
+        model: 'claude-opus-4-6',
+        gsd_version: '1.18.2+dev',
+      })
+
+      await writeStructuredSignal(kbDir, 'test-project', 'sig-split-format.md', {
+        id: 'sig-split-format',
+        type: 'signal',
+        project: 'test-project',
+        tags: ['split', 'provenance'],
+        created: '2026-04-17T00:00:00Z',
+        updated: '2026-04-17T00:00:00Z',
+        durability: 'convention',
+        status: 'active',
+        severity: 'notable',
+        signal_type: 'deviation',
+        provenance_schema: 'v2_split',
+        about_work: [makeSignature('planner')],
+        detected_by: makeSignature('sensor'),
+        written_by: makeSignature('synthesizer'),
+      })
+
+      execSync(`node "${GSD_TOOLS}" kb rebuild --raw`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      const db = new DatabaseSync(path.join(kbDir, 'kb.db'), { readonly: true })
+      const rows = db.prepare(`
+        SELECT id, provenance_schema, about_work_json, detected_by_json, written_by_json, runtime, model, gsd_version
+        FROM signals
+        WHERE project = 'test-project'
+        ORDER BY id
+      `).all()
+
+      expect(rows).toHaveLength(2)
+      expect(rows[0].id).toBe('sig-legacy-format')
+      expect(rows[0].provenance_schema).toBe('v1_legacy')
+      expect(rows[0].runtime).toBe('claude-code')
+
+      expect(rows[1].id).toBe('sig-split-format')
+      expect(rows[1].provenance_schema).toBe('v2_split')
+      expect(rows[1].about_work_json).toContain('"role":"planner"')
+      expect(rows[1].detected_by_json).toContain('"role":"sensor"')
+      expect(rows[1].written_by_json).toContain('"role":"synthesizer"')
+      expect(rows[1].runtime).toBe('codex-cli')
+      expect(rows[1].model).toBe('gpt-5.4')
+      expect(rows[1].gsd_version).toBe('1.19.4+dev')
     })
   })
 

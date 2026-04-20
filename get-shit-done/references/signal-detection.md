@@ -15,7 +15,7 @@ Defines detection rules, severity classification, polarity assignment, deduplica
 - VERIFICATION.md -- gap analysis against must_haves
 - `.planning/config.json` -- model_profile and workflow settings
 
-**Output:** Signal entries written to `.planning/knowledge/signals/{project}/` (or `~/.gsd/knowledge/signals/{project}/` fallback) using the Phase 1 signal template.
+**Output:** Signal entries written to `.planning/knowledge/signals/{project}/` (or `~/.gsd/knowledge/signals/{project}/` fallback) using the split-provenance signal template plus the one-milestone legacy flat echo bridge.
 
 ## 2. Deviation Detection (SGNL-01)
 
@@ -183,8 +183,13 @@ These optional fields extend the Phase 1 signal schema defined in `knowledge-sto
 | `source` | enum: auto, manual | auto | Whether the signal was detected automatically or created manually via `/gsd:signal` |
 | `occurrence_count` | integer | 1 | How many times this signal pattern has been observed (starts at 1) |
 | `related_signals` | array of signal IDs | [] | IDs of existing signals that match this signal's pattern (for dedup cross-references) |
-| `runtime` | enum: claude-code, opencode, gemini-cli, codex-cli | (omitted) | Runtime that generated this signal. Inferred from workflow file path prefix. Optional -- omit if unknown. |
-| `model` | string | (omitted) | LLM model identifier. Self-reported by the executing model. Optional -- omit if unknown. |
+| `provenance_schema` | string | `v2_split` for new signals | Schema marker distinguishing new split provenance from legacy flat-only provenance |
+| `provenance_status` | string | (omitted) | Top-level annotation for corpus-level provenance caveats such as `legacy_mixed` |
+| `about_work` | array | [] | Role-aware work provenance. Do NOT infer this from the sensor runtime. |
+| `detected_by` | object | {} | Detector provenance emitted by the sensor or manual observer |
+| `written_by` | object | {} | Writer provenance added by the synthesizer or command that persists the signal |
+| `runtime` | enum: claude-code, opencode, gemini-cli, codex-cli | (omitted) | DEPRECATED compatibility echo derived from split provenance when available |
+| `model` | string | (omitted) | DEPRECATED compatibility echo derived from split provenance when available |
 | `lifecycle_state` | enum: detected, triaged, remediated, verified, invalidated | detected | Current lifecycle state -- see knowledge-store.md Section 4.2 for full lifecycle state machine |
 | `evidence` | object: {supporting: [], counter: []} | {} | Epistemic evidence -- see knowledge-store.md Section 4.3 for rigor requirements by severity |
 | `confidence` | enum: high, medium, low | medium | Categorical confidence level |
@@ -192,7 +197,7 @@ These optional fields extend the Phase 1 signal schema defined in `knowledge-sto
 
 **Compatibility:** These fields are added to signal frontmatter alongside the Phase 1 base schema and signal extension fields. Agents that do not recognize these fields can safely ignore them. The Phase 1 index rebuild script processes all frontmatter fields without filtering. Existing signals without the new fields remain valid -- absent fields default to the values shown in the Default column.
 
-**Runtime/model field note:** These fields are optional. Existing signals without runtime/model fields remain valid. Agents that do not recognize these fields can safely ignore them.
+**Role-split provenance rule:** Sensors supply `detected_by` only. The synthesizer is responsible for `written_by`, `about_work[]`, `provenance_schema`, and any legacy flat compatibility echoes.
 
 ### 8.1 Signal Enrichment Fields (Cross-Project Readiness)
 

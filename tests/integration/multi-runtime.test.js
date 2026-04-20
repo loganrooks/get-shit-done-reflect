@@ -766,6 +766,52 @@ describe('multi-runtime validation', () => {
       }
     })
 
+    tmpdirTest('Codex writer provenance prefers installed harness VERSION over repo mirror', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --codex --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      const projectDir = path.join(tmpdir, 'project')
+      await fs.mkdir(path.join(projectDir, '.planning'), { recursive: true })
+      await fs.mkdir(path.join(projectDir, '.codex', 'get-shit-done-reflect'), { recursive: true })
+      await fs.writeFile(
+        path.join(projectDir, '.planning', 'config.json'),
+        JSON.stringify({ model_profile: 'quality', gsd_reflect_version: '9.9.9-config' }),
+        'utf8'
+      )
+      await fs.writeFile(
+        path.join(projectDir, '.codex', 'get-shit-done-reflect', 'VERSION'),
+        '0.0.1-stale\n',
+        'utf8'
+      )
+
+      const installedVersion = (await fs.readFile(
+        path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'VERSION'),
+        'utf8'
+      )).trim()
+      const provenancePath = path.resolve(process.cwd(), 'get-shit-done/bin/lib/provenance.cjs')
+
+      const output = execSync(
+        `node - <<'NODE'\nconst { buildArtifactSignature } = require(${JSON.stringify(provenancePath)});\nconst sig = buildArtifactSignature({ cwd: process.cwd(), role: 'synthesizer', generatedAt: '2026-04-17T00:00:00Z' });\nconsole.log(JSON.stringify({ value: sig.gsd_version, source: sig.provenance_source.gsd_version }));\nNODE`,
+        {
+          env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome, CODEX_THREAD_ID: 'thread-test' },
+          cwd: projectDir,
+          encoding: 'utf8',
+          timeout: 30000
+        }
+      )
+
+      const parsed = JSON.parse(output.trim())
+      expect(parsed.value).toBe(installedVersion)
+      expect(parsed.source).toBe('installed_harness')
+      expect(parsed.value).not.toBe('0.0.1-stale')
+    })
+
     tmpdirTest('--all install: VERSION files present in all runtimes', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 

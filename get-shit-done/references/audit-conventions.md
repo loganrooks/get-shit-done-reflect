@@ -230,6 +230,8 @@ Delegation is orthogonal to both subject and orientation. Any subject can be aud
 
 **Cross-model delegation is currently fragile.** Per the deliberation (line 100), cross-model dispatch has shown "environment setup issues, agents finishing early, instructions not properly conveyed, lots of hand-holding." Recording this factually here is not a disclaimer — it is relevant context for orchestrators and auditors reading this reference. The retrospective's dispatch-hygiene obligation (new in v2, documented in `audit-ground-rules.md`) is the direct response: cross-model prompts must be audited for framing contamination before dispatch, and confounds must be declared in the audit frontmatter.
 
+**Claude-specific dispatch note.** When the external model is Claude / Opus, prefer `--model 'opus[1m]'` by default for audit and spec-heavy work; if the assembled prompt is plausibly above ~80k input tokens, the 1M-context selector is required. Feed the prompt over stdin rather than as one giant shell argument (`cat "$PROMPT_FILE" | claude -p --model 'opus[1m]' ...`) so the full task spec can be preserved without triggering CLI-side `"Prompt is too long"` failures before the model's actual context window is the bottleneck. Record a rough prompt-size estimate (at least chars and a rough `chars / 4` token estimate) in the dispatch log or note so model-choice decisions remain auditable.
+
 ### 3.4 The escape hatch — preserved and extended
 
 The v1 taxonomy had an escape hatch at the value level: `audit_type: exploratory` was the legitimate way to file an audit that did not match any named type. The v2 taxonomy preserves escape at the value level but extends it to the axes themselves.

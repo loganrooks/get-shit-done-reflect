@@ -1,0 +1,12 @@
+Audit complete. Output written to:
+
+`.planning/audits/2026-04-20-phase-59-kb-architecture-gap-audit/phase-59-kb-architecture-gap-audit-output.md`
+
+**Headline findings:**
+- **Live corpus anomaly:** `signal_links` table carries 107 edges with target `[object Object]` (from bare-empty `recurrence_of:` YAML → empty-object stringification) out of 292 total edges. Zero `qualified_by` / `superseded_by` edges exist despite KB-03 marking them supported.
+- **One-way relation problem precisely stated:** Edges are modeled as *properties of source nodes*, not first-class entities — target signals cannot carry inbound context, edges have no provenance/confidence/rationale, and disagreement collapses to last-write-wins.
+- **Phase 59 / deliberation parallelism:** `reconcile-signal-lifecycle.sh` (2026-03-04 deliberation, Option A) already exists and has transitioned 15 signals to `remediated`. Phase 59 KB-07 does not acknowledge it; two code paths will coexist.
+- **Corpus drift:** Phase 59 planning references 198 signals; live corpus is 267.
+- **FTS5 already gone:** `signal_fts` virtual table was explicitly dropped in Phase 57.7 (`kb.cjs:146-158`); Phase 59's FTS5 promise must be a contentless rewrite, which the requirement text does not acknowledge.
+
+**Recommendation:** Option (d) — keep Phase 59 focused on its six requirements + 9 targeted strengthenings (edge integrity CLI, `kb links --inbound/--outbound`, `kb link` verb disambiguation, lifecycle-path reconciliation, lesson-type retirement, `kb health` contract, edge provenance columns, corpus-drift re-verification) + 6 named downstream child requirements (KB-12 edge-as-entity, KB-13 retrieval attribution, KB-14 non-signal artifact indexing, KB-15 federation substrate, KB-16 edge vocabulary extension, KB-17 contested state) to convert implicit deferrals into GATE-09-tractable explicit ones.

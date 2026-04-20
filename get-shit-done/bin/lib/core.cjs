@@ -769,6 +769,55 @@ function getWorkstreamSessionKey() {
   return getControllingTtyToken();
 }
 
+function getRuntimeSessionIdentifiers() {
+  const codexThread = sanitizeWorkstreamSessionToken(process.env.CODEX_THREAD_ID);
+  if (codexThread) {
+    return {
+      runtime: 'codex-cli',
+      session_id: codexThread,
+      session_source: 'env:CODEX_THREAD_ID',
+      session_env: 'CODEX_THREAD_ID',
+    };
+  }
+
+  const claudeSession = sanitizeWorkstreamSessionToken(process.env.CLAUDE_SESSION_ID);
+  if (claudeSession) {
+    return {
+      runtime: 'claude-code',
+      session_id: claudeSession,
+      session_source: 'env:CLAUDE_SESSION_ID',
+      session_env: 'CLAUDE_SESSION_ID',
+    };
+  }
+
+  const claudePort = sanitizeWorkstreamSessionToken(process.env.CLAUDE_CODE_SSE_PORT);
+  if (claudePort) {
+    return {
+      runtime: 'claude-code',
+      session_id: claudePort,
+      session_source: 'env:CLAUDE_CODE_SSE_PORT',
+      session_env: 'CLAUDE_CODE_SSE_PORT',
+    };
+  }
+
+  const gsdSession = sanitizeWorkstreamSessionToken(process.env.GSD_SESSION_KEY);
+  if (gsdSession) {
+    return {
+      runtime: null,
+      session_id: gsdSession,
+      session_source: 'env:GSD_SESSION_KEY',
+      session_env: 'GSD_SESSION_KEY',
+    };
+  }
+
+  return {
+    runtime: null,
+    session_id: null,
+    session_source: null,
+    session_env: null,
+  };
+}
+
 function getSessionScopedWorkstreamFile(cwd) {
   const sessionKey = getWorkstreamSessionKey();
   if (!sessionKey) return null;
@@ -1677,6 +1726,7 @@ module.exports = {
   planningPaths,
   getActiveWorkstream,
   setActiveWorkstream,
+  getRuntimeSessionIdentifiers,
   filterPlanFiles,
   filterSummaryFiles,
   getPhaseFileStats,

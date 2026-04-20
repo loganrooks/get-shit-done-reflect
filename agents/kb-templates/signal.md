@@ -16,9 +16,14 @@ polarity: {positive|negative|neutral}
 source: {auto|manual}
 occurrence_count: 1
 related_signals: []
-runtime: {claude-code|opencode|gemini-cli|codex-cli}
-model: {model-identifier}
-gsd_version: {version-string}
+provenance_schema: {v2_split|v1_legacy}
+provenance_status: {legacy_mixed|""}
+about_work: []
+detected_by: {}
+written_by: {}
+runtime: {legacy-echo-runtime}
+model: {legacy-echo-model}
+gsd_version: {legacy-echo-version}
 lifecycle_state: detected
 lifecycle_log:
   - "created -> detected by {agent} at {YYYY-MM-DDTHH:MM:SSZ}"
