@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: "Completed 58-10-PLAN.md (GATE-04a/04b/04c: handoff archive + staleness hard-stop + antipattern severity registry shipped; fire-events emitted at 3 gate points; resume-project.md rm -f replaced with exit-coded gate)"
-last_updated: "2026-04-20T17:47:41.741Z"
+stopped_at: Completed 58-12a-PLAN.md (GATE-05 + GATE-13 rollout across 6 remaining files, 18 spawn sites; allowlist bare-# defect fixed + 2 Plan 12a scope entries retired + 6 out-of-scope entries preserved with narrowing HEADNOTE; CI grep aligned with design §2.3 via BAKED IN filter)
+last_updated: "2026-04-20T17:57:05.250Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 63
-  percent: 89
+  completed_plans: 64
+  percent: 90
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 10 of 21 (58-01 in progress)
+Plan: 11 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -249,6 +249,10 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-10] Staleness predicate is OR of three sources (mtime vs STATE.last_updated, mtime vs last mainline commit, duplicate session_id in STATE.md) -- any single source is sufficient to prove obsolescence
 - [Phase 58-structural-enforcement-gates]: [58-10] Exit code 4 reserved for GATE-04c ack_required / typed-token mismatch; kept distinct from GATE-04b exit 3 so callers can branch on which gate fired
 - [Phase 58-structural-enforcement-gates]: [58-10] Registry parser is a line-oriented state machine (no YAML library dep); entries discovered by '- id:' lead lines; trade-off: flat-scalar values only, matches documented schema
+- [Phase 58]: [58-12a] GATE-05 echo macro + GATE-13 inline DISPATCH CONTRACT applied at 18 named spawn sites across 6 remaining files (commands/gsd/audit.md, debug.md; workflows map-codebase, new-project, new-milestone, validate-phase); literal models baked via resolveModelInternal under quality profile (opus→inherit for Claude Code, sonnet literal for non-opus agents); runtime Task() body retains template binding per design §2.3
+- [Phase 58]: [58-12a] CI GATE-13 grep aligned with design §2.3 via grep -v '# BAKED IN comment:' filter — recognizes compaction-survival annotation as compliance signal; Plan 12 + 12a retained-template sites pass without allowlist reliance
+- [Phase 58]: [58-12a] Allowlist bare-# format defect fixed (Plan 12 pre-existing-defect retirement): 9 bare # comment lines eliminated — HEADNOTE uses # --- separators; bare # in grep -F -f was silently excluding every BAKED-IN-annotated hit
+- [Phase 58]: [58-12a] Scope narrowing vs pre-existing allowlist HEADNOTE: PLAN.md files_modified manifest is authoritative (6 files); commands/gsd/research-phase.md + .codex/skills/gsdr-research-phase|gsdr-debug SKILL.md (3 files, 6 sites) deferred to follow-up plan despite being listed as Plan 12a scope in the pre-Plan-12a allowlist HEADNOTE
 
 ### Roadmap Evolution
 
@@ -317,6 +321,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P09 | 7min | 2 tasks | 3 files |
 | Phase 58-structural-enforcement-gates P12 | 10 | 2 tasks | 11 files |
 | Phase 58-structural-enforcement-gates P10 | 5min | 2 tasks | 4 files |
+| Phase 58 P12a | 12 | 2 tasks | 8 files |
 
 ### Key Artifacts
 
@@ -335,8 +340,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T17:47:41.734Z
-Stopped at: Completed 58-10-PLAN.md (GATE-04a/04b/04c: handoff archive + staleness hard-stop + antipattern severity registry shipped; fire-events emitted at 3 gate points; resume-project.md rm -f replaced with exit-coded gate)
+Last session: 2026-04-20T17:57:05.243Z
+Stopped at: Completed 58-12a-PLAN.md (GATE-05 + GATE-13 rollout across 6 remaining files, 18 spawn sites; allowlist bare-# defect fixed + 2 Plan 12a scope entries retired + 6 out-of-scope entries preserved with narrowing HEADNOTE; CI grep aligned with design §2.3 via BAKED IN filter)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
