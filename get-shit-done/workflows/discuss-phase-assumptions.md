@@ -126,7 +126,69 @@ Use /gsdr:progress to see available phases.
 ```
 Exit workflow.
 
-**If `phase_found` is true:** Continue to check_existing.
+**If `phase_found` is true:** Continue to preflight_analyzer_check.
+
+**Preflight analyzer availability check (GATE-08b spawn point 1 of 3):**
+
+Before continuing, verify that the `gsdr-assumptions-analyzer` agent can be dispatched in the
+current runtime. This is a lightweight preflight that runs a minimal analyzer invocation
+scoped to "list available tools only" so we fail-fast if the agent is missing from the
+installed agent surface rather than discovering the failure mid-workflow.
+
+```bash
+# GATE-05 echo_delegation macro — preflight analyzer availability.
+SUBAGENT_TYPE="gsdr-assumptions-analyzer"
+MODEL="inherit"                   # literal from resolveModelInternal(cwd, 'gsdr-assumptions-analyzer') at edit time
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/discuss-phase-assumptions.md"
+WORKFLOW_STEP="initialize"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID} step=preflight"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsdr-assumptions-analyzer
+# Model: inherit          (resolved at edit time — analyzer class = gsd-phase-researcher per Plan 11 Task 1)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - ${PHASE} — phase number for availability check only
+# Output path: one-line availability confirmation (no filesystem write)
+# Codex behavior: applies
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# Rationale: preflight check so analyzer unavailability surfaces BEFORE deep analysis begins.
+#            Skipped under --skip-preflight flag (not currently exposed).
+Task(subagent_type="gsdr-assumptions-analyzer", model="inherit", prompt="""
+Preflight availability check only. Do NOT perform full codebase analysis.
+
+For Phase {PHASE}, return EXACTLY one line:
+"AVAILABLE: gsdr-assumptions-analyzer ready for Phase {PHASE}"
+
+Do not read files. Do not produce assumptions. This check confirms the agent can be
+dispatched in the current runtime.
+""")
+```
+
+If the preflight returns anything other than `AVAILABLE:`, display: "Analyzer agent not
+dispatchable — falling back to inline heuristics for Phase {PHASE}." and proceed with
+reduced-fidelity inline inference for subsequent steps. Do NOT exit.
 
 **Auto mode** — If `--auto` is present in ARGUMENTS:
 - In `check_existing`: auto-select "Update it" (if context exists) or continue without prompting
@@ -503,14 +565,83 @@ Based on codebase analysis, here's what I'd go with:
 **If "Yes, proceed":** Skip to write_context.
 **If "Let me correct some":** Continue to correct_assumptions.
 
-**Spawn note (analyzer re-dispatch for re-analysis):**
+**Re-analyze path (GATE-08b spawn point 3 of 3):**
 
-If the user requests a re-analysis (e.g., after providing additional scope context), the
-workflow may re-dispatch the analyzer agent. When it does, the SAME dispatch contract from
-the `deep_codebase_analysis` step applies verbatim — same agent name, same model literal,
-same fire-event. For grep-reference completeness the analyzer agent name appears here as
-well: `gsdr-assumptions-analyzer` (so the three upstream spawn points per CONTEXT 58 §6
-are detectable via grep without duplicating the full dispatch block).
+If the user selects "Let me correct some" AND one or more corrections expand the scope of
+analysis (e.g., "this assumption is wrong because we also use library X" — now X must be
+re-scouted), re-dispatch the analyzer agent scoped to the new context.
+
+Trigger condition: user correction includes new file-path / library / pattern references not
+in the original `<codebase_context>`. If all corrections are choosing among already-analyzed
+alternatives, skip this re-dispatch and proceed directly to `correct_assumptions`.
+
+```bash
+# GATE-05 echo_delegation macro — analyzer re-dispatch on scope-expanding correction.
+SUBAGENT_TYPE="gsdr-assumptions-analyzer"
+MODEL="inherit"                   # literal from resolveModelInternal at edit time
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/discuss-phase-assumptions.md"
+WORKFLOW_STEP="present_assumptions"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID} step=re-analyze"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsdr-assumptions-analyzer
+# Model: inherit          (resolved at edit time — analyzer class = gsd-phase-researcher per Plan 11 Task 1)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - ${PHASE} — phase number
+#   - expanded_scope_hints — file paths / libraries / patterns the user surfaced in correction
+#   - prior_assumptions — from deep_codebase_analysis so the re-analyze can diff
+#   - calibration_tier — unchanged from original dispatch
+# Output path: updated assumptions delta, merged into in-memory assumption list
+# Codex behavior: applies
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# Rationale: scope-expanding corrections need re-scout rather than retrofitting prior
+#            assumptions; keeps evidence citations honest.
+Task(subagent_type="gsdr-assumptions-analyzer", model="inherit", prompt="""
+Re-analyze codebase for Phase {PHASE} scoped to expanded context.
+
+The user surfaced these new references during correction:
+{expanded_scope_hints}
+
+Prior assumptions (context only — do not re-assert verbatim):
+{prior_assumptions_summary}
+
+Your job:
+1. Glob/Grep for files related to: {expanded_scope_hints}
+2. Read 5-15 most relevant NEW source files (files not in prior scout)
+3. Return an assumption delta:
+   - UPDATED: assumptions that change given new evidence
+   - NEW: assumptions that emerge from new evidence
+   - UNCHANGED: assumptions that remain valid (listed by area name only)
+
+Use the same output format and calibration as the original dispatch.
+""")
+```
+
+Merge the delta into the in-memory assumption list (UPDATED overwrites originals; NEW
+appends; UNCHANGED preserved). Re-render present_assumptions with the merged list, then
+continue to `correct_assumptions` for final per-assumption corrections.
 </step>
 
 <step name="correct_assumptions">
