@@ -842,6 +842,41 @@ node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(phase-{X}): complete
 
 <step name="offer_next">
 
+**GATE-10 (structural): Phase-closeout reconciliation.**
+
+Before any branch/PR activity, reconcile STATE.md, the active ROADMAP phase row,
+plan checkboxes, and touched planning-authority sidecars. This is the structural
+enforcement point for GATE-10 — prose reconciliation requests are replaced with
+an exit-coded CLI call. Signals `sig-2026-04-17-phase-closeout-left-state-pr-release-pending`
+(5 occurrences) and `sig-2026-04-20-phase-closeout-planning-state-release-lag`
+(6 occurrences) document what this gate prevents: planning-authority drift at
+phase close.
+
+```bash
+# Phase 58 Plan 13: structural GATE-10 enforcement
+# Emits `::notice::gate_fired=GATE-10 result=<reconciled|block> fields=<count>`
+# Exit codes: 0 reconciled/noop, 5 unreconciled (manual triage required).
+PHASE="${PHASE_NUMBER}"
+RECON_OUT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs phase reconcile "$PHASE" --auto-commit 2>&1)
+RECON_EXIT=$?
+
+if [ $RECON_EXIT -eq 5 ]; then
+  echo "$RECON_OUT"
+  echo ""
+  echo "GATE-10 UNRECONCILED: manual resolution required before phase can advance."
+  echo "Inspect the \`unreconciled\` list in the JSON output above; ship missing"
+  echo "SUMMARY.md files or add explicit entries to NN-LEDGER.md, then re-run."
+  exit 1
+elif [ $RECON_EXIT -ne 0 ]; then
+  echo "$RECON_OUT"
+  echo "GATE-10: phase reconcile failed (exit $RECON_EXIT). Investigate before advancing."
+  exit 1
+fi
+
+echo "$RECON_OUT"
+# continue to branch/PR flow
+```
+
 **If branching strategy is "phase" or "milestone":**
 
 Check if the current branch is not main:

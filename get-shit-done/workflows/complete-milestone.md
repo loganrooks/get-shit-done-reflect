@@ -614,6 +614,43 @@ AskUserQuestion with options: Merge with history (Recommended), Delete without m
 > `.planning/phases/58-structural-enforcement-gates/58-01-gate02-enumeration.md`
 > for the full merge-surface enumeration.
 
+**GATE-10 (structural): Reconcile each phase before merging.**
+
+Before the merge loop, invoke `gsd-tools phase reconcile <N>` for each phase
+being closed so STATE.md, the active ROADMAP phase row, plan checkboxes, and
+touched planning-authority sidecars are committed atomically per phase.
+Prose reconciliation requests are replaced with this exit-coded CLI call per
+Phase 58 Plan 13 / GATE-10 (CONTEXT DC-7). The command emits
+`::notice::gate_fired=GATE-10 result=<reconciled|block> fields=<count>` on
+every invocation. Idempotent — re-invoking on a reconciled phase no-ops.
+
+```bash
+# Phase 58 Plan 13: structural GATE-10 enforcement (milestone phase-close loop)
+# Exit codes: 0 reconciled/noop, 5 unreconciled (blocking).
+for branch in $PHASE_BRANCHES; do
+  # Extract the phase identifier from the branch name (e.g. gsd/phase-58-... → 58)
+  PHASE_ID=$(echo "$branch" | sed -E 's|^[^/]+/phase-([0-9]+[A-Za-z]?(\.[0-9]+[a-z]?)?).*|\1|')
+  if [ -z "$PHASE_ID" ] || [ "$PHASE_ID" = "$branch" ]; then
+    echo "GATE-10: could not parse phase id from branch '$branch'; skipping reconcile."
+    continue
+  fi
+
+  RECON_OUT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" phase reconcile "$PHASE_ID" --auto-commit 2>&1)
+  RECON_EXIT=$?
+
+  if [ $RECON_EXIT -eq 5 ]; then
+    echo "$RECON_OUT"
+    echo "GATE-10 UNRECONCILED for phase $PHASE_ID: manual resolution required."
+    exit 1
+  elif [ $RECON_EXIT -ne 0 ]; then
+    echo "$RECON_OUT"
+    echo "GATE-10: phase reconcile failed for $PHASE_ID (exit $RECON_EXIT)."
+    exit 1
+  fi
+  echo "$RECON_OUT"
+done
+```
+
 **Merge with history (default and recommended):**
 
 ```bash
