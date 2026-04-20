@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-18T03:50:50Z
-**Total entries:** 274
+**Generated:** 2026-04-20T04:07:37Z
+**Total entries:** 275
 
-## Signals (266)
+## Signals (267)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -35,6 +35,7 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-20-phase-closeout-planning-state-release-lag | get-shit-done-reflect | notable | detected | tags: | "2026-04-20 | active |
 | sig-2026-04-17-phase-closeout-left-state-pr-release-pending | get-shit-done-reflect | notable | detected | tags: | "2026-04-18 | active |
 | sig-2026-04-17-gsdr-quick-bypassed-then-backfilled | get-shit-done-reflect | notable | detected | tags: | "2026-04-17 | active |
 | sig-2026-04-17-codex-auto-compact-prompt-parity-gap | get-shit-done-reflect | notable | detected | codex,claude,platform-parity,auto-compact,compaction,delegation-policy,workflow-behavior | "2026-04-17 | active |
