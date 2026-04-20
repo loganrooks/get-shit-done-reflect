@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-01-PLAN.md (GATE-02 substrate + squash default removal + AT-6 STATE.md reconciliation)
-last_updated: "2026-04-20T12:44:27.838Z"
+stopped_at: Completed 58-02-PLAN.md (GATE-05 enumeration + GATE-13 dispatch-contract design)
+last_updated: "2026-04-20T12:46:03.011Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 53
-  percent: 75
+  completed_plans: 54
+  percent: 76
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 2 of 21 (58-01 in progress)
+Plan: 3 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -214,6 +214,9 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-01] Squash option removed entirely from complete-milestone.md AskUserQuestion (not retained as opt-in); plan's dual constraints (explicit opt-in option + single non-squash call site per strategy) forced removal as cleanest reconciliation
 - [Phase 58-structural-enforcement-gates]: [58-01] Installer-derived mirrors (.claude/, .codex/) NOT directly edited; they resync on bin/install.js run; GATE-04 (Plan 11) covers parity drift; Plan 07 CI grep scope recommended to stay on source paths only (get-shit-done/, agents/, commands/, skills/, .codex/skills/)
 - [Phase 58-structural-enforcement-gates]: [58-01] Task 0 STATE.md reconciliation used actual merge commit date (2026-04-20) rather than CONTEXT DC-5's cited 2026-04-17; SHA c8a15d95 matched but commit date differed; per plan instruction to use actual SHA/date
+- [Phase 58]: [58-02]: Enumeration expanded from R3's 22 grouped summary sites to 45 concrete spawn lines (unfolded grouped rows + added 5 .codex/skills/ mirrors R3 did not enumerate); Codex skill mirrors in scope to prevent GATE-05/13 bypass on Codex runtime.
+- [Phase 58]: [58-02]: GATE-13 compaction-resilience lives in comment block, not runtime rebinding; literal model baked into # Model: comment via resolveModelInternal at workflow expansion time while Task() body retains {template} binding so profile overrides still propagate.
+- [Phase 58]: [58-02]: general-purpose proxy mapping table added to design §3.3 — 11 spawn rows wrap canonical GSD agents via inline-prompt pattern; resolveModelInternal(general-purpose) returns sonnet fallback, so Plan 12 must resolve against the canonical agent the proxy stands in for.
 
 ### Roadmap Evolution
 
@@ -272,6 +275,7 @@ Recent decisions affecting current work:
 | Phase 58 P03 | 5min | 2 tasks | 2 files |
 | Phase 58 P05 | 5min | 1 tasks | 1 files |
 | Phase 58-structural-enforcement-gates P01 | 6 | 3 tasks | 5 files |
+| Phase 58 P02 | 10min | 2 tasks | 2 files |
 
 ### Key Artifacts
 
@@ -290,8 +294,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T12:44:22.704Z
-Stopped at: Completed 58-01-PLAN.md (GATE-02 substrate + squash default removal + AT-6 STATE.md reconciliation)
+Last session: 2026-04-20T12:45:51.491Z
+Stopped at: Completed 58-02-PLAN.md (GATE-05 enumeration + GATE-13 dispatch-contract design)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
