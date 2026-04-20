@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-05-PLAN.md (per-gate Codex behavior matrix / AT-3)
-last_updated: "2026-04-20T12:43:30.039Z"
+stopped_at: Completed 58-01-PLAN.md (GATE-02 substrate + squash default removal + AT-6 STATE.md reconciliation)
+last_updated: "2026-04-20T12:44:27.838Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 52
-  percent: 73
+  completed_plans: 53
+  percent: 75
 ---
 
 # Project State
@@ -211,6 +211,9 @@ Recent decisions affecting current work:
 - [Phase 58-05]: GATE-06/07 Codex behavior encoded as conditional-degradation ('applies-via-workflow-step if codex_hooks=true else does-not-apply-with-reason') preserving both 57.9-shipped and 57.9-not-shipped execution paths; avoids matrix rewrite if 57.9 lands mid-phase.
 - [Phase 58-05]: Codex-specific open risks (stale signal-detection heuristic; codex_hooks flag stability; auto-compact) surfaced as Section 5 NOT row-degrading — they affect measurement interpretation not gate firing.
 - [Phase 58-05]: Ledger entry format for Codex waivers restricted to disposition: explicitly_deferred (never rejected_with_reason) — every Phase 58 Codex gap has a named downstream resolution phase.
+- [Phase 58-structural-enforcement-gates]: [58-01] Squash option removed entirely from complete-milestone.md AskUserQuestion (not retained as opt-in); plan's dual constraints (explicit opt-in option + single non-squash call site per strategy) forced removal as cleanest reconciliation
+- [Phase 58-structural-enforcement-gates]: [58-01] Installer-derived mirrors (.claude/, .codex/) NOT directly edited; they resync on bin/install.js run; GATE-04 (Plan 11) covers parity drift; Plan 07 CI grep scope recommended to stay on source paths only (get-shit-done/, agents/, commands/, skills/, .codex/skills/)
+- [Phase 58-structural-enforcement-gates]: [58-01] Task 0 STATE.md reconciliation used actual merge commit date (2026-04-20) rather than CONTEXT DC-5's cited 2026-04-17; SHA c8a15d95 matched but commit date differed; per plan instruction to use actual SHA/date
 
 ### Roadmap Evolution
 
@@ -268,6 +271,7 @@ Recent decisions affecting current work:
 | 260419-wjj | Patch roadmap and requirements so downstream provenance phases explicitly cover manual gsdr-signal parity | 2026-04-20 | 2a14f8df | [260419-wjj](./quick/260419-wjj-patch-roadmap-and-requirements-so-downst/) |
 | Phase 58 P03 | 5min | 2 tasks | 2 files |
 | Phase 58 P05 | 5min | 1 tasks | 1 files |
+| Phase 58-structural-enforcement-gates P01 | 6 | 3 tasks | 5 files |
 
 ### Key Artifacts
 
@@ -286,8 +290,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T12:43:19.830Z
-Stopped at: Completed 58-05-PLAN.md (per-gate Codex behavior matrix / AT-3)
+Last session: 2026-04-20T12:44:22.704Z
+Stopped at: Completed 58-01-PLAN.md (GATE-02 substrate + squash default removal + AT-6 STATE.md reconciliation)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
