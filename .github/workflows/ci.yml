@@ -83,6 +83,68 @@ jobs:
         if: github.event_name == 'pull_request'
         run: npm run test:coverage
 
+      - name: GATE-02 merge-strategy conformance
+        run: |
+          set -e
+
+          # GATE-02 enforces `sig-2026-03-28-squash-merge-destroys-commit-history`.
+          # Grep patterns are copy-identical to
+          # `.planning/phases/58-structural-enforcement-gates/58-01-gate02-enumeration.md` §1
+          # ("Grep patterns") and §3 ("Fire-event mechanism"). Any drift between this step
+          # and the enumeration artifact is a Plan 17 verifier finding.
+
+          # 02a: no `gh pr merge` without `--merge` (every invocation must use --merge;
+          # historical comments are escape-hatched via `# historical`).
+          if grep -rn "gh pr merge" agents/ get-shit-done/ commands/ .codex/skills/ \
+              --include='*.md' 2>/dev/null \
+              | grep -v "\-\-merge" \
+              | grep -v '# historical'; then
+            echo "::notice title=GATE-02::gate_fired=GATE-02 result=block reason=gh_pr_merge_without_merge_flag"
+            echo "::error::GATE-02: found 'gh pr merge' invocation without '--merge' flag"
+            exit 1
+          fi
+
+          # 02b: no `git merge --squash` outside historical comments.
+          if grep -rn "git merge --squash" get-shit-done/ agents/ commands/ .codex/skills/ \
+              --include='*.md' 2>/dev/null \
+              | grep -v '# historical'; then
+            echo "::notice title=GATE-02::gate_fired=GATE-02 result=block reason=git_merge_squash_found"
+            echo "::error::GATE-02: found 'git merge --squash' invocation outside historical comment"
+            exit 1
+          fi
+
+          echo "::notice title=GATE-02::gate_fired=GATE-02 result=pass"
+
+      - name: GATE-13 dispatch-contract restatement
+        run: |
+          set -e
+
+          # GATE-13 enforces compaction-resilient dispatch contracts at every named
+          # Task() spawn site. Grep pattern is copy-identical to
+          # `.planning/phases/58-structural-enforcement-gates/58-02-gate13-dispatch-contract-design.md`
+          # §4.1 ("The grep") and §4.2 ("Allowlist for transitional period").
+          #
+          # Bootstrap exemption: until Wave 3 Plan 12 bakes literal model values into every
+          # spawn site's dispatch-contract comment block, the current `model="{...}"`
+          # template-variable bindings are allowlisted at `.github/gate-13-allowlist.txt`.
+          # Plan 12 empties the allowlist as each site is rewritten; Plan 12a deletes the
+          # file when empty and the grep becomes the naked version of this check.
+
+          MATCHES=$(grep -rn --include='*.md' -A 5 'Task(' \
+              agents/ get-shit-done/workflows/ commands/ .codex/skills/ 2>/dev/null \
+              | grep -E 'model\s*=\s*"\{[^}]+\}"' \
+              | { if [ -f .github/gate-13-allowlist.txt ]; then grep -v -F -f .github/gate-13-allowlist.txt; else cat; fi; } \
+              || true)
+
+          if [ -n "$MATCHES" ]; then
+            echo "::notice title=GATE-13::gate_fired=GATE-13 result=block reason=template_variable_in_dispatch_contract"
+            echo "::error::GATE-13: found Task() dispatch with unresolved template variable at model= (compaction-unsafe)"
+            echo "$MATCHES"
+            exit 1
+          fi
+
+          echo "::notice title=GATE-13::gate_fired=GATE-13 result=pass"
+
       - name: GATE-01 emission marker
         if: always()
         run: |
