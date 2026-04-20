@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 58-08-PLAN.md (GATE-03 quick classify library + CLI + workflow-step + CI post-commit backstop; GATE-01/02/13 preserved, phase advance preserved)
-last_updated: "2026-04-20T17:23:04.181Z"
+stopped_at: Completed 58-09-PLAN.md (GATE-15 source/install parity CI gate + parity script; 16 unit tests pass; prior GATE-01/02/03/13 preserved)
+last_updated: "2026-04-20T17:34:58.002Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 23
   completed_phases: 13
   total_plans: 71
-  completed_plans: 60
-  percent: 85
+  completed_plans: 61
+  percent: 86
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 57.8 of 64 — Complete (merged 2026-04-20, commit c8a15d95). Phase 58 (Structural Enforcement Gates) plan-phase in progress.
-Plan: 7 of 21 (58-01 in progress)
+Plan: 8 of 21 (58-01 in progress)
 Status: Ready to execute
 
 ### Recent Phases
@@ -237,6 +237,10 @@ Recent decisions affecting current work:
 - [Phase 58-structural-enforcement-gates]: [58-08] Classifier library uses static MANIFEST_SOURCE_ROOTS list (5 roots: agents, commands, get-shit-done, .codex/skills, skills) mirrored from bin/install.js install() source-tree walk rather than importing install.js at runtime — CLAUDE.md dual-directory rule already enforces parity, and adding a 3354-line code-path per classification would be load-bearing
 - [Phase 58-structural-enforcement-gates]: [58-08] Mixed exit code (3) triggers only when runtime-facing AND planning-authority both present in staged set; runtime-facing + pure-docs-only set exits 1 (runtime-facing) — pure-docs does not escalate severity
 - [Phase 58-structural-enforcement-gates]: [58-08] GATE-03 workflow-step placed at quick.md Step 2.5 (branching decision) not Step 8 (final commit); CI post_commit_gate_03 job is the structural enforcer for bypass cases — merge-commit exemption (parents>=2) preserves branch+PR path since GATE-01 already gated it
+- [Phase 58-structural-enforcement-gates]: [58-09] GATE-15 parity script chose option (b) — require('../bin/install.js') — because replacePathsInContent + injectVersionScope already exported at install.js:3354 for install.test.js; extraction to bin/lib/install-paths.cjs rejected as net-negative against upstream-sync minimal-diff discipline
+- [Phase 58-structural-enforcement-gates]: [58-09] Plan's CI invocation 'HOME=$INSTALL_DIR node bin/install.js --claude --local' was semantically incorrect — --local is cwd-based per install.js:2578-2580, not HOME-based; replaced with '(cd $INSTALL_DIR && node $REPO_ROOT/bin/install.js --claude --local)' so --local resolves to tempdir
+- [Phase 58-structural-enforcement-gates]: [58-09] agents/ SOURCE_ROOT walked non-recursively (recursive: false) because install.js:2733-2751 iterates entry.isFile() top-level-only and skips sub-directories like agents/kb-templates/; recursive walk would false-positive with installed_file_missing
+- [Phase 58-structural-enforcement-gates]: [58-09] Dual fire-event emission (script emits result=block path=<first-diverging-file> reason=<why>; workflow emits coarse result=pass|block) is intentional — script output is detail for debuggability, workflow output is Plan 19 gate_fire_events extractor contract
 
 ### Roadmap Evolution
 
@@ -302,6 +306,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P06 | 248min | 2 tasks | 4 files |
 | Phase 58 P07 | 3min | 2 tasks | 3 files |
 | Phase 58-structural-enforcement-gates P08 | 5min | 2 tasks | 4 files |
+| Phase 58-structural-enforcement-gates P09 | 7min | 2 tasks | 3 files |
 
 ### Key Artifacts
 
@@ -320,8 +325,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T17:23:04.172Z
-Stopped at: Completed 58-08-PLAN.md (GATE-03 quick classify library + CLI + workflow-step + CI post-commit backstop; GATE-01/02/13 preserved, phase advance preserved)
+Last session: 2026-04-20T17:34:57.993Z
+Stopped at: Completed 58-09-PLAN.md (GATE-15 source/install parity CI gate + parity script; 16 unit tests pass; prior GATE-01/02/03/13 preserved)
 Resume artifact: `.planning/phases/58-structural-enforcement-gates/58-01-PLAN.md`
 
 This session (2026-04-16):
