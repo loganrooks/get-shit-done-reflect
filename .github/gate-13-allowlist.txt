@@ -1,86 +1,58 @@
-# GATE-13 bootstrap allowlist — template-variable model= bindings that Wave 3 Plan 12
-# will retire.
-#
-# Purpose
-# -------
-# This file enumerates the currently-known `Task(...)` spawn sites whose runtime
-# model= attribute still binds a `{xxx_model}` template variable. These bindings
-# are the compaction-unsafe pattern that GATE-13 eventually blocks
-# (see .planning/phases/58-structural-enforcement-gates/58-02-gate13-dispatch-contract-design.md §4.2).
-#
-# Until Wave 3 Plan 12 inserts the inline dispatch-contract comment block above
-# every spawn site (which bakes in the literal model name as a compaction-survival
-# record), the naked grep would fail CI on every PR. Each non-comment line below
-# is a `path-lineno-` substring that `grep -v -F -f .github/gate-13-allowlist.txt`
-# excludes from the CI check in `.github/workflows/ci.yml`.
-#
-# Lifecycle
-# ---------
-# Plan 12 (Wave 3) retires entries as it edits each site:
-#   1. Resolve literal model via `resolveModelInternal(cwd, agent_type)`.
-#   2. Insert the GATE-05 echo macro + GATE-13 dispatch-contract comment block.
-#   3. Leave the runtime Task()'s model= attribute unchanged (still template).
-#   4. Delete the corresponding line from this file in the same commit.
-#
-# When the file has no non-comment entries, Plan 12a deletes the file entirely
-# and the naked CI grep from §4.1 of the design artifact becomes authoritative.
-#
-# Exit criterion
-# --------------
-# File removed + GATE-13 CI step emits `gate_fired=GATE-13 result=pass` with zero
-# hits against the agents/ get-shit-done/workflows/ commands/ .codex/skills/
-# surface. Ledger entry recorded by Plan 12a.
-#
+# GATE-13 bootstrap allowlist — template-variable model= bindings deferred beyond Plan 12a.
+# ---
+# Plan 12 (Wave 3) instrumented 10 core workflow files (collect-signals, research-phase,
+# plan-phase, execute-phase, verify-work, audit-milestone, discuss-phase, quick, reflect,
+# explore) and retired its 8 scope entries. Plan 12a (Wave 6) instrumented the 6 remaining
+# files in its PLAN.md `files_modified` manifest (commands/gsd/audit.md, commands/gsd/debug.md,
+# get-shit-done/workflows/map-codebase.md, new-project.md, new-milestone.md, validate-phase.md)
+# and retired its 2 scope entries (old debug.md:96,149 — now 137,231 carry the full
+# echo_delegation macro + DISPATCH CONTRACT comment block with BAKED IN model annotations).
+# ---
+# The 6 entries below are genuinely OUT-OF-SCOPE for both Plan 12 and Plan 12a:
+#   - commands/gsd/research-phase.md (2 sites) — not in Plan 12a's files_modified manifest
+#     despite being listed as Plan 12a scope in the pre-Plan-12a HEADNOTE (scope mismatch
+#     surfaced during Plan 12a execution 2026-04-20; entries remain here as a narrowing record)
+#   - .codex/skills/gsdr-research-phase/SKILL.md (2 sites) — Codex-runtime mirror of
+#     plan-phase.md / research-phase.md, not in Plan 12a's files_modified
+#   - .codex/skills/gsdr-debug/SKILL.md (2 sites) — Codex-runtime mirror of commands/gsd/debug.md,
+#     not in Plan 12a's files_modified
+# ---
+# These sites require a follow-up plan (likely "Plan 12b" or a Phase 58/59 milestone plan)
+# to apply the echo_delegation macro + dispatch-contract comment block. Until then:
+# ---
+# Plan 12a SUMMARY has a deviation entry describing this narrowing; the decisions log
+# carries a [58-12a] entry citing this as a deferred structural enforcement.
+# ---
+# Design §2.3 design-intent note
+# ------------------------------
+# Plan 12's SUMMARY surfaced a pre-existing allowlist-format defect: bare `#` comment
+# lines (a `#` alone on a line) act as patterns that match every line containing `#`
+# via `grep -F -f`, silently disabling the check for any BAKED-IN-annotated hit. This
+# rewrite (2026-04-20) eliminated every bare `#` line — each comment carries prose
+# or a non-bare `# ---` separator.
+# ---
+# The CI GATE-13 grep in .github/workflows/ci.yml was additionally updated (Plan 12a
+# Task 2 — 2026-04-20) to honor the design §2.3 compaction-survival signal:
+#   `grep -v '# BAKED IN comment:'`
+# is chained into the pipeline so template bindings ANNOTATED with the baked-in literal
+# are recognized as compliant. Entries below are sites that lack that annotation because
+# they have NO dispatch-contract block at all yet.
+# ---
 # Format
 # ------
-# Each entry is a substring (including trailing dash) matching the `grep -A 5`
-# context-line prefix. `grep` in context mode uses `-` (not `:`) between the
-# filename and line number, so allowlist entries use that same format.
-#
-# IMPORTANT: `grep -F -f` treats a blank line in the pattern file as a pattern
-# that matches EVERY line. Do NOT leave blank lines between entries — comment
-# lines (starting with `#`) are safe because grep output never starts with `#`,
-# but blank lines would disable the check. Regenerate with:
-#
-#   grep -rn --include='*.md' -A 5 'Task(' agents/ get-shit-done/workflows/ commands/ .codex/skills/ 2>/dev/null \
-#     | grep -E 'model\s*=\s*"\{[^}]+\}"' \
-#     | perl -pe 's/^(.+?\.md-\d+-).*/$1/'
-#
-# Enumeration provenance
-# ----------------------
-# Sites enumerated from:
-#   .planning/phases/58-structural-enforcement-gates/58-02-gate05-enumeration.md §4.2
-# Subset actually matched by the `-A 5` CI grep is recorded below (consecutive
-# Task() blocks share context windows; some enumerated sites are covered
-# transitively by adjacent matches).
-#
-# --- Plan 02 §4.2 rows visible to the CI grep at Plan 07 authoring time ---
-#
-# Phase 58 Plan 12 scope: 10 core workflow files retired 2026-04-20 (collect-signals,
-# research-phase, plan-phase, execute-phase, verify-work, audit-milestone, discuss-phase,
-# quick, reflect, explore). GATE-05 echo_delegation macro + GATE-13 inline dispatch
-# contract comment block applied to each site; runtime Task() body retains template
-# binding per design §2.3 (resilience lives in the comment). Allowlist entries for
-# rows 2, 7, 8, 11, 12, 13, 14, 15 removed in the same commit that landed the edits.
-#
-# Remaining entries below are Plan 12a's scope (commands/gsd/audit.md, commands/gsd/debug.md,
-# commands/gsd/research-phase.md, map-codebase.md, new-project.md, new-milestone.md,
-# validate-phase.md + the Codex skill mirrors) — Plan 12a empties this file or
-# replaces with a retirement comment after its landing.
-#
-# row 23 — commands/gsd/debug.md debugger_model
-commands/gsd/debug.md-96-
-# row 24 — commands/gsd/debug.md debugger_model (continuation)
-commands/gsd/debug.md-149-
-# row 39 — commands/gsd/research-phase.md researcher_model
+# Each entry is a `path-lineno-` substring (matching the `grep -A 5` context-line prefix
+# where `grep` uses `-` between filename and line number).
+# ---
+# --- Entries (post-Plan-12a, 2026-04-20) ---
+# row 39 — commands/gsd/research-phase.md researcher_model (site 1 of 2)
 commands/gsd/research-phase.md-140-
-# row 40 — commands/gsd/research-phase.md researcher_model (iteration)
+# row 40 — commands/gsd/research-phase.md researcher_model (site 2 of 2, iteration)
 commands/gsd/research-phase.md-174-
-# row 41 — .codex/skills/gsdr-research-phase/SKILL.md researcher_model
+# row 41 — .codex/skills/gsdr-research-phase/SKILL.md researcher_model (site 1 of 2)
 .codex/skills/gsdr-research-phase/SKILL.md-135-
-# row 42 — .codex/skills/gsdr-research-phase/SKILL.md researcher_model (continuation)
+# row 42 — .codex/skills/gsdr-research-phase/SKILL.md researcher_model (site 2 of 2, continuation)
 .codex/skills/gsdr-research-phase/SKILL.md-169-
-# row 44 — .codex/skills/gsdr-debug/SKILL.md debugger_model
+# row 44 — .codex/skills/gsdr-debug/SKILL.md debugger_model (site 1 of 2)
 .codex/skills/gsdr-debug/SKILL.md-90-
-# row 45 — .codex/skills/gsdr-debug/SKILL.md debugger_model (continuation)
+# row 45 — .codex/skills/gsdr-debug/SKILL.md debugger_model (site 2 of 2, continuation)
 .codex/skills/gsdr-debug/SKILL.md-143-

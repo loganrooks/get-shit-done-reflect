@@ -165,15 +165,27 @@ jobs:
           # `.planning/phases/58-structural-enforcement-gates/58-02-gate13-dispatch-contract-design.md`
           # §4.1 ("The grep") and §4.2 ("Allowlist for transitional period").
           #
-          # Bootstrap exemption: until Wave 3 Plan 12 bakes literal model values into every
-          # spawn site's dispatch-contract comment block, the current `model="{...}"`
-          # template-variable bindings are allowlisted at `.github/gate-13-allowlist.txt`.
-          # Plan 12 empties the allowlist as each site is rewritten; Plan 12a deletes the
-          # file when empty and the grep becomes the naked version of this check.
+          # Design §2.3 compaction-survival signal (Plan 12a Task 2 — 2026-04-20): per the
+          # design doc, the runtime Task() body's `model=` attribute INTENTIONALLY retains
+          # its template variable — the resilience property lives in the inline dispatch-
+          # contract comment block (which is accompanied by a `# BAKED IN comment: <alias>`
+          # annotation on the retained-template line recording the authoring-time literal).
+          # The CI grep must honor this signal, otherwise it would flag every Plan 12 /
+          # Plan 12a edit as a GATE-13 violation despite being design-compliant. We chain
+          # a `grep -v '# BAKED IN comment:'` filter so annotated lines are recognized as
+          # compliant; only truly naked template bindings remain as violations.
+          #
+          # Bootstrap exemption: for spawn sites not yet instrumented by Plan 12 or Plan 12a
+          # (commands/gsd/research-phase.md + .codex/skills/*; a follow-up plan will apply
+          # the echo_delegation macro + dispatch-contract to these), the current
+          # `model="{...}"` template-variable bindings remain allowlisted at
+          # `.github/gate-13-allowlist.txt` (file rewritten 2026-04-20 to strip bare `#`
+          # pattern-lines that silently matched every BAKED-IN-annotated line).
 
           MATCHES=$(grep -rn --include='*.md' -A 5 'Task(' \
               agents/ get-shit-done/workflows/ commands/ .codex/skills/ 2>/dev/null \
               | grep -E 'model\s*=\s*"\{[^}]+\}"' \
+              | grep -v '# BAKED IN comment:' \
               | { if [ -f .github/gate-13-allowlist.txt ]; then grep -v -F -f .github/gate-13-allowlist.txt; else cat; fi; } \
               || true)
 
