@@ -325,7 +325,29 @@ Plans:
   6. GATE-09 ships as a real ledger contract: named artifact/schema, planning gate for unresolved scope-boundary questions, narrowing-decision provenance, and verifier enforcement against silent disappearance
   7. Phase closeout is structural: planning-authority files reconcile, failed/interrupted agent output is archived, release-boundary lag is surfaced, and source-vs-installed mirrors are checked after runtime-facing changes
   8. Every hook-dependent v1.20 feature specifies its per-runtime substrate and Codex degradation / waiver path in phase CONTEXT.md before implementation begins, and capability-matrix.md is updated when the feature ships
-**Plans**: TBD
+**Plans:** 20 plans
+
+Plans:
+- [ ] 58-01-PLAN.md — GATE-02 enumeration + fix `complete-milestone.md` squash default
+- [ ] 58-02-PLAN.md — GATE-05 named-site enumeration + GATE-13 dispatch-contract design
+- [ ] 58-03-PLAN.md — GATE-08a upstream fetch/delta + port `gsdr-assumptions-analyzer` agent
+- [ ] 58-04-PLAN.md — GATE-09a ledger schema in `frontmatter.cjs` + `ledger_entries` KB migration
+- [ ] 58-05-PLAN.md — Per-gate Codex behavior matrix (AT-3 compliance)
+- [ ] 58-06-PLAN.md — GATE-01 / GATE-14 CI emission + branch-protection flip
+- [ ] 58-07-PLAN.md — GATE-02 / GATE-13 CI grep jobs + bootstrap allowlist
+- [ ] 58-08-PLAN.md — GATE-03 quick-classify CLI + workflow gate + CI post-commit backstop
+- [ ] 58-09-PLAN.md — GATE-15 source/install parity CI check
+- [ ] 58-10-PLAN.md — GATE-04a/b/c `.continue-here` archive + staleness + severity framework
+- [ ] 58-11-PLAN.md — GATE-08a-e discuss-phase-assumptions port + analyzer wiring + mode docs
+- [ ] 58-12-PLAN.md — GATE-05 / GATE-13 workflow edits at all enumerated spawn sites
+- [ ] 58-13-PLAN.md — GATE-10 `gsd-tools phase reconcile` subcommand + wiring
+- [ ] 58-14-PLAN.md — GATE-12 `gsd-tools agent archive` + envelope in dispatch workflows
+- [ ] 58-15-PLAN.md — GATE-11 `gsd-tools release check` + release-lag template
+- [ ] 58-16-PLAN.md — GATE-06 / GATE-07 defer-provenance (AT-1 Option B, 57.9 prerequisite)
+- [ ] 58-17-PLAN.md — GATE-09b/c/d + meta-gate (GATE-09e) verifier contract
+- [ ] 58-18-PLAN.md — XRT-01 planning-phase assertion + capability-matrix closeout diff
+- [ ] 58-19-PLAN.md — `gate_fire_events` extractor registration
+- [ ] 58-20-PLAN.md — Phase 58 `58-LEDGER.md` (reflexive GATE-09) + ROADMAP update
 
 ### Phase 59: KB Query, Lifecycle Wiring & Surfacing
 **Goal**: The knowledge base is fully queryable on the current file+SQLite architecture, lifecycle transitions are automated with an explicit path relative to the existing bash fallback, and agent surfacing stops being one-way by exposing inbound edge context. The phase stays focused on query/lifecycle/surfacing on the current schema, while explicitly naming the deeper edge-as-entity and retrieval-feedback architecture as downstream work instead of silently omitting it.
