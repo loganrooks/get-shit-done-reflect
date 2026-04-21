@@ -10,15 +10,15 @@
 [decided:reasoned] Phase 60 makes the log sensor and a new patch sensor operational across Claude Code and Codex CLI, with post-install cross-runtime parity verification and patch-compatibility checking. Its job is to close the three `v1.20` sensor/parity gaps already scoped into `SENS-01..SENS-07` + `XRT-02`: (a) the log sensor stops being a stubbed/skipped placeholder and starts producing real session-log signals via progressive deepening on both runtimes, (b) the patch sensor detects source-vs-installed drift using the installer's existing SHA256 manifest and classifies what it finds, and (c) post-install parity verification fires automatically when `bin/install.js` runs and one runtime already has a prior install.
 
 **In scope for Phase 60:**
-- Log sensor (`agents/gsd-log-sensor.md`) becomes cross-runtime — Codex adapter for session discovery, fingerprint extraction, and narrow/expanded message reads normalizes to one schema (SENS-01, SENS-02, SENS-03)
-- SENS-07 warnings-as-signals path: parse failures, format mismatches, unexpected structures emit diagnostic signals instead of crashing or silently returning empty
+- [decided:reasoned] Log sensor (`agents/gsd-log-sensor.md`) becomes cross-runtime — Codex adapter for session discovery, fingerprint extraction, and narrow/expanded message reads normalizes to one schema (SENS-01, SENS-02, SENS-03) <!-- typed by context-checker -->
+- [decided:reasoned] SENS-07 warnings-as-signals path: parse failures, format mismatches, unexpected structures emit diagnostic signals instead of crashing or silently returning empty <!-- typed by context-checker -->
 - New sensor/tool: patch sensor detects source-vs-installed divergence using the existing `generateManifest()` / `fileHash()` / `gsd-file-manifest.json` plumbing, and classifies each divergence into the taxonomy `bug | stale | customization | format-drift | feature-gap` with a developer-facing report (SENS-04, SENS-05)
 - Post-install cross-runtime parity verification hook in `bin/install.js` that detects "other runtime is installed here too" and reports / remediates divergence (SENS-06)
 - Patch compatibility checking against target runtime before cross-runtime application of any patch (XRT-02), wired to the `reapply-patches` surface or the patch-sensor report
 - Focused automated regression coverage under `tests/` for: Codex session discovery (state_5.sqlite primary + filesystem fallback), cross-runtime fingerprint parity, patch classification accuracy on a golden fixture, and post-install parity detection
 
 **Explicitly out of scope (deferred per research §4 and adjacent phases):**
-- Cross-project distribution gap (non-GSDR projects running global upstream GSD) — deferred to v1.21 per MILESTONE-CONTEXT.md and Phase 58.1's narrower carve-out
+- [decided:reasoned] Cross-project distribution gap (non-GSDR projects running global upstream GSD) — deferred to v1.21 per MILESTONE-CONTEXT.md and Phase 58.1's narrower carve-out <!-- typed by context-checker -->
 - Any new Codex hook substrate introduction — Codex hooks are still "under development" per `codex features list` and Phase 58.1 DC-4. Post-install parity runs inside `bin/install.js` itself, not via a Codex hook
 - Telemetry / measurement identity rewiring (PROV-09..PROV-14) — that is Phase 60.1's scope; Phase 60 builds the substrate Phase 60.1 rewires
 - Agent performance / reflection stratification work — Phase 60.1
@@ -187,7 +187,7 @@
 | `[decided]` Patch sensor is dual-surface (subcommand + drop-a-file sensor) | `[evidenced:cited]` dual-surface pattern already works for `gsdr-health` | LOW — precedent pattern |
 | `[decided]` Classification taxonomy adopted verbatim from research §2.3 | `[evidenced:cited]` live patch backup in `.codex/gsd-local-patches/backup-meta.json` | LOW — data exists; classifier just has to interpret it |
 | `[decided]` Post-install parity is advisory, not auto-apply | `[decided]` Phase 58.1 DC-6 "degrade explicitly" + `[governing]` G-4 honesty rule | LOW — design rule, traceable |
-| `[assumed:reasoned]` Running patch-sensor on every collect-signals is acceptable | `[evidenced]` dogfooding false-positive precedent | MEDIUM — if Q2 shows noise, need config gate; reversible |
+| `[assumed:reasoned]` Running patch-sensor on every collect-signals is acceptable | `[evidenced:cited]` dogfooding false-positive precedent (`sig-2026-02-24-local-patches-false-positive-dogfooding`) <!-- corrected by context-checker: was [evidenced] (bare) — phantom citation; upgraded to [evidenced:cited] matching DC-7 --> | MEDIUM — if Q2 shows noise, need config gate; reversible |
 | `[decided]` XRT-02 validator lives at reapply site, not save site | `[assumed:reasoned]` compat is a reapply concern | MEDIUM — if a save-time compat check turns out to be high-leverage, refactor |
 | `[assumed:reasoned]` Codex 0.118.0 state_5.sqlite schema stable enough | `[evidenced:cited]` research audit 2026-04-09, next-audit-due 2026-04-23 | MEDIUM — G-1 re-audit gate planned before ship |
 
@@ -271,7 +271,7 @@
 ## Specific Ideas
 
 - The `state_5.sqlite` schema (research §7.3) is documented inline; the `threads` table has `id, rollout_path, cwd, created_at, updated_at, source, tokens_used, model, reasoning_effort, git_sha, git_branch, git_origin_url, cli_version, agent_path, agent_nickname, title`. The adapter probes columns before relying on them.
-- The patch-backup evidence on the live machine (`~/.codex/gsd-local-patches/backup-meta.json` with 17 files from v1.17.5) is a golden test case for the classifier — all 17 should classify as `stale` since they were backed up before v1.18 modularization; the backed-up `gsd-tools.js` no longer exists in source so it should classify as `stale` or `feature-gap`.
+- The patch-backup evidence on the live machine (`~/.codex/gsd-local-patches/backup-meta.json` with 17 files from v1.17.5) is a golden test case for the classifier — [assumed:reasoned] all 17 should classify as `stale` since they were backed up before v1.18 modularization; the backed-up `gsd-tools.js` no longer exists in source so it should classify as `stale` or `feature-gap`. <!-- typed by context-checker -->
 - The cross-runtime-parity-research.md "Validation Commands" table is reused as the smoke-test list for Phase 60 verification: re-run those commands, assert outputs match, bump `last_audited`.
 - The `.codex/gsd-local-patches/` vs `.claude/gsdr-local-patches/` directory-name divergence noted in research §1.1 is a candidate `bug` classification target — the patch sensor should detect it.
 - Phase 58 already added a codex-behavior-matrix.md to its phase dir (`.planning/phases/58-structural-enforcement-gates/58-05-codex-behavior-matrix.md`); Phase 60 should produce its own companion matrix documenting per-sensor Codex behavior using the same shape.
@@ -285,7 +285,7 @@
 - **Cross-project distribution gap** (non-GSDR projects running global upstream GSD) — deferred to v1.21 per MILESTONE-CONTEXT.md and parity research §4.5. Phase 60 closes the single-project multi-runtime gap.
 - **Cross-model sensor diversity** (Claude sensors + GPT sensors via `codex exec`) — "Beyond Formal Scope" in parity research. Interesting pattern, not required for SENS-01..07 or XRT-02. Revisit in v1.21 alongside `codex exec` as sensor-runner experimentation.
 - **Codex `history.jsonl` as cross-session pattern source** — parity research "Beyond Formal Scope" notes it's a lightweight first pass for cross-session patterns (log-sensor blind spot). Revisit when cross-session reflection gets its own phase.
-- **Codex `logs_1.sqlite` structured runtime traces** — too low-level for sensor pipeline per research §7.2; belongs in a debugging / diagnostics phase.
+- **Codex `logs_1.sqlite` structured runtime traces** — [decided:reasoned] too low-level for sensor pipeline per research §7.2; belongs in a debugging / diagnostics phase. <!-- typed by context-checker -->
 - **Codex memories vs Claude Code MEMORY.md divergence** — v1.21+ concern per parity research "Beyond Formal Scope".
 - **WebFetch null-mapping in Codex agent specs** — parity research "Beyond Formal Scope". Patch sensor could surface this as a signal but the fix (per-agent spec review) is a separate cleanup.
 - **SKILL.md vs command .md invocation-syntax friction** — UX research, not sensor work.

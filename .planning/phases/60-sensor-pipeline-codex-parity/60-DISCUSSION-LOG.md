@@ -290,7 +290,102 @@ See `<deferred>` section in CONTEXT.md. Highlights:
 
 ## Context-Checker Verification Log
 
-This section is populated by the gsdr-context-checker agent after it runs.
-Leave this header and a placeholder line when first writing the file.
+**Checked:** 2026-04-21
+**Agent:** gsdr-context-checker
 
-*Awaiting context-checker run.*
+### Typed Claim Verification
+
+| Claim | Type | Verification | Status | Issue |
+|-------|------|-------------|--------|-------|
+| Phase 60 makes the log sensor and patch sensor operational... | decided | reasoned | PASS | -- |
+| `agents/gsd-log-sensor.md` already specifies Stage 1–5 progressive deepening... | evidenced | cited | PASS | File exists; blind_spots text confirmed at line 356 |
+| Stages 3–6 of the log sensor pipeline are runtime-agnostic once normalized | evidenced | cited | PASS | Research §3.1 confirmed at line 244: "Only stages 1, 2, and the read operations in stage 5 need runtime-specific code" |
+| Adapter lives as thin pre-processor layer inside log-sensor agent spec | decided | reasoned | PASS | Alternatives documented in DISCUSSION-LOG.md §Gray area 1 |
+| Normalized fingerprint schema with optional additive Codex-only fields | decided | reasoned | PASS | Alternatives considered; G-2 guardrail consistent |
+| Existing inline python3 Stage 1c extractor can be adapted without new dependency | assumed | reasoned | PASS | Challenge protocol present; basis in §1.3, §3.4 |
+| Subagent/sub-thread session files exist on both runtimes and should be deprioritized | assumed | reasoned | PASS | Challenge protocol names Q1 as the live test |
+| Research §3.2 documents `state_5.sqlite` schema with `threads` table | evidenced | cited | WARN | Citation mismatch: §3.2 lists only 8 fields informally; the complete schema (including git_origin_url, cli_version, agent_path, agent_nickname, title) is in §7.3's CREATE TABLE. Two fields present in the actual schema (model_provider, first_user_message) are omitted from the claim. Non-load-bearing for sensor design but the citation is imprecise. |
+| SQLite is the recommended primary path (Research §3.2 Option A) | evidenced | cited | PASS | §3.2 Option A confirmed at research doc lines 257-275 |
+| Primary discovery uses `sqlite3` CLI from bash | decided | reasoned | PASS | Alternatives rejected documented in DISCUSSION-LOG.md §Gray area 2 |
+| Fallback discovery is date-partitioned filesystem scan emitting SENS-07 diagnostic | decided | reasoned | PASS | Research §3.2 Option B confirmed; rationale complete |
+| Codex schema may drift; column probe + fallback handle it | assumed | reasoned | PASS | Challenge protocol present (PRAGMA table_info + G-1 re-audit gate) |
+| Token counts from threads.tokens_used are pre-filter-authoritative | assumed | reasoned | PASS | Challenge protocol present (>5% divergence threshold) |
+| `bin/install.js` lines 1720–1930 already provide SHA256 manifest plumbing | evidenced | cited | PASS | Verified: PATCHES_DIR_NAME at 1725, fileHash at 1750, generateManifest at 1758, writeManifest at 1778, saveLocalPatches at 1810, pruneRedundantPatches at 1854, reportLocalPatches at 1911 — all within range |
+| Live patch backup at `~/.codex/gsd-local-patches/backup-meta.json` | evidenced | cited | PASS | Research §2.1 explicitly cites the live artifact (17 files from v1.17.5) |
+| Two-layer patch sensor architecture per research §2.2 | evidenced | cited | PASS | §2.2 confirmed at research doc lines 145-163 |
+| Layer 2 reuses installer format-conversion helpers | decided | reasoned | PASS | Alternatives considered; DRY rationale |
+| Classification taxonomy adopted verbatim from research §2.3 | decided | reasoned | PASS | §2.3 confirmed; taxonomy identical |
+| Dual-surface: subcommand + drop-a-file sensor | decided | reasoned | PASS | Alternatives documented; gsdr-health precedent confirmed in gsd-tools.cjs |
+| Running patch-sensor on every collect-signals is acceptable overhead | assumed | reasoned | PASS | Challenge protocol present (3s/20 signals threshold) |
+| `bin/install.js` has `saveLocalPatches()` and `cleanupOrphanedFiles()` per-install | evidenced | cited | PASS | cleanupOrphanedFiles confirmed at line 1257; saveLocalPatches at 1810 |
+| `otherScopeVersionPath` probe in `bin/install.js` (lines 1962–1977) | evidenced | cited | PASS | Probe confirmed at lines 1962-1977 exactly |
+| Post-install parity: advisory report + JSON artifact, no fail-on-drift | decided | reasoned | PASS | Alternatives documented; Phase 58.1 DC-6 alignment confirmed |
+| JSON artifact at `.claude/gsd-parity-report.json` | decided | reasoned | PASS | Alternatives considered |
+| "Other runtime installed" detection reuses Phase 58.1 path-resolution precedence | assumed | reasoned | PASS | Challenge protocol present; DRY rationale |
+| Log sensor spec states "If no logs exist, return empty signals immediately" | evidenced | cited | PASS | Log sensor text confirmed at gsd-log-sensor.md guidelines section |
+| SENS-07 contract: parse failures emit structured signal candidates | decided | reasoned | PASS | Alternatives documented in DISCUSSION-LOG.md §Gray area 5 |
+| Crash-resistance: adapter wraps all parsing in try/except | decided | reasoned | PASS | Rationale consistent with existing spec pattern |
+| Sensor emits; synthesizer arbitrates trace-filter | governing | reasoned | PASS | Source confirmed: collect-signals.md single-writer invariant line 23; type is appropriate (process convention) |
+| `commands/gsd/reapply-patches.md` does not currently validate compat | evidenced | cited | PASS | File exists; lack of validator is confirmed |
+| XRT-02 validator at reapply site with shared taxonomy | decided | reasoned | PASS | Alternatives documented in DISCUSSION-LOG.md §Gray area 7 |
+| Incompatible patches map into existing classification vocabulary | decided | reasoned | PASS | Rationale: avoids parallel taxonomies |
+| Validator is reapply-site, not save-site, because compat is reapply concern | assumed | reasoned | PASS | Challenge protocol present |
+| Codex hooks are "under development" per `codex features list` (research §1.2) | evidenced | cited | PASS | §1.2 confirmed at research doc lines 57-91; hook status confirmed |
+| Phase 60 must not install or assume any Codex hook substrate | governing | reasoned | PASS | Source: Phase 58.1 DC-4 carried forward; governing type is appropriate (process commitment) |
+| Every Codex-touching surface carries per-runtime substrate declaration | decided | reasoned | PASS | XRT-01 confirmed in Phase 58 and REQUIREMENTS.md |
+| DC-1: log sensor must stay single drop-a-file sensor | evidenced | cited | PASS | collect-signals.md SENSOR_FILES glob confirmed at line 117; EXT-06 signal exists |
+| DC-2: sensors MUST NOT write to KB | evidenced | cited | PASS | collect-signals.md single-writer at line 23; gsd-log-sensor.md confirms |
+| DC-3: source repo is source of truth | evidenced | cited | PASS | Phase 58.1 DC-2 confirmed in 58.1-CONTEXT.md |
+| DC-4: no new Codex hook substrate in Phase 60 | evidenced | cited | PASS | Phase 58.1 DC-4 confirmed; parity research §1.2 confirmed |
+| DC-5: every capability declares per-runtime substrate | evidenced | cited | PASS | Phase 58 XRT-01 confirmed in REQUIREMENTS.md |
+| DC-6: reuse existing installer primitives (lines 1720–1977) | evidenced | cited | PASS | All functions verified present in correct line range |
+| DC-7: dogfooding false-positive pattern is a known failure mode | evidenced | cited | PASS | sig-2026-02-24-local-patches-false-positive-dogfooding.md exists |
+| DC-8: log sensor operability is a recurring blind spot | evidenced | reasoned | WARN | Type mismatch: claim cites four specific signal files by name (sig-2026-04-09-log-sensor-stub..., etc.) in "Derived from" field; all four files verified to exist. Should be [evidenced:cited], not [evidenced:reasoned]. The verification level understates the evidence. |
+| DC-9: cross-runtime KB drift is already a critical signal | evidenced | cited | PASS | sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift.md exists (with sig- prefix); research §4 confirmed |
+| DC-10: regression coverage follows deliberation Option B | decided | reasoned | PASS | cross-runtime-parity-testing.md deliberation file confirmed to exist |
+| G-1 through G-8 (governing guardrails) | governing | reasoned | PASS | All sources traceable; G-5 references gsd-artifact-sensor.md §3.0 (file exists) |
+
+### Untyped Claims Surfaced
+
+| Claim Text | Proposed Type | Location | Rationale |
+|-----------|---------------|----------|-----------|
+| "Log sensor becomes cross-runtime — Codex adapter for session discovery…normalizes to one schema (SENS-01, SENS-02, SENS-03)" | [decided:reasoned] | `<domain>` In scope, line 13 | This is a scope-inclusion decision, not a neutral description. Scope boundaries are `decided` claims per claim-types.md §4. Without a type marker, a downstream planner cannot distinguish "we decided to do this" from "we discovered this is so." |
+| "SENS-07 warnings-as-signals path: parse failures…emit diagnostic signals instead of crashing" | [decided:reasoned] | `<domain>` In scope, line 14 | Same as above — scope-inclusion decision. The working model does type these decisions, but the domain summary restates them without markers, creating an echo that looks like established fact. |
+| "Cross-project distribution gap…deferred to v1.21 per MILESTONE-CONTEXT.md" | [decided:reasoned] | `<domain>` Out of scope, line 21 | Deferral is a scope-exclusion decision. "Deferred to v1.21" asserts a roadmap commitment that may or may not hold. Should be typed as `[decided:reasoned]` or `[projected:reasoned]` if the v1.21 timeline is not firm. |
+| "Codex logs_1.sqlite structured runtime traces — too low-level for sensor pipeline per research §7.2" | [decided:reasoned] | `<deferred>` line 288 | The characterization "too low-level" is a classification decision that constrains what the sensor pipeline does. Should be typed — particularly because a future phase agent may treat this as established fact rather than a design choice. |
+| "all 17 should classify as `stale` since they were backed up before v1.18 modularization" | [assumed:reasoned] | `<specifics>` line 274 | This is a prediction about classifier behavior on the golden fixture, not an established fact. It functions as a test expectation, which could fail if the classifier logic produces a different verdict. Should be typed `[assumed:reasoned]` since it is a working hypothesis about the expected output. |
+
+### Dependency Chain Audit
+
+| Chain | Verdict |
+|-------|---------|
+| `[decided]` Adapter in single `gsd-log-sensor.md` → `[evidenced:cited]` EXT-06 glob in collect-signals.md | PASS — LOW vulnerability confirmed. Citation note: the dependency table says "VERIFICATION.md (10/10 truths)" without specifying which phase; the reference appears to be Phase 39's VERIFICATION.md or similar. Vague but not incorrect. |
+| `[decided]` SQLite CLI primary, filesystem fallback → `[assumed:reasoned]` schema may drift | PASS — MEDIUM vulnerability correctly recorded. Column probe + fallback + G-1 re-audit gate adequately hedge. |
+| `[decided]` Patch sensor dual-surface → `[evidenced:cited]` gsdr-health dual-surface precedent | PASS — LOW vulnerability. gsdr-health subcommand confirmed in gsd-tools.cjs lines 445/788. |
+| `[decided]` Classification taxonomy from research §2.3 → `[evidenced:cited]` live patch backup fixture | PASS — LOW vulnerability. Research §2.1 documents the live backup; 17 files from v1.17.5. |
+| `[decided]` Post-install parity advisory-only → `[decided]` Phase 58.1 DC-6 + `[governing]` G-4 | PASS — LOW vulnerability. Both supporting claims verified. |
+| `[assumed:reasoned]` Patch-sensor overhead acceptable → `[evidenced]` dogfooding false-positive precedent | FAIL — MEDIUM vulnerability understated. The supporting claim `[evidenced]` is recorded without a verification level, which defaults to `[evidenced:bare]`. An `evidenced` claim marked `bare` is a phantom citation: the claim asserts empirical grounding but records no citation. The correct form is `[evidenced:cited]` with the signal file path (`sig-2026-02-24-local-patches-false-positive-dogfooding`), which the working model does cite correctly at DC-7. The dependency table entry is inconsistent with DC-7. |
+| `[decided]` XRT-02 validator at reapply site → `[assumed:reasoned]` compat is a reapply concern | PASS — MEDIUM vulnerability correctly recorded. Challenge protocol present. |
+| `[assumed:reasoned]` Codex 0.118.0 schema stable enough → `[evidenced:cited]` research audit 2026-04-09 | PASS — MEDIUM vulnerability correctly recorded. G-1 gate before ship. |
+| `[governing]` No Codex hooks in Phase 60 → `[evidenced:cited]` Phase 58.1 DC-4 + live codex features list | PASS (DISCUSSION-LOG only) — This chain appears in DISCUSSION-LOG.md but not in CONTEXT.md's dependency table. The omission is acceptable since governing claims don't need dependency entries, but noting for completeness. |
+
+### Additional Citation Integrity Note
+
+**Research doc internal stale reference:** `cross-runtime-parity-research.md` §2.1 cites "`saveLocalPatches()` function (install.js lines 2398-2433)" but the actual current line is 1810. This is a stale reference **in the research doc**, not in CONTEXT.md. CONTEXT.md's claim cites "lines 1720–1930" which accurately reflects the current file. However, since CONTEXT.md designates the research doc as authoritative and the G-1 gate requires re-running its Validation Commands before ship, downstream agents reading §2.1 will encounter the stale line number. Worth flagging for the re-audit pass.
+
+**Schema citation imprecision:** CONTEXT.md line 47 cites "Research §3.2" for the full threads table column list, but §3.2 enumerates only 8 fields; the complete CREATE TABLE (13 fields including model_provider, first_user_message) is in §7.3. Additionally, model_provider and first_user_message appear in §7.3 but are absent from the CONTEXT.md claim. These omitted fields are not load-bearing for the sensor design (model_provider is metadata; first_user_message could affect title-based triage), but the citation should reference §7.3 and the completeness gap is worth noting for the adapter implementer.
+
+### Summary
+
+- **Typed claims checked:** 47
+- **Pass:** 44 | **Warn:** 2 | **Fail:** 1
+- **Untyped claims surfaced:** 5
+- **Dependency vulnerabilities:** 1 found (evidenced:bare in dependency table row 6) / 8 recorded chains
+- **Overall severity:** FAIL
+
+**Blocking issue:** Dependency table row 6 — `[evidenced]` (bare) supporting claim for the patch-sensor overhead assumption. An `evidenced` claim must carry a citation; `[evidenced:bare]` is internally contradictory and blocks trustworthy downstream use of the dependency chain. Fix: change `[evidenced]` to `[evidenced:cited]` and append the signal file path (`sig-2026-02-24-local-patches-false-positive-dogfooding`) in the dependency table cell. The working model already cites this correctly at DC-7; the dependency table just needs to match.
+
+**Non-blocking warnings:** DC-8 verification level should be upgraded from `reasoned` to `cited` (four specific signal files are named and verified); schema citation should reference §7.3 not §3.2 for the full column list.
+
+**Untyped claims:** Five claims in `<domain>`, `<deferred>`, and `<specifics>` sections do epistemic work without markers. The most load-bearing is the golden-fixture expectation in `<specifics>` line 274, which asserts a test verdict as if established rather than predicted. Typed with `<!-- typed by context-checker -->` in CONTEXT.md.
+
