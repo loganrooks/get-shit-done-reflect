@@ -1411,9 +1411,15 @@ module.exports = {
   getKbDir,
   getDbPath,
   getDbSync,
+  // Phase 59 Plan 03: promoted from test-only to public so kb-health.cjs can
+  // reuse the file walkers and edge-integrity classifier without duplicating
+  // them. Per 59-03-PLAN must-have #6 + research Pitfall 8: no new walkers.
+  discoverSignalFiles,
+  discoverSpikeFiles,
+  computeEdgeIntegrity,
   // Phase 59 test-only exports: allow unit tests to exercise extractLinks
-  // and computeEdgeIntegrity directly without re-invoking the full rebuild
-  // pipeline. Prefixed with __testOnly_ so the intent is legible.
+  // directly without re-invoking the full rebuild pipeline. Prefixed with
+  // __testOnly_ so the intent is legible.
   __testOnly_extractLinks: extractLinks,
   __testOnly_computeEdgeIntegrity: computeEdgeIntegrity,
 };

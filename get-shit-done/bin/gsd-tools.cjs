@@ -54,6 +54,7 @@ const automation = require('./lib/automation.cjs');
 const kb = require('./lib/kb.cjs');
 const kbQuery = require('./lib/kb-query.cjs');
 const kbLink = require('./lib/kb-link.cjs');
+const kbHealth = require('./lib/kb-health.cjs');
 const telemetry = require('./lib/telemetry.cjs');
 const measurement = require('./lib/measurement.cjs');
 const quick = require('./lib/quick.cjs');
@@ -764,8 +765,16 @@ async function main() {
         } else {
           error('Usage: gsd-tools kb link <show|create|delete> <signal-id> [...]');
         }
+      } else if (subcommand === 'health') {
+        // Phase 59 Plan 03 (KB-04e / SC-5 / audit §7.1 #7): four-check
+        // watchdog over edge integrity, lifecycle-vs-plan consistency,
+        // dual-write invariant, and depends_on freshness. Exit code is a
+        // bitmask (1=edge, 2=lifecycle, 4=dual_write) so CI can discriminate
+        // failure classes without re-parsing text.
+        const hOpts = kbHealth.parseKbHealthOptions(args.slice(2));
+        kbHealth.cmdKbHealth(cwd, hOpts, raw);
       } else {
-        error('Usage: gsd-tools kb <rebuild|stats|migrate|repair|query|search|link>');
+        error('Usage: gsd-tools kb <rebuild|stats|migrate|repair|query|search|link|health>');
       }
       break;
     }
