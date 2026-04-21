@@ -11,7 +11,7 @@ severity: minor
 signal_type: good-pattern
 signal_category: positive
 phase: 43
-plan:
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -37,7 +37,6 @@ confidence_basis: Combination of zero deviations, fast execution, and perfect ve
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

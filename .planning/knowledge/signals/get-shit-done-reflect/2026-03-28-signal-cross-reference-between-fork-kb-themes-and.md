@@ -27,7 +27,7 @@ lifecycle_log:
   - "created -> detected by gsdr-signal-synthesizer at 2026-03-29T08:00:00Z"
 evidence:
   supporting:
-    - 54-03-PLAN.md Task 2 action explicitly flags this as 'NOVEL analysis -- no prior phase has done this. The methodology must be documented alongside the findings.'
+    - 54-03-PLAN.md Task 2 action explicitly flags this as 'NOVEL analysis -- no prior phase has done this. The methodology must be documented alongside the findings.
     - "54-04-SUMMARY.md key-decisions: 'Verified actual module line counts and router size via git rather than relying solely on plan's reference data. Router is 676 lines (plan referenced 1,239 from Phase 47 era -- continued extraction in Phases 48-53 reduced it further).'"
     - The executor followed this instruction and caught a ~45% discrepancy in router size
     - "54-03-SUMMARY.md patterns-established: 'Theme-level signal comparison: methodology for comparing proactive signal KB against reactive issue trackers'"
@@ -45,7 +45,6 @@ confidence_basis: Methodology explicitly documented in 54-SIGNAL-CROSSREF.md; 54
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

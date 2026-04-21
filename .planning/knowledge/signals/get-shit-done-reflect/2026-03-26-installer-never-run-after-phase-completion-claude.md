@@ -52,7 +52,6 @@ confidence_basis: VERIFICATION.md explicitly identifies the gap, traces it to th
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

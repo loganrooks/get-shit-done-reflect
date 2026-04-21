@@ -33,7 +33,6 @@ confidence_basis: Duration and deviation data from SUMMARY.md frontmatter
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

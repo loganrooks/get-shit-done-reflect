@@ -34,7 +34,6 @@ confidence_basis: Cross-referenced in both SUMMARY.md and RETROSPECTIVE.md; root
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

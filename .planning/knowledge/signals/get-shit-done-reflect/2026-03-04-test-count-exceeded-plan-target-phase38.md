@@ -23,7 +23,7 @@ lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-04T20:00:37Z"
 evidence:
   supporting:
-    - Plan 02 specified 'Aim for 8-10 tests covering the core scenarios'
+    - Plan 02 specified 'Aim for 8-10 tests covering the core scenarios
     - 38-02 SUMMARY reports 11 unit tests created
   counter: [The difference (11 vs 8-10) is within a narrow range]
 confidence: high
@@ -31,7 +31,6 @@ confidence_basis: Plan explicitly states '8-10 tests', SUMMARY confirms 11 tests
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

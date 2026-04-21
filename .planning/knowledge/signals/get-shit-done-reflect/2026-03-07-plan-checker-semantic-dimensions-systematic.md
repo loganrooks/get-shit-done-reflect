@@ -40,7 +40,6 @@ confidence_basis: Three independent signal occurrences across distinct phases es
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

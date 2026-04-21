@@ -36,7 +36,6 @@ confidence_basis: Pattern is documented in one plan summary. Needs additional in
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

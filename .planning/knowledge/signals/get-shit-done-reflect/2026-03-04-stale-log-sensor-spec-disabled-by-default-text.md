@@ -28,14 +28,13 @@ evidence:
     - "VERIFICATION.md Anti-Patterns section explicitly flags: agents/gsd-log-sensor.md says 'disabled by default in the feature manifest' -- stale"
     - The manifest now uses {} default (empty object), making the log sensor effectively enabled by default
   counter:
-    - VERIFICATION.md classifies this as 'Info' severity and 'Non-blocking'
+    - VERIFICATION.md classifies this as 'Info' severity and 'Non-blocking
     - The functional behavior is correct -- stale text is in spec body, not frontmatter
 confidence: high
 confidence_basis: Stale documentation explicitly identified in VERIFICATION.md Anti-Patterns section with file and line number.
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

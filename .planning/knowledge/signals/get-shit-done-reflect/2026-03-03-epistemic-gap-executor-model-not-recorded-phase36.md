@@ -32,7 +32,6 @@ confidence_basis: Low confidence by design -- flagging absence of evidence, not 
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

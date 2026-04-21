@@ -33,7 +33,6 @@ confidence_basis: The absence of model information in SUMMARY.md is directly obs
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

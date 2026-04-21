@@ -39,7 +39,6 @@ confidence_basis: Auto-fix was logged explicitly in SUMMARY.md with the reason. 
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

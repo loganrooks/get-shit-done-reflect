@@ -15,7 +15,7 @@ severity: minor
 signal_type: baseline
 signal_category: positive
 phase: 51
-plan: 
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -45,7 +45,6 @@ confidence_basis: All phase 51 commits reviewed; consistent feat/test/docs tripl
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

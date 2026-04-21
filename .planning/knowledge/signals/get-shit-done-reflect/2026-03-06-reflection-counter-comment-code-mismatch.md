@@ -28,13 +28,12 @@ evidence:
   supporting:
     - "42-VERIFICATION.md Anti-Patterns: 'check action writes config.json (initializes defaults) even though comment says reads only'"
   counter:
-    - Verifier classified this as 'Info' severity and 'Non-blocking'
+    - Verifier classified this as 'Info' severity and 'Non-blocking
 confidence: high
-confidence_basis: 
+confidence_basis: {}
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

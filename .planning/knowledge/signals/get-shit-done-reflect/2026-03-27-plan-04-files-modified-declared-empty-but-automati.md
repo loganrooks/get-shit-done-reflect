@@ -48,7 +48,6 @@ confidence_basis: Plan frontmatter explicitly declares empty files_modified; sum
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -11,7 +11,7 @@ severity: minor
 signal_type: baseline
 signal_category: positive
 phase: 53
-plan: 
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -34,7 +34,6 @@ confidence_basis: Model field is present in all four plan summaries and matches 
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

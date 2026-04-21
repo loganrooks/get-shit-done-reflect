@@ -15,7 +15,7 @@ severity: minor
 signal_type: deviation
 signal_category: negative
 phase: 54
-plan: 
+plan: {}
 polarity: negative
 occurrence_count: 1
 related_signals: []
@@ -33,7 +33,6 @@ confidence_basis: Two distinct directory names appear in git history for the sam
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

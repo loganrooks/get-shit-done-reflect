@@ -45,7 +45,6 @@ confidence_basis: Bug clearly described in plan with specific line reference; fi
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -34,7 +34,6 @@ confidence_basis: VERIFICATION.md directly flags this as an unverified human-tes
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

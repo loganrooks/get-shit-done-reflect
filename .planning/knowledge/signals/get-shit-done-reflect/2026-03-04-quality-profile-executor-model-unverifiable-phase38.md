@@ -41,7 +41,6 @@ confidence_basis: Cannot confirm executor model from artifacts alone. SUMMARY.md
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

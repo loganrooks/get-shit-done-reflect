@@ -29,7 +29,7 @@ lifecycle_log:
 evidence:
   supporting:
     - "34-VERIFICATION.md identifies 3 items requiring human test runs: planner signal awareness, automatic remediation triggering, passive verification after N phases"
-    - These items 'cannot be verified programmatically and require a human test run'
+    - These items 'cannot be verified programmatically and require a human test run
     - The lifecycle demo in 34-04 used manual-verification rather than the passive absence-of-recurrence path, leaving the automated path unverified
     - Plan-phase workflow step 7b, execute-plan update_resolved_signals, and synthesizer Step 4c are all documented but untested in real execution
   counter:
@@ -41,7 +41,6 @@ confidence_basis: The epistemic gap is directly identified by the verifier itsel
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

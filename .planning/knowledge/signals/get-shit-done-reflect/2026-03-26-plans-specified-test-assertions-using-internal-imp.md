@@ -34,7 +34,6 @@ confidence_basis: The auto-fix documents the specific mismatch. The plan's own '
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

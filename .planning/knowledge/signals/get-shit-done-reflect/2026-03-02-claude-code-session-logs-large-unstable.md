@@ -35,7 +35,6 @@ confidence_basis: Findings from direct file system inspection documented in spik
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

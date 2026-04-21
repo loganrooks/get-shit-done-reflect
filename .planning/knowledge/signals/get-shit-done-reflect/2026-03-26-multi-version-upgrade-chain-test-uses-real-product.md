@@ -39,7 +39,6 @@ confidence_basis: Explicitly documented in SUMMARY.md and PLAN.md. Test design i
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -40,7 +40,6 @@ confidence_basis: VERIFICATION.md shows 15/15 final score with documented re-ver
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -37,7 +37,6 @@ confidence_basis: Commit hashes are directly observable in both SUMMARY.md files
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

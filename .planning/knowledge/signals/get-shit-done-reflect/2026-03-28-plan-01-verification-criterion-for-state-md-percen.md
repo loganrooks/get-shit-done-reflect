@@ -48,7 +48,6 @@ confidence_basis: Explicit deviation recorded in SUMMARY.md with clear root caus
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

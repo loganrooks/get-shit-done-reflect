@@ -16,7 +16,7 @@ severity: notable
 signal_type: baseline
 signal_category: positive
 phase: 49
-plan: 
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -34,7 +34,6 @@ confidence_basis: Commit timestamps are deterministic; 11 commits across 4 indep
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

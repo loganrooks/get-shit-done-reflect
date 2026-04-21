@@ -37,7 +37,6 @@ confidence_basis: Auto-fixed issue explicitly documented in SUMMARY.md Deviation
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

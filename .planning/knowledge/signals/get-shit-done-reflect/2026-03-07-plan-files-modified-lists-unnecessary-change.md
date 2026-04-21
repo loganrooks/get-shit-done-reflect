@@ -29,8 +29,8 @@ evidence:
   supporting:
     - 43-02-PLAN.md files_modified lists 'get-shit-done/templates/requirements.md' as a file to be modified
     - 43-02-SUMMARY.md Files Created/Modified section lists 7 files but omits requirements.md
-    - SUMMARY states 'TMPL-01 verified as already present -- no change needed to requirements template'
-    - VERIFICATION.md confirms 'Requirements template already has motivation citation field (verified, no change needed)'
+    - SUMMARY states 'TMPL-01 verified as already present -- no change needed to requirements template
+    - VERIFICATION.md confirms 'Requirements template already has motivation citation field (verified, no change needed)
   counter:
     - The plan explicitly anticipated this possibility and included conditional handling instructions
     - Research (43-RESEARCH.md Pitfall 4) already flagged this as a known risk and recommended verify-first approach
@@ -40,7 +40,6 @@ confidence_basis: Direct comparison of files_modified frontmatter in PLAN.md aga
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -30,13 +30,12 @@ evidence:
   counter:
     - The three trigger conditions are correctly specified in reflection-patterns.md
     - Spike 002 was executed end-to-end manually
-    - VERIFICATION.md explicitly flags these as 'Human Verification Required'
+    - VERIFICATION.md explicitly flags these as 'Human Verification Required
 confidence: high
 confidence_basis: The gap is directly and explicitly stated in multiple artifacts
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -15,7 +15,7 @@ severity: notable
 signal_type: good-pattern
 signal_category: positive
 phase: 52
-plan: 
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -39,7 +39,6 @@ confidence_basis: Commit exists in git log with explicit message attributing cha
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

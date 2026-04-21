@@ -35,7 +35,6 @@ confidence_basis: Observable deviation from convention in plan frontmatter
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -11,7 +11,7 @@ severity: notable
 signal_type: baseline
 signal_category: positive
 phase: 54
-plan: 
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -37,7 +37,6 @@ confidence_basis: Five SUMMARY.md files and one VERIFICATION.md all consistently
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

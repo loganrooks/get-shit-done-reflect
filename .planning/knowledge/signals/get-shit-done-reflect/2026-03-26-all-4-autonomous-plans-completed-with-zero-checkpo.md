@@ -40,7 +40,6 @@ confidence_basis: Duration and checkpoint data are directly observable in SUMMAR
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

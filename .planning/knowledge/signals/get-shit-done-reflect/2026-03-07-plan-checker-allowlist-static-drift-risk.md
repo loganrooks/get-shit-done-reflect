@@ -41,7 +41,6 @@ confidence_basis: The drift risk is documented by the research itself but delibe
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

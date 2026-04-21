@@ -15,7 +15,7 @@ severity: notable
 signal_type: struggle
 signal_category: negative
 phase: 53
-plan: 
+plan: {}
 polarity: negative
 occurrence_count: 1
 related_signals: []
@@ -33,7 +33,6 @@ confidence_basis: Full diff of fix commit d77a03b shows exactly 2 lines changed,
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

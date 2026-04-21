@@ -41,7 +41,6 @@ confidence_basis: VERIFICATION.md is directly observable. 25/25 truths with line
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

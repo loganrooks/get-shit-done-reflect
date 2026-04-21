@@ -39,7 +39,6 @@ confidence_basis: The gap is inferred from the pattern of missing dependency det
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

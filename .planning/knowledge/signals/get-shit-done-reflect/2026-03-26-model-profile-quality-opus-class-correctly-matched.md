@@ -11,7 +11,7 @@ severity: minor
 signal_type: baseline
 signal_category: positive
 phase: 51
-plan: 
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -33,7 +33,6 @@ confidence_basis: All three SUMMARY.md frontmatter model fields explicitly state
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

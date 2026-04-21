@@ -56,7 +56,6 @@ verification:
   status: failed
   method: manual-verification
   at: "2026-03-01T17:54:30Z"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

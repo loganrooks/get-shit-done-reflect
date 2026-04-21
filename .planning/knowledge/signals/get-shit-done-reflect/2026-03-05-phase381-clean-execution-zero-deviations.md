@@ -14,7 +14,7 @@ severity: notable
 signal_type: good-pattern
 signal_category: positive
 phase: 38.1
-plan:
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -30,11 +30,10 @@ evidence:
     - 214 tests with 8 new
   counter: [Plan 01 had partial prior execution understating duration]
 confidence: high
-confidence_basis: 
+confidence_basis: {}
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

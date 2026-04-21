@@ -32,7 +32,6 @@ confidence_basis: The capstone task and its outcomes are explicitly documented i
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---
