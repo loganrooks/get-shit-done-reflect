@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: verifying
-stopped_at: "Completed 59-02-PLAN.md (Wave 2 read surface: kb query + kb search with grep fallback, kb link show inbound/outbound/both, write verbs stubbed for Plan 04)"
-last_updated: "2026-04-21T04:30:14.751Z"
+stopped_at: "Completed 59-03-PLAN.md (Wave 2 watchdog: kb health four-check contract with exit-code bitmask)"
+last_updated: "2026-04-21T04:41:26.130Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 24
   completed_phases: 15
   total_plans: 78
-  completed_plans: 75
-  percent: 96
+  completed_plans: 76
+  percent: 97
 ---
 
 # Project State
@@ -297,6 +297,10 @@ Recent decisions affecting current work:
 - [Phase 59]: [59-02]: Grep fallback for kb query + kb search; clean error (no fallback) for kb link show --inbound -- inbound relation inversion via grep is infeasible at scale, so kb.db-absence surfaces 'run kb rebuild' rather than a degraded result per research §Genuine gaps
 - [Phase 59]: [59-02]: Write verbs stubbed at router (kb link create/delete emit 'Plan 04 deferred' error) so the verb namespace is discoverable this wave and Plan 04 has a clear router slot to replace
 - [Phase 59]: [59-02]: Fallback output labelled explicitly as 'fallback: {engine: grep, reason: kb.db not found}' rather than silent degradation -- downstream surfacing agents need to distinguish 'fewer matches' from 'running on grep (no porter stem)' per research Pitfall C2
+- [Phase 59-03]: kb health exit code is a bitmask (1=edge, 2=lifecycle, 4=dual_write; 7=all three) so CI callers discriminate failure class without re-parsing stdout; first-fail-wins would forfeit this information
+- [Phase 59-03]: Check 4 depends_on_freshness ships as SUMMARY not PASS so the advisory-vs-gate distinction is legible; research Pitfall C4 / D2 ontological limit means semantic staleness is not judged
+- [Phase 59-03]: Completed-plan detection uses NN-PLAN.md with matching NN-SUMMARY.md presence (execute-plan's commit convention as liveness signal); in-flight plans are out of scope
+- [Phase 59-03]: discoverSignalFiles / discoverSpikeFiles / computeEdgeIntegrity promoted from test-only to public exports in kb.cjs so kb-health.cjs reuses one implementation (plan must-have #6 + research Pitfall 8: no new walkers)
 
 ### Roadmap Evolution
 
@@ -378,6 +382,7 @@ Recent decisions affecting current work:
 | Phase 58.1 P02 | 15min | 2 tasks | 5 files |
 | Phase 59-kb-query-lifecycle-wiring-and-surfacing P01 | 16min | 2 tasks | 112 files |
 | Phase 59 P02 | 7min | 2 tasks | 6 files |
+| Phase 59 P03 | 5min | 2 tasks | 4 files |
 
 ### Key Artifacts
 
@@ -396,8 +401,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T04:30:14.744Z
-Stopped at: Completed 59-02-PLAN.md (Wave 2 read surface: kb query + kb search with grep fallback, kb link show inbound/outbound/both, write verbs stubbed for Plan 04)
+Last session: 2026-04-21T04:41:14.282Z
+Stopped at: Completed 59-03-PLAN.md (Wave 2 watchdog: kb health four-check contract with exit-code bitmask)
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
