@@ -15,13 +15,13 @@ tags:
   - hooks
   - path-resolution
 created: "2026-03-20T22:15:00Z"
-updated: "2026-03-20T22:15:00Z"
+updated: "2026-04-21T22:13:37.495Z"
 durability: principle
 status: active
 severity: critical
 signal_type: capability-gap
 phase: 48
-plan:
+plan: {}
 polarity: negative
 occurrence_count: 1
 related_signals:
@@ -32,7 +32,7 @@ related_signals:
 runtime: codex-cli
 model: gpt-5.4
 gsd_version: 1.17.5+dev
-lifecycle_state: detected
+lifecycle_state: remediated
 signal_category: negative
 confidence: high
 confidence_basis: Direct inspection of installed Codex and Claude runtimes, multiple project configs, upgrade workflow, config template, KB resolution rules, and live workspace KB layouts.
@@ -48,6 +48,12 @@ evidence:
     - Claude installs do have a working version-check hook and cache path.
 detection_method: manual
 origin: user-observation
+lifecycle_log:
+  - event: remediated
+    from: detected
+    timestamp: "2026-04-21T22:13:37.495Z"
+    reason: completed by 60-05-PLAN.md
+    resolved_by_plan: 60-05-PLAN.md
 ---
 
 # Cross-runtime upgrade, install precedence, and KB activation drift remain unmanaged
