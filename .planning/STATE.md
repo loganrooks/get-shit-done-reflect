@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 60-05-PLAN.md
-last_updated: "2026-04-21T21:12:40.030Z"
+stopped_at: Completed 60-06-PLAN.md
+last_updated: "2026-04-21T21:17:27.926Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 25
-  completed_phases: 17
+  completed_phases: 18
   total_plans: 87
-  completed_plans: 86
-  percent: 99
+  completed_plans: 87
+  percent: 100
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 60 of 64 — Execution in progress on `gsd/phase-60-sensor-pipeline-codex-parity`
-Plan: 5 of 6 complete
+Plan: 6 of 6 complete
 Status: Ready to execute
 
 ### Recent Phases
@@ -331,6 +331,9 @@ Recent decisions affecting current work:
 - [Phase 60]: Parity checks stay advisory-only and never block or prompt during install.
 - [Phase 60]: The parity report reads installed VERSION data first and still writes an artifact for honest skips.
 - [Phase 60]: checkCrossRuntimeParity accepts an optional other-runtime directory override so integration tests can exercise real temp installs without stubbing getGlobalDir.
+- [Phase 60]: The XRT-02 validator composes directly over live bin/install.js helpers instead of snapshotting conversion logic.
+- [Phase 60]: Patch incompatibility reuses the patch-classifier vocabulary: feature-gap for missing runtime surface, format-drift for convertible or structurally divergent surfaces.
+- [Phase 60]: Codex-to-Claude conversion remains an explicit low-confidence stop condition until an inverse installer helper exists.
 
 ### Roadmap Evolution
 
@@ -425,6 +428,7 @@ Recent decisions affecting current work:
 | Phase 60 P03 | 8min | 3 tasks | 5 files |
 | Phase 60 P04 | 10min | 3 tasks | 5 files |
 | Phase 60 P05 | 6min | 2 tasks | 3 files |
+| Phase 60 P06 | 13min | 2 tasks | 5 files |
 
 ### Key Artifacts
 
@@ -443,8 +447,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T21:12:40.018Z
-Stopped at: Completed 60-05-PLAN.md
+Last session: 2026-04-21T21:17:27.917Z
+Stopped at: Completed 60-06-PLAN.md
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
