@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: verifying
-stopped_at: Phase 60 context gathered
-last_updated: "2026-04-21T18:38:40.839Z"
+stopped_at: Completed 60-01-PLAN.md
+last_updated: "2026-04-21T20:40:14.959Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 25
   completed_phases: 17
-  total_plans: 81
-  completed_plans: 81
-  percent: 100
+  total_plans: 87
+  completed_plans: 82
+  percent: 94
 ---
 
 # Project State
@@ -21,28 +21,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 59.1 (Drop Gemini and OpenCode from installer scope) completed on branch `gsd/phase-59.1-drop-gemini-and-opencode-from-installer-scope`. README install guidance, live project framing, the capability matrix, and the Unreleased changelog now all mirror the Claude/Codex-only installer contract. Ready for verification.
+**Current focus:** v1.20 Phase 60 (Sensor Pipeline & Codex Parity) is active on branch `gsd/phase-60-sensor-pipeline-codex-parity`. Plan `60-01` completed in this worktree (audit reconciliation + installer export surface), while Plan `60-02` is executing in parallel in a separate worktree.
 
 ## Current Position
 
-Phase: 59.1 of 64 — Execution complete on `gsd/phase-59.1-drop-gemini-and-opencode-from-installer-scope`
-Plan: 3 of 3 complete
-Status: Phase complete — ready for verification
+Phase: 60 of 64 — Execution in progress on `gsd/phase-60-sensor-pipeline-codex-parity`
+Plan: 1 of 6 complete
+Status: Plan 60-01 complete — remaining Phase 60 plans continue in parallel/sequence
 
 ### Recent Phases
 
+- Phase 59.1 (Drop Gemini and OpenCode from installer scope) — complete via commits `c9080b2a`, `02d0e194`, and `a3fb0b9e`; installer/runtime authority is now Claude/Codex-only
 - Phase 58 (Structural Enforcement Gates) — complete on the baseline branch via commit `41673dc8`; verifier passed and phase closeout artifacts were tracked before the 58.1 insertion
-- Phase 57.8 (Signal Provenance Role-Aware Backfill) — merged 2026-04-20 via commit `c8a15d95`, 3 plans completed
 
 Last activity: 2026-04-21
 
-Progress: [██████████] 100%
+Progress: [█████████░] 94%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 39
+- Plans completed: 40
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -317,6 +317,8 @@ Recent decisions affecting current work:
 - [Phase 59.1]: Shared-KB --all fixtures now assert Claude/Codex presence and Gemini/OpenCode absence before running KB checks.
 - [Phase 59.1]: README and PROJECT present-tense runtime wording now advertise only the supported Claude Code and Codex CLI installer contract.
 - [Phase 59.1]: The capability matrix preserves deprecated Gemini/OpenCode columns for reference, but its support language and release notes now reflect that installer access is limited to Claude/Codex and legacy flags fail with migration guidance.
+- [Phase 60]: Recorded the live-audit truth of 7 response_item payload types in §1.3 because the corpus re-check contradicted the plan text that still said 5.
+- [Phase 60]: Kept the install.js change strictly additive: existing exports stayed in place and only the Phase 60 consumer helpers/constants were exposed.
 
 ### Roadmap Evolution
 
@@ -406,6 +408,7 @@ Recent decisions affecting current work:
 | Phase 59.1 P01 | 8min | 2 tasks | 3 files |
 | Phase 59.1 P02 | 10min | 2 tasks | 3 files |
 | Phase 59.1 P03 | 7min | 2 tasks | 4 files |
+| Phase 60 P01 | 5min | 2 tasks | 5 files |
 
 ### Key Artifacts
 
@@ -424,8 +427,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T18:38:40.831Z
-Stopped at: Phase 60 context gathered
+Last session: 2026-04-21T20:40:14.951Z
+Stopped at: Completed 60-01-PLAN.md
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
