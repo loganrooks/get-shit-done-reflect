@@ -21,7 +21,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 60 (Sensor Pipeline & Codex Parity) is active on branch `gsd/phase-60-sensor-pipeline-codex-parity`. Plan `60-01` completed in this worktree (audit reconciliation + installer export surface), while Plan `60-02` is executing in parallel in a separate worktree.
+**Current focus:** v1.20 Phase 60 (Sensor Pipeline & Codex Parity) is active on branch `gsd/phase-60-sensor-pipeline-codex-parity`. Plan `60-02` completed in this worktree; parallel Phase 60 execution is also in flight on Plan `60-01` in a separate worktree.
 
 ## Current Position
 
