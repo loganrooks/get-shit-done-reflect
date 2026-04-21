@@ -76,7 +76,7 @@ npx get-shit-done-reflect-cc
 ```
 
 The installer prompts you to choose:
-1. **Runtime** -- Claude Code, OpenCode, Gemini, or all
+1. **Runtime** -- Claude Code, Codex CLI, or all supported runtimes
 2. **Location** -- Global (all projects) or local (current project only)
 
 Verify with `/gsd:help` inside your chosen runtime.
@@ -97,18 +97,16 @@ npx get-shit-done-reflect-cc@latest
 npx get-shit-done-reflect-cc --claude --global
 npx get-shit-done-reflect-cc --claude --local
 
-# OpenCode
-npx get-shit-done-reflect-cc --opencode --global
+# Codex CLI
+npx get-shit-done-reflect-cc --codex --global
+npx get-shit-done-reflect-cc --codex --local
 
-# Gemini CLI
-npx get-shit-done-reflect-cc --gemini --global
-
-# All runtimes
+# All supported runtimes
 npx get-shit-done-reflect-cc --all --global
 ```
 
 Use `--global` (`-g`) or `--local` (`-l`) to skip the location prompt.
-Use `--claude`, `--opencode`, `--gemini`, or `--all` to skip the runtime prompt.
+Use `--claude`, `--codex`, or `--all` to skip the runtime prompt.
 
 </details>
 

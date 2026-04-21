@@ -12,14 +12,15 @@
 # Runtime Capability Matrix
 
 > Reference document for GSD workflow orchestrators. Declares which features
-> are available in each supported runtime. Workflows use `has_capability()`
-> patterns to branch behavior based on this matrix.
+> are available across the runtime columns tracked here. Workflows use
+> `has_capability()` patterns to branch behavior based on this matrix.
 
 > **Deprecation Notice (v1.20):** Gemini CLI and OpenCode columns are retained for
 > reference but are **community-maintained and not tested by the GSD Reflect team**.
 > The two supported runtimes are **Claude Code** and **Codex CLI**. The `--gemini`
-> and `--opencode` installer flags still work but produce unsupported configurations.
-> New workflows use binary Claude/Codex branching only -- no new `<capability_check>`
+> and `--opencode` installer flags, along with the legacy installer `--both` flag,
+> now fail with migration guidance instead of installing unsupported runtimes. New
+> workflows use binary Claude/Codex branching only -- no new `<capability_check>`
 > blocks will be added for Gemini CLI or OpenCode.
 
 ## Quick Reference
@@ -100,7 +101,7 @@ No orchestrator adaptation needed. The installer preserves tool permission front
 MCP (Model Context Protocol) server integration. Allows agents to access external tools and services via the MCP protocol.
 
 **Available in:** Claude Code, OpenCode, Gemini CLI, Codex CLI
-**Status:** Available in all supported runtimes.
+**Status:** Available in both supported runtimes and the deprecated reference runtimes listed here.
 
 **Transport support by runtime:**
 - Claude Code: STDIO, SSE, Streamable HTTP
@@ -109,7 +110,7 @@ MCP (Model Context Protocol) server integration. Allows agents to access externa
 - Codex CLI: STDIO, Streamable HTTP. OAuth support.
 
 **Degraded behavior (informational):**
-All four supported runtimes now support MCP servers. This section is retained for documentation purposes -- if a future runtime lacks MCP support, the degraded behavior is: MCP-dependent features are skipped, MCP tool references in agent specs are excluded during format conversion, and agents function with their built-in tools only.
+Both supported runtimes, plus the deprecated Gemini/OpenCode reference columns, currently support MCP servers. This section is retained for documentation purposes -- if a future runtime lacks MCP support, the degraded behavior is: MCP-dependent features are skipped, MCP tool references in agent specs are excluded during format conversion, and agents function with their built-in tools only.
 
 **How orchestrators adapt:**
 No orchestrator adaptation needed. The installer preserves MCP tool references for all runtimes. MCP server configuration is handled at the runtime config level (settings.json, opencode.json, config.toml).
