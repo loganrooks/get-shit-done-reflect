@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-20T09:18:19Z
-**Total entries:** 286
+**Generated:** 2026-04-21T06:34:37Z
+**Total entries:** 302
 
-## Signals (278)
+## Signals (294)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -35,6 +35,22 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-21-installer-advertises-gemini-opencode-unsupported | get-shit-done-reflect | notable | detected | scope-drift,installer,cross-runtime,untyped-assumption,governance,v1.20,gate-09 | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-05-improved-requirement-status-completenes | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-05-established-cross-runtime-parity-tests | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-04-underdeclared-its-touched-files-by-omit | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-04-touched-1-undeclared-non-planning-file | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-04-required-two-in-flight-corrections-for | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-03-underdeclared-its-touched-files-by-omit | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-03-touched-1-undeclared-non-planning-file | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-02-underdeclared-its-touched-files-by-omit | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-02-touched-1-undeclared-non-planning-file | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-01-touched-2-undeclared-non-planning-files | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-01-hit-a-non-trivial-migration-failure-on | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-01-expanded-beyond-its-declared-task-and-f | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-59-01-changed-the-orphaned-edge-exit-code-con | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-live-kb-health-still-reported-31-unresolved-lifecy | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-cli-router-hotspot-get-shit-done-bin-gsd-toolscjs | get-shit-done-reflect | notable | detected | file-churn,hotspot,tooling | "2026-04-21 | active |
 | sig-2026-04-20-plan-578-03-undeclared-kb-lib-file | get-shit-done-reflect | minor | detected | scope-creep,plan-accuracy,kb | "2026-04-20 | active |
 | sig-2026-04-20-plan-578-02-undeclared-signal-template-file | get-shit-done-reflect | minor | detected | scope-creep,plan-accuracy,signal-contract | "2026-04-20 | active |
 | sig-2026-04-20-plan-03-live-kb-migration-failure | get-shit-done-reflect | notable | detected | kb-upgrade,migration-bug,verification | "2026-04-20 | active |
