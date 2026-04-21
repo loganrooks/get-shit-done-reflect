@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: executing
-stopped_at: Completed 60-06-PLAN.md
-last_updated: "2026-04-21T21:17:27.926Z"
+status: verifying
+stopped_at: Verified Phase 60 and reconciled closeout via GATE-10
+last_updated: "2026-04-21T21:27:15Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 25
@@ -21,28 +21,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 60 (Sensor Pipeline & Codex Parity) is active on branch `gsd/phase-60-sensor-pipeline-codex-parity`. Plans `60-01` and `60-02` are complete; Wave 1 groundwork is in place for the remaining Phase 60 plans.
+**Current focus:** v1.20 Phase 60 (Sensor Pipeline & Codex Parity) completed on branch `gsd/phase-60-sensor-pipeline-codex-parity`. The log sensor, patch sensor, post-install parity report, and XRT-02 validator now ship from source with verification green. Ready to plan the next milestone work.
 
 ## Current Position
 
-Phase: 60 of 64 — Execution in progress on `gsd/phase-60-sensor-pipeline-codex-parity`
+Phase: 60 of 64 — Verification passed on `gsd/phase-60-sensor-pipeline-codex-parity`
 Plan: 6 of 6 complete
-Status: Ready to execute
+Status: Phase complete — verified and reconciled
 
 ### Recent Phases
 
+- Phase 60 (Sensor Pipeline & Codex Parity) — verified 2026-04-21; log-sensor normalization, patch classification, post-install parity reporting, and XRT-02 validation are now live in source
 - Phase 59.1 (Drop Gemini and OpenCode from installer scope) — complete via commits `c9080b2a`, `02d0e194`, and `a3fb0b9e`; installer/runtime authority is now Claude/Codex-only
-- Phase 58 (Structural Enforcement Gates) — complete on the baseline branch via commit `41673dc8`; verifier passed and phase closeout artifacts were tracked before the 58.1 insertion
 
 Last activity: 2026-04-21
 
-Progress: [█████████░] 94%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 40
+- Plans completed: 45
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -85,6 +85,12 @@ Progress: [█████████░] 94%
 - 59-02: 7min, 2 tasks, 6 files (4 created + 2 modified)
 - 59-03: 5min, 2 tasks, 4 files (1 lib + 1 test + 2 modified)
 - 59-04: 13min, 2 tasks, 9 files (4 created + 5 modified)
+- 60-01: 5min, 2 tasks, 5 files
+- 60-02: 4min, 2 tasks, 2 files
+- 60-03: 8min, 3 tasks, 5 files
+- 60-04: 10min, 3 tasks, 5 files
+- 60-05: 6min, 2 tasks, 3 files
+- 60-06: 13min, 2 tasks, 5 files
 
 **v1.18 Final:**
 
@@ -447,17 +453,14 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T21:17:27.917Z
-Stopped at: Completed 60-06-PLAN.md
-Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
+Last session: 2026-04-21T21:27:15Z
+Stopped at: Verified Phase 60 and reconciled closeout via GATE-10
+Resume artifact: `.planning/phases/60-sensor-pipeline-codex-parity/60-VERIFICATION.md`
 
-This session (2026-04-20):
+This session (2026-04-21):
 
-- Reverted the earlier ad hoc Codex update edits so the work could be rerun through the repo's actual GSD workflow.
-- Inserted decimal Phase `58.1` after Phase 58, wrote discuss artifacts, passed context-checker, ran research, and planned two execution waves with planner/checker validation.
-- Executed `58.1-01` on branch `gsd/phase-58.1-codex-update-distribution-parity`, landing the shared Codex update-target resolver (`b70e66a5`) and the installer/test follow-up (`e38a67e0`).
-- Verified `58.1-01` locally with `npx vitest run tests/unit/install.test.js`, live resolver JSON from the repo root, and a custom both-scopes-stale fixture.
-- Created `58.1-01-SUMMARY.md` manually after the executor hung post-commit, keeping the landed code intact and setting the next resume point to `58.1-02-PLAN.md`.
-- Closed the non-responsive wave-2 executor, rewired the update command/workflow locally, and committed the runtime-aware/published-package flow in `38fa33ac` plus the Codex parity integration regressions in `a7904470`.
-- Verified `58.1-02` locally with `npx vitest run tests/integration/multi-runtime.test.js` and a fresh `npx vitest run tests/unit/install.test.js` regression pass.
-- Ran the phase verifier and produced `58.1-VERIFICATION.md`; automated verification passed, and the only remaining checks are two live Codex update runs (default and non-default `CODEX_CONFIG_DIR`).
+- Executed Phase 60 end-to-end in three waves on branch `gsd/phase-60-sensor-pipeline-codex-parity`, completing all six plans with summaries and per-task commits.
+- Reconciled the cross-runtime parity research doc, exported the Phase 60 installer helper surface, and authored the standing `60-codex-behavior-matrix.md` sidecar with structural test coverage.
+- Shipped the cross-runtime log-sensor helper/spec/tests, the shared patch-classifier library plus `gsd patches`, the post-install parity report, and the XRT-02 pre-apply validator with fixtures and unit coverage.
+- Re-ran targeted Phase 60 suites plus a full `npm test`; the integrated workspace finished green with `53` files passed and `808` tests passed.
+- Ran the phase verifier and produced `60-VERIFICATION.md`; verification passed at `6/6` must-haves with no blocking gaps.
