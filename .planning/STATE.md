@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: human_verification
-stopped_at: Verified 58.1 implementation (live Codex checks and release-boundary closeout pending)
-last_updated: "2026-04-20T23:15:00Z"
-last_activity: 2026-04-20
+status: verifying
+stopped_at: Completed 59-01-PLAN.md (Wave 1 KB substrate repair, FTS5 re-entry, edge-integrity report, kb repair verb, 107 live edges cleaned)
+last_updated: "2026-04-21T04:18:33.057Z"
+last_activity: 2026-04-21
 progress:
   total_phases: 24
-  completed_phases: 14
-  total_plans: 73
-  completed_plans: 73
-  percent: 99
+  completed_phases: 15
+  total_plans: 78
+  completed_plans: 74
+  percent: 95
 ---
 
 # Project State
@@ -27,14 +27,14 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 
 Phase: 58.1 of 64 — Execution complete on `gsd/phase-58.1-codex-update-distribution-parity`
 Plan: 2 of 2 complete
-Status: Automated verification passed; 2 live human Codex checks and release-boundary closeout pending
+Status: Phase complete — ready for verification
 
 ### Recent Phases
 
 - Phase 58 (Structural Enforcement Gates) — complete on the baseline branch via commit `41673dc8`; verifier passed and phase closeout artifacts were tracked before the 58.1 insertion
 - Phase 57.8 (Signal Provenance Role-Aware Backfill) — merged 2026-04-20 via commit `c8a15d95`, 3 plans completed
 
-Last activity: 2026-04-20
+Last activity: 2026-04-21
 
 Progress: [██████████] 99%
 
@@ -81,6 +81,7 @@ Progress: [██████████] 99%
 - 57.7-08: 8min, 2 tasks, 4 files
 - 57.7-09: 7min, 2 tasks, 2 files
 - 57.7-10: 10min, 3 tasks, 3 files
+- 59-01: 16min, 2 tasks, 112 files (5 code + 107 signal repairs)
 
 **v1.18 Final:**
 
@@ -288,6 +289,10 @@ Recent decisions affecting current work:
 - [Phase 58.1]: The user-facing update flow now always installs from `get-shit-done-reflect-cc@latest` and names the active runtime correctly on completion. — This closes the source-repo dogfooding leak and removes the stale "Restart Claude Code" wording from Codex updates.
 - [Phase 58.1]: A tiny `--latest-version` bridge extension to `get-shit-done/bin/update-target.cjs` was accepted as a blocking fix so the installed workflow could remain on the shared resolver instead of duplicating target-selection policy. — The deviation stayed narrow and was covered by the new integration fixtures.
 - [Phase 58.1]: Verifier status is `human_needed`, not blocked. — Automated evidence passed 5/5 truths; the remaining surface is live interactive Codex behavior against real npm/package resolution and a non-default `CODEX_CONFIG_DIR`, captured in `58.1-VERIFICATION.md`.
+- [Phase 59-01]: Exit-code contract: kb rebuild exits 1 on malformed edges (hard fail per D-4); orphaned edges stay advisory (still reported in edge_integrity JSON + table) to preserve backward compatibility with existing execSync-style callers that throw on non-zero exit.
+- [Phase 59-01]: Schema v2-to-v3 migration: legacy-row cleanup (DELETE FROM signal_links, signal_tags, signals) moved into initSchema BEFORE creating new FTS5 AFTER triggers, not after. The AFTER DELETE trigger on an empty signal_fts produces 'database disk image is malformed'; clearing before triggers exist avoids that entire class of failure.
+- [Phase 59-01]: Edge provenance minimum (audit §7.1 #8) shipped now via additive signal_links.created_at + source_content_hash columns rather than deferred; schema v2-to-v3 bump already forces full rebuild so the incremental cost is zero and downstream forensic work stays cheap.
+- [Phase 59-01]: Live repair commit (4662bce3) kept separate from Task 2 implementation commit (30305732) so the 107-file signal frontmatter cleanup is independently revertable from the verb-adding code change.
 
 ### Roadmap Evolution
 
@@ -367,6 +372,7 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P20 | 10min | 2 tasks | 3 files |
 | Phase 58.1 P01 | 8min | 2 tasks | 4 files |
 | Phase 58.1 P02 | 15min | 2 tasks | 5 files |
+| Phase 59-kb-query-lifecycle-wiring-and-surfacing P01 | 16min | 2 tasks | 112 files |
 
 ### Key Artifacts
 
@@ -385,8 +391,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T22:24:18Z
-Stopped at: Verified 58.1 (live Codex checks pending)
+Last session: 2026-04-21T04:18:33.048Z
+Stopped at: Completed 59-01-PLAN.md (Wave 1 KB substrate repair, FTS5 re-entry, edge-integrity report, kb repair verb, 107 live edges cleaned)
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
