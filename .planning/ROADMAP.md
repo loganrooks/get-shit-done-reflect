@@ -388,6 +388,16 @@ Plans:
 - [x] 59-05-PLAN.md — Wave 4: knowledge-surfacing.md SQLite-first rewrite + KB-12..KB-17 deferrals ledger (59-DEFERRALS.md) + cross-runtime parity integration test + phase-level must_haves aggregation
 **Deferred Children To Name In Phase 59 CONTEXT/PLAN**: KB-12, KB-13, KB-14, KB-15, KB-16, KB-17
 
+### Phase 59.1: Drop Gemini and OpenCode from installer scope (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 59
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 59.1 to break down)
+
 ### Phase 60: Sensor Pipeline & Codex Parity
 **Goal**: Log sensor and patch sensor are operational across Claude Code and Codex CLI, with automated parity verification after installation
 **Depends on**: Phase 58 (structural gates provide enforcement context for sensors)
