@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: verifying
-stopped_at: Completed 59.1-01-PLAN.md
-last_updated: "2026-04-21T08:42:17.355Z"
+stopped_at: Completed 59.1-02-PLAN.md
+last_updated: "2026-04-21T08:56:09.215Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 25
   completed_phases: 16
   total_plans: 81
-  completed_plans: 79
-  percent: 98
+  completed_plans: 80
+  percent: 99
 ---
 
 # Project State
@@ -313,6 +313,8 @@ Recent decisions affecting current work:
 - [Phase 59]: Cross-runtime parity integration test: sha256 equality for 5 kb* lib files + knowledge-surfacing.md across .claude and .codex; JSON shape parity for all new kb verbs. Phase 58.1 DC-4 held across Phase 59
 - [Phase 59.1]: Installer runtime support authority now lives in get-shit-done/bin/lib/runtime-support.cjs, and bin/install.js plus installer tests consume that shared Claude/Codex-only surface directly.
 - [Phase 59.1]: Legacy installer flags --gemini, --opencode, and --both now fail fast with migration guidance instead of remapping to supported runtimes.
+- [Phase 59.1]: Integration suites now consume SUPPORTED_INSTALLER_RUNTIMES instead of local four-runtime constants.
+- [Phase 59.1]: Shared-KB --all fixtures now assert Claude/Codex presence and Gemini/OpenCode absence before running KB checks.
 
 ### Roadmap Evolution
 
@@ -400,6 +402,7 @@ Recent decisions affecting current work:
 | Phase 59 P04 | 13min | 2 tasks | 9 files |
 | Phase 59 P05 | 8min | 2 tasks | 6 files |
 | Phase 59.1 P01 | 8min | 2 tasks | 3 files |
+| Phase 59.1 P02 | 10min | 2 tasks | 3 files |
 
 ### Key Artifacts
 
@@ -418,8 +421,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T08:42:17.346Z
-Stopped at: Completed 59.1-01-PLAN.md
+Last session: 2026-04-21T08:56:09.207Z
+Stopped at: Completed 59.1-02-PLAN.md
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
