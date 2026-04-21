@@ -11,6 +11,7 @@ const {
   INSTALLER_RUNTIME_METADATA,
   SUPPORTED_INSTALLER_RUNTIMES,
 } = require('../../get-shit-done/bin/lib/runtime-support.cjs')
+const { checkCrossRuntimeParity } = require('../../bin/install.js')
 
 const installScript = path.resolve(process.cwd(), 'bin/install.js')
 const LEGACY_UNSUPPORTED_INSTALLER_TARGETS = Object.freeze(['opencode', 'gemini'])
@@ -804,6 +805,79 @@ describe('multi-runtime validation', () => {
         unexpectedConfigDirs,
         `Detected config runtime directory ${unexpectedConfigDirs.join(', ')} outside SUPPORTED_INSTALLER_RUNTIMES in get-shit-done/bin/lib/runtime-support.cjs`,
       ).toHaveLength(0)
+    })
+  })
+
+  describe('Phase 60: post-install parity (SENS-06)', () => {
+    async function setInstalledVersion(runtimeDir, version) {
+      const versionPath = path.join(runtimeDir, 'get-shit-done-reflect', 'VERSION')
+      const manifestPath = path.join(runtimeDir, 'gsd-file-manifest.json')
+      const manifest = JSON.parse(await fs.readFile(manifestPath, 'utf8'))
+
+      manifest.version = version
+      await fs.writeFile(versionPath, `${version}\n`, 'utf8')
+      await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2), 'utf8')
+    }
+
+    tmpdirTest('global install writes an honest-skip report when the other runtime is absent', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+      const output = execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000,
+      })
+
+      const report = JSON.parse(await fs.readFile(path.join(tmpdir, '.claude', 'gsd-parity-report.json'), 'utf8'))
+      expect(report.divergent).toBe(false)
+      expect(report.reason).toBe('other_runtime_not_installed')
+      expect(report.remediation_command).toBeNull()
+      expect(output).not.toContain('Cross-runtime parity:')
+    })
+
+    tmpdirTest('divergent global installs produce cross-referencing parity reports for both runtimes', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --claude --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000,
+      })
+
+      const claudeDir = path.join(tmpdir, '.claude')
+      const codexDir = path.join(tmpdir, '.codex')
+      await setInstalledVersion(claudeDir, '1.19.7')
+
+      const codexOutput = execSync(`node "${installScript}" --codex --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        encoding: 'utf8',
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000,
+      })
+
+      const codexVersion = (await fs.readFile(path.join(codexDir, 'get-shit-done-reflect', 'VERSION'), 'utf8')).trim()
+      const codexReport = JSON.parse(await fs.readFile(path.join(codexDir, 'gsd-parity-report.json'), 'utf8'))
+
+      expect(codexOutput).toContain('Cross-runtime parity:')
+      expect(codexOutput).toContain('node bin/install.js --claude')
+      expect(codexReport.divergent).toBe(true)
+      expect(codexReport.this_runtime).toBe('codex')
+      expect(codexReport.other_runtime).toBe('claude')
+      expect(codexReport.this_version).toBe(codexVersion)
+      expect(codexReport.other_version).toBe('1.19.7')
+
+      const claudeResult = checkCrossRuntimeParity(claudeDir, 'claude', true, { otherRuntimeDir: codexDir })
+      const claudeReport = JSON.parse(await fs.readFile(path.join(claudeDir, 'gsd-parity-report.json'), 'utf8'))
+
+      expect(claudeResult.divergent).toBe(true)
+      expect(claudeReport.divergent).toBe(true)
+      expect(claudeReport.this_runtime).toBe('claude')
+      expect(claudeReport.other_runtime).toBe('codex')
+      expect(claudeReport.this_version).toBe('1.19.7')
+      expect(claudeReport.other_version).toBe(codexVersion)
     })
   })
 })
