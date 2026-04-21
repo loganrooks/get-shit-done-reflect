@@ -408,7 +408,15 @@ Plans:
   3. Patch sensor detects source-vs-installed file divergence using installer manifest SHA256, classifies divergences (bug/stale/customization/format-drift/feature-gap), and produces a developer-facing report
   4. Post-install cross-runtime parity verification runs automatically after `node bin/install.js`, comparing installed files across detected runtimes
   5. Patch compatibility checking validates patches against target runtime before cross-runtime application
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [ ] 60-01-PLAN.md — Wave 1: G-1 audit reconciliation in cross-runtime-parity-research.md + bin/install.js module.exports extension (fileHash, generateManifest, saveLocalPatches, reportLocalPatches, getGlobalDir, claudeToCodexTools, PATCHES_DIR_NAME, MANIFEST_NAME) + regression test for the export surface
+- [ ] 60-02-PLAN.md — Wave 1: Per-sensor Codex-behavior matrix sidecar (60-codex-behavior-matrix.md) per XRT-01 + structural-prevention regression test (9-row count, canonical vocabulary, DC-4 no-hooks invariant)
+- [ ] 60-03-PLAN.md — Wave 2: Log sensor cross-runtime adapter (SENS-01/02/03/07) — runtime-detection branches in Stages 1a/1c/3a/3c of gsd-log-sensor.md + extract-session-fingerprints.py helper + blind_spots refresh (removes [DISABLED] recurrence text). Resolves 5 log-sensor operability signals.
+- [ ] 60-04-PLAN.md — Wave 2: Patch sensor dual surface (SENS-04/05) — lib/patch-classifier.cjs shared library with isDogfoodingRepo + classify + 17-file golden fixture + drop-a-file sensor agents/gsd-patch-sensor.md + gsd patches subcommand in gsd-tools.cjs
+- [ ] 60-05-PLAN.md — Wave 3: Post-install cross-runtime parity verification (SENS-06) — checkCrossRuntimeParity() inserted at Claude and Codex branches of install() in bin/install.js + gsd-parity-report.json artifact + advisory stdout. Resolves sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift (single-project dimension).
+- [ ] 60-06-PLAN.md — Wave 3: XRT-02 patch compatibility validator — lib/xrt02-validator.cjs four-axis validator (runtime/format/version/conversion) wired into commands/gsd/reapply-patches.md pre-apply gate with convert-and-apply/skip/abort UX
 **Note**: Can proceed in parallel with Phase 61 after Phase 58 completes -- independent workstreams with no shared dependencies
 
 ### Phase 60.1: Telemetry-Signal Integration & E2E Chain Tests (INSERTED)
