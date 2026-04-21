@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 60-03-PLAN.md
-last_updated: "2026-04-21T20:53:38.652Z"
+stopped_at: Completed 60-04-PLAN.md
+last_updated: "2026-04-21T21:03:25.190Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 25
   completed_phases: 17
   total_plans: 87
-  completed_plans: 84
-  percent: 97
+  completed_plans: 85
+  percent: 98
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 60 of 64 — Execution in progress on `gsd/phase-60-sensor-pipeline-codex-parity`
-Plan: 3 of 6 complete
+Plan: 4 of 6 complete
 Status: Ready to execute
 
 ### Recent Phases
@@ -325,6 +325,9 @@ Recent decisions affecting current work:
 - [Phase 60]: Fingerprint extraction now lives in one standalone Python helper shared by Claude and Codex session normalization.
 - [Phase 60]: Codex session discovery is documented as sqlite-primary with PRAGMA probing and filesystem fallback instead of a fatal hard dependency.
 - [Phase 60]: Codex-only fingerprint fields stay in the normalized schema as not_available on Claude, and vocabulary drift surfaces as SENS-07 candidates.
+- [Phase 60]: Patch classification now lives in one shared library so the sensor and gsd patches CLI share taxonomy and evidence.
+- [Phase 60]: Feature-gap versus format-drift is decided by capability-matrix representability rather than guessed intent.
+- [Phase 60]: Patch-classifier loading degrades safely in installed runtime mirrors, and gsd-tools only loads it lazily for the patches command.
 
 ### Roadmap Evolution
 
@@ -417,6 +420,7 @@ Recent decisions affecting current work:
 | Phase 60 P01 | 5min | 2 tasks | 5 files |
 | Phase 60 P02 | 4min | 2 tasks | 2 files |
 | Phase 60 P03 | 8min | 3 tasks | 5 files |
+| Phase 60 P04 | 10min | 3 tasks | 5 files |
 
 ### Key Artifacts
 
@@ -435,8 +439,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T20:53:38.599Z
-Stopped at: Completed 60-03-PLAN.md
+Last session: 2026-04-21T21:03:25.181Z
+Stopped at: Completed 60-04-PLAN.md
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
