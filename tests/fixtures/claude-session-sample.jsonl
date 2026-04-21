@@ -1,0 +1,4 @@
+{"type":"system","timestamp":"2026-04-21T10:00:00Z","subtype":"init","session_id":"test-claude-001"}
+{"type":"user","timestamp":"2026-04-21T10:00:01Z","message":{"role":"user","content":"hello"}}
+{"type":"assistant","timestamp":"2026-04-21T10:00:02Z","message":{"role":"assistant","model":"claude-opus-4-7","content":[{"type":"text","text":"hi"}],"usage":{"input_tokens":10,"output_tokens":5}}}
+{"type":"assistant","timestamp":"2026-04-21T10:00:03Z","message":{"role":"assistant","model":"claude-opus-4-7","content":[{"type":"tool_use","name":"Read","input":{"file_path":"x.md"}}],"usage":{"input_tokens":15,"output_tokens":10}}}
