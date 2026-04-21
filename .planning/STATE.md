@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: verifying
-stopped_at: Completed 59-01-PLAN.md (Wave 1 KB substrate repair, FTS5 re-entry, edge-integrity report, kb repair verb, 107 live edges cleaned)
-last_updated: "2026-04-21T04:18:33.057Z"
+stopped_at: "Completed 59-02-PLAN.md (Wave 2 read surface: kb query + kb search with grep fallback, kb link show inbound/outbound/both, write verbs stubbed for Plan 04)"
+last_updated: "2026-04-21T04:30:14.751Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 24
   completed_phases: 15
   total_plans: 78
-  completed_plans: 74
-  percent: 95
+  completed_plans: 75
+  percent: 96
 ---
 
 # Project State
@@ -293,6 +293,10 @@ Recent decisions affecting current work:
 - [Phase 59-01]: Schema v2-to-v3 migration: legacy-row cleanup (DELETE FROM signal_links, signal_tags, signals) moved into initSchema BEFORE creating new FTS5 AFTER triggers, not after. The AFTER DELETE trigger on an empty signal_fts produces 'database disk image is malformed'; clearing before triggers exist avoids that entire class of failure.
 - [Phase 59-01]: Edge provenance minimum (audit §7.1 #8) shipped now via additive signal_links.created_at + source_content_hash columns rather than deferred; schema v2-to-v3 bump already forces full rebuild so the incremental cost is zero and downstream forensic work stays cheap.
 - [Phase 59-01]: Live repair commit (4662bce3) kept separate from Task 2 implementation commit (30305732) so the 107-file signal frontmatter cleanup is independently revertable from the verb-adding code change.
+- [Phase 59]: [59-02]: Helper re-export over duplication -- kb.cjs exports getKbDir/getDbPath/getDbSync so sibling lib modules reuse path resolution + lazy sqlite gate without duplicating the guard block (no circular imports)
+- [Phase 59]: [59-02]: Grep fallback for kb query + kb search; clean error (no fallback) for kb link show --inbound -- inbound relation inversion via grep is infeasible at scale, so kb.db-absence surfaces 'run kb rebuild' rather than a degraded result per research §Genuine gaps
+- [Phase 59]: [59-02]: Write verbs stubbed at router (kb link create/delete emit 'Plan 04 deferred' error) so the verb namespace is discoverable this wave and Plan 04 has a clear router slot to replace
+- [Phase 59]: [59-02]: Fallback output labelled explicitly as 'fallback: {engine: grep, reason: kb.db not found}' rather than silent degradation -- downstream surfacing agents need to distinguish 'fewer matches' from 'running on grep (no porter stem)' per research Pitfall C2
 
 ### Roadmap Evolution
 
@@ -373,6 +377,7 @@ Recent decisions affecting current work:
 | Phase 58.1 P01 | 8min | 2 tasks | 4 files |
 | Phase 58.1 P02 | 15min | 2 tasks | 5 files |
 | Phase 59-kb-query-lifecycle-wiring-and-surfacing P01 | 16min | 2 tasks | 112 files |
+| Phase 59 P02 | 7min | 2 tasks | 6 files |
 
 ### Key Artifacts
 
@@ -391,8 +396,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T04:18:33.048Z
-Stopped at: Completed 59-01-PLAN.md (Wave 1 KB substrate repair, FTS5 re-entry, edge-integrity report, kb repair verb, 107 live edges cleaned)
+Last session: 2026-04-21T04:30:14.744Z
+Stopped at: Completed 59-02-PLAN.md (Wave 2 read surface: kb query + kb search with grep fallback, kb link show inbound/outbound/both, write verbs stubbed for Plan 04)
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
