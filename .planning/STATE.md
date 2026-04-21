@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: verifying
-stopped_at: Phase 59.1 plan verified
-last_updated: "2026-04-21T08:07:24.091Z"
+stopped_at: Completed 59.1-01-PLAN.md
+last_updated: "2026-04-21T08:42:17.355Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 25
   completed_phases: 16
   total_plans: 81
-  completed_plans: 78
-  percent: 96
+  completed_plans: 79
+  percent: 98
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 
 Phase: 59 of 64 — Execution complete on `gsd/phase-59-kb-query-lifecycle-wiring-and-surfacing`
 Plan: 5 of 5 complete
-Status: Verifier passed — ready for PR
+Status: Phase complete — ready for verification
 
 ### Recent Phases
 
@@ -311,6 +311,8 @@ Recent decisions affecting current work:
 - [Phase 59]: knowledge-surfacing.md v1.0.0->v2.0.0 rewrite retires lesson-only grep-through-index path; SQLite-first signals+spikes+reflections triad with structural inbound-edge fetch via kb link show --inbound
 - [Phase 59]: 59-DEFERRALS.md enumerates KB-12..KB-17 in GATE-09 ledger-consumable form; REQUIREMENTS.md adds footer cross-reference (no content duplication); KB-04b..KB-08 flipped [x] with closed-by Phase 59 Plan N annotations
 - [Phase 59]: Cross-runtime parity integration test: sha256 equality for 5 kb* lib files + knowledge-surfacing.md across .claude and .codex; JSON shape parity for all new kb verbs. Phase 58.1 DC-4 held across Phase 59
+- [Phase 59.1]: Installer runtime support authority now lives in get-shit-done/bin/lib/runtime-support.cjs, and bin/install.js plus installer tests consume that shared Claude/Codex-only surface directly.
+- [Phase 59.1]: Legacy installer flags --gemini, --opencode, and --both now fail fast with migration guidance instead of remapping to supported runtimes.
 
 ### Roadmap Evolution
 
@@ -397,6 +399,7 @@ Recent decisions affecting current work:
 | Phase 59 P04 | 13min | 2 tasks | 9 files |
 | Phase 59 P04 | 13min | 2 tasks | 9 files |
 | Phase 59 P05 | 8min | 2 tasks | 6 files |
+| Phase 59.1 P01 | 8min | 2 tasks | 3 files |
 
 ### Key Artifacts
 
@@ -415,8 +418,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T08:07:24.082Z
-Stopped at: Phase 59.1 plan verified
+Last session: 2026-04-21T08:42:17.346Z
+Stopped at: Completed 59.1-01-PLAN.md
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
