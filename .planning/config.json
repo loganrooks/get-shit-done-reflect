@@ -50,7 +50,7 @@
     "stats": {
       "signal_collection": {
         "fires": 0,
-        "skips": 17,
+        "skips": 18,
         "last_triggered": null,
         "last_skip_reason": "level-1",
         "last_run_status": "skipped"
@@ -79,7 +79,7 @@
       },
       "reflection": {
         "fires": 0,
-        "skips": 10,
+        "skips": 11,
         "last_triggered": null,
         "last_skip_reason": "disabled",
         "last_run_status": "skipped"
