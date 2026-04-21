@@ -378,7 +378,14 @@ Plans:
   5. `kb health` has a concrete contract: edge integrity, lifecycle-vs-plan consistency, dual-write verification, and `depends_on` freshness summary
   6. Research and planning agents use SQLite queries for relevant signal/spike/reflection retrieval, with graceful fallback to grep when `kb.db` does not exist, and the surfacing protocol no longer depends on the deprecated lesson-only path
   7. Phase 59 records explicit downstream deferrals for the deeper KB architecture (`KB-12` through `KB-17`) so edge-as-entity, retrieval attribution, artifact indexing, federation, vocabulary extension, and contested-state support do not disappear by omission
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 59-01-PLAN.md — Wave 1: extractLinks uniform guard + idx_signal_links_target + FTS5 external-content rewrite + edge-integrity report + kb repair --malformed-targets + live-corpus regression
+- [ ] 59-02-PLAN.md — Wave 2: kb query + kb search (FTS5 MATCH) + kb link show --outbound/--inbound/--both (read surface, grep fallback on fresh clone)
+- [ ] 59-03-PLAN.md — Wave 2: kb health four-check contract (edge integrity + lifecycle-vs-plan + dual-write + depends_on freshness), exit-code bitmask
+- [ ] 59-04-PLAN.md — Wave 3: kb transition + kb link create/delete (BEGIN IMMEDIATE dual-write) + collect-signals auto-transition + reconcile-signal-lifecycle.sh deprecation with one-cycle sunset and Linux guard
+- [ ] 59-05-PLAN.md — Wave 4: knowledge-surfacing.md SQLite-first rewrite + KB-12..KB-17 deferrals ledger (59-DEFERRALS.md) + cross-runtime parity integration test + phase-level must_haves aggregation
 **Deferred Children To Name In Phase 59 CONTEXT/PLAN**: KB-12, KB-13, KB-14, KB-15, KB-16, KB-17
 
 ### Phase 60: Sensor Pipeline & Codex Parity
