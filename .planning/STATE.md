@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: verifying
-stopped_at: "Completed 59-05-PLAN.md (Wave 4: knowledge-surfacing rewrite + 59-DEFERRALS ledger + cross-runtime kb parity; Phase 59 closure ready for verifier)"
-last_updated: "2026-04-21T05:14:26.008Z"
+status: verified
+stopped_at: "Phase 59 verified passed (7/7 must-haves against codebase); ready for PR on gsd/phase-59-kb-query-lifecycle-wiring-and-surfacing"
+last_updated: "2026-04-21T05:30:00Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 24
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 58.1 (Codex Update Distribution Parity) has finished implementation on branch `gsd/phase-58.1-codex-update-distribution-parity` and passed automated verification. Remaining work is now split across two surfaces: two live human Codex checks (real source-repo update preview/execution and a real non-default `CODEX_CONFIG_DIR` update run), plus release-boundary closeout on the phase branch (`PR -> CI -> merge -> release of the merged commit`).
+**Current focus:** v1.20 Phase 59 (KB Query, Lifecycle Wiring & Surfacing) shipped on branch `gsd/phase-59-kb-query-lifecycle-wiring-and-surfacing`. Verifier passed 7/7 ROADMAP must-haves against the codebase (763/763 tests, cross-runtime sha256 parity confirmed). `kb query`/`search`/`link show` live on FTS5 substrate, `kb transition` closes the lifecycle wiring loop (KB-07), `kb health` four-check watchdog is online, `knowledge-surfacing.md` rewritten SQLite-first, and KB-12..KB-17 enumerated as GATE-09-consumable deferrals in `59-DEFERRALS.md`. Ready for PR.
 
 ## Current Position
 
-Phase: 58.1 of 64 — Execution complete on `gsd/phase-58.1-codex-update-distribution-parity`
-Plan: 2 of 2 complete
-Status: Phase complete — ready for verification
+Phase: 59 of 64 — Execution complete on `gsd/phase-59-kb-query-lifecycle-wiring-and-surfacing`
+Plan: 5 of 5 complete
+Status: Verifier passed — ready for PR
 
 ### Recent Phases
 

@@ -32,7 +32,7 @@
 - [ ] **Phase 57.7: Content Analysis & Epistemic Deepening** - Session-content extractors (structural patterns in transcripts with documented privacy model), automated distinguishing-feature suggestion, intervention-outcome tracking, interpretation revision classification (progressive vs degenerating per Lakatos), full epistemic provenance on all interpretations
 - [ ] **Phase 57.8: Signal Provenance Split & Artifact Signature Blocks** - Role-aware provenance (`about_work[]` / `detected_by` / `written_by`) replacing flat `runtime/model/gsd_version` payload; uniform signature block on PLAN/SUMMARY/VERIFICATION via `resolveModelInternal`; writer-side version precedence fix; retroactive annotation of Phase 57.6 signals. Epistemic prerequisite for GATE-09 (Phase 58). Narrow audit-bounded fix per `.planning/audits/2026-04-16-signal-provenance-audit/`
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns, plus GATE-09 scope-translation ledger (meta-fix for Phase 57 scope-narrowing cascade)
-- [ ] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries
+- [x] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries (completed 2026-04-20)
 - [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
 - [ ] **Phase 60.1: Telemetry-Signal Integration & E2E Chain Tests** - Sensors consume `buildSessionIdentityValue` from measurement extractors, reflection stratifies by `model × profile × reasoning_effort`, intervention-outcome loop extended to signal lifecycle, E2E real-agent chain tests. Research-gated scope expansion via PROV-09 under GOV-01 extraction contract
 - [ ] **Phase 61: Spike Methodology Overhaul** - Three-level confidence, cross-model design reviewer, template revisions, and findings verification (can proceed in parallel with Phase 60)
@@ -381,11 +381,11 @@ Plans:
 **Plans**: 5 plans
 
 Plans:
-- [ ] 59-01-PLAN.md — Wave 1: extractLinks uniform guard + idx_signal_links_target + FTS5 external-content rewrite + edge-integrity report + kb repair --malformed-targets + live-corpus regression
-- [ ] 59-02-PLAN.md — Wave 2: kb query + kb search (FTS5 MATCH) + kb link show --outbound/--inbound/--both (read surface, grep fallback on fresh clone)
-- [ ] 59-03-PLAN.md — Wave 2: kb health four-check contract (edge integrity + lifecycle-vs-plan + dual-write + depends_on freshness), exit-code bitmask
-- [ ] 59-04-PLAN.md — Wave 3: kb transition + kb link create/delete (BEGIN IMMEDIATE dual-write) + collect-signals auto-transition + reconcile-signal-lifecycle.sh deprecation with one-cycle sunset and Linux guard
-- [ ] 59-05-PLAN.md — Wave 4: knowledge-surfacing.md SQLite-first rewrite + KB-12..KB-17 deferrals ledger (59-DEFERRALS.md) + cross-runtime parity integration test + phase-level must_haves aggregation
+- [x] 59-01-PLAN.md — Wave 1: extractLinks uniform guard + idx_signal_links_target + FTS5 external-content rewrite + edge-integrity report + kb repair --malformed-targets + live-corpus regression
+- [x] 59-02-PLAN.md — Wave 2: kb query + kb search (FTS5 MATCH) + kb link show --outbound/--inbound/--both (read surface, grep fallback on fresh clone)
+- [x] 59-03-PLAN.md — Wave 2: kb health four-check contract (edge integrity + lifecycle-vs-plan + dual-write + depends_on freshness), exit-code bitmask
+- [x] 59-04-PLAN.md — Wave 3: kb transition + kb link create/delete (BEGIN IMMEDIATE dual-write) + collect-signals auto-transition + reconcile-signal-lifecycle.sh deprecation with one-cycle sunset and Linux guard
+- [x] 59-05-PLAN.md — Wave 4: knowledge-surfacing.md SQLite-first rewrite + KB-12..KB-17 deferrals ledger (59-DEFERRALS.md) + cross-runtime parity integration test + phase-level must_haves aggregation
 **Deferred Children To Name In Phase 59 CONTEXT/PLAN**: KB-12, KB-13, KB-14, KB-15, KB-16, KB-17
 
 ### Phase 60: Sensor Pipeline & Codex Parity

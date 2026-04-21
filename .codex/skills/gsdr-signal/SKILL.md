@@ -1,6 +1,6 @@
 ---
 name: gsdr-signal
-description: Log a manual signal observation to the knowledge base with context from the current conversation (v1.19.5+dev)
+description: Log a manual signal observation to the knowledge base with context from the current conversation (v1.19.7+dev)
 ---
 
 <objective>
