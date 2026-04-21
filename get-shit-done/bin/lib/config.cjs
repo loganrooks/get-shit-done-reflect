@@ -61,6 +61,12 @@ function isValidConfigKey(keyPath) {
   if (/^health_check\.[a-zA-Z0-9_]+$/.test(keyPath)) return true;
   // Fork: allow devops.<sub-key> for fork devops/CI config namespace
   if (/^devops\.[a-zA-Z0-9_.]+$/.test(keyPath)) return true;
+  // Fork: allow automation.<sub-key> for fork automation config namespace
+  if (/^automation\.[a-zA-Z0-9_.]+$/.test(keyPath)) return true;
+  // Fork: allow release.<sub-key> for release workflow config namespace
+  if (/^release\.[a-zA-Z0-9_.]+$/.test(keyPath)) return true;
+  // Fork: allow signal_lifecycle.<sub-key> for signal lifecycle config namespace
+  if (/^signal_lifecycle\.[a-zA-Z0-9_.]+$/.test(keyPath)) return true;
   return false;
 }
 

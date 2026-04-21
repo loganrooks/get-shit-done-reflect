@@ -33,7 +33,7 @@
 - [ ] **Phase 57.8: Signal Provenance Split & Artifact Signature Blocks** - Role-aware provenance (`about_work[]` / `detected_by` / `written_by`) replacing flat `runtime/model/gsd_version` payload; uniform signature block on PLAN/SUMMARY/VERIFICATION via `resolveModelInternal`; writer-side version precedence fix; retroactive annotation of Phase 57.6 signals. Epistemic prerequisite for GATE-09 (Phase 58). Narrow audit-bounded fix per `.planning/audits/2026-04-16-signal-provenance-audit/`
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns, plus GATE-09 scope-translation ledger (meta-fix for Phase 57 scope-narrowing cascade)
 - [x] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries (completed 2026-04-20)
-- [ ] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61)
+- [x] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61) (completed 2026-04-21)
 - [ ] **Phase 60.1: Telemetry-Signal Integration & E2E Chain Tests** - Sensors consume `buildSessionIdentityValue` from measurement extractors, reflection stratifies by `model × profile × reasoning_effort`, intervention-outcome loop extended to signal lifecycle, E2E real-agent chain tests. Research-gated scope expansion via PROV-09 under GOV-01 extraction contract
 - [ ] **Phase 61: Spike Methodology Overhaul** - Three-level confidence, cross-model design reviewer, template revisions, and findings verification (can proceed in parallel with Phase 60)
 - [ ] **Phase 62: Workflow Commands** - Five commands closing workflow gaps identified by audit and deliberation
@@ -408,7 +408,15 @@ Plans:
   3. Patch sensor detects source-vs-installed file divergence using installer manifest SHA256, classifies divergences (bug/stale/customization/format-drift/feature-gap), and produces a developer-facing report
   4. Post-install cross-runtime parity verification runs automatically after `node bin/install.js`, comparing installed files across detected runtimes
   5. Patch compatibility checking validates patches against target runtime before cross-runtime application
-**Plans**: TBD
+**Plans**: 6 plans
+
+Plans:
+- [x] 60-01-PLAN.md — Wave 1: G-1 audit reconciliation in cross-runtime-parity-research.md + bin/install.js module.exports extension (fileHash, generateManifest, saveLocalPatches, reportLocalPatches, getGlobalDir, claudeToCodexTools, PATCHES_DIR_NAME, MANIFEST_NAME) + regression test for the export surface
+- [x] 60-02-PLAN.md — Wave 1: Per-sensor Codex-behavior matrix sidecar (60-codex-behavior-matrix.md) per XRT-01 + structural-prevention regression test (9-row count, canonical vocabulary, DC-4 no-hooks invariant)
+- [x] 60-03-PLAN.md — Wave 2: Log sensor cross-runtime adapter (SENS-01/02/03/07) — runtime-detection branches in Stages 1a/1c/3a/3c of gsd-log-sensor.md + extract-session-fingerprints.py helper + blind_spots refresh (removes [DISABLED] recurrence text). Resolves 5 log-sensor operability signals.
+- [x] 60-04-PLAN.md — Wave 2: Patch sensor dual surface (SENS-04/05) — lib/patch-classifier.cjs shared library with isDogfoodingRepo + classify + 17-file golden fixture + drop-a-file sensor agents/gsd-patch-sensor.md + gsd patches subcommand in gsd-tools.cjs
+- [x] 60-05-PLAN.md — Wave 3: Post-install cross-runtime parity verification (SENS-06) — checkCrossRuntimeParity() inserted at Claude and Codex branches of install() in bin/install.js + gsd-parity-report.json artifact + advisory stdout. Resolves sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift (single-project dimension).
+- [x] 60-06-PLAN.md — Wave 3: XRT-02 patch compatibility validator — lib/xrt02-validator.cjs four-axis validator (runtime/format/version/conversion) wired into commands/gsd/reapply-patches.md pre-apply gate with convert-and-apply/skip/abort UX
 **Note**: Can proceed in parallel with Phase 61 after Phase 58 completes -- independent workstreams with no shared dependencies
 
 ### Phase 60.1: Telemetry-Signal Integration & E2E Chain Tests (INSERTED)
@@ -495,7 +503,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.
 | 57.8. Signal Provenance Split & Artifact Signature Blocks | 0/TBD | Not started | - |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
-| 60. Sensor Pipeline & Codex Parity | 0/TBD | Not started | - |
+| 60. Sensor Pipeline & Codex Parity | 6/6 | Complete   | 2026-04-21 |
 | 60.1. Telemetry-Signal Integration & E2E Chain Tests | 0/TBD | Not started | - |
 | 61. Spike Methodology Overhaul | 0/TBD | Not started | - |
 | 62. Workflow Commands | 0/TBD | Not started | - |

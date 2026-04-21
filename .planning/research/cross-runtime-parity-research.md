@@ -1,10 +1,10 @@
 ---
 document_type: living-reference
-last_audited: "2026-04-09"
-last_audited_codex_version: "0.118.0"
-last_audited_claude_code_version: "1.0.39"
+last_audited: "2026-04-21"
+last_audited_codex_version: "0.121.0"
+last_audited_claude_code_version: "2.1.116"
 audit_method: "GPT-5.4 cross-model drift audit + live CLI verification"
-next_audit_due: "2026-04-23"
+next_audit_due: "2026-05-05"
 validation_status: current
 ---
 
@@ -22,14 +22,17 @@ Run these commands to re-verify parity claims. If any output contradicts the doc
 
 | Claim | Validation Command | Expected Output |
 |-------|--------------------|-----------------|
-| Codex version | `codex --version` | 0.118.0 or later |
+| Codex version | `codex --version` | 0.121.0 or later |
 | Codex hooks available | `codex features list \| grep codex_hooks` | `codex_hooks under development true` |
 | Codex multi-agent | `codex features list \| grep multi_agent` | `multi_agent stable true` |
+| Codex multi-agent v2 | `codex features list \| grep multi_agent_v2` | `multi_agent_v2 under development false` |
 | Codex config location | `ls ~/.codex/config.toml` | File exists |
 | Project-local .codex | `ls .codex/config.toml` | File exists (in GSD dev repo) |
 | Claude Code hooks | `cat .claude/settings.json \| grep -c hooks` | Non-zero count |
 | Agent TOML files | `ls .codex/agents/*.toml` | Lists .toml agent files |
 | Skill directory format | `ls .codex/skills/*/SKILL.md` | Lists SKILL.md files in subdirectories |
+| Codex logs DB filename | `ls ~/.codex/logs_*.sqlite` | Expect `logs_2.sqlite` (as of 2026-04-21); Codex revs the suffix |
+| Session event-type enumeration | `for f in $(find ~/.codex/sessions -name '*.jsonl' | head -100); do jq -rcs '.[] | .payload.type // .type' < "$f"; done | sort -u` | Expect the 17 event_msg types + 7 response_item types enumerated in §1.3 |
 
 ---
 
@@ -67,7 +70,7 @@ Run these commands to re-verify parity claims. If any output contradicts the doc
 | PostToolUse | `gsdr-context-monitor.js` | Context bridge file tracking after Bash/Edit/Write/Agent/Task | Automation deferral, context tracking |
 | statusLine | `gsdr-statusline.js` | Persistent status display | UX feedback |
 
-**Codex CLI hooks available (as of v0.118.0, under development):**
+**Codex CLI hooks available (as of v0.121.0, under development):**
 
 | Hook Type | Codex Version Added | Discovery | Notes |
 |-----------|-------------------|-----------|-------|
@@ -100,6 +103,9 @@ Codex hooks require the `codex_hooks` feature flag to be enabled in `config.toml
 
 **Codex CLI JSONL** (`~/.codex/sessions/YYYY/MM/DD/rollout-{timestamp}-{session-id}.jsonl`):
 - Top-level event types: `session_meta`, `event_msg`, `response_item`, `turn_context`, `compacted`
+- `event_msg.payload.type` values observed: `agent_message`, `collab_agent_interaction_end`, `collab_agent_spawn_end`, `collab_close_end`, `collab_waiting_end`, `context_compacted`, `exec_command_end`, `item_completed`, `mcp_tool_call_end`, `patch_apply_end`, `task_complete`, `task_started`, `thread_rolled_back`, `token_count`, `turn_aborted`, `user_message`, `web_search_end`
+- `response_item.payload.type` values observed: `custom_tool_call`, `custom_tool_call_output`, `function_call`, `function_call_output`, `message`, `reasoning`, `web_search_call`
+- Added 2026-04-21 after live-corpus survey of 100 sessions / 12,204 events. Adapters must recognize these as KNOWN (counted or ignored) — classifying them as unknown triggers SENS-07 for every occurrence (Pitfall 1 in phase-60 RESEARCH.md).
 - Session metadata: first event is `session_meta` with `id`, `cwd`, `source` (exec/cli), `cli_version`, `model_provider`, `base_instructions`
 - Token usage: `event_msg` with `payload.type = "token_count"` containing `total_token_usage` and `last_token_usage` with `input_tokens`, `cached_input_tokens`, `output_tokens`, `reasoning_output_tokens`, `total_tokens`, `model_context_window`
 - Rate limit data: included in every `token_count` event (`rate_limits.primary.used_percent`, `secondary.used_percent`)
@@ -503,7 +509,7 @@ The installer (`bin/install.js`) handles four runtimes with format conversion:
 
 ### 7.1 Installed Version and Configuration
 
-- **Version:** 0.118.0 (installed via npm at `~/.npm-global/bin/codex`)
+- **Version:** 0.121.0 (installed via npm at `~/.npm-global/bin/codex`)
 - **Model:** GPT-5.4 with `model_reasoning_effort = "xhigh"` and `plan_mode_reasoning_effort = "xhigh"`
 - **Personality:** "pragmatic"
 - **Trust:** Multiple projects set to `trust_level = "trusted"` including GSDR
@@ -522,7 +528,7 @@ The installer (`bin/install.js`) handles four runtimes with format conversion:
   history.jsonl            # Flat user-message-only log (all sessions)
   session_index.jsonl      # Thread name index
   state_5.sqlite           # Session state DB (threads, logs)
-  logs_1.sqlite            # Structured runtime logs (tracing/debug)
+  logs_2.sqlite            # Structured runtime logs (tracing/debug). Codex revs this filename suffix on schema changes (`logs_1.sqlite` → `logs_2.sqlite` observed 2026-04-21, size ~1.1GB); consumers should glob `logs_*.sqlite` rather than hardcode the suffix.
   
   sessions/YYYY/MM/DD/     # Full session JSONL files (date-partitioned)
   gsd-file-manifest.json   # Install manifest (SHA256 hashes)
@@ -570,12 +576,12 @@ This is strictly richer than Claude Code's session discovery mechanism. For the 
 
 | Area | Confidence | Basis |
 |------|-----------|-------|
-| Hook availability comparison | HIGH | Direct inspection of `.claude/settings.json` and `~/.codex/config.toml`; Codex CLI v0.118.0 confirmed no hook mechanism |
+| Hook availability comparison | HIGH | Direct inspection of `.claude/settings.json` and `~/.codex/config.toml`; Codex CLI v0.121.0 confirmed hook support remains behind the `codex_hooks` feature flag |
 | Session log format comparison | HIGH | Direct parsing of actual session JSONL files from both runtimes on this machine |
 | Installer cross-runtime mechanics | HIGH | Source code read of `bin/install.js` |
 | Patch sensor design | MEDIUM-HIGH | Based on existing `saveLocalPatches` mechanism + patch backup evidence; classification taxonomy is proposed, not validated |
 | Log sensor adapter design | MEDIUM | Format analysis is solid; actual extraction code needs testing against edge cases (very long sessions, subagent sessions, interrupted sessions) |
-| Codex CLI future hook support | LOW | No public roadmap found; training data suggests no hooks as of knowledge cutoff; current v0.118.0 confirmed no hooks |
+| Codex CLI future hook support | LOW | No public roadmap found; training data suggests feature-flag churn remains possible; current v0.121.0 confirms hooks are present but still marked under development |
 | Cross-runtime distribution gap approaches | MEDIUM | Approaches are design proposals; implementation complexity estimates are rough |
 
 ---
@@ -590,7 +596,9 @@ The `state_5.sqlite` database is an underexplored asset. Beyond session discover
 - **Git correlation:** `git_sha` and `git_branch` per session enable correlating session quality with code state
 - **Agent tracking:** `agent_path` and `agent_nickname` fields (when populated) could track which GSD agents are actually invoked
 
-The `logs_1.sqlite` database contains structured runtime traces (log level, target, module_path, file, line, thread_id) that could be useful for debugging Codex-specific failures but is likely too low-level for the signal pipeline.
+The `logs_2.sqlite` database contains structured runtime traces (log level, target, module_path, file, line, thread_id) that could be useful for debugging Codex-specific failures but is likely too low-level for the signal pipeline.
+
+**Next audit due:** 2026-05-05 or at the next Codex version bump, whichever comes first.
 
 ### history.jsonl as Cross-Session Pattern Source
 

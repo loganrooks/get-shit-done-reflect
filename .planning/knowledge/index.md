@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-21T06:34:37Z
-**Total entries:** 302
+**Generated:** 2026-04-21T22:12:24Z
+**Total entries:** 316
 
-## Signals (294)
+## Signals (308)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -35,6 +35,20 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-21-the-phase-60-discuss-plan-chain-ran-on-main-long-e | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-60-06-had-to-restage-and-recommit-after-the-s | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-60-06-could-not-achieve-a-repo-wide-green-npm | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-60-05-briefly-staged-out-of-boundary-60-06-fi | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-60-04-uncovered-a-blocking-loading-bug-where | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-60-04-needed-an-auto-fix-for-installed-to-sou | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-60-03-surfaced-a-flaky-integration-verificati | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-60-02-required-an-auto-fix-because-a-literal | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-60-02-had-conflicting-authority-about-sens-02 | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-60-01-hit-a-transient-git-index-lock-while-co | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-plan-60-01-carried-stale-audit-assumptions-about-c | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-parallel-wave-3-executors-contaminated-each-others | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-an-unrelated-cross-runtime-parity-test-tests-integ | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
+| sig-2026-04-21-after-verification-passed-phase-reconcile-edited-p | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
 | sig-2026-04-21-installer-advertises-gemini-opencode-unsupported | get-shit-done-reflect | notable | detected | scope-drift,installer,cross-runtime,untyped-assumption,governance,v1.20,gate-09 | "2026-04-21 | active |
 | sig-2026-04-21-plan-59-05-improved-requirement-status-completenes | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
 | sig-2026-04-21-plan-59-05-established-cross-runtime-parity-tests | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
@@ -314,4 +328,9 @@
 | spk-2026-04-09-session-data-integrity-characterization | get-shit-done-reflect | confirmed | telemetry,session-meta,data-quality,integrity | "2026-04-09 | active |
 | spk-2026-04-09-facets-accuracy-validation | get-shit-done-reflect | partial | telemetry,facets,data-quality,correlation | "2026-04-09 | active |
 | spk-2026-04-09-behavioral-metric-signal-to-noise | get-shit-done-reflect | confirmed | telemetry,behavioral-metrics,session-meta,signal-analysis | "2026-04-09 | active |
+
+## Lessons (0)
+
+| ID | Project | Category | Tags | Date | Status |
+|----|---------|----------|------|------|--------|
 

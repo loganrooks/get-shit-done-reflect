@@ -976,10 +976,35 @@ describe('install script', () => {
         expect(content).toContain('~/.gsd/knowledge')
         expect(content).not.toContain('~/.claude/gsd-knowledge')
       })
-    })
   })
+})
 
-  describe('KB migration', () => {
+describe('Phase 60: module.exports surface', () => {
+  it('exports every installer primitive Phase 60 consumers import', () => {
+    const installExports = require('../../bin/install.js')
+    const required = [
+      'fileHash', 'generateManifest', 'writeManifest',
+      'saveLocalPatches', 'pruneRedundantPatches', 'reportLocalPatches',
+      'getGlobalDir', 'claudeToCodexTools',
+      'PATCHES_DIR_NAME', 'MANIFEST_NAME',
+      'replacePathsInContent', 'convertClaudeToCodexMarkdown',
+      'convertClaudeToCodexAgentToml', 'extractFrontmatterAndBody',
+      'extractFrontmatterField',
+    ]
+
+    for (const name of required) {
+      expect(installExports[name], `install.js missing export: ${name}`).toBeDefined()
+    }
+
+    expect(typeof installExports.fileHash).toBe('function')
+    expect(typeof installExports.generateManifest).toBe('function')
+    expect(typeof installExports.claudeToCodexTools).toBe('object')
+    expect(installExports.PATCHES_DIR_NAME).toBe('gsdr-local-patches')
+    expect(installExports.MANIFEST_NAME).toBe('gsd-file-manifest.json')
+  })
+})
+
+describe('KB migration', () => {
     // Helper to set HOME for migration tests and restore after
     function withMockHome(tmpdir, fn) {
       const origHome = process.env.HOME

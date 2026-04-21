@@ -21,6 +21,7 @@
  *   automation resolve-level|track-event|lock|unlock|check-lock|regime-change|reflection-counter
  *   sensors list|blind-spots
  *   health-probe signal-metrics|signal-density|automation-watchdog|validation-coverage
+ *   patches -- classify local runtime/source divergence through the shared patch classifier
  *   init execute-phase <phase> [--include state,config,roadmap]
  *   init plan-phase <phase> [--include state,roadmap,research,context,verification,uat,requirements]
  *   init progress [--include state,roadmap,project,config]
@@ -97,7 +98,7 @@ async function main() {
   const command = args[0];
 
   if (!command) {
-    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement, quick, handoff, antipatterns, agent, release');
+    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, patches, kb, telemetry, measurement, quick, handoff, antipatterns, agent, release');
   }
 
   switch (command) {
@@ -722,6 +723,12 @@ async function main() {
       } else {
         error('Unknown health-probe. Available: signal-metrics, signal-density, automation-watchdog, validation-coverage');
       }
+      break;
+    }
+
+    case 'patches': {
+      const patchClassifier = require('./lib/patch-classifier.cjs');
+      patchClassifier.cmdPatches(cwd, raw);
       break;
     }
 

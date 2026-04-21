@@ -48,10 +48,54 @@ Extract compact structural metrics from session logs. The agent reads ONLY the J
 
 ### 1a. Locate session logs
 
+Stage 1a now discovers sessions on both runtimes. Claude Code session discovery scans the filesystem under `~/.claude/projects/`; Codex discovery queries `~/.codex/state_*.sqlite` via `sqlite3` CLI with filesystem-scan fallback. A SENS-07 `codex-sqlite-unavailable` diagnostic fires when the SQL path degrades. Per G-5, the runtime detected here is the LOG-FILE runtime, independent of the harness runtime analyzing the logs.
+
 ```bash
-ENCODED_PATH=$(pwd | sed 's|/|-|g')
-LOG_DIR="$HOME/.claude/projects/${ENCODED_PATH}"
-ls "$LOG_DIR"/*.jsonl 2>/dev/null | wc -l
+PROJECT_CWD="$(pwd)"
+CLAUDE_LOG_DIR="$HOME/.claude/projects/$(echo "$PROJECT_CWD" | sed 's|/|-|g')"
+CODEX_STATE_DB=""
+for candidate in "$HOME"/.codex/state_*.sqlite; do
+  [ -f "$candidate" ] && CODEX_STATE_DB="$candidate" && break
+done
+
+CLAUDE_LOGS=""
+CODEX_LOGS=""
+SENS07_DIAGNOSTICS=""
+
+# Claude branch — filesystem scan (existing logic, unchanged)
+if [ -d "$CLAUDE_LOG_DIR" ]; then
+  CLAUDE_LOGS=$(ls -1 "$CLAUDE_LOG_DIR"/*.jsonl 2>/dev/null || true)
+fi
+
+# Codex branch — sqlite PRIMARY with PRAGMA column probe, filesystem FALLBACK
+if [ -n "$CODEX_STATE_DB" ] && command -v sqlite3 >/dev/null 2>&1; then
+  HAS_CWD=$(sqlite3 "$CODEX_STATE_DB" "PRAGMA table_info(threads);" 2>/dev/null | grep -c "|cwd|" || echo 0)
+  if [ "${HAS_CWD:-0}" -gt 0 ]; then
+    CODEX_LOGS=$(sqlite3 "$CODEX_STATE_DB" \
+      "SELECT rollout_path FROM threads WHERE cwd = '$PROJECT_CWD' AND archived = 0 ORDER BY created_at DESC LIMIT 20;" \
+      2>/dev/null || true)
+  else
+    SENS07_DIAGNOSTICS="codex-sqlite-unavailable reason=schema_drift_cwd_column_missing db=$CODEX_STATE_DB"
+  fi
+fi
+
+# Fallback: filesystem scan filtered by session_meta.payload.cwd
+if [ -z "$CODEX_LOGS" ] && [ -d "$HOME/.codex/sessions" ]; then
+  if [ -z "$SENS07_DIAGNOSTICS" ]; then
+    SENS07_DIAGNOSTICS="codex-sqlite-unavailable reason=$([ -f "$CODEX_STATE_DB" ] && echo unknown || echo db_missing) db=${CODEX_STATE_DB:-none}"
+  fi
+  CODEX_LOGS=$(find "$HOME/.codex/sessions" -name '*.jsonl' -mtime -30 2>/dev/null | while read -r f; do
+    head -1 "$f" 2>/dev/null | python3 -c "import sys, json; obj = json.loads(sys.stdin.read() or '{}'); payload = obj.get('payload', {}) if isinstance(obj.get('payload'), dict) else {}; sys.exit(0 if payload.get('cwd') == '$PROJECT_CWD' else 1)" 2>/dev/null && echo "$f"
+  done | head -20)
+fi
+
+if [ -z "$CLAUDE_LOGS" ] && [ -z "$CODEX_LOGS" ]; then
+  echo "NO_LOGS_FOUND"
+  [ -n "$SENS07_DIAGNOSTICS" ] && echo "SENS_07: $SENS07_DIAGNOSTICS"
+  exit 0
+fi
+
+printf '%s\n' "$CLAUDE_LOGS" "$CODEX_LOGS" | sed '/^$/d' | wc -l
 ```
 
 If no logs exist, return empty signals immediately.
@@ -73,26 +117,37 @@ Expand window by 1 hour on each side (sessions start before first commit).
 
 ### 1c. Run structural extraction
 
-For each relevant session file, run the fingerprint extraction script. If `extract-session-fingerprints.py` is available at the project root or `/scratch/audit-staging/`, use it. Otherwise, run this inline python3 extraction:
+For each relevant session file, run the shared fingerprint extraction helper. Stage 1c shells out to `extract-session-fingerprints.py` so both Claude and Codex logs converge on one normalized schema.
 
 ```bash
-python3 -c "
-import json, sys, re
-from datetime import datetime
-from collections import Counter
+# Stage 1c: Fingerprint extraction via shared Python helper
+# Helper path: installed under .claude/get-shit-done/bin/ or .codex/get-shit-done/bin/
+# Fallback to repo-local paths if installed layout differs.
+HELPER=""
+for candidate in \
+  "$HOME/.claude/get-shit-done/bin/extract-session-fingerprints.py" \
+  "$HOME/.codex/get-shit-done/bin/extract-session-fingerprints.py" \
+  "$(pwd)/get-shit-done/bin/extract-session-fingerprints.py" \
+  "$(pwd)/.claude/get-shit-done/bin/extract-session-fingerprints.py" \
+  "$(pwd)/.codex/get-shit-done/bin/extract-session-fingerprints.py"; do
+  [ -f "$candidate" ] && HELPER="$candidate" && break
+done
 
-# [Extraction logic — see extract-session-fingerprints.py for full implementation]
-# Key metrics extracted:
-# - Message flow: user/assistant counts, average lengths, turn ratios
-# - Tool usage: call counts, error counts/rates, consecutive error streaks
-# - Token usage: input/output/cache totals per message and session total
-# - Event markers: interruptions, direction changes, backtracking, agent spawns
-# - Time patterns: gaps > 2/5/10 min, max gap, session duration
-# - Interest score: composite of above markers
+if [ -z "$HELPER" ]; then
+  echo "SENS_07: log-sensor-helper-missing reason=extract-session-fingerprints.py not found on any expected path"
+  exit 0
+fi
 
-# Output format: compact JSON, one object per session
-" < "\$SESSION_FILE"
+extract_fingerprint() {
+  local session_path="$1"
+  python3 "$HELPER" "$session_path"
+}
+
+# Usage example below — iterate $CLAUDE_LOGS and $CODEX_LOGS, call extract_fingerprint,
+# and collect the JSON into the fingerprint array for Stage 2 triage.
 ```
+
+The helper auto-detects Claude/Codex format via the first event and dispatches to the appropriate extractor. Both branches emit the same normalized schema; Codex-specific additive fields (`reasoning_output_tokens`, `rate_limit_primary_used_percent`, `model_context_window`, `source`, `agent_role`) are present as `not_available` on Claude sessions (G-2). Unknown event types surface in `_sens07_unknown_event_msg_types` / `_sens07_unknown_response_item_types` — Stage 4 emits one SENS-07 signal per unknown type observed.
 
 **Cap at 10 sessions** for phase-scoped mode. Audit mode may process more but should prioritize by interest score.
 
@@ -140,25 +195,57 @@ grep -n "snippet_from_fingerprint" "$SESSION_FILE" | head -3
 
 Then read a focused window:
 ```bash
-# Read ~20 lines around the identified line number
-python3 -c "
-import json, sys
-lines = list(open('$SESSION_FILE'))
-# Read lines N-5 to N+15 around the target
-for i in range(max(0, TARGET-5), min(len(lines), TARGET+15)):
-    obj = json.loads(lines[i])
-    t = obj.get('type','')
-    if t in ('user','assistant'):
-        msg = obj.get('message',{})
-        content = msg.get('content','')
-        # Extract text only, skip tool results and thinking blocks
-        if isinstance(content, list):
-            text = ' '.join(c.get('text','') for c in content if isinstance(c,dict) and c.get('type')=='text')
-        else:
-            text = str(content)
-        if text.strip():
-            print(f'[{t}] {text[:300]}')
+# Stage 3a: narrow read — first N conversational events
+narrow_read() {
+  local session_path="$1"
+  local format="$2"
+  local N="${3:-10}"
+  if [ "$format" = "codex" ]; then
+    python3 -c "
+import json
+count = 0
+with open('$session_path') as fp:
+  for line in fp:
+    try:
+      o = json.loads(line)
+    except Exception:
+      continue
+    if o.get('type') == 'event_msg':
+      p = o.get('payload', {})
+      pt = p.get('type')
+      if pt in ('user_message', 'agent_message'):
+        role = 'user' if pt == 'user_message' else 'assistant'
+        text = p.get('message') or p.get('text') or ''
+        print(json.dumps({'role': role, 'text': str(text)[:500]}))
+        count += 1
+        if count >= $N:
+          break
 "
+  else
+    python3 -c "
+import json
+count = 0
+with open('$session_path') as fp:
+  for line in fp:
+    try:
+      o = json.loads(line)
+    except Exception:
+      continue
+    t = o.get('type')
+    if t in ('user', 'assistant'):
+      msg = o.get('message', {})
+      content = msg.get('content', '')
+      if isinstance(content, list):
+        text = ' '.join(c.get('text', '') for c in content if isinstance(c, dict) and c.get('type') == 'text')
+      else:
+        text = str(content)
+      print(json.dumps({'role': t, 'text': text[:500]}))
+      count += 1
+      if count >= $N:
+        break
+"
+  fi
+}
 ```
 
 ### 3b. Judgment: is this worth escalating?
@@ -179,37 +266,13 @@ For escalated events, read the full conversational arc:
 Read as much as you need to understand the situation. Use python3 to extract specific message ranges rather than reading raw JSONL.
 
 ```bash
-python3 -c "
-import json
-lines = list(open('$SESSION_FILE'))
-for i in range(START, END):
-    try:
-        obj = json.loads(lines[i])
-        t = obj.get('type','')
-        ts = obj.get('timestamp','')
-        if t == 'user':
-            msg = obj.get('message',{})
-            content = msg.get('content','')
-            if isinstance(content, list):
-                text = ' '.join(c.get('text','') for c in content if isinstance(c,dict) and c.get('type')=='text')
-            else:
-                text = str(content)
-            if text.strip():
-                print(f'[{ts}] USER: {text[:500]}')
-        elif t == 'assistant':
-            msg = obj.get('message',{})
-            content = msg.get('content',[])
-            if isinstance(content, list):
-                text = ' '.join(c.get('text','') for c in content if isinstance(c,dict) and c.get('type')=='text')
-                tools = [c.get('name','') for c in content if isinstance(c,dict) and c.get('type')=='tool_use']
-            else:
-                text = str(content)
-                tools = []
-            if text.strip() or tools:
-                tool_str = f' [tools: {\", \".join(tools)}]' if tools else ''
-                print(f'[{ts}] ASSISTANT{tool_str}: {text[:500]}')
-    except: pass
-"
+# Stage 3c: expanded read — same branch as 3a, larger window
+expanded_read() {
+  local session_path="$1"
+  local format="$2"
+  local N="${3:-40}"
+  narrow_read "$session_path" "$format" "$N"
+}
 ```
 
 ### 3d. Judgment: do I have enough to write a signal?
@@ -256,6 +319,12 @@ For each detected signal:
 - `context.approximate_timestamp`: When in the session this occurred
 - `context.session_summary`: One-line description of what the session was doing
 - `polarity`: `negative` or `neutral` (for observations)
+
+### SENS-07 diagnostics
+
+Structural extraction failures are signal candidates too. For each parse error in `fingerprint._sens07_parse_errors`, emit one `capability-gap` signal with `severity: minor`, tags including `sensor-parse-failure` and `log-sensor`, and evidence naming the file, line number, stage (`fingerprint_extraction`), and snippet. For each unknown type in `fingerprint._sens07_unknown_event_msg_types` or `fingerprint._sens07_unknown_response_item_types`, emit one `capability-gap` signal with `severity: minor`, tags including `sensor-parse-failure`, `log-sensor`, and `codex-event-vocabulary-drift`, plus evidence carrying the file, unknown type, occurrence count, stage, and category (`event_msg` or `response_item`).
+
+The detector provenance records the harness runtime, while `fingerprint._format` records the log-file runtime (G-5). Unknown types should be emitted once per type per file, not once per occurrence.
 
 ### Token usage signals (when relevant)
 
@@ -353,7 +422,12 @@ This sensor analyzes session logs via structural fingerprinting and progressive 
 - **Quoted content false positives:** Direction change or frustration patterns in code, error messages, or assistant responses may be misattributed (progressive deepening mitigates but cannot eliminate)
 - **Cultural/personal variation:** The structural patterns assume English-language conversational norms
 - **Cross-session patterns:** Each session is analyzed independently. A pattern that only becomes visible across multiple sessions (e.g., the same frustration recurring weekly) requires the reflector, not this sensor
-- **Runtime coupling:** Currently works for Claude Code sessions (JSONL in `~/.claude/projects/`). Codex sessions (`~/.codex/history.jsonl`) have a different format and require adapter logic
+- **Cross-runtime operability status:** As of Phase 60, the sensor operates on both Claude Code and Codex CLI session logs. Stage 1a discovers Claude sessions via filesystem scan of `~/.claude/projects/...` and Codex sessions via `sqlite3 ~/.codex/state_*.sqlite` (with filesystem-scan fallback to `~/.codex/sessions/YYYY/MM/DD/`). Stage 1c dispatches to the format-appropriate extractor in `get-shit-done/bin/extract-session-fingerprints.py`. Fingerprint schema is runtime-neutral; Codex-only fields (`reasoning_output_tokens`, `rate_limit_primary_used_percent`, `model_context_window`, `source`, `agent_role`) are present as `not_available` on Claude sessions (G-2).
+- **Codex subagent rollouts are deprioritized during Stage 2 triage:** Sessions with non-null `agent_role` or whose `title` matches the `"subagent":{"thread_spawn"` pattern receive lower interest scores, analogous to Claude's `gsd-*` subagent JSONL deprioritization.
+- **SQLite schema-drift graceful degradation:** The `state_5.sqlite` filename encodes a schema version. The sensor probes `PRAGMA table_info(threads)` for the `cwd` column before running the query; if missing, or if `sqlite3` CLI is unavailable, it falls through to a filesystem scan filtered by `session_meta.payload.cwd` and emits a SENS-07 `codex-sqlite-unavailable` diagnostic. The capability matrix row for SENS-03 remains `applies-via-sqlite-primary-with-fallback`.
+- **Unknown event vocabulary:** If a future Codex release introduces a new `event_msg.payload.type` or `response_item.payload.type` value not in the known vocabulary (see `get-shit-done/bin/extract-session-fingerprints.py` top-of-file set literals, audited 2026-04-21), Stage 4 emits one SENS-07 `codex-event-vocabulary-drift` signal per unknown type per file. The synthesizer aggregates these so the KB records the drift without saturating the signal stream.
+- **Detector provenance (G-5):** The log-file runtime is detected in Stage 1c's `detect_format()` — this is the runtime of the log, not the runtime of the analyzing harness. A Claude Code harness can analyze Codex session logs and vice versa; the fingerprint's `_format` field records which.
+- **Still deferred (out of scope for Phase 60, named for Phase 60.1 / v1.21):** (a) Codex `history.jsonl` as a cross-session pattern source; (b) cross-project / cross-machine log aggregation; (c) live-agent E2E validation of the full discuss→plan→execute→verify chain; (d) telemetry-identity rewiring (PROV-09..14) — see ROADMAP Phase 60.1.
 - **Hermeneutic limits:** Signals are detected at a point in time; they may need reinterpretation as project context evolves. This sensor produces first readings, not final interpretations.
 </blind_spots>
 

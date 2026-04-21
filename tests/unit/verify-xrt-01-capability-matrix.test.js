@@ -23,6 +23,10 @@ import fs from 'node:fs/promises'
 import { spawnSync } from 'node:child_process'
 
 const GSD_TOOLS = path.resolve(process.cwd(), 'get-shit-done/bin/gsd-tools.cjs')
+const PHASE_60_BEHAVIOR_MATRIX = path.resolve(
+  process.cwd(),
+  '.planning/phases/60-sensor-pipeline-codex-parity/60-codex-behavior-matrix.md'
+)
 
 function runVerify(cwd, phase, flags = []) {
   const result = spawnSync(
@@ -45,6 +49,13 @@ function parseJson(stdout) {
 
 function runGit(cwd, args) {
   return spawnSync('git', args, { cwd, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] })
+}
+
+function extractPhase60MatrixRows(content) {
+  const matrixSection = content.split('## Matrix')[1]?.split('## Notes')[0] ?? ''
+  return matrixSection
+    .split('\n')
+    .filter(line => line.startsWith('| **SENS-') || line.startsWith('| **XRT-'))
 }
 
 async function gitInit(tmpdir) {
@@ -232,4 +243,47 @@ describe('verify ledger — XRT-01 closeout capability-matrix diff', () => {
       expect(parsed.info.xrt_01.reason).toBe('matrix_start_not_resolvable')
     }
   )
+})
+
+describe('Phase 60: codex-behavior-matrix sidecar', () => {
+  it('exists and is non-trivial', async () => {
+    await expect(fs.access(PHASE_60_BEHAVIOR_MATRIX)).resolves.toBeUndefined()
+
+    const content = await fs.readFile(PHASE_60_BEHAVIOR_MATRIX, 'utf8')
+    expect(content.length).toBeGreaterThan(1000)
+  })
+
+  it('has 9 requirement/surface rows', async () => {
+    const content = await fs.readFile(PHASE_60_BEHAVIOR_MATRIX, 'utf8')
+    const rows = extractPhase60MatrixRows(content)
+
+    expect(rows.length).toBe(9)
+  })
+
+  it('uses only canonical substrate vocabulary and non-empty reasons', async () => {
+    const content = await fs.readFile(PHASE_60_BEHAVIOR_MATRIX, 'utf8')
+    const rows = extractPhase60MatrixRows(content)
+    const canonicalPrefixes = [
+      'applies',
+      'applies-via-workflow-step',
+      'applies-via-installer',
+      'does-not-apply-with-reason',
+    ]
+
+    expect(content).not.toMatch(/applies-via-hook/)
+
+    for (const row of rows) {
+      const cells = row.split('|').map(cell => cell.trim())
+      const behaviors = [cells[3], cells[4]].map(value => value.replace(/`/g, '').trim())
+
+      for (const behavior of behaviors) {
+        const prefix = behavior.split(':')[0].trim()
+        expect(canonicalPrefixes).toContain(prefix)
+
+        if (behavior.startsWith('does-not-apply-with-reason')) {
+          expect(behavior).toMatch(/^does-not-apply-with-reason:\s*\S/)
+        }
+      }
+    }
+  })
 })

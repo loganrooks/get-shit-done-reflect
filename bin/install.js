@@ -1931,6 +1931,151 @@ function reportLocalPatches(configDir) {
   return meta.files || [];
 }
 
+function readInstalledVersion(configDir) {
+  const versionPath = path.join(configDir, 'get-shit-done-reflect', 'VERSION');
+  if (fs.existsSync(versionPath)) {
+    try {
+      return fs.readFileSync(versionPath, 'utf8').trim() || null;
+    } catch { /* fall through to manifest */ }
+  }
+
+  const manifestPath = path.join(configDir, MANIFEST_NAME);
+  if (!fs.existsSync(manifestPath)) return null;
+
+  try {
+    return JSON.parse(fs.readFileSync(manifestPath, 'utf8')).version || null;
+  } catch {
+    return null;
+  }
+}
+
+function writeParityReport(configDir, report) {
+  try {
+    fs.writeFileSync(
+      path.join(configDir, 'gsd-parity-report.json'),
+      JSON.stringify(report, null, 2)
+    );
+  } catch { /* best-effort artifact; never fail install */ }
+}
+
+/**
+ * Phase 60 / SENS-06: Post-install cross-runtime parity check.
+ *
+ * Runs after reportLocalPatches() on both Claude and Codex branches.
+ * Detects whether the OTHER runtime has a GSD install, compares versions,
+ * writes gsd-parity-report.json artifact, prints advisory stdout line.
+ *
+ * Advisory-only: never fails install, never prompts (CI-safe), never auto-triggers other-runtime install.
+ * G-4: honest skip when other runtime not installed or manifest unreadable.
+ *
+ * @param {string} targetDir - Where THIS runtime was just installed (e.g., /home/user/.claude)
+ * @param {'claude'|'codex'} thisRuntime
+ * @param {boolean} isGlobal - Whether THIS install is global (~/.claude) or project-local (./.claude)
+ * @param {{otherRuntimeDir?: string}} [options]
+ * @returns {object} Report object (also written to disk as gsd-parity-report.json)
+ */
+function checkCrossRuntimeParity(
+  targetDir,
+  thisRuntime,
+  isGlobal,
+  options = {}
+) {
+  const otherRuntime = thisRuntime === 'claude' ? 'codex' : 'claude';
+  const otherDirName = getDirName(otherRuntime);
+  const checked_at = new Date().toISOString();
+  const thisVersion = readInstalledVersion(targetDir);
+  const otherInstallDir = options.otherRuntimeDir || (isGlobal
+    ? getGlobalDir(otherRuntime, explicitConfigDir)
+    : path.join(process.cwd(), otherDirName));
+  const otherScopeVersionPath = path.join(otherInstallDir, 'get-shit-done-reflect', 'VERSION');
+
+  if (!fs.existsSync(otherScopeVersionPath)) {
+    const report = {
+      schema_version: 1,
+      this_runtime: thisRuntime,
+      this_version: thisVersion,
+      other_runtime: otherRuntime,
+      other_version: null,
+      divergent: false,
+      reason: 'other_runtime_not_installed',
+      checked_at,
+      remediation_command: null,
+    };
+    writeParityReport(targetDir, report);
+    return report;
+  }
+
+  let otherVersion = null;
+  let otherManifest = null;
+  try {
+    otherVersion = fs.readFileSync(otherScopeVersionPath, 'utf8').trim();
+    const otherManifestPath = path.join(otherInstallDir, MANIFEST_NAME);
+    if (fs.existsSync(otherManifestPath)) {
+      otherManifest = JSON.parse(fs.readFileSync(otherManifestPath, 'utf8'));
+    }
+  } catch {
+    const report = {
+      schema_version: 1,
+      this_runtime: thisRuntime,
+      this_version: thisVersion,
+      other_runtime: otherRuntime,
+      other_version: null,
+      divergent: false,
+      reason: 'other_manifest_unreadable',
+      checked_at,
+      remediation_command: null,
+    };
+    writeParityReport(targetDir, report);
+    return report;
+  }
+
+  const normalizeVersion = (version) => (version || '').replace(/\+dev$/, '').trim();
+  const divergent = thisVersion != null
+    && otherVersion != null
+    && normalizeVersion(thisVersion) !== normalizeVersion(otherVersion);
+
+  const report = {
+    schema_version: 1,
+    this_runtime: thisRuntime,
+    this_version: thisVersion,
+    other_runtime: otherRuntime,
+    other_version: otherVersion,
+    divergent,
+    divergent_file_count: 0,
+    checked_at,
+    remediation_command: divergent ? `node bin/install.js --${otherRuntime}` : null,
+  };
+
+  if (otherManifest && divergent) {
+    try {
+      const thisManifest = JSON.parse(fs.readFileSync(path.join(targetDir, MANIFEST_NAME), 'utf8'));
+      const thisFiles = thisManifest.files || {};
+      const otherFiles = otherManifest.files || {};
+      const allPaths = new Set([...Object.keys(thisFiles), ...Object.keys(otherFiles)]);
+
+      report.divergent_file_count = [...allPaths].reduce((count, relPath) => {
+        if (!Object.prototype.hasOwnProperty.call(thisFiles, relPath)) return count + 1;
+        if (!Object.prototype.hasOwnProperty.call(otherFiles, relPath)) return count + 1;
+        return thisFiles[relPath] === otherFiles[relPath] ? count : count + 1;
+      }, 0);
+    } catch { /* keep 0 if manifest comparison fails */ }
+  }
+
+  writeParityReport(targetDir, report);
+
+  if (divergent) {
+    console.log('');
+    console.log(`  ${yellow}Cross-runtime parity:${reset} ${otherRuntime} is at v${otherVersion}, this install is at v${thisVersion}.`);
+    if (report.divergent_file_count > 0) {
+      console.log(`  ${report.divergent_file_count} file(s) differ.`);
+    }
+    console.log(`  To sync: ${cyan}${report.remediation_command}${reset}`);
+    console.log('');
+  }
+
+  return report;
+}
+
 function install(isGlobal, runtime = 'claude') {
   const isCodex = runtime === 'codex';
   const dirName = getDirName(runtime);
@@ -2252,6 +2397,7 @@ function install(isGlobal, runtime = 'claude') {
     console.log(`  ${green}✓${reset} Wrote file manifest (${MANIFEST_NAME})`);
     pruneRedundantPatches(targetDir);
     reportLocalPatches(targetDir);
+    checkCrossRuntimeParity(targetDir, 'codex', isGlobal);
     return { settingsPath: null, settings: {}, statuslineCommand: null, runtime };
   }
 
@@ -2371,6 +2517,7 @@ function install(isGlobal, runtime = 'claude') {
 
   // Report any backed-up local patches
   reportLocalPatches(targetDir);
+  checkCrossRuntimeParity(targetDir, 'claude', isGlobal);
 
   return { settingsPath, settings, statuslineCommand, runtime };
 }
@@ -2624,4 +2771,47 @@ if (hasGlobal && hasLocal) {
 } // end require.main === module
 
 // Export for testing
-module.exports = { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, installKBScripts, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, safeFs, buildLocalHookCommand, extractFrontmatterAndBody, extractFrontmatterField, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields, getCodexCompactPromptPath };
+module.exports = {
+  replacePathsInContent,
+  injectVersionScope,
+  getGsdHome,
+  getGlobalDir,
+  migrateKB,
+  countKBEntries,
+  installKBScripts,
+  createProjectLocalKB,
+  convertClaudeToCodexSkill,
+  convertClaudeToCodexMarkdown,
+  convertClaudeToCodexAgentToml,
+  copyCodexSkills,
+  generateCodexAgentsMd,
+  generateCodexMcpConfig,
+  generateCodexConfigBlock,
+  stripGsdFromCodexConfig,
+  mergeCodexConfig,
+  CODEX_AGENT_SANDBOX,
+  GSD_CODEX_MARKER,
+  MANIFEST_NAME,
+  PATCHES_DIR_NAME,
+  safeFs,
+  buildLocalHookCommand,
+  claudeToCodexTools,
+  extractFrontmatterAndBody,
+  extractFrontmatterField,
+  fileHash,
+  readSettings,
+  writeSettings,
+  copyWithPathReplacement,
+  generateManifest,
+  generateMigrationGuide,
+  isVersionInRange,
+  compareVersions,
+  pruneRedundantPatches,
+  reportLocalPatches,
+  checkCrossRuntimeParity,
+  saveLocalPatches,
+  writeManifest,
+  cleanupOrphanedFiles,
+  validateHookFields,
+  getCodexCompactPromptPath
+};
