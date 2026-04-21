@@ -512,7 +512,6 @@ function processAttribution(content, attribution) {
   return content.replace(/Co-Authored-By:.*$/gim, `Co-Authored-By: ${safeAttribution}`);
 }
 
-/**
 // Tool name mapping from Claude Code to Codex CLI
 // Codex CLI uses snake_case built-in tool names (codex-rs)
 const claudeToCodexTools = {

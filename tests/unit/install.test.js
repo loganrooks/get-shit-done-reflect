@@ -10,8 +10,9 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, convertClaudeToGeminiAgent, safeFs, extractFrontmatterAndBody, extractFrontmatterField, convertClaudeToOpencodeFrontmatter, resolveOpencodeConfigPath, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, safeFs, extractFrontmatterAndBody, extractFrontmatterField, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields } = require('../../bin/install.js')
 const { resolveCodexUpdateTarget, CODEX_CACHE_DOES_NOT_APPLY_REASON } = require('../../get-shit-done/bin/lib/update-target.cjs')
+const { SUPPORTED_INSTALLER_RUNTIMES, expandInstallerRuntimeSelection } = require('../../get-shit-done/bin/lib/runtime-support.cjs')
 
 function buildReadFileSync(fileMap) {
   return vi.fn((filePath) => {
@@ -30,6 +31,11 @@ function buildReadFileSync(fileMap) {
 describe('install script', () => {
   describe('merged installer flags', () => {
     const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+    it('uses the shared runtime-support helper as the --all authority', () => {
+      expect(expandInstallerRuntimeSelection({ all: true })).toEqual(SUPPORTED_INSTALLER_RUNTIMES)
+      expect(SUPPORTED_INSTALLER_RUNTIMES).toEqual(['claude', 'codex'])
+    })
 
     tmpdirTest('--claude flag installs to .claude directory', async ({ tmpdir }) => {
       execSync(`node "${installScript}" --claude --global`, {
@@ -59,51 +65,50 @@ describe('install script', () => {
       expect(version).toBeTruthy()
     })
 
-    tmpdirTest('--opencode flag installs to opencode config directory', async ({ tmpdir }) => {
+    tmpdirTest('--all --global installs only Claude Code and Codex CLI', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --opencode --global`, {
+      execSync(`node "${installScript}" --all --global`, {
         env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
         cwd: tmpdir,
         stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 15000
+        timeout: 30000
       })
 
-      // Verify opencode command directory with flattened gsdr-*.md files
-      const commandDir = path.join(configHome, 'opencode', 'command')
-      const commandExist = await fs.access(commandDir).then(() => true).catch(() => false)
-      expect(commandExist).toBe(true)
+      const claudeDir = path.join(tmpdir, '.claude', 'commands', 'gsdr')
+      const codexDir = path.join(tmpdir, '.codex', 'skills')
+      expect(await fs.access(claudeDir).then(() => true).catch(() => false)).toBe(true)
+      expect(await fs.access(codexDir).then(() => true).catch(() => false)).toBe(true)
 
-      const commandFiles = await fs.readdir(commandDir)
-      const gsdFiles = commandFiles.filter(f => f.startsWith('gsdr-') && f.endsWith('.md'))
-      expect(gsdFiles.length).toBeGreaterThan(0)
-
-      // Verify get-shit-done-reflect directory exists
-      const gsdDir = path.join(configHome, 'opencode', 'get-shit-done-reflect')
-      const gsdExist = await fs.access(gsdDir).then(() => true).catch(() => false)
-      expect(gsdExist).toBe(true)
+      expect(await fs.access(path.join(tmpdir, '.gemini')).then(() => true).catch(() => false)).toBe(false)
+      expect(await fs.access(path.join(configHome, 'opencode')).then(() => true).catch(() => false)).toBe(false)
     })
 
-    tmpdirTest('--claude --opencode installs to both directories', async ({ tmpdir }) => {
-      const configHome = path.join(tmpdir, '.config')
+    for (const flag of ['--gemini', '--opencode', '--both']) {
+      tmpdirTest(`${flag} exits non-zero with unsupported-runtime guidance`, async ({ tmpdir }) => {
+        const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --claude --opencode --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 15000
+        let error
+        try {
+          execSync(`node "${installScript}" ${flag} --global`, {
+            env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+            cwd: tmpdir,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            timeout: 15000
+          })
+        } catch (caught) {
+          error = caught
+        }
+
+        expect(error).toBeTruthy()
+        expect(error.status).not.toBe(0)
+        const output = `${error.stdout?.toString() || ''}${error.stderr?.toString() || ''}`
+        expect(output).toMatch(/unsupported installer target/i)
+        expect(output).toMatch(/--claude, --codex, or --all/i)
+        expect(await fs.access(path.join(tmpdir, '.gemini')).then(() => true).catch(() => false)).toBe(false)
+        expect(await fs.access(path.join(configHome, 'opencode')).then(() => true).catch(() => false)).toBe(false)
       })
-
-      // Verify Claude directory populated
-      const claudeCommandsDir = path.join(tmpdir, '.claude', 'commands', 'gsdr')
-      const claudeExist = await fs.access(claudeCommandsDir).then(() => true).catch(() => false)
-      expect(claudeExist).toBe(true)
-
-      // Verify OpenCode directory populated
-      const opcodeCommandDir = path.join(configHome, 'opencode', 'command')
-      const opcodeExist = await fs.access(opcodeCommandDir).then(() => true).catch(() => false)
-      expect(opcodeExist).toBe(true)
-    })
+    }
 
     tmpdirTest('no flags with non-TTY stdin defaults to claude global install', async ({ tmpdir }) => {
       // When stdin is not a TTY (subprocess with piped stdio),
@@ -819,110 +824,6 @@ describe('install script', () => {
       })
     })
 
-    describe('convertClaudeToOpencodeFrontmatter', () => {
-      describe('isAgent parameter', () => {
-        it('strips skills field with array items when isAgent is true', () => {
-          const input = '---\ndescription: test\nskills:\n  - skill1\n  - skill2\ncolor: blue\n---\nbody'
-          const result = convertClaudeToOpencodeFrontmatter(input, { isAgent: true })
-          expect(result).not.toContain('skills:')
-          expect(result).not.toContain('skill1')
-          expect(result).not.toContain('color:')
-          expect(result).toContain('description: test')
-        })
-
-        it('strips memory, maxTurns, permissionMode, disallowedTools when isAgent is true', () => {
-          const input = '---\ndescription: test\nmemory: true\nmaxTurns: 5\npermissionMode: auto\ndisallowedTools:\n  - Write\n  - Edit\n---\nbody'
-          const result = convertClaudeToOpencodeFrontmatter(input, { isAgent: true })
-          expect(result).not.toContain('memory:')
-          expect(result).not.toContain('maxTurns:')
-          expect(result).not.toContain('permissionMode:')
-          expect(result).not.toContain('disallowedTools:')
-          expect(result).not.toContain('Write')
-          expect(result).toContain('description: test')
-        })
-
-        it('skips commented lines when isAgent is true', () => {
-          const input = '---\ndescription: test\n# hooks:\n#   pre-tool-use: check.sh\n---\nbody'
-          const result = convertClaudeToOpencodeFrontmatter(input, { isAgent: true })
-          expect(result).not.toContain('hooks:')
-          expect(result).not.toContain('check.sh')
-          expect(result).toContain('description: test')
-        })
-
-        it('preserves color field when isAgent is false (default)', () => {
-          const input = '---\ncolor: blue\ndescription: test\n---\nbody'
-          const result = convertClaudeToOpencodeFrontmatter(input)
-          // color: blue gets converted to hex by the color converter
-          expect(result).toContain('color:')
-          expect(result).toContain('description: test')
-        })
-
-        it('preserves color field when isAgent is explicitly false', () => {
-          const input = '---\ncolor: blue\ndescription: test\n---\nbody'
-          const result = convertClaudeToOpencodeFrontmatter(input, { isAgent: false })
-          expect(result).toContain('color:')
-        })
-      })
-
-      describe('subagent_type remapping', () => {
-        it('remaps subagent_type="general-purpose" to "general"', () => {
-          const input = '---\ndescription: test\n---\nUse subagent_type="general-purpose" for tasks'
-          const result = convertClaudeToOpencodeFrontmatter(input)
-          expect(result).toContain('subagent_type="general"')
-          expect(result).not.toContain('general-purpose')
-        })
-
-        it('does not remap other subagent_type values', () => {
-          const input = '---\ndescription: test\n---\nUse subagent_type="specialist" here'
-          const result = convertClaudeToOpencodeFrontmatter(input)
-          expect(result).toContain('subagent_type="specialist"')
-        })
-      })
-
-      describe('existing behavior preserved', () => {
-        it('replaces tool names (AskUserQuestion, SlashCommand, TodoWrite)', () => {
-          const input = '---\ndescription: test\n---\nUse AskUserQuestion and SlashCommand and TodoWrite'
-          const result = convertClaudeToOpencodeFrontmatter(input)
-          expect(result).toContain('question')
-          expect(result).toContain('skill')
-          expect(result).toContain('todowrite')
-          expect(result).not.toContain('AskUserQuestion')
-        })
-
-        it('converts allowed-tools to tools object', () => {
-          const input = '---\nallowed-tools:\n  - Read\n  - Write\n---\nbody'
-          const result = convertClaudeToOpencodeFrontmatter(input)
-          expect(result).toContain('tools:')
-          expect(result).toContain('read: true')
-          expect(result).toContain('write: true')
-        })
-      })
-    })
-
-    describe('resolveOpencodeConfigPath', () => {
-      it('prefers .jsonc when it exists', () => {
-        const tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), 'gsd-test-'))
-        try {
-          fsSync.writeFileSync(path.join(tmpDir, 'opencode.json'), '{}')
-          fsSync.writeFileSync(path.join(tmpDir, 'opencode.jsonc'), '{}')
-          const result = resolveOpencodeConfigPath(tmpDir)
-          expect(result).toBe(path.join(tmpDir, 'opencode.jsonc'))
-        } finally {
-          fsSync.rmSync(tmpDir, { recursive: true })
-        }
-      })
-
-      it('falls back to .json when .jsonc does not exist', () => {
-        const tmpDir = fsSync.mkdtempSync(path.join(os.tmpdir(), 'gsd-test-'))
-        try {
-          const result = resolveOpencodeConfigPath(tmpDir)
-          expect(result).toBe(path.join(tmpDir, 'opencode.json'))
-        } finally {
-          fsSync.rmSync(tmpDir, { recursive: true })
-        }
-      })
-    })
-
     describe('readSettings and writeSettings', () => {
       it('readSettings returns empty object for missing file', () => {
         const result = readSettings('/nonexistent/path/settings.json')
@@ -1015,65 +916,47 @@ describe('install script', () => {
     describe('integration: full installer', () => {
       const installScript = path.resolve(process.cwd(), 'bin/install.js')
 
-      tmpdirTest('OpenCode install preserves already-migrated KB paths', async ({ tmpdir }) => {
-        const configHome = path.join(tmpdir, '.config')
-
-        execSync(`node "${installScript}" --opencode --global`, {
-          env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+      tmpdirTest('Codex install preserves already-migrated KB paths', async ({ tmpdir }) => {
+        execSync(`node "${installScript}" --codex --global`, {
+          env: { ...process.env, HOME: tmpdir },
           cwd: tmpdir,
           stdio: ['pipe', 'pipe', 'pipe'],
           timeout: 15000
         })
 
-        // Read reflect.md which contains KB paths (already ~/.gsd/knowledge/ in source)
-        const reflectWorkflow = path.join(configHome, 'opencode', 'get-shit-done-reflect', 'workflows', 'reflect.md')
+        const reflectWorkflow = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'workflows', 'reflect.md')
         const content = await fs.readFile(reflectWorkflow, 'utf8')
 
-        // KB paths should remain at shared location (no-op for Pass 1)
         expect(content).toContain('~/.gsd/knowledge')
-        // KB paths must NOT be transformed to OpenCode-specific paths
-        expect(content).not.toContain('~/.config/opencode/gsd-knowledge')
-        // Legacy KB paths should not appear
         expect(content).not.toContain('~/.claude/gsd-knowledge')
       })
 
-      tmpdirTest('OpenCode install preserves already-migrated $HOME KB paths', async ({ tmpdir }) => {
-        const configHome = path.join(tmpdir, '.config')
-
-        execSync(`node "${installScript}" --opencode --global`, {
-          env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+      tmpdirTest('Codex install preserves already-migrated $HOME KB paths', async ({ tmpdir }) => {
+        execSync(`node "${installScript}" --codex --global`, {
+          env: { ...process.env, HOME: tmpdir },
           cwd: tmpdir,
           stdio: ['pipe', 'pipe', 'pipe'],
           timeout: 15000
         })
 
-        // Read reflect.md which has $HOME/.gsd/knowledge (already migrated in source)
-        const reflectWorkflow = path.join(configHome, 'opencode', 'get-shit-done-reflect', 'workflows', 'reflect.md')
+        const reflectWorkflow = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'workflows', 'reflect.md')
         const content = await fs.readFile(reflectWorkflow, 'utf8')
 
-        // $HOME/.gsd/knowledge should pass through unchanged
         expect(content).toContain('$HOME/.gsd/knowledge')
-        // Must NOT be transformed to OpenCode-specific path
-        expect(content).not.toContain('$HOME/.config/opencode/gsd-knowledge')
-        // Legacy path should not appear
         expect(content).not.toContain('$HOME/.claude/gsd-knowledge')
       })
 
-      tmpdirTest('OpenCode install transforms runtime-specific $HOME paths', async ({ tmpdir }) => {
-        const configHome = path.join(tmpdir, '.config')
-
-        execSync(`node "${installScript}" --opencode --global`, {
-          env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+      tmpdirTest('Codex install preserves shared KB paths in probe docs', async ({ tmpdir }) => {
+        execSync(`node "${installScript}" --codex --global`, {
+          env: { ...process.env, HOME: tmpdir },
           cwd: tmpdir,
           stdio: ['pipe', 'pipe', 'pipe'],
           timeout: 15000
         })
 
-        // Read kb-integrity.md probe which has $HOME/.gsd/knowledge (shared KB path)
-        const kbProbe = path.join(configHome, 'opencode', 'get-shit-done-reflect', 'references', 'health-probes', 'kb-integrity.md')
+        const kbProbe = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'references', 'health-probes', 'kb-integrity.md')
         const content = await fs.readFile(kbProbe, 'utf8')
 
-        // KB paths already at shared location should pass through unchanged
         expect(content).toContain('$HOME/.gsd/knowledge')
       })
 
@@ -1214,7 +1097,7 @@ describe('install script', () => {
       tmpdirTest('does not create symlink when Claude not in runtimes (fresh install)', async ({ tmpdir }) => {
         withMockHome(tmpdir, () => {
           const gsdHome = path.join(tmpdir, '.gsd')
-          migrateKB(gsdHome, ['opencode'])
+          migrateKB(gsdHome, ['codex'])
 
           const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
           expect(fsSync.existsSync(oldKBDir)).toBe(false)
@@ -1326,7 +1209,7 @@ describe('install script', () => {
       tmpdirTest('symlink NOT created when only non-Claude runtimes selected', async ({ tmpdir }) => {
         withMockHome(tmpdir, () => {
           const gsdHome = path.join(tmpdir, '.gsd')
-          migrateKB(gsdHome, ['opencode', 'gemini'])
+          migrateKB(gsdHome, ['codex'])
 
           const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
           // Should not exist at all since no Claude runtime selected
@@ -1391,11 +1274,9 @@ describe('install script', () => {
         expect(stat.isSymbolicLink()).toBe(true)
       })
 
-      tmpdirTest('OpenCode-only install creates KB dirs but no symlink at ~/.claude/', async ({ tmpdir }) => {
-        const configHome = path.join(tmpdir, '.config')
-
-        execSync(`node "${installScript}" --opencode --global`, {
-          env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+      tmpdirTest('Codex-only install creates KB dirs but no symlink at ~/.claude/', async ({ tmpdir }) => {
+        execSync(`node "${installScript}" --codex --global`, {
+          env: { ...process.env, HOME: tmpdir },
           cwd: tmpdir,
           stdio: ['pipe', 'pipe', 'pipe'],
           timeout: 15000
@@ -1406,7 +1287,7 @@ describe('install script', () => {
         const signalsExist = await fs.access(path.join(kbDir, 'signals')).then(() => true).catch(() => false)
         expect(signalsExist).toBe(true)
 
-        // Verify NO symlink at ~/.claude/gsd-knowledge (only OpenCode selected)
+        // Verify NO symlink at ~/.claude/gsd-knowledge (only Codex selected)
         const oldKBDir = path.join(tmpdir, '.claude', 'gsd-knowledge')
         const exists = await fs.access(oldKBDir).then(() => true).catch(() => false)
         expect(exists).toBe(false)
@@ -1922,7 +1803,7 @@ Agent body content`
         }
       })
 
-      tmpdirTest('--all --global installs Codex alongside other runtimes', async ({ tmpdir }) => {
+      tmpdirTest('--all --global installs only supported runtimes', async ({ tmpdir }) => {
         const configHome = path.join(tmpdir, '.config')
 
         execSync(`node "${installScript}" --all --global`, {
@@ -1946,15 +1827,14 @@ Agent body content`
         const claudeExists = await fs.access(claudeDir).then(() => true).catch(() => false)
         expect(claudeExists).toBe(true)
 
-        // Verify OpenCode installed
-        const opcodeDir = path.join(configHome, 'opencode', 'command')
+        // Verify unsupported legacy runtimes are not installed
+        const opcodeDir = path.join(configHome, 'opencode')
         const opcodeExists = await fs.access(opcodeDir).then(() => true).catch(() => false)
-        expect(opcodeExists).toBe(true)
+        expect(opcodeExists).toBe(false)
 
-        // Verify Gemini installed
-        const geminiDir = path.join(tmpdir, '.gemini', 'commands', 'gsdr')
+        const geminiDir = path.join(tmpdir, '.gemini')
         const geminiExists = await fs.access(geminiDir).then(() => true).catch(() => false)
-        expect(geminiExists).toBe(true)
+        expect(geminiExists).toBe(false)
       })
 
       tmpdirTest('Codex path replacement converts ~/.claude/ to ~/.codex/ in installed files', async ({ tmpdir }) => {
@@ -2010,34 +1890,6 @@ Agent body content`
       expect(output).not.toContain('$ARGUMENTS')
     })
 
-    tmpdirTest('Gemini with isCommand=true produces .toml file', async ({ tmpdir }) => {
-      const srcDir = path.join(tmpdir, 'src')
-      const destDir = path.join(tmpdir, 'dest')
-      fsSync.mkdirSync(srcDir, { recursive: true })
-      fsSync.writeFileSync(path.join(srcDir, 'help.md'), '---\ndescription: Help command\n---\nHelp body')
-
-      copyWithPathReplacement(srcDir, destDir, '~/.gemini/', 'gemini', true, false)
-
-      // .toml file should exist
-      expect(fsSync.existsSync(path.join(destDir, 'help.toml'))).toBe(true)
-      // .md file should NOT exist (TOML replaces it)
-      expect(fsSync.existsSync(path.join(destDir, 'help.md'))).toBe(false)
-    })
-
-    tmpdirTest('Gemini with isCommand=false keeps .md file (no TOML)', async ({ tmpdir }) => {
-      const srcDir = path.join(tmpdir, 'src')
-      const destDir = path.join(tmpdir, 'dest')
-      fsSync.mkdirSync(srcDir, { recursive: true })
-      fsSync.writeFileSync(path.join(srcDir, 'workflow.md'), '# Workflow\n\nSome workflow content')
-
-      copyWithPathReplacement(srcDir, destDir, '~/.gemini/', 'gemini', false, false)
-
-      // .md file should exist
-      expect(fsSync.existsSync(path.join(destDir, 'workflow.md'))).toBe(true)
-      // .toml file should NOT exist
-      expect(fsSync.existsSync(path.join(destDir, 'workflow.toml'))).toBe(false)
-    })
-
     tmpdirTest('Claude runtime writes .md as-is (no conversion of command syntax)', async ({ tmpdir }) => {
       const srcDir = path.join(tmpdir, 'src')
       const destDir = path.join(tmpdir, 'dest')
@@ -2050,21 +1902,6 @@ Agent body content`
       // Claude does NOT convert command syntax — /gsdr: should remain
       expect(output).toContain('/gsdr:test')
       expect(output).not.toContain('$gsdr')
-    })
-
-    tmpdirTest('OpenCode runtime applies frontmatter conversion', async ({ tmpdir }) => {
-      const srcDir = path.join(tmpdir, 'src')
-      const destDir = path.join(tmpdir, 'dest')
-      fsSync.mkdirSync(srcDir, { recursive: true })
-      fsSync.writeFileSync(path.join(srcDir, 'test.md'), '---\nname: test\ndescription: A test\nallowed-tools:\n  - Read\n  - Bash\n---\n\nBody content')
-
-      copyWithPathReplacement(srcDir, destDir, '~/.opencode/', 'opencode', false, false)
-
-      const output = fsSync.readFileSync(path.join(destDir, 'test.md'), 'utf8')
-      // OpenCode converts frontmatter: allowed-tools becomes tools
-      expect(output).toContain('tools:')
-      // Body should be present
-      expect(output).toContain('Body content')
     })
 
     tmpdirTest('recursive directory traversal propagates isCommand and isGlobal', async ({ tmpdir }) => {
@@ -2092,284 +1929,6 @@ Agent body content`
       const output = fsSync.readFileSync(path.join(destDir, 'data.json'), 'utf8')
       // JSON file should be copied as-is (no conversion)
       expect(output).toContain('/gsdr:test')
-    })
-  })
-
-  describe('Gemini CLI MCP tool preservation', () => {
-    describe('convertClaudeToGeminiAgent() unit tests', () => {
-      it('preserves MCP tools in Gemini agent tools field', () => {
-        const input = `---
-tools: Read, Write, Bash, mcp__context7__resolve-library-id
----
-
-Agent body content.`
-
-        const result = convertClaudeToGeminiAgent(input)
-
-        // MCP tool should be preserved as-is
-        expect(result).toContain('mcp__context7__resolve-library-id')
-        // Built-in tool should be converted to Gemini name
-        expect(result).toContain('read_file')
-        // Original Claude tool name should be converted
-        expect(result).not.toMatch(/\bRead\b/)
-      })
-
-      it('preserves MCP tools from allowed-tools YAML array in Gemini agent', () => {
-        const input = `---
-allowed-tools:
-  - Read
-  - Write
-  - Task
-  - mcp__context7__*
----
-
-Agent body content.`
-
-        const result = convertClaudeToGeminiAgent(input)
-
-        // MCP tool wildcard should be preserved
-        expect(result).toContain('mcp__context7__*')
-        // Task should be excluded (agents auto-register in Gemini)
-        expect(result).not.toMatch(/\bTask\b/)
-        // Built-in tool should be converted
-        expect(result).toContain('read_file')
-      })
-
-      it('preserves multiple MCP tools in Gemini agent', () => {
-        const input = `---
-tools: Read, mcp__context7__resolve-library-id, mcp__context7__query-docs, mcp__fetch__get
----
-
-Agent body content.`
-
-        const result = convertClaudeToGeminiAgent(input)
-
-        expect(result).toContain('mcp__context7__resolve-library-id')
-        expect(result).toContain('mcp__context7__query-docs')
-        expect(result).toContain('mcp__fetch__get')
-      })
-    })
-
-    describe('Gemini agent template escaping and field stripping', () => {
-      it('escapes ${VAR} patterns to $VAR in body text', () => {
-        const input = `---
-tools: Read
----
-
-Use \${PHASE} and \${PLAN} and \${DESCRIPTION} variables.`
-
-        const result = convertClaudeToGeminiAgent(input)
-
-        expect(result).toContain('$PHASE')
-        expect(result).toContain('$PLAN')
-        expect(result).toContain('$DESCRIPTION')
-        expect(result).not.toContain('${PHASE}')
-        expect(result).not.toContain('${PLAN}')
-      })
-
-      it('preserves non-matching dollar patterns ($SIMPLE, $(command))', () => {
-        const input = `---
-tools: Read
----
-
-Use $SIMPLE and $(command) substitution.`
-
-        const result = convertClaudeToGeminiAgent(input)
-
-        expect(result).toContain('$SIMPLE')
-        expect(result).toContain('$(command)')
-      })
-
-      it('applies template escaping after tool name replacement', () => {
-        const input = `---
-tools: Read
----
-
-Use the Read tool with \${PHASE} variable.`
-
-        const result = convertClaudeToGeminiAgent(input)
-
-        // Tool name replacement happened
-        expect(result).toContain('read_file tool')
-        expect(result).not.toMatch(/\bRead\b/)
-        // Template escaping also happened
-        expect(result).toContain('$PHASE')
-        expect(result).not.toContain('${PHASE}')
-      })
-
-      it('strips skills: field with inline value', () => {
-        const input = `---
-tools: Read
-skills: planning, research
-description: test agent
----
-
-Agent body.`
-
-        const result = convertClaudeToGeminiAgent(input)
-
-        expect(result).not.toContain('skills:')
-        expect(result).not.toContain('planning')
-        expect(result).not.toContain('research')
-        expect(result).toContain('description: test agent')
-      })
-
-      it('strips skills: field with YAML array items', () => {
-        const input = `---
-tools: Read
-skills:
-  - planning
-  - research
-description: test agent
----
-
-Agent body.`
-
-        const result = convertClaudeToGeminiAgent(input)
-
-        expect(result).not.toContain('skills:')
-        expect(result).not.toContain('planning')
-        expect(result).not.toContain('research')
-        expect(result).toContain('description: test agent')
-      })
-
-      it('strips both skills: and color: fields when both present', () => {
-        const input = `---
-tools: Read
-color: blue
-skills: planning
-description: test agent
----
-
-Agent body.`
-
-        const result = convertClaudeToGeminiAgent(input)
-
-        expect(result).not.toContain('color:')
-        expect(result).not.toContain('blue')
-        expect(result).not.toContain('skills:')
-        expect(result).not.toContain('planning')
-        expect(result).toContain('description: test agent')
-        expect(result).toContain('tools:')
-      })
-
-      it('regression: existing color and tools conversion unchanged', () => {
-        const input = `---
-tools: Read, Write
-color: red
-description: test agent
----
-
-Use Read to read files.`
-
-        const result = convertClaudeToGeminiAgent(input)
-
-        // color stripped
-        expect(result).not.toContain('color:')
-        // tools converted to YAML array with Gemini names
-        expect(result).toContain('tools:')
-        expect(result).toContain('  - read_file')
-        expect(result).toContain('  - write_file')
-        // body text uses Gemini tool names
-        expect(result).toContain('read_file to read files')
-        expect(result).not.toMatch(/\bRead\b/)
-      })
-    })
-  })
-
-  describe('Gemini agent body text tool name replacement', () => {
-    it('replaces Claude tool names with Gemini names in body text', () => {
-      const input = `---
-tools: Read, Write, Bash
----
-
-Use the Read tool to read files.
-Use Write to create new files.
-Run Bash to execute commands.
-Use Grep for searching and Glob for finding files.`
-
-      const result = convertClaudeToGeminiAgent(input)
-
-      // Body text should use Gemini tool names
-      expect(result).toContain('read_file tool to read files')
-      expect(result).toContain('Use write_file to create')
-      expect(result).toContain('Run run_shell_command to execute')
-      expect(result).toContain('Use search_file_content for searching')
-      expect(result).toContain('glob for finding files')
-      // Claude tool names should not remain in body
-      expect(result).not.toMatch(/\bRead\b/)
-      expect(result).not.toMatch(/\bWrite\b/)
-      expect(result).not.toMatch(/\bBash\b/)
-    })
-
-    it('preserves MCP tool references in body text while replacing Claude names', () => {
-      const input = `---
-tools: Read
----
-
-Use mcp__context7__resolve-library-id to find libraries.
-Also use the Read tool to read files.`
-
-      const result = convertClaudeToGeminiAgent(input)
-
-      // MCP reference should be unchanged
-      expect(result).toContain('mcp__context7__resolve-library-id')
-      // Claude tool name should be replaced
-      expect(result).toContain('read_file tool')
-      expect(result).not.toMatch(/\bRead\b/)
-    })
-
-    it('replaces all mapped tools in body text', () => {
-      const input = `---
-tools: Read, Write, Edit, Bash, Glob, Grep
----
-
-Read files. Write files. Edit content. Bash commands.
-Glob patterns. Grep search. WebSearch queries. WebFetch pages.
-TodoWrite tasks. AskUserQuestion prompts.`
-
-      const result = convertClaudeToGeminiAgent(input)
-
-      expect(result).toContain('read_file')
-      expect(result).toContain('write_file')
-      expect(result).toContain('replace')
-      expect(result).toContain('run_shell_command')
-      expect(result).toContain('glob')
-      expect(result).toContain('search_file_content')
-      expect(result).toContain('google_web_search')
-      expect(result).toContain('web_fetch')
-      expect(result).toContain('write_todos')
-      expect(result).toContain('ask_user')
-      // No Claude tool names should remain
-      expect(result).not.toMatch(/\bRead\b/)
-      expect(result).not.toMatch(/\bWrite\b/)
-      expect(result).not.toMatch(/\bEdit\b/)
-      expect(result).not.toMatch(/\bBash\b/)
-      expect(result).not.toMatch(/\bGrep\b/)
-      expect(result).not.toMatch(/\bWebSearch\b/)
-      expect(result).not.toMatch(/\bWebFetch\b/)
-      expect(result).not.toMatch(/\bTodoWrite\b/)
-      expect(result).not.toMatch(/\bAskUserQuestion\b/)
-    })
-
-    it('converts both frontmatter and body text tool names', () => {
-      const input = `---
-tools: Read, Write, Bash
----
-
-Use Read to read files. Run Bash for commands. Use Write to create files.`
-
-      const result = convertClaudeToGeminiAgent(input)
-
-      // Frontmatter should have Gemini tool names as YAML array
-      expect(result).toContain('tools:')
-      expect(result).toContain('  - read_file')
-      expect(result).toContain('  - write_file')
-      expect(result).toContain('  - run_shell_command')
-      // Body should also have Gemini tool names
-      expect(result).toContain('Use read_file to read files')
-      expect(result).toContain('Run run_shell_command for commands')
-      expect(result).toContain('Use write_file to create files')
     })
   })
 
@@ -3522,11 +3081,11 @@ Also use the Read tool to read files and Bash to run commands.`
     describe('C6: resolve_model_ids for non-Claude runtimes', () => {
       const installScript = path.resolve(process.cwd(), 'bin/install.js')
 
-      tmpdirTest('non-Claude install (opencode) writes resolve_model_ids: omit to defaults.json', async ({ tmpdir }) => {
+      tmpdirTest('non-Claude install (codex) writes resolve_model_ids: omit to defaults.json', async ({ tmpdir }) => {
         const gsdHome = path.join(tmpdir, '.gsd')
         fsSync.mkdirSync(gsdHome, { recursive: true })
 
-        execSync(`node "${installScript}" --opencode --global`, {
+        execSync(`node "${installScript}" --codex --global`, {
           env: { ...process.env, HOME: tmpdir, GSD_HOME: gsdHome },
           cwd: tmpdir,
           stdio: ['pipe', 'pipe', 'pipe'],
@@ -3566,7 +3125,7 @@ Also use the Read tool to read files and Bash to run commands.`
         const defaultsPath = path.join(gsdHome, 'defaults.json')
         fsSync.writeFileSync(defaultsPath, JSON.stringify({ existing_key: 'preserved_value' }, null, 2) + '\n')
 
-        execSync(`node "${installScript}" --opencode --global`, {
+        execSync(`node "${installScript}" --codex --global`, {
           env: { ...process.env, HOME: tmpdir, GSD_HOME: gsdHome },
           cwd: tmpdir,
           stdio: ['pipe', 'pipe', 'pipe'],
