@@ -64,7 +64,6 @@ const handoff = require('./lib/handoff.cjs');
 const reconcile = require('./lib/reconcile.cjs');
 const archive = require('./lib/archive.cjs');
 const release = require('./lib/release.cjs');
-const patchClassifier = require('./lib/patch-classifier.cjs');
 
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -728,6 +727,7 @@ async function main() {
     }
 
     case 'patches': {
+      const patchClassifier = require('./lib/patch-classifier.cjs');
       patchClassifier.cmdPatches(cwd, raw);
       break;
     }

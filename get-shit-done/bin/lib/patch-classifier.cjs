@@ -2,25 +2,82 @@
 
 const crypto = require('node:crypto');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 
-const pkg = require('../../../package.json');
-const {
-  fileHash,
-  generateManifest,
-  replacePathsInContent,
-  convertClaudeToCodexMarkdown,
-  convertClaudeToCodexAgentToml,
-  convertClaudeToCodexSkill,
-  claudeToCodexTools,
-  PATCHES_DIR_NAME,
-  MANIFEST_NAME,
-  getGlobalDir,
-  extractFrontmatterAndBody,
-  extractFrontmatterField,
-  injectVersionScope,
-  readSettings,
-} = require('../../../bin/install.js');
+function safeRequire(modulePath) {
+  try {
+    return require(modulePath);
+  } catch {
+    return null;
+  }
+}
+
+function readInstalledVersion() {
+  const versionPath = path.resolve(__dirname, '..', '..', 'VERSION');
+  return fs.existsSync(versionPath)
+    ? fs.readFileSync(versionPath, 'utf8').trim()
+    : '0.0.0';
+}
+
+function fallbackFileHash(filePath) {
+  return hashContent(fs.readFileSync(filePath));
+}
+
+function fallbackGenerateManifest(dir, baseDir = dir) {
+  const manifest = {};
+  if (!fs.existsSync(dir)) return manifest;
+
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const fullPath = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      Object.assign(manifest, fallbackGenerateManifest(fullPath, baseDir));
+      continue;
+    }
+    if (!entry.isFile()) continue;
+    const relPath = normalizeRelPath(path.relative(baseDir, fullPath));
+    manifest[relPath] = fallbackFileHash(fullPath);
+  }
+
+  return manifest;
+}
+
+function fallbackExtractFrontmatterAndBody(content) {
+  if (!content.startsWith('---')) {
+    return { frontmatter: null, body: content };
+  }
+  const endIndex = content.indexOf('---', 3);
+  if (endIndex === -1) {
+    return { frontmatter: null, body: content };
+  }
+  return {
+    frontmatter: content.substring(3, endIndex).trim(),
+    body: content.substring(endIndex + 3),
+  };
+}
+
+function fallbackExtractFrontmatterField(frontmatter, fieldName) {
+  const regex = new RegExp(`^${fieldName}:\\s*(.+)$`, 'm');
+  const match = frontmatter?.match(regex);
+  return match ? match[1].trim().replace(/^['"]|['"]$/g, '') : null;
+}
+
+const pkg = safeRequire(path.resolve(__dirname, '../../../package.json')) || { version: readInstalledVersion() };
+const installerLib = safeRequire(path.resolve(__dirname, '../../../bin/install.js')) || {};
+const fileHash = installerLib.fileHash || fallbackFileHash;
+const generateManifest = installerLib.generateManifest || fallbackGenerateManifest;
+const replacePathsInContent = installerLib.replacePathsInContent || ((content) => content);
+const convertClaudeToCodexMarkdown = installerLib.convertClaudeToCodexMarkdown || ((content) => content);
+const convertClaudeToCodexAgentToml = installerLib.convertClaudeToCodexAgentToml || ((content) => content);
+const convertClaudeToCodexSkill = installerLib.convertClaudeToCodexSkill || ((content) => content);
+const claudeToCodexTools = installerLib.claudeToCodexTools || {};
+const PATCHES_DIR_NAME = installerLib.PATCHES_DIR_NAME || 'gsdr-local-patches';
+const MANIFEST_NAME = installerLib.MANIFEST_NAME || 'gsd-file-manifest.json';
+const getGlobalDir = installerLib.getGlobalDir || ((runtime) => path.join(os.homedir(), runtime === 'codex' ? '.codex' : '.claude'));
+const extractFrontmatterAndBody = installerLib.extractFrontmatterAndBody || fallbackExtractFrontmatterAndBody;
+const extractFrontmatterField = installerLib.extractFrontmatterField || fallbackExtractFrontmatterField;
+const injectVersionScope = installerLib.injectVersionScope || ((content) => content);
+const readSettings = installerLib.readSettings || (() => ({}));
 
 const LEGACY_PATCHES_DIR_NAME = 'gsd-local-patches';
 const RUNTIME_DIRS = Object.freeze({
@@ -279,8 +336,8 @@ function classify({
     if (installedHash || manifestHash || inLocalPatches) {
       return buildClassification(
         'stale',
-        'medium',
-        { ...evidence, reason: 'source-file-no-longer-exists' },
+        inLocalPatches && !installedHash ? 'high' : 'medium',
+        { ...evidence, reason: inLocalPatches && !installedHash ? 'historical-patch-entry-source-moved' : 'source-file-no-longer-exists' },
         isDogfooding,
         `node bin/install.js --${runtime}`
       );
