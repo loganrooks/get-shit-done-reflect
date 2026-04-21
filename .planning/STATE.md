@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Completed 60-02-PLAN.md
-last_updated: "2026-04-21T20:43:24.560Z"
+stopped_at: Completed 60-03-PLAN.md
+last_updated: "2026-04-21T20:53:38.652Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 25
   completed_phases: 17
   total_plans: 87
-  completed_plans: 83
-  percent: 95
+  completed_plans: 84
+  percent: 97
 ---
 
 # Project State
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 60 of 64 — Execution in progress on `gsd/phase-60-sensor-pipeline-codex-parity`
-Plan: 2 of 6 complete
+Plan: 3 of 6 complete
 Status: Ready to execute
 
 ### Recent Phases
@@ -322,6 +322,9 @@ Recent decisions affecting current work:
 - [Phase 60]: Plan 60-02 treats SENS-02 as cross-runtime normalization with applies on both runtimes; SENS-03 remains the sole representability-based Claude does-not-apply row.
 - [Phase 60]: Plan 60-02 enforces XRT-01 structurally: the unit test reads the real sidecar artifact and checks existence, exact 9-row count, canonical vocabulary, and non-empty does-not-apply reasons.
 - [Phase 60]: Plan 60-02 keeps the DC-4 grep invariant mechanically true by avoiding the forbidden hook token literal anywhere in the sidecar file.
+- [Phase 60]: Fingerprint extraction now lives in one standalone Python helper shared by Claude and Codex session normalization.
+- [Phase 60]: Codex session discovery is documented as sqlite-primary with PRAGMA probing and filesystem fallback instead of a fatal hard dependency.
+- [Phase 60]: Codex-only fingerprint fields stay in the normalized schema as not_available on Claude, and vocabulary drift surfaces as SENS-07 candidates.
 
 ### Roadmap Evolution
 
@@ -413,6 +416,7 @@ Recent decisions affecting current work:
 | Phase 59.1 P03 | 7min | 2 tasks | 4 files |
 | Phase 60 P01 | 5min | 2 tasks | 5 files |
 | Phase 60 P02 | 4min | 2 tasks | 2 files |
+| Phase 60 P03 | 8min | 3 tasks | 5 files |
 
 ### Key Artifacts
 
@@ -431,8 +435,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T20:43:24.552Z
-Stopped at: Completed 60-02-PLAN.md
+Last session: 2026-04-21T20:53:38.599Z
+Stopped at: Completed 60-03-PLAN.md
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
