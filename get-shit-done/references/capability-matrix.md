@@ -78,7 +78,7 @@ Pre/post tool execution hooks (SessionStart, Stop, etc.). Used for automatic upd
 Skip hook-dependent features entirely. No automatic update checks at session start, no statusline integration. Version checking happens on explicit GSD command invocation instead of automatically via session hooks. This is a graceful degradation -- the user still gets update notifications, just triggered differently.
 
 **Degraded behavior when conditional (Codex CLI):**
-Hooks are available but gated behind the `codex_hooks` feature flag. When the flag is enabled, SessionStart, Stop, PreToolUse, PostToolUse, and UserPromptSubmit hooks function via `hooks.json` (global at `~/.codex/hooks.json`, project-level at `<repo>/.codex/hooks.json`). GSD hook installation to Codex is deferred to Phase 60 -- for now, capability detection recognizes Codex hooks but does not install them.
+Hooks are available but gated behind the `codex_hooks` feature flag. When the flag is enabled, SessionStart, Stop, PreToolUse, PostToolUse, and UserPromptSubmit hooks function via `hooks.json` (global at `~/.codex/hooks.json`, project-level at `<repo>/.codex/hooks.json`). GSD capability detection recognizes Codex hooks, but the installer does not yet wire the closeout substrate; that unresolved closure work belongs to Phase 57.9, not Phase 60.
 
 **How orchestrators adapt:**
 Use `<capability_check name="hooks_support">` before hook configuration. If hooks are available (Claude Code, Gemini CLI) or conditionally available (Codex CLI with feature flag), configure them normally. If hooks are absent (OpenCode) or the Codex feature flag is not enabled, skip hook setup and note that update checks run on command invocation.
@@ -128,7 +128,7 @@ No orchestrator adaptation needed. The installer preserves MCP tool references f
 
 > [1] Codex subagents are now a stable capability, but GSD orchestrators still need Codex-specific delegation flows instead of assuming Claude-style `Task()` semantics.
 
-Codex CLI no longer lacks parallel delegation outright. Its main remaining runtime gap is per-agent tool-permission controls. Session hooks are now conditionally available via the `codex_hooks` feature flag (under development as of v0.118.0), supporting SessionStart, Stop, PreToolUse, PostToolUse, and UserPromptSubmit events. Multi-agent execution uses Codex-native subagent/thread flows rather than Claude's pane-centric task flow. GSD hook installation to Codex is deferred to Phase 60 pending feature flag stabilization.
+Codex CLI no longer lacks parallel delegation outright. Its main remaining runtime gap is per-agent tool-permission controls. Session hooks are now conditionally available via the `codex_hooks` feature flag (under development as of v0.118.0), supporting SessionStart, Stop, PreToolUse, PostToolUse, and UserPromptSubmit events. Multi-agent execution uses Codex-native subagent/thread flows rather than Claude's pane-centric task flow. GSD installer-wired closeout-hook closure remains unshipped and is owned by Phase 57.9.
 
 ### Gemini CLI
 

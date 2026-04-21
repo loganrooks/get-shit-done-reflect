@@ -140,13 +140,15 @@ Derived from: audit Findings 1-3 + Recommendations 1, 2, 4, 5. Wider integration
 
 ### Phase 57.9: Hook & Closeout Substrate (INSERTED)
 
-**Goal:** The installer and runtime substrate provide the closeout / incident hook surfaces that Phase 58 depends on, instead of letting structural gates stand on missing infrastructure. This narrow prerequisite wires SessionStop / closeout hooks for Claude Code, integrates the available Codex hook surface when supported, and exposes the session-level closeout / incident markers needed by GATE-06 and GATE-07.
+**Goal:** This is the strict closure phase for the hook / closeout substrate that Phase 58 explicitly deferred. It does not "finish GATE-06 / GATE-07 by prose"; it ships the missing substrate honestly: installer-wired Claude `SessionStop` / closeout hooks, Codex hook installation when `codex_hooks=true` or an explicit waiver path when unavailable, the `session_meta_postlude` source contract and canonical marker shape needed by measurement / gate consumers, and artifact alignment so ROADMAP / REQUIREMENTS / capability references agree that 57.9 owns the substrate while downstream live incident consumption remains later-phase work.
 **Depends on:** Phase 57.8 (role-aware provenance is already the epistemic prerequisite for Phase 58; this phase closes the operational prerequisite)
 **Requirements:** HOOK-01, HOOK-02, HOOK-03
 **Success Criteria** (what must be TRUE):
   1. Installer writes the Claude Code SessionStop / closeout hook surface from source, with tests proving the hook lands in the installed runtime
-  2. Installer detects Codex hook support and either writes the required Codex hook surface or records an explicit degradation / waiver path rather than silently assuming parity
-  3. Closeout / incident hook substrate exposes canonical markers or counters for "postlude fired" and the incident conditions Phase 58 needs (error-rate / direction-change / destructive-event, or explicit `not_available`)
+  2. Installer detects Codex hook support and either writes the required Codex hook surface or records an explicit degradation / waiver path rather than silently assuming parity; silent skip is not allowed
+  3. The `session_meta_postlude` substrate exists as a load-bearing source contract consumed by measurement / gate extractors, exposing canonical records for `postlude-fired`, `error-rate`, `direction-change`, and `destructive-event`, or explicit `not_available` values where the runtime cannot provide them
+  4. ROADMAP.md, REQUIREMENTS.md, capability-matrix.md, and any dependent phase context stop naming contradictory owners for the hook substrate; 57.9 owns substrate closure, while downstream live incident wiring stays downstream work
+  5. Phase 57.9 verification maps HOOK-01/02/03 delivery to the Phase 58 re-entry conditions, so GATE-06 / GATE-07 cannot leave `explicitly_deferred` state without evidence
 **Plans**: TBD
 
 ### Phase 57.4: Audit Skill & Investigatory Type (INSERTED)
