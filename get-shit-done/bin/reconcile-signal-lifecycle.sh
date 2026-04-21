@@ -8,6 +8,39 @@ set -euo pipefail
 #
 # Usage: reconcile-signal-lifecycle.sh <phase-directory>
 # Example: reconcile-signal-lifecycle.sh .planning/phases/38-extensible-sensor-architecture
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# DEPRECATED (Phase 59, will be removed in v1.21):
+#
+#   This script uses `sed -i ''` which is BSD-only and silently fails on GNU
+#   sed. Empirically verified broken on Linux (Ubuntu 24.04 with GNU sed 4.9).
+#
+#   Replacement: `gsd-tools kb transition <sig-id> remediated --reason "<why>"`
+#   Auto-invoked by the collect-signals workflow for each completed plan's
+#   `resolves_signals` frontmatter field. See:
+#     - get-shit-done/bin/lib/kb-transition.cjs (BEGIN IMMEDIATE dual-write)
+#     - get-shit-done/workflows/collect-signals.md (reconcile_signal_lifecycle step)
+#
+#   This script is kept for ONE release cycle (v1.20 -> v1.21) as a
+#   compatibility fallback; it is NOT invoked by any workflow in v1.20. In
+#   v1.21 it will be removed.
+#
+#   The Linux guard below surfaces the sed-BSD-only bug to anyone who invokes
+#   this script on GNU sed, instead of letting it silently no-op as it did in
+#   v1.16-v1.19.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Linux guard: BSD-only `sed -i ''` below silently no-ops on GNU sed. Rather
+# than pretending the reconciliation worked, surface the bug immediately.
+if [ "$(uname -s)" = "Linux" ]; then
+  echo "ERROR: reconcile-signal-lifecycle.sh uses BSD-only sed syntax (\`sed -i ''\`)"  >&2
+  echo "       and does not work on GNU sed (Linux). This script has been"              >&2
+  echo "       DEPRECATED in Phase 59 and will be removed in v1.21."                    >&2
+  echo ""                                                                                >&2
+  echo "       Replacement: gsd-tools kb transition <sig-id> remediated --reason \"...\"" >&2
+  echo "       Auto-invoked by: collect-signals workflow (reconcile_signal_lifecycle step)" >&2
+  exit 2
+fi
 
 PHASE_DIR="${1:-}"
 
