@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A self-improving, runtime-agnostic enhancement to the GSD (Get Shit Done) workflow system. Features a complete signal lifecycle (detect, triage, remediate, verify, recurrence check) with multi-sensor collection (artifact + git + CI sensors), confidence-weighted reflection that distills lessons from accumulated signals, and epistemic rigor (counter-evidence seeking, tiered validation) built into every stage. The automation loop is self-triggering: signal collection auto-fires after phase execution, reflection auto-triggers after configurable phase counts, health checks run at session start, and CI failures surface immediately — all governed by a 4-level automation system (manual/nudge/prompt/auto) with per-feature overrides and context-aware deferral. Includes a persistent knowledge base (project-local at `.planning/knowledge/` with `~/.gsd/knowledge/` fallback), a structured spike/experiment workflow for resolving design uncertainty empirically, and knowledge surfacing that retrieves relevant lessons during research and planning. Signal-plan linkage closes the loop: plans declare which signals they fix, completion auto-updates remediation status, and passive verification confirms fixes after configurable phase windows. Plan intelligence validates plans semantically before execution (tool/config/dir/signal reference checking). Health scoring provides two-dimensional assessment (infrastructure + workflow) with traffic-light statusline display and rogue file detection. Supports 4 runtimes (Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI) with cross-runtime pause/resume, shared state, per-runtime capability detection, and GSDR namespace co-installation alongside upstream GSD. Includes a structured backlog system (per-project + global), a declarative feature manifest for config-driven upgrades, and a shared agent protocol for maintainable agent specs. Synchronized with upstream GSD v1.18.0 including the gsd-tools CLI, thin orchestrator architecture, and 11 bug fixes. Includes production tooling: workspace health checks with probe-based architecture, version migration, DevOps context capture, and installer hardening with safeFs error reporting.
+A self-improving, runtime-agnostic enhancement to the GSD (Get Shit Done) workflow system. Features a complete signal lifecycle (detect, triage, remediate, verify, recurrence check) with multi-sensor collection (artifact + git + CI sensors), confidence-weighted reflection that distills lessons from accumulated signals, and epistemic rigor (counter-evidence seeking, tiered validation) built into every stage. The automation loop is self-triggering: signal collection auto-fires after phase execution, reflection auto-triggers after configurable phase counts, health checks run at session start, and CI failures surface immediately — all governed by a 4-level automation system (manual/nudge/prompt/auto) with per-feature overrides and context-aware deferral. Includes a persistent knowledge base (project-local at `.planning/knowledge/` with `~/.gsd/knowledge/` fallback), a structured spike/experiment workflow for resolving design uncertainty empirically, and knowledge surfacing that retrieves relevant lessons during research and planning. Signal-plan linkage closes the loop: plans declare which signals they fix, completion auto-updates remediation status, and passive verification confirms fixes after configurable phase windows. Plan intelligence validates plans semantically before execution (tool/config/dir/signal reference checking). Health scoring provides two-dimensional assessment (infrastructure + workflow) with traffic-light statusline display and rogue file detection. The actively supported runtimes are Claude Code and OpenAI Codex CLI, with shared state, per-runtime capability detection, and GSDR namespace co-installation alongside upstream GSD. Includes a structured backlog system (per-project + global), a declarative feature manifest for config-driven upgrades, and a shared agent protocol for maintainable agent specs. Synchronized with upstream GSD v1.18.0 including the gsd-tools CLI, thin orchestrator architecture, and 11 bug fixes. Includes production tooling: workspace health checks with probe-based architecture, version migration, DevOps context capture, and installer hardening with safeFs error reporting.
 
 ## Core Value
 
@@ -20,7 +20,7 @@ See `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md
 - ✓ Parallel research, planning, and execution workflows — existing
 - ✓ State management via .planning/ directory (STATE.md, ROADMAP.md, config.json) — existing
 - ✓ Atomic commits per task with session recovery — existing
-- ✓ Multi-runtime support (Claude Code, OpenCode, Gemini CLI) — existing
+- ✓ Active runtime support for Claude Code and OpenAI Codex CLI — existing
 - ✓ Checkpoint-based deviation handling — existing
 - ✓ Codebase mapping for brownfield projects — existing
 - ✓ Signal tracking: automatic detection of workflow deviations — v1.12
@@ -208,7 +208,7 @@ Test suite: 628 tests (419 vitest + 191 upstream node:test + 18 fork node:test),
 - v1.18 adopted upstream's modular architecture and 10 features with deep integration
 - GSDR namespace co-installation enables side-by-side with upstream GSD
 - Tracked-modifications strategy with FORK-DIVERGENCES.md documenting per-module merge stances (16 modules)
-- 4 runtimes supported: Claude Code, OpenCode, Gemini CLI, OpenAI Codex CLI
+- Supported installer/runtime contract narrowed to Claude Code and OpenAI Codex CLI; deprecated Gemini/OpenCode surfaces remain available only as historical reference where explicitly marked
 - Durable sync policy formalized: trigger-based cadence, baseline-freeze rules, 5-class gap taxonomy, integration depth standard
 - Outstanding upstream work prioritized: security hardening (P1), new modules (P2), test infrastructure (P3)
 - Fork-upstream relationship characterized as complementary divergence — shared substrate, different higher-level concerns
@@ -217,7 +217,7 @@ Test suite: 628 tests (419 vitest + 191 upstream node:test + 18 fork node:test),
 
 - **Architecture**: Must follow existing GSD patterns (Markdown commands, XML workflows, agent specs) — no new runtime dependencies
 - **Storage**: Knowledge base must be file-based (no databases) to maintain GSD's zero-dependency philosophy
-- **Compatibility**: Must work across Claude Code, OpenCode, Gemini CLI, and OpenAI Codex CLI runtimes
+- **Compatibility**: Must work across the actively supported Claude Code and OpenAI Codex CLI runtimes
 - **Context**: Signal logging and knowledge base queries must not bloat agent context windows — lazy loading is critical
 - **Non-invasive**: Signal tracking must not slow down or interrupt normal workflow execution
 - **Fork maintenance**: This is a fork of GSD upstream — divergences from upstream files are tracked in FORK-DIVERGENCES.md with explicit category, rationale, and merge stance. See FORK-STRATEGY.md for the full maintenance approach

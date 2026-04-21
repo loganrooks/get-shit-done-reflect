@@ -12,6 +12,37 @@ const GSD_TOOLS = path.resolve(REPO_ROOT, 'get-shit-done/bin/gsd-tools.cjs')
 const require = createRequire(import.meta.url)
 const { DatabaseSync } = require('node:sqlite')
 const { reconstructFrontmatter } = require('../../get-shit-done/bin/lib/frontmatter.cjs')
+const {
+  INSTALLER_RUNTIME_METADATA,
+  SUPPORTED_INSTALLER_RUNTIMES,
+} = require('../../get-shit-done/bin/lib/runtime-support.cjs')
+
+async function pathExists(targetPath) {
+  return fs.access(targetPath).then(() => true).catch(() => false)
+}
+
+async function assertSupportedOnlyInstallOutputs(tmpdir, configHome) {
+  for (const runtime of SUPPORTED_INSTALLER_RUNTIMES) {
+    const runtimeDir = path.join(tmpdir, INSTALLER_RUNTIME_METADATA[runtime].dirName)
+    expect(await pathExists(runtimeDir), `supported runtime directory should exist: ${runtimeDir}`).toBe(true)
+  }
+
+  expect(await pathExists(path.join(tmpdir, '.gsd', 'knowledge')), 'shared KB should exist').toBe(true)
+  expect(await pathExists(path.join(tmpdir, '.gemini')), '.gemini should not be created by supported-only --all install').toBe(false)
+  expect(await pathExists(path.join(tmpdir, '.opencode')), '.opencode should not be created by supported-only --all install').toBe(false)
+  expect(await pathExists(path.join(configHome, 'opencode')), '.config/opencode should not be created by supported-only --all install').toBe(false)
+}
+
+async function installAllSupported(tmpdir, configHome) {
+  execSync(`node "${installScript}" --all --global`, {
+    env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+    cwd: tmpdir,
+    stdio: ['pipe', 'pipe', 'pipe'],
+    timeout: 30000
+  })
+
+  await assertSupportedOnlyInstallOutputs(tmpdir, configHome)
+}
 
 /** Write a signal fixture file to the shared KB */
 async function writeSignal(kbDir, project, filename, fields = {}) {
@@ -93,12 +124,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     tmpdirTest('--all install creates shared KB at ~/.gsd/knowledge/', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --all --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000
-      })
+      await installAllSupported(tmpdir, configHome)
 
       const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
       const entries = await fs.readdir(kbDir)
@@ -110,12 +136,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     tmpdirTest('signal written to shared KB is readable at shared path', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --all --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000
-      })
+      await installAllSupported(tmpdir, configHome)
 
       const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
 
@@ -139,12 +160,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     tmpdirTest('signal written to shared KB is readable via Claude symlink', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --all --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000
-      })
+      await installAllSupported(tmpdir, configHome)
 
       const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
 
@@ -173,12 +189,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     tmpdirTest('old-format signal (no runtime/model fields) is readable', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --all --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000
-      })
+      await installAllSupported(tmpdir, configHome)
 
       const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
 
@@ -212,12 +223,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     tmpdirTest('new-format signal (with runtime/model fields) is readable', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --all --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000
-      })
+      await installAllSupported(tmpdir, configHome)
 
       const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
 
@@ -249,12 +255,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     tmpdirTest('multiple signals from different runtimes coexist in shared KB', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --all --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000
-      })
+      await installAllSupported(tmpdir, configHome)
 
       const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
       const project = 'multi-runtime-project'
@@ -298,12 +299,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     tmpdirTest('legacy and split-provenance signals rebuild together in shared KB', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --all --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000
-      })
+      await installAllSupported(tmpdir, configHome)
 
       const kbDir = path.join(tmpdir, '.gsd', 'knowledge')
 
@@ -366,12 +362,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     tmpdirTest('Claude symlink target resolves to ~/.gsd/knowledge/', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --all --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000
-      })
+      await installAllSupported(tmpdir, configHome)
 
       const claudeKb = path.join(tmpdir, '.claude', 'gsd-knowledge')
       const target = await fs.readlink(claudeKb)
@@ -384,18 +375,11 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     tmpdirTest('installed workflow files reference .planning/knowledge/ (primary) or ~/.gsd/knowledge/ (fallback), not ~/.claude/gsd-knowledge/', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --all --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000
-      })
+      await installAllSupported(tmpdir, configHome)
 
       // Check each runtime's installed get-shit-done-reflect/ reference docs
       const runtimeDirs = [
         { name: 'claude', dir: path.join(tmpdir, '.claude', 'get-shit-done-reflect') },
-        { name: 'opencode', dir: path.join(configHome, 'opencode', 'get-shit-done-reflect') },
-        { name: 'gemini', dir: path.join(tmpdir, '.gemini', 'get-shit-done-reflect') },
         { name: 'codex', dir: path.join(tmpdir, '.codex', 'get-shit-done-reflect') },
       ]
 
@@ -428,12 +412,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     tmpdirTest('installed agent/workflow files contain .planning/knowledge references', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --all --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000
-      })
+      await installAllSupported(tmpdir, configHome)
 
       // Check Claude runtime for .planning/knowledge references
       const claudeDir = path.join(tmpdir, '.claude')
@@ -457,23 +436,14 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
   })
 
   describe('v1.14 release readiness', () => {
-    tmpdirTest('all runtimes produce consistent VERSION files', async ({ tmpdir }) => {
+    tmpdirTest('supported runtimes produce consistent VERSION files', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
-      execSync(`node "${installScript}" --all --global`, {
-        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-        cwd: tmpdir,
-        stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000
-      })
+      await installAllSupported(tmpdir, configHome)
 
-      // Read VERSION file from each runtime
-      const versionPaths = [
-        path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'VERSION'),
-        path.join(configHome, 'opencode', 'get-shit-done-reflect', 'VERSION'),
-        path.join(tmpdir, '.gemini', 'get-shit-done-reflect', 'VERSION'),
-        path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'VERSION'),
-      ]
+      const versionPaths = SUPPORTED_INSTALLER_RUNTIMES.map((runtime) =>
+        path.join(tmpdir, INSTALLER_RUNTIME_METADATA[runtime].dirName, 'get-shit-done-reflect', 'VERSION')
+      )
 
       const versions = []
       for (const vp of versionPaths) {
@@ -481,7 +451,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
         versions.push(version)
       }
 
-      // All 4 must match
+      // All supported runtimes must match
       expect(new Set(versions).size).toBe(1)
 
       // Must be a valid semver pattern (major.minor.patch with optional +dev suffix)
@@ -498,19 +468,15 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     // v1.14 Release Readiness -- Phase 17 Validation Coverage
     // =========================================================================
     //
-    // VALID-01: OpenCode install correctness
+    // VALID-01: Supported runtime install correctness
     //   Covered by: tests/integration/multi-runtime.test.js (17-01)
-    //   - OpenCode file layout, path transformation, frontmatter conversion
-    //
-    // VALID-02: Gemini install correctness
-    //   Covered by: tests/integration/multi-runtime.test.js (17-01)
-    //   - Gemini TOML commands, settings.json, path transformation
+    //   - Claude and Codex file layout stays aligned with the supported installer contract
     //
     // VALID-03: Multi-runtime --all install depth
     //   Covered by: tests/integration/multi-runtime.test.js (17-01)
-    //   - All 4 runtimes install correctly with --all --global
-    //   - No leaked Claude paths in non-Claude runtimes
-    //   - KB paths reference ~/.gsd/knowledge/ across all runtimes
+    //   - Only supported runtimes install with --all --global
+    //   - No leaked Claude paths in supported non-Claude runtimes
+    //   - KB paths reference ~/.gsd/knowledge/ across supported runtimes
     //
     // VALID-04: Cross-runtime KB accessibility
     //   Covered by: tests/integration/cross-runtime-kb.test.js (this file, 17-02)
@@ -521,7 +487,7 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     //   - New-format signals (with runtime/model) are readable
     //   - Multi-runtime signals coexist in shared KB
     //   - Installed workflow files reference correct KB path
-    //   - VERSION consistency across all 4 runtimes
+    //   - VERSION consistency across supported installer runtimes
     //
     // Release gate: `npx vitest run` must show 0 failures, 100+ tests passing.
     // =========================================================================
@@ -542,19 +508,14 @@ describe('Phase 59 Plan 05: cross-runtime kb* verb parity', () => {
     return crypto.createHash('sha256').update(buf).digest('hex')
   }
 
-  function runInstallAll(tmpdir, configHome) {
-    execSync(`node "${installScript}" --all --global`, {
-      env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
-      cwd: tmpdir,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      timeout: 60000
-    })
+  async function runInstallAll(tmpdir, configHome) {
+    await installAllSupported(tmpdir, configHome)
   }
 
   describe('sha256 parity: kb* lib modules across runtimes', () => {
     tmpdirTest('kb.cjs, kb-query.cjs, kb-link.cjs, kb-health.cjs, kb-transition.cjs are byte-equal across .claude and .codex', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
-      runInstallAll(tmpdir, configHome)
+      await runInstallAll(tmpdir, configHome)
 
       const libFiles = ['kb.cjs', 'kb-query.cjs', 'kb-link.cjs', 'kb-health.cjs', 'kb-transition.cjs']
       const claudeLibDir = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'bin', 'lib')
@@ -569,7 +530,7 @@ describe('Phase 59 Plan 05: cross-runtime kb* verb parity', () => {
 
     tmpdirTest('knowledge-surfacing.md is byte-equal across .claude and .codex (Phase 59 Plan 05 rewrite parity guard)', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
-      runInstallAll(tmpdir, configHome)
+      await runInstallAll(tmpdir, configHome)
 
       const claudeRef = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'references', 'knowledge-surfacing.md')
       const codexRef = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'references', 'knowledge-surfacing.md')
@@ -617,7 +578,7 @@ describe('Phase 59 Plan 05: cross-runtime kb* verb parity', () => {
 
     tmpdirTest('kb query --format json produces byte-equal shape across runtimes', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
-      runInstallAll(tmpdir, configHome)
+      await runInstallAll(tmpdir, configHome)
 
       // Seed a project-local KB in tmpdir so the verbs have something concrete to query
       const projectDir = path.join(tmpdir, 'proj')
@@ -656,7 +617,7 @@ describe('Phase 59 Plan 05: cross-runtime kb* verb parity', () => {
 
     tmpdirTest('kb search --format json produces byte-equal shape across runtimes', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
-      runInstallAll(tmpdir, configHome)
+      await runInstallAll(tmpdir, configHome)
 
       const projectDir = path.join(tmpdir, 'proj')
       await fs.mkdir(path.join(projectDir, '.planning', 'knowledge', 'signals', 'crosstest'), { recursive: true })
@@ -692,7 +653,7 @@ describe('Phase 59 Plan 05: cross-runtime kb* verb parity', () => {
 
     tmpdirTest('kb link show --format json produces byte-equal shape across runtimes', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
-      runInstallAll(tmpdir, configHome)
+      await runInstallAll(tmpdir, configHome)
 
       const projectDir = path.join(tmpdir, 'proj')
       await fs.mkdir(path.join(projectDir, '.planning', 'knowledge', 'signals', 'crosstest'), { recursive: true })
@@ -728,7 +689,7 @@ describe('Phase 59 Plan 05: cross-runtime kb* verb parity', () => {
 
     tmpdirTest('kb health --format json produces byte-equal shape across runtimes', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
-      runInstallAll(tmpdir, configHome)
+      await runInstallAll(tmpdir, configHome)
 
       const projectDir = path.join(tmpdir, 'proj')
       await fs.mkdir(path.join(projectDir, '.planning', 'knowledge', 'signals', 'crosstest'), { recursive: true })
@@ -769,7 +730,7 @@ describe('Phase 59 Plan 05: cross-runtime kb* verb parity', () => {
       // Transition with no args prints usage; this exercises the dispatch path without
       // actually mutating state (a real dry-run flag is tracked in a later phase).
       const configHome = path.join(tmpdir, '.config')
-      runInstallAll(tmpdir, configHome)
+      await runInstallAll(tmpdir, configHome)
 
       const projectDir = path.join(tmpdir, 'proj')
       await fs.mkdir(path.join(projectDir, '.planning', 'knowledge'), { recursive: true })
@@ -799,4 +760,3 @@ describe('Phase 59 Plan 05: cross-runtime kb* verb parity', () => {
     })
   })
 })
-
