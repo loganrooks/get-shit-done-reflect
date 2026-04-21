@@ -1,0 +1,23 @@
+{
+  "backed_up_at": "2026-03-30T12:46:07.240Z",
+  "from_version": "1.17.5",
+  "files": [
+    "get-shit-done-reflect/bin/gsd-tools.js",
+    "get-shit-done-reflect/references/model-profile-resolution.md",
+    "get-shit-done-reflect/references/model-profiles.md",
+    "get-shit-done-reflect/templates/context.md",
+    "get-shit-done-reflect/workflows/audit-milestone.md",
+    "get-shit-done-reflect/workflows/discuss-phase.md",
+    "get-shit-done-reflect/workflows/execute-phase.md",
+    "get-shit-done-reflect/workflows/help.md",
+    "get-shit-done-reflect/workflows/map-codebase.md",
+    "get-shit-done-reflect/workflows/new-milestone.md",
+    "get-shit-done-reflect/workflows/new-project.md",
+    "get-shit-done-reflect/workflows/plan-phase.md",
+    "get-shit-done-reflect/workflows/quick.md",
+    "get-shit-done-reflect/workflows/research-phase.md",
+    "get-shit-done-reflect/workflows/set-profile.md",
+    "get-shit-done-reflect/workflows/settings.md",
+    "get-shit-done-reflect/workflows/verify-work.md"
+  ]
+}
