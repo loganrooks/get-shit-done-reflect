@@ -6,6 +6,9 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+### Changed
+- Installer support is now limited to Claude Code and Codex CLI. `--all` installs supported runtimes only, while `--gemini`, `--opencode`, and the legacy installer `--both` flag now fail with migration guidance instead of installing unsupported runtimes.
+
 ## [1.19.7] - 2026-04-20
 
 ### Added
