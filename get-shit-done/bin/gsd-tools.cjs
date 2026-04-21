@@ -52,6 +52,7 @@ const healthProbe = require('./lib/health-probe.cjs');
 const manifest = require('./lib/manifest.cjs');
 const automation = require('./lib/automation.cjs');
 const kb = require('./lib/kb.cjs');
+const kbQuery = require('./lib/kb-query.cjs');
 const telemetry = require('./lib/telemetry.cjs');
 const measurement = require('./lib/measurement.cjs');
 const quick = require('./lib/quick.cjs');
@@ -737,8 +738,19 @@ async function main() {
           malformedTargets: args.includes('--malformed-targets'),
         };
         kb.cmdKbRepair(cwd, raw, repairOptions);
+      } else if (subcommand === 'query') {
+        // Phase 59 Plan 02 (KB-04b / KB-06a read half): structured AND-filter
+        // over signals. Non-mutating; degrades to grep on kb.db absence.
+        const qOpts = kbQuery.parseKbQueryOptions(args.slice(2));
+        kbQuery.cmdKbQuery(cwd, qOpts, raw);
+      } else if (subcommand === 'search') {
+        // Phase 59 Plan 02 (KB-04b): FTS5 MATCH over signal_fts + signals
+        // join for metadata. Non-mutating; degrades to grep on kb.db absence.
+        const searchQuery = args[2];
+        const sOpts = kbQuery.parseKbQueryOptions(args.slice(3));
+        kbQuery.cmdKbSearch(cwd, searchQuery, sOpts, raw);
       } else {
-        error('Usage: gsd-tools kb <rebuild|stats|migrate|repair>');
+        error('Usage: gsd-tools kb <rebuild|stats|migrate|repair|query|search>');
       }
       break;
     }

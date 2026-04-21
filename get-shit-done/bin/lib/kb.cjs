@@ -1404,6 +1404,13 @@ module.exports = {
   cmdKbStats,
   cmdKbMigrate,
   cmdKbRepair,
+  // Phase 59 Wave 2: helpers re-exported so sibling lib modules (kb-query.cjs,
+  // kb-link.cjs, and forthcoming kb-health.cjs / kb-transition.cjs) can reuse
+  // path resolution and the lazy node:sqlite gate without duplicating the
+  // guard block. All three are pure helpers -- no side effects on export.
+  getKbDir,
+  getDbPath,
+  getDbSync,
   // Phase 59 test-only exports: allow unit tests to exercise extractLinks
   // and computeEdgeIntegrity directly without re-invoking the full rebuild
   // pipeline. Prefixed with __testOnly_ so the intent is legible.
