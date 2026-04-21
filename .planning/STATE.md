@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: verifying
-stopped_at: Completed 60-01-PLAN.md
-last_updated: "2026-04-21T20:40:14.959Z"
+status: executing
+stopped_at: Completed 60-02-PLAN.md
+last_updated: "2026-04-21T20:41:31.484Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 25
   completed_phases: 17
   total_plans: 87
-  completed_plans: 82
-  percent: 94
+  completed_plans: 83
+  percent: 95
 ---
 
 # Project State
@@ -26,8 +26,8 @@ See: .planning/PROJECT.md (updated 2026-04-08)
 ## Current Position
 
 Phase: 60 of 64 — Execution in progress on `gsd/phase-60-sensor-pipeline-codex-parity`
-Plan: 1 of 6 complete
-Status: Plan 60-01 complete — remaining Phase 60 plans continue in parallel/sequence
+Plan: 2 of 6 complete
+Status: Ready to execute
 
 ### Recent Phases
 
@@ -319,6 +319,9 @@ Recent decisions affecting current work:
 - [Phase 59.1]: The capability matrix preserves deprecated Gemini/OpenCode columns for reference, but its support language and release notes now reflect that installer access is limited to Claude/Codex and legacy flags fail with migration guidance.
 - [Phase 60]: Recorded the live-audit truth of 7 response_item payload types in §1.3 because the corpus re-check contradicted the plan text that still said 5.
 - [Phase 60]: Kept the install.js change strictly additive: existing exports stayed in place and only the Phase 60 consumer helpers/constants were exposed.
+- [Phase 60]: Plan 60-02 treats SENS-02 as cross-runtime normalization with applies on both runtimes; SENS-03 remains the sole representability-based Claude does-not-apply row.
+- [Phase 60]: Plan 60-02 enforces XRT-01 structurally: the unit test reads the real sidecar artifact and checks existence, exact 9-row count, canonical vocabulary, and non-empty does-not-apply reasons.
+- [Phase 60]: Plan 60-02 keeps the DC-4 grep invariant mechanically true by avoiding the forbidden hook token literal anywhere in the sidecar file.
 
 ### Roadmap Evolution
 
@@ -409,6 +412,7 @@ Recent decisions affecting current work:
 | Phase 59.1 P02 | 10min | 2 tasks | 3 files |
 | Phase 59.1 P03 | 7min | 2 tasks | 4 files |
 | Phase 60 P01 | 5min | 2 tasks | 5 files |
+| Phase 60 P02 | 4min | 2 tasks | 2 files |
 
 ### Key Artifacts
 
@@ -427,8 +431,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T20:40:14.951Z
-Stopped at: Completed 60-01-PLAN.md
+Last session: 2026-04-21T20:41:31.474Z
+Stopped at: Completed 60-02-PLAN.md
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
