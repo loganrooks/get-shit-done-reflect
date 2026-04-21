@@ -6,6 +6,19 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.19.7] - 2026-04-20
+
+### Added
+- Phase 58 structural enforcement surfaces across release, closeout, parity, and delegation integrity: release-lag assertions, phase reconciliation, agent-archive preservation, source-vs-installed parity verification, scope-translation ledger enforcement, and gate fire-event extraction.
+- The upstream-style discuss assumptions analyzer, richer discuss-mode documentation, and related mode-aware workflow gates now ship in the forked runtime surfaces.
+
+### Changed
+- Governance state now tracks the inserted Phase 58.1 Codex update-parity work and the explicit release-boundary closeout still required after phase implementation lands.
+
+### Fixed
+- `gsdr-update` on Codex now enumerates repo-local and active global installs correctly, targets the stale scope explicitly, preserves non-default `CODEX_CONFIG_DIR`, and avoids repo-local `.codex` mirrors masking stale active installs.
+- Source-repo update execution now forces the published `get-shit-done-reflect-cc@latest` package instead of accidentally resolving the local checkout.
+
 ## [1.19.6] - 2026-04-20
 
 ### Added
