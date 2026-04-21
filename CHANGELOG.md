@@ -6,6 +6,16 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.19.9] - 2026-04-21
+
+### Added
+- Phase 60 sensor-pipeline and Codex parity shipping wave: cross-runtime fingerprint extraction, Codex session discovery coverage, a shared patch-classifier library, `gsd-patch-sensor`, post-install parity checks, and XRT-02 patch validation for reapply flows.
+- The Codex log-sensor path now understands cross-runtime session artifacts and ships the supporting behavior-matrix and parity research substrate from source.
+
+### Fixed
+- `gsd-tools` now lazy-loads patch-classifier surfaces so installed runtime commands outside the patches path no longer fail on source-repo-only dependencies.
+- Patch-classifier mirror coverage no longer assumes a repo-local `.codex` install mirror, bringing CI and local test expectations back into alignment.
+
 ## [1.19.8] - 2026-04-21
 
 ### Changed
