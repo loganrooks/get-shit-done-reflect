@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: verifying
-stopped_at: "Completed 59-03-PLAN.md (Wave 2 watchdog: kb health four-check contract with exit-code bitmask)"
-last_updated: "2026-04-21T04:41:26.130Z"
+stopped_at: "Completed 59-04-PLAN.md (Wave 3: kb transition + kb link write verbs + lifecycle wiring; bash reconcile script deprecated)"
+last_updated: "2026-04-21T04:58:48.748Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 24
   completed_phases: 15
   total_plans: 78
-  completed_plans: 76
-  percent: 97
+  completed_plans: 77
+  percent: 99
 ---
 
 # Project State
@@ -82,6 +82,9 @@ Progress: [██████████] 99%
 - 57.7-09: 7min, 2 tasks, 2 files
 - 57.7-10: 10min, 3 tasks, 3 files
 - 59-01: 16min, 2 tasks, 112 files (5 code + 107 signal repairs)
+- 59-02: 7min, 2 tasks, 6 files (4 created + 2 modified)
+- 59-03: 5min, 2 tasks, 4 files (1 lib + 1 test + 2 modified)
+- 59-04: 13min, 2 tasks, 9 files (4 created + 5 modified)
 
 **v1.18 Final:**
 
@@ -301,6 +304,10 @@ Recent decisions affecting current work:
 - [Phase 59-03]: Check 4 depends_on_freshness ships as SUMMARY not PASS so the advisory-vs-gate distinction is legible; research Pitfall C4 / D2 ontological limit means semantic staleness is not judged
 - [Phase 59-03]: Completed-plan detection uses NN-PLAN.md with matching NN-SUMMARY.md presence (execute-plan's commit convention as liveness signal); in-flight plans are out of scope
 - [Phase 59-03]: discoverSignalFiles / discoverSpikeFiles / computeEdgeIntegrity promoted from test-only to public exports in kb.cjs so kb-health.cjs reuses one implementation (plan must-have #6 + research Pitfall 8: no new walkers)
+- [Phase 59]: [59-04]: BEGIN IMMEDIATE + .bak sidecar dual-write -- canonical idiom for every mutating kb verb (kb transition, kb link create/delete); copy to .bak before any write, transact, on throw ROLLBACK SQL and restore file from .bak
+- [Phase 59]: [59-04]: Frozen-field guard requires --force on BOTH kb link create AND kb link delete for qualified_by/superseded_by (symmetry); per knowledge-store.md §10 these are frozen post-publication
+- [Phase 59]: [59-04]: reconcile-signal-lifecycle.sh deprecated with one-cycle sunset (v1.20->v1.21) + Linux guard that exits 2 with migration instructions -- chosen over silent removal so downstream macOS users have a release to migrate; Linux users get the deprecation surfaced loudly instead of silent no-op
+- [Phase 59]: [59-04]: 31 live-corpus lifecycle drifts NOT retroactively remediated in this plan -- wiring exists and integration test proves it; blanket retroactive transition is a separate operator-judgment pass similar to Plan 01's live-repair commit separation
 
 ### Roadmap Evolution
 
@@ -383,6 +390,8 @@ Recent decisions affecting current work:
 | Phase 59-kb-query-lifecycle-wiring-and-surfacing P01 | 16min | 2 tasks | 112 files |
 | Phase 59 P02 | 7min | 2 tasks | 6 files |
 | Phase 59 P03 | 5min | 2 tasks | 4 files |
+| Phase 59 P04 | 13min | 2 tasks | 9 files |
+| Phase 59 P04 | 13min | 2 tasks | 9 files |
 
 ### Key Artifacts
 
@@ -401,8 +410,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T04:41:14.282Z
-Stopped at: Completed 59-03-PLAN.md (Wave 2 watchdog: kb health four-check contract with exit-code bitmask)
+Last session: 2026-04-21T04:58:04.702Z
+Stopped at: Completed 59-04-PLAN.md (Wave 3: kb transition + kb link write verbs + lifecycle wiring; bash reconcile script deprecated)
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
