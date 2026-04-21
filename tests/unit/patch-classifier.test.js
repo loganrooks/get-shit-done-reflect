@@ -256,10 +256,22 @@ describe('patch-classifier library', () => {
   })
 
   describe('loadCapabilityMatrix()', () => {
-    it('reads the installed capability matrix for the local codex runtime mirror', () => {
-      const matrix = loadCapabilityMatrix(path.join(process.cwd(), '.codex'))
-      expect(matrix).toContain('# Runtime Capability Matrix')
-      expect(matrix).toContain('| Capability | Claude Code | OpenCode [D] | Gemini CLI [D] | Codex CLI |')
+    it('reads the installed capability matrix from a runtime mirror layout', () => {
+      const runtimeDir = createTempDir('patch-classifier-matrix-')
+      try {
+        const installedMatrixDir = path.join(runtimeDir, 'get-shit-done-reflect', 'references')
+        fs.mkdirSync(installedMatrixDir, { recursive: true })
+        fs.copyFileSync(
+          path.join(process.cwd(), 'get-shit-done', 'references', 'capability-matrix.md'),
+          path.join(installedMatrixDir, 'capability-matrix.md'),
+        )
+
+        const matrix = loadCapabilityMatrix(runtimeDir)
+        expect(matrix).toContain('# Runtime Capability Matrix')
+        expect(matrix).toContain('| Capability | Claude Code | OpenCode [D] | Gemini CLI [D] | Codex CLI |')
+      } finally {
+        fs.rmSync(runtimeDir, { recursive: true, force: true })
+      }
     })
   })
 
