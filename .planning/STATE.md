@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: verifying
-stopped_at: Completed 59.1-02-PLAN.md
-last_updated: "2026-04-21T08:56:09.215Z"
+stopped_at: Completed 59.1-03-PLAN.md
+last_updated: "2026-04-21T09:02:15.901Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 25
-  completed_phases: 16
+  completed_phases: 17
   total_plans: 81
-  completed_plans: 80
-  percent: 99
+  completed_plans: 81
+  percent: 100
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 59 (KB Query, Lifecycle Wiring & Surfacing) shipped on branch `gsd/phase-59-kb-query-lifecycle-wiring-and-surfacing`. Verifier passed 7/7 ROADMAP must-haves against the codebase (763/763 tests, cross-runtime sha256 parity confirmed). `kb query`/`search`/`link show` live on FTS5 substrate, `kb transition` closes the lifecycle wiring loop (KB-07), `kb health` four-check watchdog is online, `knowledge-surfacing.md` rewritten SQLite-first, and KB-12..KB-17 enumerated as GATE-09-consumable deferrals in `59-DEFERRALS.md`. Ready for PR.
+**Current focus:** v1.20 Phase 59.1 (Drop Gemini and OpenCode from installer scope) completed on branch `gsd/phase-59.1-drop-gemini-and-opencode-from-installer-scope`. README install guidance, live project framing, the capability matrix, and the Unreleased changelog now all mirror the Claude/Codex-only installer contract. Ready for verification.
 
 ## Current Position
 
-Phase: 59 of 64 — Execution complete on `gsd/phase-59-kb-query-lifecycle-wiring-and-surfacing`
-Plan: 5 of 5 complete
+Phase: 59.1 of 64 — Execution complete on `gsd/phase-59.1-drop-gemini-and-opencode-from-installer-scope`
+Plan: 3 of 3 complete
 Status: Phase complete — ready for verification
 
 ### Recent Phases
@@ -36,13 +36,13 @@ Status: Phase complete — ready for verification
 
 Last activity: 2026-04-21
 
-Progress: [██████████] 99%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 38
+- Plans completed: 39
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -315,6 +315,8 @@ Recent decisions affecting current work:
 - [Phase 59.1]: Legacy installer flags --gemini, --opencode, and --both now fail fast with migration guidance instead of remapping to supported runtimes.
 - [Phase 59.1]: Integration suites now consume SUPPORTED_INSTALLER_RUNTIMES instead of local four-runtime constants.
 - [Phase 59.1]: Shared-KB --all fixtures now assert Claude/Codex presence and Gemini/OpenCode absence before running KB checks.
+- [Phase 59.1]: README and PROJECT present-tense runtime wording now advertise only the supported Claude Code and Codex CLI installer contract.
+- [Phase 59.1]: The capability matrix preserves deprecated Gemini/OpenCode columns for reference, but its support language and release notes now reflect that installer access is limited to Claude/Codex and legacy flags fail with migration guidance.
 
 ### Roadmap Evolution
 
@@ -403,6 +405,7 @@ Recent decisions affecting current work:
 | Phase 59 P05 | 8min | 2 tasks | 6 files |
 | Phase 59.1 P01 | 8min | 2 tasks | 3 files |
 | Phase 59.1 P02 | 10min | 2 tasks | 3 files |
+| Phase 59.1 P03 | 7min | 2 tasks | 4 files |
 
 ### Key Artifacts
 
@@ -421,8 +424,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T08:56:09.207Z
-Stopped at: Completed 59.1-02-PLAN.md
+Last session: 2026-04-21T09:02:15.894Z
+Stopped at: Completed 59.1-03-PLAN.md
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
