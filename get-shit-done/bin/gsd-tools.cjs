@@ -729,8 +729,16 @@ async function main() {
         kb.cmdKbStats(cwd, raw);
       } else if (subcommand === 'migrate') {
         kb.cmdKbMigrate(cwd, raw);
+      } else if (subcommand === 'repair') {
+        // Phase 59 KB-04d: scope of the repair is carried by the flag(s).
+        // Today only `--malformed-targets` is supported; future flags (e.g.
+        // `--orphaned-targets`) extend this without breaking callers.
+        const repairOptions = {
+          malformedTargets: args.includes('--malformed-targets'),
+        };
+        kb.cmdKbRepair(cwd, raw, repairOptions);
       } else {
-        error('Usage: gsd-tools kb <rebuild|stats|migrate>');
+        error('Usage: gsd-tools kb <rebuild|stats|migrate|repair>');
       }
       break;
     }

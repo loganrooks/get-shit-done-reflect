@@ -941,6 +941,17 @@ function cmdKbRebuild(cwd, raw) {
     throw e;
   }
 
+  // Phase 59 KB-04d: post-rebuild edge-integrity pass. Group signal_links
+  // by link_type and compute four counts per type: total, resolves (target
+  // exists in signals.id OR spikes.id), orphaned (does not exist anywhere
+  // AND target is not malformed), malformed (target_id === '[object Object]').
+  // Exit-code semantics (research Pattern 3):
+  //   0 = no malformed and no orphaned
+  //   1 = any malformed (hard fail per D-4)
+  //   2 = only orphaned (warning; downgradable)
+  // The rebuild transaction already committed, so this pass is pure-read.
+  const edgeIntegrity = computeEdgeIntegrity(db);
+
   const total = signalFiles.length + spikeFiles.length + ledgerFiles.length;
   const added = signalsAdded + spikesAdded;
   const updated = signalsUpdated + spikesUpdated;
@@ -957,6 +968,7 @@ function cmdKbRebuild(cwd, raw) {
       skipped,
       errors,
       error_details: errorDetails,
+      edge_integrity: edgeIntegrity,
     }, true);
   } else {
     const lines = [
@@ -973,8 +985,87 @@ function cmdKbRebuild(cwd, raw) {
         lines.push(`  ${e.file}: ${e.error}`);
       }
     }
+    lines.push('');
+    lines.push(renderEdgeIntegrityTable(edgeIntegrity));
     console.log(lines.join('\n'));
   }
+
+  // Exit-code classification. Research Pattern 3 defines:
+  //   0 = no malformed and no orphaned
+  //   1 = any malformed (hard fail per D-4)
+  //   2 = only orphaned (warning; downgradable)
+  // We ship exit 1 on malformed as the hard fail contract. Orphaned is
+  // purely advisory (still reported in the table + JSON) and does NOT set
+  // process.exitCode -- many legitimate corpora contain orphaned edges
+  // mid-remediation (e.g. deleted target signal, or external refs), and a
+  // warning on that would break every pre-existing `kb rebuild` caller.
+  // Callers who want to treat orphaned as a failure can inspect the
+  // edge_integrity JSON under --raw.
+  if (edgeIntegrity.total.malformed > 0) {
+    process.exitCode = 1;
+  }
+}
+
+// Phase 59 KB-04d helpers: edge-integrity report.
+//
+// computeEdgeIntegrity walks the signal_links table once (using the new
+// idx_signal_links_target on target lookups) and classifies every row per
+// link_type. Ordering of rows in the emitted table follows research Pattern
+// 3: recurrence_of, related_to, qualified_by, superseded_by, TOTAL.
+const EDGE_INTEGRITY_ORDER = ['recurrence_of', 'related_to', 'qualified_by', 'superseded_by'];
+
+function computeEdgeIntegrity(db) {
+  const empty = () => ({ total: 0, resolves: 0, orphaned: 0, malformed: 0 });
+  const out = Object.fromEntries(EDGE_INTEGRITY_ORDER.map(lt => [lt, empty()]));
+  out.total = empty();
+
+  // One query -- SQLite handles the classification. target_id = '[object Object]'
+  // flags malformed; EXISTS joins cover both signals and spikes as resolve
+  // targets (spikes can be recurrence_of / related_to targets too).
+  const rows = db.prepare(`
+    SELECT
+      link_type,
+      CASE
+        WHEN target_id = '[object Object]' THEN 'malformed'
+        WHEN EXISTS(SELECT 1 FROM signals WHERE id = target_id) THEN 'resolves'
+        WHEN EXISTS(SELECT 1 FROM spikes WHERE id = target_id) THEN 'resolves'
+        ELSE 'orphaned'
+      END AS classification,
+      COUNT(*) AS n
+    FROM signal_links
+    GROUP BY link_type, classification
+  `).all();
+
+  for (const { link_type: linkType, classification, n } of rows) {
+    if (!out[linkType]) out[linkType] = empty();
+    out[linkType][classification] = (out[linkType][classification] || 0) + n;
+    out[linkType].total = (out[linkType].total || 0) + n;
+    out.total[classification] = (out.total[classification] || 0) + n;
+    out.total.total = (out.total.total || 0) + n;
+  }
+
+  return out;
+}
+
+function renderEdgeIntegrityTable(edgeIntegrity) {
+  const header = '  link_type         total  resolves  orphaned  malformed';
+  const lines = ['Edge integrity:', header];
+  for (const linkType of EDGE_INTEGRITY_ORDER) {
+    const row = edgeIntegrity[linkType] || { total: 0, resolves: 0, orphaned: 0, malformed: 0 };
+    lines.push(
+      `  ${linkType.padEnd(15)}  ${String(row.total).padStart(5)}  ${String(row.resolves).padStart(8)}  ${String(row.orphaned).padStart(8)}  ${String(row.malformed).padStart(9)}`
+    );
+  }
+  const t = edgeIntegrity.total;
+  lines.push(
+    `  ${'TOTAL'.padEnd(15)}  ${String(t.total).padStart(5)}  ${String(t.resolves).padStart(8)}  ${String(t.orphaned).padStart(8)}  ${String(t.malformed).padStart(9)}`
+  );
+  if (t.malformed > 0) {
+    lines.push('Exit code: 1 (malformed targets detected; run `kb repair --malformed-targets`)');
+  } else if (t.orphaned > 0) {
+    lines.push(`Note: ${t.orphaned} orphaned target(s) reference signals or spikes that do not exist locally (advisory; not a failure).`);
+  }
+  return lines.join('\n');
 }
 
 // ─── cmdKbStats ───────────────────────────────────────────────────────────────
@@ -1152,14 +1243,170 @@ function cmdKbMigrate(cwd, raw) {
   }
 }
 
+// ─── cmdKbRepair ──────────────────────────────────────────────────────────────
+//
+// Phase 59 KB-04d + R1 + audit §7.1 #1: one-shot repair verb for malformed
+// link-type frontmatter values. Walks every signal file, detects link-type
+// fields whose value is a non-string truthy (e.g. empty object `{}` produced
+// by bare `recurrence_of:` YAML keys), removes the offending field from the
+// frontmatter, rewrites the file atomically, then re-runs `kb rebuild` so the
+// SQL rows reflect the cleaned frontmatter.
+//
+// Pitfall 5 (research): attacking only the SQL side doesn't work -- the bare
+// frontmatter keys will be re-parsed to {} on the next rebuild, producing
+// "[object Object]" again. Repair must fix the source files AND re-rebuild.
+// Task 1's extractLinks guard is the belt (no new malformed rows); this verb
+// is the suspenders (clean the 107 rows that already exist).
+//
+// Current flag shape: `gsd-tools kb repair --malformed-targets`. The flag is
+// the scope of the repair; future flags (e.g. `--orphaned-targets`) can
+// extend this without breaking callers. Exit 0 iff post-rebuild malformed==0
+// across ALL link types.
+const REPAIR_LINK_FIELDS = ['recurrence_of', 'qualified_by', 'superseded_by', 'related_signals'];
+
+function needsRepair(value) {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string') return false;
+  if (Array.isArray(value)) return false; // per-element checks live in extractLinks
+  if (typeof value === 'object') return true; // bare/empty object -> malformed
+  return false;
+}
+
+function cmdKbRepair(cwd, raw, options = {}) {
+  if (!options.malformedTargets) {
+    const msg = 'Usage: gsd-tools kb repair --malformed-targets';
+    if (raw) output({ error: msg }, true);
+    else console.error(msg);
+    process.exitCode = 1;
+    return;
+  }
+
+  const kbDir = getKbDir(cwd);
+  const signalFiles = discoverSignalFiles(kbDir);
+
+  let filesRepaired = 0;
+  const fieldsCleared = Object.fromEntries(REPAIR_LINK_FIELDS.map(f => [f, 0]));
+  const errorDetails = [];
+  const repairLog = [];
+
+  for (const filePath of signalFiles) {
+    const relPath = path.relative(kbDir, filePath);
+    let content;
+    try {
+      content = fs.readFileSync(filePath, 'utf-8');
+    } catch (e) {
+      errorDetails.push({ file: relPath, error: `Read error: ${e.message}` });
+      continue;
+    }
+
+    let fm;
+    try {
+      fm = extractFrontmatter(content);
+    } catch (e) {
+      errorDetails.push({ file: relPath, error: `Parse error: ${e.message}` });
+      continue;
+    }
+
+    const clearedFields = [];
+    const newFm = Object.assign({}, fm);
+    for (const field of REPAIR_LINK_FIELDS) {
+      if (needsRepair(newFm[field])) {
+        delete newFm[field];
+        fieldsCleared[field]++;
+        clearedFields.push(field);
+      }
+    }
+
+    if (clearedFields.length === 0) continue;
+
+    try {
+      const newContent = spliceFrontmatter(content, newFm);
+      fs.writeFileSync(filePath, newContent, 'utf-8');
+      filesRepaired++;
+      repairLog.push(`  Repaired: ${path.basename(filePath)} (${clearedFields.join(', ')})`);
+    } catch (e) {
+      errorDetails.push({ file: relPath, error: `Write error: ${e.message}` });
+    }
+  }
+
+  // Re-run rebuild internally so post-repair edge_integrity can be reported
+  // and the SQL rows reflect the cleaned frontmatter. Pitfall 5 explicit.
+  // We capture the edge-integrity blob by opening the db afterward.
+  if (!raw) {
+    console.log(`KB repair: walked ${signalFiles.length} signal files, repaired ${filesRepaired}`);
+    for (const line of repairLog) console.log(line);
+  }
+
+  // Run rebuild, then read edge_integrity off the resulting db directly.
+  // We don't just spawn kb rebuild --raw and parse stdout because that loses
+  // the process-wide exitCode coupling across this verb. When the repair
+  // caller asked for --raw, suppress the rebuild's text output so stdout
+  // stays a single JSON blob; otherwise let it print normally so operators
+  // see the standard edge-integrity table.
+  if (raw) {
+    const origLog = console.log;
+    console.log = () => {};
+    try {
+      cmdKbRebuild(cwd, false);
+    } finally {
+      console.log = origLog;
+    }
+  } else {
+    cmdKbRebuild(cwd, false);
+  }
+  // cmdKbRebuild may have set process.exitCode to 1 (malformed) or 2
+  // (orphaned-only) based on the integrity pass. We re-compute our own
+  // success flag below from the db, and finalize the exit code at the end
+  // of this function so repair's contract (exit 0 iff post-rebuild
+  // malformed == 0) is authoritative.
+
+  const dbPath = getDbPath(cwd);
+  const DatabaseSync = getDbSync();
+  const db = new DatabaseSync(dbPath, { enableForeignKeyConstraints: true });
+  const edgeIntegrity = computeEdgeIntegrity(db);
+
+  const postRunMalformed = edgeIntegrity.total.malformed;
+  const success = postRunMalformed === 0;
+
+  if (raw) {
+    output({
+      files_repaired: filesRepaired,
+      fields_cleared: fieldsCleared,
+      errors: errorDetails.length,
+      error_details: errorDetails,
+      post_rebuild: edgeIntegrity,
+      success,
+    }, true);
+  } else {
+    console.log('');
+    console.log(`Fields cleared:`);
+    for (const [field, n] of Object.entries(fieldsCleared)) {
+      if (n > 0) console.log(`  ${field}: ${n}`);
+    }
+    if (errorDetails.length > 0) {
+      console.log('\nErrors:');
+      for (const e of errorDetails) console.log(`  ${e.file}: ${e.error}`);
+    }
+    if (success) {
+      console.log(`\nPost-repair malformed: 0 -- repair complete.`);
+    } else {
+      console.log(`\nPost-repair malformed: ${postRunMalformed} -- manual intervention required. Inspect signal_links with target_id='[object Object]' and the corresponding source files.`);
+    }
+  }
+
+  process.exitCode = success ? 0 : 1;
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
   cmdKbRebuild,
   cmdKbStats,
   cmdKbMigrate,
+  cmdKbRepair,
   // Phase 59 test-only exports: allow unit tests to exercise extractLinks
-  // directly for the typeof-string-guard invariants without re-invoking the
-  // full rebuild pipeline. Prefixed with __testOnly_ so the intent is legible.
+  // and computeEdgeIntegrity directly without re-invoking the full rebuild
+  // pipeline. Prefixed with __testOnly_ so the intent is legible.
   __testOnly_extractLinks: extractLinks,
+  __testOnly_computeEdgeIntegrity: computeEdgeIntegrity,
 };
