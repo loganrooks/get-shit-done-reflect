@@ -41,7 +41,6 @@ confidence_basis: Explicitly documented as a blocking auto-fix in Plan 05 SUMMAR
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

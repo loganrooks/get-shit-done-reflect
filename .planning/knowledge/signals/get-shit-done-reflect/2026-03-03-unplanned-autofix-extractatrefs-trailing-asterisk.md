@@ -34,7 +34,6 @@ confidence_basis: SUMMARY.md explicitly records auto-fixed issues section
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

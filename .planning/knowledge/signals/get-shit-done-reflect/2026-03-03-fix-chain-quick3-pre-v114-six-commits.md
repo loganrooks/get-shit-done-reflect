@@ -33,7 +33,6 @@ confidence_basis: Chain is real but not relevant to phase 36 -- git sensor found
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

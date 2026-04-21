@@ -39,7 +39,6 @@ confidence_basis: "Both summaries independently document the same root cause: re
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

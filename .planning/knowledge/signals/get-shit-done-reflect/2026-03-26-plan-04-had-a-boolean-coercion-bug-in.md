@@ -37,7 +37,6 @@ confidence_basis: Directly documented in SUMMARY auto-fix section with exact cau
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

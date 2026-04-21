@@ -24,11 +24,10 @@ evidence:
   supporting: []
   counter: []
 confidence: low
-confidence_basis: 
+confidence_basis: {}
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

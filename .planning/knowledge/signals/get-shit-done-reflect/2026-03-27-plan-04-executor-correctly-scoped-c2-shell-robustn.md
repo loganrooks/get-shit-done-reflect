@@ -39,7 +39,6 @@ confidence_basis: Documented in key-decisions section with specific rationale fo
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

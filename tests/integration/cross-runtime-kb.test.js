@@ -527,3 +527,276 @@ describe('VALID-04: Cross-runtime KB accessibility', () => {
     // =========================================================================
   })
 })
+
+describe('Phase 59 Plan 05: cross-runtime kb* verb parity', () => {
+  // Per research R9 and Phase 58.1 XRT-01 pattern: all new kb* lib files and the
+  // surfacing reference doc MUST be byte-identical across .claude and .codex
+  // runtime installs (after bin/install.js --local --all). Each new kb verb
+  // MUST produce the same JSON shape regardless of which runtime invokes it.
+
+  // Crypto for sha256 byte-equality assertions
+  const crypto = require('node:crypto')
+
+  async function sha256(filePath) {
+    const buf = await fs.readFile(filePath)
+    return crypto.createHash('sha256').update(buf).digest('hex')
+  }
+
+  function runInstallAll(tmpdir, configHome) {
+    execSync(`node "${installScript}" --all --global`, {
+      env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+      cwd: tmpdir,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 60000
+    })
+  }
+
+  describe('sha256 parity: kb* lib modules across runtimes', () => {
+    tmpdirTest('kb.cjs, kb-query.cjs, kb-link.cjs, kb-health.cjs, kb-transition.cjs are byte-equal across .claude and .codex', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+      runInstallAll(tmpdir, configHome)
+
+      const libFiles = ['kb.cjs', 'kb-query.cjs', 'kb-link.cjs', 'kb-health.cjs', 'kb-transition.cjs']
+      const claudeLibDir = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'bin', 'lib')
+      const codexLibDir = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'bin', 'lib')
+
+      for (const f of libFiles) {
+        const claudeHash = await sha256(path.join(claudeLibDir, f))
+        const codexHash = await sha256(path.join(codexLibDir, f))
+        expect(claudeHash, `${f}: Claude hash should match Codex hash (DC-4 parity)`).toBe(codexHash)
+      }
+    })
+
+    tmpdirTest('knowledge-surfacing.md is byte-equal across .claude and .codex (Phase 59 Plan 05 rewrite parity guard)', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+      runInstallAll(tmpdir, configHome)
+
+      const claudeRef = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'references', 'knowledge-surfacing.md')
+      const codexRef = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'references', 'knowledge-surfacing.md')
+
+      const claudeHash = await sha256(claudeRef)
+      const codexHash = await sha256(codexRef)
+      expect(claudeHash, 'knowledge-surfacing.md should be byte-equal across runtimes (no runtime-specific path rewrites)').toBe(codexHash)
+
+      // Sanity: the rewrite actually landed (not an empty file with same empty hash)
+      const content = await fs.readFile(claudeRef, 'utf8')
+      expect(content).toContain('kb query')
+      expect(content).toContain('kb search')
+      expect(content).toContain('kb link show')
+      expect(content).toContain('signals + spikes + reflections triad')
+    })
+  })
+
+  describe('JSON output shape parity: invoke each new kb verb from each runtime', () => {
+    // Helper: invoke a gsd-tools binary from a given runtime's install with --format json
+    function invokeKb(gsdToolsPath, args, { cwd, homeDir, configHome }) {
+      try {
+        return execSync(`node "${gsdToolsPath}" ${args.join(' ')}`, {
+          env: { ...process.env, HOME: homeDir, XDG_CONFIG_HOME: configHome },
+          cwd,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 30000
+        }).toString()
+      } catch (err) {
+        // Some verbs emit exit 1 on intentional states (e.g., kb health lifecycle drift)
+        // Return stdout if available; tests classify based on shape not exit code
+        if (err.stdout) return err.stdout.toString()
+        throw err
+      }
+    }
+
+    // Helper: normalize runtime-path differences in JSON output so shape comparison is
+    // meaningful. Paths that reference the runtime install dir (.claude vs .codex) are
+    // rewritten to a neutral marker; timestamps and nondeterministic ids are similarly
+    // neutralized.
+    function normalizePaths(jsonStr) {
+      return jsonStr
+        .replace(/\.claude\/get-shit-done-reflect/g, '<RUNTIME>/get-shit-done-reflect')
+        .replace(/\.codex\/get-shit-done-reflect/g, '<RUNTIME>/get-shit-done-reflect')
+    }
+
+    tmpdirTest('kb query --format json produces byte-equal shape across runtimes', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+      runInstallAll(tmpdir, configHome)
+
+      // Seed a project-local KB in tmpdir so the verbs have something concrete to query
+      const projectDir = path.join(tmpdir, 'proj')
+      await fs.mkdir(path.join(projectDir, '.planning', 'knowledge', 'signals', 'crosstest'), { recursive: true })
+      await writeSignal(path.join(projectDir, '.planning', 'knowledge'), 'crosstest', 'sig-cross-kb-query.md', {
+        id: 'sig-2026-04-21-cross-kb-query',
+        severity: 'notable',
+        lifecycle_state: 'detected'
+      })
+
+      const claudeGsd = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'bin', 'gsd-tools.cjs')
+      const codexGsd = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'bin', 'gsd-tools.cjs')
+
+      // Rebuild index from Claude runtime's gsd-tools
+      execSync(`node "${claudeGsd}" kb rebuild --raw`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: projectDir,
+        stdio: ['pipe', 'pipe', 'pipe']
+      })
+
+      const claudeOut = invokeKb(claudeGsd, ['kb', 'query', '--severity', 'notable', '--format', 'json'], {
+        cwd: projectDir, homeDir: tmpdir, configHome
+      })
+      const codexOut = invokeKb(codexGsd, ['kb', 'query', '--severity', 'notable', '--format', 'json'], {
+        cwd: projectDir, homeDir: tmpdir, configHome
+      })
+
+      expect(normalizePaths(claudeOut)).toBe(normalizePaths(codexOut))
+
+      // Sanity: shape check on the Claude output
+      const parsed = JSON.parse(claudeOut)
+      expect(parsed).toHaveProperty('query_params')
+      expect(parsed).toHaveProperty('results')
+      expect(Array.isArray(parsed.results)).toBe(true)
+    })
+
+    tmpdirTest('kb search --format json produces byte-equal shape across runtimes', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+      runInstallAll(tmpdir, configHome)
+
+      const projectDir = path.join(tmpdir, 'proj')
+      await fs.mkdir(path.join(projectDir, '.planning', 'knowledge', 'signals', 'crosstest'), { recursive: true })
+      await writeSignal(path.join(projectDir, '.planning', 'knowledge'), 'crosstest', 'sig-cross-kb-search.md', {
+        id: 'sig-2026-04-21-cross-kb-search',
+        severity: 'notable',
+        lifecycle_state: 'detected'
+      })
+
+      const claudeGsd = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'bin', 'gsd-tools.cjs')
+      const codexGsd = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'bin', 'gsd-tools.cjs')
+
+      execSync(`node "${claudeGsd}" kb rebuild --raw`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: projectDir,
+        stdio: ['pipe', 'pipe', 'pipe']
+      })
+
+      // FTS5 search — use a term that should match "Test signal" body content
+      const claudeOut = invokeKb(claudeGsd, ['kb', 'search', '"Test"', '--format', 'json'], {
+        cwd: projectDir, homeDir: tmpdir, configHome
+      })
+      const codexOut = invokeKb(codexGsd, ['kb', 'search', '"Test"', '--format', 'json'], {
+        cwd: projectDir, homeDir: tmpdir, configHome
+      })
+
+      expect(normalizePaths(claudeOut)).toBe(normalizePaths(codexOut))
+
+      const parsed = JSON.parse(claudeOut)
+      expect(parsed).toHaveProperty('query')
+      expect(parsed).toHaveProperty('results')
+    })
+
+    tmpdirTest('kb link show --format json produces byte-equal shape across runtimes', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+      runInstallAll(tmpdir, configHome)
+
+      const projectDir = path.join(tmpdir, 'proj')
+      await fs.mkdir(path.join(projectDir, '.planning', 'knowledge', 'signals', 'crosstest'), { recursive: true })
+      await writeSignal(path.join(projectDir, '.planning', 'knowledge'), 'crosstest', 'sig-cross-kb-link.md', {
+        id: 'sig-2026-04-21-cross-kb-link',
+        severity: 'notable',
+        lifecycle_state: 'detected'
+      })
+
+      const claudeGsd = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'bin', 'gsd-tools.cjs')
+      const codexGsd = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'bin', 'gsd-tools.cjs')
+
+      execSync(`node "${claudeGsd}" kb rebuild --raw`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: projectDir,
+        stdio: ['pipe', 'pipe', 'pipe']
+      })
+
+      const claudeOut = invokeKb(claudeGsd, ['kb', 'link', 'show', 'sig-2026-04-21-cross-kb-link', '--both', '--format', 'json'], {
+        cwd: projectDir, homeDir: tmpdir, configHome
+      })
+      const codexOut = invokeKb(codexGsd, ['kb', 'link', 'show', 'sig-2026-04-21-cross-kb-link', '--both', '--format', 'json'], {
+        cwd: projectDir, homeDir: tmpdir, configHome
+      })
+
+      expect(normalizePaths(claudeOut)).toBe(normalizePaths(codexOut))
+
+      const parsed = JSON.parse(claudeOut)
+      // kb-link.cjs emits camelCase signalId; accept either shape to keep the test
+      // focused on parity rather than on snake/camel-case normalization details.
+      expect(parsed.signalId || parsed.signal_id).toBe('sig-2026-04-21-cross-kb-link')
+    })
+
+    tmpdirTest('kb health --format json produces byte-equal shape across runtimes', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+      runInstallAll(tmpdir, configHome)
+
+      const projectDir = path.join(tmpdir, 'proj')
+      await fs.mkdir(path.join(projectDir, '.planning', 'knowledge', 'signals', 'crosstest'), { recursive: true })
+      await writeSignal(path.join(projectDir, '.planning', 'knowledge'), 'crosstest', 'sig-cross-kb-health.md', {
+        id: 'sig-2026-04-21-cross-kb-health',
+        severity: 'notable',
+        lifecycle_state: 'detected'
+      })
+
+      const claudeGsd = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'bin', 'gsd-tools.cjs')
+      const codexGsd = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'bin', 'gsd-tools.cjs')
+
+      execSync(`node "${claudeGsd}" kb rebuild --raw`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: projectDir,
+        stdio: ['pipe', 'pipe', 'pipe']
+      })
+
+      const claudeOut = invokeKb(claudeGsd, ['kb', 'health', '--format', 'json'], {
+        cwd: projectDir, homeDir: tmpdir, configHome
+      })
+      const codexOut = invokeKb(codexGsd, ['kb', 'health', '--format', 'json'], {
+        cwd: projectDir, homeDir: tmpdir, configHome
+      })
+
+      expect(normalizePaths(claudeOut)).toBe(normalizePaths(codexOut))
+
+      const parsed = JSON.parse(claudeOut)
+      expect(parsed).toHaveProperty('exit_code')
+      expect(parsed).toHaveProperty('checks')
+      expect(parsed.checks).toHaveProperty('edge_integrity')
+      expect(parsed.checks).toHaveProperty('lifecycle_vs_plan')
+      expect(parsed.checks).toHaveProperty('dual_write')
+      expect(parsed.checks).toHaveProperty('depends_on_freshness')
+    })
+
+    tmpdirTest('kb transition usage output (no args) is byte-equal across runtimes', async ({ tmpdir }) => {
+      // Transition with no args prints usage; this exercises the dispatch path without
+      // actually mutating state (a real dry-run flag is tracked in a later phase).
+      const configHome = path.join(tmpdir, '.config')
+      runInstallAll(tmpdir, configHome)
+
+      const projectDir = path.join(tmpdir, 'proj')
+      await fs.mkdir(path.join(projectDir, '.planning', 'knowledge'), { recursive: true })
+
+      const claudeGsd = path.join(tmpdir, '.claude', 'get-shit-done-reflect', 'bin', 'gsd-tools.cjs')
+      const codexGsd = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'bin', 'gsd-tools.cjs')
+
+      // Capture both stdout+stderr since usage is typically printed on stderr
+      function runCapture(gsd) {
+        try {
+          return execSync(`node "${gsd}" kb transition 2>&1 || true`, {
+            env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+            cwd: projectDir,
+            stdio: ['pipe', 'pipe', 'pipe']
+          }).toString()
+        } catch (err) {
+          return (err.stdout || '').toString() + (err.stderr || '').toString()
+        }
+      }
+
+      const claudeOut = runCapture(claudeGsd)
+      const codexOut = runCapture(codexGsd)
+
+      expect(normalizePaths(claudeOut)).toBe(normalizePaths(codexOut))
+      // Sanity: both mention the kb transition verb
+      expect(claudeOut).toMatch(/transition/)
+    })
+  })
+})
+

@@ -53,8 +53,13 @@ function readFtsObjects(db) {
 }
 
 describeIf('kb schema migration', () => {
+  // Phase 59 KB-04b: signal_fts is now the required full-text search substrate
+  // (external-content contentless rewrite over the signals table). Phase 57.7
+  // dropped the broken canonical-row expansion; Phase 59 re-introduces the
+  // correct shape. These tests track the re-entry, not the drop.
+
   tmpdirTest(
-    'kb rebuild does not create signal_fts virtual table on a fresh database',
+    'kb rebuild creates signal_fts external-content virtual table on a fresh database',
     async ({ tmpdir }) => {
       createKbDir(tmpdir)
 
@@ -63,7 +68,17 @@ describeIf('kb schema migration', () => {
 
       const db = openDb(tmpdir)
       try {
-        expect(readFtsObjects(db)).toEqual([])
+        const ftsObjects = readFtsObjects(db)
+        // Phase 59 creates signal_fts plus its FTS5 shadow tables
+        // (signal_fts_data, signal_fts_idx, signal_fts_docsize, signal_fts_config)
+        const ftsNames = ftsObjects.map(o => o.name)
+        expect(ftsNames).toContain('signal_fts')
+        // Verify external-content mode: the FTS table definition references
+        // content='signals' (not a canonical-row expansion).
+        const schema = db
+          .prepare("SELECT sql FROM sqlite_master WHERE name='signal_fts'")
+          .get()
+        expect(schema.sql).toMatch(/content\s*=\s*'signals'/)
       } finally {
         db.close()
       }
@@ -72,17 +87,26 @@ describeIf('kb schema migration', () => {
   )
 
   tmpdirTest(
-    'kb rebuild drops a pre-existing signal_fts virtual table and its shadow tables',
+    'kb rebuild drops a pre-existing malformed signal_fts and replaces it with the correct external-content shape',
     async ({ tmpdir }) => {
       createKbDir(tmpdir)
 
       const initial = runKb(tmpdir, 'rebuild')
       expect(initial.errors).toBe(0)
 
+      // Install a malformed signal_fts (old Phase 57.7 canonical-row style)
+      // after downgrading schema_version to v2 so initSchema's v<3 cleanup
+      // path fires on next rebuild.
       const preMigrationDb = openDb(tmpdir)
       try {
+        preMigrationDb.exec('DROP TRIGGER IF EXISTS signals_ai; DROP TRIGGER IF EXISTS signals_ad; DROP TRIGGER IF EXISTS signals_au; DROP TABLE IF EXISTS signal_fts;')
         preMigrationDb.exec('CREATE VIRTUAL TABLE signal_fts USING fts5(id, title, body);')
-        expect(readFtsObjects(preMigrationDb).length).toBeGreaterThan(0)
+        preMigrationDb.exec("UPDATE meta SET value='2' WHERE key='schema_version'")
+        // Confirm the malformed (no external content) shape is present
+        const schema = preMigrationDb
+          .prepare("SELECT sql FROM sqlite_master WHERE name='signal_fts'")
+          .get()
+        expect(schema.sql).not.toMatch(/content\s*=\s*'signals'/)
       } finally {
         preMigrationDb.close()
       }
@@ -92,7 +116,17 @@ describeIf('kb schema migration', () => {
 
       const db = openDb(tmpdir)
       try {
-        expect(readFtsObjects(db)).toEqual([])
+        // After migration signal_fts exists again, but in external-content shape
+        const schema = db
+          .prepare("SELECT sql FROM sqlite_master WHERE name='signal_fts'")
+          .get()
+        expect(schema).toBeTruthy()
+        expect(schema.sql).toMatch(/content\s*=\s*'signals'/)
+
+        const schemaVersion = db
+          .prepare("SELECT value FROM meta WHERE key='schema_version'")
+          .get()
+        expect(schemaVersion.value).toBe('3')
       } finally {
         db.close()
       }

@@ -39,7 +39,6 @@ confidence_basis: Detection from SUMMARY.md auto-fix log is clear. Root cause as
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

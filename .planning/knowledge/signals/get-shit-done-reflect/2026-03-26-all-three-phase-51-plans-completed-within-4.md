@@ -15,7 +15,7 @@ severity: notable
 signal_type: good-pattern
 signal_category: positive
 phase: 51
-plan: 
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -45,7 +45,6 @@ confidence_basis: Duration values from SUMMARY.md frontmatter are self-reported.
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

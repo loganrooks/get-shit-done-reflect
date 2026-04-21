@@ -11,7 +11,7 @@ severity: notable
 signal_type: good-pattern
 signal_category: positive
 phase: 53
-plan: 
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -36,7 +36,6 @@ confidence_basis: Duration figures come from plan summaries, task counts are dir
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

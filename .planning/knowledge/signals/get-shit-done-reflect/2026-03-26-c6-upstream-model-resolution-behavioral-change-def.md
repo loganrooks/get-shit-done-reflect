@@ -39,7 +39,6 @@ confidence_basis: Explicitly documented in both PLAN.md (as anticipated fallback
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

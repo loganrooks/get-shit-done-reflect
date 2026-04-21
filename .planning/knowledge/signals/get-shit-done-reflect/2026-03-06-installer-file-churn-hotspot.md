@@ -34,7 +34,6 @@ confidence_basis: "Merged from git sensor signals: bin/install.js (8 modificatio
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

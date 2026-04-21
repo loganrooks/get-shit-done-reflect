@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: human_verification
-stopped_at: Verified 58.1 implementation (live Codex checks and release-boundary closeout pending)
-last_updated: "2026-04-20T23:15:00Z"
-last_activity: 2026-04-20
+status: verified
+stopped_at: "Phase 59 verified passed (7/7 must-haves against codebase); ready for PR on gsd/phase-59-kb-query-lifecycle-wiring-and-surfacing"
+last_updated: "2026-04-21T05:30:00Z"
+last_activity: 2026-04-21
 progress:
   total_phases: 24
-  completed_phases: 14
-  total_plans: 73
-  completed_plans: 73
-  percent: 99
+  completed_phases: 16
+  total_plans: 78
+  completed_plans: 78
+  percent: 100
 ---
 
 # Project State
@@ -21,20 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 58.1 (Codex Update Distribution Parity) has finished implementation on branch `gsd/phase-58.1-codex-update-distribution-parity` and passed automated verification. Remaining work is now split across two surfaces: two live human Codex checks (real source-repo update preview/execution and a real non-default `CODEX_CONFIG_DIR` update run), plus release-boundary closeout on the phase branch (`PR -> CI -> merge -> release of the merged commit`).
+**Current focus:** v1.20 Phase 59 (KB Query, Lifecycle Wiring & Surfacing) shipped on branch `gsd/phase-59-kb-query-lifecycle-wiring-and-surfacing`. Verifier passed 7/7 ROADMAP must-haves against the codebase (763/763 tests, cross-runtime sha256 parity confirmed). `kb query`/`search`/`link show` live on FTS5 substrate, `kb transition` closes the lifecycle wiring loop (KB-07), `kb health` four-check watchdog is online, `knowledge-surfacing.md` rewritten SQLite-first, and KB-12..KB-17 enumerated as GATE-09-consumable deferrals in `59-DEFERRALS.md`. Ready for PR.
 
 ## Current Position
 
-Phase: 58.1 of 64 — Execution complete on `gsd/phase-58.1-codex-update-distribution-parity`
-Plan: 2 of 2 complete
-Status: Automated verification passed; 2 live human Codex checks and release-boundary closeout pending
+Phase: 59 of 64 — Execution complete on `gsd/phase-59-kb-query-lifecycle-wiring-and-surfacing`
+Plan: 5 of 5 complete
+Status: Verifier passed — ready for PR
 
 ### Recent Phases
 
 - Phase 58 (Structural Enforcement Gates) — complete on the baseline branch via commit `41673dc8`; verifier passed and phase closeout artifacts were tracked before the 58.1 insertion
 - Phase 57.8 (Signal Provenance Role-Aware Backfill) — merged 2026-04-20 via commit `c8a15d95`, 3 plans completed
 
-Last activity: 2026-04-20
+Last activity: 2026-04-21
 
 Progress: [██████████] 99%
 
@@ -81,6 +81,10 @@ Progress: [██████████] 99%
 - 57.7-08: 8min, 2 tasks, 4 files
 - 57.7-09: 7min, 2 tasks, 2 files
 - 57.7-10: 10min, 3 tasks, 3 files
+- 59-01: 16min, 2 tasks, 112 files (5 code + 107 signal repairs)
+- 59-02: 7min, 2 tasks, 6 files (4 created + 2 modified)
+- 59-03: 5min, 2 tasks, 4 files (1 lib + 1 test + 2 modified)
+- 59-04: 13min, 2 tasks, 9 files (4 created + 5 modified)
 
 **v1.18 Final:**
 
@@ -288,6 +292,25 @@ Recent decisions affecting current work:
 - [Phase 58.1]: The user-facing update flow now always installs from `get-shit-done-reflect-cc@latest` and names the active runtime correctly on completion. — This closes the source-repo dogfooding leak and removes the stale "Restart Claude Code" wording from Codex updates.
 - [Phase 58.1]: A tiny `--latest-version` bridge extension to `get-shit-done/bin/update-target.cjs` was accepted as a blocking fix so the installed workflow could remain on the shared resolver instead of duplicating target-selection policy. — The deviation stayed narrow and was covered by the new integration fixtures.
 - [Phase 58.1]: Verifier status is `human_needed`, not blocked. — Automated evidence passed 5/5 truths; the remaining surface is live interactive Codex behavior against real npm/package resolution and a non-default `CODEX_CONFIG_DIR`, captured in `58.1-VERIFICATION.md`.
+- [Phase 59-01]: Exit-code contract: kb rebuild exits 1 on malformed edges (hard fail per D-4); orphaned edges stay advisory (still reported in edge_integrity JSON + table) to preserve backward compatibility with existing execSync-style callers that throw on non-zero exit.
+- [Phase 59-01]: Schema v2-to-v3 migration: legacy-row cleanup (DELETE FROM signal_links, signal_tags, signals) moved into initSchema BEFORE creating new FTS5 AFTER triggers, not after. The AFTER DELETE trigger on an empty signal_fts produces 'database disk image is malformed'; clearing before triggers exist avoids that entire class of failure.
+- [Phase 59-01]: Edge provenance minimum (audit §7.1 #8) shipped now via additive signal_links.created_at + source_content_hash columns rather than deferred; schema v2-to-v3 bump already forces full rebuild so the incremental cost is zero and downstream forensic work stays cheap.
+- [Phase 59-01]: Live repair commit (4662bce3) kept separate from Task 2 implementation commit (30305732) so the 107-file signal frontmatter cleanup is independently revertable from the verb-adding code change.
+- [Phase 59]: [59-02]: Helper re-export over duplication -- kb.cjs exports getKbDir/getDbPath/getDbSync so sibling lib modules reuse path resolution + lazy sqlite gate without duplicating the guard block (no circular imports)
+- [Phase 59]: [59-02]: Grep fallback for kb query + kb search; clean error (no fallback) for kb link show --inbound -- inbound relation inversion via grep is infeasible at scale, so kb.db-absence surfaces 'run kb rebuild' rather than a degraded result per research §Genuine gaps
+- [Phase 59]: [59-02]: Write verbs stubbed at router (kb link create/delete emit 'Plan 04 deferred' error) so the verb namespace is discoverable this wave and Plan 04 has a clear router slot to replace
+- [Phase 59]: [59-02]: Fallback output labelled explicitly as 'fallback: {engine: grep, reason: kb.db not found}' rather than silent degradation -- downstream surfacing agents need to distinguish 'fewer matches' from 'running on grep (no porter stem)' per research Pitfall C2
+- [Phase 59-03]: kb health exit code is a bitmask (1=edge, 2=lifecycle, 4=dual_write; 7=all three) so CI callers discriminate failure class without re-parsing stdout; first-fail-wins would forfeit this information
+- [Phase 59-03]: Check 4 depends_on_freshness ships as SUMMARY not PASS so the advisory-vs-gate distinction is legible; research Pitfall C4 / D2 ontological limit means semantic staleness is not judged
+- [Phase 59-03]: Completed-plan detection uses NN-PLAN.md with matching NN-SUMMARY.md presence (execute-plan's commit convention as liveness signal); in-flight plans are out of scope
+- [Phase 59-03]: discoverSignalFiles / discoverSpikeFiles / computeEdgeIntegrity promoted from test-only to public exports in kb.cjs so kb-health.cjs reuses one implementation (plan must-have #6 + research Pitfall 8: no new walkers)
+- [Phase 59]: [59-04]: BEGIN IMMEDIATE + .bak sidecar dual-write -- canonical idiom for every mutating kb verb (kb transition, kb link create/delete); copy to .bak before any write, transact, on throw ROLLBACK SQL and restore file from .bak
+- [Phase 59]: [59-04]: Frozen-field guard requires --force on BOTH kb link create AND kb link delete for qualified_by/superseded_by (symmetry); per knowledge-store.md §10 these are frozen post-publication
+- [Phase 59]: [59-04]: reconcile-signal-lifecycle.sh deprecated with one-cycle sunset (v1.20->v1.21) + Linux guard that exits 2 with migration instructions -- chosen over silent removal so downstream macOS users have a release to migrate; Linux users get the deprecation surfaced loudly instead of silent no-op
+- [Phase 59]: [59-04]: 31 live-corpus lifecycle drifts NOT retroactively remediated in this plan -- wiring exists and integration test proves it; blanket retroactive transition is a separate operator-judgment pass similar to Plan 01's live-repair commit separation
+- [Phase 59]: knowledge-surfacing.md v1.0.0->v2.0.0 rewrite retires lesson-only grep-through-index path; SQLite-first signals+spikes+reflections triad with structural inbound-edge fetch via kb link show --inbound
+- [Phase 59]: 59-DEFERRALS.md enumerates KB-12..KB-17 in GATE-09 ledger-consumable form; REQUIREMENTS.md adds footer cross-reference (no content duplication); KB-04b..KB-08 flipped [x] with closed-by Phase 59 Plan N annotations
+- [Phase 59]: Cross-runtime parity integration test: sha256 equality for 5 kb* lib files + knowledge-surfacing.md across .claude and .codex; JSON shape parity for all new kb verbs. Phase 58.1 DC-4 held across Phase 59
 
 ### Roadmap Evolution
 
@@ -367,6 +390,12 @@ Recent decisions affecting current work:
 | Phase 58-structural-enforcement-gates P20 | 10min | 2 tasks | 3 files |
 | Phase 58.1 P01 | 8min | 2 tasks | 4 files |
 | Phase 58.1 P02 | 15min | 2 tasks | 5 files |
+| Phase 59-kb-query-lifecycle-wiring-and-surfacing P01 | 16min | 2 tasks | 112 files |
+| Phase 59 P02 | 7min | 2 tasks | 6 files |
+| Phase 59 P03 | 5min | 2 tasks | 4 files |
+| Phase 59 P04 | 13min | 2 tasks | 9 files |
+| Phase 59 P04 | 13min | 2 tasks | 9 files |
+| Phase 59 P05 | 8min | 2 tasks | 6 files |
 
 ### Key Artifacts
 
@@ -385,8 +414,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-20T22:24:18Z
-Stopped at: Verified 58.1 (live Codex checks pending)
+Last session: 2026-04-21T05:14:26.000Z
+Stopped at: Completed 59-05-PLAN.md (Wave 4: knowledge-surfacing rewrite + 59-DEFERRALS ledger + cross-runtime kb parity; Phase 59 closure ready for verifier)
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):

@@ -11,7 +11,7 @@ severity: minor
 signal_type: deviation
 signal_category: negative
 phase: 50
-plan: 
+plan: {}
 polarity: negative
 occurrence_count: 1
 related_signals: []
@@ -29,7 +29,6 @@ confidence_basis: Statistical frequency analysis over last 100 commits; churn is
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

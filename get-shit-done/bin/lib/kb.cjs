@@ -99,6 +99,8 @@ function initSchema(db) {
       source_id TEXT NOT NULL REFERENCES signals(id),
       target_id TEXT NOT NULL,
       link_type TEXT NOT NULL,
+      created_at TEXT DEFAULT '',
+      source_content_hash TEXT DEFAULT '',
       PRIMARY KEY (source_id, target_id, link_type)
     );
 
@@ -170,18 +172,109 @@ function initSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_ledger_disposition ON ledger_entries(disposition);
   `);
 
-  // 57.7 MEAS-GSDR-06: drop signal_fts virtual table. Previously reserved for
-  // Phase 59 full-text search, never populated, and external-content mode
-  // referenced nonexistent title/body columns on signals. Ripgrep remains the
-  // search fallback per option (b); any future FTS re-entry must be a
-  // contentless rewrite, not canonical-row expansion.
-  const ftsTriggers = db.prepare(
-    "SELECT name FROM sqlite_master WHERE type='trigger' AND sql LIKE '%signal_fts%'"
-  ).all();
-  for (const trigger of ftsTriggers) {
-    db.exec(`DROP TRIGGER IF EXISTS ${trigger.name};`);
+  // Phase 59 KB-04c: inbound-edge lookups on signal_links(target_id, link_type)
+  // plan as SEARCH ... USING INDEX, not SCAN. Without this index,
+  // `SELECT source_id FROM signal_links WHERE target_id = ?` is O(N) per
+  // call -- becomes a bottleneck as corpus grows past ~1000 signals. The
+  // composite (target_id, link_type) supports both bare inbound queries and
+  // inbound-filtered-by-link-type queries.
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_signal_links_target ON signal_links(target_id, link_type);
+  `);
+
+  // Phase 59 schema v2 -> v3 migration: signal_links gained created_at and
+  // source_content_hash columns (audit §7.1 #8 edge provenance minimum) and
+  // signal_fts was reintroduced as an FTS5 external-content contentless
+  // rewrite. On an existing v2 kb.db, signal_links lacks the new columns, so
+  // we must add them idempotently before cmdKbRebuild tries to INSERT with
+  // the new column list. ensureColumn is a no-op if the column already exists.
+  ensureColumn(db, 'signal_links', 'created_at', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signal_links', 'source_content_hash', "TEXT DEFAULT ''");
+
+  // Phase 59 KB-04b: signals.title and signals.body columns carry the
+  // derived H2-derived title and post-frontmatter body text that FTS5
+  // indexes. Option (i) from 59-RESEARCH.md -- declarative column shape over
+  // trigger-inline derivation. Populated on every INSERT OR REPLACE during
+  // rebuild so FTS stays coherent with signals via the AFTER triggers below.
+  ensureColumn(db, 'signals', 'title', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signals', 'body', "TEXT DEFAULT ''");
+
+  // Phase 59 schema v2 -> v3 FTS substrate migration. Detect an older
+  // schema_version and drop any pre-existing signal_fts + AFTER triggers
+  // before recreating them with the new shape. Doing this BEFORE the FTS
+  // re-creation avoids a class of FTS5 "database disk image is malformed"
+  // errors when the AFTER-DELETE/UPDATE trigger tries to delete rows from
+  // an empty FTS index. On a version bump, we also clear the signals/tags/
+  // links rows here (pre-triggers) so the subsequent rebuild re-populates
+  // everything via the new-shape INSERT path. The rebuild's own transaction
+  // then fires the new signals_ai INSERT triggers to populate signal_fts.
+  const metaHasRow = db.prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='meta'"
+  ).get();
+  const schemaVersionRow = metaHasRow
+    ? db.prepare("SELECT value FROM meta WHERE key = 'schema_version'").get()
+    : null;
+  const priorSchemaVersion = schemaVersionRow ? schemaVersionRow.value : null;
+  if (priorSchemaVersion !== '3') {
+    // Drop any lingering FTS triggers and shadow tables. IF EXISTS keeps this
+    // idempotent on fresh installs (nothing to drop) and cleans up any
+    // half-created Phase 57.7 drop-residue or earlier Phase 59 partial state.
+    db.exec(`
+      DROP TRIGGER IF EXISTS signals_ai;
+      DROP TRIGGER IF EXISTS signals_ad;
+      DROP TRIGGER IF EXISTS signals_au;
+      DROP TABLE IF EXISTS signal_fts;
+    `);
+    // Clear legacy rows now -- before the new triggers exist -- so the
+    // rebuild loop re-inserts everything fresh into the new schema.
+    // Order: signal_links FK-references signals(id), so edges first. This
+    // avoids the FTS5 malformed-disk-image error that would fire if the
+    // AFTER DELETE trigger tried to remove rows from an empty FTS index.
+    // This block runs only on schema upgrade, not on incremental rebuilds.
+    db.exec('DELETE FROM signal_links');
+    db.exec('DELETE FROM signal_tags');
+    db.exec('DELETE FROM signals');
   }
-  db.exec('DROP TABLE IF EXISTS signal_fts;');
+
+  // Phase 59 KB-04b: FTS5 external-content contentless rewrite. The virtual
+  // table indexes signals.title and signals.body without duplicating the
+  // body text. Three AFTER triggers (ai/ad/au) keep the FTS index coherent
+  // with future writes on signals. Existing rows are populated post-rebuild
+  // via `INSERT INTO signal_fts(signal_fts) VALUES('rebuild')` in
+  // cmdKbRebuild's schema-version-bump migration path.
+  //
+  // This replaces (does NOT revive) the Phase 57.7-dropped signal_fts --
+  // that one was a canonical-row expansion referencing nonexistent columns.
+  // Per 59-RESEARCH.md Pitfall 1: this re-entry is content='signals'
+  // contentless-rewrite with porter+unicode61 tokenizer, which is the
+  // correct shape.
+  db.exec(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS signal_fts USING fts5(
+      id UNINDEXED,
+      title,
+      body,
+      content='signals',
+      content_rowid='rowid',
+      tokenize='porter unicode61'
+    );
+
+    CREATE TRIGGER IF NOT EXISTS signals_ai AFTER INSERT ON signals BEGIN
+      INSERT INTO signal_fts(rowid, id, title, body)
+      VALUES (new.rowid, new.id, new.title, new.body);
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS signals_ad AFTER DELETE ON signals BEGIN
+      INSERT INTO signal_fts(signal_fts, rowid, id, title, body)
+      VALUES ('delete', old.rowid, old.id, old.title, old.body);
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS signals_au AFTER UPDATE ON signals BEGIN
+      INSERT INTO signal_fts(signal_fts, rowid, id, title, body)
+      VALUES ('delete', old.rowid, old.id, old.title, old.body);
+      INSERT INTO signal_fts(rowid, id, title, body)
+      VALUES (new.rowid, new.id, new.title, new.body);
+    END;
+  `);
 }
 
 function ensureColumn(db, tableName, columnName, definition) {
@@ -406,9 +499,31 @@ function deriveTopLevelProvenanceStatus(fm) {
 
 // ─── Frontmatter-to-row mapping ───────────────────────────────────────────────
 
-function signalToRow(fm, filePath, hash) {
+// Phase 59 KB-04b: derive title from first H2 heading in the post-frontmatter
+// body; fall back to empty string. Strip leading/trailing whitespace. Used to
+// populate signals.title for FTS5 indexing.
+function deriveTitleFromBody(body) {
+  if (typeof body !== 'string' || !body) return '';
+  const match = body.match(/^##\s+(.+?)\s*$/m);
+  return match ? match[1].trim() : '';
+}
+
+// Phase 59 KB-04b: strip the frontmatter block from raw markdown, leaving the
+// body text. Matches the same regex shape extractFrontmatter uses. Populates
+// signals.body for FTS5 indexing. Returns the full original content if no
+// frontmatter is present.
+function extractBodyFromContent(content) {
+  if (typeof content !== 'string') return '';
+  const match = content.match(/^---\r?\n[\s\S]+?\r?\n---\r?\n?/);
+  if (!match) return content;
+  return content.slice(match[0].length);
+}
+
+function signalToRow(fm, filePath, hash, rawContent) {
   const structuredProvenance = normalizeStructuredProvenance(fm);
   const legacyEcho = buildLegacyFlatEcho(structuredProvenance);
+  const body = extractBodyFromContent(rawContent || '');
+  const title = deriveTitleFromBody(body);
 
   return {
     id: fm.id || path.basename(filePath, '.md'),
@@ -439,6 +554,8 @@ function signalToRow(fm, filePath, hash) {
     confidence: fm.confidence || 'medium',
     status: normalizeStatus(fm.status),
     content_hash: hash,
+    title,
+    body,
   };
 }
 
@@ -507,33 +624,40 @@ function extractTags(fm) {
 // ─── Links extraction ─────────────────────────────────────────────────────────
 
 function extractLinks(fm, signalId) {
+  // Phase 59 R12: uniform typeof-string guard across all four link types.
+  // The YAML parser coerces bare keys like `recurrence_of:` (no value) to
+  // `{}` (empty object). Without the typeof guard, `String({}).trim()` is
+  // `"[object Object]"` -- truthy, non-empty -- and gets inserted as a
+  // malformed target_id. That single bug produced 107 malformed rows on the
+  // live corpus. Guarding each scalar/element on `typeof === 'string'`
+  // structurally eliminates the [object Object] bug class across
+  // qualified_by, superseded_by, related_signals, AND recurrence_of at once.
   const links = [];
-  // qualified_by: array of IDs
+  function pushIfValidString(value, linkType) {
+    if (typeof value !== 'string') return;
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    links.push({ source_id: signalId, target_id: trimmed, link_type: linkType });
+  }
+
+  // qualified_by: array of IDs (or single ID string)
   if (fm.qualified_by) {
     const ids = Array.isArray(fm.qualified_by) ? fm.qualified_by : [fm.qualified_by];
     for (const targetId of ids) {
-      if (targetId && String(targetId).trim()) {
-        links.push({ source_id: signalId, target_id: String(targetId).trim(), link_type: 'qualified_by' });
-      }
+      pushIfValidString(targetId, 'qualified_by');
     }
   }
   // superseded_by: single ID
-  if (fm.superseded_by && String(fm.superseded_by).trim()) {
-    links.push({ source_id: signalId, target_id: String(fm.superseded_by).trim(), link_type: 'superseded_by' });
-  }
-  // related_signals: array of IDs
+  pushIfValidString(fm.superseded_by, 'superseded_by');
+  // related_signals: array of IDs (or single ID string)
   if (fm.related_signals) {
     const ids = Array.isArray(fm.related_signals) ? fm.related_signals : [fm.related_signals];
     for (const targetId of ids) {
-      if (targetId && String(targetId).trim()) {
-        links.push({ source_id: signalId, target_id: String(targetId).trim(), link_type: 'related_to' });
-      }
+      pushIfValidString(targetId, 'related_to');
     }
   }
   // recurrence_of: single ID
-  if (fm.recurrence_of && String(fm.recurrence_of).trim()) {
-    links.push({ source_id: signalId, target_id: String(fm.recurrence_of).trim(), link_type: 'recurrence_of' });
-  }
+  pushIfValidString(fm.recurrence_of, 'recurrence_of');
   return links;
 }
 
@@ -559,6 +683,12 @@ function cmdKbRebuild(cwd, raw) {
   let errors = 0;
   const errorDetails = [];
 
+  // Phase 59: schema v2 -> v3 migration ran in initSchema (dropped old FTS,
+  // cleared legacy rows). The rebuild loop below re-inserts every signal
+  // fresh, firing the new signals_ai AFTER INSERT trigger to populate
+  // signal_fts row-by-row and attaching created_at/source_content_hash to
+  // every edge.
+
   // Prepared statements
   const getSignalHash = db.prepare('SELECT content_hash FROM signals WHERE file_path = ?');
   const insertSignal = db.prepare(`
@@ -566,17 +696,25 @@ function cmdKbRebuild(cwd, raw) {
       (id, file_path, project, severity, lifecycle_state, polarity, signal_category,
        disposition, signal_type, detection_method, origin, created, updated, phase, plan,
        provenance_schema, provenance_status, about_work_json, detected_by_json, written_by_json,
-       runtime, model, gsd_version, occurrence_count, durability, confidence, status, content_hash)
+       runtime, model, gsd_version, occurrence_count, durability, confidence, status, content_hash,
+       title, body)
     VALUES
       (@id, @file_path, @project, @severity, @lifecycle_state, @polarity, @signal_category,
        @disposition, @signal_type, @detection_method, @origin, @created, @updated, @phase, @plan,
        @provenance_schema, @provenance_status, @about_work_json, @detected_by_json, @written_by_json,
-       @runtime, @model, @gsd_version, @occurrence_count, @durability, @confidence, @status, @content_hash)
+       @runtime, @model, @gsd_version, @occurrence_count, @durability, @confidence, @status, @content_hash,
+       @title, @body)
   `);
   const deleteSignalTags = db.prepare('DELETE FROM signal_tags WHERE signal_id = ?');
   const insertSignalTag = db.prepare('INSERT OR IGNORE INTO signal_tags (signal_id, tag) VALUES (?, ?)');
   const deleteSignalLinks = db.prepare('DELETE FROM signal_links WHERE source_id = ?');
-  const insertSignalLink = db.prepare('INSERT OR IGNORE INTO signal_links (source_id, target_id, link_type) VALUES (?, ?, ?)');
+  // Phase 59 audit §7.1 #8: edge provenance minimum. Every signal_links row
+  // carries the rebuild-time ISO timestamp and the sha256 content hash of the
+  // source signal file, populated on INSERT. These enable cheap forensic
+  // work later without adding an edge-as-entity migration.
+  const insertSignalLink = db.prepare(
+    'INSERT OR IGNORE INTO signal_links (source_id, target_id, link_type, created_at, source_content_hash) VALUES (?, ?, ?, ?, ?)'
+  );
 
   const getSpikeHash = db.prepare('SELECT content_hash FROM spikes WHERE file_path = ?');
   const insertSpike = db.prepare(`
@@ -635,7 +773,7 @@ function cmdKbRebuild(cwd, raw) {
       }
 
       try {
-        const row = signalToRow(fm, relPath, hash);
+        const row = signalToRow(fm, relPath, hash, content);
         const isNew = !existing;
         insertSignal.run(row);
 
@@ -646,11 +784,20 @@ function cmdKbRebuild(cwd, raw) {
           insertSignalTag.run(row.id, tag);
         }
 
-        // Replace links
+        // Replace links. Phase 59 audit §7.1 #8: populate edge provenance
+        // (created_at = rebuild time; source_content_hash = hash already
+        // computed for this source signal file -- avoids a second file read).
         deleteSignalLinks.run(row.id);
+        const linkInsertedAt = new Date().toISOString();
         const links = extractLinks(fm, row.id);
         for (const link of links) {
-          insertSignalLink.run(link.source_id, link.target_id, link.link_type);
+          insertSignalLink.run(
+            link.source_id,
+            link.target_id,
+            link.link_type,
+            linkInsertedAt,
+            hash
+          );
         }
 
         if (isNew) signalsAdded++;
@@ -771,20 +918,39 @@ function cmdKbRebuild(cwd, raw) {
       ledgerFilesProcessed++;
     }
 
-    // Update meta table
+    // Update meta table. Phase 59 bumps schema_version 2 -> 3 to signal the
+    // FTS5 re-entry + signal_links provenance columns + idx_signal_links_target.
     const upsertMeta = db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)');
-    upsertMeta.run('schema_version', '2');
+    upsertMeta.run('schema_version', '3');
     upsertMeta.run('last_rebuilt', now);
     upsertMeta.run('signal_count', String(signalsAdded + signalsUpdated + signalsSkipped));
     upsertMeta.run('spike_count', String(spikesAdded + spikesUpdated + spikesSkipped));
     upsertMeta.run('ledger_entry_count', String(ledgerEntriesIndexed));
     upsertMeta.run('ledger_file_count', String(ledgerFilesProcessed));
 
+    // Phase 59 KB-04b: FTS external-content contentless rewrite requires an
+    // explicit rebuild of the index from the `signals` table content when
+    // existing rows were inserted before the FTS triggers existed (or when
+    // skipped-by-hash rows never fired AFTER INSERT). Running this inside the
+    // transaction keeps it atomic with the rest of the rebuild.
+    db.exec("INSERT INTO signal_fts(signal_fts) VALUES('rebuild');");
+
     db.exec('COMMIT');
   } catch (e) {
     db.exec('ROLLBACK');
     throw e;
   }
+
+  // Phase 59 KB-04d: post-rebuild edge-integrity pass. Group signal_links
+  // by link_type and compute four counts per type: total, resolves (target
+  // exists in signals.id OR spikes.id), orphaned (does not exist anywhere
+  // AND target is not malformed), malformed (target_id === '[object Object]').
+  // Exit-code semantics (research Pattern 3):
+  //   0 = no malformed and no orphaned
+  //   1 = any malformed (hard fail per D-4)
+  //   2 = only orphaned (warning; downgradable)
+  // The rebuild transaction already committed, so this pass is pure-read.
+  const edgeIntegrity = computeEdgeIntegrity(db);
 
   const total = signalFiles.length + spikeFiles.length + ledgerFiles.length;
   const added = signalsAdded + spikesAdded;
@@ -802,6 +968,7 @@ function cmdKbRebuild(cwd, raw) {
       skipped,
       errors,
       error_details: errorDetails,
+      edge_integrity: edgeIntegrity,
     }, true);
   } else {
     const lines = [
@@ -818,8 +985,87 @@ function cmdKbRebuild(cwd, raw) {
         lines.push(`  ${e.file}: ${e.error}`);
       }
     }
+    lines.push('');
+    lines.push(renderEdgeIntegrityTable(edgeIntegrity));
     console.log(lines.join('\n'));
   }
+
+  // Exit-code classification. Research Pattern 3 defines:
+  //   0 = no malformed and no orphaned
+  //   1 = any malformed (hard fail per D-4)
+  //   2 = only orphaned (warning; downgradable)
+  // We ship exit 1 on malformed as the hard fail contract. Orphaned is
+  // purely advisory (still reported in the table + JSON) and does NOT set
+  // process.exitCode -- many legitimate corpora contain orphaned edges
+  // mid-remediation (e.g. deleted target signal, or external refs), and a
+  // warning on that would break every pre-existing `kb rebuild` caller.
+  // Callers who want to treat orphaned as a failure can inspect the
+  // edge_integrity JSON under --raw.
+  if (edgeIntegrity.total.malformed > 0) {
+    process.exitCode = 1;
+  }
+}
+
+// Phase 59 KB-04d helpers: edge-integrity report.
+//
+// computeEdgeIntegrity walks the signal_links table once (using the new
+// idx_signal_links_target on target lookups) and classifies every row per
+// link_type. Ordering of rows in the emitted table follows research Pattern
+// 3: recurrence_of, related_to, qualified_by, superseded_by, TOTAL.
+const EDGE_INTEGRITY_ORDER = ['recurrence_of', 'related_to', 'qualified_by', 'superseded_by'];
+
+function computeEdgeIntegrity(db) {
+  const empty = () => ({ total: 0, resolves: 0, orphaned: 0, malformed: 0 });
+  const out = Object.fromEntries(EDGE_INTEGRITY_ORDER.map(lt => [lt, empty()]));
+  out.total = empty();
+
+  // One query -- SQLite handles the classification. target_id = '[object Object]'
+  // flags malformed; EXISTS joins cover both signals and spikes as resolve
+  // targets (spikes can be recurrence_of / related_to targets too).
+  const rows = db.prepare(`
+    SELECT
+      link_type,
+      CASE
+        WHEN target_id = '[object Object]' THEN 'malformed'
+        WHEN EXISTS(SELECT 1 FROM signals WHERE id = target_id) THEN 'resolves'
+        WHEN EXISTS(SELECT 1 FROM spikes WHERE id = target_id) THEN 'resolves'
+        ELSE 'orphaned'
+      END AS classification,
+      COUNT(*) AS n
+    FROM signal_links
+    GROUP BY link_type, classification
+  `).all();
+
+  for (const { link_type: linkType, classification, n } of rows) {
+    if (!out[linkType]) out[linkType] = empty();
+    out[linkType][classification] = (out[linkType][classification] || 0) + n;
+    out[linkType].total = (out[linkType].total || 0) + n;
+    out.total[classification] = (out.total[classification] || 0) + n;
+    out.total.total = (out.total.total || 0) + n;
+  }
+
+  return out;
+}
+
+function renderEdgeIntegrityTable(edgeIntegrity) {
+  const header = '  link_type         total  resolves  orphaned  malformed';
+  const lines = ['Edge integrity:', header];
+  for (const linkType of EDGE_INTEGRITY_ORDER) {
+    const row = edgeIntegrity[linkType] || { total: 0, resolves: 0, orphaned: 0, malformed: 0 };
+    lines.push(
+      `  ${linkType.padEnd(15)}  ${String(row.total).padStart(5)}  ${String(row.resolves).padStart(8)}  ${String(row.orphaned).padStart(8)}  ${String(row.malformed).padStart(9)}`
+    );
+  }
+  const t = edgeIntegrity.total;
+  lines.push(
+    `  ${'TOTAL'.padEnd(15)}  ${String(t.total).padStart(5)}  ${String(t.resolves).padStart(8)}  ${String(t.orphaned).padStart(8)}  ${String(t.malformed).padStart(9)}`
+  );
+  if (t.malformed > 0) {
+    lines.push('Exit code: 1 (malformed targets detected; run `kb repair --malformed-targets`)');
+  } else if (t.orphaned > 0) {
+    lines.push(`Note: ${t.orphaned} orphaned target(s) reference signals or spikes that do not exist locally (advisory; not a failure).`);
+  }
+  return lines.join('\n');
 }
 
 // ─── cmdKbStats ───────────────────────────────────────────────────────────────
@@ -997,6 +1243,183 @@ function cmdKbMigrate(cwd, raw) {
   }
 }
 
+// ─── cmdKbRepair ──────────────────────────────────────────────────────────────
+//
+// Phase 59 KB-04d + R1 + audit §7.1 #1: one-shot repair verb for malformed
+// link-type frontmatter values. Walks every signal file, detects link-type
+// fields whose value is a non-string truthy (e.g. empty object `{}` produced
+// by bare `recurrence_of:` YAML keys), removes the offending field from the
+// frontmatter, rewrites the file atomically, then re-runs `kb rebuild` so the
+// SQL rows reflect the cleaned frontmatter.
+//
+// Pitfall 5 (research): attacking only the SQL side doesn't work -- the bare
+// frontmatter keys will be re-parsed to {} on the next rebuild, producing
+// "[object Object]" again. Repair must fix the source files AND re-rebuild.
+// Task 1's extractLinks guard is the belt (no new malformed rows); this verb
+// is the suspenders (clean the 107 rows that already exist).
+//
+// Current flag shape: `gsd-tools kb repair --malformed-targets`. The flag is
+// the scope of the repair; future flags (e.g. `--orphaned-targets`) can
+// extend this without breaking callers. Exit 0 iff post-rebuild malformed==0
+// across ALL link types.
+const REPAIR_LINK_FIELDS = ['recurrence_of', 'qualified_by', 'superseded_by', 'related_signals'];
+
+function needsRepair(value) {
+  if (value === null || value === undefined) return false;
+  if (typeof value === 'string') return false;
+  if (Array.isArray(value)) return false; // per-element checks live in extractLinks
+  if (typeof value === 'object') return true; // bare/empty object -> malformed
+  return false;
+}
+
+function cmdKbRepair(cwd, raw, options = {}) {
+  if (!options.malformedTargets) {
+    const msg = 'Usage: gsd-tools kb repair --malformed-targets';
+    if (raw) output({ error: msg }, true);
+    else console.error(msg);
+    process.exitCode = 1;
+    return;
+  }
+
+  const kbDir = getKbDir(cwd);
+  const signalFiles = discoverSignalFiles(kbDir);
+
+  let filesRepaired = 0;
+  const fieldsCleared = Object.fromEntries(REPAIR_LINK_FIELDS.map(f => [f, 0]));
+  const errorDetails = [];
+  const repairLog = [];
+
+  for (const filePath of signalFiles) {
+    const relPath = path.relative(kbDir, filePath);
+    let content;
+    try {
+      content = fs.readFileSync(filePath, 'utf-8');
+    } catch (e) {
+      errorDetails.push({ file: relPath, error: `Read error: ${e.message}` });
+      continue;
+    }
+
+    let fm;
+    try {
+      fm = extractFrontmatter(content);
+    } catch (e) {
+      errorDetails.push({ file: relPath, error: `Parse error: ${e.message}` });
+      continue;
+    }
+
+    const clearedFields = [];
+    const newFm = Object.assign({}, fm);
+    for (const field of REPAIR_LINK_FIELDS) {
+      if (needsRepair(newFm[field])) {
+        delete newFm[field];
+        fieldsCleared[field]++;
+        clearedFields.push(field);
+      }
+    }
+
+    if (clearedFields.length === 0) continue;
+
+    try {
+      const newContent = spliceFrontmatter(content, newFm);
+      fs.writeFileSync(filePath, newContent, 'utf-8');
+      filesRepaired++;
+      repairLog.push(`  Repaired: ${path.basename(filePath)} (${clearedFields.join(', ')})`);
+    } catch (e) {
+      errorDetails.push({ file: relPath, error: `Write error: ${e.message}` });
+    }
+  }
+
+  // Re-run rebuild internally so post-repair edge_integrity can be reported
+  // and the SQL rows reflect the cleaned frontmatter. Pitfall 5 explicit.
+  // We capture the edge-integrity blob by opening the db afterward.
+  if (!raw) {
+    console.log(`KB repair: walked ${signalFiles.length} signal files, repaired ${filesRepaired}`);
+    for (const line of repairLog) console.log(line);
+  }
+
+  // Run rebuild, then read edge_integrity off the resulting db directly.
+  // We don't just spawn kb rebuild --raw and parse stdout because that loses
+  // the process-wide exitCode coupling across this verb. When the repair
+  // caller asked for --raw, suppress the rebuild's text output so stdout
+  // stays a single JSON blob; otherwise let it print normally so operators
+  // see the standard edge-integrity table.
+  if (raw) {
+    const origLog = console.log;
+    console.log = () => {};
+    try {
+      cmdKbRebuild(cwd, false);
+    } finally {
+      console.log = origLog;
+    }
+  } else {
+    cmdKbRebuild(cwd, false);
+  }
+  // cmdKbRebuild may have set process.exitCode to 1 (malformed) or 2
+  // (orphaned-only) based on the integrity pass. We re-compute our own
+  // success flag below from the db, and finalize the exit code at the end
+  // of this function so repair's contract (exit 0 iff post-rebuild
+  // malformed == 0) is authoritative.
+
+  const dbPath = getDbPath(cwd);
+  const DatabaseSync = getDbSync();
+  const db = new DatabaseSync(dbPath, { enableForeignKeyConstraints: true });
+  const edgeIntegrity = computeEdgeIntegrity(db);
+
+  const postRunMalformed = edgeIntegrity.total.malformed;
+  const success = postRunMalformed === 0;
+
+  if (raw) {
+    output({
+      files_repaired: filesRepaired,
+      fields_cleared: fieldsCleared,
+      errors: errorDetails.length,
+      error_details: errorDetails,
+      post_rebuild: edgeIntegrity,
+      success,
+    }, true);
+  } else {
+    console.log('');
+    console.log(`Fields cleared:`);
+    for (const [field, n] of Object.entries(fieldsCleared)) {
+      if (n > 0) console.log(`  ${field}: ${n}`);
+    }
+    if (errorDetails.length > 0) {
+      console.log('\nErrors:');
+      for (const e of errorDetails) console.log(`  ${e.file}: ${e.error}`);
+    }
+    if (success) {
+      console.log(`\nPost-repair malformed: 0 -- repair complete.`);
+    } else {
+      console.log(`\nPost-repair malformed: ${postRunMalformed} -- manual intervention required. Inspect signal_links with target_id='[object Object]' and the corresponding source files.`);
+    }
+  }
+
+  process.exitCode = success ? 0 : 1;
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
-module.exports = { cmdKbRebuild, cmdKbStats, cmdKbMigrate };
+module.exports = {
+  cmdKbRebuild,
+  cmdKbStats,
+  cmdKbMigrate,
+  cmdKbRepair,
+  // Phase 59 Wave 2: helpers re-exported so sibling lib modules (kb-query.cjs,
+  // kb-link.cjs, and forthcoming kb-health.cjs / kb-transition.cjs) can reuse
+  // path resolution and the lazy node:sqlite gate without duplicating the
+  // guard block. All three are pure helpers -- no side effects on export.
+  getKbDir,
+  getDbPath,
+  getDbSync,
+  // Phase 59 Plan 03: promoted from test-only to public so kb-health.cjs can
+  // reuse the file walkers and edge-integrity classifier without duplicating
+  // them. Per 59-03-PLAN must-have #6 + research Pitfall 8: no new walkers.
+  discoverSignalFiles,
+  discoverSpikeFiles,
+  computeEdgeIntegrity,
+  // Phase 59 test-only exports: allow unit tests to exercise extractLinks
+  // directly without re-invoking the full rebuild pipeline. Prefixed with
+  // __testOnly_ so the intent is legible.
+  __testOnly_extractLinks: extractLinks,
+  __testOnly_computeEdgeIntegrity: computeEdgeIntegrity,
+};

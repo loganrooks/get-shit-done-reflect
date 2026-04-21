@@ -35,7 +35,6 @@ confidence_basis: The drop-a-file behavior is mechanically verified in VERIFICAT
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

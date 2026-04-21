@@ -544,6 +544,81 @@ fi
 ```
 </step>
 
+<step name="reconcile_signal_lifecycle">
+Phase 59 Plan 04 (KB-07) closes the v1.16 lifecycle wiring gap: for each
+completed plan in the current phase, parse its `resolves_signals` frontmatter
+field and transition each referenced signal to `remediated` via the
+programmatic `kb transition` verb. This replaces the broken-on-Linux
+`reconcile-signal-lifecycle.sh` (deprecated; see banner in that file) and
+ensures signals referenced by completing plans do not silently stay in
+`detected`/`triaged` state.
+
+Contract:
+
+- A plan is "completed" when both `<plan>-PLAN.md` and `<plan>-SUMMARY.md`
+  exist in the phase directory (mirrors `kb health` Check 2).
+- If a signal is already in `remediated` or `verified`, skip (idempotent).
+- If the signal file is missing, emit a warning line but continue (do not
+  fail the workflow).
+- If `--dry-run` is passed to the caller, print the planned transitions
+  without executing.
+
+```bash
+KB_TRANSITION=$(if [ -d "$HOME/.claude/get-shit-done/bin" ]; then
+  echo "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs"
+else
+  echo "$HOME/.gsd/bin/gsd-tools.cjs"
+fi)
+
+# Walk every -PLAN.md in $PHASE_DIR whose matching -SUMMARY.md also exists.
+for PLAN_FILE in "$PHASE_DIR"/*-PLAN.md; do
+  [ -e "$PLAN_FILE" ] || continue
+  SUMMARY_FILE="${PLAN_FILE%-PLAN.md}-SUMMARY.md"
+  [ -e "$SUMMARY_FILE" ] || continue
+
+  PLAN_BASENAME=$(basename "$PLAN_FILE")
+
+  # Extract resolves_signals as a JSON array via --raw.
+  RESOLVES=$(node "$KB_TRANSITION" frontmatter get "$PLAN_FILE" --field resolves_signals --raw 2>/dev/null || echo "")
+  echo "$RESOLVES" | grep -q '^\[' || continue
+
+  # Parse JSON array and invoke kb transition per signal id.
+  echo "$RESOLVES" | node -e "
+    let raw = '';
+    process.stdin.on('data', d => raw += d);
+    process.stdin.on('end', () => {
+      try {
+        const ids = JSON.parse(raw);
+        if (Array.isArray(ids)) ids.forEach(id => console.log(id));
+      } catch {}
+    });
+  " | while IFS= read -r SIG_ID; do
+    [ -z "$SIG_ID" ] && continue
+    if [ "${DRY_RUN:-false}" = "true" ]; then
+      echo "[dry-run] kb transition $SIG_ID remediated --reason \"completed by $PLAN_BASENAME\" --resolved-by-plan $PLAN_BASENAME"
+      continue
+    fi
+    # kb transition is idempotent: if already in remediated/verified, the
+    # --raw response has noop=true and exit 0.
+    node "$KB_TRANSITION" kb transition "$SIG_ID" remediated \
+      --reason "completed by $PLAN_BASENAME" \
+      --resolved-by-plan "$PLAN_BASENAME" 2>&1 || echo "  Warning: kb transition failed for $SIG_ID"
+  done
+done
+```
+
+`kb transition` ships the BEGIN IMMEDIATE dual-write that atomically updates
+both the signal .md frontmatter AND the SQLite row; on any failure it rolls
+back and restores the file from a .bak sidecar. See
+`get-shit-done/bin/lib/kb-transition.cjs` for the full contract.
+
+This step closes the gap signal
+`sig-2026-03-04-signal-lifecycle-representation-gap` (KB-07) by wiring the
+reconciliation into the collect-signals workflow where the original design
+intended it to live, rather than delegating to an external bash script whose
+`sed -i ''` invocation is empirically broken on GNU sed (Linux).
+</step>
+
 <step name="commit_signals">
 If signals were written and `COMMIT_PLANNING_DOCS` is true, commit the new signal files:
 

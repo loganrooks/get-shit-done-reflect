@@ -40,7 +40,6 @@ confidence_basis: VERIFICATION.md provides explicit pass/fail for each must-have
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

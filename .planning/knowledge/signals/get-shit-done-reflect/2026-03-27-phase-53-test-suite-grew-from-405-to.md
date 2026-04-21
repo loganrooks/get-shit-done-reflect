@@ -11,7 +11,7 @@ severity: minor
 signal_type: baseline
 signal_category: positive
 phase: 53
-plan: 
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -26,13 +26,12 @@ evidence:
     - "VERIFICATION.md Test Suite Results: '415 passed | 4 todo | 0 failed (419 total)'"
     - "Baseline before phase: 405 tests (stated in multiple PLAN.md verify sections)"
     - Plan 01 added 4 bridge file tests; Plan 02 added 6 health-probe tests; Plan 04 fixed 2 existing tests for isolation
-  counter: [4 'todo' items remain unresolved in the suite]
+  counter: [4 todo items remain unresolved in the suite]
 confidence: high
 confidence_basis: VERIFICATION.md reports exact test counts from a live test run, and plan summaries corroborate the per-plan additions
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

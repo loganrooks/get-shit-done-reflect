@@ -40,7 +40,6 @@ confidence_basis: Both the plan and verification explicitly track the producer-c
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

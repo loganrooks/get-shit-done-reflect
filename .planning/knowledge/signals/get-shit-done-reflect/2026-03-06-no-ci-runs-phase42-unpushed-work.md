@@ -25,11 +25,10 @@ evidence:
     - Branch gsd/phase-41-health-score-automation is 19 commits ahead of remote with no CI runs triggered
   counter: []
 confidence: high
-confidence_basis: 
+confidence_basis: {}
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

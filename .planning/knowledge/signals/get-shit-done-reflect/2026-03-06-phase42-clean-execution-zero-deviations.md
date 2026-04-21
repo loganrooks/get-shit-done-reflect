@@ -39,7 +39,6 @@ confidence_basis: Direct comparison of PLAN.md task counts, file lists, and SUMM
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

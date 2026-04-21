@@ -27,11 +27,10 @@ evidence:
     - Expected behavior for parallel execution
     - Verification confirms 214 after merge
 confidence: medium
-confidence_basis: 
+confidence_basis: {}
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -39,7 +39,6 @@ confidence_basis: Direct code inspection of core.cjs with cross-reference to ups
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: manual
 origin: user-observation
 ---

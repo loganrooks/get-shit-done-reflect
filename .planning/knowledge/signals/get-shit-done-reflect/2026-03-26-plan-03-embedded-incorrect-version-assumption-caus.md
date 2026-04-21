@@ -53,7 +53,6 @@ confidence_basis: Auto-fix explicitly documented in SUMMARY.md with root cause a
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

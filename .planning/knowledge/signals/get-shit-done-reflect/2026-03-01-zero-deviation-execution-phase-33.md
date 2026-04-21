@@ -41,7 +41,6 @@ confidence_basis: All 4 SUMMARY.md files explicitly state no deviations. VERIFIC
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

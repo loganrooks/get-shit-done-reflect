@@ -34,7 +34,6 @@ confidence_basis: Duration is self-reported. Plans were highly detailed (pseudoc
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

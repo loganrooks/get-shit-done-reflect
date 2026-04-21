@@ -24,11 +24,10 @@ evidence:
     - Summary states Task 1 was already committed by prior session
   counter: [Executor handled it cleanly, No errors or rework resulted]
 confidence: high
-confidence_basis: 
+confidence_basis: {}
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

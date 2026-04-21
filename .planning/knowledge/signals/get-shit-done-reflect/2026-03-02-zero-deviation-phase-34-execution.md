@@ -33,7 +33,6 @@ confidence_basis: Deviations sections in all four SUMMARY.md files are explicit;
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

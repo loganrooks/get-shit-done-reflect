@@ -40,7 +40,6 @@ confidence_basis: All 4 SUMMARY.md files explicitly document deviation status. V
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

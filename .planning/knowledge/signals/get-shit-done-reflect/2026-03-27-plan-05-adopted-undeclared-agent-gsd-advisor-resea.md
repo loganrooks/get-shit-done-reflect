@@ -58,7 +58,6 @@ confidence_basis: Direct comparison of declared files_modified in Plan 05 PLAN.m
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

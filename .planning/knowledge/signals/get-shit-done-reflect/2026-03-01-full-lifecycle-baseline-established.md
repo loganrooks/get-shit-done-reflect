@@ -40,7 +40,6 @@ confidence_basis: The lifecycle demo is directly observable in the signal file a
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

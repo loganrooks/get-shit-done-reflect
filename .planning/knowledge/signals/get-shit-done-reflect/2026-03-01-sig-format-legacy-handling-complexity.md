@@ -37,7 +37,6 @@ confidence_basis: Evidence from plan spec and KB index. The complexity is real b
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

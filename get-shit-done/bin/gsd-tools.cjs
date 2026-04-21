@@ -52,6 +52,10 @@ const healthProbe = require('./lib/health-probe.cjs');
 const manifest = require('./lib/manifest.cjs');
 const automation = require('./lib/automation.cjs');
 const kb = require('./lib/kb.cjs');
+const kbQuery = require('./lib/kb-query.cjs');
+const kbLink = require('./lib/kb-link.cjs');
+const kbHealth = require('./lib/kb-health.cjs');
+const kbTransition = require('./lib/kb-transition.cjs');
 const telemetry = require('./lib/telemetry.cjs');
 const measurement = require('./lib/measurement.cjs');
 const quick = require('./lib/quick.cjs');
@@ -729,8 +733,68 @@ async function main() {
         kb.cmdKbStats(cwd, raw);
       } else if (subcommand === 'migrate') {
         kb.cmdKbMigrate(cwd, raw);
+      } else if (subcommand === 'repair') {
+        // Phase 59 KB-04d: scope of the repair is carried by the flag(s).
+        // Today only `--malformed-targets` is supported; future flags (e.g.
+        // `--orphaned-targets`) extend this without breaking callers.
+        const repairOptions = {
+          malformedTargets: args.includes('--malformed-targets'),
+        };
+        kb.cmdKbRepair(cwd, raw, repairOptions);
+      } else if (subcommand === 'query') {
+        // Phase 59 Plan 02 (KB-04b / KB-06a read half): structured AND-filter
+        // over signals. Non-mutating; degrades to grep on kb.db absence.
+        const qOpts = kbQuery.parseKbQueryOptions(args.slice(2));
+        kbQuery.cmdKbQuery(cwd, qOpts, raw);
+      } else if (subcommand === 'search') {
+        // Phase 59 Plan 02 (KB-04b): FTS5 MATCH over signal_fts + signals
+        // join for metadata. Non-mutating; degrades to grep on kb.db absence.
+        const searchQuery = args[2];
+        const sOpts = kbQuery.parseKbQueryOptions(args.slice(3));
+        kbQuery.cmdKbSearch(cwd, searchQuery, sOpts, raw);
+      } else if (subcommand === 'link') {
+        // Phase 59 Plan 02 (KB-04c / KB-06a read half): inbound/outbound
+        // edge traversal. Phase 59 Plan 04 (KB-06b write half): create/delete
+        // verbs with BEGIN IMMEDIATE dual-write and frozen-field guard on
+        // qualified_by / superseded_by.
+        const linkVerb = args[2];
+        if (linkVerb === 'show') {
+          const signalId = args[3];
+          const lOpts = kbLink.parseKbLinkOptions(args.slice(4));
+          kbLink.cmdKbLinkShow(cwd, signalId, lOpts, raw);
+        } else if (linkVerb === 'create') {
+          const srcId = args[3];
+          const tgtId = args[4];
+          const wOpts = kbLink.parseKbLinkWriteOptions(args.slice(5));
+          kbLink.cmdKbLinkCreate(cwd, srcId, tgtId, wOpts, raw);
+        } else if (linkVerb === 'delete') {
+          const srcId = args[3];
+          const tgtId = args[4];
+          const wOpts = kbLink.parseKbLinkWriteOptions(args.slice(5));
+          kbLink.cmdKbLinkDelete(cwd, srcId, tgtId, wOpts, raw);
+        } else {
+          error('Usage: gsd-tools kb link <show|create|delete> <signal-id> [...]');
+        }
+      } else if (subcommand === 'transition') {
+        // Phase 59 Plan 04 (KB-06b / KB-07): programmatic lifecycle transition
+        // with BEGIN IMMEDIATE dual-write. Replaces the broken-on-Linux
+        // reconcile-signal-lifecycle.sh. Usage:
+        //   kb transition <signal-id> <new-state> [--reason <text>]
+        //                 [--resolved-by-plan <id>] [--strictness strict|flexible|minimal]
+        const signalId = args[2];
+        const newState = args[3];
+        const tOpts = kbTransition.parseKbTransitionOptions(args.slice(4));
+        kbTransition.cmdKbTransition(cwd, signalId, newState, tOpts, raw);
+      } else if (subcommand === 'health') {
+        // Phase 59 Plan 03 (KB-04e / SC-5 / audit §7.1 #7): four-check
+        // watchdog over edge integrity, lifecycle-vs-plan consistency,
+        // dual-write invariant, and depends_on freshness. Exit code is a
+        // bitmask (1=edge, 2=lifecycle, 4=dual_write) so CI can discriminate
+        // failure classes without re-parsing text.
+        const hOpts = kbHealth.parseKbHealthOptions(args.slice(2));
+        kbHealth.cmdKbHealth(cwd, hOpts, raw);
       } else {
-        error('Usage: gsd-tools kb <rebuild|stats|migrate>');
+        error('Usage: gsd-tools kb <rebuild|stats|migrate|repair|query|search|link|transition|health>');
       }
       break;
     }

@@ -37,7 +37,6 @@ triage:
   at: "2026-03-02T18:50:00Z"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

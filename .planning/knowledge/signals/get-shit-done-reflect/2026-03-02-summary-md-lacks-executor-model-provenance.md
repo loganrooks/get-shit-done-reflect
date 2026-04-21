@@ -29,7 +29,6 @@ confidence_basis: Direct observation across all four SUMMARY.md files in Phase 3
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

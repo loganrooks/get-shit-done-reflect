@@ -15,7 +15,7 @@ severity: notable
 signal_type: baseline
 signal_category: positive
 phase: 50
-plan: 
+plan: {}
 polarity: positive
 occurrence_count: 1
 related_signals: []
@@ -38,7 +38,6 @@ confidence_basis: Verification report provides explicit line-by-line evidence fo
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

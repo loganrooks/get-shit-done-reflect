@@ -39,7 +39,6 @@ confidence_basis: Explicitly documented in 50-05 SUMMARY deviations section with
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

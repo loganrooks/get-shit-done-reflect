@@ -3,13 +3,11 @@ id: sig-2026-03-06-branch-protection-bypass-three-commits
 type: signal
 project: get-shit-done-reflect
 tags:
-
   - ci
   - branch-protection
   - bypass
   - main-branch
   - test-failure
-
 created: "2026-03-06T23:30:00Z"
 updated: "2026-04-10T21:55:15Z"
 durability: convention
@@ -26,28 +24,22 @@ model: claude-opus-4-6
 gsd_version: 1.16.0+dev
 lifecycle_state: detected
 lifecycle_log:
-
   - "created -> detected by gsd-signal-synthesizer at 2026-03-06T23:30:00Z"
   - "remediated->detected by gsdr-signal-synthesizer at 2026-04-10T21:55:15Z: recurrence detected in phase 57.4 (commits d3da37ce, 947832bb on main bypassed CI) -- see sig-2026-04-10-ci-branch-protection-bypass-recurrence"
-
 evidence:
   supporting:
-
     - Commit 6aaa7c1 on main has failed required check 'Test' (gh api confirms conclusion=failure)
     - Commit a33117f on main missing required check 'Test
     - Commit 468f40f on main missing required check 'Test
     - "Merged with ci signal: CI run 'CI' failed on main (commit 6aaa7c1) -- test failure on required check"
   counter:
-
     - Failure was resolved in subsequent commits -- main is currently green
     - These three commits appear to be sequential pushes from the same work session -- likely a single direct push to main
-
 confidence: high
 confidence_basis: GitHub API confirms check status for all three commits. Direct observation, not inference.
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of:
 detection_method: automated
 origin: collect-signals
 ---

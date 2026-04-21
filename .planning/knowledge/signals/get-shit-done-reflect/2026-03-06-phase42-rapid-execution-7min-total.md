@@ -27,11 +27,10 @@ evidence:
   counter:
     - Prescriptive plans with full code blocks reduce execution to mechanical copy-paste
 confidence: medium
-confidence_basis: 
+confidence_basis: {}
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

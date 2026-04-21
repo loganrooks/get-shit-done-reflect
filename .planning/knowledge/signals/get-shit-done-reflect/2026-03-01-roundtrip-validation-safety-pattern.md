@@ -42,7 +42,6 @@ confidence_basis: Pattern is explicitly documented in plan, implemented in agent
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -43,7 +43,6 @@ confidence_basis: Comparison of plan declarations against git log for all phase 
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -42,7 +42,6 @@ confidence_basis: Pattern is explicitly implemented in the reflector agent spec.
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

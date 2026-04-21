@@ -31,7 +31,6 @@ confidence_basis: "Merged with git sensor signal: Plan 38.1-03 touched 1 undecla
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

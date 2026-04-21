@@ -40,7 +40,6 @@ confidence_basis: Documented in both VERIFICATION.md and SUMMARY.md as a known c
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

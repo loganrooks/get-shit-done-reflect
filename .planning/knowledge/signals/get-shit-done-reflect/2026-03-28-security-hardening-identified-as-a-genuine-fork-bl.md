@@ -36,7 +36,6 @@ confidence_basis: Three independent analyses converge on identifying security as
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

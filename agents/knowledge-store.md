@@ -10,7 +10,7 @@ version: 2.1.0
 
 The GSD Knowledge Store is a persistent knowledge base. The primary location is `.planning/knowledge/` (project-local, version-controlled). When `.planning/knowledge/` does not exist, agents fall back to `~/.gsd/knowledge/` (user-global). It stores three entry types: signals (workflow deviations and struggles), reflections (analysis reports), and spikes (structured experiments and decisions).
 
-**Note:** Lessons are deprecated. Existing lesson files remain at `~/.gsd/knowledge/lessons/` as historical artifacts and may still be read for backward compatibility, but no new lesson files are created. Lesson candidates are documented in reflection reports instead.
+**Note:** Lessons are deprecated. Existing lesson files remain at `~/.gsd/knowledge/lessons/` as historical artifacts and may still be read for backward compatibility, but no new lesson files are created. Lesson candidates are documented in reflection reports instead. See Phase 59 surfacing rewrite (`get-shit-done/references/knowledge-surfacing.md` §§1, 2, 8) for the replacement signals+reflections surfacing path.
 
 **Consumers:** GSD-internal agents only. No external tool integration required.
 

@@ -30,11 +30,10 @@ evidence:
   counter:
     - These are expected epistemic gaps for workflow-based features -- the gap is structural, not a deficiency
 confidence: high
-confidence_basis: 
+confidence_basis: {}
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

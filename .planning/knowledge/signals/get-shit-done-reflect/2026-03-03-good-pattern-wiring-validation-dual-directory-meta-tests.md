@@ -44,7 +44,6 @@ confidence_basis: VERIFICATION.md records explicit verification of multiple rela
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -16,7 +16,7 @@ severity: notable
 signal_type: struggle
 signal_category: negative
 phase: 50
-plan: 
+plan: {}
 polarity: negative
 occurrence_count: 1
 related_signals: []
@@ -41,7 +41,6 @@ confidence_basis: Pattern observed across 3 of 5 plans; consistent theme of inco
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

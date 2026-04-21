@@ -472,13 +472,28 @@ Reconcile signal lifecycle states after successful verification. This step is be
 
 Only runs if verification passed (`passed` or `human_needed` that was approved).
 
-```bash
-# Reconcile signal lifecycle: update signals declared in resolves_signals
-# from detected/triaged to remediated
-bash ~/.claude/get-shit-done/bin/reconcile-signal-lifecycle.sh "${PHASE_DIR}" 2>&1 || echo "Warning: Signal lifecycle reconciliation failed (non-blocking)"
+Phase 59 rewiring (KB-07): lifecycle reconciliation now flows through the
+`collect-signals` workflow's `reconcile_signal_lifecycle` step, which uses
+`gsd-tools kb transition` (BEGIN IMMEDIATE dual-write) to update each completed
+plan's `resolves_signals` references. This is invoked as part of the
+`auto_collect_signals` step below; no separate invocation is required here.
+
+```
+# PRIMARY PATH (v1.20+): collect-signals workflow handles lifecycle
+# reconciliation automatically via kb transition for each completed plan's
+# resolves_signals. See the auto_collect_signals step below.
+#
+# LEGACY FALLBACK (deprecated, one-cycle sunset v1.20 -> v1.21):
+# reconcile-signal-lifecycle.sh is kept as a compatibility fallback but is
+# NOT invoked by this workflow. The script's sed -i '' is BSD-only and
+# silently no-ops on GNU sed (Linux) -- a Linux guard now exits the script
+# with instructions to use `kb transition` instead.
 ```
 
-This programmatic reconciliation replaces agent-instruction-based lifecycle transitions, which were unreliable in long execution sequences.
+The legacy bash reconciliation is explicitly NOT invoked from this workflow
+in v1.20 and will be removed in v1.21. If you need to run the old path for
+compatibility, invoke `reconcile-signal-lifecycle.sh` directly and accept the
+Linux guard / macOS-only behavior.
 </step>
 
 <!-- SIG-01, SIG-02, SIG-04, SIG-05: auto-collection postlude -->

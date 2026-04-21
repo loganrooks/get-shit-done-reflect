@@ -37,7 +37,6 @@ confidence_basis: Explicitly stated in the SUMMARY deviations section; pattern o
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

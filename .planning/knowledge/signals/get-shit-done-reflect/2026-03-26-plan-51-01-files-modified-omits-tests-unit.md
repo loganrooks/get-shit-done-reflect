@@ -36,7 +36,6 @@ confidence_basis: Direct comparison of PLAN.md files_modified frontmatter agains
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

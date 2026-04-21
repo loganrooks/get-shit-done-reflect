@@ -51,29 +51,36 @@ Dependencies: KB-09 -> KB-04a -> KB-04b/KB-04c/KB-04d -> KB-06a/KB-06b -> KB-07 
 - [ ] **KB-04a**: SQLite index built from signal files via node:sqlite with `gsd-tools kb rebuild` -- schema includes all frontmatter fields, kb.db gitignored, rebuildable from files
   - *Motivation:* `research: kb-architecture-research.md -- file+SQLite validated by 3 open-source precedents (MarkdownDB, Palinode, sqlite-memory)`
   - *Dependencies:* KB-09 (migration must complete before index build)
-- [ ] **KB-04b**: FTS5 full-text search across signal content and lifecycle state queries via `gsd-tools kb query/search`
+- [x] **KB-04b**: FTS5 full-text search across signal content and lifecycle state queries via `gsd-tools kb query/search`
   - *Motivation:* `research: kb-architecture-research.md -- FTS5 confirmed working on Dionysus via node:sqlite`
   - *Dependencies:* KB-04a
-- [ ] **KB-04c**: Relationship traversal exposes both outbound and inbound edges via an explicit read surface (`gsd-tools kb link show --outbound/--inbound` or equivalent), with traversal semantics named for the current edge vocabulary instead of relying on source-file frontmatter alone
+  - *Closed by:* Phase 59 Plan 02 (`kb query` + `kb search` with FTS5 external-content contentless rewrite; Plan 01 substrate)
+- [x] **KB-04c**: Relationship traversal exposes both outbound and inbound edges via an explicit read surface (`gsd-tools kb link show --outbound/--inbound` or equivalent), with traversal semantics named for the current edge vocabulary instead of relying on source-file frontmatter alone
   - *Motivation:* `research: spike-methodology-gap-analysis.md -- cross-spike qualification requires navigable links` | `audit: 2026-04-20-phase-59-kb-architecture-gap-audit Finding A4 / Recommendation 7.1.2`
   - *Dependencies:* KB-04a, KB-03
-- [ ] **KB-04d**: `kb rebuild` reports edge integrity for the live corpus — counts by link_type, counts whose targets resolve to known artifacts, counts of orphaned targets, and hard failure on malformed targets after migration. One-time repair migration cleans existing malformed edge targets before the gate is declared complete
+  - *Closed by:* Phase 59 Plan 02 (`kb link show` read-only traversal + idx_signal_links_target from Plan 01)
+- [x] **KB-04d**: `kb rebuild` reports edge integrity for the live corpus — counts by link_type, counts whose targets resolve to known artifacts, counts of orphaned targets, and hard failure on malformed targets after migration. One-time repair migration cleans existing malformed edge targets before the gate is declared complete
   - *Motivation:* `audit: 2026-04-20-phase-59-kb-architecture-gap-audit Finding A1 / Recommendation 7.1.1 + 7.1.4`
   - *Dependencies:* KB-04a, KB-03
+  - *Closed by:* Phase 59 Plan 01 (`kb rebuild` edge-integrity report + `kb repair --malformed-targets` verb; 107 live malformed edges cleaned)
 - [x] **KB-05**: SQLite index is a derived cache -- files remain source of truth, dual-write invariant enforced on every lifecycle transition, kb.db gitignored, rebuildable from files at any time
   - *Motivation:* `signal: sig-2026-02-11-kb-data-loss-migration-gap -- direct historical precedent for cache-as-truth failure` | `research: PITFALLS.md C1`
   - *Note:* `~/.gsd/knowledge/` now houses both fork's subdirectory-based epistemic artifacts and upstream's flat JSON learnings -- document coexistence in implementation
-- [ ] **KB-06a**: `gsd-tools kb` read operations: query, search, stats, health, rebuild, and read-only link surfacing. `kb health` has a concrete contract: edge integrity, lifecycle-vs-plan consistency, dual-write status, and `depends_on` freshness summary
+- [x] **KB-06a**: `gsd-tools kb` read operations: query, search, stats, health, rebuild, and read-only link surfacing. `kb health` has a concrete contract: edge integrity, lifecycle-vs-plan consistency, dual-write status, and `depends_on` freshness summary
   - *Motivation:* `research: kb-architecture-research.md -- CLI-first validates query API; MCP wrapper deferred to v1.21`
-- [ ] **KB-06b**: `gsd-tools kb` write operations are verb-disambiguated (`transition`, `link create`, `link delete`, or equivalent) rather than overloading one `link` verb for both traversal and mutation. Dual-write invariant remains enforced per KB-05 on every mutating path
+  - *Closed by:* Phase 59 Plans 02+03 (read surface + four-check `kb health` watchdog with exit-code bitmask)
+- [x] **KB-06b**: `gsd-tools kb` write operations are verb-disambiguated (`transition`, `link create`, `link delete`, or equivalent) rather than overloading one `link` verb for both traversal and mutation. Dual-write invariant remains enforced per KB-05 on every mutating path
   - *Motivation:* `research: PITFALLS.md C1 -- write operations have data integrity risk; read operations do not` | `audit: 2026-04-20-phase-59-kb-architecture-gap-audit Finding F1 / Recommendation 7.1.3`
   - *Dependencies:* KB-05 (invariant must be established before write ops ship)
-- [ ] **KB-07**: Signal lifecycle wiring completes the v1.16 `resolves_signals` feature -- collect-signals reads resolves_signals from completed plan frontmatter and auto-transitions matching signals to remediated. The phase must explicitly reconcile this path with the existing `reconcile-signal-lifecycle.sh` fallback (replace, complement, or deprecate) rather than letting both paths drift independently
+  - *Closed by:* Phase 59 Plan 04 (`kb transition` + `kb link create/delete` with BEGIN IMMEDIATE dual-write + .bak sidecar rollback)
+- [x] **KB-07**: Signal lifecycle wiring completes the v1.16 `resolves_signals` feature -- collect-signals reads resolves_signals from completed plan frontmatter and auto-transitions matching signals to remediated. The phase must explicitly reconcile this path with the existing `reconcile-signal-lifecycle.sh` fallback (replace, complement, or deprecate) rather than letting both paths drift independently
   - *Motivation:* `research: PITFALLS.md C2 -- resolves_signals has existed since Phase 34 and has never been read by anything` | `deliberation: signal-lifecycle-closed-loop-gap.md` | `audit: 2026-04-20-phase-59-kb-architecture-gap-audit Finding B1 / Recommendation 7.1.6`
   - *Dependencies:* KB-06b (transition command must exist)
-- [ ] **KB-08**: KB surfacing in research/planning agents uses SQLite queries instead of grep-through-index for relevant signal/spike/reflection retrieval, and the surfacing protocol fetches inbound edge context alongside outbound links when available. Graceful fallback to grep when kb.db does not exist (fresh clone, first run)
+  - *Closed by:* Phase 59 Plan 04 (collect-signals `reconcile_signal_lifecycle` step + bash reconcile deprecated with Linux guard + v1.21 sunset)
+- [x] **KB-08**: KB surfacing in research/planning agents uses SQLite queries instead of grep-through-index for relevant signal/spike/reflection retrieval, and the surfacing protocol fetches inbound edge context alongside outbound links when available. Graceful fallback to grep when kb.db does not exist (fresh clone, first run)
   - *Motivation:* `research: ARCHITECTURE.md -- knowledge-surfacing.md updated to use kb query for structured retrieval` | `audit: 2026-04-20-phase-59-kb-architecture-gap-audit Findings C2 + A4 / Recommendation 7.1.2 + 7.1.5`
   - *Dependencies:* KB-04b
+  - *Closed by:* Phase 59 Plan 05 (knowledge-surfacing.md v2.0.0 rewrite; structural inbound-edge fetch via `kb link show --inbound`; grep fallback documented as fresh-clone degraded path)
 - [x] **KB-09**: Existing signal files parse successfully with new schema. `source` field resolved to `detection_method` + `origin`. `kb rebuild` on the current live corpus succeeds without data loss (198 signals at original closeout; 267 as of 2026-04-20; re-verify against live count at implementation time). Migration script provided for one-time field resolution
   - *Motivation:* `research: PITFALLS.md N5 -- source field ambiguity must be resolved before SQLite schema finalized`
   - *Dependencies:* KB-01, KB-02, KB-03 (schema must be defined before migration)
@@ -96,6 +103,8 @@ Dependencies: KB-09 -> KB-04a -> KB-04b/KB-04c/KB-04d -> KB-06a/KB-06b -> KB-07 
   - *Motivation:* `audit: 2026-04-20-phase-59-kb-architecture-gap-audit §5.2 + §5.3 / Recommendation 7.2`
 - [ ] **KB-17**: Contested / under-review signal state — the KB can represent challenged signals before they are remediated or invalidated, either as an explicit lifecycle state or via the KB-12 edge-as-entity model
   - *Motivation:* `audit: 2026-04-20-phase-59-kb-architecture-gap-audit §4.2 / Recommendation 7.2`
+
+> See `.planning/phases/59-kb-query-lifecycle-wiring-and-surfacing/59-DEFERRALS.md` for the GATE-09 ledger-consumable deferral table covering KB-12..KB-17 (phase target, load-bearing classification, rationale). The DEFERRALS file is the authoritative reconciliation point; this section carries the requirement rows themselves.
 
 ### Measurement & Telemetry
 
@@ -532,12 +541,13 @@ Updated during roadmap creation.
 | MEAS-GSDR-04 | Phase 57.5 | Complete |
 | MEAS-GSDR-05 | Phase 57.5 | Complete |
 | MEAS-GSDR-06 | Phase 57.7 | Complete |
-| KB-04b | Phase 59 | Pending |
-| KB-04c | Phase 59 | Pending |
-| KB-06a | Phase 59 | Pending |
-| KB-06b | Phase 59 | Pending |
-| KB-07 | Phase 59 | Pending |
-| KB-08 | Phase 59 | Pending |
+| KB-04b | Phase 59 | Complete |
+| KB-04c | Phase 59 | Complete |
+| KB-04d | Phase 59 | Complete |
+| KB-06a | Phase 59 | Complete |
+| KB-06b | Phase 59 | Complete |
+| KB-07 | Phase 59 | Complete |
+| KB-08 | Phase 59 | Complete |
 | SENS-01 | Phase 60 | Pending |
 | SENS-02 | Phase 60 | Pending |
 | SENS-03 | Phase 60 | Pending |

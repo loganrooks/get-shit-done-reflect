@@ -21,7 +21,7 @@ lifecycle_log:
   - "created -> detected by gsd-signal-synthesizer at 2026-03-02T00:00:00Z"
 evidence:
   supporting:
-    - VERIFICATION.md 'Human Verification Required' section lists 3 items that 'cannot be verified programmatically'
+    - VERIFICATION.md 'Human Verification Required' section lists 3 items that 'cannot be verified programmatically
     - "Item 1: End-to-End Planner Signal Awareness"
     - "Item 2: Automatic Remediation Triggering"
     - "Item 3: Passive Verification Triggering"
@@ -35,7 +35,6 @@ confidence_basis: The VERIFICATION.md explicitly identifies these as unverifiabl
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

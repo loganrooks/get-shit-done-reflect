@@ -36,7 +36,6 @@ confidence_basis: Deviation documented in 34-04-SUMMARY.md. Related to previousl
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

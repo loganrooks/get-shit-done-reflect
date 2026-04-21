@@ -784,3 +784,102 @@ describe('KB template provenance fields', () => {
     expect(content).toContain('Optional provenance fields')
   })
 })
+
+// ─── Phase 59: live-corpus regression (Phase 57.8 live-upgrade-verification-pattern) ──
+
+describe('Phase 59: kb repair + rebuild on live corpus', () => {
+  // Per 59-RESEARCH.md R8 / D-9 and Plan 59-01 Task 2: a live-corpus
+  // regression is non-negotiable because the 57.8 precedent
+  // (sig-2026-04-20-plan-03-live-kb-migration-failure) showed migrations
+  // that pass fixture tests but fail on the real corpus. This test runs
+  // against a copy-then-restore snapshot of `.planning/knowledge/signals/`
+  // so the actual on-disk source files are NOT mutated by the test.
+  //
+  // Contract: after `kb repair --malformed-targets` followed by `kb rebuild`,
+  // `edge_integrity.*.malformed === 0` across all four link types on the
+  // live 278-signal corpus.
+
+  const liveKbDir = path.join(REPO_ROOT, '.planning', 'knowledge')
+  const hasLiveCorpus = fsSync.existsSync(path.join(liveKbDir, 'signals'))
+
+  // Guard: if the live corpus doesn't exist (e.g. running in a fresh
+  // checkout or CI environment without .planning/), mark the test as
+  // deferred via skip rather than fail.
+  const maybeIt = hasLiveCorpus ? tmpdirTest : tmpdirTest.skip
+
+  maybeIt(
+    'live-corpus regression: malformed=0 across all link types after repair + rebuild',
+    async ({ tmpdir }) => {
+      // Copy the live signals/ (and spikes/) into a tmp .planning/knowledge
+      // mirror. We do NOT copy kb.db so the rebuild starts from a known
+      // state and exercises the full v2->v3 migration path.
+      const tmpKbDir = path.join(tmpdir, '.planning', 'knowledge')
+      fsSync.mkdirSync(tmpKbDir, { recursive: true })
+      fsSync.cpSync(path.join(liveKbDir, 'signals'), path.join(tmpKbDir, 'signals'), {
+        recursive: true,
+      })
+      if (fsSync.existsSync(path.join(liveKbDir, 'spikes'))) {
+        fsSync.cpSync(path.join(liveKbDir, 'spikes'), path.join(tmpKbDir, 'spikes'), {
+          recursive: true,
+        })
+      }
+
+      // Helper: spawn gsd-tools kb * from the tmpdir (so getKbDir resolves
+      // the snapshot) and return {stdout, code}. Does not throw on non-zero.
+      function spawnKb(subcommand, extraArgs = []) {
+        const args = ['kb', subcommand, ...extraArgs]
+        let stdout = ''
+        let code = 0
+        try {
+          stdout = execSync(`node --no-warnings "${GSD_TOOLS}" ${args.join(' ')}`, {
+            cwd: tmpdir,
+            encoding: 'utf-8',
+            timeout: 60000,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          })
+        } catch (err) {
+          stdout = err.stdout || ''
+          code = err.status != null ? err.status : 1
+        }
+        return { stdout, code }
+      }
+
+      // 1) Initial rebuild populates kb.db, performs the v2->v3 migration,
+      //    and should fire 107 malformed rows (or whatever the live count is).
+      const initial = spawnKb('rebuild', ['--raw'])
+      const initialParsed = JSON.parse(initial.stdout.trim())
+      // At this point, the extractLinks typeof-string guard already prevents
+      // new malformed rows from being created -- so the initial rebuild
+      // against the unrepaired source files MAY show malformed=0 depending
+      // on whether the live corpus is already clean. Either way the repair
+      // must leave malformed=0 after it runs.
+      expect(initialParsed.edge_integrity).toBeTruthy()
+      // Sanity-check the shape
+      expect(initialParsed.edge_integrity.recurrence_of).toHaveProperty('malformed')
+
+      // 2) Run repair --malformed-targets. Should exit 0 and leave the
+      //    snapshot with 0 malformed rows across all link types.
+      const repair = spawnKb('repair', ['--malformed-targets', '--raw'])
+      const repairParsed = JSON.parse(repair.stdout.trim())
+      expect(repairParsed.success).toBe(true)
+      expect(repair.code).toBe(0)
+      expect(repairParsed.post_rebuild.recurrence_of.malformed).toBe(0)
+      expect(repairParsed.post_rebuild.qualified_by.malformed).toBe(0)
+      expect(repairParsed.post_rebuild.superseded_by.malformed).toBe(0)
+      expect(repairParsed.post_rebuild.related_to.malformed).toBe(0)
+
+      // 3) Re-rebuild to confirm malformed stays 0 after a fresh rebuild.
+      const post = spawnKb('rebuild', ['--raw'])
+      const postParsed = JSON.parse(post.stdout.trim())
+      expect(postParsed.edge_integrity.total.malformed).toBe(0)
+      expect(postParsed.edge_integrity.recurrence_of.malformed).toBe(0)
+      expect(postParsed.edge_integrity.qualified_by.malformed).toBe(0)
+      expect(postParsed.edge_integrity.superseded_by.malformed).toBe(0)
+      expect(postParsed.edge_integrity.related_to.malformed).toBe(0)
+
+      // 4) Exit code on the final rebuild is 0 (no malformed).
+      expect(post.code).toBe(0)
+    },
+    90000 // 1.5 min cap for the full copy + rebuild + repair + rebuild cycle
+  )
+})

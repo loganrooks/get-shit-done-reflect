@@ -27,11 +27,10 @@ evidence:
     - must_haves.artifacts section does list these files
     - files_modified may only list pre-existing files
 confidence: high
-confidence_basis: 
+confidence_basis: {}
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

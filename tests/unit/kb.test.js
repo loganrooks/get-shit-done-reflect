@@ -1034,3 +1034,586 @@ describeIf('split provenance KB bridge (Phase 57.8)', () => {
     10000
   )
 })
+
+// ─── 10. Phase 59: extractLinks uniform typeof-string guard (R12) ────────────
+
+const kbLib = require('../../get-shit-done/bin/lib/kb.cjs')
+
+/**
+ * Spawn `kb <subcommand>` against tmpdir without throwing on non-zero exit.
+ * Returns { stdout, stderr, code }. Needed for cases where exit code is the
+ * signal (edge_integrity malformed -> exit 1, orphaned -> exit 2).
+ */
+function runKbCapture(tmpdir, subcommand, extraArgs = []) {
+  const args = ['kb', subcommand, ...extraArgs]
+  let stdout = ''
+  let stderr = ''
+  let code = 0
+  try {
+    stdout = execSync(`node --no-warnings "${GSD_TOOLS}" ${args.join(' ')}`, {
+      cwd: tmpdir,
+      encoding: 'utf-8',
+      timeout: 15000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    })
+  } catch (err) {
+    stdout = err.stdout || ''
+    stderr = err.stderr || ''
+    code = err.status != null ? err.status : 1
+  }
+  return { stdout, stderr, code }
+}
+
+describeIf('Phase 59: extractLinks typeof-string guard (R12)', () => {
+  const extractLinks = kbLib.__testOnly_extractLinks
+
+  it('skips non-string qualified_by value (e.g. empty object from bare YAML key)', () => {
+    const links = extractLinks({ qualified_by: {} }, 'sig-test')
+    expect(links).toHaveLength(0)
+  })
+
+  it('skips non-string superseded_by value', () => {
+    const links = extractLinks({ superseded_by: {} }, 'sig-test')
+    expect(links).toHaveLength(0)
+  })
+
+  it('skips non-string recurrence_of value (this was the 107-edge live bug)', () => {
+    const links = extractLinks({ recurrence_of: {} }, 'sig-test')
+    expect(links).toHaveLength(0)
+  })
+
+  it('related_signals: skips object elements, keeps string elements', () => {
+    const links = extractLinks({ related_signals: [{}, 'sig-valid', {}] }, 'sig-test')
+    expect(links).toHaveLength(1)
+    expect(links[0]).toEqual({
+      source_id: 'sig-test',
+      target_id: 'sig-valid',
+      link_type: 'related_to',
+    })
+  })
+
+  it('keeps valid scalar recurrence_of string', () => {
+    const links = extractLinks({ recurrence_of: 'sig-parent' }, 'sig-test')
+    expect(links).toHaveLength(1)
+    expect(links[0].link_type).toBe('recurrence_of')
+    expect(links[0].target_id).toBe('sig-parent')
+  })
+
+  it('keeps valid qualified_by array of strings', () => {
+    const links = extractLinks({ qualified_by: ['sig-q1', 'sig-q2'] }, 'sig-test')
+    expect(links).toHaveLength(2)
+    expect(links.every(l => l.link_type === 'qualified_by')).toBe(true)
+  })
+})
+
+// ─── 11. Phase 59: FTS5 external-content contentless rewrite (KB-04b) ────────
+
+describeIf('Phase 59: FTS5 external-content contentless rewrite', () => {
+  tmpdirTest(
+    'porter tokenizer: MATCH on "rotation" also matches signal body containing "rotations"',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      // Write a signal whose body contains "refresh token rotations"
+      const dir = path.join(kbDir, 'signals', 'test-project')
+      fs.mkdirSync(dir, { recursive: true })
+      const signalPath = path.join(dir, 'sig-fts-rotation.md')
+      fs.writeFileSync(
+        signalPath,
+        `---
+id: sig-fts-rotation
+type: signal
+project: test-project
+severity: minor
+status: active
+detection_method: manual
+origin: user-observation
+created: '2026-04-21'
+tags: []
+---
+
+## Refresh token rotations prove themselves
+
+Body mentions rotations and rotated tokens specifically.
+`,
+        'utf-8'
+      )
+
+      const result = runKb(tmpdir, 'rebuild')
+      expect(result.errors).toBe(0)
+
+      const db = openDb(tmpdir)
+      // Porter reduces rotation -> rotat-; rotations -> rotat-; rotated -> rotat-
+      const hitRotation = db.prepare("SELECT id FROM signal_fts WHERE signal_fts MATCH 'rotation'").all()
+      const hitRotations = db.prepare("SELECT id FROM signal_fts WHERE signal_fts MATCH 'rotations'").all()
+      const hitRotated = db.prepare("SELECT id FROM signal_fts WHERE signal_fts MATCH 'rotated'").all()
+      expect(hitRotation.length).toBeGreaterThanOrEqual(1)
+      expect(hitRotation.map(r => r.id)).toContain('sig-fts-rotation')
+      expect(hitRotations.map(r => r.id)).toContain('sig-fts-rotation')
+      expect(hitRotated.map(r => r.id)).toContain('sig-fts-rotation')
+    },
+    10000
+  )
+
+  tmpdirTest(
+    'schema_version = 3 after rebuild and signal_fts is populated from existing signals',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      writeSignalFixture(kbDir, 'test', 'sig-schema.md', {
+        id: 'sig-schema-three',
+        type: 'signal',
+        project: 'test',
+        severity: 'minor',
+        status: 'active',
+        detection_method: 'manual',
+        origin: 'user-observation',
+        created: '2026-04-21',
+        tags: [],
+      })
+
+      runKb(tmpdir, 'rebuild')
+
+      const db = openDb(tmpdir)
+      const schemaVersion = db.prepare("SELECT value FROM meta WHERE key='schema_version'").get()
+      expect(schemaVersion.value).toBe('3')
+
+      const signalCount = db.prepare('SELECT COUNT(*) as n FROM signals').get().n
+      const ftsCount = db.prepare('SELECT COUNT(*) as n FROM signal_fts').get().n
+      expect(ftsCount).toBe(signalCount)
+    },
+    10000
+  )
+
+  tmpdirTest(
+    'upgrading a pre-v3 kb.db (v2) populates signal_fts on first rebuild',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      writeSignalFixture(kbDir, 'test', 'sig-upgrade.md', {
+        id: 'sig-upgrade-test',
+        type: 'signal',
+        project: 'test',
+        severity: 'minor',
+        status: 'active',
+        detection_method: 'manual',
+        origin: 'user-observation',
+        created: '2026-04-21',
+        tags: [],
+      })
+
+      // First rebuild -> schema v3
+      runKb(tmpdir, 'rebuild')
+
+      // Manually downgrade to simulate pre-v3 kb.db
+      const { DatabaseSync } = require('node:sqlite')
+      const dbPath = path.join(tmpdir, '.planning', 'knowledge', 'kb.db')
+      const db1 = new DatabaseSync(dbPath)
+      db1.exec("UPDATE meta SET value='2' WHERE key='schema_version'")
+      // Also mimic the old kb.db not having FTS: drop our FTS shell
+      db1.exec('DROP TRIGGER IF EXISTS signals_ai; DROP TRIGGER IF EXISTS signals_ad; DROP TRIGGER IF EXISTS signals_au; DROP TABLE IF EXISTS signal_fts;')
+      db1.close()
+
+      // Re-run rebuild; migration should recreate FTS and populate it
+      runKb(tmpdir, 'rebuild')
+
+      const db2 = openDb(tmpdir)
+      const schemaVersion = db2.prepare("SELECT value FROM meta WHERE key='schema_version'").get()
+      expect(schemaVersion.value).toBe('3')
+      const ftsCount = db2.prepare('SELECT COUNT(*) as n FROM signal_fts').get().n
+      const sigCount = db2.prepare('SELECT COUNT(*) as n FROM signals').get().n
+      expect(ftsCount).toBe(sigCount)
+    },
+    15000
+  )
+})
+
+// ─── 12. Phase 59: idx_signal_links_target query plan (KB-04c) ───────────────
+
+describeIf('Phase 59: idx_signal_links_target is present and used', () => {
+  tmpdirTest(
+    'EXPLAIN QUERY PLAN for inbound edge lookup uses idx_signal_links_target',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      writeSignalFixture(kbDir, 'test', 'sig-idx.md', {
+        id: 'sig-idx-test',
+        type: 'signal',
+        project: 'test',
+        severity: 'minor',
+        status: 'active',
+        detection_method: 'manual',
+        origin: 'user-observation',
+        created: '2026-04-21',
+        tags: [],
+      })
+
+      runKb(tmpdir, 'rebuild')
+
+      const db = openDb(tmpdir)
+      const plan = db
+        .prepare("EXPLAIN QUERY PLAN SELECT source_id FROM signal_links WHERE target_id = 'x'")
+        .all()
+      const planText = plan.map(r => r.detail || r[3] || '').join('\n')
+      expect(planText).toMatch(/idx_signal_links_target/)
+    },
+    10000
+  )
+})
+
+// ─── 13. Phase 59: signal_links edge provenance (audit §7.1 #8) ──────────────
+
+describeIf('Phase 59: signal_links edge provenance minimum (audit §7.1 #8)', () => {
+  tmpdirTest(
+    'every signal_links row has non-empty created_at and source_content_hash after rebuild',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      const dir = path.join(kbDir, 'signals', 'test-project')
+      fs.mkdirSync(dir, { recursive: true })
+      // Signal with one valid related_to edge
+      fs.writeFileSync(
+        path.join(dir, 'sig-prov-a.md'),
+        `---
+id: sig-prov-a
+type: signal
+project: test-project
+severity: minor
+status: active
+detection_method: manual
+origin: user-observation
+created: '2026-04-21'
+tags: []
+related_signals:
+  - sig-prov-b
+---
+
+## Body
+
+test
+`,
+        'utf-8'
+      )
+      fs.writeFileSync(
+        path.join(dir, 'sig-prov-b.md'),
+        `---
+id: sig-prov-b
+type: signal
+project: test-project
+severity: minor
+status: active
+detection_method: manual
+origin: user-observation
+created: '2026-04-21'
+tags: []
+---
+
+## Body
+
+test
+`,
+        'utf-8'
+      )
+
+      const result = runKb(tmpdir, 'rebuild')
+      expect(result.errors).toBe(0)
+
+      const db = openDb(tmpdir)
+      const total = db.prepare('SELECT COUNT(*) as n FROM signal_links').get().n
+      expect(total).toBeGreaterThanOrEqual(1)
+
+      // No row may have empty created_at or source_content_hash
+      const empty = db
+        .prepare("SELECT COUNT(*) as n FROM signal_links WHERE created_at = '' OR source_content_hash = ''")
+        .get().n
+      expect(empty).toBe(0)
+
+      // Shape check: created_at parses as ISO-8601, hash matches sha256-hex pattern
+      const sample = db
+        .prepare('SELECT created_at, source_content_hash FROM signal_links LIMIT 1')
+        .get()
+      expect(Number.isNaN(Date.parse(sample.created_at))).toBe(false)
+      expect(sample.source_content_hash).toMatch(/^[0-9a-f]{64}$/)
+    },
+    10000
+  )
+})
+
+// ─── 14. Phase 59: edge-integrity report (KB-04d) ────────────────────────────
+
+describeIf('Phase 59: edge-integrity report in kb rebuild (KB-04d)', () => {
+  tmpdirTest(
+    'rebuild --raw emits edge_integrity block with per-link-type counts',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      // One signal with a valid related_to target; the target signal also exists.
+      const dir = path.join(kbDir, 'signals', 'test')
+      fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(
+        path.join(dir, 'sig-a.md'),
+        `---
+id: sig-a
+type: signal
+project: test
+severity: minor
+status: active
+detection_method: manual
+origin: user-observation
+created: '2026-04-21'
+tags: []
+related_signals:
+  - sig-b
+---
+
+## Body
+
+body a
+`,
+        'utf-8'
+      )
+      fs.writeFileSync(
+        path.join(dir, 'sig-b.md'),
+        `---
+id: sig-b
+type: signal
+project: test
+severity: minor
+status: active
+detection_method: manual
+origin: user-observation
+created: '2026-04-21'
+tags: []
+---
+
+## Body
+
+body b
+`,
+        'utf-8'
+      )
+
+      const result = runKb(tmpdir, 'rebuild')
+      expect(result.edge_integrity).toBeTruthy()
+      expect(result.edge_integrity.related_to).toEqual({
+        total: 1,
+        resolves: 1,
+        orphaned: 0,
+        malformed: 0,
+      })
+      // Link types not present in fixture get zeroes
+      expect(result.edge_integrity.qualified_by).toEqual({
+        total: 0,
+        resolves: 0,
+        orphaned: 0,
+        malformed: 0,
+      })
+      expect(result.edge_integrity.total.total).toBe(1)
+      expect(result.edge_integrity.total.malformed).toBe(0)
+    },
+    10000
+  )
+
+  tmpdirTest(
+    'rebuild exits 1 when a malformed row is present in signal_links',
+    async ({ tmpdir }) => {
+      // First build a clean corpus with one valid signal.
+      const kbDir = createKbDir(tmpdir)
+      writeSignalFixture(kbDir, 'test', 'sig-clean.md', {
+        id: 'sig-clean',
+        type: 'signal',
+        project: 'test',
+        severity: 'minor',
+        status: 'active',
+        detection_method: 'manual',
+        origin: 'user-observation',
+        created: '2026-04-21',
+        tags: [],
+      })
+      runKb(tmpdir, 'rebuild')
+
+      // Inject a malformed row directly into signal_links (simulating a
+      // corrupt pre-guard state), then re-run rebuild. The integrity pass
+      // should flag malformed>0 and exit 1.
+      const db = openDb(tmpdir)
+      db.prepare(
+        "INSERT INTO signal_links (source_id, target_id, link_type, created_at, source_content_hash) VALUES (?, ?, ?, ?, ?)"
+      ).run('sig-clean', '[object Object]', 'recurrence_of', '2026-04-21T00:00:00Z', 'x'.repeat(64))
+      db.close()
+
+      const { stdout, code } = runKbCapture(tmpdir, 'rebuild', ['--raw'])
+      const parsed = JSON.parse(stdout.trim())
+      expect(parsed.edge_integrity.total.malformed).toBeGreaterThanOrEqual(1)
+      expect(parsed.edge_integrity.recurrence_of.malformed).toBe(1)
+      expect(code).toBe(1)
+    },
+    15000
+  )
+
+  tmpdirTest(
+    'computeEdgeIntegrity: direct invocation returns correct classification structure',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      // Build a mixed corpus: 1 resolving edge, 1 orphaned edge, 1 malformed.
+      const dir = path.join(kbDir, 'signals', 'test')
+      fs.mkdirSync(dir, { recursive: true })
+      fs.writeFileSync(
+        path.join(dir, 'sig-src.md'),
+        `---
+id: sig-src
+type: signal
+project: test
+severity: minor
+status: active
+detection_method: manual
+origin: user-observation
+created: '2026-04-21'
+tags: []
+related_signals:
+  - sig-target-exists
+  - sig-target-missing
+---
+
+## Body
+
+src
+`,
+        'utf-8'
+      )
+      fs.writeFileSync(
+        path.join(dir, 'sig-target-exists.md'),
+        `---
+id: sig-target-exists
+type: signal
+project: test
+severity: minor
+status: active
+detection_method: manual
+origin: user-observation
+created: '2026-04-21'
+tags: []
+---
+
+## Body
+
+target
+`,
+        'utf-8'
+      )
+      runKb(tmpdir, 'rebuild')
+
+      // Inject a malformed edge so we can test the malformed classifier
+      const db = openDb(tmpdir)
+      db.prepare(
+        "INSERT INTO signal_links (source_id, target_id, link_type, created_at, source_content_hash) VALUES (?, ?, ?, ?, ?)"
+      ).run('sig-src', '[object Object]', 'qualified_by', '2026-04-21T00:00:00Z', 'y'.repeat(64))
+
+      const classification = kbLib.__testOnly_computeEdgeIntegrity(db)
+      db.close()
+
+      expect(classification.related_to.total).toBe(2)
+      expect(classification.related_to.resolves).toBe(1)
+      expect(classification.related_to.orphaned).toBe(1)
+      expect(classification.related_to.malformed).toBe(0)
+
+      expect(classification.qualified_by.malformed).toBe(1)
+      expect(classification.total.malformed).toBe(1)
+      expect(classification.total.orphaned).toBe(1)
+    },
+    15000
+  )
+})
+
+// ─── 15. Phase 59: cmdKbRepair --malformed-targets (R1) ──────────────────────
+
+describeIf('Phase 59: kb repair --malformed-targets', () => {
+  /**
+   * Write a signal whose frontmatter contains a bare `recurrence_of:` key
+   * (no value). The YAML parser coerces this to `{}`, which is the live-bug
+   * shape that produced 107 malformed rows. The Task 1 guard structurally
+   * prevents these from ever becoming malformed SQL rows again, but this
+   * verb's job is to physically clean the source files.
+   */
+  function writeSignalWithBareRecurrence(kbDir, filename) {
+    const dir = path.join(kbDir, 'signals', 'test')
+    fs.mkdirSync(dir, { recursive: true })
+    const content = `---
+id: ${filename.replace('.md', '')}
+type: signal
+project: test
+severity: minor
+status: active
+detection_method: automated
+origin: collect-signals
+created: '2026-04-21'
+tags: []
+recurrence_of:
+---
+
+## Body
+
+body
+`
+    const filePath = path.join(dir, filename)
+    fs.writeFileSync(filePath, content, 'utf-8')
+    return filePath
+  }
+
+  tmpdirTest(
+    'repair --malformed-targets strips bare recurrence_of field and exits 0',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      const filePath = writeSignalWithBareRecurrence(kbDir, 'sig-bare.md')
+
+      const { stdout, code } = runKbCapture(tmpdir, 'repair', ['--malformed-targets', '--raw'])
+      const parsed = JSON.parse(stdout.trim())
+
+      expect(parsed.success).toBe(true)
+      expect(parsed.files_repaired).toBe(1)
+      expect(parsed.fields_cleared.recurrence_of).toBe(1)
+      expect(parsed.post_rebuild.total.malformed).toBe(0)
+      expect(code).toBe(0)
+
+      // Source file's frontmatter no longer contains recurrence_of
+      const afterContent = fs.readFileSync(filePath, 'utf-8')
+      expect(afterContent).not.toMatch(/^recurrence_of:/m)
+    },
+    15000
+  )
+
+  tmpdirTest(
+    'repair is idempotent: running twice on a clean corpus produces no edits and exits 0',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      writeSignalFixture(kbDir, 'test', 'sig-clean.md', {
+        id: 'sig-clean',
+        type: 'signal',
+        project: 'test',
+        severity: 'minor',
+        status: 'active',
+        detection_method: 'manual',
+        origin: 'user-observation',
+        created: '2026-04-21',
+        tags: [],
+      })
+      runKb(tmpdir, 'rebuild')
+
+      const first = runKbCapture(tmpdir, 'repair', ['--malformed-targets', '--raw'])
+      const firstParsed = JSON.parse(first.stdout.trim())
+      expect(firstParsed.success).toBe(true)
+      expect(firstParsed.files_repaired).toBe(0)
+      expect(first.code).toBe(0)
+
+      const second = runKbCapture(tmpdir, 'repair', ['--malformed-targets', '--raw'])
+      const secondParsed = JSON.parse(second.stdout.trim())
+      expect(secondParsed.success).toBe(true)
+      expect(secondParsed.files_repaired).toBe(0)
+      expect(second.code).toBe(0)
+    },
+    20000
+  )
+
+  tmpdirTest(
+    'repair without --malformed-targets flag prints usage and exits 1',
+    async ({ tmpdir }) => {
+      createKbDir(tmpdir)
+      const { code } = runKbCapture(tmpdir, 'repair', [])
+      expect(code).toBe(1)
+    },
+    10000
+  )
+})

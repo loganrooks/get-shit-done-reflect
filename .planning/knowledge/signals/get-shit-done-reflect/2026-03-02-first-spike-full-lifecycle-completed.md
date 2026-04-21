@@ -34,7 +34,6 @@ confidence_basis: Multiple independent artifacts confirm the milestone
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

@@ -11,7 +11,7 @@ severity: minor
 signal_type: deviation
 signal_category: negative
 phase: 54
-plan: 
+plan: {}
 polarity: negative
 occurrence_count: 1
 related_signals: []
@@ -29,7 +29,6 @@ confidence_basis: Direct comparison of PLAN.md files_modified frontmatter agains
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

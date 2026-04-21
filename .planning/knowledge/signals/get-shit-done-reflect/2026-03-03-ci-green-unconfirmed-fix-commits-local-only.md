@@ -34,7 +34,7 @@ evidence:
     - "Truth #5 marked PARTIAL: fix commits local-only, not pushed to origin/main"
     - Phase goal explicitly includes 'CI is green on main' -- unconfirmed
   counter:
-    - Verifier classifies gap as 'operational, not a code defect'
+    - Verifier classifies gap as 'operational, not a code defect
     - All 156 tests pass locally with 0 failures
     - "Clear remediation: push commits to origin/main"
 confidence: high
@@ -42,7 +42,6 @@ confidence_basis: VERIFICATION.md explicitly records gaps_found status
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---

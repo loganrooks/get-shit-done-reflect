@@ -28,7 +28,7 @@ lifecycle_log:
   - "created -> detected by gsdr-signal-synthesizer at 2026-03-29T08:00:00Z"
 evidence:
   supporting:
-    - "52-04-SUMMARY.md key-decisions: 'progress.md UAT grep updated to match upstream's \"status: diagnosed\\|status: partial\" pattern (was only \"status: diagnosed\")'"
+    - "52-04-SUMMARY.md key-decisions: 'progress.md UAT grep updated to match upstream's \\\"status: diagnosed\\\\|status: partial\\\" pattern (was only \\\"status: diagnosed\\\")'"
     - This change was beyond the C2 shell robustness scope (adding || true) — it also aligned functional behavior
     - The plan's stated scope was strictly || true guards, not behavioral alignment
   counter:
@@ -39,7 +39,6 @@ confidence_basis: Explicitly stated in key-decisions section; the behavioral cha
 triage: "{}"
 remediation: "{}"
 verification: "{}"
-recurrence_of: 
 detection_method: automated
 origin: collect-signals
 ---
