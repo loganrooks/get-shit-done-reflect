@@ -330,17 +330,24 @@ describeIf('kb link show: index usage', () => {
   }, 15000)
 })
 
-describeIf('kb link create / delete: Plan 04 stub', () => {
-  tmpdirTest('kb link create emits Plan 04 deferral error', async ({ tmpdir }) => {
+describeIf('kb link create / delete: Plan 04 replaced the stub', () => {
+  // Phase 59 Plan 04 replaced the Plan-02-era "Plan 04 deferred" stub with
+  // real cmdKbLinkCreate / cmdKbLinkDelete verbs (see kb-link-write.test.js).
+  // These tests now assert the router dispatches to the real verbs -- the
+  // "missing source signal" error is the verb's correct response to an
+  // unseeded fixture, proving the dispatch landed on the implementation and
+  // not the stub.
+  tmpdirTest('kb link create routes to cmdKbLinkCreate (not the stub)', async ({ tmpdir }) => {
     const { stderr, code } = runKbCapture(tmpdir, ['link', 'create', 'x', 'y', '--type', 'related_to'])
     expect(code).not.toBe(0)
-    expect(stderr).toMatch(/Plan 04/)
-    expect(stderr.toLowerCase()).toContain('not yet implemented')
+    expect(stderr).not.toMatch(/Plan 04/)
+    expect(stderr).toMatch(/source signal|kb.db required/)
   }, 15000)
 
-  tmpdirTest('kb link delete emits Plan 04 deferral error', async ({ tmpdir }) => {
+  tmpdirTest('kb link delete routes to cmdKbLinkDelete (not the stub)', async ({ tmpdir }) => {
     const { stderr, code } = runKbCapture(tmpdir, ['link', 'delete', 'x', 'y', '--type', 'related_to'])
     expect(code).not.toBe(0)
-    expect(stderr).toMatch(/Plan 04/)
+    expect(stderr).not.toMatch(/Plan 04/)
+    expect(stderr).toMatch(/source signal|kb.db required/)
   }, 15000)
 })
