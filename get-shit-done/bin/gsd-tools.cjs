@@ -53,6 +53,7 @@ const manifest = require('./lib/manifest.cjs');
 const automation = require('./lib/automation.cjs');
 const kb = require('./lib/kb.cjs');
 const kbQuery = require('./lib/kb-query.cjs');
+const kbLink = require('./lib/kb-link.cjs');
 const telemetry = require('./lib/telemetry.cjs');
 const measurement = require('./lib/measurement.cjs');
 const quick = require('./lib/quick.cjs');
@@ -749,8 +750,22 @@ async function main() {
         const searchQuery = args[2];
         const sOpts = kbQuery.parseKbQueryOptions(args.slice(3));
         kbQuery.cmdKbSearch(cwd, searchQuery, sOpts, raw);
+      } else if (subcommand === 'link') {
+        // Phase 59 Plan 02 (KB-04c / KB-06a read half): inbound/outbound
+        // edge traversal. Write verbs (create/delete) are stubbed here
+        // with an explicit "Plan 04" error so the namespace is discoverable.
+        const linkVerb = args[2];
+        if (linkVerb === 'show') {
+          const signalId = args[3];
+          const lOpts = kbLink.parseKbLinkOptions(args.slice(4));
+          kbLink.cmdKbLinkShow(cwd, signalId, lOpts, raw);
+        } else if (linkVerb === 'create' || linkVerb === 'delete') {
+          kbLink.stubWriteVerb(linkVerb, raw);
+        } else {
+          error('Usage: gsd-tools kb link <show|create|delete> <signal-id> [...]');
+        }
       } else {
-        error('Usage: gsd-tools kb <rebuild|stats|migrate|repair|query|search>');
+        error('Usage: gsd-tools kb <rebuild|stats|migrate|repair|query|search|link>');
       }
       break;
     }
