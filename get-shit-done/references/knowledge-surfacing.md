@@ -2,18 +2,24 @@
 
 Reference specification for how agents query, rank, cite, and propagate knowledge from the GSD Knowledge Store. This document is consumed by all agent types via `@get-shit-done/references/knowledge-surfacing.md` references in their `<knowledge_surfacing>` sections.
 
-**Version:** 1.0.0
-**Phase:** 05-knowledge-surfacing
+**Version:** 2.0.0
+**Phase:** 59-kb-query-lifecycle-wiring-and-surfacing (Plan 05 rewrite)
 
 ---
 
 ## 1. Overview
 
-Knowledge surfacing makes passive knowledge (lessons and spike decisions stored in `.planning/knowledge/` or `~/.gsd/knowledge/` fallback) active by instructing agents to query and apply it during their workflows.
+Knowledge surfacing makes passive knowledge active by instructing agents to query and apply it during their workflows. Phase 59 retired the legacy lesson-only surfacing path; the current surface is the **signals + spikes + reflections triad**:
 
-**Scope:** Lessons (from reflection) and spike decisions only. Raw signals are NOT surfaced -- they are unprocessed noise. The reflection engine distills signals into lessons; agents consume the distilled form.
+- **Signals** (the signal lifecycle: `detected` -> `triaged` -> `remediated` -> `verified`, with `blocked` and `invalidated` branches) carry lesson-equivalent content in their `remediation.approach`, `lifecycle_log`, and body text. The detected-remediated-verified arc is the authoritative record of what went wrong and how it was fixed.
+- **Spikes** carry the outcomes of structured experiments (`hypothesis` + `decision`) and are the durable record of technical decisions the project has already made.
+- **Reflections** carry distilled principles and phase-level observations written by the reflection engine; they are the nearest modern analogue to what used to be called lessons.
 
-**Mechanism:** Agent-initiated (pull-based). Agents explicitly query the knowledge base using Read/Grep on KB paths. No auto-injection into agent prompts. Agent prompt sections include instructions on when and how to query.
+**Lessons as a distinct entry type were deprecated in v1.19.** Any surviving `les-*` files in `~/.gsd/knowledge/lessons/` remain readable as historical artifacts but are NOT active surface area. New knowledge is captured in the triad above; no new lesson files are created.
+
+**Dual-directory architecture:** The knowledge base is project-local by default (`.planning/knowledge/`, version-controlled) with a user-global fallback (`~/.gsd/knowledge/`). Both locations share the same schema. Agents prefer project-local when present; fall back to user-global otherwise.
+
+**Mechanism:** Agent-initiated (pull-based). Agents explicitly query the knowledge base using the `gsd-tools kb` CLI verbs against the local SQLite index (`kb.db`). No auto-injection into agent prompts. Agent prompt sections instruct when and how to query.
 
 **Fork compatibility:** Agents check if this file exists before applying knowledge surfacing instructions. If `get-shit-done/references/knowledge-surfacing.md` does not exist (upstream GSD without the reflect fork), agents skip knowledge surfacing entirely.
 
@@ -30,71 +36,136 @@ fi
 
 ## 2. Query Mechanics
 
-Agents query the knowledge base by reading the index file and then selectively reading full entry files.
+Agents query the KB via **`gsd-tools kb` CLI verbs** against the project-local `kb.db` SQLite index. Fresh clones without a populated `kb.db` (first-run, or corpus that has not yet been rebuilt) fall back to `grep` over markdown files. The grep path is the *fresh-clone fallback* — degraded, but still correct.
+
+The SQL path is always preferred: it supports structured filters, FTS5 full-text search with porter stemming, and index-backed inbound-edge traversal. The grep path exists only so that an agent on a fresh clone does not silently return zero results.
+
+**Why not `rg` in the fallback?** POSIX `grep` is guaranteed on every supported platform (Linux, macOS, BSD). `rg` (ripgrep) is faster but not always installed. Phase 59 standardizes on `grep` for the fresh-clone path; agents that know `rg` is present may substitute locally but the specification uses `grep`.
 
 ### 2.1 Step-by-Step Query Process
 
-1. **Read the KB index:**
+1. **Determine the query path:**
    ```bash
    # KB path resolution -- project-local primary, user-global fallback
-   if [ -d ".planning/knowledge" ]; then KB_DIR=".planning/knowledge"; else KB_DIR="$HOME/.gsd/knowledge"; fi
-   cat $KB_DIR/index.md
+   if [ -d ".planning/knowledge" ]; then
+     KB_DIR=".planning/knowledge"
+   else
+     KB_DIR="$HOME/.gsd/knowledge"
+   fi
+
+   # If kb.db exists in KB_DIR, use the SQL path. Otherwise fall back to grep.
+   if [ -f "$KB_DIR/kb.db" ]; then
+     KB_PATH=sql
+   else
+     KB_PATH=grep
+   fi
    ```
-   The index contains all active entries across all projects, organized by type (Signals, Spikes, Lessons).
 
-2. **Scan relevant tables:**
-   - Scan the **Lessons** table for entries whose tags overlap with the current work context (technology domain, goal keywords, libraries, patterns)
-   - Scan the **Spikes** table for entries whose tags match current research questions or technology decisions
-
-3. **Select top matches (max 5):**
-   Use LLM judgment to pick the most relevant entries based on tag overlap, project relevance, and category alignment. Do NOT rely on brittle tag-counting -- semantic relevance matters more.
-
-4. **Read full entry files:**
+2. **SQL path (preferred):**
    ```bash
-   cat $KB_DIR/lessons/{category}/{lesson-name}.md
-   cat $KB_DIR/spikes/{project}/{spike-name}.md
+   # Structured filter (AND-combined: severity, lifecycle, project, tag, since):
+   gsd-tools kb query --tags "auth,jwt" --severity critical --format json
+
+   # Full-text search over signals.title + signals.body (FTS5, porter stemming):
+   gsd-tools kb search "refresh token rotation" --format json
+
+   # For every surfaced signal, fetch inbound context (STRUCTURAL, not advisory):
+   gsd-tools kb link show <signal-id> --inbound --format json
    ```
 
-5. **Check freshness** (see Section 4)
+   **Step 2c is mandatory, not optional.** When an agent surfaces an older immutable signal, it MUST also fetch the newer signals that qualify or supersede it via `kb link show --inbound`. Skipping the inbound-edge fetch violates the protocol contract — it presents a stale view of an entry whose downstream qualifications have already been recorded. The outbound `related_signals` / `qualified_by` / `superseded_by` fields on the surfaced entry show what IT points to; the inbound edges show what points AT IT. Both directions are required for correct context.
 
-6. **Apply to current work** with inline citations (see Section 6)
+3. **Grep path (fallback — kb.db absent):**
+   ```bash
+   if [ -d ".planning/knowledge" ]; then KB_DIR=".planning/knowledge"
+   else KB_DIR="$HOME/.gsd/knowledge"; fi
 
-### 2.2 Index Format Reference
+   # Tag-based filter via grep over signal frontmatter:
+   grep -l "tags:.*auth" "$KB_DIR/signals/"**/*.md
 
-The KB index at `.planning/knowledge/index.md` (or `~/.gsd/knowledge/index.md` fallback) has this structure:
+   # Full-text search via grep over body content:
+   grep -rli --include="*.md" "refresh token" "$KB_DIR/signals/" "$KB_DIR/spikes/" "$KB_DIR/reflections/"
+   ```
 
-```markdown
-# Knowledge Store Index
+   The grep fallback does NOT support porter stemming, structured AND filters, or inbound-edge traversal. Inbound traversal in particular has no tractable grep implementation — it would require re-reading every file in the corpus to invert the edge relation. Agents on the grep path should note this degradation explicitly (`fallback: { engine: 'grep', reason: 'kb.db not found' }` is the JSON shape the SQL verbs emit; grep-path agents should synthesize the same annotation).
 
-**Generated:** 2026-02-02T15:00:00Z
-**Total entries:** 47
+4. **Apply relevance matching (§3), freshness (§4), citation (§6), and write the "Knowledge Applied" section (§6.2).**
 
-## Lessons (12)
+See `get-shit-done/bin/lib/kb-query.cjs`, `kb-link.cjs`, and `kb-health.cjs` for the authoritative CLI API. The router dispatch lives in `get-shit-done/bin/gsd-tools.cjs` case `'kb'`.
 
-| ID | Project | Category | Tags | Date | Status |
-|----|---------|----------|------|------|--------|
-| les-2026-02-02-validate-tokens | _global | architecture | auth, oauth, jwt | 2026-02-02 | active |
+### 2.2 Query Output Reference
 
-## Spikes (12)
+The SQL path emits stable JSON envelopes. Signals, spikes, and reflections each have their own shape; `kb query` emits signals, `kb search` emits body-hit matches across signals (FTS5 scope), and `kb link show` emits edges.
 
-| ID | Project | Outcome | Tags | Date | Status |
-|----|---------|---------|------|------|--------|
-| spk-2026-01-28-jwt-refresh-strategy | my-app | confirmed | auth, jwt | 2026-01-28 | active |
+**`kb query --format json` envelope (signals):**
+
+```json
+{
+  "query_params": {
+    "tags": ["auth", "jwt"],
+    "severity": "critical",
+    "lifecycle": null,
+    "project": null,
+    "since": null,
+    "limit": 50
+  },
+  "results": [
+    {
+      "id": "sig-2026-02-15-auth-retry-loop",
+      "severity": "critical",
+      "lifecycle_state": "remediated",
+      "project": "my-app",
+      "created": "2026-02-15T10:00:00Z",
+      "tags": ["auth", "jwt", "retry"]
+    }
+  ]
+}
 ```
 
-**Query by tag:** Grep for tag keywords in the Tags column.
-**Query by project:** Filter Project column for current project name or `_global`.
-**Query by type:** Read the relevant section (Lessons, Spikes).
+**`kb search --format json` envelope (FTS5 body hits):**
+
+```json
+{
+  "query": "refresh token rotation",
+  "limit": 25,
+  "results": [
+    {
+      "id": "sig-2026-01-28-jwt-refresh",
+      "title": "JWT refresh token rotation failure",
+      "snippet": "[...] refresh tokens must be rotated [...] on every session [...]",
+      "rank": -3.7,
+      "lifecycle_state": "verified"
+    }
+  ]
+}
+```
+
+**`kb link show --inbound --format json` envelope (edges):**
+
+```json
+{
+  "signal_id": "sig-2026-01-28-jwt-refresh",
+  "direction": "inbound",
+  "results": [
+    {
+      "source_id": "sig-2026-03-04-token-provider-migration",
+      "link_type": "qualified_by",
+      "target_kind": "signal",
+      "created_at": "2026-03-04T14:12:00Z"
+    }
+  ]
+}
+```
+
+**Grep-fallback envelope:** same shape as the SQL envelope with an added `fallback: { engine: "grep", reason: "kb.db not found" }` field so callers can distinguish degraded from first-class results.
+
+The index file (`.planning/knowledge/index.md` or `~/.gsd/knowledge/index.md`) remains present for human browsing and for the grep fallback's per-file frontmatter re-parse, but it is NOT the authoritative query surface in v1.20. See `get-shit-done/bin/lib/kb-query.cjs` for the authoritative API.
 
 ### 2.3 Cross-Project Querying (SURF-04)
 
-Cross-project knowledge surfacing is architecturally built-in. The index contains ALL entries across all projects. Lessons are organized by category, not project.
+Cross-project knowledge surfacing is architecturally built-in. `kb query` without a `--project` filter returns entries across all projects; `kb query --project <name>` filters to the named project; `kb query --project _global` returns only entries promoted to global scope.
 
-To get cross-project results: query index.md **without** filtering by project name. Global lessons (`_global`) plus lessons from all projects are all visible in the index.
-
-To get project-specific results: filter the Project column for the current project name or `_global`.
-
-Default behavior: agents query without project filter to surface all potentially relevant knowledge, regardless of originating project.
+Default behavior: agents query without a project filter so all potentially relevant knowledge surfaces, regardless of originating project.
 
 ---
 
@@ -102,7 +173,7 @@ Default behavior: agents query without project filter to surface all potentially
 
 ### 3.1 Matching Strategy
 
-Hybrid: index file + tags. Agents read index one-liner summaries first, then fetch relevant entries.
+Hybrid: structured filter + full-text search + agent judgment. The SQL verbs return candidate entries; the agent ranks final relevance by semantic judgment.
 
 ### 3.2 Tag Format
 
@@ -111,7 +182,7 @@ Hierarchical freeform tags with no fixed vocabulary. Nesting is encouraged:
 - `database/prisma/migrations`, `database/postgres`
 - `testing/vitest`, `testing/fixtures`
 
-Grep handles partial matching naturally -- `grep "auth"` catches both `auth` and `auth/jwt`.
+`kb query --tags auth` matches any entry whose tags array contains `auth`; hierarchical matching (`auth/jwt` also matching on `auth`) is agent-judgment territory, not a structured filter feature.
 
 ### 3.3 Stack Awareness
 
@@ -119,15 +190,15 @@ Agents include relevant technologies in their query context. No magical auto-boo
 
 ### 3.4 Partial Matches
 
-Include with lower rank. A lesson about "React performance" is still potentially useful when researching "React state management." Agents use judgment to assess partial relevance.
+Include with lower rank. A signal about "React performance" is still potentially useful when researching "React state management." Agents use judgment to assess partial relevance.
 
 ### 3.5 Ranking Method
 
-Agent LLM judgment. The agent reads one-liner summaries from the index and ranks by semantic relevance to the current query. Tag overlap count is brittle -- LLMs are better at contextual relevance assessment.
+Agent LLM judgment. FTS5 produces a rank score (`kb search` sorts by `rank`), but the agent is the final arbiter of which surfaced entries are actually relevant. Rank is a hint, not a mandate.
 
 ### 3.6 Conflicting Entries
 
-Surface both, flag the conflict. The agent resolves with full context of the current situation. Auto-preferring by recency or confidence is too blunt -- the older entry may be more applicable to the current case.
+Surface both, flag the conflict. The agent resolves with full context of the current situation. Auto-preferring by recency or confidence is too blunt -- the older entry may be more applicable to the current case. When a signal is `qualified_by` or `superseded_by` a newer entry, the inbound-edge fetch (§2.1 step 2c) will surface the qualification.
 
 ### 3.7 Cross-Domain Entries
 
@@ -158,7 +229,9 @@ The `depends_on` field is a documentation field -- agents READ it and use judgme
    - Negation: check if condition is still false
 3. If dependencies hold: entry is fresh, apply normally
 4. If dependencies changed: surface with caveat noting the change
-   - Example: "Note: [les-2026-01-15-validate-tokens] depends on Prisma 4.x; current project uses Prisma 5.x -- may need re-evaluation"
+   - Example: "Note: [sig-2026-01-15-validate-tokens] depends on Prisma 4.x; current project uses Prisma 5.x -- may need re-evaluation"
+
+The `kb health` verb's Check 4 (`depends_on_freshness`) scans the corpus for populated `depends_on` fields and classifies them into path-resolving / path-dangling / non-path (human-readable conditions). Check 4 is advisory — it never trips the exit-code bitmask — because the ontological limit of "does this condition still hold" cannot be judged programmatically. Agents surface staleness caveats based on their own reading of the `depends_on` list.
 
 ### 4.2 Temporal Decay Fallback
 
@@ -174,7 +247,7 @@ When `depends_on` is absent or unverifiable, fall back to temporal decay heurist
 
 ### 4.3 Failed Phase Knowledge
 
-Include entries from failed or abandoned phases, flagged as such. "We tried X and it failed" is valuable knowledge -- it prevents repeating failed approaches.
+Include entries from failed or abandoned phases, flagged as such. "We tried X and it failed" is valuable knowledge -- it prevents repeating failed approaches. Signals with `lifecycle_state: invalidated` are the canonical record of "we thought this was a problem but it wasn't"; spikes with `outcome: rejected` are the canonical record of "we tried this approach and it did not work."
 
 ---
 
@@ -207,11 +280,15 @@ When surfaced knowledge exceeds the budget:
 Use entry IDs in natural language -- grepable and readable:
 
 ```
-A prior lesson [les-2026-01-15-validate-tokens] found that refresh tokens must be validated server-side.
+A prior signal [sig-2026-01-15-validate-tokens] (remediated) found that refresh tokens must be validated server-side.
 ```
 
 ```
 Per spike [spk-2026-01-20-jwt-refresh-strategy], JWT refresh with rotation is the recommended approach.
+```
+
+```
+Reflection [reflect-2026-02-01] distilled the principle: "Always verify both access and refresh token expiry before attempting token refresh."
 ```
 
 ### 6.2 Knowledge Applied Summary Section
@@ -221,13 +298,14 @@ Include at the end of agent output:
 ```markdown
 ## Knowledge Applied
 
-**KB entries consulted:** 3 lessons, 1 spike
+**KB entries consulted:** 3 signals, 1 spike, 1 reflection
 **Applied:**
-- [les-2026-01-15-validate-tokens]: Informed auth approach selection
+- [sig-2026-01-15-validate-tokens]: Informed auth approach selection
 - [spk-2026-01-20-jwt-refresh-strategy]: Prior spike confirms JWT refresh viable
+- [reflect-2026-02-01]: Principle cited verbatim in planning
 
 **Dismissed:**
-- [les-2026-01-10-avoid-barrel-exports]: Not relevant to current phase
+- [sig-2026-01-10-barrel-exports]: Not relevant to current phase
 
 **Spikes avoided:** 1 (spk-2026-01-20-jwt-refresh-strategy)
 ```
@@ -250,16 +328,23 @@ Summary + file path link to full entry. Agents show the conclusion/recommendatio
 
 ## 7. Spike Deduplication (SPKE-08)
 
-Spike deduplication is part of the mandatory initial KB query -- not a separate step.
+Spike deduplication is part of the mandatory initial KB query -- not a separate step. The spike path does NOT interact with signals or reflections; it only queries and compares against existing spikes.
 
 ### 7.1 Detection Process
 
 During the initial KB query:
 
-1. Read the **Spikes** table in the KB index (`.planning/knowledge/index.md` or `~/.gsd/knowledge/index.md` fallback)
-2. For each spike entry, check if:
+1. Query the spike corpus directly:
+   ```bash
+   # SQL path:
+   gsd-tools kb query --tags "<current-research-tags>" --format json  # returns signals, not spikes
+   # For spikes specifically, grep the spikes subdirectory:
+   grep -l "tags:.*<tag>" "$KB_DIR/spikes/"**/*.md
+   ```
+   (A dedicated `kb query --type spike` form is tracked in the Phase 59 deferral ledger under KB-14 / KB-16.)
+2. For each spike entry matching the current research question, check if:
    - Tags overlap with current research question or technology
-   - Hypothesis is similar to current question
+   - `hypothesis` is similar to current question
 3. If a matching spike is found, read the full spike entry
 
 ### 7.2 Matching Criteria
@@ -313,17 +398,19 @@ Spikes avoided: N (spk-xxx, spk-yyy)
 
 | Agent | Trigger | Query Type | Priority | Budget |
 |-------|---------|------------|----------|--------|
-| Phase researcher | Mandatory at start + on error/direction change | Full KB (lessons + spikes) | Spike decisions first | ~500 tokens |
-| Planner | Optional, at discretion | Lessons only | Strategic lessons | ~500 tokens |
-| Debugger | Optional, at discretion | Lessons + spikes related to error | Both equally | ~500 tokens |
-| Executor | ONLY on deviation Rules 1-3 | Lessons related to error | Error-relevant | ~200 tokens |
+| Phase researcher | Mandatory at start + on error/direction change | Signals + spikes + reflections | Spike decisions first, then signals by severity, then reflections | ~500 tokens |
+| Planner | Optional, at discretion | Signals + reflections (spikes already in RESEARCH.md) | Strategic signals and distilled principles | ~500 tokens |
+| Debugger | Optional, at discretion | Signals + spikes related to error | Both equally | ~500 tokens |
+| Executor | ONLY on deviation Rules 1-3 | Signals related to error | Error-relevant signals | ~200 tokens |
+
+**Every agent row includes the same structural step:** after surfacing any candidate signal, fetch its inbound edges via `kb link show <id> --inbound` before citing or applying it. This is mandatory, not advisory (§2.1 step 2c). Skipping the inbound fetch presents a stale view of entries whose downstream qualifications have been recorded.
 
 ### 8.1 Phase Researcher
 
 **Mandatory initial check** before beginning external research:
-1. Read `.planning/knowledge/index.md` (or `~/.gsd/knowledge/index.md` fallback)
-2. Scan Lessons and Spikes tables for tag overlap with phase technology domain, goal keywords, and specific libraries from CONTEXT.md
-3. For matching entries (max 5), read full entry files
+1. Query the KB via `gsd-tools kb query` and `gsd-tools kb search` (SQL path) or grep fallback (fresh clone) for tag overlap with phase technology domain, goal keywords, and specific libraries from CONTEXT.md
+2. For each candidate signal, fetch inbound edges via `gsd-tools kb link show <id> --inbound` — mandatory per §2.1 step 2c
+3. For matching entries (max 5), read full entry files from `.planning/knowledge/{signals,spikes,reflections}/`
 4. Check spike deduplication (Section 7)
 5. Incorporate relevant findings into RESEARCH.md
 6. Include "Knowledge Applied" section
@@ -333,11 +420,11 @@ Spikes avoided: N (spk-xxx, spk-yyy)
 ### 8.2 Planner
 
 **Optional querying** at the planner's discretion. Useful when:
-- Making technology choices that past lessons may inform
+- Making technology choices that past signals/reflections may inform
 - Structuring tasks where past patterns suggest pitfalls
 - Planning for areas where prior spikes resolved uncertainty
 
-Queries lessons only (not spikes -- those should already be in RESEARCH.md from the researcher).
+Queries **signals + reflections** (the distilled-principles corpus); consults spikes for decided technical questions already addressed by earlier research. Fetches inbound edges via `kb link show --inbound` for every surfaced signal.
 
 ### 8.3 Debugger
 
@@ -345,7 +432,7 @@ Queries lessons only (not spikes -- those should already be in RESEARCH.md from 
 - Investigating errors that may have occurred before
 - Debugging issues in technology areas with known quirks
 
-Queries both lessons and spikes equally -- prior experiments and distilled wisdom are both relevant for debugging.
+Queries both signals and spikes equally -- prior experiments and distilled signal-history are both relevant for debugging. Fetches inbound edges via `kb link show --inbound` for every surfaced signal.
 
 ### 8.4 Executor
 
@@ -354,13 +441,18 @@ Queries both lessons and spikes equally -- prior experiments and distilled wisdo
    ```bash
    # KB path resolution -- project-local primary, user-global fallback
    if [ -d ".planning/knowledge" ]; then KB_DIR=".planning/knowledge"; else KB_DIR="$HOME/.gsd/knowledge"; fi
-   grep -i "{error-keyword}" $KB_DIR/index.md
-   grep -i "{technology}" $KB_DIR/index.md
+
+   # SQL path (preferred):
+   gsd-tools kb search "<error-keyword>" --format json
+   gsd-tools kb query --tags "<technology>" --format json
+
+   # Grep fallback (kb.db absent):
+   grep -i "<error-keyword>" "$KB_DIR/index.md"
    ```
-2. If matching entry exists, read it and apply to the fix
+2. If a matching signal exists, fetch its inbound edges via `kb link show --inbound` before applying, then read the full entry
 3. Cite in deviation tracking:
    ```
-   [Rule 1 - Bug] Fixed auth token refresh (informed by [les-2026-01-15-validate-tokens])
+   [Rule 1 - Bug] Fixed auth token refresh (informed by [sig-2026-01-15-validate-tokens])
    ```
 
 **Do NOT query KB:** At plan start, before each task, during normal execution, or when applying Rule 4 (architectural deviation -- checkpoint to user instead).
@@ -395,7 +487,7 @@ Downstream agents CAN query the KB for additional knowledge relevant to their sp
 
 ### 9.3 Propagation Form
 
-Upstream agents propagate their interpretation (conclusion, not raw entry). Downstream agents receive: "Researcher found that approach X failed per [les-003], recommending Y instead." If they need the original entry, they can query directly.
+Upstream agents propagate their interpretation (conclusion, not raw entry). Downstream agents receive: "Researcher found that approach X failed per [sig-003], recommending Y instead." If they need the original entry, they can query directly.
 
 ---
 
@@ -403,19 +495,20 @@ Upstream agents propagate their interpretation (conclusion, not raw entry). Down
 
 ### 10.1 Two-Tier Model
 
-The knowledge store already has progressive disclosure built in:
+The knowledge store has progressive disclosure built in:
 
-- **Tier 1: Index summaries** (`.planning/knowledge/index.md` or `~/.gsd/knowledge/index.md` fallback) -- one-line entry per knowledge item with ID, tags, date, and status. Always read first.
-- **Tier 2: Full entry files** (individual `.md` files) -- complete frontmatter, context, recommendations, evidence. Read on-demand for top matches only.
+- **Tier 1: Query envelopes** (`kb query` / `kb search` JSON results) -- compact one-row-per-entry summaries with ID, severity, lifecycle_state, tags, date. Always start here.
+- **Tier 2: Full entry files** (individual `.md` files under `.planning/knowledge/{signals,spikes,reflections}/`) -- complete frontmatter, body text, lifecycle_log, evidence. Read on-demand for top matches only.
 
 ### 10.2 Agent Flow
 
-For v1, agents use the simpler approach:
-1. Read index (Tier 1)
-2. Pick top matches by LLM judgment
-3. Read full entries for those matches (Tier 2)
+For v1.20, agents use this flow:
+1. Query via `kb query` / `kb search` (Tier 1)
+2. Pick top matches by LLM judgment on the envelope summaries
+3. Fetch inbound edges via `kb link show --inbound` for each top match
+4. Read full entries for those matches (Tier 2)
 
-No interactive menu or formal drill-in protocol. The two-tier model is applied naturally by reading the index first and selectively reading full entries.
+No interactive menu or formal drill-in protocol. The two-tier model is applied naturally by reading the envelope first and selectively reading full entries.
 
 ---
 
@@ -432,15 +525,15 @@ KNOWLEDGE_DEBUG=$(cat .planning/config.json 2>/dev/null | grep -o '"knowledge_de
 
 ### 11.2 When Enabled (knowledge_debug: true)
 
-Agents include a **"## KB Debug Log"** section listing ALL entries they considered from index.md:
+Agents include a **"## KB Debug Log"** section listing ALL entries they considered from `kb query` / `kb search` results:
 
 ```markdown
 ## KB Debug Log
 
 | ID | Tags | Relevance | Freshness | Action |
 |----|------|-----------|-----------|--------|
-| les-2026-01-15-validate-tokens | auth, jwt | HIGH -- direct tag match | Fresh (depends_on holds) | Applied |
-| les-2026-01-10-avoid-barrel-exports | architecture, imports | LOW -- no domain overlap | Fresh | Excluded |
+| sig-2026-01-15-validate-tokens | auth, jwt | HIGH -- direct tag match | Fresh (depends_on holds) | Applied |
+| sig-2026-01-10-barrel-exports | architecture, imports | LOW -- no domain overlap | Fresh | Excluded |
 | spk-2026-01-20-jwt-refresh | auth, jwt | HIGH -- same technology | Fresh | Applied (spike avoided) |
 ```
 
@@ -452,6 +545,6 @@ Standard behavior: only the "## Knowledge Applied" section with applied and dism
 
 ---
 
-*Reference version: 1.0.0*
-*Created: 2026-02-07*
-*Phase: 05-knowledge-surfacing, Plan: 01*
+*Reference version: 2.0.0*
+*Created: 2026-02-07 (v1.0.0); rewritten 2026-04-21 (v2.0.0, Phase 59 Plan 05)*
+*Phase: 05-knowledge-surfacing (original), 59-kb-query-lifecycle-wiring-and-surfacing (rewrite)*
