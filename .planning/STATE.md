@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: verifying
-stopped_at: "Completed 59-04-PLAN.md (Wave 3: kb transition + kb link write verbs + lifecycle wiring; bash reconcile script deprecated)"
-last_updated: "2026-04-21T04:58:48.748Z"
+stopped_at: "Completed 59-05-PLAN.md (Wave 4: knowledge-surfacing rewrite + 59-DEFERRALS ledger + cross-runtime kb parity; Phase 59 closure ready for verifier)"
+last_updated: "2026-04-21T05:14:26.008Z"
 last_activity: 2026-04-21
 progress:
   total_phases: 24
-  completed_phases: 15
+  completed_phases: 16
   total_plans: 78
-  completed_plans: 77
-  percent: 99
+  completed_plans: 78
+  percent: 100
 ---
 
 # Project State
@@ -308,6 +308,9 @@ Recent decisions affecting current work:
 - [Phase 59]: [59-04]: Frozen-field guard requires --force on BOTH kb link create AND kb link delete for qualified_by/superseded_by (symmetry); per knowledge-store.md §10 these are frozen post-publication
 - [Phase 59]: [59-04]: reconcile-signal-lifecycle.sh deprecated with one-cycle sunset (v1.20->v1.21) + Linux guard that exits 2 with migration instructions -- chosen over silent removal so downstream macOS users have a release to migrate; Linux users get the deprecation surfaced loudly instead of silent no-op
 - [Phase 59]: [59-04]: 31 live-corpus lifecycle drifts NOT retroactively remediated in this plan -- wiring exists and integration test proves it; blanket retroactive transition is a separate operator-judgment pass similar to Plan 01's live-repair commit separation
+- [Phase 59]: knowledge-surfacing.md v1.0.0->v2.0.0 rewrite retires lesson-only grep-through-index path; SQLite-first signals+spikes+reflections triad with structural inbound-edge fetch via kb link show --inbound
+- [Phase 59]: 59-DEFERRALS.md enumerates KB-12..KB-17 in GATE-09 ledger-consumable form; REQUIREMENTS.md adds footer cross-reference (no content duplication); KB-04b..KB-08 flipped [x] with closed-by Phase 59 Plan N annotations
+- [Phase 59]: Cross-runtime parity integration test: sha256 equality for 5 kb* lib files + knowledge-surfacing.md across .claude and .codex; JSON shape parity for all new kb verbs. Phase 58.1 DC-4 held across Phase 59
 
 ### Roadmap Evolution
 
@@ -392,6 +395,7 @@ Recent decisions affecting current work:
 | Phase 59 P03 | 5min | 2 tasks | 4 files |
 | Phase 59 P04 | 13min | 2 tasks | 9 files |
 | Phase 59 P04 | 13min | 2 tasks | 9 files |
+| Phase 59 P05 | 8min | 2 tasks | 6 files |
 
 ### Key Artifacts
 
@@ -410,8 +414,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T04:58:04.702Z
-Stopped at: Completed 59-04-PLAN.md (Wave 3: kb transition + kb link write verbs + lifecycle wiring; bash reconcile script deprecated)
+Last session: 2026-04-21T05:14:26.000Z
+Stopped at: Completed 59-05-PLAN.md (Wave 4: knowledge-surfacing rewrite + 59-DEFERRALS ledger + cross-runtime kb parity; Phase 59 closure ready for verifier)
 Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
 This session (2026-04-20):
