@@ -1034,3 +1034,277 @@ describeIf('split provenance KB bridge (Phase 57.8)', () => {
     10000
   )
 })
+
+// ─── 10. Phase 59: extractLinks uniform typeof-string guard (R12) ────────────
+
+const kbLib = require('../../get-shit-done/bin/lib/kb.cjs')
+
+describeIf('Phase 59: extractLinks typeof-string guard (R12)', () => {
+  const extractLinks = kbLib.__testOnly_extractLinks
+
+  it('skips non-string qualified_by value (e.g. empty object from bare YAML key)', () => {
+    const links = extractLinks({ qualified_by: {} }, 'sig-test')
+    expect(links).toHaveLength(0)
+  })
+
+  it('skips non-string superseded_by value', () => {
+    const links = extractLinks({ superseded_by: {} }, 'sig-test')
+    expect(links).toHaveLength(0)
+  })
+
+  it('skips non-string recurrence_of value (this was the 107-edge live bug)', () => {
+    const links = extractLinks({ recurrence_of: {} }, 'sig-test')
+    expect(links).toHaveLength(0)
+  })
+
+  it('related_signals: skips object elements, keeps string elements', () => {
+    const links = extractLinks({ related_signals: [{}, 'sig-valid', {}] }, 'sig-test')
+    expect(links).toHaveLength(1)
+    expect(links[0]).toEqual({
+      source_id: 'sig-test',
+      target_id: 'sig-valid',
+      link_type: 'related_to',
+    })
+  })
+
+  it('keeps valid scalar recurrence_of string', () => {
+    const links = extractLinks({ recurrence_of: 'sig-parent' }, 'sig-test')
+    expect(links).toHaveLength(1)
+    expect(links[0].link_type).toBe('recurrence_of')
+    expect(links[0].target_id).toBe('sig-parent')
+  })
+
+  it('keeps valid qualified_by array of strings', () => {
+    const links = extractLinks({ qualified_by: ['sig-q1', 'sig-q2'] }, 'sig-test')
+    expect(links).toHaveLength(2)
+    expect(links.every(l => l.link_type === 'qualified_by')).toBe(true)
+  })
+})
+
+// ─── 11. Phase 59: FTS5 external-content contentless rewrite (KB-04b) ────────
+
+describeIf('Phase 59: FTS5 external-content contentless rewrite', () => {
+  tmpdirTest(
+    'porter tokenizer: MATCH on "rotation" also matches signal body containing "rotations"',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      // Write a signal whose body contains "refresh token rotations"
+      const dir = path.join(kbDir, 'signals', 'test-project')
+      fs.mkdirSync(dir, { recursive: true })
+      const signalPath = path.join(dir, 'sig-fts-rotation.md')
+      fs.writeFileSync(
+        signalPath,
+        `---
+id: sig-fts-rotation
+type: signal
+project: test-project
+severity: minor
+status: active
+detection_method: manual
+origin: user-observation
+created: '2026-04-21'
+tags: []
+---
+
+## Refresh token rotations prove themselves
+
+Body mentions rotations and rotated tokens specifically.
+`,
+        'utf-8'
+      )
+
+      const result = runKb(tmpdir, 'rebuild')
+      expect(result.errors).toBe(0)
+
+      const db = openDb(tmpdir)
+      // Porter reduces rotation -> rotat-; rotations -> rotat-; rotated -> rotat-
+      const hitRotation = db.prepare("SELECT id FROM signal_fts WHERE signal_fts MATCH 'rotation'").all()
+      const hitRotations = db.prepare("SELECT id FROM signal_fts WHERE signal_fts MATCH 'rotations'").all()
+      const hitRotated = db.prepare("SELECT id FROM signal_fts WHERE signal_fts MATCH 'rotated'").all()
+      expect(hitRotation.length).toBeGreaterThanOrEqual(1)
+      expect(hitRotation.map(r => r.id)).toContain('sig-fts-rotation')
+      expect(hitRotations.map(r => r.id)).toContain('sig-fts-rotation')
+      expect(hitRotated.map(r => r.id)).toContain('sig-fts-rotation')
+    },
+    10000
+  )
+
+  tmpdirTest(
+    'schema_version = 3 after rebuild and signal_fts is populated from existing signals',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      writeSignalFixture(kbDir, 'test', 'sig-schema.md', {
+        id: 'sig-schema-three',
+        type: 'signal',
+        project: 'test',
+        severity: 'minor',
+        status: 'active',
+        detection_method: 'manual',
+        origin: 'user-observation',
+        created: '2026-04-21',
+        tags: [],
+      })
+
+      runKb(tmpdir, 'rebuild')
+
+      const db = openDb(tmpdir)
+      const schemaVersion = db.prepare("SELECT value FROM meta WHERE key='schema_version'").get()
+      expect(schemaVersion.value).toBe('3')
+
+      const signalCount = db.prepare('SELECT COUNT(*) as n FROM signals').get().n
+      const ftsCount = db.prepare('SELECT COUNT(*) as n FROM signal_fts').get().n
+      expect(ftsCount).toBe(signalCount)
+    },
+    10000
+  )
+
+  tmpdirTest(
+    'upgrading a pre-v3 kb.db (v2) populates signal_fts on first rebuild',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      writeSignalFixture(kbDir, 'test', 'sig-upgrade.md', {
+        id: 'sig-upgrade-test',
+        type: 'signal',
+        project: 'test',
+        severity: 'minor',
+        status: 'active',
+        detection_method: 'manual',
+        origin: 'user-observation',
+        created: '2026-04-21',
+        tags: [],
+      })
+
+      // First rebuild -> schema v3
+      runKb(tmpdir, 'rebuild')
+
+      // Manually downgrade to simulate pre-v3 kb.db
+      const { DatabaseSync } = require('node:sqlite')
+      const dbPath = path.join(tmpdir, '.planning', 'knowledge', 'kb.db')
+      const db1 = new DatabaseSync(dbPath)
+      db1.exec("UPDATE meta SET value='2' WHERE key='schema_version'")
+      // Also mimic the old kb.db not having FTS: drop our FTS shell
+      db1.exec('DROP TRIGGER IF EXISTS signals_ai; DROP TRIGGER IF EXISTS signals_ad; DROP TRIGGER IF EXISTS signals_au; DROP TABLE IF EXISTS signal_fts;')
+      db1.close()
+
+      // Re-run rebuild; migration should recreate FTS and populate it
+      runKb(tmpdir, 'rebuild')
+
+      const db2 = openDb(tmpdir)
+      const schemaVersion = db2.prepare("SELECT value FROM meta WHERE key='schema_version'").get()
+      expect(schemaVersion.value).toBe('3')
+      const ftsCount = db2.prepare('SELECT COUNT(*) as n FROM signal_fts').get().n
+      const sigCount = db2.prepare('SELECT COUNT(*) as n FROM signals').get().n
+      expect(ftsCount).toBe(sigCount)
+    },
+    15000
+  )
+})
+
+// ─── 12. Phase 59: idx_signal_links_target query plan (KB-04c) ───────────────
+
+describeIf('Phase 59: idx_signal_links_target is present and used', () => {
+  tmpdirTest(
+    'EXPLAIN QUERY PLAN for inbound edge lookup uses idx_signal_links_target',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      writeSignalFixture(kbDir, 'test', 'sig-idx.md', {
+        id: 'sig-idx-test',
+        type: 'signal',
+        project: 'test',
+        severity: 'minor',
+        status: 'active',
+        detection_method: 'manual',
+        origin: 'user-observation',
+        created: '2026-04-21',
+        tags: [],
+      })
+
+      runKb(tmpdir, 'rebuild')
+
+      const db = openDb(tmpdir)
+      const plan = db
+        .prepare("EXPLAIN QUERY PLAN SELECT source_id FROM signal_links WHERE target_id = 'x'")
+        .all()
+      const planText = plan.map(r => r.detail || r[3] || '').join('\n')
+      expect(planText).toMatch(/idx_signal_links_target/)
+    },
+    10000
+  )
+})
+
+// ─── 13. Phase 59: signal_links edge provenance (audit §7.1 #8) ──────────────
+
+describeIf('Phase 59: signal_links edge provenance minimum (audit §7.1 #8)', () => {
+  tmpdirTest(
+    'every signal_links row has non-empty created_at and source_content_hash after rebuild',
+    async ({ tmpdir }) => {
+      const kbDir = createKbDir(tmpdir)
+      const dir = path.join(kbDir, 'signals', 'test-project')
+      fs.mkdirSync(dir, { recursive: true })
+      // Signal with one valid related_to edge
+      fs.writeFileSync(
+        path.join(dir, 'sig-prov-a.md'),
+        `---
+id: sig-prov-a
+type: signal
+project: test-project
+severity: minor
+status: active
+detection_method: manual
+origin: user-observation
+created: '2026-04-21'
+tags: []
+related_signals:
+  - sig-prov-b
+---
+
+## Body
+
+test
+`,
+        'utf-8'
+      )
+      fs.writeFileSync(
+        path.join(dir, 'sig-prov-b.md'),
+        `---
+id: sig-prov-b
+type: signal
+project: test-project
+severity: minor
+status: active
+detection_method: manual
+origin: user-observation
+created: '2026-04-21'
+tags: []
+---
+
+## Body
+
+test
+`,
+        'utf-8'
+      )
+
+      const result = runKb(tmpdir, 'rebuild')
+      expect(result.errors).toBe(0)
+
+      const db = openDb(tmpdir)
+      const total = db.prepare('SELECT COUNT(*) as n FROM signal_links').get().n
+      expect(total).toBeGreaterThanOrEqual(1)
+
+      // No row may have empty created_at or source_content_hash
+      const empty = db
+        .prepare("SELECT COUNT(*) as n FROM signal_links WHERE created_at = '' OR source_content_hash = ''")
+        .get().n
+      expect(empty).toBe(0)
+
+      // Shape check: created_at parses as ISO-8601, hash matches sha256-hex pattern
+      const sample = db
+        .prepare('SELECT created_at, source_content_hash FROM signal_links LIMIT 1')
+        .get()
+      expect(Number.isNaN(Date.parse(sample.created_at))).toBe(false)
+      expect(sample.source_content_hash).toMatch(/^[0-9a-f]{64}$/)
+    },
+    10000
+  )
+})

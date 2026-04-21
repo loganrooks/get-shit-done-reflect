@@ -99,6 +99,8 @@ function initSchema(db) {
       source_id TEXT NOT NULL REFERENCES signals(id),
       target_id TEXT NOT NULL,
       link_type TEXT NOT NULL,
+      created_at TEXT DEFAULT '',
+      source_content_hash TEXT DEFAULT '',
       PRIMARY KEY (source_id, target_id, link_type)
     );
 
@@ -170,18 +172,109 @@ function initSchema(db) {
     CREATE INDEX IF NOT EXISTS idx_ledger_disposition ON ledger_entries(disposition);
   `);
 
-  // 57.7 MEAS-GSDR-06: drop signal_fts virtual table. Previously reserved for
-  // Phase 59 full-text search, never populated, and external-content mode
-  // referenced nonexistent title/body columns on signals. Ripgrep remains the
-  // search fallback per option (b); any future FTS re-entry must be a
-  // contentless rewrite, not canonical-row expansion.
-  const ftsTriggers = db.prepare(
-    "SELECT name FROM sqlite_master WHERE type='trigger' AND sql LIKE '%signal_fts%'"
-  ).all();
-  for (const trigger of ftsTriggers) {
-    db.exec(`DROP TRIGGER IF EXISTS ${trigger.name};`);
+  // Phase 59 KB-04c: inbound-edge lookups on signal_links(target_id, link_type)
+  // plan as SEARCH ... USING INDEX, not SCAN. Without this index,
+  // `SELECT source_id FROM signal_links WHERE target_id = ?` is O(N) per
+  // call -- becomes a bottleneck as corpus grows past ~1000 signals. The
+  // composite (target_id, link_type) supports both bare inbound queries and
+  // inbound-filtered-by-link-type queries.
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_signal_links_target ON signal_links(target_id, link_type);
+  `);
+
+  // Phase 59 schema v2 -> v3 migration: signal_links gained created_at and
+  // source_content_hash columns (audit §7.1 #8 edge provenance minimum) and
+  // signal_fts was reintroduced as an FTS5 external-content contentless
+  // rewrite. On an existing v2 kb.db, signal_links lacks the new columns, so
+  // we must add them idempotently before cmdKbRebuild tries to INSERT with
+  // the new column list. ensureColumn is a no-op if the column already exists.
+  ensureColumn(db, 'signal_links', 'created_at', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signal_links', 'source_content_hash', "TEXT DEFAULT ''");
+
+  // Phase 59 KB-04b: signals.title and signals.body columns carry the
+  // derived H2-derived title and post-frontmatter body text that FTS5
+  // indexes. Option (i) from 59-RESEARCH.md -- declarative column shape over
+  // trigger-inline derivation. Populated on every INSERT OR REPLACE during
+  // rebuild so FTS stays coherent with signals via the AFTER triggers below.
+  ensureColumn(db, 'signals', 'title', "TEXT DEFAULT ''");
+  ensureColumn(db, 'signals', 'body', "TEXT DEFAULT ''");
+
+  // Phase 59 schema v2 -> v3 FTS substrate migration. Detect an older
+  // schema_version and drop any pre-existing signal_fts + AFTER triggers
+  // before recreating them with the new shape. Doing this BEFORE the FTS
+  // re-creation avoids a class of FTS5 "database disk image is malformed"
+  // errors when the AFTER-DELETE/UPDATE trigger tries to delete rows from
+  // an empty FTS index. On a version bump, we also clear the signals/tags/
+  // links rows here (pre-triggers) so the subsequent rebuild re-populates
+  // everything via the new-shape INSERT path. The rebuild's own transaction
+  // then fires the new signals_ai INSERT triggers to populate signal_fts.
+  const metaHasRow = db.prepare(
+    "SELECT name FROM sqlite_master WHERE type='table' AND name='meta'"
+  ).get();
+  const schemaVersionRow = metaHasRow
+    ? db.prepare("SELECT value FROM meta WHERE key = 'schema_version'").get()
+    : null;
+  const priorSchemaVersion = schemaVersionRow ? schemaVersionRow.value : null;
+  if (priorSchemaVersion !== '3') {
+    // Drop any lingering FTS triggers and shadow tables. IF EXISTS keeps this
+    // idempotent on fresh installs (nothing to drop) and cleans up any
+    // half-created Phase 57.7 drop-residue or earlier Phase 59 partial state.
+    db.exec(`
+      DROP TRIGGER IF EXISTS signals_ai;
+      DROP TRIGGER IF EXISTS signals_ad;
+      DROP TRIGGER IF EXISTS signals_au;
+      DROP TABLE IF EXISTS signal_fts;
+    `);
+    // Clear legacy rows now -- before the new triggers exist -- so the
+    // rebuild loop re-inserts everything fresh into the new schema.
+    // Order: signal_links FK-references signals(id), so edges first. This
+    // avoids the FTS5 malformed-disk-image error that would fire if the
+    // AFTER DELETE trigger tried to remove rows from an empty FTS index.
+    // This block runs only on schema upgrade, not on incremental rebuilds.
+    db.exec('DELETE FROM signal_links');
+    db.exec('DELETE FROM signal_tags');
+    db.exec('DELETE FROM signals');
   }
-  db.exec('DROP TABLE IF EXISTS signal_fts;');
+
+  // Phase 59 KB-04b: FTS5 external-content contentless rewrite. The virtual
+  // table indexes signals.title and signals.body without duplicating the
+  // body text. Three AFTER triggers (ai/ad/au) keep the FTS index coherent
+  // with future writes on signals. Existing rows are populated post-rebuild
+  // via `INSERT INTO signal_fts(signal_fts) VALUES('rebuild')` in
+  // cmdKbRebuild's schema-version-bump migration path.
+  //
+  // This replaces (does NOT revive) the Phase 57.7-dropped signal_fts --
+  // that one was a canonical-row expansion referencing nonexistent columns.
+  // Per 59-RESEARCH.md Pitfall 1: this re-entry is content='signals'
+  // contentless-rewrite with porter+unicode61 tokenizer, which is the
+  // correct shape.
+  db.exec(`
+    CREATE VIRTUAL TABLE IF NOT EXISTS signal_fts USING fts5(
+      id UNINDEXED,
+      title,
+      body,
+      content='signals',
+      content_rowid='rowid',
+      tokenize='porter unicode61'
+    );
+
+    CREATE TRIGGER IF NOT EXISTS signals_ai AFTER INSERT ON signals BEGIN
+      INSERT INTO signal_fts(rowid, id, title, body)
+      VALUES (new.rowid, new.id, new.title, new.body);
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS signals_ad AFTER DELETE ON signals BEGIN
+      INSERT INTO signal_fts(signal_fts, rowid, id, title, body)
+      VALUES ('delete', old.rowid, old.id, old.title, old.body);
+    END;
+
+    CREATE TRIGGER IF NOT EXISTS signals_au AFTER UPDATE ON signals BEGIN
+      INSERT INTO signal_fts(signal_fts, rowid, id, title, body)
+      VALUES ('delete', old.rowid, old.id, old.title, old.body);
+      INSERT INTO signal_fts(rowid, id, title, body)
+      VALUES (new.rowid, new.id, new.title, new.body);
+    END;
+  `);
 }
 
 function ensureColumn(db, tableName, columnName, definition) {
@@ -406,9 +499,31 @@ function deriveTopLevelProvenanceStatus(fm) {
 
 // ─── Frontmatter-to-row mapping ───────────────────────────────────────────────
 
-function signalToRow(fm, filePath, hash) {
+// Phase 59 KB-04b: derive title from first H2 heading in the post-frontmatter
+// body; fall back to empty string. Strip leading/trailing whitespace. Used to
+// populate signals.title for FTS5 indexing.
+function deriveTitleFromBody(body) {
+  if (typeof body !== 'string' || !body) return '';
+  const match = body.match(/^##\s+(.+?)\s*$/m);
+  return match ? match[1].trim() : '';
+}
+
+// Phase 59 KB-04b: strip the frontmatter block from raw markdown, leaving the
+// body text. Matches the same regex shape extractFrontmatter uses. Populates
+// signals.body for FTS5 indexing. Returns the full original content if no
+// frontmatter is present.
+function extractBodyFromContent(content) {
+  if (typeof content !== 'string') return '';
+  const match = content.match(/^---\r?\n[\s\S]+?\r?\n---\r?\n?/);
+  if (!match) return content;
+  return content.slice(match[0].length);
+}
+
+function signalToRow(fm, filePath, hash, rawContent) {
   const structuredProvenance = normalizeStructuredProvenance(fm);
   const legacyEcho = buildLegacyFlatEcho(structuredProvenance);
+  const body = extractBodyFromContent(rawContent || '');
+  const title = deriveTitleFromBody(body);
 
   return {
     id: fm.id || path.basename(filePath, '.md'),
@@ -439,6 +554,8 @@ function signalToRow(fm, filePath, hash) {
     confidence: fm.confidence || 'medium',
     status: normalizeStatus(fm.status),
     content_hash: hash,
+    title,
+    body,
   };
 }
 
@@ -507,33 +624,40 @@ function extractTags(fm) {
 // ─── Links extraction ─────────────────────────────────────────────────────────
 
 function extractLinks(fm, signalId) {
+  // Phase 59 R12: uniform typeof-string guard across all four link types.
+  // The YAML parser coerces bare keys like `recurrence_of:` (no value) to
+  // `{}` (empty object). Without the typeof guard, `String({}).trim()` is
+  // `"[object Object]"` -- truthy, non-empty -- and gets inserted as a
+  // malformed target_id. That single bug produced 107 malformed rows on the
+  // live corpus. Guarding each scalar/element on `typeof === 'string'`
+  // structurally eliminates the [object Object] bug class across
+  // qualified_by, superseded_by, related_signals, AND recurrence_of at once.
   const links = [];
-  // qualified_by: array of IDs
+  function pushIfValidString(value, linkType) {
+    if (typeof value !== 'string') return;
+    const trimmed = value.trim();
+    if (!trimmed) return;
+    links.push({ source_id: signalId, target_id: trimmed, link_type: linkType });
+  }
+
+  // qualified_by: array of IDs (or single ID string)
   if (fm.qualified_by) {
     const ids = Array.isArray(fm.qualified_by) ? fm.qualified_by : [fm.qualified_by];
     for (const targetId of ids) {
-      if (targetId && String(targetId).trim()) {
-        links.push({ source_id: signalId, target_id: String(targetId).trim(), link_type: 'qualified_by' });
-      }
+      pushIfValidString(targetId, 'qualified_by');
     }
   }
   // superseded_by: single ID
-  if (fm.superseded_by && String(fm.superseded_by).trim()) {
-    links.push({ source_id: signalId, target_id: String(fm.superseded_by).trim(), link_type: 'superseded_by' });
-  }
-  // related_signals: array of IDs
+  pushIfValidString(fm.superseded_by, 'superseded_by');
+  // related_signals: array of IDs (or single ID string)
   if (fm.related_signals) {
     const ids = Array.isArray(fm.related_signals) ? fm.related_signals : [fm.related_signals];
     for (const targetId of ids) {
-      if (targetId && String(targetId).trim()) {
-        links.push({ source_id: signalId, target_id: String(targetId).trim(), link_type: 'related_to' });
-      }
+      pushIfValidString(targetId, 'related_to');
     }
   }
   // recurrence_of: single ID
-  if (fm.recurrence_of && String(fm.recurrence_of).trim()) {
-    links.push({ source_id: signalId, target_id: String(fm.recurrence_of).trim(), link_type: 'recurrence_of' });
-  }
+  pushIfValidString(fm.recurrence_of, 'recurrence_of');
   return links;
 }
 
@@ -559,6 +683,12 @@ function cmdKbRebuild(cwd, raw) {
   let errors = 0;
   const errorDetails = [];
 
+  // Phase 59: schema v2 -> v3 migration ran in initSchema (dropped old FTS,
+  // cleared legacy rows). The rebuild loop below re-inserts every signal
+  // fresh, firing the new signals_ai AFTER INSERT trigger to populate
+  // signal_fts row-by-row and attaching created_at/source_content_hash to
+  // every edge.
+
   // Prepared statements
   const getSignalHash = db.prepare('SELECT content_hash FROM signals WHERE file_path = ?');
   const insertSignal = db.prepare(`
@@ -566,17 +696,25 @@ function cmdKbRebuild(cwd, raw) {
       (id, file_path, project, severity, lifecycle_state, polarity, signal_category,
        disposition, signal_type, detection_method, origin, created, updated, phase, plan,
        provenance_schema, provenance_status, about_work_json, detected_by_json, written_by_json,
-       runtime, model, gsd_version, occurrence_count, durability, confidence, status, content_hash)
+       runtime, model, gsd_version, occurrence_count, durability, confidence, status, content_hash,
+       title, body)
     VALUES
       (@id, @file_path, @project, @severity, @lifecycle_state, @polarity, @signal_category,
        @disposition, @signal_type, @detection_method, @origin, @created, @updated, @phase, @plan,
        @provenance_schema, @provenance_status, @about_work_json, @detected_by_json, @written_by_json,
-       @runtime, @model, @gsd_version, @occurrence_count, @durability, @confidence, @status, @content_hash)
+       @runtime, @model, @gsd_version, @occurrence_count, @durability, @confidence, @status, @content_hash,
+       @title, @body)
   `);
   const deleteSignalTags = db.prepare('DELETE FROM signal_tags WHERE signal_id = ?');
   const insertSignalTag = db.prepare('INSERT OR IGNORE INTO signal_tags (signal_id, tag) VALUES (?, ?)');
   const deleteSignalLinks = db.prepare('DELETE FROM signal_links WHERE source_id = ?');
-  const insertSignalLink = db.prepare('INSERT OR IGNORE INTO signal_links (source_id, target_id, link_type) VALUES (?, ?, ?)');
+  // Phase 59 audit §7.1 #8: edge provenance minimum. Every signal_links row
+  // carries the rebuild-time ISO timestamp and the sha256 content hash of the
+  // source signal file, populated on INSERT. These enable cheap forensic
+  // work later without adding an edge-as-entity migration.
+  const insertSignalLink = db.prepare(
+    'INSERT OR IGNORE INTO signal_links (source_id, target_id, link_type, created_at, source_content_hash) VALUES (?, ?, ?, ?, ?)'
+  );
 
   const getSpikeHash = db.prepare('SELECT content_hash FROM spikes WHERE file_path = ?');
   const insertSpike = db.prepare(`
@@ -635,7 +773,7 @@ function cmdKbRebuild(cwd, raw) {
       }
 
       try {
-        const row = signalToRow(fm, relPath, hash);
+        const row = signalToRow(fm, relPath, hash, content);
         const isNew = !existing;
         insertSignal.run(row);
 
@@ -646,11 +784,20 @@ function cmdKbRebuild(cwd, raw) {
           insertSignalTag.run(row.id, tag);
         }
 
-        // Replace links
+        // Replace links. Phase 59 audit §7.1 #8: populate edge provenance
+        // (created_at = rebuild time; source_content_hash = hash already
+        // computed for this source signal file -- avoids a second file read).
         deleteSignalLinks.run(row.id);
+        const linkInsertedAt = new Date().toISOString();
         const links = extractLinks(fm, row.id);
         for (const link of links) {
-          insertSignalLink.run(link.source_id, link.target_id, link.link_type);
+          insertSignalLink.run(
+            link.source_id,
+            link.target_id,
+            link.link_type,
+            linkInsertedAt,
+            hash
+          );
         }
 
         if (isNew) signalsAdded++;
@@ -771,14 +918,22 @@ function cmdKbRebuild(cwd, raw) {
       ledgerFilesProcessed++;
     }
 
-    // Update meta table
+    // Update meta table. Phase 59 bumps schema_version 2 -> 3 to signal the
+    // FTS5 re-entry + signal_links provenance columns + idx_signal_links_target.
     const upsertMeta = db.prepare('INSERT OR REPLACE INTO meta (key, value) VALUES (?, ?)');
-    upsertMeta.run('schema_version', '2');
+    upsertMeta.run('schema_version', '3');
     upsertMeta.run('last_rebuilt', now);
     upsertMeta.run('signal_count', String(signalsAdded + signalsUpdated + signalsSkipped));
     upsertMeta.run('spike_count', String(spikesAdded + spikesUpdated + spikesSkipped));
     upsertMeta.run('ledger_entry_count', String(ledgerEntriesIndexed));
     upsertMeta.run('ledger_file_count', String(ledgerFilesProcessed));
+
+    // Phase 59 KB-04b: FTS external-content contentless rewrite requires an
+    // explicit rebuild of the index from the `signals` table content when
+    // existing rows were inserted before the FTS triggers existed (or when
+    // skipped-by-hash rows never fired AFTER INSERT). Running this inside the
+    // transaction keeps it atomic with the rest of the rebuild.
+    db.exec("INSERT INTO signal_fts(signal_fts) VALUES('rebuild');");
 
     db.exec('COMMIT');
   } catch (e) {
@@ -999,4 +1154,12 @@ function cmdKbMigrate(cwd, raw) {
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
-module.exports = { cmdKbRebuild, cmdKbStats, cmdKbMigrate };
+module.exports = {
+  cmdKbRebuild,
+  cmdKbStats,
+  cmdKbMigrate,
+  // Phase 59 test-only exports: allow unit tests to exercise extractLinks
+  // directly for the typeof-string-guard invariants without re-invoking the
+  // full rebuild pipeline. Prefixed with __testOnly_ so the intent is legible.
+  __testOnly_extractLinks: extractLinks,
+};
