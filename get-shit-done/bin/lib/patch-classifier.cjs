@@ -456,7 +456,7 @@ function resolveSourceInfo(cwd, runtime, relPath) {
   }
 
   if (normalized.startsWith('get-shit-done-reflect/')) {
-    const sourcePath = path.join(cwd, normalized.slice('get-shit-done-reflect/'.length));
+    const sourcePath = path.join(cwd, 'get-shit-done', normalized.slice('get-shit-done-reflect/'.length));
     if (!fs.existsSync(sourcePath)) {
       return { sourceFileExists: false, sourceHash: null, sourcePath };
     }
