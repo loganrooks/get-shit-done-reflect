@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: human_verification
-stopped_at: Verified 58.1 (live Codex checks pending)
-last_updated: "2026-04-20T22:24:18Z"
+stopped_at: Verified 58.1 implementation (live Codex checks and release-boundary closeout pending)
+last_updated: "2026-04-20T23:15:00Z"
 last_activity: 2026-04-20
 progress:
   total_phases: 24
   completed_phases: 14
   total_plans: 73
   completed_plans: 73
-  percent: 100
+  percent: 99
 ---
 
 # Project State
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 58.1 (Codex Update Distribution Parity) has finished execution on branch `gsd/phase-58.1-codex-update-distribution-parity` and passed automated verification. The only remaining work is two live human Codex checks: a real source-repo update preview/execution and a real non-default `CODEX_CONFIG_DIR` update run.
+**Current focus:** v1.20 Phase 58.1 (Codex Update Distribution Parity) has finished implementation on branch `gsd/phase-58.1-codex-update-distribution-parity` and passed automated verification. Remaining work is now split across two surfaces: two live human Codex checks (real source-repo update preview/execution and a real non-default `CODEX_CONFIG_DIR` update run), plus release-boundary closeout on the phase branch (`PR -> CI -> merge -> release of the merged commit`).
 
 ## Current Position
 
 Phase: 58.1 of 64 — Execution complete on `gsd/phase-58.1-codex-update-distribution-parity`
 Plan: 2 of 2 complete
-Status: Automated verification passed; 2 live human Codex checks pending
+Status: Automated verification passed; 2 live human Codex checks and release-boundary closeout pending
 
 ### Recent Phases
 
