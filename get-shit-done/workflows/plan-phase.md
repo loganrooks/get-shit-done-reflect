@@ -1,3 +1,33 @@
+<!-- text_mode: this workflow is primarily agent-driven (Task() dispatch to
+     gsd-phase-researcher / gsd-planner / gsd-plan-checker). No user-facing
+     AskUserQuestion or readline prompts exist at this time, so the
+     workflow.text_mode config flag is a documented no-op here.
+     GATE-08d contract: future user-prompt additions MUST honor the
+     WORKFLOW_TEXT_MODE branching pattern defined in
+     docs/workflow-discuss-mode.md §3. Plan 17 verifier greps this comment. -->
+
+<!-- GATE-12 (Phase 58 Plan 14): Failed / interrupted planner or plan-checker
+     output MUST be archived via `gsd-tools agent archive` before any rm or
+     overwrite of a redispatch target. The revision loop in Step 12 updates
+     PLAN.md files in place (see research R3 notation for plan-phase.md:450-451
+     "Planner (iterate)"); if future edits add explicit delete-then-rewrite
+     logic, wrap with the envelope below first. See
+     `.planning/phases/58-structural-enforcement-gates/58-14-SUMMARY.md` for the
+     envelope pattern; resolves
+     `sig-2026-04-10-orchestrator-deletes-partial-output-instead-of-archiving`.
+
+     Envelope template for future redispatch / retry logic:
+
+         if [ -f "$PLAN_PATH" ]; then
+           node ~/.claude/get-shit-done/bin/gsd-tools.cjs agent archive \
+             --session-id "${SESSION_ID:-${AGENT_SESSION_ID:-unknown}}" \
+             --reason "failed_redispatch_planner" \
+             --phase "$PHASE_NUMBER" \
+             --paths "$PLAN_PATH" \
+             || echo "[warn] GATE-12: archive failed — proceeding with rm as fallback (evidence loss risk)"
+         fi
+-->
+
 <purpose>
 Create executable phase prompts (PLAN.md files) for a roadmap phase with integrated research and verification. Default flow: Research (if needed) -> Plan -> Verify -> Done. Orchestrates gsd-phase-researcher, gsd-planner, and gsd-plan-checker agents with a revision loop (max 3 iterations).
 </purpose>
@@ -52,6 +82,127 @@ Use `context_content` from init JSON (already loaded via `--include context`).
 **CRITICAL:** Use `context_content` from INIT — pass to researcher, planner, checker, and revision agents.
 
 If `context_content` is not null, display: `Using phase context from: ${PHASE_DIR}/*-CONTEXT.md`
+
+## 4.5. GATE-09b: Planning-gate check for unresolved `[open]` scope-boundary claims
+
+<!-- GATE-09b (Phase 58 Plan 17): any `[open]` scope-boundary claim in
+     <phase>-CONTEXT.md that affects what the phase builds must resolve or
+     defer to a named downstream phase before plan-phase proceeds. This step
+     is a coarse grep heuristic -- exact claim-type parsing would require a
+     YAML/markdown claim parser (references/claim-types.md §3 regex). The
+     heuristic counts `[open]` markers in BOTH CONTEXT.md and RESEARCH.md
+     (research-time resolutions live in RESEARCH.md for this fork, per
+     research-phase.md contract) and subtracts markers paired with the
+     words "resolved" or "deferred to Phase". Net positive = block.
+
+     Fire-event: `::notice::gate_fired=GATE-09b result=<pass|block>
+     unresolved_claims=<N>` on every invocation (Plan 19 extractor contract).
+     Codex behavior: applies-via-workflow-step (see 58-05-codex-behavior-matrix.md).
+-->
+
+```bash
+# GATE-09b: planning-gate check for unresolved [open] scope-boundary claims
+# Scans both CONTEXT.md and RESEARCH.md because resolutions/defers live in
+# RESEARCH.md after research-phase completes (fork convention).
+padded_phase="${padded_phase:-$(printf '%02d' "${PHASE%%.*}")}"
+CONTEXT_FILE=$(ls "${phase_dir}"/*-CONTEXT.md 2>/dev/null | head -1)
+RESEARCH_FILE=$(ls "${phase_dir}"/*-RESEARCH.md 2>/dev/null | head -1)
+
+if [ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ]; then
+  # Count [open] markers across both files (RESEARCH.md may be absent).
+  # Pattern `\[open(\]|:)` matches both short-form `[open]` and typed
+  # `[open:...]` per references/claim-types.md §3 notation syntax.
+  FILES_TO_SCAN="$CONTEXT_FILE"
+  [ -n "$RESEARCH_FILE" ] && [ -f "$RESEARCH_FILE" ] && FILES_TO_SCAN="$FILES_TO_SCAN $RESEARCH_FILE"
+
+  # shellcheck disable=SC2086
+  OPEN_TOTAL=$(grep -hcE '\[open(\]|:)' $FILES_TO_SCAN 2>/dev/null | awk '{s+=$1} END {print s+0}')
+  # shellcheck disable=SC2086
+  OPEN_RESOLVED=$(grep -hcE '\[open(\]|:).*(resolved|deferred to Phase)' $FILES_TO_SCAN 2>/dev/null | awk '{s+=$1} END {print s+0}')
+  UNRESOLVED=$((OPEN_TOTAL - OPEN_RESOLVED))
+
+  if [ "$UNRESOLVED" -gt 0 ]; then
+    echo "::notice title=GATE-09b::gate_fired=GATE-09b result=block unresolved_claims=$UNRESOLVED"
+    echo "GATE-09b: $UNRESOLVED [open] scope-boundary claim(s) remain unresolved in CONTEXT.md / RESEARCH.md."
+    echo ""
+    echo "Unresolved markers (first 20):"
+    # shellcheck disable=SC2086
+    grep -nE '\[open(\]|:)' $FILES_TO_SCAN 2>/dev/null | head -20
+    echo ""
+    echo "Each [open] claim must either:"
+    echo "  (a) Resolve -- e.g., append 'resolved: <answer>' on the same line, OR"
+    echo "  (b) Defer  -- e.g., append 'deferred to Phase <NN or NN.N>: <reason>'"
+    echo ""
+    echo "Re-run /gsd:plan-phase after resolving or deferring the claims above."
+    exit 1
+  fi
+  echo "::notice title=GATE-09b::gate_fired=GATE-09b result=pass unresolved_claims=0"
+else
+  # No CONTEXT.md -- emit skip-shaped fire-event so Plan 19 extractor can count
+  # "phases entering plan-phase without CONTEXT.md" as a distinct bucket.
+  echo "::notice title=GATE-09b::gate_fired=GATE-09b result=pass unresolved_claims=0 note=no_context_md"
+fi
+```
+
+## 4.6. XRT-01: planning-phase assertion — hook-dependent commitments require Codex path
+
+<!-- XRT-01 (Phase 58 Plan 18): any hook-dependent commitment authored in
+     <phase>-CONTEXT.md MUST be accompanied by an explicit per-runtime
+     substrate declaration (Codex behavior / degradation / waiver path) before
+     plan-phase proceeds. REQUIREMENTS.md:419 formalizes this; Audit Finding
+     2.10 motivates it (Phases 57.7 / 57.8 CONTEXT.md files lacked Codex
+     degradation sections for hook-dependent features).
+
+     This step is a coarse grep heuristic -- it counts hook-keyword mentions
+     and Codex-path mentions. A false positive is possible (CONTEXT mentions
+     "hook" casually without the feature being hook-dependent); the
+     HAS_CODEX_PATH OR-condition is permissive so any phase authoring CONTEXT
+     in a hook-dependent domain can satisfy the check by adding a small
+     Codex-behavior block. Authors can defuse a false positive the same way --
+     by adding a per-gate Codex behavior declaration per
+     58-05-codex-behavior-matrix.md vocabulary.
+
+     Fire-event: `::notice::gate_fired=XRT-01 result=<pass|block> reason=<str>`
+     on every invocation (Plan 19 extractor contract).
+     Codex behavior: applies on both runtimes (see
+     58-05-codex-behavior-matrix.md §XRT-01).
+     Companion: `gsd-tools verify ledger <phase>` runs the closeout-time
+     capability-matrix diff check (see verify.cjs `verifyCapabilityMatrix`).
+-->
+
+```bash
+# XRT-01: planning-phase assertion -- hook-dependent commitments require Codex path
+padded_phase="${padded_phase:-$(printf '%02d' "${PHASE%%.*}")}"
+CONTEXT_FILE=$(ls "${phase_dir}"/*-CONTEXT.md 2>/dev/null | head -1)
+
+if [ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ]; then
+  # Heuristic: does CONTEXT mention hook-dependent keywords?
+  HAS_HOOK_COMMITMENT=$(grep -ciE 'hook|SessionStop|postlude|codex_hooks|session-meta' "$CONTEXT_FILE" || true)
+
+  if [ "$HAS_HOOK_COMMITMENT" -gt 0 ]; then
+    # Does CONTEXT contain an explicit Codex degradation / waiver path?
+    # Accept any of the Section-2 vocabulary plus narrative forms. Permissive by
+    # design -- authors satisfy it by declaring a per-gate Codex behavior block
+    # per 58-05-codex-behavior-matrix.md.
+    HAS_CODEX_PATH=$(grep -ciE 'Codex behavior|does-not-apply-with-reason|applies-via-workflow-step|applies-via-installer|Codex degradation|waiver path|XRT-01' "$CONTEXT_FILE" || true)
+
+    if [ "$HAS_CODEX_PATH" -eq 0 ]; then
+      echo "::notice title=XRT-01::gate_fired=XRT-01 result=block reason=hook_commitment_no_codex_path"
+      echo "XRT-01 blocks planning: CONTEXT.md mentions hook-dependent features but lacks explicit Codex degradation / waiver path."
+      echo "Required: add a Codex behavior section declaring applies / applies-via-workflow-step / applies-via-installer / does-not-apply-with-reason for each hook-dependent commitment."
+      echo "See .planning/phases/58-structural-enforcement-gates/58-05-codex-behavior-matrix.md for the standard vocabulary."
+      exit 1
+    fi
+    echo "::notice title=XRT-01::gate_fired=XRT-01 result=pass reason=codex_path_declared"
+  else
+    echo "::notice title=XRT-01::gate_fired=XRT-01 result=pass reason=no_hook_commitments"
+  fi
+else
+  # No CONTEXT.md -- emit skip-shaped fire-event for Plan 19 extractor parity
+  # with GATE-09b's no_context_md branch.
+  echo "::notice title=XRT-01::gate_fired=XRT-01 result=pass reason=no_context_md"
+fi
+```
 
 <capability_check name="agent_spawning">
 Check the runtime capability matrix (get-shit-done/references/capability-matrix.md):
@@ -122,11 +273,53 @@ Write to: {phase_dir}/{phase}-RESEARCH.md
 </output>
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="general-purpose"   # Proxy for gsd-phase-researcher via inline-prompt pattern
+MODEL="{researcher_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/plan-phase.md"
+WORKFLOW_STEP="spawn_researcher"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE}(proxy:gsd-phase-researcher) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}(proxy:gsd-phase-researcher)" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: general-purpose (proxy for gsd-phase-researcher via inline-prompt pattern)
+# Model: inherit          (resolved from {researcher_model} via resolveModelInternal(cwd, "gsd-phase-researcher") under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - research_prompt (built in prior step from phase description/requirements/decisions/context)
+#   - ~/.claude/agents/gsd-phase-researcher.md (role-and-instructions file read by proxy)
+# Output path: {phase_dir}/{phase}-RESEARCH.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# Originating signal: sig-2026-04-10-researcher-model-override-leak-third-occurrence
 Task(
   prompt="First, read ~/.claude/agents/gsd-phase-researcher.md for your role and instructions.\n\n" + research_prompt,
   subagent_type="general-purpose",
-  model="{researcher_model}",
+  model="{researcher_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20; resolved against canonical gsd-phase-researcher)
   description="Research Phase {phase}"
 )
 ```
@@ -339,13 +532,64 @@ Output consumed by /gsd:execute-phase. Plans need:
 - [ ] Waves assigned for parallel execution
 - [ ] must_haves derived from phase goal
 </quality_gate>
+
+### Narrowing Decisions (GATE-09c)
+
+If during planning you narrow scope relative to CONTEXT.md (e.g., reject a decided-claim, defer an assumed claim, split a requirement without complete coverage, or decline to implement a load-bearing CONTEXT obligation), record the narrowing in the Narrowing Decisions section of the PLAN.md with:
+- Originating CONTEXT claim (quoted or claim-ID)
+- What was narrowed
+- Rationale
+- Target phase if deferred
+
+The phase verifier (Plan 17 GATE-09d) reads both RESEARCH.md and PLAN.md for these narrowings and rolls them into the NN-LEDGER.md at phase close. Silent narrowing fails verification.
+```
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="general-purpose"   # Proxy for gsd-planner via inline-prompt pattern
+MODEL="{planner_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/plan-phase.md"
+WORKFLOW_STEP="spawn_planner"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE}(proxy:gsd-planner) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}(proxy:gsd-planner)" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: general-purpose (proxy for gsd-planner via inline-prompt pattern)
+# Model: inherit          (resolved from {planner_model} via resolveModelInternal(cwd, "gsd-planner") under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - filled_prompt (built in prior step from planning_context/downstream_consumer/quality_gate)
+#   - ~/.claude/agents/gsd-planner.md (role-and-instructions file read by proxy)
+# Output path: {phase_dir}/*-PLAN.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="First, read ~/.claude/agents/gsd-planner.md for your role and instructions.\n\n" + filled_prompt,
   subagent_type="general-purpose",
-  model="{planner_model}",
+  model="{planner_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20; resolved against canonical gsd-planner)
   description="Plan Phase {phase}"
 )
 ```
@@ -396,11 +640,52 @@ IMPORTANT: Plans MUST honor user decisions. Flag as issue if plans contradict.
 </expected_output>
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-plan-checker"
+MODEL="{checker_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/plan-phase.md"
+WORKFLOW_STEP="spawn_plan_checker"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-plan-checker
+# Model: sonnet          (resolved from {checker_model} via resolveModelInternal under model_profile=quality; alias mode)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - checker_prompt (built with verification_context + plans_content + requirements_content + phase context)
+#   - {phase_dir}/*-PLAN.md (plans to verify)
+# Output path: N/A (inline verification verdict)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt=checker_prompt,
   subagent_type="gsd-plan-checker",
-  model="{checker_model}",
+  model="{checker_model}",   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20)
   description="Verify Phase {phase} plans"
 )
 ```
@@ -444,11 +729,52 @@ Return what changed.
 </instructions>
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="general-purpose"   # Proxy for gsd-planner (revision loop) via inline-prompt pattern
+MODEL="{planner_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/plan-phase.md"
+WORKFLOW_STEP="spawn_planner_revise"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE}(proxy:gsd-planner;revision) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}(proxy:gsd-planner;revision)" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: general-purpose (proxy for gsd-planner — revision loop — via inline-prompt pattern)
+# Model: inherit          (resolved from {planner_model} via resolveModelInternal(cwd, "gsd-planner") under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - revision_prompt (built with revision_context + existing plans + checker issues + phase context)
+#   - ~/.claude/agents/gsd-planner.md
+# Output path: {phase_dir}/*-PLAN.md (revised in place)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="First, read ~/.claude/agents/gsd-planner.md for your role and instructions.\n\n" + revision_prompt,
   subagent_type="general-purpose",
-  model="{planner_model}",
+  model="{planner_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20; resolved against canonical gsd-planner)
   description="Revise Phase {phase} plans"
 )
 ```

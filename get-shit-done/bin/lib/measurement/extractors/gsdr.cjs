@@ -4,6 +4,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const { loadGsdr } = require('../sources/gsdr.cjs');
+const { loadCiNotices } = require('../sources/ci-notices.cjs');
+const { loadDelegationLog } = require('../sources/delegation-log.cjs');
 
 function normalizeRegistryApi(registryApi) {
   if (!registryApi || typeof registryApi.defineExtractor !== 'function' || typeof registryApi.buildFeatureRecord !== 'function') {
@@ -520,12 +522,197 @@ function buildGsdrExtractors(registryApi) {
     },
   });
 
+  const gateFireEventsExtractor = defineExtractor({
+    name: 'gate_fire_events',
+    source_family: 'GSDR',
+    raw_sources: ['delegation_log', 'ci_notices', 'session_meta_postlude'],
+    runtimes: ['claude-code', 'codex-cli'],
+    reliability_tier: 'direct_observation',
+    features_produced: [
+      'gate_fire_count',
+      'gate_fire_latest',
+      'gate_fire_by_gate_id',
+      'gate_waiver_count',
+    ],
+    serves_loop: ['pipeline_integrity'],
+    distinguishes: ['gate_coverage_by_phase', 'gate_availability_by_runtime'],
+    status_semantics: ['exposed', 'not_available', 'not_emitted'],
+    content_contract: 'metadata_only',
+    extract(extractor, context) {
+      const cwd = context.cwd || process.cwd();
+      const phaseFilter = context.phase || null;
+      const events = [];
+      const sourcesSeen = {
+        ci_notices: 'not_available',
+        delegation_log: 'not_available',
+        session_meta_postlude: 'not_available',
+      };
+      const evidencePaths = new Set();
+
+      // 1. ci_notices source — parses `::notice::gate_fired=...` markers from the
+      //    `.planning/measurement/gate-events/*.jsonl` directory plus the delegation log.
+      let ciEvents = [];
+      try {
+        ciEvents = loadCiNotices(cwd) || [];
+        sourcesSeen.ci_notices = ciEvents.length > 0 ? 'exposed' : 'not_emitted';
+      } catch (err) {
+        sourcesSeen.ci_notices = 'not_available';
+        process.stderr.write(`[gate_fire_events] ci_notices load failed: ${err.message}\n`);
+      }
+      for (const e of ciEvents) {
+        if (phaseFilter && e.phase && e.phase !== phaseFilter) continue;
+        if (e.source_file) evidencePaths.add(e.source_file);
+        events.push({
+          ts: e.ts || null,
+          gate: e.gate,
+          result: e.result || null,
+          phase: e.phase || null,
+          source: 'ci_notices',
+          source_file: e.source_file || null,
+        });
+      }
+
+      // 2. delegation_log source — every delegation is implicitly a GATE-05
+      //    (echo_delegation) fire-event; surface as GATE-05 entries.
+      let delEvents = [];
+      try {
+        delEvents = loadDelegationLog(cwd) || [];
+        sourcesSeen.delegation_log = delEvents.length > 0 ? 'exposed' : 'not_emitted';
+      } catch (err) {
+        sourcesSeen.delegation_log = 'not_available';
+        process.stderr.write(`[gate_fire_events] delegation_log load failed: ${err.message}\n`);
+      }
+      for (const e of delEvents) {
+        // delegation rows don't carry a phase field; accept without phase filtering
+        if (e.source_file) evidencePaths.add(e.source_file);
+        events.push({
+          ts: e.ts || null,
+          gate: 'GATE-05',
+          result: 'pass',
+          phase: phaseFilter || null,
+          source: 'delegation_log',
+          source_file: e.source_file || null,
+        });
+      }
+
+      // 3. session_meta_postlude source — Phase 57.9 provides; degrade gracefully
+      //    when the module is not yet shipped (expected path during Phase 58).
+      let postludeEvents = [];
+      try {
+        const postludeModule = require('../sources/session-meta-postlude.cjs');
+        if (postludeModule && typeof postludeModule.loadSessionMetaPostlude === 'function') {
+          postludeEvents = postludeModule.loadSessionMetaPostlude(cwd, { phase: phaseFilter }) || [];
+          sourcesSeen.session_meta_postlude = postludeEvents.length > 0 ? 'exposed' : 'not_emitted';
+        }
+      } catch (err) {
+        // Phase 57.9 not shipped — graceful not_available status, no throw.
+        if (err && err.code !== 'MODULE_NOT_FOUND') {
+          process.stderr.write(`[gate_fire_events] session_meta_postlude load failed: ${err.message}\n`);
+        }
+        sourcesSeen.session_meta_postlude = 'not_available';
+      }
+      for (const e of postludeEvents) {
+        if (phaseFilter && e.phase && e.phase !== phaseFilter) continue;
+        if (e.source_file) evidencePaths.add(e.source_file);
+        events.push({
+          ts: e.ts || null,
+          gate: e.gate,
+          result: e.result || null,
+          phase: e.phase || null,
+          source: 'session_meta_postlude',
+          source_file: e.source_file || null,
+        });
+      }
+
+      // Aggregate features
+      const byGate = {};
+      for (const e of events) {
+        byGate[e.gate] = (byGate[e.gate] || 0) + 1;
+      }
+      const latest = events.reduce(
+        (acc, e) => (e.ts && (!acc.ts || e.ts > acc.ts) ? e : acc),
+        { ts: null }
+      );
+      const gateFireCount = events.length;
+      const waiverCount = events.filter(e => e.result === 'waived').length;
+
+      // Availability semantics:
+      //   - All sources not_available  → extractor not_available
+      //   - Any source exposed + events found → exposed
+      //   - Sources reachable but no events → not_emitted
+      const anyExposed = Object.values(sourcesSeen).some(status => status === 'exposed');
+      const anyReachable = Object.values(sourcesSeen).some(status => status !== 'not_available');
+      let availability;
+      if (anyExposed && gateFireCount > 0) {
+        availability = 'exposed';
+      } else if (anyReachable) {
+        availability = 'not_emitted';
+      } else {
+        availability = 'not_available';
+      }
+      const symmetryMarker = availability === 'exposed' ? 'symmetric_available' : 'symmetric_unavailable';
+
+      // Emit one row per runtime tagged on the extractor; feature values remain
+      // aggregate (runtime-neutral sources). Runtime tag distinguishes the row
+      // in the per-feature table for the registry's runtime dimension.
+      return extractor.runtimes.map(runtime => buildFeatureRecord(extractor, {
+        feature_name: 'gate_fire_events',
+        runtime,
+        availability_status: availability,
+        symmetry_marker: symmetryMarker,
+        value: {
+          gate_fire_count: gateFireCount,
+          gate_fire_latest: latest.ts || null,
+          gate_fire_by_gate_id: Object.entries(byGate)
+            .map(([gate_id, count]) => ({ gate_id, count }))
+            .sort((a, b) => a.gate_id.localeCompare(b.gate_id)),
+          gate_waiver_count: waiverCount,
+          sources_seen: sourcesSeen,
+          phase_filter: phaseFilter,
+        },
+        coverage: {
+          raw_sources: ['delegation_log', 'ci_notices', 'session_meta_postlude'],
+          observed_sources: Object.entries(sourcesSeen)
+            .filter(([, status]) => status === 'exposed')
+            .map(([name]) => name),
+          missing_sources: Object.entries(sourcesSeen)
+            .filter(([, status]) => status === 'not_available')
+            .map(([name]) => name),
+          complete: Object.values(sourcesSeen).every(status => status !== 'not_available'),
+        },
+        provenance: {
+          source_keys: ['delegation_log', 'ci_notices', 'session_meta_postlude'],
+          evidence_paths: Array.from(evidencePaths).slice(0, 10),
+          observed_at: context.observed_at || new Date().toISOString(),
+          phase_filter: phaseFilter,
+        },
+        freshness: {
+          status: availability === 'exposed' ? 'fresh' : 'unknown',
+          observed_at: context.observed_at || new Date().toISOString(),
+          modified_at: latest.ts || null,
+          reasons: availability === 'exposed'
+            ? []
+            : [anyReachable ? 'no_gate_fire_events_observed' : 'no_gate_fire_sources_available'],
+          stale_after_hours: 24,
+          age_hours: null,
+        },
+        notes: [
+          'Gate fire-events are aggregated across delegation-log, CI notice markers, and (when Phase 57.9 ships) session-meta postlude.',
+          sourcesSeen.session_meta_postlude === 'not_available'
+            ? 'session_meta_postlude source not yet available (Phase 57.9 not shipped) — graceful fallback, not a failure.'
+            : 'session_meta_postlude source is wired.',
+        ],
+      }));
+    },
+  });
+
   return [
     automationHealth,
     automationSignalYield,
     interventionLifecycleArtifactTrace,
     kbSignalStats,
     skipReasonCanonicalExtractor,
+    gateFireEventsExtractor,
   ];
 }
 
@@ -545,5 +732,6 @@ module.exports = {
     'intervention_lifecycle_artifact_trace',
     'kb_signal_stats',
     'skip_reason_canonical',
+    'gate_fire_events',
   ],
 };

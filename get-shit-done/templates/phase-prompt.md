@@ -136,6 +136,35 @@ Before declaring plan complete:
 - [ ] [Behavior verification]
 </verification>
 
+<narrowing_decisions>
+## Narrowing Decisions
+
+<!-- GATE-09c (Phase 58 Plan 17): any scope narrowing relative to CONTEXT.md
+     must cite the originating claim + decision + rationale. Consumed by
+     the Phase NN-LEDGER.md at phase close (GATE-09d verifier reads this
+     section alongside the same section in RESEARCH.md and rolls findings
+     into the ledger). Silent narrowing fails GATE-09d.
+
+     A "narrowing" is any planning-time decision that reduces, defers, or
+     rejects a CONTEXT.md claim or obligation. Splitting a requirement
+     into plans that do not collectively cover it is a narrowing.
+     Declining to implement a load-bearing obligation is a narrowing.
+     Silently dropping a claim is the failure mode.
+
+     If no narrowings occurred during planning, write: "None -- plan
+     covers all CONTEXT.md claims verbatim." Absence of the section
+     itself is a GATE-09c failure; the section may be empty only if
+     explicitly populated with the "None" sentinel.
+-->
+
+### Decision {id}
+
+- **Originating CONTEXT claim:** "<quoted claim or claim-ID>"
+- **Narrowing decision:** <what scope was narrowed>
+- **Rationale:** <why; link to evidence if any>
+- **Target for deferred scope (if any):** Phase <NN or NN.N>
+</narrowing_decisions>
+
 <success_criteria>
 
 - All tasks completed

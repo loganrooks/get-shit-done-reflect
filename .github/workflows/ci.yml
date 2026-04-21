@@ -79,6 +79,195 @@ jobs:
           rm -rf "$INSTALL_DIR"
           echo "Install verification: COMPLETE"
 
+      - name: GATE-15 source/install parity
+        run: |
+          set -e
+
+          # Phase 58 Plan 09 — GATE-15 source↔installed mirror parity.
+          # CLAUDE.md:15-27 documents the dual-directory hazard (edits to
+          # `.claude/` that never propagate back to source produced the Phase 22
+          # Agent Protocol drift, 23 days undetected). This step runs the
+          # installer into a throwaway tempdir (cwd-based so --local resolves
+          # there) and then calls `scripts/verify-install-parity.js` to diff
+          # source vs expected-installed content using the installer's own
+          # `replacePathsInContent` transformation. Divergence = FAIL.
+          #
+          # Per `58-05-codex-behavior-matrix.md` GATE-15 `applies` on both
+          # runtimes — this check is runtime-neutral.
+
+          REPO_ROOT=$(pwd)
+          INSTALL_DIR=$(mktemp -d)
+
+          # --local writes to cwd/.claude/, so we cd into the tempdir. The
+          # installer resolves sources via __dirname (repo bin/) so repo lookup
+          # still works regardless of cwd.
+          (cd "$INSTALL_DIR" && node "$REPO_ROOT/bin/install.js" --claude --local) 2>&1 | tail -20
+
+          # The parity script already emits a structured `::notice::` fire-event
+          # on stdout with result=pass|block and path=<first-diverging-file>;
+          # the workflow-level echoes below are the redundant coarse markers
+          # Plan 19's `gate_fire_events` extractor greps for. Keeping both is
+          # intentional — script output is the detail, workflow output is the
+          # contract.
+          if node "$REPO_ROOT/scripts/verify-install-parity.js" "$INSTALL_DIR"; then
+            echo "::notice title=GATE-15::gate_fired=GATE-15 result=pass"
+          else
+            echo "::notice title=GATE-15::gate_fired=GATE-15 result=block"
+            echo "::error::GATE-15: source/install parity violation (see script notice above)"
+            rm -rf "$INSTALL_DIR"
+            exit 1
+          fi
+
+          rm -rf "$INSTALL_DIR"
+
       - name: Run tests with coverage
         if: github.event_name == 'pull_request'
         run: npm run test:coverage
+
+      - name: GATE-02 merge-strategy conformance
+        run: |
+          set -e
+
+          # GATE-02 enforces `sig-2026-03-28-squash-merge-destroys-commit-history`.
+          # Grep patterns are copy-identical to
+          # `.planning/phases/58-structural-enforcement-gates/58-01-gate02-enumeration.md` §1
+          # ("Grep patterns") and §3 ("Fire-event mechanism"). Any drift between this step
+          # and the enumeration artifact is a Plan 17 verifier finding.
+
+          # 02a: no `gh pr merge` without `--merge` (every invocation must use --merge;
+          # historical comments are escape-hatched via `# historical`).
+          if grep -rn "gh pr merge" agents/ get-shit-done/ commands/ .codex/skills/ \
+              --include='*.md' 2>/dev/null \
+              | grep -v "\-\-merge" \
+              | grep -v '# historical'; then
+            echo "::notice title=GATE-02::gate_fired=GATE-02 result=block reason=gh_pr_merge_without_merge_flag"
+            echo "::error::GATE-02: found 'gh pr merge' invocation without '--merge' flag"
+            exit 1
+          fi
+
+          # 02b: no `git merge --squash` outside historical comments.
+          if grep -rn "git merge --squash" get-shit-done/ agents/ commands/ .codex/skills/ \
+              --include='*.md' 2>/dev/null \
+              | grep -v '# historical'; then
+            echo "::notice title=GATE-02::gate_fired=GATE-02 result=block reason=git_merge_squash_found"
+            echo "::error::GATE-02: found 'git merge --squash' invocation outside historical comment"
+            exit 1
+          fi
+
+          echo "::notice title=GATE-02::gate_fired=GATE-02 result=pass"
+
+      - name: GATE-13 dispatch-contract restatement
+        run: |
+          set -e
+
+          # GATE-13 enforces compaction-resilient dispatch contracts at every named
+          # Task() spawn site. Grep pattern is copy-identical to
+          # `.planning/phases/58-structural-enforcement-gates/58-02-gate13-dispatch-contract-design.md`
+          # §4.1 ("The grep") and §4.2 ("Allowlist for transitional period").
+          #
+          # Design §2.3 compaction-survival signal (Plan 12a Task 2 — 2026-04-20): per the
+          # design doc, the runtime Task() body's `model=` attribute INTENTIONALLY retains
+          # its template variable — the resilience property lives in the inline dispatch-
+          # contract comment block (which is accompanied by a `# BAKED IN comment: <alias>`
+          # annotation on the retained-template line recording the authoring-time literal).
+          # The CI grep must honor this signal, otherwise it would flag every Plan 12 /
+          # Plan 12a edit as a GATE-13 violation despite being design-compliant. We chain
+          # a `grep -v '# BAKED IN comment:'` filter so annotated lines are recognized as
+          # compliant; only truly naked template bindings remain as violations.
+          #
+          # Bootstrap exemption: for spawn sites not yet instrumented by Plan 12 or Plan 12a
+          # (commands/gsd/research-phase.md + .codex/skills/*; a follow-up plan will apply
+          # the echo_delegation macro + dispatch-contract to these), the current
+          # `model="{...}"` template-variable bindings remain allowlisted at
+          # `.github/gate-13-allowlist.txt` (file rewritten 2026-04-20 to strip bare `#`
+          # pattern-lines that silently matched every BAKED-IN-annotated line).
+
+          MATCHES=$(grep -rn --include='*.md' -A 5 'Task(' \
+              agents/ get-shit-done/workflows/ commands/ .codex/skills/ 2>/dev/null \
+              | grep -E 'model\s*=\s*"\{[^}]+\}"' \
+              | grep -v '# BAKED IN comment:' \
+              | { if [ -f .github/gate-13-allowlist.txt ]; then grep -v -F -f .github/gate-13-allowlist.txt; else cat; fi; } \
+              || true)
+
+          if [ -n "$MATCHES" ]; then
+            echo "::notice title=GATE-13::gate_fired=GATE-13 result=block reason=template_variable_in_dispatch_contract"
+            echo "::error::GATE-13: found Task() dispatch with unresolved template variable at model= (compaction-unsafe)"
+            echo "$MATCHES"
+            exit 1
+          fi
+
+          echo "::notice title=GATE-13::gate_fired=GATE-13 result=pass"
+
+      - name: GATE-01 emission marker
+        if: always()
+        run: |
+          # GATE-01: CI status gate for phase advancement.
+          # This step is the workflow-level fire-event emitter for Phase 58 Plan 19's
+          # `gate_fire_events` extractor. It must run last so `job.status` reflects the
+          # outcome of all preceding test + install-verify steps.
+          PHASE_REF="${{ github.base_ref || github.ref_name }}"
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "::notice title=GATE-01::gate_fired=GATE-01 result=pass phase=${PHASE_REF}"
+          else
+            echo "::notice title=GATE-01::gate_fired=GATE-01 result=block phase=${PHASE_REF}"
+            echo "::error::GATE-01 blocks phase advancement — one or more required checks failed"
+            exit 1
+          fi
+
+  post_commit_gate_03:
+    # Phase 58 Plan 08 — GATE-03 post-commit backstop.
+    # Catches admin-bypass case: if `quick.md`'s workflow-step gate was skipped
+    # and a runtime-facing / planning-authority commit landed directly on main,
+    # this job classifies the commit's diff via `gsd-tools quick classify` and
+    # fails CI. Merge commits (two parents = came through a PR) are exempt —
+    # GATE-01 + branch protection already gated those.
+    name: GATE-03 post-commit backstop
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (fetch-depth 2 for HEAD^)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci --omit=dev
+
+      - name: Classify last commit's files
+        run: |
+          set -e
+
+          # Merge-commit exemption: a commit with >=2 parents came through a PR,
+          # which GATE-01 already gated. Skip classification in that case.
+          PARENT_COUNT=$(git log -1 --format=%P HEAD | wc -w)
+          if [ "$PARENT_COUNT" -ge 2 ]; then
+            echo "::notice title=GATE-03::gate_fired=GATE-03 result=pass reason=merge_commit_from_pr"
+            exit 0
+          fi
+
+          FILES=$(git diff --name-only HEAD^ HEAD)
+          if [ -z "$FILES" ]; then
+            echo "::notice title=GATE-03::gate_fired=GATE-03 result=pass reason=no_files_changed"
+            exit 0
+          fi
+
+          # Temporarily disable set -e so we can capture both stdout and exit code.
+          set +e
+          CLASS=$(node get-shit-done/bin/gsd-tools.cjs quick classify --files $FILES 2>&1)
+          EXIT=$?
+          set -e
+
+          if [ $EXIT -ne 0 ]; then
+            echo "::notice title=GATE-03::gate_fired=GATE-03 result=post_commit_block"
+            echo "::error::GATE-03 post-commit backstop: direct-to-main commit contains runtime-facing or planning-authority files"
+            echo "$CLASS" | jq . 2>/dev/null || echo "$CLASS"
+            exit 1
+          fi
+
+          echo "::notice title=GATE-03::gate_fired=GATE-03 result=pass"

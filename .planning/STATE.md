@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: Wave 5 closed the phase; the demo/regression plan landed with a real revision record, a pending GATE-09 intervention sidecar, and a DEMO-REPORT that records both the live joins and the residual gaps.
-stopped_at: Phase 57.8 context gathered
-last_updated: "2026-04-20T03:59:44Z"
-last_activity: "2026-04-20 - Completed quick task 260419-wjj: Patch roadmap and requirements so downstream provenance phases explicitly cover manual gsdr-signal parity"
+status: human_verification
+stopped_at: Verified 58.1 implementation (live Codex checks and release-boundary closeout pending)
+last_updated: "2026-04-20T23:15:00Z"
+last_activity: 2026-04-20
 progress:
-  total_phases: 22
-  completed_phases: 12
-  total_plans: 47
-  completed_plans: 47
-  percent: 100
+  total_phases: 24
+  completed_phases: 14
+  total_plans: 73
+  completed_plans: 73
+  percent: 99
 ---
 
 # Project State
@@ -21,16 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.7 (Content Analysis & Epistemic Deepening) is complete. The phase now closes with an honest demo/regression wave: the vision-drop diagnostic revision is explicitly `unclassified`, GATE-09 is surfaced as a pending intervention, and the live measurement query/report surface shows those joins without success theater. Next up: Phase 58 (Structural Enforcement Gates).
+**Current focus:** v1.20 Phase 58.1 (Codex Update Distribution Parity) has finished implementation on branch `gsd/phase-58.1-codex-update-distribution-parity` and passed automated verification. Remaining work is now split across two surfaces: two live human Codex checks (real source-repo update preview/execution and a real non-default `CODEX_CONFIG_DIR` update run), plus release-boundary closeout on the phase branch (`PR -> CI -> merge -> release of the merged commit`).
 
 ## Current Position
 
-Phase: 57.7 of 64 (Content Analysis & Epistemic Deepening) — Complete
-Plan: 10 of 10
-Status: Wave 5 closed the phase; the demo/regression plan landed with a real revision record, a pending GATE-09 intervention sidecar, and a DEMO-REPORT that records both the live joins and the residual gaps.
-Last activity: 2026-04-20 - Completed quick task 260419-wjj: Patch roadmap and requirements so downstream provenance phases explicitly cover manual gsdr-signal parity
+Phase: 58.1 of 64 — Execution complete on `gsd/phase-58.1-codex-update-distribution-parity`
+Plan: 2 of 2 complete
+Status: Automated verification passed; 2 live human Codex checks and release-boundary closeout pending
 
-Progress: [██████░░░░] 60%
+### Recent Phases
+
+- Phase 58 (Structural Enforcement Gates) — complete on the baseline branch via commit `41673dc8`; verifier passed and phase closeout artifacts were tracked before the 58.1 insertion
+- Phase 57.8 (Signal Provenance Role-Aware Backfill) — merged 2026-04-20 via commit `c8a15d95`, 3 plans completed
+
+Last activity: 2026-04-20
+
+Progress: [██████████] 99%
 
 ## Performance Metrics
 
@@ -198,6 +204,90 @@ Recent decisions affecting current work:
 - [Phase 57.4-06]: Full npm test returned 502 passed / 0 failed / 4 todo; RESEARCH.md Open Question about count-based assertions breaking from new file count is resolved negatively — tests did not contain file-count assertions sensitive to adding audit.md command or gsdr-auditor agent
 - [Phase 57.7]: MEAS-GSDR-06 resolved via option (b): drop signal_fts and keep ripgrep as the KB search fallback.
 - [Phase 57.7]: KB schema regression tests should verify migrations through the production kb rebuild path rather than exporting kb internals.
+- [Phase 58]: Phase 58-03: Upstream re-fetched via direct curl (not WebFetch per Research R5 Verified-Ground-Truth) — HEAD SHA ebbe74de72, 671/105/279 line counts confirmed, 0% drift from research baseline
+- [Phase 58]: Phase 58-03: 4 of 6 GATE-08 categories adopt as-is (methodology loading, analyzer agent, text_mode, confidence badges as mapped); 2 of 6 adopt narrowed with GATE-09c rationale (calibration tier redundant with model_profile; CONTEXT.md section mandates preserved as fork superset)
+- [Phase 58]: Phase 58-03: Analyzer agent ported with zero non-branding divergence (single-line diff on name: field); source-dir only per CLAUDE.md:15-27 dual-directory rule; installer + GATE-15 Plan 10 enforce byte-identical-after-transform parity
+- [Phase 58-05]: Adopted 58-RESEARCH.md skeleton values for all 25 rows verbatim; plan work was finalizing rationale, substrate citations, and degradation-path encoding — not re-evaluating which gates apply where.
+- [Phase 58-05]: GATE-06/07 Codex behavior encoded as conditional-degradation ('applies-via-workflow-step if codex_hooks=true else does-not-apply-with-reason') preserving both 57.9-shipped and 57.9-not-shipped execution paths; avoids matrix rewrite if 57.9 lands mid-phase.
+- [Phase 58-05]: Codex-specific open risks (stale signal-detection heuristic; codex_hooks flag stability; auto-compact) surfaced as Section 5 NOT row-degrading — they affect measurement interpretation not gate firing.
+- [Phase 58-05]: Ledger entry format for Codex waivers restricted to disposition: explicitly_deferred (never rejected_with_reason) — every Phase 58 Codex gap has a named downstream resolution phase.
+- [Phase 58-structural-enforcement-gates]: [58-01] Squash option removed entirely from complete-milestone.md AskUserQuestion (not retained as opt-in); plan's dual constraints (explicit opt-in option + single non-squash call site per strategy) forced removal as cleanest reconciliation
+- [Phase 58-structural-enforcement-gates]: [58-01] Installer-derived mirrors (.claude/, .codex/) NOT directly edited; they resync on bin/install.js run; GATE-04 (Plan 11) covers parity drift; Plan 07 CI grep scope recommended to stay on source paths only (get-shit-done/, agents/, commands/, skills/, .codex/skills/)
+- [Phase 58-structural-enforcement-gates]: [58-01] Task 0 STATE.md reconciliation used actual merge commit date (2026-04-20) rather than CONTEXT DC-5's cited 2026-04-17; SHA c8a15d95 matched but commit date differed; per plan instruction to use actual SHA/date
+- [Phase 58]: [58-02]: Enumeration expanded from R3's 22 grouped summary sites to 45 concrete spawn lines (unfolded grouped rows + added 5 .codex/skills/ mirrors R3 did not enumerate); Codex skill mirrors in scope to prevent GATE-05/13 bypass on Codex runtime.
+- [Phase 58]: [58-02]: GATE-13 compaction-resilience lives in comment block, not runtime rebinding; literal model baked into # Model: comment via resolveModelInternal at workflow expansion time while Task() body retains {template} binding so profile overrides still propagate.
+- [Phase 58]: [58-02]: general-purpose proxy mapping table added to design §3.3 — 11 spawn rows wrap canonical GSD agents via inline-prompt pattern; resolveModelInternal(general-purpose) returns sonnet fallback, so Plan 12 must resolve against the canonical agent the proxy stands in for.
+- [Phase 58]: [58-04]: ledger validation uses dedicated validator branch (validateLedgerFrontmatter) because per-entry conditional logic does not fit the existing signal-schema top-level conditional hook
+- [Phase 58]: [58-04]: ledger_entries uses UNIQUE(phase, context_claim) + per-file delete-then-insert idempotency; cross-file orphan sweep deferred to Plan 17+
+- [Phase 58]: [58-04]: ledger discovery regex narrowed to ^\\d+(\\.\\d+[a-z]?)?-LEDGER\\.md$ so legacy UPSTREAM-DRIFT-LEDGER.md and the schema spec itself are excluded from the kb rebuild ledger pass
+- [Phase 58]: [58-04]: validator exit status always 0; callers inspect JSON.valid — matches existing frontmatter validate contract for plan/summary/verification/signal schemas
+- [Phase 58-structural-enforcement-gates]: [58-16] AT-1 Option B selected (explicit defer of GATE-06/07 to Phase 57.9 with GATE-09c provenance) because 57.9 phase directory does not exist at Phase 58 execution time; both ledger entries load_bearing=true, disposition=explicitly_deferred, target_phase_if_deferred='Phase 57.9', validated green against authoritative ledger schema
+- [Phase 58-structural-enforcement-gates]: [58-16] Chain-integrity enforced: Plan 16 creates exactly one defer-provenance artifact; no workflow/agent/installer/config modifications; the defer is the scope (G-3 reflexive GATE-09 compliance — not manufacturing false completion via prose workflow edits)
+- [Phase 58-structural-enforcement-gates]: [58-16] target_phase_if_deferred uses single 'Phase 57.9' target per ledger schema pattern constraint; GATE-07's dual-phase dependency (57.9 markers + 60.1 log-sensor live wiring) recorded in narrowing_provenance.rationale rather than splitting target field
+- [Phase 58-structural-enforcement-gates]: [58-11]: Three Task() spawn points synthesized at initialize/deep_codebase_analysis/present_assumptions — upstream has only 1 literal Task() but Plan 11 GATE-08b fire-event requires >=3; added preflight availability check and scope-expanding re-analyze as semantically-justified wrappers (deviation Rule 3)
+- [Phase 58-structural-enforcement-gates]: [58-11]: NARROWING DECISION comments placed at file HEAD (HTML comments) of discuss-phase-assumptions.md — categories (d) calibration tier and (e) CONTEXT.md section mandates legible before any process logic is read; cites Plan 03 delta §3 sections with reversibility ratings
+- [Phase 58-structural-enforcement-gates]: [58-11]: Calibration tier resolved from model_profile (quality→full_maturity, balanced→standard, budget→minimal_decisive); USER-PROFILE.md artifact NOT adopted per Plan 03 delta §3(d) — analyzer-agent three-tier prompt shape preserved for upstream-compatibility
+- [Phase 58-structural-enforcement-gates]: [58-11]: text_mode in plan-phase/progress implemented as HTML comment-note (not behaviorally-empty code branches) — both workflows are agent-driven with zero interactive prompts today; comment-note marks future-edit contract pointing to docs/workflow-discuss-mode.md §3
+- [Phase 58-structural-enforcement-gates]: [58-06] Branch protection flipped 2026-04-20 via gh api PUT by orchestrator; post-flip state verified {enforce_admins: true, strict: true, contexts: ["Test"]}
+- [Phase 58-structural-enforcement-gates]: [58-06] GATE-14 live-fire verified blocking: direct admin push rejected with GH006 'Protected branch update failed for refs/heads/main. Required status check Test is expected.'; re-run forbidden under one-fire-sufficient discipline
+- [Phase 58-structural-enforcement-gates]: [58-06] Plan's admin:repo scope guidance was wrong — standard repo scope (default gh auth login) is sufficient to PATCH branch protection for repo owners; no gh auth refresh needed. Correction logged against 58-06-PLAN.md:229
+- [Phase 58]: [58-07] CI grep patterns copy-identical to Plan 01 §1 and Plan 02 §4.1 — zero drift discipline: any CI-to-artifact divergence is a Plan 17 verifier finding, not a silent CI change
+- [Phase 58]: [58-07] GATE-13 allowlist contains 16 entries (not 36 from Plan 02 §4.2) — consecutive Task() blocks share grep -A 5 context windows so only a subset of template bindings are grep-visible; Plan 12 still owes full source rewrite for all 38 bindings
+- [Phase 58]: [58-07] Blank-line hazard in grep -F -f pattern files caught by synthetic-violation test: blank lines match every input line and silently disable the check; allowlist uses #-comments only, no blank separators
+- [Phase 58-structural-enforcement-gates]: [58-08] Classifier library uses static MANIFEST_SOURCE_ROOTS list (5 roots: agents, commands, get-shit-done, .codex/skills, skills) mirrored from bin/install.js install() source-tree walk rather than importing install.js at runtime — CLAUDE.md dual-directory rule already enforces parity, and adding a 3354-line code-path per classification would be load-bearing
+- [Phase 58-structural-enforcement-gates]: [58-08] Mixed exit code (3) triggers only when runtime-facing AND planning-authority both present in staged set; runtime-facing + pure-docs-only set exits 1 (runtime-facing) — pure-docs does not escalate severity
+- [Phase 58-structural-enforcement-gates]: [58-08] GATE-03 workflow-step placed at quick.md Step 2.5 (branching decision) not Step 8 (final commit); CI post_commit_gate_03 job is the structural enforcer for bypass cases — merge-commit exemption (parents>=2) preserves branch+PR path since GATE-01 already gated it
+- [Phase 58-structural-enforcement-gates]: [58-09] GATE-15 parity script chose option (b) — require('../bin/install.js') — because replacePathsInContent + injectVersionScope already exported at install.js:3354 for install.test.js; extraction to bin/lib/install-paths.cjs rejected as net-negative against upstream-sync minimal-diff discipline
+- [Phase 58-structural-enforcement-gates]: [58-09] Plan's CI invocation 'HOME=$INSTALL_DIR node bin/install.js --claude --local' was semantically incorrect — --local is cwd-based per install.js:2578-2580, not HOME-based; replaced with '(cd $INSTALL_DIR && node $REPO_ROOT/bin/install.js --claude --local)' so --local resolves to tempdir
+- [Phase 58-structural-enforcement-gates]: [58-09] agents/ SOURCE_ROOT walked non-recursively (recursive: false) because install.js:2733-2751 iterates entry.isFile() top-level-only and skips sub-directories like agents/kb-templates/; recursive walk would false-positive with installed_file_missing
+- [Phase 58-structural-enforcement-gates]: [58-09] Dual fire-event emission (script emits result=block path=<first-diverging-file> reason=<why>; workflow emits coarse result=pass|block) is intentional — script output is detail for debuggability, workflow output is Plan 19 gate_fire_events extractor contract
+- [Phase 58-structural-enforcement-gates]: [58-12] GATE-05 echo_delegation macro + GATE-13 inline DISPATCH CONTRACT applied at 22 named spawn sites across 10 core workflow files; literal model baked via resolveModelInternal under quality profile (opus→inherit for Claude Code, sonnet literal for non-opus agents); runtime Task() body retains template binding per design §2.3
+- [Phase 58-structural-enforcement-gates]: [58-12] verify-work.md triple-quoted Task() placement: macro + dispatch contract placed as adjacent fenced blocks immediately above the Task() fence (design §2.4 proximity rules satisfied)
+- [Phase 58-structural-enforcement-gates]: [58-12] Allowlist format defect surfaced during Task 2 verification (bare # lines match everything via grep -F -f, silently disabling check); pre-existing from Plan 07 — deferred to Plan 12a full-sweep CI grep for surfacing; not fixed this plan
+- [Phase 58-structural-enforcement-gates]: [58-12] quick.md researcher spawn known discrepancy (Plan 02 §5.4): template binds {planner_model} instead of {researcher_model}; both resolve to inherit under quality so runtime-identical today; flagged inline in dispatch contract comment for future review rather than fixed under mechanical-edit discipline
+- [Phase 58-structural-enforcement-gates]: [58-10] Local flat-YAML extractor used in handoff.cjs instead of frontmatter.cjs -- gate self-containment for emergency invocation; top-level scalars (session_id, last_updated) are sufficient
+- [Phase 58-structural-enforcement-gates]: [58-10] Staleness predicate is OR of three sources (mtime vs STATE.last_updated, mtime vs last mainline commit, duplicate session_id in STATE.md) -- any single source is sufficient to prove obsolescence
+- [Phase 58-structural-enforcement-gates]: [58-10] Exit code 4 reserved for GATE-04c ack_required / typed-token mismatch; kept distinct from GATE-04b exit 3 so callers can branch on which gate fired
+- [Phase 58-structural-enforcement-gates]: [58-10] Registry parser is a line-oriented state machine (no YAML library dep); entries discovered by '- id:' lead lines; trade-off: flat-scalar values only, matches documented schema
+- [Phase 58]: [58-12a] GATE-05 echo macro + GATE-13 inline DISPATCH CONTRACT applied at 18 named spawn sites across 6 remaining files (commands/gsd/audit.md, debug.md; workflows map-codebase, new-project, new-milestone, validate-phase); literal models baked via resolveModelInternal under quality profile (opus→inherit for Claude Code, sonnet literal for non-opus agents); runtime Task() body retains template binding per design §2.3
+- [Phase 58]: [58-12a] CI GATE-13 grep aligned with design §2.3 via grep -v '# BAKED IN comment:' filter — recognizes compaction-survival annotation as compliance signal; Plan 12 + 12a retained-template sites pass without allowlist reliance
+- [Phase 58]: [58-12a] Allowlist bare-# format defect fixed (Plan 12 pre-existing-defect retirement): 9 bare # comment lines eliminated — HEADNOTE uses # --- separators; bare # in grep -F -f was silently excluding every BAKED-IN-annotated hit
+- [Phase 58]: [58-12a] Scope narrowing vs pre-existing allowlist HEADNOTE: PLAN.md files_modified manifest is authoritative (6 files); commands/gsd/research-phase.md + .codex/skills/gsdr-research-phase|gsdr-debug SKILL.md (3 files, 6 sites) deferred to follow-up plan despite being listed as Plan 12a scope in the pre-Plan-12a allowlist HEADNOTE
+- [Phase 58-structural-enforcement-gates]: [58-13]: GATE-10 reconcile orchestrator invokes existing primitives via subprocess (not require-level composition) — preserves primitive lock/output contracts and stays below blast radius if signatures change; accepts ~50ms-per-primitive Node startup cost because reconcile runs at phase-close only
+- [Phase 58-structural-enforcement-gates]: [58-13]: GATE-10 fire-event emits on every invocation including dry-run and block paths — alternative (emit only on reconciled) would silently undercount gate invocations in Plan 19 extractor; CONTEXT DC-1 requires measurable fire-event regardless of outcome
+- [Phase 58-structural-enforcement-gates]: [58-13]: GATE-10 uses distinct exit code 5 (unreconciled blocking) so wrapper workflows branch on GATE-10 semantics without parsing JSON; stays disjoint from GATE-01 codes (1/2/3/4) and GATE-04c code 4
+- [Phase 58-structural-enforcement-gates]: [58-13]: execute-phase.md GATE-10 step placed at TOP of offer_next (before push/PR creation) so STATE/ROADMAP drift is caught at earliest structural boundary; runs after the preceding update_roadmap verification step
+- [Phase 58-structural-enforcement-gates]: [58-13]: complete-milestone.md per-phase reconcile loop extracts phase-id via regex on branch name (phase_branch_template convention) rather than config round-trip; stays aligned with existing PHASE_BRANCHES enumeration pattern
+- [Phase 58-structural-enforcement-gates]: [58-14] GATE-12 archive root resolution: phase-scoped (.planning/phases/<N>-*/.archive/) when --phase supplied; .planning/archive/ root fallback otherwise — evidence clusters next to producing phase when possible
+- [Phase 58-structural-enforcement-gates]: [58-14] GATE-12 cross-filesystem-safe move via fs.renameSync + EXDEV fallback to cpSync+rmSync (dirs) or copyFileSync+unlinkSync (files); avoids data loss when .planning/ and source path live on different mounts
+- [Phase 58-structural-enforcement-gates]: [58-14] GATE-12 missing paths recorded in missing[], not errored (exit 0); errors (exit 2) reserved for actual move failures — disjoint from GATE-01 (1-4), GATE-04c (4), GATE-10 (5)
+- [Phase 58-structural-enforcement-gates]: [58-14] GATE-12 no current rm/overwrite sites exist in execute-plan/research-phase/plan-phase.md; plan anticipated this — ships primitive + CLI + HEADNOTE envelopes so future dispatch edits have a fill-in-the-blank wrapper; Plan 17 checks HEADNOTE presence not wrapper count
+- [Phase 58-structural-enforcement-gates]: [58-15] GATE-11 ships as gsd-tools release check CLI (get-shit-done/bin/lib/release.cjs) comparing latest reflect-v* tag to most recent phase-merge commit on main; exit 0 current / 1 lag / 2 explicit_defer; fire-event emits on every invocation
+- [Phase 58-structural-enforcement-gates]: [58-15] Phase-merge detection uses git log --first-parent main --all-match --grep='Merge pull request' --grep='gsd/phase' (BRE-safe) rather than plan-specified single-pattern 'Merge pull request.*from gsd/phase-' which returned empty despite matching commits (git BRE quirk on trailing hyphen); both patterns produce identical semantic coverage
+- [Phase 58-structural-enforcement-gates]: [58-15] Release-lag template located at .planning/handoff/release-lag-template.md (Plan 10 handoff-dir precedent); CLI surfaces copy-to-use command but never writes .planning/release-lag.md itself — named rationale must come from user; stale deferrals (past deferred_to) collapse to lag not continue-defer
+- [Phase 58-structural-enforcement-gates]: [58-19] gate_fire_events extractor declares raw_sources as virtual keys without buildGsdrSourceSnapshots entries — registry schema is non-enforcing on source-key registration; loaders read files directly, keeping the gate-events substrate self-contained
+- [Phase 58-structural-enforcement-gates]: [58-19] session-meta-postlude source wired as optional require inside try/catch suppressing MODULE_NOT_FOUND; Phase 57.9 can ship the module drop-in without extractor changes — status flips from not_available to exposed/not_emitted automatically
+- [Phase 58-structural-enforcement-gates]: [58-19] every delegation-log row surfaces as implicit GATE-05 echo_delegation fire — delegation IS the fire-event record by construction; extractor normalizes to {gate: 'GATE-05', result: 'pass'} keeping count==delegation-count invariant
+- [Phase 58-structural-enforcement-gates]: [58-19] extractor emits two rows per runtime (claude-code, codex-cli) with identical aggregate values to satisfy runtime_dimension symmetry-marker computation; single cross-runtime row would mark asymmetric_only
+- [Phase 58-17]: GATE-09b heuristic scans BOTH CONTEXT.md and RESEARCH.md because resolutions conventionally land in RESEARCH.md for this fork
+- [Phase 58-17]: GATE-09b regex uses \[open(\]|:) grouping-alternation to match both short-form [open] and typed [open:verification] per references/claim-types.md §3; initial \[open[:\]] pattern missed short-form claims (Rule 3 auto-fix)
+- [Phase 58-17]: Narrowing Decisions section uses a None sentinel — absence of the section itself fails GATE-09d, so researchers/planners must explicitly populate 'None — no narrowings' when no narrowings occurred
+- [Phase 58-17]: Meta-gate GATE-09e embeds inside GATE-09d's unwired_gates field rather than shipping as a standalone gate; matches CONTEXT §10 framing
+- [Phase 58-17]: queryGateFireEvents returns null (not empty object) when Plan 19 extractor absent; disambiguates extractor-missing from extractor-present-no-events and prevents false-block during Plan 17/19 execution overlap
+- [Phase 58-17]: Phase-introduced gates enumerated from both CONTEXT.md Requirements-in-scope line (richer; sub-letter gates) and REQUIREMENTS.md traceability table (rolled-up fallback); matches ledger-schema authority pattern
+- [Phase 58-17]: Verifier exit behavior: --raw always exits 0 (inspect JSON.status); non-raw + strict + block exits 1; matches existing gsd-tools frontmatter validate contract from Plan 04
+- [Phase 58]: XRT-01 planning-phase assertion uses grep heuristic on CONTEXT.md alone (not CONTEXT+RESEARCH); satisfaction vocabulary is permissive-OR of 58-05 Codex-behavior values + narrative forms
+- [Phase 58]: XRT-01 closeout capability-matrix diff resolves phase-start SHA via 'git log --first-parent --reverse -- <phaseDir>'; trimEnd() normalization handles execGit stdout trimming vs fs.readFileSync newline preservation asymmetry
+- [Phase 58]: XRT-01 closeout runs independently of --no-meta-gate flag (which targets GATE-09e); deadlock guards (missing matrix / no git history) return pass-with-reason to avoid false-blocking on operator-side infrastructure gaps
+- [Phase 58]: Phase 58-20: Ledger entries are one-per-claim-prefix (60 unique 30-char prefixes) + 6 Q-resolutions + 2 narrowing entries + 2 pre-authored defer entries = 70 total
+- [Phase 58]: Phase 58-20: Q4 (framework-invisibility) deferred to Phase 60.1 rather than collapsed; answerable only empirically from intervention-outcome measurement
+- [Phase 58]: Phase 58-20: GATE-06 and GATE-07 deferred to Phase 57.9 with narrowing_provenance per 58-16 defer-provenance artifact (AT-1 Option B branch)
+- [Phase 58]: Phase 58-20: AT-5 reflexive GATE-09 closed — Phase 58 runs under its own shipped discipline
+- [Phase 58.1]: Accepted the existing Task 1 resolver commit after verifying its JSON contract, keeping Task 2 scoped to installer reuse plus regressions. — The resolver and CLI bridge already satisfied the plan contract, so reworking them would have broken atomic task history without improving the update seam.
+- [Phase 58.1]: Codex update cache handling remains an explicit does-not-apply no-op, and the installer now shares Codex config-dir precedence with the resolver. — This keeps Phase 58.1 narrowly focused on update-routing correctness instead of inventing unsupported hook or statusline parity behavior.
+- [Phase 58.1]: The user-facing update flow now always installs from `get-shit-done-reflect-cc@latest` and names the active runtime correctly on completion. — This closes the source-repo dogfooding leak and removes the stale "Restart Claude Code" wording from Codex updates.
+- [Phase 58.1]: A tiny `--latest-version` bridge extension to `get-shit-done/bin/update-target.cjs` was accepted as a blocking fix so the installed workflow could remain on the shared resolver instead of duplicating target-selection policy. — The deviation stayed narrow and was covered by the new integration fixtures.
+- [Phase 58.1]: Verifier status is `human_needed`, not blocked. — Automated evidence passed 5/5 truths; the remaining surface is live interactive Codex behavior against real npm/package resolution and a non-default `CODEX_CONFIG_DIR`, captured in `58.1-VERIFICATION.md`.
 
 ### Roadmap Evolution
 
@@ -213,6 +303,7 @@ Recent decisions affecting current work:
 - Phases 57.5/57.6/57.7 inserted after Phase 57.4 (2026-04-16): Measurement Architecture & Retroactive Foundation, Multi-Loop Coverage & Human Interface, and Content Analysis & Epistemic Deepening. Derived from `.planning/deliberations/measurement-infrastructure-epistemic-foundations.md` and the 2026-04-15 measurement signal inventory correction chain.
 - Phase 57.8 inserted after Phase 57 (2026-04-17): Signal Provenance Split & Artifact Signature Blocks (URGENT). Narrow-slice telemetry→signal integration addressing audit `.planning/audits/2026-04-16-signal-provenance-audit/` Findings 1, 2, 4 & Recommendations 1-2 & 5: role-split signal provenance (about_work/detected_by/written_by), first-class signature blocks on PLAN/SUMMARY/VERIFICATION via `resolveModelInternal`, and version precedence fix. Epistemic prerequisite for Phase 58 — GATE-09's scope-translation ledger cannot attribute gate effectiveness without role-aware artifact provenance. Wider sensor-pipeline integration (reflection stratification, intervention-outcome loop extension, E2E real-agent tests) parked for later insertion after Phase 60.
 - Phase 60.1 inserted after Phase 60 (2026-04-17): Telemetry-Signal Integration & E2E Chain Tests (URGENT). Wider companion to 57.8's narrow provenance fix — sensors consume `buildSessionIdentityValue` from measurement/extractors/runtime.cjs, reflection stratifies by model/profile/reasoning_effort via `measurement/stratify.cjs`, intervention-outcome loop extended to signal lifecycle transitions, and the `tests/e2e/real-agent.test.js` todos are replaced with working discuss→plan→execute→verify→collect-signals chain tests. Depends on Phase 60 (sensor pipeline must exist before sensors can be rewired). Addresses audit `.planning/audits/2026-04-16-signal-provenance-audit/` Finding 3 (partial/asymmetric work-artifact signatures) and Recommendation 3 (treat telemetry as source).
+- Phase 58.1 inserted after Phase 58 (2026-04-20): Codex Update Distribution Parity (URGENT). Narrow runtime-parity fix for Codex update behavior: repo-local `.codex` mirrors must not mask stale `~/.codex` installs; scope includes installed-vs-mirror detection, runtime/scope targeting, update/cache parity, and regression coverage.
 
 ### Pending Todos
 
@@ -253,6 +344,29 @@ Recent decisions affecting current work:
 | Phase 57.7 P03 | 10min | 2 tasks | 3 files |
 | 260419-6uf | Fix manual gsdr-signal split provenance gap left out of 57.8 | 2026-04-19 | ddcf1232 | [260419-6uf](./quick/260419-6uf-fix-manual-gsdr-signal-split-provenance-/) |
 | 260419-wjj | Patch roadmap and requirements so downstream provenance phases explicitly cover manual gsdr-signal parity | 2026-04-20 | 2a14f8df | [260419-wjj](./quick/260419-wjj-patch-roadmap-and-requirements-so-downst/) |
+| Phase 58 P03 | 5min | 2 tasks | 2 files |
+| Phase 58 P05 | 5min | 1 tasks | 1 files |
+| Phase 58-structural-enforcement-gates P01 | 6 | 3 tasks | 5 files |
+| Phase 58 P02 | 10min | 2 tasks | 2 files |
+| Phase 58 P04 | 9min | 2 tasks | 3 files |
+| Phase 58 P16 | 4min | 1 tasks | 1 files |
+| Phase 58-structural-enforcement-gates P11 | 9min | 2 tasks | 4 files |
+| Phase 58-structural-enforcement-gates P06 | 248min | 2 tasks | 4 files |
+| Phase 58 P07 | 3min | 2 tasks | 3 files |
+| Phase 58-structural-enforcement-gates P08 | 5min | 2 tasks | 4 files |
+| Phase 58-structural-enforcement-gates P09 | 7min | 2 tasks | 3 files |
+| Phase 58-structural-enforcement-gates P12 | 10 | 2 tasks | 11 files |
+| Phase 58-structural-enforcement-gates P10 | 5min | 2 tasks | 4 files |
+| Phase 58 P12a | 12 | 2 tasks | 8 files |
+| Phase 58-structural-enforcement-gates P13 | 8min | 2 tasks | 6 files |
+| Phase 58-structural-enforcement-gates P14 | 4min | 2 tasks | 5 files |
+| Phase 58-structural-enforcement-gates P15 | 5min | 2 tasks | 6 files |
+| Phase 58-structural-enforcement-gates P19 | 4min | 1 tasks | 5 files |
+| Phase 58-structural-enforcement-gates P17 | 10min | 2 tasks | 6 files |
+| Phase 58 P18 | 5min | 1 tasks | 4 files |
+| Phase 58-structural-enforcement-gates P20 | 10min | 2 tasks | 3 files |
+| Phase 58.1 P01 | 8min | 2 tasks | 4 files |
+| Phase 58.1 P02 | 15min | 2 tasks | 5 files |
 
 ### Key Artifacts
 
@@ -271,19 +385,17 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-17T09:03:42.799Z
-Stopped at: Phase 57.8 context gathered
-Resume artifact: `.planning/audits/2026-04-15-measurement-signal-inventory/pre-57.5-handoff.md`
+Last session: 2026-04-20T22:24:18Z
+Stopped at: Verified 58.1 (live Codex checks pending)
+Resume artifact: `.planning/phases/58.1-codex-update-distribution-parity/58.1-VERIFICATION.md`
 
-This session (2026-04-16):
+This session (2026-04-20):
 
-- Resumed from the pre-57.5 handoff rather than a `.continue-here` checkpoint because governance (A1-A5) had already shipped and the next critical-path step was explicitly `/gsdr:discuss-phase 57.5`
-- Read the authority chain named in the handoff: the measurement deliberation, correction-and-extensions, anomaly stress tests, E5.8 results, spike 009 DECISION, spike 010 DECISION, and spike 010 qualitative comparison
-- Created `.planning/phases/57.5-measurement-architecture-retroactive-foundation/57.5-CONTEXT.md` and `57.5-DISCUSSION-LOG.md` in exploratory/auto mode
-- Updated STATE.md so resume/status no longer points at Phase 58 while the roadmap and handoff require 57.5 planning first
-- Planned Phase 57.5 into four execution plans, tightened them against checker findings, and set the phase to `ready_to_execute`
-- Executed 57.5-01 on branch `gsd/phase-57.5-measurement-architecture-retroactive-foundation`, landing the measurement CLI/store/query substrate, test lock, and cache-artifact ignore rules
-- Executed 57.5-02 and 57.5-03 in parallel, landing the Claude runtime/derived extractor families plus the GSDR freshness/signal-yield path
-- Verified Wave 2 with targeted unit/integration runs and reconstructed the missing 57.5-02 summary after its executor stalled post-commit
-- Executed 57.5-04, adding the Codex metadata proof, shared mixed-runtime query semantics, telemetry compatibility, and retroactive corpus validation
-- Closed an initial verification gap by unifying rebuild/query/store on one 17-extractor registry path, declaring the six-loop catalog in code, and passing re-verification at 6/6 must-haves
+- Reverted the earlier ad hoc Codex update edits so the work could be rerun through the repo's actual GSD workflow.
+- Inserted decimal Phase `58.1` after Phase 58, wrote discuss artifacts, passed context-checker, ran research, and planned two execution waves with planner/checker validation.
+- Executed `58.1-01` on branch `gsd/phase-58.1-codex-update-distribution-parity`, landing the shared Codex update-target resolver (`b70e66a5`) and the installer/test follow-up (`e38a67e0`).
+- Verified `58.1-01` locally with `npx vitest run tests/unit/install.test.js`, live resolver JSON from the repo root, and a custom both-scopes-stale fixture.
+- Created `58.1-01-SUMMARY.md` manually after the executor hung post-commit, keeping the landed code intact and setting the next resume point to `58.1-02-PLAN.md`.
+- Closed the non-responsive wave-2 executor, rewired the update command/workflow locally, and committed the runtime-aware/published-package flow in `38fa33ac` plus the Codex parity integration regressions in `a7904470`.
+- Verified `58.1-02` locally with `npx vitest run tests/integration/multi-runtime.test.js` and a fresh `npx vitest run tests/unit/install.test.js` regression pass.
+- Ran the phase verifier and produced `58.1-VERIFICATION.md`; automated verification passed, and the only remaining checks are two live Codex update runs (default and non-default `CODEX_CONFIG_DIR`).

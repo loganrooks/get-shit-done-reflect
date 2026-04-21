@@ -160,7 +160,48 @@ Quick tasks can run mid-phase - validation only checks ROADMAP.md exists, not ph
 
 ---
 
-**Step 2.5: Handle quick-task branching**
+**Step 2.5: Handle quick-task branching (GATE-03 enforced)**
+
+**GATE-03 structural check — direct-to-main eligibility**
+
+Before any branching decision, classify already-staged files (if any) against
+the runtime-facing / planning-authority ruleset. This is the workflow-step
+fire-event for GATE-03 per Phase 58 Plan 08. Any runtime-facing or
+planning-authority classification blocks direct-to-main and forces branch+PR.
+
+```bash
+# GATE-03: classify staged files (no-op if nothing is staged yet)
+if git diff --cached --name-only > /tmp/gate03-files.txt && [ -s /tmp/gate03-files.txt ]; then
+  CLASSIFICATION_JSON=$(node "$HOME/.claude/get-shit-done-reflect/bin/gsd-tools.cjs" quick classify --files $(cat /tmp/gate03-files.txt) 2>&1)
+  CLASSIFICATION_EXIT=$?
+
+  if [ $CLASSIFICATION_EXIT -ne 0 ]; then
+    CLASS=$(echo "$CLASSIFICATION_JSON" | jq -r .classification 2>/dev/null || echo unknown)
+    echo "::notice title=GATE-03::gate_fired=GATE-03 result=block classification=$CLASS"
+    echo "GATE-03 blocks direct-to-main: staged files include runtime-facing or planning-authority paths."
+    echo "$CLASSIFICATION_JSON" | jq . 2>/dev/null || echo "$CLASSIFICATION_JSON"
+    echo ""
+    echo "Required: create a branch and PR for these changes. Run:"
+    echo "  git checkout -b gsd/quick-$(date +%y%m%d-%N | tail -c 6)"
+    echo "  git add <files>"
+    echo "  git commit"
+    echo "  gh pr create --repo loganrooks/get-shit-done-reflect"
+    exit 1
+  fi
+
+  echo "::notice title=GATE-03::gate_fired=GATE-03 result=pass classification=pure-docs"
+fi
+```
+
+The gate MUST be exit-coded (not an advisory prompt). Per-gate Codex
+behavior for GATE-03 is `applies-via-workflow-step` on both runtimes per
+`58-05-codex-behavior-matrix.md`.
+
+Signal resolution: `sig-2026-04-17-gsdr-quick-bypassed-then-backfilled`
+is addressed because bypassing this block (e.g. manually editing main)
+is still caught by the post-commit CI backstop on `push` to main.
+
+---
 
 **If `branch_name` is empty/null:** Skip and continue on the current branch.
 
@@ -341,9 +382,57 @@ Display banner:
 ◆ Investigating approaches for: ${DESCRIPTION}
 ```
 
-Spawn a single focused researcher (not 4 parallel researchers like full phases — quick tasks need targeted research, not broad domain surveys):
+Spawn a single focused researcher (not 4 parallel researchers like full phases — quick tasks need targeted research, not broad domain surveys).
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-phase-researcher"
+MODEL="{planner_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/quick.md"
+WORKFLOW_STEP="quick_research"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-phase-researcher
+# Model: inherit          (resolved from {planner_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - .planning/STATE.md
+#   - .planning/PROJECT.md
+#   - ./CLAUDE.md (if exists)
+#   - ${QUICK_DIR}/${quick_id}-CONTEXT.md (when $DISCUSS_MODE)
+# Output path: ${QUICK_DIR}/${quick_id}-RESEARCH.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
+# KNOWN DISCREPANCY (Plan 02 enumeration §5.4): researcher agent spawned with
+# {planner_model} template binding instead of {researcher_model}. Plan 12 baked
+# in the literal resolved value but did NOT correct the template — flagged for
+# future review. Under quality profile both resolve to `inherit` so behavior is
+# identical today; divergence would appear under other profiles.
 Task(
   prompt="
 <research_context>
@@ -380,7 +469,7 @@ Return: ## RESEARCH COMPLETE with file path
 </output>
 ",
   subagent_type="gsd-phase-researcher",
-  model="{planner_model}",
+  model="{planner_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
   description="Research: ${DESCRIPTION}"
 )
 ```
@@ -399,7 +488,50 @@ If research file not found, warn but continue: "Research agent did not produce o
 
 **If NOT `$FULL_MODE`:** Use standard `quick` mode.
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-planner"
+MODEL="{planner_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/quick.md"
+WORKFLOW_STEP="quick_planner"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-planner
+# Model: inherit          (resolved from {planner_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - .planning/STATE.md
+#   - ./CLAUDE.md (if exists)
+#   - ${QUICK_DIR}/${quick_id}-CONTEXT.md (when $DISCUSS_MODE)
+#   - ${QUICK_DIR}/${quick_id}-RESEARCH.md (when $RESEARCH_MODE)
+# Output path: ${QUICK_DIR}/${quick_id}-PLAN.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="
 <planning_context>
@@ -436,7 +568,7 @@ Return: ## PLANNING COMPLETE with plan path
 </output>
 ",
   subagent_type="gsd-planner",
-  model="{planner_model}",
+  model="{planner_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
   description="Quick plan: ${DESCRIPTION}"
 )
 ```
@@ -496,11 +628,51 @@ ${DISCUSS_MODE ? '- Context compliance: Does the plan honor locked decisions fro
 </expected_output>
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-plan-checker"
+MODEL="{checker_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/quick.md"
+WORKFLOW_STEP="quick_plan_check"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-plan-checker
+# Model: sonnet          (resolved from {checker_model} via resolveModelInternal under model_profile=quality; alias mode)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - ${QUICK_DIR}/${quick_id}-PLAN.md
+# Output path: N/A (inline verification verdict)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt=checker_prompt,
   subagent_type="gsd-plan-checker",
-  model="{checker_model}",
+  model="{checker_model}",   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20)
   description="Check quick plan: ${DESCRIPTION}"
 )
 ```
@@ -541,11 +713,52 @@ Return what changed.
 </instructions>
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-planner"
+MODEL="{planner_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/quick.md"
+WORKFLOW_STEP="quick_plan_revise"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-planner (revision loop)
+# Model: inherit          (resolved from {planner_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - ${QUICK_DIR}/${quick_id}-PLAN.md (existing plan)
+#   - ${structured_issues_from_checker}
+# Output path: ${QUICK_DIR}/${quick_id}-PLAN.md (revised in place)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt=revision_prompt,
   subagent_type="gsd-planner",
-  model="{planner_model}",
+  model="{planner_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
   description="Revise quick plan: ${DESCRIPTION}"
 )
 ```
@@ -562,9 +775,52 @@ Offer: 1) Force proceed, 2) Abort
 
 **Step 6: Spawn executor**
 
-Spawn gsd-executor with plan reference:
+Spawn gsd-executor with plan reference.
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-executor"
+MODEL="{executor_model}"
+REASONING_EFFORT="default"
+ISOLATION="worktree"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/quick.md"
+WORKFLOW_STEP="quick_execute"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-executor
+# Model: inherit          (resolved from {executor_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: worktree
+# Required inputs:
+#   - ${QUICK_DIR}/${quick_id}-PLAN.md
+#   - .planning/STATE.md
+#   - ./CLAUDE.md (if exists)
+#   - .claude/skills/ or .agents/skills/ (if either exists)
+# Output path: ${QUICK_DIR}/${quick_id}-SUMMARY.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="
 Execute quick task ${quick_id}.
@@ -586,7 +842,7 @@ ${AGENT_SKILLS_EXECUTOR}
 </constraints>
 ",
   subagent_type="gsd-executor",
-  model="{executor_model}",
+  model="{executor_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
   isolation="worktree",
   description="Execute: ${DESCRIPTION}"
 )
@@ -618,7 +874,48 @@ Display banner:
 ◆ Spawning verifier...
 ```
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-verifier"
+MODEL="{verifier_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/quick.md"
+WORKFLOW_STEP="quick_verify"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-verifier
+# Model: sonnet          (resolved from {verifier_model} via resolveModelInternal under model_profile=quality; alias mode)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - ${QUICK_DIR}/${quick_id}-PLAN.md
+#   - actual codebase (must_haves checked against live state)
+# Output path: ${QUICK_DIR}/${quick_id}-VERIFICATION.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="Verify quick task goal achievement.
 Task directory: ${QUICK_DIR}
@@ -632,7 +929,7 @@ ${AGENT_SKILLS_VERIFIER}
 
 Check must_haves against actual codebase. Create VERIFICATION.md at ${QUICK_DIR}/${quick_id}-VERIFICATION.md.",
   subagent_type="gsd-verifier",
-  model="{verifier_model}",
+  model="{verifier_model}",   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20)
   description="Verify: ${DESCRIPTION}"
 )
 ```

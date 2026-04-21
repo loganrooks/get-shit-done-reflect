@@ -6,6 +6,7 @@ const os = require('os');
 const readline = require('readline');
 const crypto = require('crypto');
 const { execSync } = require('child_process');
+const { getCodexConfigDir } = require('../get-shit-done/bin/lib/update-target.cjs');
 
 // Colors
 const cyan = '\x1b[36m';
@@ -161,14 +162,7 @@ function getGlobalDir(runtime, explicitDir = null) {
   }
 
   if (runtime === 'codex') {
-    // Codex CLI: --config-dir > CODEX_CONFIG_DIR > ~/.codex
-    if (explicitDir) {
-      return expandTilde(explicitDir);
-    }
-    if (process.env.CODEX_CONFIG_DIR) {
-      return expandTilde(process.env.CODEX_CONFIG_DIR);
-    }
-    return path.join(os.homedir(), '.codex');
+    return getCodexConfigDir(explicitDir, process.env, os.homedir());
   }
 
   // Claude Code: --config-dir > CLAUDE_CONFIG_DIR > ~/.claude
@@ -1126,7 +1120,7 @@ function copyCodexSkills(srcDir, destDir, prefix, pathPrefix) {
       safeFs('mkdirSync', () => fs.mkdirSync(skillDir, { recursive: true }), skillDir);
 
       let content = fs.readFileSync(srcPath, 'utf8');
-      content = replacePathsInContent(content, pathPrefix);
+      content = replacePathsInContent(content, pathPrefix, './.codex/');
       content = processAttribution(content, getCommitAttribution('codex'));
       content = convertClaudeToCodexSkill(content, skillName, pathPrefix);
 
@@ -1343,9 +1337,11 @@ function mergeCodexConfig(configPath, gsdBlock) {
  *
  * @param {string} content - File content to process
  * @param {string} runtimePathPrefix - Target runtime path (e.g., "~/.config/opencode/")
+ * @param {string|null} [runtimeLocalPathPrefix] - Relative runtime path for
+ * local-scope references (e.g. "./.codex/")
  * @returns {string} Content with paths replaced
  */
-function replacePathsInContent(content, runtimePathPrefix) {
+function replacePathsInContent(content, runtimePathPrefix, runtimeLocalPathPrefix = null) {
   // Pass 1: Replace shared KB paths (tilde and $HOME variants)
   let result = content.replace(/~\/\.claude\/gsd-knowledge/g, '~/.gsd/knowledge');
   result = result.replace(/\$HOME\/\.claude\/gsd-knowledge/g, '$HOME/.gsd/knowledge');
@@ -1372,6 +1368,10 @@ function replacePathsInContent(content, runtimePathPrefix) {
     runtimeSuffix = runtimePathPrefix;
   }
   result = result.replace(/\$HOME\/\.claude\/(?!gsd-knowledge)(?! )/g, '$HOME/' + runtimeSuffix);
+
+  if (runtimeLocalPathPrefix) {
+    result = result.replace(/\.\/\.claude\/(?!gsd-knowledge)(?! )/g, runtimeLocalPathPrefix);
+  }
 
   // Pass 3: GSDR namespace rewriting (install-time co-installation isolation)
   // Order: 3a before 3c to avoid partial matches on directory path
@@ -1489,7 +1489,7 @@ function copyFlattenedCommands(srcDir, destDir, prefix, pathPrefix, runtime) {
       const destPath = path.join(destDir, destName);
 
       let content = fs.readFileSync(srcPath, 'utf8');
-      content = replacePathsInContent(content, pathPrefix);
+      content = replacePathsInContent(content, pathPrefix, `./${getDirName(runtime)}/`);
       // Handle ~/.opencode/ -> target path migration (unrelated to two-pass KB/runtime split)
       const opencodeDirRegex = /~\/\.opencode\//g;
       content = content.replace(opencodeDirRegex, pathPrefix);
@@ -1572,7 +1572,7 @@ function copyWithPathReplacement(srcDir, destDir, pathPrefix, runtime, isCommand
     } else if (entry.name.endsWith('.md')) {
       // Replace paths using centralized two-pass function
       let content = fs.readFileSync(srcPath, 'utf8');
-      content = replacePathsInContent(content, pathPrefix);
+      content = replacePathsInContent(content, pathPrefix, `./${dirName}/`);
       content = processAttribution(content, getCommitAttribution(runtime));
 
       // Convert frontmatter for opencode compatibility
@@ -2735,7 +2735,7 @@ function install(isGlobal, runtime = 'claude') {
       if (entry.isFile() && entry.name.endsWith('.md')) {
         let content = fs.readFileSync(path.join(agentsSrc, entry.name), 'utf8');
         // Replace paths using centralized two-pass function
-        content = replacePathsInContent(content, pathPrefix);
+        content = replacePathsInContent(content, pathPrefix, `./${getDirName(runtime)}/`);
         content = processAttribution(content, getCommitAttribution(runtime));
         // Convert frontmatter for runtime compatibility
         if (isOpencode) {
@@ -2778,7 +2778,7 @@ function install(isGlobal, runtime = 'claude') {
       if (entry.isFile() && entry.name.endsWith('.md')) {
         let content = fs.readFileSync(path.join(agentsSrc, entry.name), 'utf8');
         // Apply same transforms as other runtimes
-        content = replacePathsInContent(content, pathPrefix);
+        content = replacePathsInContent(content, pathPrefix, `./${getDirName(runtime)}/`);
         content = processAttribution(content, getCommitAttribution(runtime));
         // Rename gsd-*.md -> gsdr-*.toml
         const destName = entry.name.startsWith('gsd-')

@@ -124,17 +124,42 @@ runtime prefix from detect_runtime step.
 - Read agent-history.json for task details
 - Flag: "Found interrupted agent"
 
-**After loading .continue-here context, delete the file:**
+**After loading .continue-here context, resolve the handoff:**
 
 ```bash
-# Delete the loaded handoff file (phase-level or project-level)
-rm -f "$CONTINUE_HERE_PATH"
+# GATE-04a / GATE-04b (Phase 58 Plan 10): structural archive + staleness hard-stop.
+# Replaces the old `rm -f` with a resolver that:
+#   - Moves the handoff to .planning/handoff/archive/YYYYMMDDTHHMMSS-<session_id>.continue-here.md
+#     (evidence preservation) when it is fresh — GATE-04a.
+#   - Hard-stops (exit 3) when the handoff is older than STATE.md's `last_updated`,
+#     or a mainline commit has touched STATE.md since, or the embedded session_id
+#     is already recorded in STATE.md — GATE-04b.
+RESOLUTION=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs handoff resolve --continue-path "$CONTINUE_HERE_PATH" 2>&1)
+EXIT=$?
+
+if [ $EXIT -eq 3 ]; then
+  echo "GATE-04b HARD STOP: $RESOLUTION"
+  echo "Options:"
+  echo "  - Review .continue-here manually, then delete or update it"
+  echo "  - Run /gsd:pause-work to create a fresh handoff"
+  exit 1
+elif [ $EXIT -ne 0 ]; then
+  echo "handoff resolve failed: $RESOLUTION"
+  exit 1
+fi
+
+# Resolution succeeded. $RESOLUTION contains the JSON payload (including
+# archive_path on success) -- useful as an audit breadcrumb if the caller
+# wants to surface where the archived copy lives.
 ```
 
-The handoff context is now loaded into this session. The file is stale.
-The continue-here template contract states: "This file gets DELETED after resume -- it's not permanent storage."
-If the session ends unexpectedly before work completes, the user can re-create
-a handoff with /gsd:pause-work.
+The handoff context is now loaded into this session. The file is archived
+(not deleted) under `.planning/handoff/archive/` so each resumption leaves an
+on-disk trace. The continue-here template contract states: "This file gets
+DELETED after resume -- it's not permanent storage." As of GATE-04a the
+archival replaces deletion: the content leaves the working path but persists
+as dated evidence. If the session ends unexpectedly before work completes,
+the user can re-create a fresh handoff with /gsd:pause-work.
 </step>
 
 <step name="present_status">

@@ -176,12 +176,11 @@ fi
 
 | Option | Git command | Result |
 |--------|-------------|--------|
-| Squash merge (recommended) | `git merge --squash` | Single clean commit per branch |
-| Merge with history | `git merge --no-ff` | Preserves all individual commits |
+| Merge with history (recommended) | `git merge --no-ff` | Preserves all individual commits |
 | Delete without merging | `git branch -D` | Discard branch work |
 | Keep branches | (none) | Manual handling later |
 
-Squash merge is recommended — keeps main branch history clean while preserving the full development history in the branch (until deleted).
+Merge with history is recommended and structurally enforced under GATE-02 (Phase 58 Plan 01) — preserves the per-task / per-plan commit granularity GSD executors deliberately create. Squash merges are blocked at CI per signal `sig-2026-03-28-squash-merge-destroys-commit-history` (PR #24 regression: 13 atomic commits collapsed into one squash commit, protected-branch force-push recovery required) and user preference `feedback_no_squash_merge`.
 
 **Use cases:**
 

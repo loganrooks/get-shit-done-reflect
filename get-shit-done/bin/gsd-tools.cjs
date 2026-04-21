@@ -54,6 +54,11 @@ const automation = require('./lib/automation.cjs');
 const kb = require('./lib/kb.cjs');
 const telemetry = require('./lib/telemetry.cjs');
 const measurement = require('./lib/measurement.cjs');
+const quick = require('./lib/quick.cjs');
+const handoff = require('./lib/handoff.cjs');
+const reconcile = require('./lib/reconcile.cjs');
+const archive = require('./lib/archive.cjs');
+const release = require('./lib/release.cjs');
 
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
@@ -88,7 +93,7 @@ async function main() {
   const command = args[0];
 
   if (!command) {
-    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement');
+    error('Usage: gsd-tools <command> [args] [--raw] [--cwd <path>]\nCommands: state, resolve-model, find-phase, commit, verify-summary, verify, frontmatter, template, generate-slug, current-timestamp, list-todos, verify-path-exists, config-ensure-section, config-set, config-get, config-set-model-profile, config-new-project, phases, roadmap, phase, milestone, init, manifest, backlog, automation, sensors, health-probe, kb, telemetry, measurement, quick, handoff, antipatterns, agent, release');
   }
 
   switch (command) {
@@ -257,8 +262,34 @@ async function main() {
         verify.cmdVerifyArtifacts(cwd, args[2], raw);
       } else if (subcommand === 'key-links') {
         verify.cmdVerifyKeyLinks(cwd, args[2], raw);
+      } else if (subcommand === 'ledger') {
+        // GATE-09d verifier (Phase 58 Plan 17):
+        //   gsd-tools verify ledger <phase> [--strict] [--no-meta-gate]
+        //
+        // Three structural checks:
+        //   1. Claim-coverage: every load-bearing CONTEXT.md claim has a
+        //      matching NN-LEDGER.md entry (fuzzy substring match on
+        //      entry.context_claim). Authoritative classification rule:
+        //      58-04-ledger-schema.md §4 (disjunctive 5-clause).
+        //   2. Evidence-paths: every ledger entry with
+        //      disposition=implemented_this_phase has non-empty
+        //      evidence_paths[] AND every listed path exists on disk.
+        //   3. Meta-gate (GATE-09e embedded): every GATE introduced in
+        //      the phase (read from CONTEXT.md Requirements-in-scope +
+        //      REQUIREMENTS.md traceability table) has >=1 fire-event on
+        //      the gate_fire_events extractor (registered by Plan 19).
+        //      Warns + skips if extractor not yet registered (deadlock
+        //      guard between Plan 17 and Plan 19 execution).
+        //
+        // Fire-event: ::notice title=GATE-09d::gate_fired=GATE-09d
+        //             result=<pass|block> missing_claims=N unwired_gates=M
+        // Exit: 0 (raw mode or pass); 1 (block + strict + non-raw).
+        const phaseArg = args[2];
+        const strict = !args.includes('--no-strict');
+        const noMetaGate = args.includes('--no-meta-gate');
+        verify.cmdVerifyLedger(cwd, phaseArg, { strict, noMetaGate }, raw);
       } else {
-        error('Unknown verify subcommand. Available: plan-structure, phase-completeness, references, commits, artifacts, key-links');
+        error('Unknown verify subcommand. Available: plan-structure, phase-completeness, references, commits, artifacts, key-links, ledger');
       }
       break;
     }
@@ -369,8 +400,14 @@ async function main() {
         phase.cmdPhaseRemove(cwd, args[2], { force: forceFlag }, raw);
       } else if (subcommand === 'complete') {
         phase.cmdPhaseComplete(cwd, args[2], raw);
+      } else if (subcommand === 'advance') {
+        // Phase 58 Plan 06 (GATE-01): structural CI-green gate for phase advancement.
+        phase.cmdPhaseAdvance(cwd, args.slice(2), raw);
+      } else if (subcommand === 'reconcile') {
+        // Phase 58 Plan 13 (GATE-10): structural phase-closeout reconciliation.
+        reconcile.cmdPhaseReconcile(cwd, args.slice(1), raw);
       } else {
-        error('Unknown phase subcommand. Available: next-decimal, add, insert, remove, complete');
+        error('Unknown phase subcommand. Available: next-decimal, add, insert, remove, complete, advance, reconcile');
       }
       break;
     }
@@ -727,6 +764,77 @@ async function main() {
 
     case 'measurement': {
       measurement.cmdMeasurement(cwd, args.slice(1), raw);
+      break;
+    }
+
+    case 'quick': {
+      // Phase 58 Plan 08 (GATE-03): direct-to-main eligibility classifier.
+      // `quick classify [--files <path...>]` returns JSON on stdout and an
+      // exit code: 0=pure-docs, 1=runtime-facing, 2=planning-authority, 3=mixed.
+      // Omitting --files falls back to `git diff --name-only --cached`.
+      const subcommand = args[1];
+      if (subcommand === 'classify') {
+        quick.cmdQuickClassify(cwd, args.slice(2), raw);
+      } else {
+        error('Unknown quick subcommand. Available: classify');
+      }
+      break;
+    }
+
+    case 'handoff': {
+      // Phase 58 Plan 10 (GATE-04a/04b): resume handoff archive + staleness hard-stop.
+      // `handoff resolve [--continue-path PATH] [--state-path PATH] [--auto]`
+      // Exit codes: 0 = loaded/archived, 3 = GATE-04b hard-stop (caller aborts),
+      //             1 = unexpected error.
+      const subcommand = args[1];
+      if (subcommand === 'resolve') {
+        handoff.cmdHandoffResolve(cwd, args.slice(2), raw);
+      } else {
+        error('Unknown handoff subcommand. Available: resolve');
+      }
+      break;
+    }
+
+    case 'antipatterns': {
+      // Phase 58 Plan 10 (GATE-04c): severity-tagged anti-pattern registry check.
+      // `antipatterns check [--pattern-id ID ...] [--auto [--acknowledge-blocking ID ...]]`
+      // Exit codes: 0 = pass, 4 = blocking entry needs ack / typed token,
+      //             1 = unexpected error.
+      const subcommand = args[1];
+      if (subcommand === 'check') {
+        await handoff.cmdAntipatternsCheck(cwd, args.slice(2), raw);
+      } else {
+        error('Unknown antipatterns subcommand. Available: check');
+      }
+      break;
+    }
+
+    case 'agent': {
+      // Phase 58 Plan 14 (GATE-12): evidence-preserving archive for failed /
+      // interrupted agent output. `agent archive --session-id <id> --reason <r>
+      // [--phase <N>] [--dry-run] [--metadata <json>] --paths <p> [<p>...]`.
+      // Exit codes: 0 = success (all paths archived or missing), 2 = partial
+      // failure (one or more moves errored), 1 = usage error.
+      const subcommand = args[1];
+      if (subcommand === 'archive') {
+        archive.cmdAgentArchive(cwd, args.slice(2), raw);
+      } else {
+        error('Unknown agent subcommand. Available: archive');
+      }
+      break;
+    }
+
+    case 'release': {
+      // Phase 58 Plan 15 (GATE-11): release-boundary assertion.
+      // `release check [--since <commit>] [--lag-threshold-days N] [--auto]`
+      // Exit codes: 0 = current, 1 = lag, 2 = explicitly deferred.
+      // Emits `::notice::gate_fired=GATE-11 result=<release_current|release_lag|explicit_defer>` per invocation.
+      const subcommand = args[1];
+      if (subcommand === 'check') {
+        release.cmdReleaseCheck(cwd, args.slice(2), raw);
+      } else {
+        error('Unknown release subcommand. Available: check');
+      }
       break;
     }
 

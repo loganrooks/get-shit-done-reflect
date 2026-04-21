@@ -355,9 +355,48 @@ Display:
 ◆ Spawning planner for gap closure...
 ```
 
-Spawn gsd-planner in --gaps mode:
+Spawn gsd-planner in --gaps mode.
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-planner"
+MODEL="{planner_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/verify-work.md"
+WORKFLOW_STEP="plan_gap_fixes"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-planner (gap-fix mode)
+# Model: inherit  (resolved from {planner_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs: UAT diagnostic findings, project STATE.md, ROADMAP.md
+# Output path: .planning/phases/{phase_dir}/*-PLAN.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="""
 <planning_context>
@@ -382,7 +421,7 @@ Plans must be executable prompts.
 </downstream_consumer>
 """,
   subagent_type="gsd-planner",
-  model="{planner_model}",
+  model="{planner_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
   description="Plan gap fixes for Phase {phase}"
 )
 ```
@@ -406,9 +445,48 @@ Display:
 
 Initialize: `iteration_count = 1`
 
-Spawn gsd-plan-checker:
+Spawn gsd-plan-checker.
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-plan-checker"
+MODEL="{checker_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/verify-work.md"
+WORKFLOW_STEP="verify_gap_plans"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-plan-checker
+# Model: sonnet  (resolved from {checker_model} via resolveModelInternal under model_profile=quality; alias mode)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs: .planning/phases/{phase_dir}/*-PLAN.md (fix plans to verify)
+# Output path: N/A (inline verification verdict)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="""
 <verification_context>
@@ -428,7 +506,7 @@ Return one of:
 </expected_output>
 """,
   subagent_type="gsd-plan-checker",
-  model="{checker_model}",
+  model="{checker_model}",   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20)
   description="Verify Phase {phase} fix plans"
 )
 ```
@@ -445,9 +523,48 @@ On return:
 
 Display: `Sending back to planner for revision... (iteration {N}/3)`
 
-Spawn gsd-planner with revision context:
+Spawn gsd-planner with revision context.
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-planner"   # revision loop
+MODEL="{planner_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/verify-work.md"
+WORKFLOW_STEP="revision_loop"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE}(revision) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}(revision)" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
+```
 
 ```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-planner (revision loop)
+# Model: inherit  (resolved from {planner_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs: .planning/phases/{phase_dir}/*-PLAN.md (existing plans), {structured_issues_from_checker}
+# Output path: .planning/phases/{phase_dir}/*-PLAN.md (revised in place)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="""
 <revision_context>
@@ -469,7 +586,7 @@ Do NOT replan from scratch unless issues are fundamental.
 </instructions>
 """,
   subagent_type="gsd-planner",
-  model="{planner_model}",
+  model="{planner_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
   description="Revise Phase {phase} plans"
 )
 ```

@@ -58,8 +58,49 @@ This would take ~30 seconds and might surface useful context.
 [Yes, research this] / [No, let's keep exploring]
 ```
 
-If yes, spawn a research agent:
+If yes, spawn a research agent.
+
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-phase-researcher"
+MODEL="inherit"          # agent-profile default under quality (no model= attribute on Task() here); literal baked for GATE-13 compaction-resilience.
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/explore.md"
+WORKFLOW_STEP="mid_conversation_research"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-phase-researcher
+# Model: inherit          (no model= attribute on Task() — relies on agent-profile default; resolveModelInternal(cwd, "gsd-phase-researcher") = inherit under model_profile=quality)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - {specific_question} (inline, from the conversation)
+# Output path: N/A (inline response to orchestrator, 3-5 findings, <=200 words)
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="Quick research: {specific_question}. Return 3-5 key findings, no more than 200 words.",
   subagent_type="gsd-phase-researcher"

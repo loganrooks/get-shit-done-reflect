@@ -1,0 +1,58 @@
+# GATE-13 bootstrap allowlist — template-variable model= bindings deferred beyond Plan 12a.
+# ---
+# Plan 12 (Wave 3) instrumented 10 core workflow files (collect-signals, research-phase,
+# plan-phase, execute-phase, verify-work, audit-milestone, discuss-phase, quick, reflect,
+# explore) and retired its 8 scope entries. Plan 12a (Wave 6) instrumented the 6 remaining
+# files in its PLAN.md `files_modified` manifest (commands/gsd/audit.md, commands/gsd/debug.md,
+# get-shit-done/workflows/map-codebase.md, new-project.md, new-milestone.md, validate-phase.md)
+# and retired its 2 scope entries (old debug.md:96,149 — now 137,231 carry the full
+# echo_delegation macro + DISPATCH CONTRACT comment block with BAKED IN model annotations).
+# ---
+# The 6 entries below are genuinely OUT-OF-SCOPE for both Plan 12 and Plan 12a:
+#   - commands/gsd/research-phase.md (2 sites) — not in Plan 12a's files_modified manifest
+#     despite being listed as Plan 12a scope in the pre-Plan-12a HEADNOTE (scope mismatch
+#     surfaced during Plan 12a execution 2026-04-20; entries remain here as a narrowing record)
+#   - .codex/skills/gsdr-research-phase/SKILL.md (2 sites) — Codex-runtime mirror of
+#     plan-phase.md / research-phase.md, not in Plan 12a's files_modified
+#   - .codex/skills/gsdr-debug/SKILL.md (2 sites) — Codex-runtime mirror of commands/gsd/debug.md,
+#     not in Plan 12a's files_modified
+# ---
+# These sites require a follow-up plan (likely "Plan 12b" or a Phase 58/59 milestone plan)
+# to apply the echo_delegation macro + dispatch-contract comment block. Until then:
+# ---
+# Plan 12a SUMMARY has a deviation entry describing this narrowing; the decisions log
+# carries a [58-12a] entry citing this as a deferred structural enforcement.
+# ---
+# Design §2.3 design-intent note
+# ------------------------------
+# Plan 12's SUMMARY surfaced a pre-existing allowlist-format defect: bare `#` comment
+# lines (a `#` alone on a line) act as patterns that match every line containing `#`
+# via `grep -F -f`, silently disabling the check for any BAKED-IN-annotated hit. This
+# rewrite (2026-04-20) eliminated every bare `#` line — each comment carries prose
+# or a non-bare `# ---` separator.
+# ---
+# The CI GATE-13 grep in .github/workflows/ci.yml was additionally updated (Plan 12a
+# Task 2 — 2026-04-20) to honor the design §2.3 compaction-survival signal:
+#   `grep -v '# BAKED IN comment:'`
+# is chained into the pipeline so template bindings ANNOTATED with the baked-in literal
+# are recognized as compliant. Entries below are sites that lack that annotation because
+# they have NO dispatch-contract block at all yet.
+# ---
+# Format
+# ------
+# Each entry is a `path-lineno-` substring (matching the `grep -A 5` context-line prefix
+# where `grep` uses `-` between filename and line number).
+# ---
+# --- Entries (post-Plan-12a, 2026-04-20) ---
+# row 39 — commands/gsd/research-phase.md researcher_model (site 1 of 2)
+commands/gsd/research-phase.md-140-
+# row 40 — commands/gsd/research-phase.md researcher_model (site 2 of 2, iteration)
+commands/gsd/research-phase.md-174-
+# row 41 — .codex/skills/gsdr-research-phase/SKILL.md researcher_model (site 1 of 2)
+.codex/skills/gsdr-research-phase/SKILL.md-135-
+# row 42 — .codex/skills/gsdr-research-phase/SKILL.md researcher_model (site 2 of 2, continuation)
+.codex/skills/gsdr-research-phase/SKILL.md-169-
+# row 44 — .codex/skills/gsdr-debug/SKILL.md debugger_model (site 1 of 2)
+.codex/skills/gsdr-debug/SKILL.md-90-
+# row 45 — .codex/skills/gsdr-debug/SKILL.md debugger_model (site 2 of 2, continuation)
+.codex/skills/gsdr-debug/SKILL.md-143-

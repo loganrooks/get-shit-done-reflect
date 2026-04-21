@@ -600,38 +600,58 @@ Options:
 3. **Keep branches** — Leave for manual handling
 ```
 
-AskUserQuestion with options: Squash merge (Recommended), Merge with history, Delete without merging, Keep branches.
+AskUserQuestion with options: Merge with history (Recommended), Delete without merging, Keep branches.
 
-**Squash merge:**
+> **Why merge-with-history is the default (Phase 58 Plan 01, 2026-04-20):**
+> Squash merges destroy individual commit history. Signal
+> `sig-2026-03-28-squash-merge-destroys-commit-history` (severity critical,
+> PR #24 regression) documents the concrete damage: 13 atomic commits collapsed
+> into one squash commit, requiring protected-branch force-push recovery. User
+> preference `feedback_no_squash_merge` reinforces this as a standing
+> methodological commitment. GATE-02 enforces this structurally — CI greps for
+> squash invocations and for `gh pr merge` without `--merge` and blocks
+> non-conforming invocations. See
+> `.planning/phases/58-structural-enforcement-gates/58-01-gate02-enumeration.md`
+> for the full merge-surface enumeration.
+
+**GATE-10 (structural): Reconcile each phase before merging.**
+
+Before the merge loop, invoke `gsd-tools phase reconcile <N>` for each phase
+being closed so STATE.md, the active ROADMAP phase row, plan checkboxes, and
+touched planning-authority sidecars are committed atomically per phase.
+Prose reconciliation requests are replaced with this exit-coded CLI call per
+Phase 58 Plan 13 / GATE-10 (CONTEXT DC-7). The command emits
+`::notice::gate_fired=GATE-10 result=<reconciled|block> fields=<count>` on
+every invocation. Idempotent — re-invoking on a reconciled phase no-ops.
 
 ```bash
-CURRENT_BRANCH=$(git branch --show-current)
-git checkout ${BASE_BRANCH}
-
-if [ "$BRANCHING_STRATEGY" = "phase" ]; then
-  for branch in $PHASE_BRANCHES; do
-    git merge --squash "$branch"
-    # Strip .planning/ from staging if commit_docs is false
-    if [ "$COMMIT_DOCS" = "false" ]; then
-      git reset HEAD .planning/ 2>/dev/null || true
-    fi
-    git commit -m "feat: $branch for v[X.Y]"
-  done
-fi
-
-if [ "$BRANCHING_STRATEGY" = "milestone" ]; then
-  git merge --squash "$MILESTONE_BRANCH"
-  # Strip .planning/ from staging if commit_docs is false
-  if [ "$COMMIT_DOCS" = "false" ]; then
-    git reset HEAD .planning/ 2>/dev/null || true
+# Phase 58 Plan 13: structural GATE-10 enforcement (milestone phase-close loop)
+# Exit codes: 0 reconciled/noop, 5 unreconciled (blocking).
+for branch in $PHASE_BRANCHES; do
+  # Extract the phase identifier from the branch name (e.g. gsd/phase-58-... → 58)
+  PHASE_ID=$(echo "$branch" | sed -E 's|^[^/]+/phase-([0-9]+[A-Za-z]?(\.[0-9]+[a-z]?)?).*|\1|')
+  if [ -z "$PHASE_ID" ] || [ "$PHASE_ID" = "$branch" ]; then
+    echo "GATE-10: could not parse phase id from branch '$branch'; skipping reconcile."
+    continue
   fi
-  git commit -m "feat: $MILESTONE_BRANCH for v[X.Y]"
-fi
 
-git checkout "$CURRENT_BRANCH"
+  RECON_OUT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" phase reconcile "$PHASE_ID" --auto-commit 2>&1)
+  RECON_EXIT=$?
+
+  if [ $RECON_EXIT -eq 5 ]; then
+    echo "$RECON_OUT"
+    echo "GATE-10 UNRECONCILED for phase $PHASE_ID: manual resolution required."
+    exit 1
+  elif [ $RECON_EXIT -ne 0 ]; then
+    echo "$RECON_OUT"
+    echo "GATE-10: phase reconcile failed for $PHASE_ID (exit $RECON_EXIT)."
+    exit 1
+  fi
+  echo "$RECON_OUT"
+done
 ```
 
-**Merge with history:**
+**Merge with history (default and recommended):**
 
 ```bash
 CURRENT_BRANCH=$(git branch --show-current)
@@ -675,6 +695,53 @@ fi
 ```
 
 **Keep branches:** Report "Branches preserved for manual handling"
+
+**GATE-11 (structural): release-boundary assertion.**
+
+After the per-phase merges have landed on main (or branches have been
+consolidated), assert the release boundary is current before creating the
+milestone tag. Either the most recent `reflect-v*` tag is fresher than the
+last phase merge (prior releases shipped) OR an explicit
+`.planning/release-lag.md` deferral is present with a future `deferred_to`.
+Signals `sig-2026-03-30-release-workflow-forgotten-in-milestone-completion`
+and `sig-2026-04-17-phase-closeout-left-state-pr-release-pending` (5
+occurrences) document the recurring milestone-close gap this gate closes:
+multiple phase branches merge, milestone completes, no release fires, no
+one notices.
+
+```bash
+# Phase 58 Plan 15: structural GATE-11 enforcement (milestone-close)
+# Emits `::notice::gate_fired=GATE-11 result=<release_current|release_lag|explicit_defer>` per invocation.
+# Exit codes: 0 = current, 1 = lag, 2 = explicitly deferred.
+RELEASE_OUT=$(node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs" release check --auto 2>&1)
+RELEASE_EXIT=$?
+
+case $RELEASE_EXIT in
+  0)
+    echo "GATE-11: release current"
+    echo "$RELEASE_OUT"
+    ;;
+  1)
+    echo "GATE-11 BLOCK: release lag detected at milestone close"
+    echo "$RELEASE_OUT"
+    echo ""
+    echo "Options:"
+    echo "  A) Fire release: gh workflow run publish.yml"
+    echo "  B) Defer explicitly: cp .planning/handoff/release-lag-template.md .planning/release-lag.md && \$EDITOR .planning/release-lag.md"
+    echo "  C) Both: defer now, schedule the release"
+    echo "After choosing, re-run this step before creating the milestone tag."
+    exit 1
+    ;;
+  2)
+    echo "GATE-11: release explicitly deferred"
+    echo "$RELEASE_OUT"
+    ;;
+  *)
+    echo "GATE-11 error (exit $RELEASE_EXIT): $RELEASE_OUT"
+    exit 1
+    ;;
+esac
+```
 
 </step>
 

@@ -3,9 +3,18 @@ import { tmpdirTest } from '../helpers/tmpdir.js'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import fsSync from 'node:fs'
-import { execSync } from 'node:child_process'
+import { execFileSync, execSync } from 'node:child_process'
 
 const installScript = path.resolve(process.cwd(), 'bin/install.js')
+
+function runNodeJson(scriptPath, args, options = {}) {
+  const output = execFileSync('node', [scriptPath, ...args], {
+    encoding: 'utf8',
+    timeout: 30000,
+    ...options,
+  })
+  return JSON.parse(output.trim())
+}
 
 // ---------------------------------------------------------------------------
 // Reusable helpers
@@ -810,6 +819,161 @@ describe('multi-runtime validation', () => {
       expect(parsed.value).toBe(installedVersion)
       expect(parsed.source).toBe('installed_harness')
       expect(parsed.value).not.toBe('0.0.1-stale')
+    })
+
+    tmpdirTest('Codex update workflow prefers stale global install over newer repo mirror and keeps the installed entrypoint chain', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+
+      execSync(`node "${installScript}" --codex --global`, {
+        env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      const projectDir = path.join(tmpdir, 'project')
+      await fs.mkdir(path.join(projectDir, '.codex', 'get-shit-done-reflect'), { recursive: true })
+      await fs.writeFile(
+        path.join(projectDir, '.codex', 'get-shit-done-reflect', 'VERSION'),
+        '1.19.6\n',
+        'utf8'
+      )
+      await fs.writeFile(
+        path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'VERSION'),
+        '1.19.4\n',
+        'utf8'
+      )
+
+      const resolverPath = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'bin', 'update-target.cjs')
+      const result = runNodeJson(
+        resolverPath,
+        ['--runtime', 'codex', '--cwd', projectDir, '--latest-version', '1.19.6'],
+        {
+          cwd: projectDir,
+          env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome }
+        }
+      )
+
+      expect(result.selected_target.scope).toBe('global')
+      expect(result.install_args).toEqual(['--codex', '--global'])
+      expect(result.reason_code).toBe('global_stale_local_newer')
+      expect(result.remaining_divergent_scope?.scope).toBe('local')
+
+      const skillPath = path.join(tmpdir, '.codex', 'skills', 'gsdr-update', 'SKILL.md')
+      const workflowPath = path.join(tmpdir, '.codex', 'get-shit-done-reflect', 'workflows', 'update.md')
+      const skill = await fs.readFile(skillPath, 'utf8')
+      const workflow = await fs.readFile(workflowPath, 'utf8')
+
+      expect(skill).toContain('$HOME/.codex/get-shit-done-reflect/workflows/update.md')
+      expect(workflow).toContain('get-shit-done-reflect/bin/update-target.cjs')
+      expect(workflow).toContain('get-shit-done-reflect-cc@latest')
+      expect(workflow).toContain('--codex --global')
+      expect(workflow).toContain('remaining_divergent_scope')
+      expect(workflow).toContain('Restart Codex CLI')
+    })
+
+    tmpdirTest('Codex update target preserves custom config dir and surfaces the other stale scope', async ({ tmpdir }) => {
+      const configHome = path.join(tmpdir, '.config')
+      const customCodexDir = path.join(tmpdir, 'custom-codex')
+
+      execSync(`node "${installScript}" --codex --global --config-dir "${customCodexDir}"`, {
+        env: {
+          ...process.env,
+          HOME: tmpdir,
+          XDG_CONFIG_HOME: configHome,
+          CODEX_CONFIG_DIR: customCodexDir
+        },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      const projectDir = path.join(tmpdir, 'project')
+      await fs.mkdir(path.join(projectDir, '.codex', 'get-shit-done-reflect'), { recursive: true })
+      await fs.writeFile(
+        path.join(projectDir, '.codex', 'get-shit-done-reflect', 'VERSION'),
+        '1.19.3\n',
+        'utf8'
+      )
+      await fs.writeFile(
+        path.join(customCodexDir, 'get-shit-done-reflect', 'VERSION'),
+        '1.19.1\n',
+        'utf8'
+      )
+
+      const resolverPath = path.join(customCodexDir, 'get-shit-done-reflect', 'bin', 'update-target.cjs')
+      const result = runNodeJson(
+        resolverPath,
+        ['--runtime', 'codex', '--cwd', projectDir, '--latest-version', '1.19.6', '--config-dir', customCodexDir],
+        {
+          cwd: projectDir,
+          env: {
+            ...process.env,
+            HOME: tmpdir,
+            XDG_CONFIG_HOME: configHome,
+            CODEX_CONFIG_DIR: customCodexDir
+          }
+        }
+      )
+
+      expect(result.selected_target.scope).toBe('global')
+      expect(result.reason_code).toBe('both_scopes_stale_select_global')
+      expect(result.remaining_divergent_scope?.scope).toBe('local')
+      expect(result.install_args).toEqual(['--codex', '--global', '--config-dir', customCodexDir])
+      expect(result.config_dir).toBe(customCodexDir)
+
+      const workflowPath = path.join(customCodexDir, 'get-shit-done-reflect', 'workflows', 'update.md')
+      const workflow = await fs.readFile(workflowPath, 'utf8')
+      expect(workflow).toContain('--config-dir')
+      expect(workflow).toContain('remaining_divergent_scope')
+    })
+
+    tmpdirTest('Codex local update wiring stays on .codex for skill, workflow, and selected target', async ({ tmpdir }) => {
+      const homeDir = path.join(tmpdir, 'home')
+      const projectDir = path.join(tmpdir, 'project')
+      const configHome = path.join(tmpdir, '.config')
+
+      await fs.mkdir(homeDir, { recursive: true })
+      await fs.mkdir(projectDir, { recursive: true })
+
+      execSync(`node "${installScript}" --codex --local`, {
+        env: { ...process.env, HOME: homeDir, XDG_CONFIG_HOME: configHome },
+        cwd: projectDir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000
+      })
+
+      await fs.writeFile(
+        path.join(projectDir, '.codex', 'get-shit-done-reflect', 'VERSION'),
+        '1.19.5\n',
+        'utf8'
+      )
+
+      const resolverPath = path.join(projectDir, '.codex', 'get-shit-done-reflect', 'bin', 'update-target.cjs')
+      const result = runNodeJson(
+        resolverPath,
+        ['--runtime', 'codex', '--cwd', projectDir, '--latest-version', '1.19.6'],
+        {
+          cwd: projectDir,
+          env: { ...process.env, HOME: homeDir, XDG_CONFIG_HOME: configHome }
+        }
+      )
+
+      expect(result.selected_target.scope).toBe('local')
+      expect(result.install_args).toEqual(['--codex', '--local'])
+      expect(result.selected_target.version_path).toBe(
+        path.join(projectDir, '.codex', 'get-shit-done-reflect', 'VERSION')
+      )
+
+      const skillPath = path.join(projectDir, '.codex', 'skills', 'gsdr-update', 'SKILL.md')
+      const workflowPath = path.join(projectDir, '.codex', 'get-shit-done-reflect', 'workflows', 'update.md')
+      const skill = await fs.readFile(skillPath, 'utf8')
+      const workflow = await fs.readFile(workflowPath, 'utf8')
+
+      expect(skill).toContain('Read the file at `./.codex/get-shit-done-reflect/workflows/update.md`')
+      expect(workflow).toContain('./.codex/get-shit-done-reflect/bin/update-target.cjs')
+      expect(workflow).toContain('--codex --local')
+      expect(workflow).not.toContain('./.claude/')
     })
 
     tmpdirTest('--all install: VERSION files present in all runtimes', async ({ tmpdir }) => {

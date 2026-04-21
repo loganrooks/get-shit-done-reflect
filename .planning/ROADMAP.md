@@ -325,7 +325,46 @@ Plans:
   6. GATE-09 ships as a real ledger contract: named artifact/schema, planning gate for unresolved scope-boundary questions, narrowing-decision provenance, and verifier enforcement against silent disappearance
   7. Phase closeout is structural: planning-authority files reconcile, failed/interrupted agent output is archived, release-boundary lag is surfaced, and source-vs-installed mirrors are checked after runtime-facing changes
   8. Every hook-dependent v1.20 feature specifies its per-runtime substrate and Codex degradation / waiver path in phase CONTEXT.md before implementation begins, and capability-matrix.md is updated when the feature ships
-**Plans**: TBD
+**Plans:** 21 plans
+
+Plans:
+- [x] 58-01-PLAN.md — GATE-02 enumeration + fix `complete-milestone.md` squash default + STATE.md AT-6 reconcile
+- [x] 58-02-PLAN.md — GATE-05 named-site enumeration + GATE-13 dispatch-contract design
+- [x] 58-03-PLAN.md — GATE-08a upstream fetch/delta + port `gsdr-assumptions-analyzer` agent
+- [x] 58-04-PLAN.md — GATE-09a ledger schema in `frontmatter.cjs` + `ledger_entries` KB migration
+- [x] 58-05-PLAN.md — Per-gate Codex behavior matrix (AT-3 compliance)
+- [x] 58-06-PLAN.md — GATE-01 / GATE-14 CI emission + branch-protection flip (human action required)
+- [x] 58-07-PLAN.md — GATE-02 / GATE-13 CI grep jobs + bootstrap allowlist
+- [x] 58-08-PLAN.md — GATE-03 quick-classify CLI + workflow gate + CI post-commit backstop
+- [x] 58-09-PLAN.md — GATE-15 source/install parity CI check
+- [x] 58-10-PLAN.md — GATE-04a/b/c `.continue-here` archive + staleness + severity framework
+- [x] 58-11-PLAN.md — GATE-08a-e discuss-phase-assumptions port + analyzer wiring + mode docs
+- [x] 58-12-PLAN.md — GATE-05 / GATE-13 workflow edits at 10 core workflow files + partial allowlist retirement
+- [x] 58-12a-PLAN.md — GATE-05 / GATE-13 workflow edits at remaining 6 files (commands + map-codebase + new-project + new-milestone + validate-phase) + full allowlist retirement
+- [x] 58-13-PLAN.md — GATE-10 `gsd-tools phase reconcile` subcommand + wiring
+- [x] 58-14-PLAN.md — GATE-12 `gsd-tools agent archive` + envelope in dispatch workflows
+- [x] 58-15-PLAN.md — GATE-11 `gsd-tools release check` + release-lag template
+- [x] 58-16-PLAN.md — GATE-06 / GATE-07 defer-provenance (AT-1 Option B, 57.9 prerequisite)
+- [x] 58-17-PLAN.md — GATE-09b/c/d + meta-gate (GATE-09e) verifier contract
+- [x] 58-18-PLAN.md — XRT-01 planning-phase assertion + capability-matrix closeout diff
+- [x] 58-19-PLAN.md — `gate_fire_events` extractor registration
+- [x] 58-20-PLAN.md — Phase 58 `58-LEDGER.md` (reflexive GATE-09) + ROADMAP update
+
+### Phase 58.1: Codex Update Distribution Parity (INSERTED)
+
+**Goal:** Codex update surfaces stop hiding stale installs: installed-version detection enumerates project-local and active global Codex scopes correctly, update execution targets the intended runtime/config-dir/scope, and shared update indicators no longer assume Claude-only layout.
+**Requirements**: Runtime-parity narrow fix derived from the v1.20 cross-runtime distribution gap target in PROJECT.md (no separate REQUIREMENTS row; phase governed by the inserted ROADMAP goal and its approved PLAN artifacts)
+**Depends on:** Phase 58
+**Success Criteria** (what must be TRUE):
+  1. `gsdr-update` on Codex can distinguish project-local and active global Codex installs, and a repo-local `.codex` mirror in the source repo cannot mask a stale global install
+  2. The selected update command includes runtime-correct targeting (`--codex` plus correct local/global/config-dir scope) instead of reusing Claude-oriented defaults
+  3. Any update-indicator cache or command surface touched by the phase is aligned with Codex/runtime-aware semantics rather than a hard-coded `.claude` path
+  4. Targeted regression tests cover divergent local/global Codex versions and runtime-correct update routing
+**Plans:** 2 plans
+
+Plans:
+- [x] 58.1-01-PLAN.md — Shared Codex update-target resolver seam, installer helper reuse, and unit regressions
+- [x] 58.1-02-PLAN.md — Runtime-aware update workflow wiring, published-package execution, and Codex integration regressions
 
 ### Phase 59: KB Query, Lifecycle Wiring & Surfacing
 **Goal**: The knowledge base is fully queryable on the current file+SQLite architecture, lifecycle transitions are automated with an explicit path relative to the existing bash fallback, and agent surfacing stops being one-way by exposing inbound edge context. The phase stays focused on query/lifecycle/surfacing on the current schema, while explicitly naming the deeper edge-as-entity and retrieval-feedback architecture as downstream work instead of silently omitting it.

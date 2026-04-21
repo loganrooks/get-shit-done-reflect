@@ -651,8 +651,52 @@ After user selects gray areas in present_gray_areas, spawn parallel research age
 
 1. Display brief status: "Researching {N} areas..."
 
-2. For EACH user-selected gray area, spawn a Task() in parallel:
+2. For EACH user-selected gray area, spawn a Task() in parallel.
 
+   Before each spawn, run the GATE-05 echo_delegation macro:
+
+   ```bash
+   # GATE-05: echo delegation before spawn
+   # Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+   SUBAGENT_TYPE="general-purpose"   # Proxy for gsd-advisor-researcher via inline-prompt pattern
+   MODEL="{ADVISOR_MODEL}"
+   REASONING_EFFORT="default"
+   ISOLATION="none"
+   SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+   WORKFLOW_FILE="get-shit-done/workflows/discuss-phase.md"
+   WORKFLOW_STEP="advisor_research"
+   RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+   echo "[DELEGATION] agent=${SUBAGENT_TYPE}(proxy:gsd-advisor-researcher) model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+   mkdir -p .planning 2>/dev/null || true
+   printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+     "${SUBAGENT_TYPE}(proxy:gsd-advisor-researcher)" \
+     "${MODEL}" \
+     "${REASONING_EFFORT}" \
+     "${ISOLATION:-none}" \
+     "${SESSION_ID}" \
+     "${WORKFLOW_FILE}" \
+     "${WORKFLOW_STEP}" \
+     "${RUNTIME}" \
+     >> .planning/delegation-log.jsonl || true
+   ```
+
+   # DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+   # Agent: general-purpose (proxy for gsd-advisor-researcher via inline-prompt pattern)
+   # Model: sonnet  (resolved from {ADVISOR_MODEL} via resolveModelInternal(cwd, "gsd-advisor-researcher") under model_profile=quality; alias mode)
+   # Reasoning effort: default
+   # Isolation: none
+   # Required inputs:
+   #   - {area_name} + {area_description} from gray area identification
+   #   - {phase_goal} and {description} from ROADMAP.md
+   #   - {project_context} from PROJECT.md
+   #   - {calibration_tier} (full_maturity | standard | minimal_decisive)
+   #   - ~/.claude/agents/gsd-advisor-researcher.md (role instructions read by proxy)
+   # Output path: N/A (inline structured comparison table returned to orchestrator)
+   # Codex behavior: applies-via-workflow-step
+   # Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
    Task(
      prompt="First, read @~/.claude/agents/gsd-advisor-researcher.md for your role and instructions.
 
@@ -664,7 +708,7 @@ After user selects gray areas in present_gray_areas, spawn parallel research age
      Research this gray area and return a structured comparison table with rationale.
      ${AGENT_SKILLS_ADVISOR}",
      subagent_type="general-purpose",
-     model="{ADVISOR_MODEL}",
+     model="{ADVISOR_MODEL}",   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20; resolved against canonical gsd-advisor-researcher)
      description="Research: {area_name}"
    )
 

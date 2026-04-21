@@ -90,7 +90,51 @@ Call AskUserQuestion with gap table and options:
 
 ## 5. Spawn gsd-nyquist-auditor
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-nyquist-auditor"
+MODEL="{AUDITOR_MODEL}"
+REASONING_EFFORT="${REASONING_EFFORT:-default}"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/validate-phase.md"
+WORKFLOW_STEP="spawn_nyquist_auditor"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-nyquist-auditor
+# Model: sonnet           (resolved from {AUDITOR_MODEL} via resolveModelInternal under model_profile=quality; non-opus agent literal)
+# Reasoning effort: default (agent-profile default)
+# Isolation: none
+# Required inputs:
+#   - ~/.claude/agents/gsd-nyquist-auditor.md (agent self-read at prompt head)
+#   - PLAN, SUMMARY, impl files, VALIDATION.md paths (passed inline via files_to_read tag)
+#   - Gap list (inline)
+#   - Test infrastructure metadata (framework, config, commands)
+#   - AGENT_SKILLS_AUDITOR context
+# Output path: VALIDATION.md (per-task gap map updates) + test files added under the project's test tree
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="Read ~/.claude/agents/gsd-nyquist-auditor.md for instructions.\n\n" +
     "<files_to_read>{PLAN, SUMMARY, impl files, VALIDATION.md}</files_to_read>" +
@@ -99,7 +143,7 @@ Task(
     "<constraints>Never modify impl files. Max 3 debug iterations. Escalate impl bugs.</constraints>" +
     "${AGENT_SKILLS_AUDITOR}",
   subagent_type="gsd-nyquist-auditor",
-  model="{AUDITOR_MODEL}",
+  model="{AUDITOR_MODEL}",   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20)
   description="Fill validation gaps for Phase {N}"
 )
 ```

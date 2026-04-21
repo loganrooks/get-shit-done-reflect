@@ -1,3 +1,14 @@
+<!-- XRT-01 discipline (Phase 58 Plan 18): this file is updated per phase close
+     when hook-dependent or cross-runtime features ship. Any phase that introduces
+     a feature affecting one of the capability rows below (Claude Code / Codex CLI
+     / OpenCode [D] / Gemini CLI [D]) MUST update the row as part of its closeout.
+     The verifier `gsd-tools verify ledger <phase>` diffs this file against the
+     phase-start state and blocks closeout when the phase touched capability
+     surface without refreshing the matrix. See REQUIREMENTS.md:419 (XRT-01) and
+     `get-shit-done/bin/lib/verify.cjs` `verifyCapabilityMatrix` for the closeout
+     check. Companion to the plan-phase assertion at `plan-phase.md` Step 4.6,
+     which blocks planning on hook-dependent CONTEXT.md without a Codex path. -->
+
 # Runtime Capability Matrix
 
 > Reference document for GSD workflow orchestrators. Declares which features

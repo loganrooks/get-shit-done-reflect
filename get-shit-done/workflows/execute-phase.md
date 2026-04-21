@@ -185,10 +185,52 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    Pass paths only — executors read files themselves with their fresh 200k context.
    This keeps orchestrator context lean (~10-15%).
 
+   Before each spawn, run the GATE-05 echo_delegation macro:
+
+   ```bash
+   # GATE-05: echo delegation before spawn
+   # Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+   SUBAGENT_TYPE="gsd-executor"
+   MODEL="{executor_model}"
+   REASONING_EFFORT="default"
+   ISOLATION="worktree"
+   SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+   WORKFLOW_FILE="get-shit-done/workflows/execute-phase.md"
+   WORKFLOW_STEP="spawn_executor"
+   RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+   echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+   mkdir -p .planning 2>/dev/null || true
+   printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+     "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+     "${SUBAGENT_TYPE}" \
+     "${MODEL}" \
+     "${REASONING_EFFORT}" \
+     "${ISOLATION:-none}" \
+     "${SESSION_ID}" \
+     "${WORKFLOW_FILE}" \
+     "${WORKFLOW_STEP}" \
+     "${RUNTIME}" \
+     >> .planning/delegation-log.jsonl || true
    ```
+
+   ```
+   # DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+   # Agent: gsd-executor
+   # Model: inherit          (resolved from {executor_model} via resolveModelInternal under model_profile=quality; fork maps opus alias → inherit)
+   # Reasoning effort: default
+   # Isolation: worktree
+   # Required inputs:
+   #   - {phase_dir}/{plan_file} (plan)
+   #   - .planning/STATE.md
+   #   - .planning/config.json (if exists)
+   # Output path: {phase_dir}/{phase}-{plan}-SUMMARY.md; STATE.md updated
+   # Codex behavior: applies-via-workflow-step
+   # Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
    Task(
      subagent_type="gsd-executor",
-     model="{executor_model}",
+     model="{executor_model}",   # BAKED IN comment: inherit (was template at authorship — 2026-04-20)
      isolation="worktree",
      prompt="
        <objective>
@@ -326,14 +368,56 @@ Phase execution is complete -- any handoff files are now stale.
 <step name="verify_phase_goal">
 Verify phase achieved its GOAL, not just completed tasks.
 
+Before spawning, run the GATE-05 echo_delegation macro:
+
+```bash
+# GATE-05: echo delegation before spawn
+# Fire-event: one line appended to .planning/delegation-log.jsonl per spawn.
+SUBAGENT_TYPE="gsd-verifier"
+MODEL="{verifier_model}"
+REASONING_EFFORT="default"
+ISOLATION="none"
+SESSION_ID="${GSD_SESSION_ID:-$(date +%Y%m%d-%H%M%S)-$$}"
+WORKFLOW_FILE="get-shit-done/workflows/execute-phase.md"
+WORKFLOW_STEP="verify_phase_goal"
+RUNTIME="${GSD_RUNTIME:-claude-code}"
+
+echo "[DELEGATION] agent=${SUBAGENT_TYPE} model=${MODEL} reasoning_effort=${REASONING_EFFORT} isolation=${ISOLATION:-none} session=${SESSION_ID}"
+
+mkdir -p .planning 2>/dev/null || true
+printf '{"ts":"%s","agent":"%s","model":"%s","reasoning_effort":"%s","isolation":"%s","session_id":"%s","workflow_file":"%s","workflow_step":"%s","runtime":"%s"}\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+  "${SUBAGENT_TYPE}" \
+  "${MODEL}" \
+  "${REASONING_EFFORT}" \
+  "${ISOLATION:-none}" \
+  "${SESSION_ID}" \
+  "${WORKFLOW_FILE}" \
+  "${WORKFLOW_STEP}" \
+  "${RUNTIME}" \
+  >> .planning/delegation-log.jsonl || true
 ```
+
+```
+# DISPATCH CONTRACT (restated inline per GATE-13 — compaction-resilient)
+# Agent: gsd-verifier
+# Model: sonnet          (resolved from {verifier_model} via resolveModelInternal under model_profile=quality; alias mode)
+# Reasoning effort: default
+# Isolation: none
+# Required inputs:
+#   - {phase_dir} (phase artifacts)
+#   - Phase goal from ROADMAP.md
+#   - Plan must_haves
+# Output path: {phase_dir}/*-VERIFICATION.md
+# Codex behavior: applies-via-workflow-step
+# Fire-event: delegation-log.jsonl line appended by GATE-05 macro above
 Task(
   prompt="Verify phase {phase_number} goal achievement.
 Phase directory: {phase_dir}
 Phase goal: {goal from ROADMAP.md}
 Check must_haves against actual codebase. Create VERIFICATION.md.",
   subagent_type="gsd-verifier",
-  model="{verifier_model}"
+  model="{verifier_model}"   # BAKED IN comment: sonnet (was template at authorship — 2026-04-20)
 )
 ```
 
@@ -758,6 +842,41 @@ node ~/.claude/get-shit-done/bin/gsd-tools.cjs commit "docs(phase-{X}): complete
 
 <step name="offer_next">
 
+**GATE-10 (structural): Phase-closeout reconciliation.**
+
+Before any branch/PR activity, reconcile STATE.md, the active ROADMAP phase row,
+plan checkboxes, and touched planning-authority sidecars. This is the structural
+enforcement point for GATE-10 — prose reconciliation requests are replaced with
+an exit-coded CLI call. Signals `sig-2026-04-17-phase-closeout-left-state-pr-release-pending`
+(5 occurrences) and `sig-2026-04-20-phase-closeout-planning-state-release-lag`
+(6 occurrences) document what this gate prevents: planning-authority drift at
+phase close.
+
+```bash
+# Phase 58 Plan 13: structural GATE-10 enforcement
+# Emits `::notice::gate_fired=GATE-10 result=<reconciled|block> fields=<count>`
+# Exit codes: 0 reconciled/noop, 5 unreconciled (manual triage required).
+PHASE="${PHASE_NUMBER}"
+RECON_OUT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs phase reconcile "$PHASE" --auto-commit 2>&1)
+RECON_EXIT=$?
+
+if [ $RECON_EXIT -eq 5 ]; then
+  echo "$RECON_OUT"
+  echo ""
+  echo "GATE-10 UNRECONCILED: manual resolution required before phase can advance."
+  echo "Inspect the \`unreconciled\` list in the JSON output above; ship missing"
+  echo "SUMMARY.md files or add explicit entries to NN-LEDGER.md, then re-run."
+  exit 1
+elif [ $RECON_EXIT -ne 0 ]; then
+  echo "$RECON_OUT"
+  echo "GATE-10: phase reconcile failed (exit $RECON_EXIT). Investigate before advancing."
+  exit 1
+fi
+
+echo "$RECON_OUT"
+# continue to branch/PR flow
+```
+
 **If branching strategy is "phase" or "milestone":**
 
 Check if the current branch is not main:
@@ -784,20 +903,79 @@ If on a non-main branch:
    gh pr create --base main --head $CURRENT_BRANCH --title "Phase ${PHASE_NUMBER}: ${PHASE_NAME}" --fill
    ```
 
-3. **If PR created, offer to merge:**
+3. **GATE-01 (structural): Block advancement until required CI checks are green.**
+
+   After the PR exists, invoke the exit-coded CI-gate subcommand. This is the
+   structural enforcement point for GATE-01 — the advisory `[y/n]` below is the
+   human-interaction layer that runs only AFTER this exit-coded check passes.
+
+   ```bash
+   # Phase 58 Plan 06: structural GATE-01 enforcement
+   if ! node ~/.claude/get-shit-done/bin/gsd-tools.cjs phase advance --require-ci-green; then
+     echo "GATE-01 blocks advancement. Fix CI, then re-run this step."
+     exit 1
+   fi
    ```
-   PR created. Merge now? [y/n]
+
+4. **If CI green, offer to merge:**
+   ```
+   PR created and CI green. Merge now? [y/n]
    ```
    If yes, merge with `--merge` (preserves individual commit history, never `--squash`):
    ```bash
    gh pr merge $CURRENT_BRANCH --merge
    ```
 
-4. **If PR merged, run post-merge cleanup:**
+5. **If PR merged, run post-merge cleanup:**
    ```bash
    git checkout main && git pull origin main
    git branch -d $CURRENT_BRANCH
    git push origin --delete $CURRENT_BRANCH  # if not auto-deleted by merge
+   ```
+
+6. **GATE-11 (structural): release-boundary assertion.**
+
+   After the phase branch is merged to main, assert the release boundary is
+   current — either the most recent `reflect-v*` tag is fresher than the phase
+   merge (release already shipped) OR an explicit `.planning/release-lag.md`
+   deferral is present with a future `deferred_to`. Signals
+   `sig-2026-03-30-release-workflow-forgotten-in-milestone-completion` and
+   `sig-2026-04-17-phase-closeout-left-state-pr-release-pending` (5
+   occurrences) document the recurring gap this gate closes: phase branches
+   merge, release workflow never fires, no one notices.
+
+   ```bash
+   # Phase 58 Plan 15: structural GATE-11 enforcement
+   # Emits `::notice::gate_fired=GATE-11 result=<release_current|release_lag|explicit_defer>` per invocation.
+   # Exit codes: 0 = current, 1 = lag, 2 = explicitly deferred.
+   RELEASE_OUT=$(node ~/.claude/get-shit-done/bin/gsd-tools.cjs release check --auto 2>&1)
+   RELEASE_EXIT=$?
+
+   case $RELEASE_EXIT in
+     0)
+       echo "GATE-11: release current"
+       echo "$RELEASE_OUT"
+       ;;
+     1)
+       echo "GATE-11 BLOCK: release lag detected"
+       echo "$RELEASE_OUT"
+       echo ""
+       echo "Options:"
+       echo "  A) Fire release: gh workflow run publish.yml"
+       echo "  B) Defer explicitly: cp .planning/handoff/release-lag-template.md .planning/release-lag.md && \$EDITOR .planning/release-lag.md"
+       echo "  C) Both: defer now, schedule the release"
+       echo "After choosing, re-run this step."
+       exit 1
+       ;;
+     2)
+       echo "GATE-11: release explicitly deferred"
+       echo "$RELEASE_OUT"
+       ;;
+     *)
+       echo "GATE-11 error (exit $RELEASE_EXIT): $RELEASE_OUT"
+       exit 1
+       ;;
+   esac
    ```
 
 ---
