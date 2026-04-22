@@ -73,7 +73,7 @@ function getSupportedRuntimeBaseDir(rootDir, runtime) {
   return path.join(rootDir, metadata.dirName)
 }
 
-async function verifyRuntimeLayout(rootDir, runtime) {
+async function verifyRuntimeLayout(rootDir, runtime, options = {}) {
   if (runtime === 'claude') {
     const base = getSupportedRuntimeBaseDir(rootDir, runtime)
     await dirHasFiles(path.join(base, 'commands', 'gsdr'), '.md', 3)
@@ -87,12 +87,19 @@ async function verifyRuntimeLayout(rootDir, runtime) {
 
   if (runtime === 'codex') {
     const base = getSupportedRuntimeBaseDir(rootDir, runtime)
+    const codexCloseoutHook = options.codexCloseoutHook || 'either'
     await dirHasGlobDirs(path.join(base, 'skills'), 'gsdr-*', 3)
     await dirHasFiles(path.join(base, 'get-shit-done-reflect'), null, 1)
     await dirHasGlobFiles(path.join(base, 'agents'), 'gsdr-*.toml', 1)
     await fileExists(path.join(base, 'AGENTS.md'))
     await fileExists(path.join(base, 'get-shit-done-reflect', 'VERSION'))
-    await fileNotExists(path.join(base, 'hooks'))
+    if (codexCloseoutHook === 'present') {
+      await dirHasFiles(path.join(base, 'hooks'), '.js', 1)
+      await fileExists(path.join(base, 'hooks.json'))
+    } else if (codexCloseoutHook === 'absent') {
+      await fileNotExists(path.join(base, 'hooks'))
+      await fileNotExists(path.join(base, 'hooks.json'))
+    }
     await fileNotExists(path.join(base, 'settings.json'))
     return
   }
@@ -220,7 +227,7 @@ describe('multi-runtime validation', () => {
         timeout: 15000,
       })
 
-      await verifyRuntimeLayout(tmpdir, 'codex')
+      await verifyRuntimeLayout(tmpdir, 'codex', { codexCloseoutHook: 'absent' })
       await verifyUnsupportedRuntimeDirsAbsent(tmpdir, path.join(tmpdir, '.config'))
     })
 
@@ -324,7 +331,11 @@ describe('multi-runtime validation', () => {
 
       await installAllSupported(tmpdir, configHome)
       for (const runtime of SUPPORTED_INSTALLER_RUNTIMES) {
-        await verifyRuntimeLayout(tmpdir, runtime)
+        await verifyRuntimeLayout(
+          tmpdir,
+          runtime,
+          runtime === 'codex' ? { codexCloseoutHook: 'absent' } : {},
+        )
       }
     })
 
@@ -409,41 +420,78 @@ describe('multi-runtime validation', () => {
       expect([...normalizedClaudeCommands].sort(), 'Command parity: Claude vs Codex').toEqual([...codexCommands].sort())
     })
 
-    tmpdirTest('--all install: hook registrations remain Claude-only and Codex stays hook-free', async ({ tmpdir }) => {
+    tmpdirTest('--all install: Claude registers the Stop closeout hook against the shipped postlude script', async ({ tmpdir }) => {
       const configHome = path.join(tmpdir, '.config')
 
       await installAllSupported(tmpdir, configHome)
 
       const settings = JSON.parse(await fs.readFile(path.join(tmpdir, '.claude', 'settings.json'), 'utf8'))
-      const registeredHooks = new Set()
-      const hooks = settings.hooks || {}
-      for (const eventType of Object.keys(hooks)) {
-        const eventHooks = hooks[eventType]
-        if (!Array.isArray(eventHooks)) continue
-        for (const hookEntry of eventHooks) {
-          const innerHooks = hookEntry.hooks || []
-          for (const inner of innerHooks) {
-            const command = inner.command || ''
-            const match = command.match(/gsdr-[\w-]+\.js/)
-            if (match) registeredHooks.add(match[0])
-          }
-          const directCommand = hookEntry.command || ''
-          const directMatch = directCommand.match(/gsdr-[\w-]+\.js/)
-          if (directMatch) registeredHooks.add(directMatch[0])
-        }
-      }
+      const closeoutHooks = (settings.hooks?.Stop || [])
+        .flatMap((entry) => entry.hooks || [])
+        .filter((hook) => hook.command?.includes('gsdr-postlude.js'))
 
-      const actualHookFiles = (await fs.readdir(path.join(tmpdir, '.claude', 'hooks')))
-        .filter((file) => file.startsWith('gsdr-') && file.endsWith('.js'))
-      const actualHookSet = new Set(actualHookFiles)
+      expect(closeoutHooks).toHaveLength(1)
+      expect(closeoutHooks[0].timeout).toBe(30)
+      expect(closeoutHooks[0].command).toContain('gsdr-postlude.js')
+      await fileExists(path.join(tmpdir, '.claude', 'hooks', 'gsdr-postlude.js'))
+      expect(settings.hooks?.SessionStop).toBeUndefined()
+    })
 
-      for (const registered of registeredHooks) {
-        expect(actualHookSet.has(registered), `Claude: registered hook ${registered} should have corresponding file`).toBe(true)
-      }
+    tmpdirTest('Codex install: supported fixture writes hooks.json and bundled postlude hook', async ({ tmpdir }) => {
+      const homeDir = path.join(tmpdir, 'home')
+      const configHome = path.join(tmpdir, '.config')
 
-      expect(registeredHooks.size, 'Claude: should have at least 1 registered hook').toBeGreaterThanOrEqual(1)
-      await fileNotExists(path.join(tmpdir, '.codex', 'hooks'))
-      await fileNotExists(path.join(tmpdir, '.codex', 'settings.json'))
+      await fs.mkdir(path.join(homeDir, '.codex'), { recursive: true })
+      await fs.writeFile(path.join(homeDir, '.codex', 'config.toml'), 'codex_hooks = true\n', 'utf8')
+
+      execSync(`node "${installScript}" --codex --global`, {
+        env: { ...process.env, HOME: homeDir, XDG_CONFIG_HOME: configHome },
+        cwd: tmpdir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000,
+      })
+
+      await verifyRuntimeLayout(homeDir, 'codex', { codexCloseoutHook: 'present' })
+      const hooksConfig = JSON.parse(await fs.readFile(path.join(homeDir, '.codex', 'hooks.json'), 'utf8'))
+      const stopHooks = (hooksConfig.hooks?.Stop || []).flatMap((entry) => entry.hooks || [])
+      const closeoutHook = stopHooks.find((hook) => hook.command?.includes('gsdr-postlude.js'))
+
+      expect(closeoutHook).toEqual(expect.objectContaining({
+        type: 'command',
+        timeout: 30,
+      }))
+    })
+
+    tmpdirTest('Codex install: project/global conflict records a waiver instead of hooks', async ({ tmpdir }) => {
+      const homeDir = path.join(tmpdir, 'home')
+      const projectDir = path.join(tmpdir, 'project')
+      const configHome = path.join(tmpdir, '.config')
+
+      await fs.mkdir(path.join(homeDir, '.codex'), { recursive: true })
+      await fs.writeFile(path.join(homeDir, '.codex', 'config.toml'), 'codex_hooks = true\n', 'utf8')
+      await fs.mkdir(path.join(projectDir, '.planning'), { recursive: true })
+      await fs.writeFile(path.join(projectDir, '.planning', 'config.json'), JSON.stringify({}, null, 2), 'utf8')
+      await fs.mkdir(path.join(projectDir, '.codex'), { recursive: true })
+      await fs.writeFile(path.join(projectDir, '.codex', 'config.toml'), 'codex_hooks = false\n', 'utf8')
+
+      execSync(`node "${installScript}" --codex --global`, {
+        env: { ...process.env, HOME: homeDir, XDG_CONFIG_HOME: configHome },
+        cwd: projectDir,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        timeout: 30000,
+      })
+
+      await verifyRuntimeLayout(homeDir, 'codex', { codexCloseoutHook: 'absent' })
+      const planningConfig = JSON.parse(await fs.readFile(path.join(projectDir, '.planning', 'config.json'), 'utf8'))
+      expect(planningConfig.codex_hooks_waived).toBe(true)
+      expect(planningConfig.codex_hooks_waiver_reason).toBe('global_enabled_project_disabled')
+      expect(planningConfig.codex_hooks_waiver_scope).toBe('global')
+      expect(planningConfig.codex_hooks_waiver_evidence).toEqual(expect.objectContaining({
+        enabled_sources: ['global'],
+        explicit_conflict: true,
+        project_flag_state: 'disabled',
+        global_flag_state: 'enabled',
+      }))
     })
 
     tmpdirTest('Codex writer provenance prefers installed harness VERSION over repo mirror', async ({ tmpdir }) => {

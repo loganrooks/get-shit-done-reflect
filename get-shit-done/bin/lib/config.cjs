@@ -38,6 +38,11 @@ const VALID_CONFIG_KEYS = new Set([
   'response_language',
   // Fork-specific keys
   'gsd_reflect_version',
+  'codex_hooks_waived',
+  'codex_hooks_waiver_reason',
+  'codex_hooks_waiver_checked_at',
+  'codex_hooks_waiver_scope',
+  'codex_hooks_waiver_evidence',
   'health_check',
   'health_check.enabled',
   'health_check.last_run',

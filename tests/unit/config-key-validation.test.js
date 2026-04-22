@@ -34,13 +34,18 @@ function getNestedValue(object, keyPath) {
 
 describe('config-set accepts fork config namespaces', () => {
   const cases = [
-    ['devops.ci_provider', 'github-actions'],
-    ['automation.level', '3'],
-    ['release.version_file', 'package.json'],
-    ['signal_lifecycle.lifecycle_strictness', 'strict'],
+    ['devops.ci_provider', 'github-actions', 'github-actions'],
+    ['automation.level', '3', 3],
+    ['release.version_file', 'package.json', 'package.json'],
+    ['signal_lifecycle.lifecycle_strictness', 'strict', 'strict'],
+    ['codex_hooks_waived', 'true', true],
+    ['codex_hooks_waiver_reason', 'project_inconclusive_global_enabled', 'project_inconclusive_global_enabled'],
+    ['codex_hooks_waiver_checked_at', '2026-04-21T12:34:56.000Z', '2026-04-21T12:34:56.000Z'],
+    ['codex_hooks_waiver_scope', 'global', 'global'],
+    ['codex_hooks_waiver_evidence', '{"enabled_sources":["global"],"explicit_conflict":true}', { enabled_sources: ['global'], explicit_conflict: true }],
   ]
 
-  for (const [keyPath, value] of cases) {
+  for (const [keyPath, value, expected] of cases) {
     tmpdirTest(`${keyPath} is accepted`, async ({ tmpdir }) => {
       await createConfig(tmpdir)
 
@@ -49,7 +54,7 @@ describe('config-set accepts fork config namespaces', () => {
 
       expect(result.updated).toBe(true)
       expect(result.key).toBe(keyPath)
-      expect(getNestedValue(config, keyPath)).toBe(isNaN(value) ? value : Number(value))
+      expect(getNestedValue(config, keyPath)).toEqual(expected)
     })
   }
 })

@@ -1835,7 +1835,7 @@ Agent body content`
     describe('integration: --codex flag', () => {
       const installScript = path.resolve(process.cwd(), 'bin/install.js')
 
-      tmpdirTest('--codex --global installs complete file layout', async ({ tmpdir }) => {
+      tmpdirTest('--codex --global installs complete file layout when codex_hooks support is absent', async ({ tmpdir }) => {
         execSync(`node "${installScript}" --codex --global`, {
           env: { ...process.env, HOME: tmpdir },
           cwd: tmpdir,
@@ -1894,6 +1894,82 @@ Agent body content`
         const hooksDir = path.join(tmpdir, '.codex', 'hooks')
         const hooksDirExists = await fs.access(hooksDir).then(() => true).catch(() => false)
         expect(hooksDirExists).toBe(false)
+
+        const hooksJsonPath = path.join(tmpdir, '.codex', 'hooks.json')
+        const hooksJsonExists = await fs.access(hooksJsonPath).then(() => true).catch(() => false)
+        expect(hooksJsonExists).toBe(false)
+      })
+
+      tmpdirTest('--codex --global installs hooks.json and clears stale waiver markers when codex_hooks support is enabled', async ({ tmpdir }) => {
+        await fs.mkdir(path.join(tmpdir, '.planning'), { recursive: true })
+        await fs.writeFile(
+          path.join(tmpdir, '.planning', 'config.json'),
+          JSON.stringify({
+            codex_hooks_waived: true,
+            codex_hooks_waiver_reason: 'stale',
+            codex_hooks_waiver_scope: 'global',
+          }, null, 2),
+        )
+        await fs.mkdir(path.join(tmpdir, '.codex'), { recursive: true })
+        await fs.writeFile(path.join(tmpdir, '.codex', 'config.toml'), 'codex_hooks = true\n')
+
+        execSync(`node "${installScript}" --codex --global`, {
+          env: { ...process.env, HOME: tmpdir },
+          cwd: tmpdir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        const hooksJsonPath = path.join(tmpdir, '.codex', 'hooks.json')
+        const hooksConfig = JSON.parse(await fs.readFile(hooksJsonPath, 'utf8'))
+        const stopHooks = (hooksConfig.hooks?.Stop || []).flatMap(entry => entry.hooks || [])
+        const closeoutHook = stopHooks.find(hook => hook.command?.includes('gsdr-postlude.js'))
+
+        expect(closeoutHook).toEqual(expect.objectContaining({
+          type: 'command',
+          timeout: 30,
+        }))
+        expect(closeoutHook.command).toContain('/.codex/hooks/gsdr-postlude.js')
+        expect(await fs.access(path.join(tmpdir, '.codex', 'hooks', 'gsdr-postlude.js')).then(() => true).catch(() => false)).toBe(true)
+
+        const planningConfig = JSON.parse(await fs.readFile(path.join(tmpdir, '.planning', 'config.json'), 'utf8'))
+        expect(planningConfig.codex_hooks_waived).toBeUndefined()
+        expect(planningConfig.codex_hooks_waiver_reason).toBeUndefined()
+        expect(planningConfig.codex_hooks_waiver_scope).toBeUndefined()
+      })
+
+      tmpdirTest('--codex --global records waiver instead of installing hooks on project/global mismatch', async ({ tmpdir }) => {
+        const homeDir = path.join(tmpdir, 'home')
+        const projectDir = path.join(tmpdir, 'project')
+
+        await fs.mkdir(path.join(homeDir, '.codex'), { recursive: true })
+        await fs.writeFile(path.join(homeDir, '.codex', 'config.toml'), 'codex_hooks = true\n')
+        await fs.mkdir(path.join(projectDir, '.planning'), { recursive: true })
+        await fs.writeFile(path.join(projectDir, '.planning', 'config.json'), JSON.stringify({}, null, 2))
+        await fs.mkdir(path.join(projectDir, '.codex'), { recursive: true })
+        await fs.writeFile(path.join(projectDir, '.codex', 'config.toml'), 'codex_hooks = false\n')
+
+        execSync(`node "${installScript}" --codex --global`, {
+          env: { ...process.env, HOME: homeDir },
+          cwd: projectDir,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 15000
+        })
+
+        expect(await fs.access(path.join(homeDir, '.codex', 'hooks.json')).then(() => true).catch(() => false)).toBe(false)
+        expect(await fs.access(path.join(homeDir, '.codex', 'hooks', 'gsdr-postlude.js')).then(() => true).catch(() => false)).toBe(false)
+
+        const planningConfig = JSON.parse(await fs.readFile(path.join(projectDir, '.planning', 'config.json'), 'utf8'))
+        expect(planningConfig.codex_hooks_waived).toBe(true)
+        expect(planningConfig.codex_hooks_waiver_reason).toBe('global_enabled_project_disabled')
+        expect(planningConfig.codex_hooks_waiver_scope).toBe('global')
+        expect(planningConfig.codex_hooks_waiver_checked_at).toMatch(/T/)
+        expect(planningConfig.codex_hooks_waiver_evidence).toEqual(expect.objectContaining({
+          enabled_sources: ['global'],
+          explicit_conflict: true,
+          project_flag_state: 'disabled',
+          global_flag_state: 'enabled',
+        }))
       })
 
       tmpdirTest('--codex --global --uninstall removes GSD skills and AGENTS.md section', async ({ tmpdir }) => {
@@ -2523,6 +2599,11 @@ Also use the Read tool to read files and Bash to run commands.`
 
       // Hooks object must be structurally identical (deep equal)
       expect(hooks2, 'Hooks object differs after re-run').toEqual(hooks1)
+
+      const closeoutHooks = (hooks2.Stop || [])
+        .flatMap(entry => entry.hooks || [])
+        .filter(hook => hook.command?.includes('gsdr-postlude'))
+      expect(closeoutHooks, 'Stop closeout hook should not duplicate on re-run').toHaveLength(1)
     })
 
     tmpdirTest('TST-03: installer re-run does not duplicate agent files', async ({ tmpdir }) => {
@@ -2954,6 +3035,16 @@ Also use the Read tool to read files and Bash to run commands.`
           }
         }
       }
+
+      const closeoutHooks = (settings.hooks?.Stop || [])
+        .flatMap(entry => entry.hooks || [])
+        .filter(hook => hook.command?.includes('gsdr-postlude'))
+      expect(closeoutHooks).toHaveLength(1)
+      expect(closeoutHooks[0].command).toContain('test -f')
+      expect(closeoutHooks[0].command).toContain('|| true')
+      expect(closeoutHooks[0].command).toContain('gsdr-postlude.js')
+      expect(closeoutHooks[0].timeout).toBe(30)
+      expect(settings.hooks?.SessionStop).toBeUndefined()
     })
 
     tmpdirTest('global install does NOT use shell guards (uses buildHookCommand)', async ({ tmpdir }) => {
@@ -2970,6 +3061,14 @@ Also use the Read tool to read files and Bash to run commands.`
       // Global commands use buildHookCommand with quoted absolute paths, no test -f guard
       expect(settings.statusLine.command).not.toContain('test -f')
       expect(settings.statusLine.command).toContain('node "')
+
+      const closeoutHooks = (settings.hooks?.Stop || [])
+        .flatMap(entry => entry.hooks || [])
+        .filter(hook => hook.command?.includes('gsdr-postlude'))
+      expect(closeoutHooks).toHaveLength(1)
+      expect(closeoutHooks[0].command).not.toContain('test -f')
+      expect(closeoutHooks[0].command).toContain('node "')
+      expect(closeoutHooks[0].timeout).toBe(30)
     })
   })
 
