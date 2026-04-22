@@ -1235,9 +1235,9 @@ function findPhaseLedger(cwd, phase) {
 //
 //   Capability-touching heuristic (keywords scanned over phase SUMMARY.md
 //   files + CONTEXT.md):
-//     hook / SessionStop / SessionStart / PreToolUse / PostToolUse / postlude
-//     / codex_hooks / capability-matrix / has_capability / task_tool /
-//     tool_permissions / mcp_servers
+//     hook / Stop / SessionEnd / SessionStop / SessionStart / PreToolUse /
+//     PostToolUse / postlude / closeout / codex_hooks / capability-matrix /
+//     has_capability / task_tool / tool_permissions / mcp_servers
 //
 //   Fire-event: `::notice title=XRT-01::gate_fired=XRT-01 result=<pass|block>
 //                reason=<capability_matrix_unreviewed|matrix_updated|
@@ -1269,12 +1269,23 @@ function verifyCapabilityMatrix(cwd, phase, info) {
   // in plan-phase XRT-01 heuristic (intentional near-superset to avoid
   // false-negatives where a phase touches capability via keyword not in the
   // planning-gate heuristic).
-  const CAPABILITY_KEYWORDS = [
-    'hook', 'SessionStop', 'SessionStart', 'PreToolUse', 'PostToolUse',
-    'postlude', 'codex_hooks', 'capability-matrix', 'has_capability',
-    'task_tool', 'tool_permissions', 'mcp_servers',
+  const CAPABILITY_PATTERNS = [
+    /\bhook\b/i,
+    /\bStop\b/,
+    /\bSessionEnd\b/,
+    /\bSessionStop\b/,
+    /\bSessionStart\b/,
+    /\bPreToolUse\b/,
+    /\bPostToolUse\b/,
+    /\bpostlude\b/i,
+    /\bcloseout\b/i,
+    /\bcodex_hooks\b/,
+    /\bcapability-matrix\b/i,
+    /\bhas_capability\b/,
+    /\btask_tool\b/,
+    /\btool_permissions\b/,
+    /\bmcp_servers\b/,
   ];
-  const kwRegex = new RegExp(CAPABILITY_KEYWORDS.map(escapeRegex).join('|'), 'i');
 
   let capabilityTouched = false;
   let capabilitySource = null;
@@ -1285,7 +1296,7 @@ function verifyCapabilityMatrix(cwd, phase, info) {
     );
     for (const f of scanTargets) {
       const content = safeReadFile(path.join(phaseDirAbs, f)) || '';
-      if (kwRegex.test(content)) {
+      if (CAPABILITY_PATTERNS.some((pattern) => pattern.test(content))) {
         capabilityTouched = true;
         capabilitySource = f;
         break;

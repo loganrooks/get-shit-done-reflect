@@ -2,8 +2,8 @@
  * Verify XRT-01 Closeout — capability-matrix diff check.
  *
  * Phase 58 Plan 18 acceptance:
- *   - Pass when phase does NOT touch capability surface (no hook/Session/
- *     codex_hooks/capability-matrix keywords in SUMMARY.md or CONTEXT.md).
+ *   - Pass when phase does NOT touch capability surface (no hook/Stop/
+ *     SessionEnd/codex_hooks/capability-matrix keywords in SUMMARY.md or CONTEXT.md).
  *   - Pass when phase touches capability AND capability-matrix.md was
  *     modified since phase-start commit.
  *   - Block when phase touches capability but capability-matrix.md is
@@ -132,16 +132,16 @@ describe('verify ledger — XRT-01 closeout capability-matrix diff', () => {
       await gitInit(tmpdir)
       // Phase-start state: matrix exists, phase directory is created.
       await scaffoldPhase(tmpdir, {
-        contextContent: '<working_model>\n- [decided] SessionStop hook commitment.\n</working_model>\n',
-        summaryContent: '# Summary\nImplements SessionStop hook wiring and postlude emission.\n',
+        contextContent: '<working_model>\n- [decided] Stop becomes the shared closeout event.\n</working_model>\n',
+        summaryContent: '# Summary\nImplements Stop closeout semantics and documents Claude SessionEnd as optional.\n',
         matrixContent: '# Matrix\nInitial rows.\n',
       })
       await gitCommit(tmpdir, 'phase start: create phase 99 + initial matrix')
 
       // Phase work: edit the matrix to reflect the new feature.
       const matrixPath = path.join(tmpdir, 'get-shit-done', 'references', 'capability-matrix.md')
-      await fs.writeFile(matrixPath, '# Matrix\nInitial rows.\nNEW: SessionStop on Codex (applies-via-installer).\n')
-      await gitCommit(tmpdir, 'phase 99: refresh capability-matrix for SessionStop')
+      await fs.writeFile(matrixPath, '# Matrix\nInitial rows.\nNEW: Stop closeout hook on Codex (applies-via-installer); Claude SessionEnd noted as optional.\n')
+      await gitCommit(tmpdir, 'phase 99: refresh capability-matrix for Stop closeout')
 
       const { stdout } = runVerify(tmpdir, '99', ['--raw', '--no-meta-gate'])
       expect(stdout).toMatch(/gate_fired=XRT-01 result=pass reason=matrix_updated/)
@@ -181,11 +181,11 @@ describe('verify ledger — XRT-01 closeout capability-matrix diff', () => {
       await fs.mkdir(phaseDir, { recursive: true })
       await fs.writeFile(
         path.join(phaseDir, '99-CONTEXT.md'),
-        '<working_model>\n- [decided] codex_hooks feature flag integration.\n</working_model>\n'
+        '<working_model>\n- [decided] Stop is the shared closeout event across supported runtimes.\n</working_model>\n'
       )
       await fs.writeFile(
         path.join(phaseDir, '99-01-SUMMARY.md'),
-        '# Summary\nWired SessionStop via codex_hooks. has_capability() updated.\n'
+        '# Summary\nAligned Stop closeout behavior and Claude SessionEnd handling without refreshing the matrix.\n'
       )
       await gitCommit(tmpdir, 'phase 99: ship hooks without matrix refresh')
 
@@ -241,6 +241,26 @@ describe('verify ledger — XRT-01 closeout capability-matrix diff', () => {
       const parsed = parseJson(stdout)
       expect(parsed.info.xrt_01.status).toBe('pass')
       expect(parsed.info.xrt_01.reason).toBe('matrix_start_not_resolvable')
+    }
+  )
+
+  tmpdirTest(
+    'blocks when phase uses closeout terminology without historical SessionStop wording and matrix is unchanged',
+    async ({ tmpdir }) => {
+      await gitInit(tmpdir)
+      await scaffoldPhase(tmpdir, {
+        contextContent: '<working_model>\n- [decided] Closeout behavior now aligns across Claude and Codex.\n</working_model>\n',
+        summaryContent: '# Summary\nCloseout substrate updated across runtimes with no matrix refresh.\n',
+        matrixContent: '# Matrix\nInitial rows.\n',
+      })
+      await gitCommit(tmpdir, 'phase start with matrix baseline')
+
+      const { stdout } = runVerify(tmpdir, '99', ['--raw', '--no-meta-gate'])
+      expect(stdout).toMatch(/gate_fired=XRT-01 result=block reason=capability_matrix_unreviewed/)
+      const parsed = parseJson(stdout)
+      expect(parsed.info.xrt_01.status).toBe('block')
+      expect(parsed.info.xrt_01.reason).toBe('capability_matrix_unreviewed')
+      expect(parsed.info.capability_touched).toBe(true)
     }
   )
 })
