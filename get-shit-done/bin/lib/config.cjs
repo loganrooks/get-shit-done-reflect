@@ -46,6 +46,10 @@ const VALID_CONFIG_KEYS = new Set([
   'health_check',
   'health_check.enabled',
   'health_check.last_run',
+  'devops',
+  'automation',
+  'release',
+  'signal_lifecycle',
   'knowledge_debug',
 ]);
 
