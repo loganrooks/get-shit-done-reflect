@@ -1,9 +1,9 @@
 # Knowledge Store Index
 
-**Generated:** 2026-04-21T22:12:24Z
-**Total entries:** 316
+**Generated:** 2026-04-22T02:47:06Z
+**Total entries:** 329
 
-## Signals (308)
+## Signals (321)
 
 | ID | Project | Severity | Lifecycle | Tags | Date | Status |
 |----|---------|----------|-----------|------|------|--------|
@@ -35,6 +35,19 @@
 | SIG-260223-012 |  | notable | detected | testing,tdd,cli-output |  | open |
 | sig-2026-03-06-health-check-monolithic-architecture | get-shit-done-reflect | notable | detected | tags: |  | active |
 | SIG-20260222-loadmanifest-source-repo-path-gap |  | notable | detected | tags: |  | active |
+| sig-2026-04-22-the-phase-researcher-hit-a-concrete-kb-search-fail | get-shit-done-reflect | minor | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-plan-04-established-a-good-pattern-runtime-facing | get-shit-done-reflect | notable | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-plan-03-established-a-good-pattern-capability-surf | get-shit-done-reflect | notable | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-plan-02-exposed-another-autonomous-execution-strug | get-shit-done-reflect | notable | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-plan-02-established-a-good-pattern-canonical-plann | get-shit-done-reflect | notable | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-plan-02-deviated-from-the-planned-single-run-execu | get-shit-done-reflect | minor | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-plan-01-exposed-an-autonomous-execution-reliabilit | get-shit-done-reflect | notable | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-plan-01-deviated-from-the-delegated-execution-path | get-shit-done-reflect | minor | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-phase-prep-stop-conditions-were-weak-across-both-t | get-shit-done-reflect | notable | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-phase-57-9-set-a-verified-baseline-the-hook-and-cl | get-shit-done-reflect | notable | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-phase-57-9-established-a-repeatable-good-pattern-a | get-shit-done-reflect | notable | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-executor-plan-02-lost-early-cycles-to-avoidable-sh | get-shit-done-reflect | notable | detected | tags: | "2026-04-22 | active |
+| sig-2026-04-22-executor-plan-01-was-interrupted-for-status-before | get-shit-done-reflect | notable | detected | tags: | "2026-04-22 | active |
 | sig-2026-04-21-the-phase-60-discuss-plan-chain-ran-on-main-long-e | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
 | sig-2026-04-21-plan-60-06-had-to-restage-and-recommit-after-the-s | get-shit-done-reflect | minor | detected | tags: | "2026-04-21 | active |
 | sig-2026-04-21-plan-60-06-could-not-achieve-a-repo-wide-green-npm | get-shit-done-reflect | notable | detected | tags: | "2026-04-21 | active |
@@ -205,7 +218,7 @@
 | sig-2026-03-23-missing-home-for-constellation-recommendations | get-shit-done-reflect | notable | detected | tags: | "2026-03-23 | active |
 | sig-2026-03-23-cross-model-review-chain-epistemic-discipline | get-shit-done-reflect | notable | detected | tags: | "2026-03-23 | active |
 | sig-2026-03-23-prose-wrapping-convention-gap | get-shit-done-reflect | notable | detected | tags: | "2026-03-23 | active |
-| sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift | get-shit-done-reflect | critical | detected | tags: | "2026-03-20 | active |
+| sig-2026-03-20-cross-runtime-upgrade-install-and-kb-drift | get-shit-done-reflect | critical | remediated | tags: | "2026-03-20 | active |
 | sig-2026-03-20-yolo-mode-checkpoint-should-auto-verify | get-shit-done-reflect | notable | detected | tags: | "2026-03-20 | active |
 | sig-2026-03-19-qt31-source-namespace-pollution | get-shit-done-reflect | critical | remediated | tags: | "2026-03-19 | active |
 | sig-2026-03-07-plan-checker-misses-producer-consumer-gaps | get-shit-done-reflect | notable | detected | tags: | "2026-03-07 | active |
@@ -328,9 +341,4 @@
 | spk-2026-04-09-session-data-integrity-characterization | get-shit-done-reflect | confirmed | telemetry,session-meta,data-quality,integrity | "2026-04-09 | active |
 | spk-2026-04-09-facets-accuracy-validation | get-shit-done-reflect | partial | telemetry,facets,data-quality,correlation | "2026-04-09 | active |
 | spk-2026-04-09-behavioral-metric-signal-to-noise | get-shit-done-reflect | confirmed | telemetry,behavioral-metrics,session-meta,signal-analysis | "2026-04-09 | active |
-
-## Lessons (0)
-
-| ID | Project | Category | Tags | Date | Status |
-|----|---------|----------|------|------|--------|
 
