@@ -7,6 +7,7 @@ const path = require('path');
 const os = require('os');
 const { execSync } = require('child_process');
 const { error, output, loadProjectConfig } = require('./core.cjs');
+const { getCodexHookSupportStatus } = require(path.resolve(__dirname, '../../../bin/install.js'));
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -32,6 +33,30 @@ const FEATURE_CAPABILITY_MAP = {
     task_tool_dependent: true,    // spawns gsd-nyquist-auditor via Task()
   },
 };
+
+function resolveCodexRuntimeCapabilities(cwd) {
+  const localCodexDir = path.join(cwd, '.codex');
+
+  try {
+    const hookStatus = getCodexHookSupportStatus({ cwd, installScope: 'local' });
+    return {
+      hasHooks: hookStatus.status === 'supported',
+      hasTaskTool: Boolean(
+        fs.existsSync(localCodexDir) ||
+        hookStatus.evidence?.project?.exists ||
+        hookStatus.evidence?.global?.exists
+      ),
+      hookStatus,
+    };
+  } catch (err) {
+    return {
+      hasHooks: false,
+      hasTaskTool: fs.existsSync(localCodexDir),
+      hookStatus: null,
+      hookStatusError: err.message,
+    };
+  }
+}
 
 // ─── Commands ────────────────────────────────────────────────────────────────
 
@@ -117,16 +142,12 @@ function cmdAutomationResolveLevel(cwd, feature, options, raw) {
       hasTaskTool = options.runtime === 'claude-code' || options.runtime === 'full';
 
       if (options.runtime === 'codex-cli') {
+        const codexCapabilities = resolveCodexRuntimeCapabilities(cwd);
         hasTaskTool = true;   // multi_agent stable true (codex features list)
-        hasHooks = false;     // Default false; conditionally true below
-        // Check if Codex hooks are enabled via config.toml feature flag
-        try {
-          const codexConfigPath = path.join(cwd, '.codex', 'config.toml');
-          if (fs.existsSync(codexConfigPath)) {
-            const content = fs.readFileSync(codexConfigPath, 'utf-8');
-            hasHooks = /codex_hooks\s*=\s*true/i.test(content);
-          }
-        } catch { /* hooks unavailable */ }
+        hasHooks = codexCapabilities.hasHooks;
+        if (codexCapabilities.hookStatus?.status === 'ambiguous') {
+          reasons.push(`codex_hooks_ambiguous: ${codexCapabilities.hookStatus.reason_code}`);
+        }
       }
     } else {
       // Heuristic: check for .claude/settings.json with hooks
@@ -138,13 +159,13 @@ function cmdAutomationResolveLevel(cwd, feature, options, raw) {
           hasTaskTool = true; // Claude Code has task tool if settings exist
         } else {
           // Check for Codex config as fallback
-          const codexConfigPath = path.join(cwd, '.codex', 'config.toml');
-          if (fs.existsSync(codexConfigPath)) {
+          const codexCapabilities = resolveCodexRuntimeCapabilities(cwd);
+          if (codexCapabilities.hasTaskTool) {
             hasTaskTool = true;
-            try {
-              const content = fs.readFileSync(codexConfigPath, 'utf-8');
-              hasHooks = /codex_hooks\s*=\s*true/i.test(content);
-            } catch { /* hooks unavailable */ }
+            hasHooks = codexCapabilities.hasHooks;
+            if (codexCapabilities.hookStatus?.status === 'ambiguous') {
+              reasons.push(`codex_hooks_ambiguous: ${codexCapabilities.hookStatus.reason_code}`);
+            }
           }
         }
       } catch {

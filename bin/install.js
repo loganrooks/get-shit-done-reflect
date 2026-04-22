@@ -457,6 +457,263 @@ function writeSettings(settingsPath, settings) {
   fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n');
 }
 
+const CLOSEOUT_CONCEPTUAL_ONLY_ALIASES = Object.freeze(['SessionStop']);
+
+const CLOSEOUT_HOOK_EVENT_CONTRACT = Object.freeze({
+  claude: Object.freeze({
+    runtime: 'claude',
+    primary_event: 'Stop',
+    optional_events: Object.freeze(['SessionEnd']),
+  }),
+  codex: Object.freeze({
+    runtime: 'codex',
+    primary_event: 'Stop',
+    optional_events: Object.freeze([]),
+  }),
+});
+
+function normalizeCloseoutRuntime(runtime) {
+  if (runtime === 'claude-code') return 'claude';
+  if (runtime === 'codex-cli') return 'codex';
+  return runtime;
+}
+
+function getCloseoutHookContract(runtime) {
+  const normalizedRuntime = normalizeCloseoutRuntime(runtime);
+  const contract = CLOSEOUT_HOOK_EVENT_CONTRACT[normalizedRuntime];
+  if (!contract) {
+    throw new Error(formatUnsupportedRuntimeMessage([runtime]));
+  }
+
+  return {
+    runtime: contract.runtime,
+    primary_event: contract.primary_event,
+    optional_events: [...contract.optional_events],
+    conceptual_only_aliases: [...CLOSEOUT_CONCEPTUAL_ONLY_ALIASES],
+  };
+}
+
+function readTomlBooleanFlag(content, flagName) {
+  if (content == null) return null;
+
+  const escapedFlagName = flagName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const matcher = new RegExp(`^${escapedFlagName}\\s*=\\s*(true|false)\\s*$`, 'i');
+
+  for (const rawLine of String(content).split(/\r?\n/)) {
+    const trimmed = rawLine.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const withoutInlineComment = trimmed.replace(/\s+#.*$/, '').trim();
+    const match = withoutInlineComment.match(matcher);
+    if (match) {
+      return match[1].toLowerCase() === 'true';
+    }
+  }
+
+  return null;
+}
+
+function inspectCodexHooksConfigContent(configContent, source, configPath = null) {
+  if (configContent == null) {
+    return {
+      source,
+      path: configPath,
+      exists: false,
+      flag_state: 'missing',
+      codex_hooks: null,
+    };
+  }
+
+  const codexHooks = readTomlBooleanFlag(configContent, 'codex_hooks');
+  if (codexHooks === true) {
+    return {
+      source,
+      path: configPath,
+      exists: true,
+      flag_state: 'enabled',
+      codex_hooks: true,
+    };
+  }
+
+  if (codexHooks === false) {
+    return {
+      source,
+      path: configPath,
+      exists: true,
+      flag_state: 'disabled',
+      codex_hooks: false,
+    };
+  }
+
+  return {
+    source,
+    path: configPath,
+    exists: true,
+    flag_state: 'unspecified',
+    codex_hooks: null,
+  };
+}
+
+function readCodexHooksConfigEvidence({ source, configPath, existsSyncFn, readFileSyncFn }) {
+  if (!existsSyncFn(configPath)) {
+    return inspectCodexHooksConfigContent(null, source, configPath);
+  }
+
+  try {
+    return inspectCodexHooksConfigContent(readFileSyncFn(configPath, 'utf8'), source, configPath);
+  } catch (error) {
+    return {
+      source,
+      path: configPath,
+      exists: true,
+      flag_state: 'unreadable',
+      codex_hooks: null,
+      read_error: error.message,
+    };
+  }
+}
+
+function resolveCodexHookSupportStatus({ installScope = 'local', projectEvidence, globalEvidence }) {
+  const normalizedScope = installScope === 'project' ? 'local' : installScope;
+  const project = projectEvidence || inspectCodexHooksConfigContent(null, 'project');
+  const global = globalEvidence || inspectCodexHooksConfigContent(null, 'global');
+  const projectEnabled = project.flag_state === 'enabled';
+  const projectDisabled = project.flag_state === 'disabled';
+  const globalEnabled = global.flag_state === 'enabled';
+  const hasUnreadableEvidence = project.flag_state === 'unreadable' || global.flag_state === 'unreadable';
+
+  const result = {
+    install_scope: normalizedScope,
+    status: 'unsupported',
+    supported: false,
+    reason_code: 'no_codex_hooks_support',
+    explicit_conflict: false,
+    waiver_required: true,
+    closeout_event: getCloseoutHookContract('codex').primary_event,
+    enabled_sources: [projectEnabled ? 'project' : null, globalEnabled ? 'global' : null].filter(Boolean),
+    evidence: {
+      project,
+      global,
+    },
+  };
+
+  if (normalizedScope === 'global') {
+    if (globalEnabled && projectDisabled) {
+      return {
+        ...result,
+        status: 'ambiguous',
+        supported: null,
+        reason_code: 'global_enabled_project_disabled',
+        explicit_conflict: true,
+        waiver_required: true,
+      };
+    }
+
+    if (globalEnabled) {
+      return {
+        ...result,
+        status: 'supported',
+        supported: true,
+        reason_code: 'global_enabled',
+        waiver_required: false,
+      };
+    }
+
+    if (hasUnreadableEvidence) {
+      return {
+        ...result,
+        status: 'ambiguous',
+        supported: null,
+        reason_code: 'global_scope_unreadable',
+        waiver_required: true,
+      };
+    }
+
+    if (projectEnabled) {
+      return {
+        ...result,
+        reason_code: 'project_enabled_global_disabled',
+      };
+    }
+
+    return result;
+  }
+
+  if (projectEnabled) {
+    return {
+      ...result,
+      status: 'supported',
+      supported: true,
+      reason_code: 'project_enabled',
+      waiver_required: false,
+    };
+  }
+
+  if (projectDisabled && globalEnabled) {
+    return {
+      ...result,
+      status: 'ambiguous',
+      supported: null,
+      reason_code: 'project_disabled_global_enabled',
+      explicit_conflict: true,
+      waiver_required: true,
+    };
+  }
+
+  if ((project.flag_state === 'missing' || project.flag_state === 'unspecified') && globalEnabled) {
+    return {
+      ...result,
+      status: 'ambiguous',
+      supported: null,
+      reason_code: 'project_inconclusive_global_enabled',
+      waiver_required: true,
+    };
+  }
+
+  if (hasUnreadableEvidence) {
+    return {
+      ...result,
+      status: 'ambiguous',
+      supported: null,
+      reason_code: 'local_scope_unreadable',
+      waiver_required: true,
+    };
+  }
+
+  return result;
+}
+
+function getCodexHookSupportStatus(options = {}) {
+  const cwd = options.cwd || process.cwd();
+  const env = options.env || process.env;
+  const homeDir = options.homeDir || os.homedir();
+  const existsSyncFn = options.existsSync || fs.existsSync;
+  const readFileSyncFn = options.readFileSync || fs.readFileSync;
+  const projectConfigPath = options.projectConfigPath || path.join(cwd, '.codex', 'config.toml');
+  const globalConfigDir = options.globalConfigDir || getCodexConfigDir(
+    options.explicitConfigDir || null,
+    env,
+    homeDir
+  );
+  const globalConfigPath = options.globalConfigPath || path.join(globalConfigDir, 'config.toml');
+
+  return resolveCodexHookSupportStatus({
+    installScope: options.installScope || 'local',
+    projectEvidence: readCodexHooksConfigEvidence({
+      source: 'project',
+      configPath: projectConfigPath,
+      existsSyncFn,
+      readFileSyncFn,
+    }),
+    globalEvidence: readCodexHooksConfigEvidence({
+      source: 'global',
+      configPath: globalConfigPath,
+      existsSyncFn,
+      readFileSyncFn,
+    }),
+  });
+}
+
 // Cache for attribution settings (populated once per runtime during install)
 const attributionCache = new Map();
 
@@ -794,7 +1051,7 @@ Use \`/skills\` or type \`$gsdr-\` to discover GSD commands:
 
 This runtime differs from Claude Code in a few important ways:
 - **Task tool support is available via Codex subagents/threads** -- Codex can delegate bounded subtasks and run them in parallel, but the control surface differs from Claude's \`Task()\`-style spawning. Some GSD workflows may still fall back to sequential execution until they are adapted to Codex-native delegation patterns.
-- **No hooks support** -- pre-commit hooks and other lifecycle hooks are unavailable in Codex
+- **Closeout hooks are conditional** -- Codex exposes a documented hook surface, but GSD only treats hooks as usable when \`codex_hooks\` support is evidenced for the active scope; ambiguity must stay explicit.
 - **No tool restrictions** -- Codex does not support allowed-tools filtering, so all tools are always available to skills
 
 For full runtime comparison, read the file at \`${pathPrefix}get-shit-done-reflect/references/capability-matrix.md\`.
@@ -1569,7 +1826,7 @@ function uninstall(isGlobal, runtime = 'claude') {
     }
   }
 
-  // 4. Remove GSD hooks (skip for Codex -- no hook system)
+  // 4. Remove GSD hooks (Codex closeout hook wiring is not installed here yet)
   if (!isCodex) {
     const hooksDir = path.join(targetDir, 'hooks');
     if (fs.existsSync(hooksDir)) {
@@ -2323,7 +2580,7 @@ function install(isGlobal, runtime = 'claude') {
     generateMigrationGuide(targetDir, previousVersion, currentVersionClean);
   }
 
-  // Copy hooks from dist/ (bundled with dependencies) -- skip for Codex (no hook system)
+  // Copy hooks from dist/ (bundled with dependencies) -- Codex groundwork stops before hook writes
   const hooksSrc = path.join(src, 'hooks', 'dist');
   if (!fs.existsSync(hooksSrc) && !isCodex) {
     const buildScript = path.join(src, 'scripts', 'build-hooks.js');
@@ -2379,7 +2636,8 @@ function install(isGlobal, runtime = 'claude') {
     }
   }
 
-  // Codex: no settings.json, hooks, or statusline -- write manifest and return
+  // Codex: this groundwork branch still stops at manifests/skills. Hook support is
+  // resolved separately so later plans can wire Stop without re-deriving scope rules.
   if (isCodex) {
     const gsdHome = getGsdHome();
     const defaultsPath = path.join(gsdHome, 'defaults.json');
@@ -2813,5 +3071,8 @@ module.exports = {
   writeManifest,
   cleanupOrphanedFiles,
   validateHookFields,
-  getCodexCompactPromptPath
+  getCodexCompactPromptPath,
+  getCloseoutHookContract,
+  resolveCodexHookSupportStatus,
+  getCodexHookSupportStatus,
 };
