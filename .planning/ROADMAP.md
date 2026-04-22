@@ -31,6 +31,7 @@
 - [x] **Phase 57.6: Multi-Loop Coverage & Human Interface** - Extend extractor coverage to all remaining self-improvement loops (agent-performance, signal-quality, cross-session patterns, cross-runtime comparison), add human-readable text-first visualization, and demonstrate actual use of the system to diagnose an observed pattern end-to-end (completed 2026-04-17)
 - [ ] **Phase 57.7: Content Analysis & Epistemic Deepening** - Session-content extractors (structural patterns in transcripts with documented privacy model), automated distinguishing-feature suggestion, intervention-outcome tracking, interpretation revision classification (progressive vs degenerating per Lakatos), full epistemic provenance on all interpretations
 - [ ] **Phase 57.8: Signal Provenance Split & Artifact Signature Blocks** - Role-aware provenance (`about_work[]` / `detected_by` / `written_by`) replacing flat `runtime/model/gsd_version` payload; uniform signature block on PLAN/SUMMARY/VERIFICATION via `resolveModelInternal`; writer-side version precedence fix; retroactive annotation of Phase 57.6 signals. Epistemic prerequisite for GATE-09 (Phase 58). Narrow audit-bounded fix per `.planning/audits/2026-04-16-signal-provenance-audit/`
+- [x] **Phase 57.9: Hook & Closeout Substrate** - Strict substrate closure for the Phase 58 defer: Claude closeout hook wiring, Codex install-or-waiver closeout hook behavior, `session_meta_postlude`, and closeout-capability alignment across roadmap/requirements/matrix surfaces (completed 2026-04-21)
 - [ ] **Phase 58: Structural Enforcement Gates** - Replace advisory workflow controls with structural enforcement for the 8 most-recurred failure patterns, plus GATE-09 scope-translation ledger (meta-fix for Phase 57 scope-narrowing cascade)
 - [x] **Phase 59: KB Query, Lifecycle Wiring & Surfacing** - Full-text search, relationship traversal, lifecycle automation, and agent-accessible KB queries (completed 2026-04-20)
 - [x] **Phase 60: Sensor Pipeline & Codex Parity** - Log sensor, patch sensor, and cross-runtime parity verification (can proceed in parallel with Phase 61) (completed 2026-04-21)
@@ -149,7 +150,7 @@ Derived from: audit Findings 1-3 + Recommendations 1, 2, 4, 5. Wider integration
   3. The `session_meta_postlude` substrate exists as a load-bearing source contract consumed by measurement / gate extractors, exposing canonical records for `postlude-fired`, `error-rate`, `direction-change`, and `destructive-event`, or explicit `not_available` values where the runtime cannot provide them
   4. ROADMAP.md, REQUIREMENTS.md, capability-matrix.md, and any dependent phase context stop naming contradictory owners for the hook substrate; 57.9 owns substrate closure, while downstream live incident wiring stays downstream work
   5. Phase 57.9 verification maps HOOK-01/02/03 delivery to the Phase 58 re-entry conditions, so GATE-06 / GATE-07 cannot leave `explicitly_deferred` state without evidence
-**Plans**: TBD
+**Plans**: 4/4 plans complete and verified 2026-04-21 (`57.9-VERIFICATION.md`: passed 5/5)
 
 ### Phase 57.4: Audit Skill & Investigatory Type (INSERTED)
 
@@ -503,6 +504,7 @@ Phases execute sequentially 55 through 55.2, then 57.1 → 57.2 → 57.3 → 57.
 | 57.6. Multi-Loop Coverage & Human Interface | 0/TBD | Not started | - |
 | 57.7. Content Analysis & Epistemic Deepening | 0/TBD | Not started | - |
 | 57.8. Signal Provenance Split & Artifact Signature Blocks | 0/TBD | Not started | - |
+| 57.9. Hook & Closeout Substrate | 4/4 | Complete | 2026-04-21 |
 | 58. Structural Enforcement Gates | 0/TBD | Not started | - |
 | 59. KB Query, Lifecycle Wiring & Surfacing | 0/TBD | Not started | - |
 | 60. Sensor Pipeline & Codex Parity | 6/6 | Complete   | 2026-04-21 |

@@ -217,11 +217,11 @@ Dependencies: TEL-01a -> TEL-01b -> TEL-02
 
 Dependencies: HOOK-01 -> HOOK-02/HOOK-03
 
-- [ ] **HOOK-01**: Installer wires SessionStop / closeout hook substrate for Claude Code from source, not by manual runtime patching. The installed hook path is treated as authoritative for GATE-06 and any future postlude gates
+- [x] **HOOK-01**: Installer wires SessionStop / closeout hook substrate for Claude Code from source, not by manual runtime patching. The installed hook path is treated as authoritative for GATE-06 and any future postlude gates
   - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 2.6 + Recommendation 9.1 -- GATE-06 depends on SessionStop substrate the installer does not currently write`
-- [ ] **HOOK-02**: Installer detects Codex hook availability and, when the runtime supports it, writes the Codex hook surface needed for structural closeout gates. When unavailable, the installer records an explicit degradation / waiver marker rather than silently pretending parity
+- [x] **HOOK-02**: Installer detects Codex hook availability and, when the runtime supports it, writes the Codex hook surface needed for structural closeout gates. When unavailable, the installer records an explicit degradation / waiver marker rather than silently pretending parity
   - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit §5 -- blanket "Codex has no hooks" framing is stale; per-gate Codex behavior must be explicit`
-- [ ] **HOOK-03**: Closeout / incident hook substrate exposes a canonical load-bearing source contract for the session-level counters or markers needed by GATE-06 and GATE-07 (`postlude-fired`, `error-rate`, `direction-change`, `destructive-event`, or explicit `not_available` markers), so downstream measurement / gate consumers do not depend on ad hoc runtime reads
+- [x] **HOOK-03**: Closeout / incident hook substrate exposes a canonical load-bearing source contract for the session-level counters or markers needed by GATE-06 and GATE-07 (`postlude-fired`, `error-rate`, `direction-change`, `destructive-event`, or explicit `not_available` markers), so downstream measurement / gate consumers do not depend on ad hoc runtime reads
   - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 2.7 + §4.2 -- incident self-signal and structural postlude both require substrate that does not yet exist`
 
 - [ ] **GATE-01**: offer_next blocks phase advancement until a PR exists, required CI checks pass, and any override is logged with explicit justification. The requirement must name the blocking substrate (hook, CI rule, or workflow gate) and the Codex behavior; manual confirmation alone does not satisfy structural enforcement
