@@ -10,7 +10,7 @@ import os from 'node:os'
 // Import functions for direct unit testing
 import { createRequire } from 'node:module'
 const require = createRequire(import.meta.url)
-const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, safeFs, extractFrontmatterAndBody, extractFrontmatterField, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields } = require('../../bin/install.js')
+const { replacePathsInContent, injectVersionScope, getGsdHome, migrateKB, countKBEntries, createProjectLocalKB, convertClaudeToCodexSkill, convertClaudeToCodexMarkdown, convertClaudeToCodexAgentToml, copyCodexSkills, generateCodexAgentsMd, generateCodexMcpConfig, generateCodexConfigBlock, stripGsdFromCodexConfig, mergeCodexConfig, CODEX_AGENT_SANDBOX, GSD_CODEX_MARKER, safeFs, extractFrontmatterAndBody, extractFrontmatterField, readSettings, writeSettings, copyWithPathReplacement, generateMigrationGuide, isVersionInRange, compareVersions, cleanupOrphanedFiles, validateHookFields, getCloseoutHookContract, resolveCodexHookSupportStatus, getCodexHookSupportStatus } = require('../../bin/install.js')
 const { resolveCodexUpdateTarget, CODEX_CACHE_DOES_NOT_APPLY_REASON } = require('../../get-shit-done/bin/lib/update-target.cjs')
 const { SUPPORTED_INSTALLER_RUNTIMES, expandInstallerRuntimeSelection } = require('../../get-shit-done/bin/lib/runtime-support.cjs')
 
@@ -24,6 +24,111 @@ function buildReadFileSync(fileMap) {
     return fileMap[filePath]
   })
 }
+
+describe('Phase 57.9 closeout substrate groundwork', () => {
+  it('uses Stop as the shared closeout event and keeps SessionEnd optional for Claude', () => {
+    const contract = getCloseoutHookContract('claude-code')
+
+    expect(contract.runtime).toBe('claude')
+    expect(contract.primary_event).toBe('Stop')
+    expect(contract.optional_events).toEqual(['SessionEnd'])
+    expect(contract.conceptual_only_aliases).toContain('SessionStop')
+  })
+
+  it('treats missing local evidence plus enabled global codex_hooks as explicit ambiguity', () => {
+    const status = resolveCodexHookSupportStatus({
+      installScope: 'local',
+      projectEvidence: {
+        source: 'project',
+        exists: false,
+        flag_state: 'missing',
+        codex_hooks: null,
+      },
+      globalEvidence: {
+        source: 'global',
+        exists: true,
+        flag_state: 'enabled',
+        codex_hooks: true,
+      },
+    })
+
+    expect(status.status).toBe('ambiguous')
+    expect(status.supported).toBeNull()
+    expect(status.reason_code).toBe('project_inconclusive_global_enabled')
+    expect(status.waiver_required).toBe(true)
+    expect(status.enabled_sources).toEqual(['global'])
+  })
+
+  it('treats project-enabled local codex_hooks as supported without needing global config', () => {
+    const status = resolveCodexHookSupportStatus({
+      installScope: 'local',
+      projectEvidence: {
+        source: 'project',
+        exists: true,
+        flag_state: 'enabled',
+        codex_hooks: true,
+      },
+      globalEvidence: {
+        source: 'global',
+        exists: false,
+        flag_state: 'missing',
+        codex_hooks: null,
+      },
+    })
+
+    expect(status.status).toBe('supported')
+    expect(status.supported).toBe(true)
+    expect(status.reason_code).toBe('project_enabled')
+    expect(status.waiver_required).toBe(false)
+  })
+
+  it('treats project-disabled plus global-enabled codex_hooks as an explicit conflict', () => {
+    const status = resolveCodexHookSupportStatus({
+      installScope: 'local',
+      projectEvidence: {
+        source: 'project',
+        exists: true,
+        flag_state: 'disabled',
+        codex_hooks: false,
+      },
+      globalEvidence: {
+        source: 'global',
+        exists: true,
+        flag_state: 'enabled',
+        codex_hooks: true,
+      },
+    })
+
+    expect(status.status).toBe('ambiguous')
+    expect(status.supported).toBeNull()
+    expect(status.explicit_conflict).toBe(true)
+    expect(status.reason_code).toBe('project_disabled_global_enabled')
+    expect(status.waiver_required).toBe(true)
+  })
+
+  it('reads global codex_hooks evidence instead of collapsing to false when project config is absent', () => {
+    const projectConfigPath = path.join('/tmp', 'demo-project', '.codex', 'config.toml')
+    const globalConfigPath = path.join('/tmp', 'demo-home', '.codex', 'config.toml')
+    const existsSync = vi.fn(filePath => filePath === globalConfigPath)
+    const readFileSync = buildReadFileSync({
+      [globalConfigPath]: 'codex_hooks = true\n',
+    })
+
+    const status = getCodexHookSupportStatus({
+      cwd: path.join('/tmp', 'demo-project'),
+      projectConfigPath,
+      globalConfigPath,
+      existsSync,
+      readFileSync,
+    })
+
+    expect(status.status).toBe('ambiguous')
+    expect(status.supported).toBeNull()
+    expect(status.reason_code).toBe('project_inconclusive_global_enabled')
+    expect(status.evidence.project.flag_state).toBe('missing')
+    expect(status.evidence.global.flag_state).toBe('enabled')
+  })
+})
 
 // Tests for the existing bin/install.js behavior
 // The install script uses CommonJS, so we test via subprocess or by validating expected outcomes
