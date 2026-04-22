@@ -7,7 +7,17 @@ const path = require('path');
 const os = require('os');
 const { execSync } = require('child_process');
 const { error, output, loadProjectConfig } = require('./core.cjs');
-const { getCodexHookSupportStatus } = require(path.resolve(__dirname, '../../../bin/install.js'));
+
+function safeRequire(modulePath) {
+  try {
+    return require(modulePath);
+  } catch {
+    return null;
+  }
+}
+
+const installerLib = safeRequire(path.resolve(__dirname, '../../../bin/install.js')) || {};
+const getCodexHookSupportStatus = installerLib.getCodexHookSupportStatus;
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -36,6 +46,15 @@ const FEATURE_CAPABILITY_MAP = {
 
 function resolveCodexRuntimeCapabilities(cwd) {
   const localCodexDir = path.join(cwd, '.codex');
+
+  if (typeof getCodexHookSupportStatus !== 'function') {
+    return {
+      hasHooks: false,
+      hasTaskTool: fs.existsSync(localCodexDir),
+      hookStatus: null,
+      hookStatusError: 'installer helpers unavailable in runtime mirror',
+    };
+  }
 
   try {
     const hookStatus = getCodexHookSupportStatus({ cwd, installScope: 'local' });
