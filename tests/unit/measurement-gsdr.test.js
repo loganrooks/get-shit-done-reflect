@@ -11,6 +11,7 @@ const require = createRequire(import.meta.url)
 const GSD_TOOLS = path.resolve(process.cwd(), 'get-shit-done/bin/gsd-tools.cjs')
 const REGISTRY = require(path.resolve(process.cwd(), 'get-shit-done/bin/lib/measurement/registry.cjs'))
 const { loadGsdr } = require(path.resolve(process.cwd(), 'get-shit-done/bin/lib/measurement/sources/gsdr.cjs'))
+const { loadSessionMetaPostlude } = require(path.resolve(process.cwd(), 'get-shit-done/bin/lib/measurement/sources/session-meta-postlude.cjs'))
 const { buildGsdrExtractors } = require(path.resolve(process.cwd(), 'get-shit-done/bin/lib/measurement/extractors/gsdr.cjs'))
 
 async function setupGsdrProject(tmpdir, options = {}) {
@@ -105,6 +106,13 @@ function runGsdrExtractors(tmpdir, extraContext = {}) {
   return extractors.flatMap(extractor => extractor.extract(context))
 }
 
+async function writePostludeFixture(tmpdir, lines, fileName = 'fixture.jsonl') {
+  const fixtureDir = path.join(tmpdir, '.planning', 'measurement', 'session-meta-postlude')
+  await fsp.mkdir(fixtureDir, { recursive: true })
+  await fsp.writeFile(path.join(fixtureDir, fileName), `${lines.join('\n')}\n`)
+  return path.join(fixtureDir, fileName)
+}
+
 describe('measurement GSDR sources', () => {
   tmpdirTest('loadGsdr reads summaries, verifications, signal files, and git history', async ({ tmpdir }) => {
     await setupGsdrProject(tmpdir)
@@ -121,6 +129,64 @@ describe('measurement GSDR sources', () => {
     expect(raw.artifacts.git_history.commits[0].artifact_types).toContain('SUMMARY')
     expect(raw.artifacts.git_history.commits[0].artifact_types).toContain('VERIFICATION')
     expect(raw.artifacts.git_history.commits[0].artifact_types).toContain('SIGNAL')
+  })
+
+  tmpdirTest('loadSessionMetaPostlude tolerates a missing postlude directory', async ({ tmpdir }) => {
+    await setupGsdrProject(tmpdir)
+
+    const rows = loadSessionMetaPostlude(tmpdir, { phase: '57.9' })
+
+    expect(rows).toEqual([])
+  })
+
+  tmpdirTest('loadSessionMetaPostlude adapts canonical rows, preserves source_file, and skips malformed lines', async ({ tmpdir }) => {
+    await setupGsdrProject(tmpdir)
+    const fixturePath = await writePostludeFixture(tmpdir, [
+      '{not-json',
+      JSON.stringify({
+        ts: '2026-04-22T01:00:00Z',
+        phase: '57.9',
+        runtime: 'codex-cli',
+        postlude_fired: true,
+        error_rate: { status: 'not_available', reason: 'not_computed_in_closeout_hook' },
+        direction_change: { status: 'not_available', reason: 'downstream_live_wiring_not_shipped' },
+        destructive_event: { status: 'not_available', reason: 'downstream_live_wiring_not_shipped' },
+      }),
+    ])
+
+    const rows = loadSessionMetaPostlude(tmpdir, { phase: '57.9' })
+
+    expect(rows).toHaveLength(4)
+    expect(rows[0]).toMatchObject({
+      gate: 'GATE-06',
+      result: 'pass',
+      marker: 'postlude_fired',
+      source_file: fixturePath,
+    })
+    expect(rows.filter(row => row.gate === 'GATE-07' && row.result === 'waived')).toHaveLength(3)
+    expect(rows.every(row => row.source_file === fixturePath)).toBe(true)
+  })
+
+  tmpdirTest('loadSessionMetaPostlude honors phase filtering', async ({ tmpdir }) => {
+    await setupGsdrProject(tmpdir)
+    await writePostludeFixture(tmpdir, [
+      JSON.stringify({
+        ts: '2026-04-22T01:00:00Z',
+        phase: '57.8',
+        postlude_fired: true,
+      }),
+      JSON.stringify({
+        ts: '2026-04-22T01:05:00Z',
+        phase: '57.9',
+        postlude_fired: true,
+        error_rate: { status: 'not_available', reason: 'not_computed_in_closeout_hook' },
+      }),
+    ])
+
+    const rows = loadSessionMetaPostlude(tmpdir, { phase: '57.9' })
+
+    expect(rows).toHaveLength(2)
+    expect(rows.every(row => row.phase === '57.9')).toBe(true)
   })
 })
 
@@ -182,5 +248,28 @@ timeout_seconds: 30
     expect(kbRow.freshness.status).toBe('stale')
     expect(kbRow.value.totals.total_signals).toBe(1)
     expect(kbRow.notes[0]).toMatch(/stale-or-unknown/i)
+  })
+
+  tmpdirTest('gate_fire_events consumes session_meta_postlude rows and keeps not_available markers visible as waivers', async ({ tmpdir }) => {
+    await setupGsdrProject(tmpdir)
+    await writePostludeFixture(tmpdir, [
+      JSON.stringify({
+        ts: '2026-04-22T01:10:00Z',
+        phase: '57.9',
+        runtime: 'codex-cli',
+        postlude_fired: true,
+        error_rate: { status: 'not_available', reason: 'not_computed_in_closeout_hook' },
+        direction_change: { status: 'not_available', reason: 'downstream_live_wiring_not_shipped' },
+        destructive_event: { status: 'not_available', reason: 'downstream_live_wiring_not_shipped' },
+      }),
+    ])
+
+    const rows = runGsdrExtractors(tmpdir, { phase: '57.9' })
+    const gateRow = rows.find(row => row.feature_name === 'gate_fire_events' && row.runtime === 'codex-cli')
+
+    expect(gateRow.availability_status).toBe('exposed')
+    expect(gateRow.value.gate_fire_count).toBe(4)
+    expect(gateRow.value.gate_waiver_count).toBe(3)
+    expect(gateRow.value.sources_seen.session_meta_postlude).toBe('exposed')
   })
 })

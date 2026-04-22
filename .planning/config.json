@@ -56,23 +56,25 @@
         "last_run_status": "skipped"
       },
       "sensor_artifact": {
-        "fires": 8,
+        "fires": 9,
         "skips": 0,
-        "last_triggered": "2026-04-21T22:02:53.105Z",
+        "last_triggered": "2026-04-22T02:35:19.715Z",
         "last_skip_reason": null,
         "last_run_status": "success",
         "last_signal_count": 10
       },
       "sensor_ci": {
-        "fires": 5,
+        "fires": 6,
         "skips": 0,
-        "last_triggered": "2026-04-10T21:47:23.215Z",
-        "last_skip_reason": null
+        "last_triggered": "2026-04-22T02:35:19.765Z",
+        "last_skip_reason": null,
+        "last_run_status": "success",
+        "last_signal_count": 0
       },
       "sensor_git": {
-        "fires": 8,
+        "fires": 9,
         "skips": 0,
-        "last_triggered": "2026-04-21T22:02:53.173Z",
+        "last_triggered": "2026-04-22T02:35:19.797Z",
         "last_skip_reason": null,
         "last_run_status": "success",
         "last_signal_count": 0
@@ -85,12 +87,20 @@
         "last_run_status": "skipped"
       },
       "sensor_log": {
-        "fires": 4,
+        "fires": 5,
         "skips": 0,
-        "last_triggered": "2026-04-21T22:02:53.234Z",
+        "last_triggered": "2026-04-22T02:35:19.831Z",
         "last_skip_reason": null,
         "last_run_status": "success",
         "last_signal_count": 4
+      },
+      "sensor_patch": {
+        "fires": 1,
+        "skips": 0,
+        "last_triggered": "2026-04-22T02:35:19.848Z",
+        "last_skip_reason": null,
+        "last_run_status": "success",
+        "last_signal_count": 9
       }
     },
     "reflection": {

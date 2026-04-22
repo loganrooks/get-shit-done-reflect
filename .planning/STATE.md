@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
-status: verifying
-stopped_at: Verified Phase 60 and reconciled closeout via GATE-10
-last_updated: "2026-04-21T21:27:15Z"
-last_activity: 2026-04-21
+status: completed
+stopped_at: Phase 57.9 verified complete
+last_updated: "2026-04-22T02:17:26Z"
+last_activity: 2026-04-22
 progress:
   total_phases: 25
-  completed_phases: 18
-  total_plans: 87
-  completed_plans: 87
-  percent: 100
+  completed_phases: 19
+  total_plans: 91
+  completed_plans: 89
+  percent: 98
 ---
 
 # Project State
@@ -21,28 +21,28 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 60 (Sensor Pipeline & Codex Parity) completed on branch `gsd/phase-60-sensor-pipeline-codex-parity`. The log sensor, patch sensor, post-install parity report, and XRT-02 validator now ship from source with verification green. Ready to plan the next milestone work.
+**Current focus:** v1.20 Phase 57.9 (Hook & Closeout Substrate) is verified complete on branch `gsd/phase-57.9-hook-closeout-substrate-inserted`. The execution cycle is closed at the phase level; the remaining work is branch/PR handling or selecting the next roadmap phase.
 
 ## Current Position
 
-Phase: 60 of 64 — Verification passed on `gsd/phase-60-sensor-pipeline-codex-parity`
-Plan: 6 of 6 complete
-Status: Phase complete — verified and reconciled
+Phase: 57.9 of 64 — Verified complete on `gsd/phase-57.9-hook-closeout-substrate-inserted`
+Plan: 4 of 4 complete
+Status: Phase 57.9 verified complete
 
 ### Recent Phases
 
 - Phase 60 (Sensor Pipeline & Codex Parity) — verified 2026-04-21; log-sensor normalization, patch classification, post-install parity reporting, and XRT-02 validation are now live in source
 - Phase 59.1 (Drop Gemini and OpenCode from installer scope) — complete via commits `c9080b2a`, `02d0e194`, and `a3fb0b9e`; installer/runtime authority is now Claude/Codex-only
 
-Last activity: 2026-04-21
+Last activity: 2026-04-22 -- Phase 57.9 verification passed
 
-Progress: [██████████] 100%
+Progress: [██████████] 98%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 45
+- Plans completed: 47
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -91,6 +91,8 @@ Progress: [██████████] 100%
 - 60-04: 10min, 3 tasks, 5 files
 - 60-05: 6min, 2 tasks, 3 files
 - 60-06: 13min, 2 tasks, 5 files
+- 57.9-03: 16min, 2 tasks, 5 files
+- 57.9-04: 6min, 2 tasks, 3 files
 
 **v1.18 Final:**
 
@@ -453,9 +455,9 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-04-21T21:27:15Z
-Stopped at: Verified Phase 60 and reconciled closeout via GATE-10
-Resume artifact: `.planning/phases/60-sensor-pipeline-codex-parity/60-VERIFICATION.md`
+Last session: 2026-04-22T00:42:24.592Z
+Stopped at: Phase 57.9 Plan 02 complete
+Resume artifact: `.planning/phases/57.9-hook-closeout-substrate-inserted/57.9-03-PLAN.md`
 
 This session (2026-04-21):
 
@@ -464,3 +466,7 @@ This session (2026-04-21):
 - Shipped the cross-runtime log-sensor helper/spec/tests, the shared patch-classifier library plus `gsd patches`, the post-install parity report, and the XRT-02 pre-apply validator with fixtures and unit coverage.
 - Re-ran targeted Phase 60 suites plus a full `npm test`; the integrated workspace finished green with `53` files passed and `808` tests passed.
 - Ran the phase verifier and produced `60-VERIFICATION.md`; verification passed at `6/6` must-haves with no blocking gaps.
+- Reframed Phase 57.9 as a strict substrate-closure phase, gathered and context-checked the updated phase context, and preserved the explicit defer boundary between substrate work here and later live incident wiring.
+- Researched the current Claude/Codex hook surfaces and wrote four execution plans across three waves covering installer groundwork, `session_meta_postlude`, Codex hook-or-waiver wiring, and capability/verifier alignment.
+- Completed Phase 57.9 Plan 01: shared closeout-hook vocabulary now centers on `Stop`, Codex hook support resolution reads project and global config evidence, and the new install tests lock the mixed-scope ambiguity edge cases.
+- Completed Phase 57.9 Plan 02: the metadata-only `gsd-postlude` hook now writes canonical JSONL rows, and `loadSessionMetaPostlude()` adapts those records into `GATE-06`/`GATE-07` tuples with explicit waived markers for unavailable incident fields.

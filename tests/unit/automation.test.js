@@ -13,6 +13,7 @@ const GSD_TOOLS = path.resolve(process.cwd(), 'get-shit-done/bin/gsd-tools.cjs')
  */
 async function setupAndTrackEvent(tmpdir, config, feature, event, reason) {
   const planningDir = path.join(tmpdir, '.planning')
+  const configHome = path.join(tmpdir, '.config')
   await fs.mkdir(planningDir, { recursive: true })
   await fs.writeFile(
     path.join(planningDir, 'config.json'),
@@ -27,6 +28,7 @@ async function setupAndTrackEvent(tmpdir, config, feature, event, reason) {
     cwd: tmpdir,
     encoding: 'utf-8',
     timeout: 10000,
+    env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
     stdio: ['pipe', 'pipe', 'pipe'],
   })
 
@@ -46,6 +48,7 @@ async function readConfig(tmpdir) {
  * Helper: run track-event CLI directly (for sequential calls on same tmpdir)
  */
 function runTrackEvent(tmpdir, feature, event, reason) {
+  const configHome = path.join(tmpdir, '.config')
   const args = ['automation', 'track-event', feature, event]
   if (reason) args.push(reason)
   args.push('--raw')
@@ -54,6 +57,7 @@ function runTrackEvent(tmpdir, feature, event, reason) {
     cwd: tmpdir,
     encoding: 'utf-8',
     timeout: 10000,
+    env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
     stdio: ['pipe', 'pipe', 'pipe'],
   })
 
@@ -65,6 +69,7 @@ function runTrackEvent(tmpdir, feature, event, reason) {
  */
 async function setupAndResolve(tmpdir, config, feature, extraArgs = []) {
   const planningDir = path.join(tmpdir, '.planning')
+  const configHome = path.join(tmpdir, '.config')
   await fs.mkdir(planningDir, { recursive: true })
   await fs.writeFile(
     path.join(planningDir, 'config.json'),
@@ -76,6 +81,7 @@ async function setupAndResolve(tmpdir, config, feature, extraArgs = []) {
     cwd: tmpdir,
     encoding: 'utf-8',
     timeout: 10000,
+    env: { ...process.env, HOME: tmpdir, XDG_CONFIG_HOME: configHome },
     stdio: ['pipe', 'pipe', 'pipe'],
   })
 

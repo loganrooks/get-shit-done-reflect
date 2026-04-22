@@ -7,7 +7,7 @@
 
 **Milestone thesis:** v1.20 is a major infrastructure and methodology milestone -- replacing advisory quality controls with structural enforcement, building a queryable knowledge base, overhauling spike methodology with epistemological rigor, and establishing measurement infrastructure for evidence-based workflow improvement.
 
-**Cross-runtime note:** Structural enforcement requirements must declare per-gate substrate and per-gate Codex behavior. The old blanket assumption that "Codex has no hook mechanism" is stale; Claude Code hook surfaces are mature, and Codex hook support exists behind evolving `codex_hooks` surfaces. Hook-dependent requirements therefore must either (a) ship installer-wired Codex hook support, (b) degrade to a named workflow/CI gate, or (c) be explicitly waived with reason in phase CONTEXT and verification artifacts. Phase 57.9 and XRT-01 close this substrate gap.
+**Cross-runtime note:** Structural enforcement requirements must declare per-gate substrate and per-gate Codex behavior. The old blanket assumption that "Codex has no hook mechanism" is stale; Claude Code hook surfaces are mature, and Codex hook support exists behind evolving `codex_hooks` surfaces. Hook-dependent requirements therefore must either (a) ship installer-wired Codex hook support, (b) degrade to a named workflow/CI gate, or (c) be explicitly waived with reason in phase CONTEXT and verification artifacts. Phase 57.9 owns closure of the unresolved hook / closeout substrate gap; downstream live incident consumption remains separate downstream work.
 
 **Design constraint (SPIKE-11, moved from requirements):** Spike methodology must engage with Lakatos (progressive vs degenerating research programmes), Duhem-Quine (auxiliary hypotheses, holism of testing), Mayo (severity of testing), and institutional critique (three-tier enforce/encourage/warn -- Feyerabend/Longino). This is a governing design principle for SPIKE-01 through SPIKE-10, not a separate deliverable. See `.planning/research/spike-epistemology-research.md` and MILESTONE-CONTEXT.md for the full framework.
 
@@ -217,11 +217,11 @@ Dependencies: TEL-01a -> TEL-01b -> TEL-02
 
 Dependencies: HOOK-01 -> HOOK-02/HOOK-03
 
-- [ ] **HOOK-01**: Installer wires SessionStop / closeout hook substrate for Claude Code from source, not by manual runtime patching. The installed hook path is treated as authoritative for GATE-06 and any future postlude gates
+- [x] **HOOK-01**: Installer wires SessionStop / closeout hook substrate for Claude Code from source, not by manual runtime patching. The installed hook path is treated as authoritative for GATE-06 and any future postlude gates
   - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 2.6 + Recommendation 9.1 -- GATE-06 depends on SessionStop substrate the installer does not currently write`
-- [ ] **HOOK-02**: Installer detects Codex hook availability and, when the runtime supports it, writes the Codex hook surface needed for structural closeout gates. When unavailable, the installer records an explicit degradation / waiver marker rather than silently pretending parity
+- [x] **HOOK-02**: Installer detects Codex hook availability and, when the runtime supports it, writes the Codex hook surface needed for structural closeout gates. When unavailable, the installer records an explicit degradation / waiver marker rather than silently pretending parity
   - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit §5 -- blanket "Codex has no hooks" framing is stale; per-gate Codex behavior must be explicit`
-- [ ] **HOOK-03**: Closeout / incident hook substrate exposes canonical session-level counters or markers needed by GATE-06 and GATE-07 (postlude fired, error-rate / direction-change / destructive-event indicators, or an explicit "not available" marker)
+- [x] **HOOK-03**: Closeout / incident hook substrate exposes a canonical load-bearing source contract for the session-level counters or markers needed by GATE-06 and GATE-07 (`postlude-fired`, `error-rate`, `direction-change`, `destructive-event`, or explicit `not_available` markers), so downstream measurement / gate consumers do not depend on ad hoc runtime reads
   - *Motivation:* `audit: 2026-04-20-phase-58-structural-gates-gap-audit Finding 2.7 + §4.2 -- incident self-signal and structural postlude both require substrate that does not yet exist`
 
 - [ ] **GATE-01**: offer_next blocks phase advancement until a PR exists, required CI checks pass, and any override is logged with explicit justification. The requirement must name the blocking substrate (hook, CI rule, or workflow gate) and the Codex behavior; manual confirmation alone does not satisfy structural enforcement
