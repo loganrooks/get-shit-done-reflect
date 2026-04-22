@@ -458,6 +458,16 @@ function writeSettings(settingsPath, settings) {
 }
 
 const CLOSEOUT_CONCEPTUAL_ONLY_ALIASES = Object.freeze(['SessionStop']);
+const CLOSEOUT_HOOK_FILE = 'gsdr-postlude.js';
+const CLOSEOUT_HOOK_TIMEOUT_SECONDS = 30;
+const CODEX_HOOKS_FILE = 'hooks.json';
+const CODEX_HOOK_WAIVER_KEYS = Object.freeze([
+  'codex_hooks_waived',
+  'codex_hooks_waiver_reason',
+  'codex_hooks_waiver_checked_at',
+  'codex_hooks_waiver_scope',
+  'codex_hooks_waiver_evidence',
+]);
 
 const CLOSEOUT_HOOK_EVENT_CONTRACT = Object.freeze({
   claude: Object.freeze({
@@ -712,6 +722,197 @@ function getCodexHookSupportStatus(options = {}) {
       readFileSyncFn,
     }),
   });
+}
+
+function transformHookContent(content) {
+  return content
+    .replace(/get-shit-done\//g, 'get-shit-done-reflect/')
+    .replace(/\bgsd-(?!tools)/g, 'gsdr-')
+    .replace(/\/gsd:/g, '/gsdr:')
+    .replace(/'get-shit-done'/g, "'get-shit-done-reflect'");
+}
+
+function copyBundledHookFile(srcFile, destFile) {
+  const content = transformHookContent(fs.readFileSync(srcFile, 'utf8'));
+  fs.writeFileSync(destFile, content);
+}
+
+function removeManagedHookEntries(hooksObject, eventName, hookSubstring) {
+  if (!hooksObject || !Array.isArray(hooksObject[eventName])) return;
+
+  hooksObject[eventName] = hooksObject[eventName]
+    .map(entry => {
+      if (!entry.hooks || !Array.isArray(entry.hooks)) return entry;
+      entry.hooks = entry.hooks.filter(hook => !(hook.command && hook.command.includes(hookSubstring)));
+      return entry.hooks.length > 0 ? entry : null;
+    })
+    .filter(Boolean);
+
+  if (hooksObject[eventName].length === 0) {
+    delete hooksObject[eventName];
+  }
+}
+
+function cleanupEmptyHooksObject(target) {
+  if (target.hooks && Object.keys(target.hooks).length === 0) {
+    delete target.hooks;
+  }
+  return target;
+}
+
+function readJsonFile(filePath, fallback = {}) {
+  if (!fs.existsSync(filePath)) return fallback;
+  try {
+    return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  } catch {
+    return fallback;
+  }
+}
+
+function writeJsonFile(filePath, data) {
+  fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + '\n');
+}
+
+function readPlanningConfig(cwd) {
+  const planningPath = path.join(cwd, '.planning');
+  const configPath = path.join(planningPath, 'config.json');
+  const config = readJsonFile(configPath, {});
+  return {
+    planningPath,
+    configPath,
+    planningExists: fs.existsSync(planningPath),
+    config,
+  };
+}
+
+function writeCodexHookWaiverMarker(cwd, supportStatus) {
+  const planning = readPlanningConfig(cwd);
+  if (!planning.planningExists) return false;
+
+  planning.config.codex_hooks_waived = true;
+  planning.config.codex_hooks_waiver_reason = supportStatus.reason_code;
+  planning.config.codex_hooks_waiver_checked_at = new Date().toISOString();
+  planning.config.codex_hooks_waiver_scope = supportStatus.install_scope;
+  planning.config.codex_hooks_waiver_evidence = {
+    enabled_sources: supportStatus.enabled_sources,
+    explicit_conflict: supportStatus.explicit_conflict,
+    project_flag_state: supportStatus.evidence?.project?.flag_state || 'missing',
+    global_flag_state: supportStatus.evidence?.global?.flag_state || 'missing',
+  };
+
+  writeJsonFile(planning.configPath, planning.config);
+  return true;
+}
+
+function clearCodexHookWaiverMarker(cwd) {
+  const planning = readPlanningConfig(cwd);
+  if (!planning.planningExists || !fs.existsSync(planning.configPath)) return false;
+
+  let changed = false;
+  for (const key of CODEX_HOOK_WAIVER_KEYS) {
+    if (Object.prototype.hasOwnProperty.call(planning.config, key)) {
+      delete planning.config[key];
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    writeJsonFile(planning.configPath, planning.config);
+  }
+
+  return changed;
+}
+
+function ensureCodexCloseoutHook(targetDir, closeoutEvent) {
+  const hooksPath = path.join(targetDir, CODEX_HOOKS_FILE);
+  const hooksConfig = readJsonFile(hooksPath, {});
+  const command = buildHookCommand(targetDir, CLOSEOUT_HOOK_FILE);
+
+  if (!hooksConfig.hooks || typeof hooksConfig.hooks !== 'object') {
+    hooksConfig.hooks = {};
+  }
+
+  removeManagedHookEntries(hooksConfig.hooks, 'SessionStop', 'gsdr-postlude');
+  removeManagedHookEntries(hooksConfig.hooks, 'SessionStop', 'gsd-postlude');
+  removeManagedHookEntries(hooksConfig.hooks, closeoutEvent, 'gsd-postlude');
+
+  if (!Array.isArray(hooksConfig.hooks[closeoutEvent])) {
+    hooksConfig.hooks[closeoutEvent] = [];
+  }
+
+  let existingEntry = hooksConfig.hooks[closeoutEvent].find(entry =>
+    entry.hooks && entry.hooks.some(hook => hook.command && hook.command.includes('gsdr-postlude'))
+  );
+
+  if (!existingEntry) {
+    existingEntry = {
+      hooks: [{
+        type: 'command',
+        command,
+        timeout: CLOSEOUT_HOOK_TIMEOUT_SECONDS,
+      }],
+    };
+    hooksConfig.hooks[closeoutEvent].push(existingEntry);
+  } else {
+    for (const hook of existingEntry.hooks) {
+      if (hook.command && hook.command.includes('gsdr-postlude')) {
+        hook.command = command;
+        hook.timeout = CLOSEOUT_HOOK_TIMEOUT_SECONDS;
+      }
+    }
+  }
+
+  writeJsonFile(hooksPath, hooksConfig);
+}
+
+function removeCodexCloseoutHook(targetDir) {
+  const hooksPath = path.join(targetDir, CODEX_HOOKS_FILE);
+  const hookDir = path.join(targetDir, 'hooks');
+  const hookFile = path.join(hookDir, CLOSEOUT_HOOK_FILE);
+  let changed = false;
+
+  if (fs.existsSync(hooksPath)) {
+    const hooksConfig = readJsonFile(hooksPath, {});
+    if (hooksConfig.hooks && typeof hooksConfig.hooks === 'object') {
+      const before = JSON.stringify(hooksConfig);
+      removeManagedHookEntries(hooksConfig.hooks, 'Stop', 'gsdr-postlude');
+      removeManagedHookEntries(hooksConfig.hooks, 'SessionStop', 'gsdr-postlude');
+      removeManagedHookEntries(hooksConfig.hooks, 'Stop', 'gsd-postlude');
+      removeManagedHookEntries(hooksConfig.hooks, 'SessionStop', 'gsd-postlude');
+      cleanupEmptyHooksObject(hooksConfig);
+      changed = JSON.stringify(hooksConfig) !== before;
+
+      if (hooksConfig.hooks) {
+        writeJsonFile(hooksPath, hooksConfig);
+      } else {
+        fs.unlinkSync(hooksPath);
+        changed = true;
+      }
+    }
+  }
+
+  if (fs.existsSync(hookFile)) {
+    fs.unlinkSync(hookFile);
+    changed = true;
+  }
+
+  if (fs.existsSync(hookDir) && fs.readdirSync(hookDir).length === 0) {
+    fs.rmdirSync(hookDir);
+    changed = true;
+  }
+
+  return changed;
+}
+
+function installCodexCloseoutHook(targetDir, hooksSrc, closeoutEvent) {
+  const sourceHook = path.join(hooksSrc, 'gsd-postlude.js');
+  if (!fs.existsSync(sourceHook)) return false;
+
+  const hooksDest = path.join(targetDir, 'hooks');
+  safeFs('mkdirSync', () => fs.mkdirSync(hooksDest, { recursive: true }), hooksDest);
+  copyBundledHookFile(sourceHook, path.join(hooksDest, CLOSEOUT_HOOK_FILE));
+  ensureCodexCloseoutHook(targetDir, closeoutEvent);
+  return true;
 }
 
 // Cache for attribution settings (populated once per runtime during install)
@@ -1826,13 +2027,18 @@ function uninstall(isGlobal, runtime = 'claude') {
     }
   }
 
-  // 4. Remove GSD hooks (Codex closeout hook wiring is not installed here yet)
-  if (!isCodex) {
+  // 4. Remove GSD hooks / closeout hook wiring
+  if (isCodex) {
+    if (removeCodexCloseoutHook(targetDir)) {
+      removedCount++;
+      console.log(`  ${green}✓${reset} Removed Codex closeout hook wiring`);
+    }
+  } else {
     const hooksDir = path.join(targetDir, 'hooks');
     if (fs.existsSync(hooksDir)) {
       const gsdHooks = [
-        'gsdr-statusline.js', 'gsdr-check-update.js', 'gsdr-version-check.js', 'gsdr-ci-status.js', 'gsdr-health-check.js', 'gsdr-context-monitor.js',
-        'gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js', 'gsd-ci-status.js', 'gsd-health-check.js', 'gsd-context-monitor.js'
+        'gsdr-statusline.js', 'gsdr-check-update.js', 'gsdr-version-check.js', 'gsdr-ci-status.js', 'gsdr-health-check.js', 'gsdr-context-monitor.js', 'gsdr-postlude.js',
+        'gsd-statusline.js', 'gsd-check-update.js', 'gsd-check-update.sh', 'gsd-version-check.js', 'gsd-ci-status.js', 'gsd-health-check.js', 'gsd-context-monitor.js', 'gsd-postlude.js'
       ];
       let hookCount = 0;
       for (const hook of gsdHooks) {
@@ -1870,15 +2076,17 @@ function uninstall(isGlobal, runtime = 'claude') {
         cmd.includes('gsdr-check-update') || cmd.includes('gsdr-statusline') ||
         cmd.includes('gsdr-version-check') || cmd.includes('gsdr-ci-status') ||
         cmd.includes('gsdr-health-check') || cmd.includes('gsdr-context-monitor') ||
+        cmd.includes('gsdr-postlude') ||
         cmd.includes('gsdr-workflow-guard') ||
         // Legacy gsd- prefix (pre-reflect branding)
         cmd.includes('gsd-check-update') || cmd.includes('gsd-statusline') ||
         cmd.includes('gsd-version-check') || cmd.includes('gsd-ci-status') ||
         cmd.includes('gsd-health-check') || cmd.includes('gsd-context-monitor') ||
+        cmd.includes('gsd-postlude') ||
         cmd.includes('gsd-workflow-guard')
       );
 
-    for (const eventName of ['SessionStart', 'PostToolUse', 'AfterTool', 'PreToolUse', 'BeforeTool']) {
+    for (const eventName of ['SessionStart', 'Stop', 'SessionEnd', 'SessionStop', 'PostToolUse', 'AfterTool', 'PreToolUse', 'BeforeTool']) {
       if (settings.hooks && settings.hooks[eventName]) {
         const before = JSON.stringify(settings.hooks[eventName]);
         settings.hooks[eventName] = settings.hooks[eventName]
@@ -2580,9 +2788,9 @@ function install(isGlobal, runtime = 'claude') {
     generateMigrationGuide(targetDir, previousVersion, currentVersionClean);
   }
 
-  // Copy hooks from dist/ (bundled with dependencies) -- Codex groundwork stops before hook writes
+  // Copy hooks from dist/ (bundled with dependencies)
   const hooksSrc = path.join(src, 'hooks', 'dist');
-  if (!fs.existsSync(hooksSrc) && !isCodex) {
+  if (!fs.existsSync(hooksSrc)) {
     const buildScript = path.join(src, 'scripts', 'build-hooks.js');
     if (fs.existsSync(buildScript)) {
       console.log(`  Building hooks...`);
@@ -2601,18 +2809,42 @@ function install(isGlobal, runtime = 'claude') {
           ? entry.replace(/^gsd-/, 'gsdr-')
           : entry;
         const destFile = path.join(hooksDest, destName);
-        let content = fs.readFileSync(srcFile, 'utf8');
-        content = content.replace(/get-shit-done\//g, 'get-shit-done-reflect/');
-        content = content.replace(/\bgsd-(?!tools)/g, 'gsdr-');
-        content = content.replace(/\/gsd:/g, '/gsdr:');
-        content = content.replace(/'get-shit-done'/g, "'get-shit-done-reflect'");
-        fs.writeFileSync(destFile, content);
+        copyBundledHookFile(srcFile, destFile);
       }
     }
     if (verifyInstalled(hooksDest, 'hooks')) {
       console.log(`  ${green}✓${reset} Installed hooks (bundled)`);
     } else {
       failures.push('hooks');
+    }
+  }
+
+  let codexHookSupport = null;
+  if (isCodex) {
+    codexHookSupport = getCodexHookSupportStatus({
+      cwd: process.cwd(),
+      explicitConfigDir,
+      installScope: isGlobal ? 'global' : 'local',
+    });
+
+    if (codexHookSupport.supported === true) {
+      if (installCodexCloseoutHook(targetDir, hooksSrc, codexHookSupport.closeout_event)) {
+        clearCodexHookWaiverMarker(process.cwd());
+        console.log(`  ${green}✓${reset} Configured Codex closeout hook (${codexHookSupport.closeout_event})`);
+      } else {
+        failures.push('codex closeout hook');
+      }
+    } else if (codexHookSupport.waiver_required) {
+      const removedHook = removeCodexCloseoutHook(targetDir);
+      const wroteWaiver = writeCodexHookWaiverMarker(process.cwd(), codexHookSupport);
+      if (removedHook) {
+        console.log(`  ${green}✓${reset} Removed unsupported Codex closeout hook wiring`);
+      }
+      if (wroteWaiver) {
+        console.log(`  ${green}+${reset} Recorded Codex closeout waiver (${codexHookSupport.reason_code})`);
+      } else {
+        console.warn(`  ${yellow}⚠${reset}  Codex closeout hook ${codexHookSupport.status}; no .planning/config.json available for waiver marker`);
+      }
     }
   }
 
@@ -2636,8 +2868,8 @@ function install(isGlobal, runtime = 'claude') {
     }
   }
 
-  // Codex: this groundwork branch still stops at manifests/skills. Hook support is
-  // resolved separately so later plans can wire Stop without re-deriving scope rules.
+  // Codex: closeout hook handling is limited to the shared Stop hook. Tool-hook
+  // parity remains explicitly out of scope for this installer path.
   if (isCodex) {
     const gsdHome = getGsdHome();
     const defaultsPath = path.join(gsdHome, 'defaults.json');
@@ -2662,9 +2894,13 @@ function install(isGlobal, runtime = 'claude') {
   // Configure statusline and hooks in settings.json
   const settingsPath = path.join(targetDir, 'settings.json');
   const settings = validateHookFields(cleanupOrphanedHooks(readSettings(settingsPath)));
+  const closeoutEvent = getCloseoutHookContract('claude').primary_event;
   const statuslineCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-statusline.js')
     : buildLocalHookCommand(dirName, 'gsdr-statusline.js');
+  const closeoutCommand = isGlobal
+    ? buildHookCommand(targetDir, CLOSEOUT_HOOK_FILE)
+    : buildLocalHookCommand(dirName, CLOSEOUT_HOOK_FILE);
   const updateCheckCommand = isGlobal
     ? buildHookCommand(targetDir, 'gsdr-check-update.js')
     : buildLocalHookCommand(dirName, 'gsdr-check-update.js');
@@ -2692,34 +2928,85 @@ function install(isGlobal, runtime = 'claude') {
   // When hooks/dist/ is missing from the npm package, the copy step produces no
   // files but the registration step ran unconditionally, causing hook errors on
   // every tool invocation.
-  function ensureHook(hookSubstring, newCommand, label, hookFileName) {
+  function ensureHook({ eventName = 'SessionStart', hookSubstring, command, label, hookFileName, timeoutSeconds = null }) {
     const hookFile = path.join(targetDir, 'hooks', hookFileName);
-    const existingEntry = settings.hooks.SessionStart.find(entry =>
+    if (!settings.hooks[eventName]) {
+      settings.hooks[eventName] = [];
+    }
+
+    const existingEntry = settings.hooks[eventName].find(entry =>
       entry.hooks && entry.hooks.some(h => h.command && h.command.includes(hookSubstring))
     );
 
     if (!existingEntry) {
       if (fs.existsSync(hookFile)) {
-        settings.hooks.SessionStart.push({
-          hooks: [{ type: 'command', command: newCommand }]
+        const hook = { type: 'command', command };
+        if (timeoutSeconds) {
+          hook.timeout = timeoutSeconds;
+        }
+        settings.hooks[eventName].push({
+          hooks: [hook]
         });
         console.log(`  ${green}✓${reset} Configured ${label} hook`);
       } else {
         console.warn(`  ${yellow}⚠${reset}  Skipped ${label} hook — ${hookFileName} not found at target`);
       }
-    } else if (!isGlobal) {
-      const hook = existingEntry.hooks.find(h => h.command && h.command.includes(hookSubstring));
-      if (hook && !hook.command.includes('test -f')) {
-        hook.command = newCommand;
-        console.log(`  ${green}✓${reset} Upgraded ${label} hook (worktree-safe guard)`);
+    } else {
+      let migrated = false;
+      for (const hook of existingEntry.hooks || []) {
+        if (hook.command && hook.command.includes(hookSubstring)) {
+          if (hook.command !== command) {
+            hook.command = command;
+            migrated = true;
+          }
+          if (timeoutSeconds && hook.timeout !== timeoutSeconds) {
+            hook.timeout = timeoutSeconds;
+            migrated = true;
+          }
+        }
+      }
+      if (migrated) {
+        console.log(`  ${green}✓${reset} Updated ${label} hook`);
       }
     }
   }
 
-  ensureHook('gsdr-check-update', updateCheckCommand, 'update check', 'gsdr-check-update.js');
-  ensureHook('gsdr-version-check', versionCheckCommand, 'version check', 'gsdr-version-check.js');
-  ensureHook('gsdr-ci-status', ciStatusCommand, 'CI status', 'gsdr-ci-status.js');
-  ensureHook('gsdr-health-check', healthCheckCommand, 'health check', 'gsdr-health-check.js');
+  removeManagedHookEntries(settings.hooks, 'SessionStop', 'gsdr-postlude');
+  removeManagedHookEntries(settings.hooks, 'SessionStop', 'gsd-postlude');
+  removeManagedHookEntries(settings.hooks, closeoutEvent, 'gsd-postlude');
+
+  ensureHook({
+    eventName: closeoutEvent,
+    hookSubstring: 'gsdr-postlude',
+    command: closeoutCommand,
+    label: 'closeout',
+    hookFileName: CLOSEOUT_HOOK_FILE,
+    timeoutSeconds: CLOSEOUT_HOOK_TIMEOUT_SECONDS,
+  });
+  ensureHook({
+    hookSubstring: 'gsdr-check-update',
+    command: updateCheckCommand,
+    label: 'update check',
+    hookFileName: 'gsdr-check-update.js',
+  });
+  ensureHook({
+    hookSubstring: 'gsdr-version-check',
+    command: versionCheckCommand,
+    label: 'version check',
+    hookFileName: 'gsdr-version-check.js',
+  });
+  ensureHook({
+    hookSubstring: 'gsdr-ci-status',
+    command: ciStatusCommand,
+    label: 'CI status',
+    hookFileName: 'gsdr-ci-status.js',
+  });
+  ensureHook({
+    hookSubstring: 'gsdr-health-check',
+    command: healthCheckCommand,
+    label: 'health check',
+    hookFileName: 'gsdr-health-check.js',
+  });
 
   // Configure post-tool hook for context window monitoring
   if (!settings.hooks.PostToolUse) {
