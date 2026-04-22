@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
-stopped_at: Phase 57.9 planned
-last_updated: "2026-04-22T01:52:45Z"
+stopped_at: Phase 57.9 Plan 03 complete
+last_updated: "2026-04-22T02:09:27Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 25
   completed_phases: 18
   total_plans: 91
-  completed_plans: 87
-  percent: 96
+  completed_plans: 88
+  percent: 97
 ---
 
 # Project State
@@ -21,12 +21,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.9 (Hook & Closeout Substrate) is executing on branch `gsd/phase-57.9-hook-closeout-substrate-inserted`. Plans 01 and 02 closed the closeout/capability groundwork and the postlude source contract; the remaining work is installer wiring plus verifier/reference alignment.
+**Current focus:** v1.20 Phase 57.9 (Hook & Closeout Substrate) is executing on branch `gsd/phase-57.9-hook-closeout-substrate-inserted`. Plans 01-03 now cover the closeout/capability groundwork, the postlude source contract, and the real installer install-or-waiver path; the remaining work is capability-matrix and verifier alignment.
 
 ## Current Position
 
 Phase: 57.9 of 64 — Executing on `gsd/phase-57.9-hook-closeout-substrate-inserted`
-Plan: 2 of 4 complete
+Plan: 3 of 4 complete
 Status: Executing Phase 57.9
 
 ### Recent Phases
@@ -34,15 +34,15 @@ Status: Executing Phase 57.9
 - Phase 60 (Sensor Pipeline & Codex Parity) — verified 2026-04-21; log-sensor normalization, patch classification, post-install parity reporting, and XRT-02 validation are now live in source
 - Phase 59.1 (Drop Gemini and OpenCode from installer scope) — complete via commits `c9080b2a`, `02d0e194`, and `a3fb0b9e`; installer/runtime authority is now Claude/Codex-only
 
-Last activity: 2026-04-22 -- Phase 57.9 Plan 02 complete
+Last activity: 2026-04-22 -- Phase 57.9 Plan 03 complete
 
-Progress: [██████████] 96%
+Progress: [██████████] 97%
 
 ## Performance Metrics
 
 **v1.20 Current:**
 
-- Plans completed: 45
+- Plans completed: 46
 - 55-01: 1min, 2 tasks, 5 files
 - 55-02: 9min, 2 tasks, 5 files
 - 55-03: 9min, 2 tasks, 6 files
@@ -91,6 +91,7 @@ Progress: [██████████] 96%
 - 60-04: 10min, 3 tasks, 5 files
 - 60-05: 6min, 2 tasks, 3 files
 - 60-06: 13min, 2 tasks, 5 files
+- 57.9-03: 16min, 2 tasks, 5 files
 
 **v1.18 Final:**
 
