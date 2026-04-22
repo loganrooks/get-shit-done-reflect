@@ -4,7 +4,7 @@ milestone: v1.20
 milestone_name: Signal Infrastructure & Epistemic Rigor
 status: executing
 stopped_at: Phase 57.9 planned
-last_updated: "2026-04-22T00:42:24.596Z"
+last_updated: "2026-04-22T01:49:05Z"
 last_activity: 2026-04-22
 progress:
   total_phases: 25
@@ -21,20 +21,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-08)
 
 **Core value:** The system never makes the same mistake twice -- signals capture what went wrong, spikes resolve uncertainty empirically, and the knowledge base surfaces relevant lessons before they're needed.
-**Current focus:** v1.20 Phase 57.9 (Hook & Closeout Substrate) is planned on branch `gsd/phase-57.9-hook-closeout-substrate-inserted`. Four execution plans now stage the strict substrate closure: Claude closeout wiring, Codex hook-or-waiver behavior, the metadata-only `session_meta_postlude` source contract, and verifier/reference alignment.
+**Current focus:** v1.20 Phase 57.9 (Hook & Closeout Substrate) is executing on branch `gsd/phase-57.9-hook-closeout-substrate-inserted`. Plan 01 closed the closeout/capability groundwork, and the remaining work is the postlude loader, installer wiring, and verifier/reference alignment.
 
 ## Current Position
 
-Phase: 57.9 of 64 — Planned on `gsd/phase-57.9-hook-closeout-substrate-inserted`
-Plan: 0 of 4 executed (4 plans ready across 3 waves)
-Status: Ready to execute
+Phase: 57.9 of 64 — Executing on `gsd/phase-57.9-hook-closeout-substrate-inserted`
+Plan: 1 of 4 complete
+Status: Executing Phase 57.9
 
 ### Recent Phases
 
 - Phase 60 (Sensor Pipeline & Codex Parity) — verified 2026-04-21; log-sensor normalization, patch classification, post-install parity reporting, and XRT-02 validation are now live in source
 - Phase 59.1 (Drop Gemini and OpenCode from installer scope) — complete via commits `c9080b2a`, `02d0e194`, and `a3fb0b9e`; installer/runtime authority is now Claude/Codex-only
 
-Last activity: 2026-04-22 -- Phase 57.9 planning complete
+Last activity: 2026-04-22 -- Phase 57.9 Plan 01 complete
 
 Progress: [██████████] 96%
 
@@ -454,8 +454,8 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-04-22T00:42:24.592Z
-Stopped at: Phase 57.9 planned
-Resume artifact: `.planning/phases/57.9-hook-closeout-substrate-inserted/57.9-01-PLAN.md`
+Stopped at: Phase 57.9 Plan 01 complete
+Resume artifact: `.planning/phases/57.9-hook-closeout-substrate-inserted/57.9-02-PLAN.md`
 
 This session (2026-04-21):
 
@@ -466,3 +466,4 @@ This session (2026-04-21):
 - Ran the phase verifier and produced `60-VERIFICATION.md`; verification passed at `6/6` must-haves with no blocking gaps.
 - Reframed Phase 57.9 as a strict substrate-closure phase, gathered and context-checked the updated phase context, and preserved the explicit defer boundary between substrate work here and later live incident wiring.
 - Researched the current Claude/Codex hook surfaces and wrote four execution plans across three waves covering installer groundwork, `session_meta_postlude`, Codex hook-or-waiver wiring, and capability/verifier alignment.
+- Completed Phase 57.9 Plan 01: shared closeout-hook vocabulary now centers on `Stop`, Codex hook support resolution reads project and global config evidence, and the new install tests lock the mixed-scope ambiguity edge cases.
