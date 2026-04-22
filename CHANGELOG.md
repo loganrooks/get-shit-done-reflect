@@ -6,6 +6,14 @@ For upstream GSD changelog, see [GSD Changelog](https://github.com/glittercowboy
 
 ## [Unreleased]
 
+## [1.19.10] - 2026-04-22
+
+### Added
+- Phase 57.9 hook-and-closeout substrate shipping wave: Claude closeout hook install wiring, Codex hook-or-waiver behavior, canonical `session_meta_postlude` records, and the aligned verifier/reference surface that closes the deferred substrate gap.
+
+### Fixed
+- Installed runtime `gsd-tools` commands no longer crash when automation loads without a source-repo `bin/install.js`; runtime mirrors now degrade safely instead of hard-failing on KB verbs and related automation entry points.
+
 ## [1.19.9] - 2026-04-21
 
 ### Added
